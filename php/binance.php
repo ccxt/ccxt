@@ -1002,7 +1002,7 @@ class binance extends \ccxt\binance {
         // spot
         //
         //     {
-        //         "e" => "executionReport",        // Event type
+        //         "$e" => "executionReport",        // Event type
         //         "E" => 1499405658658,            // Event time
         //         "s" => "ETHBTC",                 // Symbol
         //         "c" => "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
@@ -1039,7 +1039,7 @@ class binance extends \ccxt\binance {
         // future
         //
         //     {
-        //         "e":"ORDER_TRADE_UPDATE",           // Event Type
+        //         "$e":"ORDER_TRADE_UPDATE",           // Event Type
         //         "E":1568879465651,                  // Event Time
         //         "T":1568879465650,                  // Trasaction Time
         //         "o" => {
@@ -1079,7 +1079,10 @@ class binance extends \ccxt\binance {
         //         }
         //     }
         //
-        $message = $this->safe_value($message, 'o', $message);
+        $e = $this->safe_string($message, 'e');
+        if ($e === 'ORDER_TRADE_UPDATE') {
+            $message = $this->safe_value($message, 'o', $message);
+        }
         $this->handle_my_trade($client, $message);
         $this->handle_order($client, $message);
     }

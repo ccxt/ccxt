@@ -1010,7 +1010,9 @@ class binance(Exchange, ccxt.binance):
         #         }
         #     }
         #
-        message = self.safe_value(message, 'o', message)
+        e = self.safe_string(message, 'e')
+        if e == 'ORDER_TRADE_UPDATE':
+            message = self.safe_value(message, 'o', message)
         self.handle_my_trade(client, message)
         self.handle_order(client, message)
 
