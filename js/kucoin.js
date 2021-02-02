@@ -930,7 +930,7 @@ module.exports = class kucoin extends Exchange {
         // otherwise a wrong endpoint for all orders will be triggered
         // https://github.com/ccxt/ccxt/issues/7234
         if (id === undefined) {
-            throw new InvalidOrder (this.id + ' fetchOrder requires an order id');
+            throw new InvalidOrder (this.id + ' fetchOrder() requires an order id');
         }
         const request = {
             'orderId': id,
@@ -1608,7 +1608,7 @@ module.exports = class kucoin extends Exchange {
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchLedger requires a code param');
+            throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code param');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
