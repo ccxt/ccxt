@@ -729,7 +729,7 @@ class liquid extends Exchange {
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder requires the $price argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires the $price argument');
         }
         $request = array(
             'order' => array(

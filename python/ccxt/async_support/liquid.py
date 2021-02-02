@@ -692,7 +692,7 @@ class liquid(Exchange):
     async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         if price is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires the price argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires the price argument')
         request = {
             'order': {
                 'quantity': self.amount_to_precision(symbol, amount),
