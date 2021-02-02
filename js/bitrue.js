@@ -348,21 +348,20 @@ module.exports = class bitrue extends Exchange {
         return this.parseBalance (result);
     }
 
-    async createOrder (symbol, side, amount, orderType = 'LIMIT', price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'side': side,
-            'type': orderType,
+            'side': side.toUpperCase (),
+            'type': type.toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        if (orderType === 'LIMIT') {
+        if (type.toUpperCase () === 'LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = this.privatePostOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
-        return this.parseOrder (data, market);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
