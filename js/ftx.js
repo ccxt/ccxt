@@ -1667,12 +1667,12 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         //     {
-        //         'coin': 'USD',
-        //         'id': '503722',
-        //         'notes': 'Transfer',
-        //         'size': '3.35',
-        //         'status': 'complete',
-        //         'time': '2020-10-06T03:20:34.201556+00:00',
+        //         "coin": 'BTC',
+        //         "id": 1969806,
+        //         "notes": 'Transfer to Dd6gi7m2Eg4zzBbPAxuwfEaHs6tYvyUX5hbPpsTcNPXo',
+        //         "size": 0.003,
+        //         "status": 'complete',
+        //         "time": '2021-02-03T20:28:54.918146+00:00'
         //     }
         //
         const code = this.safeCurrencyCode (this.safeString (transaction, 'coin'));
@@ -1686,6 +1686,13 @@ module.exports = class ftx extends Exchange {
         if (typeof address !== 'string') {
             tag = this.safeString (address, 'tag');
             address = this.safeString (address, 'address');
+        }
+        if (address === undefined) {
+            // parse address from internal transfer
+            const notes = this.safeString (transaction, 'notes');
+            if (notes !== undefined) {
+                address = notes.slice (12);
+            }
         }
         const fee = this.safeFloat (transaction, 'fee');
         return {
