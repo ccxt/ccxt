@@ -1217,7 +1217,7 @@ module.exports = class binance extends Exchange {
         // the reality is that the time range wider than 500 candles won't work right
         const defaultLimit = 500;
         const maxLimit = 1500;
-        limit = (limit === undefined) ? defaultLimit : Math.max (limit, maxLimit);
+        limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request = {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
