@@ -1198,7 +1198,7 @@ class binance(Exchange):
         # the reality is that the time range wider than 500 candles won't work right
         defaultLimit = 500
         maxLimit = 1500
-        limit = defaultLimit if (limit is None) else max(limit, maxLimit)
+        limit = defaultLimit if (limit is None) else min(limit, maxLimit)
         request = {
             'symbol': market['id'],
             'interval': self.timeframes[timeframe],

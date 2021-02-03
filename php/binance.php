@@ -1224,7 +1224,7 @@ class binance extends Exchange {
         // the reality is that the time range wider than 500 candles won't work right
         $defaultLimit = 500;
         $maxLimit = 1500;
-        $limit = ($limit === null) ? $defaultLimit : max ($limit, $maxLimit);
+        $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
         $request = array(
             'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
