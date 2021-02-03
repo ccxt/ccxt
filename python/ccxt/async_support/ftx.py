@@ -1604,12 +1604,12 @@ class ftx(Exchange):
         #     }
         #
         #     {
-        #         'coin': 'USD',
-        #         'id': '503722',
-        #         'notes': 'Transfer',
-        #         'size': '3.35',
-        #         'status': 'complete',
-        #         'time': '2020-10-06T03:20:34.201556+00:00',
+        #         "coin": 'BTC',
+        #         "id": 1969806,
+        #         "notes": 'Transfer to Dd6gi7m2Eg4zzBbPAxuwfEaHs6tYvyUX5hbPpsTcNPXo',
+        #         "size": 0.003,
+        #         "status": 'complete',
+        #         "time": '2021-02-03T20:28:54.918146+00:00'
         #     }
         #
         code = self.safe_currency_code(self.safe_string(transaction, 'coin'))
@@ -1623,6 +1623,11 @@ class ftx(Exchange):
         if not isinstance(address, basestring):
             tag = self.safe_string(address, 'tag')
             address = self.safe_string(address, 'address')
+        if address is None:
+            # parse address from internal transfer
+            notes = self.safe_string(transaction, 'notes')
+            if notes is not None:
+                address = notes[12:]
         fee = self.safe_float(transaction, 'fee')
         return {
             'info': transaction,
