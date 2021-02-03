@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
 use \ccxt\DDoSProtection;
@@ -1224,7 +1223,7 @@ class binance extends Exchange {
         // the reality is that the time range wider than 500 candles won't work right
         $defaultLimit = 500;
         $maxLimit = 1500;
-        $limit = ($limit === null) ? $defaultLimit : max ($limit, $maxLimit);
+        $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
         $request = array(
             'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
@@ -2369,15 +2368,27 @@ class binance extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'asset' => $currency['id'],
+            'coin' => $currency['id'],
+            // 'network' => 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the $response of sapiGetCapitalConfigDetail
         );
-        $response = $this->wapiGetDepositAddress (array_merge($request, $params));
-        $success = $this->safe_value($response, 'success');
-        if (($success === null) || !$success) {
-            throw new InvalidAddress($this->id . ' fetchDepositAddress returned an empty $response – create the deposit $address in the user settings first.');
-        }
+        // has support for the 'network' parameter
+        // https://binance-docs.github.io/apidocs/spot/en/#deposit-$address-supporting-network-user_data
+        $response = $this->sapiGetCapitalDepositAddress (array_merge($request, $params));
+        //
+        //     {
+        //         $currency => 'XRP',
+        //         $address => 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
+        //         $tag => '108618262',
+        //         info => {
+        //             coin => 'XRP',
+        //             $address => 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
+        //             $tag => '108618262',
+        //             url => 'https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh'
+        //         }
+        //     }
+        //
         $address = $this->safe_string($response, 'address');
-        $tag = $this->safe_string($response, 'addressTag');
+        $tag = $this->safe_string($response, 'tag');
         $this->check_address($address);
         return array(
             'currency' => $code,

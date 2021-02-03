@@ -1669,12 +1669,12 @@ class ftx extends Exchange {
         //     }
         //
         //     {
-        //         'coin' => 'USD',
-        //         'id' => '503722',
-        //         'notes' => 'Transfer',
-        //         'size' => '3.35',
-        //         'status' => 'complete',
-        //         'time' => '2020-10-06T03:20:34.201556+00:00',
+        //         "coin" => 'BTC',
+        //         "$id" => 1969806,
+        //         "$notes" => 'Transfer to Dd6gi7m2Eg4zzBbPAxuwfEaHs6tYvyUX5hbPpsTcNPXo',
+        //         "size" => 0.003,
+        //         "$status" => 'complete',
+        //         "time" => '2021-02-03T20:28:54.918146+00:00'
         //     }
         //
         $code = $this->safe_currency_code($this->safe_string($transaction, 'coin'));
@@ -1688,6 +1688,13 @@ class ftx extends Exchange {
         if (gettype($address) !== 'string') {
             $tag = $this->safe_string($address, 'tag');
             $address = $this->safe_string($address, 'address');
+        }
+        if ($address === null) {
+            // parse $address from internal transfer
+            $notes = $this->safe_string($transaction, 'notes');
+            if ($notes !== null) {
+                $address = mb_substr($notes, 12);
+            }
         }
         $fee = $this->safe_float($transaction, 'fee');
         return array(
