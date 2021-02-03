@@ -231,6 +231,7 @@ module.exports = class ftx extends Exchange {
                     'Order already queued for cancellation': CancelPending, // {"error":"Order already queued for cancellation","success":false}
                 },
                 'broad': {
+                    'Please slow down': RateLimitExceeded,
                     'Account does not have enough margin for order': InsufficientFunds,
                     'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
