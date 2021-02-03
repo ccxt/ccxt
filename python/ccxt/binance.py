@@ -14,7 +14,6 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
-from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
@@ -2238,14 +2237,27 @@ class binance(Exchange):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'asset': currency['id'],
+            'coin': currency['id'],
+            # 'network': 'ETH',  # 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         }
-        response = self.wapiGetDepositAddress(self.extend(request, params))
-        success = self.safe_value(response, 'success')
-        if (success is None) or not success:
-            raise InvalidAddress(self.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.')
+        # has support for the 'network' parameter
+        # https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
+        response = self.sapiGetCapitalDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         currency: 'XRP',
+        #         address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
+        #         tag: '108618262',
+        #         info: {
+        #             coin: 'XRP',
+        #             address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
+        #             tag: '108618262',
+        #             url: 'https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh'
+        #         }
+        #     }
+        #
         address = self.safe_string(response, 'address')
-        tag = self.safe_string(response, 'addressTag')
+        tag = self.safe_string(response, 'tag')
         self.check_address(address)
         return {
             'currency': code,
