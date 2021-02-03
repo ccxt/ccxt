@@ -2363,19 +2363,24 @@ module.exports = class binance extends Exchange {
         const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
-            'timestamp': this.nonce (),
+            // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
         const response = await this.sapiGetCapitalDepositAddress (this.extend (request, params));
-        // { currency: 'XRP',
-        //   address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
-        //   tag: '108618262',
-        //   info:
-        //    { coin: 'XRP',
-        //      address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
-        //      tag: '108618262',
-        //      url: 'https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh' } }
+        //
+        //     {
+        //         currency: 'XRP',
+        //         address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
+        //         tag: '108618262',
+        //         info: {
+        //             coin: 'XRP',
+        //             address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
+        //             tag: '108618262',
+        //             url: 'https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh'
+        //         }
+        //     }
+        //
         const address = this.safeString (response, 'address');
         const tag = this.safeString (response, 'tag');
         this.checkAddress (address);
