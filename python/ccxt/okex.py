@@ -558,7 +558,7 @@ class okex(Exchange):
                     '34021': InvalidAddress,  # {"code": 34021, "message": "Not verified address"}
                     '34022': ExchangeError,  # {"code": 34022, "message": "Withdrawals are not available for sub accounts"}
                     '34023': PermissionDenied,  # {"code": 34023, "message": "Please enable futures trading before transferring your funds"}
-                    '34026': ExchangeError,  # transfer too frequently(transfer too frequently)
+                    '34026': RateLimitExceeded,  # transfer too frequently(transfer too frequently)
                     '34036': ExchangeError,  # Parameter is incorrect, please refer to API documentation
                     '34037': ExchangeError,  # Get the sub-account balance interface, account type is not supported
                     '34038': ExchangeError,  # Since your C2C transaction is unusual, you are restricted from fund transfer. Please contact our customer support to cancel the restriction
