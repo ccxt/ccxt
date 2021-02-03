@@ -186,6 +186,14 @@ module.exports = class binance extends Exchange {
                         'blvt/subscribe/record',
                         'blvt/redeem/record',
                         'blvt/userLimit',
+                        // broker api
+                        'apiReferral/ifNewUser',
+                        'apiReferral/customization',
+                        'apiReferral/userCustomization',
+                        'apiReferral/rebate/recentRecord',
+                        'apiReferral/rebate/historicalRecord',
+                        'apiReferral/kickback/recentRecord',
+                        'apiReferral/kickback/historicalRecord',
                     ],
                     'post': [
                         'asset/dust',
@@ -225,6 +233,11 @@ module.exports = class binance extends Exchange {
                         // leveraged token endpoints
                         'blvt/subscribe',
                         'blvt/redeem',
+                        // broker api
+                        'apiReferral/customization',
+                        'apiReferral/userCustomization',
+                        'apiReferral/rebate/historicalRecord',
+                        'apiReferral/kickback/historicalRecord',
                     ],
                     'put': [
                         'userDataStream',
@@ -370,6 +383,16 @@ module.exports = class binance extends Exchange {
                         'positionSide/dual',
                         'userTrades',
                         'income',
+                        // broker endpoints
+                        'apiReferral/ifNewUser',
+                        'apiReferral/customization',
+                        'apiReferral/userCustomization',
+                        'income',
+                        'apiReferral/traderNum',
+                        'apiReferral/overview',
+                        'apiReferral/tradeVol',
+                        'apiReferral/rebateVol',
+                        'apiReferral/traderSummary',
                     ],
                     'post': [
                         'batchOrders',
@@ -380,6 +403,9 @@ module.exports = class binance extends Exchange {
                         'leverage',
                         'listenKey',
                         'countdownCancelAll',
+                        // broker endpoints
+                        'apiReferral/customization',
+                        'apiReferral/userCustomization',
                     ],
                     'put': [
                         'listenKey',
