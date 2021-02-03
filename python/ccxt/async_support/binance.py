@@ -1197,7 +1197,8 @@ class binance(Exchange):
         # binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         # the reality is that the time range wider than 500 candles won't work right
         defaultLimit = 500
-        limit = defaultLimit if (limit is None) else min(defaultLimit, limit)
+        maxLimit = 1500
+        limit = defaultLimit if (limit is None) else max(limit, maxLimit)
         request = {
             'symbol': market['id'],
             'interval': self.timeframes[timeframe],

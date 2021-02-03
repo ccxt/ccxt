@@ -1223,7 +1223,8 @@ class binance extends Exchange {
         // binance docs say that the default $limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
         $defaultLimit = 500;
-        $limit = ($limit === null) ? $defaultLimit : min ($defaultLimit, $limit);
+        $maxLimit = 1500;
+        $limit = ($limit === null) ? $defaultLimit : max ($limit, $maxLimit);
         $request = array(
             'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
