@@ -69,6 +69,7 @@ class Exchange {
         'bibox',
         'bigone',
         'binance',
+        'binance2',
         'binanceus',
         'bit2c',
         'bitbank',
@@ -290,6 +291,10 @@ class Exchange {
             return $integer . $decimal;
         }
         return sprintf('%d', floatval($number));
+    }
+
+    public static function uuid22($length = 22) {
+        return bin2hex(random_bytes(intval($length / 2)));
     }
 
     public static function uuid() {
