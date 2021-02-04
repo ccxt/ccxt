@@ -210,7 +210,7 @@ module.exports = class bitbank extends Exchange {
         const feeCost = this.safeFloat (trade, 'fee_amount_quote');
         if (feeCost !== undefined) {
             fee = {
-                'currency': market['quote'],
+                'currency': feeCurrency,
                 'cost': feeCost,
             };
         }
