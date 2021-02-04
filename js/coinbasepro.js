@@ -524,12 +524,20 @@ module.exports = class coinbasepro extends Exchange {
         //         trade_id: 82047307,
         //         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
         //         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
+        //         order_id: 'd50ec984-77a8-460a-b958-66f114b0de9b',
         //         side: 'sell',
         //         size: '0.00513192',
         //         price: '9314.78',
         //         product_id: 'BTC-USD',
+        //         profile_id: '6244401d-c078-40d9-b305-7ad3551bc3b0',
         //         sequence: 12038915443,
         //         time: '2020-01-31T20:03:41.158814Z'
+        //         created_at: '2014-11-07T22:19:28.578544Z',
+        //         liquidity: 'T',
+        //         fee: '0.00025',
+        //         settled: true,
+        //         usd_volume: '0.0924556000000000',
+        //         user_id: '595eb864313c2b02ddf2937d'
         //     }
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'created_at'));
@@ -538,10 +546,15 @@ module.exports = class coinbasepro extends Exchange {
         let feeRate = undefined;
         let feeCurrency = undefined;
         let takerOrMaker = undefined;
+        let cost = undefined;
         if (market !== undefined) {
+            const feeCurrencyId = this.safeStringLower (market, 'quoteId');
+            const costField = feeCurrencyId + '_value';
+            cost = this.safeFloat (trade, costField);
             feeCurrency = market['quote'];
-            if ('liquidity' in trade) {
-                takerOrMaker = (trade['liquidity'] === 'T') ? 'taker' : 'maker';
+            const liquidity = this.safeString (trade, 'liquidity');
+            if (liquidity !== undefined) {
+                takerOrMaker = (liquidity === 'T') ? 'taker' : 'maker';
                 feeRate = market[takerOrMaker];
             }
         }
@@ -561,6 +574,9 @@ module.exports = class coinbasepro extends Exchange {
         }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'size');
+        if (cost === undefined) {
+            cost = amount * price;
+        }
         return {
             'id': id,
             'order': orderId,
@@ -574,7 +590,7 @@ module.exports = class coinbasepro extends Exchange {
             'price': price,
             'amount': amount,
             'fee': fee,
-            'cost': price * amount,
+            'cost': cost,
         };
     }
 
