@@ -95,6 +95,7 @@ class bitbank extends Exchange {
                 'ETH/JPY' => array( 'id' => 'eth_jpy', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy' ),
                 'LTC/JPY' => array( 'id' => 'ltc_jpy', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy' ),
                 'XRP/BTC' => array( 'id' => 'xrp_btc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'baseId' => 'xrp', 'quoteId' => 'btc' ),
+                'XLM/BTC' => array( 'id' => 'xlm_btc', 'symbol' => 'XLM/BTC', 'base' => 'XLM', 'quote' => 'BTC', 'baseId' => 'xlm', 'quoteId' => 'btc' ),
             ),
             'fees' => array(
                 'trading' => array(
@@ -212,8 +213,8 @@ class bitbank extends Exchange {
         $feeCost = $this->safe_float($trade, 'fee_amount_quote');
         if ($feeCost !== null) {
             $fee = array(
-                'currency' => $market['quote'],
-                'cost' => $feeCurrency,
+                'currency' => $feeCurrency,
+                'cost' => $feeCost,
             );
         }
         $orderId = $this->safe_string($trade, 'order_id');
