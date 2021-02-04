@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.41.58';
+$version = '1.41.59';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.41.58';
+    const VERSION = '1.41.59';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -69,7 +69,6 @@ class Exchange {
         'bibox',
         'bigone',
         'binance',
-        'binance2',
         'binanceus',
         'bit2c',
         'bitbank',
