@@ -87,9 +87,9 @@ class tprexchange extends Exchange {
                     'post' => array(
                         'uc/api-login',
                         'exchange/order/add',
-                        'exchange/detail/detail/{id}',
-                        'exchange/order/history',
-                        'exchange/order/cancel/{id}',
+                        'exchange/order/find',
+                        'exchange/order/all',
+                        'exchange/order/apicancel',
                     ),
                     'delete' => array(
                     ),
@@ -207,46 +207,72 @@ class tprexchange extends Exchange {
             'token' => $this->token,
         );
         $response = $this->privatePostUcApiLogin ($params);
-        $authToken = $this->safe_string($response, 'message');
-        $this->options['token'] = $authToken;
-        return $authToken;
+        $loginData = $response['data'];
+        $this->options['token'] = $this->safe_string($loginData, 'token');
+        $memberId = $this->safe_string($loginData, 'id');
+        return $memberId;
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $request = array(
-            'id' => $id,
+            'orderId' => $id,
         );
-        $response = $this->privateGetUcOrdersId (array_merge($request, $params));
+        $response = $this->privatePostExchangeOrderFind ($request);
         return $this->parse_order($response);
     }
 
     public function parse_order($order, $market = null) {
-        //
-        //      {
-        //          "data" => "ORDER ID"
-        //      }
-        //
-        $id = $this->safe_string($order, 'data');
+        // array(
+        //   'orderId':'E161183624377614',
+        //   'memberId':2,
+        //   'type':'LIMIT_PRICE',
+        //   'amount':1000.0,
+        //   'symbol':'BCH/USDT',
+        //   'tradedAmount':1000.0,
+        //   'turnover':1080.0,
+        //   'coinSymbol':'BCH',
+        //   'baseSymbol':'USDT',
+        //   'status':'COMPLETED',
+        //   'direction':'SELL',
+        //   'price':1.0,
+        //   'time':1611836243776,
+        //   'completedTime':1611836256242,
+        // ),
+        $type = 'market';
+        if ($order['type'] === 'LIMIT_PRICE') {
+            $type = 'limit';
+        }
+        $side = strtolower($order['direction']);
+        $remaining = $order['amount'] - $order['tradedAmount'];
+        $status = $order['status'];
+        if ($status === 'COMPLETED') {
+            $status = 'closed';
+        } else if ($status === 'TRADING') {
+            $status = 'open';
+        } else {
+            $status = 'canceled';
+        }
+        $cost = $order['tradedAmount'] * $order['price'];
         $result = array(
             'info' => $order,
-            'id' => $id,
-            'clientOrderId' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'id' => $order['orderId'],
+            'clientOrderId' => $order['memberId'],
+            'timestamp' => $order['time'],
+            'datetime' => $this->iso8601($order['time']),
             'lastTradeTimestamp' => null,
-            'symbol' => null,
-            'type' => null,
+            'symbol' => $order['symbol'],
+            'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => null,
-            'price' => null,
+            'side' => $side,
+            'price' => $order['price'],
             'stopPrice' => null,
-            'cost' => null,
+            'cost' => $cost,
             'average' => null,
-            'amount' => null,
-            'filled' => null,
-            'remaining' => null,
-            'status' => null,
+            'amount' => $order['amount'],
+            'filled' => $order['tradedAmount'],
+            'remaining' => $remaining,
+            'status' => $status,
             'fee' => null,
             'trades' => null,
         );
@@ -269,14 +295,79 @@ class tprexchange extends Exchange {
         }
         $params['useDiscount'] = '0';
         $response = $this->privatePostExchangeOrderAdd ($params);
-        return $this->parse_order($response);
+        $orderId = $this->safe_string($response, 'data');
+        return $this->fetch_order($orderId);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
-            'id' => $id,
+            'orderId' => $id,
         );
-        return $this->privateDeleteOrdersId (array_merge($request, $params));
+        $response = $this->privatePostExchangeOrderApicancel (array_merge($request, $params));
+        return $this->parse_order($response['data']);
+    }
+
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        // Request structure
+        // {
+        //   'symbol' => Parameter from method arguments
+        //   'since' => Timestamp of first order in list in Unix epoch format
+        //   'limit' => Response list size
+        //   'memberId' => May be set in $params-> May be not set
+        //   'status' => one of TRADING COMPLETED CANCELED OVERTIMED. May be set in $params
+        //   'page' => for pagination. In this case $limit is size of every page. May be set in $params
+        // }
+        if (is_array($params) && array_key_exists('page', $params)) {
+            $params['pageNo'] = $this->safe_string($params, 'page');
+        } else {
+            $params['pageNo'] = 1;
+        }
+        $request = array(
+            'symbol' => $symbol,
+            'since' => $since,
+            'pageSize' => $limit,
+        );
+        $fullRequest = array_merge($request, $params);
+        $response = $this->privatePostExchangeOrderAll ($fullRequest);
+        // {
+        //     'content' => array(
+        //         array(
+        //             'orderId':'E161183624377614',
+        //             'memberId':2,
+        //             'type':'LIMIT_PRICE',
+        //             'amount':1000.0,
+        //             'symbol':'BCH/USDT',
+        //             'tradedAmount':1000.0,
+        //             'turnover':1080.0,
+        //             'coinSymbol':'BCH',
+        //             'baseSymbol':'USDT',
+        //             'status':'COMPLETED',
+        //             'direction':'SELL',
+        //             'price':1.0,
+        //             'time':1611836243776,
+        //             'completedTime':1611836256242,
+        //         ),
+        //         ...
+        //     ),
+        //     'totalElements':41,
+        //     'totalPages':3,
+        //     'last':False,
+        //     'size':20,
+        //     'number':1,
+        //     'first':False,
+        //     'numberOfElements':20,
+        //     'sort' => array(
+        //         {
+        //             'direction':'DESC',
+        //             'property':'time',
+        //             'ignoreCase':False,
+        //             'nullHandling':'NATIVE',
+        //             'ascending':False,
+        //             'descending':True,
+        //         }
+        //     )
+        // }
+        return $this->parse_orders($response['content']);
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
@@ -284,7 +375,13 @@ class tprexchange extends Exchange {
             return; // fallback to default error handler
         }
         if ($httpCode === 200) {
-            return;
+            if (is_array($response) && array_key_exists('code', $response)) {
+                if ($response['code'] === 0) {
+                    return;
+                }
+            } else {
+                return;
+            }
         }
         // {
         //     "$message" => "Error text in case when HTTP code is not 200",

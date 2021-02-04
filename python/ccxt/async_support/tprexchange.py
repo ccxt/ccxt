@@ -90,9 +90,9 @@ class tprexchange(Exchange):
                     'post': [
                         'uc/api-login',
                         'exchange/order/add',
-                        'exchange/detail/detail/{id}',
-                        'exchange/order/history',
-                        'exchange/order/cancel/{id}',
+                        'exchange/order/find',
+                        'exchange/order/all',
+                        'exchange/order/apicancel',
                     ],
                     'delete': [
                     ],
@@ -199,44 +199,68 @@ class tprexchange(Exchange):
             'token': self.token,
         }
         response = await self.privatePostUcApiLogin(params)
-        authToken = self.safe_string(response, 'message')
-        self.options['token'] = authToken
-        return authToken
+        loginData = response['data']
+        self.options['token'] = self.safe_string(loginData, 'token')
+        memberId = self.safe_string(loginData, 'id')
+        return memberId
 
     async def fetch_order(self, id, symbol=None, params={}):
         request = {
-            'id': id,
+            'orderId': id,
         }
-        response = await self.privateGetUcOrdersId(self.extend(request, params))
+        response = await self.privatePostExchangeOrderFind(request)
         return self.parse_order(response)
 
     async def parse_order(self, order, market=None):
-        #
-        #      {
-        #          "data": "ORDER ID"
-        #      }
-        #
-        id = self.safe_string(order, 'data')
+        # {
+        #   'orderId':'E161183624377614',
+        #   'memberId':2,
+        #   'type':'LIMIT_PRICE',
+        #   'amount':1000.0,
+        #   'symbol':'BCH/USDT',
+        #   'tradedAmount':1000.0,
+        #   'turnover':1080.0,
+        #   'coinSymbol':'BCH',
+        #   'baseSymbol':'USDT',
+        #   'status':'COMPLETED',
+        #   'direction':'SELL',
+        #   'price':1.0,
+        #   'time':1611836243776,
+        #   'completedTime':1611836256242,
+        # },
+        type = 'market'
+        if order['type'] == 'LIMIT_PRICE':
+            type = 'limit'
+        side = order['direction'].lower()
+        remaining = order['amount'] - order['tradedAmount']
+        status = order['status']
+        if status == 'COMPLETED':
+            status = 'closed'
+        elif status == 'TRADING':
+            status = 'open'
+        else:
+            status = 'canceled'
+        cost = order['tradedAmount'] * order['price']
         result = {
             'info': order,
-            'id': id,
-            'clientOrderId': None,
-            'timestamp': None,
-            'datetime': None,
+            'id': order['orderId'],
+            'clientOrderId': order['memberId'],
+            'timestamp': order['time'],
+            'datetime': self.iso8601(order['time']),
             'lastTradeTimestamp': None,
-            'symbol': None,
-            'type': None,
+            'symbol': order['symbol'],
+            'type': type,
             'timeInForce': None,
             'postOnly': None,
-            'side': None,
-            'price': None,
+            'side': side,
+            'price': order['price'],
             'stopPrice': None,
-            'cost': None,
+            'cost': cost,
             'average': None,
-            'amount': None,
-            'filled': None,
-            'remaining': None,
-            'status': None,
+            'amount': order['amount'],
+            'filled': order['tradedAmount'],
+            'remaining': remaining,
+            'status': status,
             'fee': None,
             'trades': None,
         }
@@ -256,19 +280,86 @@ class tprexchange(Exchange):
             params['type'] = 'LIMIT_PRICE'
         params['useDiscount'] = '0'
         response = await self.privatePostExchangeOrderAdd(params)
-        return self.parse_order(response)
+        orderId = self.safe_string(response, 'data')
+        return await self.fetch_order(orderId)
 
     async def cancel_order(self, id, symbol=None, params={}):
         request = {
-            'id': id,
+            'orderId': id,
         }
-        return await self.privateDeleteOrdersId(self.extend(request, params))
+        response = await self.privatePostExchangeOrderApicancel(self.extend(request, params))
+        return await self.parse_order(response['data'])
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        # Request structure
+        # {
+        #   'symbol': Parameter from method arguments
+        #   'since': Timestamp of first order in list in Unix epoch format
+        #   'limit': Response list size
+        #   'memberId': May be set in params. May be not set
+        #   'status': one of TRADING COMPLETED CANCELED OVERTIMED. May be set in params
+        #   'page': for pagination. In self case limit is size of every page. May be set in params
+        # }
+        if 'page' in params:
+            params['pageNo'] = self.safe_string(params, 'page')
+        else:
+            params['pageNo'] = 1
+        request = {
+            'symbol': symbol,
+            'since': since,
+            'pageSize': limit,
+        }
+        fullRequest = self.extend(request, params)
+        response = self.privatePostExchangeOrderAll(fullRequest)
+        # {
+        #     'content': [
+        #         {
+        #             'orderId':'E161183624377614',
+        #             'memberId':2,
+        #             'type':'LIMIT_PRICE',
+        #             'amount':1000.0,
+        #             'symbol':'BCH/USDT',
+        #             'tradedAmount':1000.0,
+        #             'turnover':1080.0,
+        #             'coinSymbol':'BCH',
+        #             'baseSymbol':'USDT',
+        #             'status':'COMPLETED',
+        #             'direction':'SELL',
+        #             'price':1.0,
+        #             'time':1611836243776,
+        #             'completedTime':1611836256242,
+        #         },
+        #         ...
+        #     ],
+        #     'totalElements':41,
+        #     'totalPages':3,
+        #     'last':False,
+        #     'size':20,
+        #     'number':1,
+        #     'first':False,
+        #     'numberOfElements':20,
+        #     'sort': [
+        #         {
+        #             'direction':'DESC',
+        #             'property':'time',
+        #             'ignoreCase':False,
+        #             'nullHandling':'NATIVE',
+        #             'ascending':False,
+        #             'descending':True,
+        #         }
+        #     ]
+        # }
+        return self.parse_orders(response['content'])
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if httpCode == 200:
-            return
+            if 'code' in response:
+                if response['code'] == 0:
+                    return
+            else:
+                return
         # {
         #     "message": "Error text in case when HTTP code is not 200",
         #     ...

@@ -86,9 +86,9 @@ module.exports = class tprexchange extends Exchange {
                     'post': [
                         'uc/api-login',
                         'exchange/order/add',
-                        'exchange/detail/detail/{id}',
-                        'exchange/order/history',
-                        'exchange/order/cancel/{id}',
+                        'exchange/order/find',
+                        'exchange/order/all',
+                        'exchange/order/apicancel',
                     ],
                     'delete': [
                     ],
@@ -206,46 +206,72 @@ module.exports = class tprexchange extends Exchange {
             'token': this.token,
         };
         const response = await this.privatePostUcApiLogin (params);
-        const authToken = this.safeString (response, 'message');
-        this.options['token'] = authToken;
-        return authToken;
+        const loginData = response['data'];
+        this.options['token'] = this.safeString (loginData, 'token');
+        const memberId = this.safeString (loginData, 'id');
+        return memberId;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         const request = {
-            'id': id,
+            'orderId': id,
         };
-        const response = await this.privateGetUcOrdersId (this.extend (request, params));
+        const response = await this.privatePostExchangeOrderFind (request);
         return this.parseOrder (response);
     }
 
     async parseOrder (order, market = undefined) {
-        //
-        //      {
-        //          "data": "ORDER ID"
-        //      }
-        //
-        const id = this.safeString (order, 'data');
+        // {
+        //   'orderId':'E161183624377614',
+        //   'memberId':2,
+        //   'type':'LIMIT_PRICE',
+        //   'amount':1000.0,
+        //   'symbol':'BCH/USDT',
+        //   'tradedAmount':1000.0,
+        //   'turnover':1080.0,
+        //   'coinSymbol':'BCH',
+        //   'baseSymbol':'USDT',
+        //   'status':'COMPLETED',
+        //   'direction':'SELL',
+        //   'price':1.0,
+        //   'time':1611836243776,
+        //   'completedTime':1611836256242,
+        // },
+        let type = 'market';
+        if (order['type'] === 'LIMIT_PRICE') {
+            type = 'limit';
+        }
+        const side = order['direction'].toLowerCase ();
+        const remaining = order['amount'] - order['tradedAmount'];
+        let status = order['status'];
+        if (status === 'COMPLETED') {
+            status = 'closed';
+        } else if (status === 'TRADING') {
+            status = 'open';
+        } else {
+            status = 'canceled';
+        }
+        const cost = order['tradedAmount'] * order['price'];
         const result = {
             'info': order,
-            'id': id,
-            'clientOrderId': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'id': order['orderId'],
+            'clientOrderId': order['memberId'],
+            'timestamp': order['time'],
+            'datetime': this.iso8601 (order['time']),
             'lastTradeTimestamp': undefined,
-            'symbol': undefined,
-            'type': undefined,
+            'symbol': order['symbol'],
+            'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': undefined,
-            'price': undefined,
+            'side': side,
+            'price': order['price'],
             'stopPrice': undefined,
-            'cost': undefined,
+            'cost': cost,
             'average': undefined,
-            'amount': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'status': undefined,
+            'amount': order['amount'],
+            'filled': order['tradedAmount'],
+            'remaining': remaining,
+            'status': status,
             'fee': undefined,
             'trades': undefined,
         };
@@ -268,14 +294,79 @@ module.exports = class tprexchange extends Exchange {
         }
         params['useDiscount'] = '0';
         const response = await this.privatePostExchangeOrderAdd (params);
-        return this.parseOrder (response);
+        const orderId = this.safeString (response, 'data');
+        return await this.fetchOrder (orderId);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         const request = {
-            'id': id,
+            'orderId': id,
         };
-        return await this.privateDeleteOrdersId (this.extend (request, params));
+        const response = await this.privatePostExchangeOrderApicancel (this.extend (request, params));
+        return await this.parseOrder (response['data']);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // Request structure
+        // {
+        //   'symbol': Parameter from method arguments
+        //   'since': Timestamp of first order in list in Unix epoch format
+        //   'limit': Response list size
+        //   'memberId': May be set in params. May be not set
+        //   'status': one of TRADING COMPLETED CANCELED OVERTIMED. May be set in params
+        //   'page': for pagination. In this case limit is size of every page. May be set in params
+        // }
+        if ('page' in params) {
+            params['pageNo'] = this.safeString (params, 'page');
+        } else {
+            params['pageNo'] = 1;
+        }
+        const request = {
+            'symbol': symbol,
+            'since': since,
+            'pageSize': limit,
+        };
+        const fullRequest = this.extend (request, params);
+        const response = this.privatePostExchangeOrderAll (fullRequest);
+        // {
+        //     'content': [
+        //         {
+        //             'orderId':'E161183624377614',
+        //             'memberId':2,
+        //             'type':'LIMIT_PRICE',
+        //             'amount':1000.0,
+        //             'symbol':'BCH/USDT',
+        //             'tradedAmount':1000.0,
+        //             'turnover':1080.0,
+        //             'coinSymbol':'BCH',
+        //             'baseSymbol':'USDT',
+        //             'status':'COMPLETED',
+        //             'direction':'SELL',
+        //             'price':1.0,
+        //             'time':1611836243776,
+        //             'completedTime':1611836256242,
+        //         },
+        //         ...
+        //     ],
+        //     'totalElements':41,
+        //     'totalPages':3,
+        //     'last':False,
+        //     'size':20,
+        //     'number':1,
+        //     'first':False,
+        //     'numberOfElements':20,
+        //     'sort': [
+        //         {
+        //             'direction':'DESC',
+        //             'property':'time',
+        //             'ignoreCase':False,
+        //             'nullHandling':'NATIVE',
+        //             'ascending':False,
+        //             'descending':True,
+        //         }
+        //     ]
+        // }
+        return this.parseOrders (response['content']);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -283,7 +374,13 @@ module.exports = class tprexchange extends Exchange {
             return; // fallback to default error handler
         }
         if (httpCode === 200) {
-            return;
+            if ('code' in response) {
+                if (response['code'] === 0) {
+                    return;
+                }
+            } else {
+                return;
+            }
         }
         // {
         //     "message": "Error text in case when HTTP code is not 200",
