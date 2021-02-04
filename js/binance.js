@@ -499,6 +499,12 @@ module.exports = class binance extends Exchange {
                     'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
                 },
                 'quoteOrderQty': true, // whether market orders support amounts in quote currency
+                'broker': {
+                    'spot': 'x-R4BD3S82',
+                    'margin': 'x-R4BD3S82',
+                    'future': 'x-xcKtGhcu',
+                    'delivery': 'x-xcKtGhcu',
+                },
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
@@ -1674,7 +1680,15 @@ module.exports = class binance extends Exchange {
             'type': uppercaseType,
             'side': side.toUpperCase (),
         };
-        if (clientOrderId !== undefined) {
+        if (clientOrderId === undefined) {
+            const broker = this.safeValue (this.options, 'broker');
+            if (broker) {
+                const brokerId = this.safeString (broker, orderType);
+                if (brokerId !== undefined) {
+                    request['newClientOrderId'] = brokerId + this.uuid22 ();
+                }
+            }
+        } else {
             request['newClientOrderId'] = clientOrderId;
         }
         if (market['spot']) {
