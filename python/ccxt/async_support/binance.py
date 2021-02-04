@@ -518,6 +518,12 @@ class binance(Exchange):
                     'limit': 'RESULT',  # we change it from 'ACK' by default to 'RESULT'
                 },
                 'quoteOrderQty': True,  # whether market orders support amounts in quote currency
+                'broker': {
+                    'spot': 'x-R4BD3S82',
+                    'margin': 'x-R4BD3S82',
+                    'future': 'x-xcKtGhcu',
+                    'delivery': 'x-xcKtGhcu',
+                },
             },
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
@@ -1613,7 +1619,13 @@ class binance(Exchange):
             'type': uppercaseType,
             'side': side.upper(),
         }
-        if clientOrderId is not None:
+        if clientOrderId is None:
+            broker = self.safe_value(self.options, 'broker')
+            if broker:
+                brokerId = self.safe_string(broker, orderType)
+                if brokerId is not None:
+                    request['newClientOrderId'] = brokerId + self.uuid22()
+        else:
             request['newClientOrderId'] = clientOrderId
         if market['spot']:
             request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills

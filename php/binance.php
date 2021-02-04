@@ -505,6 +505,12 @@ class binance extends Exchange {
                     'limit' => 'RESULT', // we change it from 'ACK' by default to 'RESULT'
                 ),
                 'quoteOrderQty' => true, // whether market orders support amounts in quote currency
+                'broker' => array(
+                    'spot' => 'x-R4BD3S82',
+                    'margin' => 'x-R4BD3S82',
+                    'future' => 'x-xcKtGhcu',
+                    'delivery' => 'x-xcKtGhcu',
+                ),
             ),
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions' => array(
@@ -1680,7 +1686,15 @@ class binance extends Exchange {
             'type' => $uppercaseType,
             'side' => strtoupper($side),
         );
-        if ($clientOrderId !== null) {
+        if ($clientOrderId === null) {
+            $broker = $this->safe_value($this->options, 'broker');
+            if ($broker) {
+                $brokerId = $this->safe_string($broker, $orderType);
+                if ($brokerId !== null) {
+                    $request['newClientOrderId'] = $brokerId . $this->uuid22();
+                }
+            }
+        } else {
             $request['newClientOrderId'] = $clientOrderId;
         }
         if ($market['spot']) {
