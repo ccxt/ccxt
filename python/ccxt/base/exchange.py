@@ -776,7 +776,7 @@ class Exchange(object):
 
     @staticmethod
     def uuid22(length=22):
-        return format(random.getrandbits(length*4), 'x')
+        return format(random.getrandbits(length * 4), 'x')
 
     @staticmethod
     def uuid():
