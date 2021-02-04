@@ -99,6 +99,7 @@ class bitbank(Exchange):
                 'ETH/JPY': {'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy'},
                 'LTC/JPY': {'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy'},
                 'XRP/BTC': {'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc'},
+                'XLM/BTC': {'id': 'xlm_btc', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'baseId': 'xlm', 'quoteId': 'btc'},
             },
             'fees': {
                 'trading': {
@@ -208,8 +209,8 @@ class bitbank(Exchange):
         feeCost = self.safe_float(trade, 'fee_amount_quote')
         if feeCost is not None:
             fee = {
-                'currency': market['quote'],
-                'cost': feeCurrency,
+                'currency': feeCurrency,
+                'cost': feeCost,
             }
         orderId = self.safe_string(trade, 'order_id')
         type = self.safe_string(trade, 'type')
