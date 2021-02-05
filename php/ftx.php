@@ -27,7 +27,7 @@ class ftx extends \ccxt\ftx {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://ftx.com/ws',
+                    'ws' => 'wss://{hostname}/ws',
                 ),
             ),
             'options' => array(
@@ -53,7 +53,7 @@ class ftx extends \ccxt\ftx {
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
-        $url = $this->urls['api']['ws'];
+        $url = $this->implode_params($this->urls['api']['ws'], array( 'hostname' => $this->hostname ));
         $request = array(
             'op' => 'subscribe',
             'channel' => $channel,
@@ -70,7 +70,7 @@ class ftx extends \ccxt\ftx {
             $market = $this->market($symbol);
             $messageHash = $messageHash . ':' . $market['id'];
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->implode_params($this->urls['api']['ws'], array( 'hostname' => $this->hostname ));
         $request = array(
             'op' => 'subscribe',
             'channel' => $channel,
@@ -80,7 +80,7 @@ class ftx extends \ccxt\ftx {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws'];
+        $url = $this->implode_params($this->urls['api']['ws'], array( 'hostname' => $this->hostname ));
         $client = $this->client($url);
         $authenticate = 'authenticate';
         $method = 'login';
@@ -95,7 +95,9 @@ class ftx extends \ccxt\ftx {
                 'time' => $time,
                 'sign' => $signature,
             );
-            $subaccount = $this->safe_string($this->headers, 'FTX-SUBACCOUNT');
+            $options = $this->safe_value($this->options, 'sign', array());
+            $headerPrefix = $this->safe_string($options, $this->hostname, 'FTX');
+            $subaccount = $this->safe_string($this->headers, $headerPrefix . '-SUBACCOUNT');
             if ($subaccount !== null) {
                 $messageArgs['subaccount'] = $subaccount;
             }
