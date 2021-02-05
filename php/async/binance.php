@@ -2070,6 +2070,8 @@ class binance extends Exchange {
         $method = null;
         if ($type === 'spot') {
             $method = 'privateGetMyTrades';
+        } else if ($type === 'margin') {
+            $method = 'sapiGetMarginMyTrades';
         } else if ($type === 'future') {
             $method = 'fapiPrivateGetUserTrades';
         } else if ($type === 'delivery') {
