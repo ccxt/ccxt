@@ -23,7 +23,7 @@ module.exports = class ftx extends ccxt.ftx {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ftx.com/ws',
+                    'ws': 'wss://{hostname}/ws',
                 },
             },
             'options': {
@@ -49,7 +49,7 @@ module.exports = class ftx extends ccxt.ftx {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.implodeParams (this.urls['api']['ws'], { 'hostname': this.hostname });
         const request = {
             'op': 'subscribe',
             'channel': channel,
@@ -66,7 +66,7 @@ module.exports = class ftx extends ccxt.ftx {
             const market = this.market (symbol);
             messageHash = messageHash + ':' + market['id'];
         }
-        const url = this.urls['api']['ws'];
+        const url = this.implodeParams (this.urls['api']['ws'], { 'hostname': this.hostname });
         const request = {
             'op': 'subscribe',
             'channel': channel,
@@ -76,7 +76,7 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     authenticate (params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.implodeParams (this.urls['api']['ws'], { 'hostname': this.hostname });
         const client = this.client (url);
         const authenticate = 'authenticate';
         const method = 'login';
@@ -91,7 +91,9 @@ module.exports = class ftx extends ccxt.ftx {
                 'time': time,
                 'sign': signature,
             };
-            const subaccount = this.safeString (this.headers, 'FTX-SUBACCOUNT');
+            const options = this.safeValue (this.options, 'sign', {});
+            const headerPrefix = this.safeString (options, this.hostname, 'FTX');
+            const subaccount = this.safeString (this.headers, headerPrefix + '-SUBACCOUNT');
             if (subaccount !== undefined) {
                 messageArgs['subaccount'] = subaccount;
             }
