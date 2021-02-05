@@ -39,7 +39,7 @@ module.exports = class tprexchange extends Exchange {
                 'fetchL2OrderBook': false,
                 'fetchLedger': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -51,7 +51,7 @@ module.exports = class tprexchange extends Exchange {
                 'fetchTicker': false,
                 'fetchTickers': false,
                 'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
@@ -90,6 +90,7 @@ module.exports = class tprexchange extends Exchange {
                         'exchange/order/find',
                         'exchange/order/all',
                         'exchange/order/apicancel',
+                        'exchange/order/trades',
                     ],
                     'delete': [
                     ],
@@ -434,7 +435,7 @@ module.exports = class tprexchange extends Exchange {
         return this.parseOrders (response['content']);
     }
 
-    async parseBalance (balance) {
+    parseBalance (balance) {
         return {
             'info': balance,
         };
@@ -442,7 +443,42 @@ module.exports = class tprexchange extends Exchange {
 
     async fetchBalance (params = {}) {
         const response = await this.privatePostUcBalance (params);
-        return await this.parseBalance (response);
+        return this.parseBalance (response);
+    }
+
+    parseTrade (trade, market = undefined) {
+        const timestamp = 0;
+        const fee = {
+            'cost': undefined,
+            'currency': undefined,
+        };
+        return {
+            'info': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': undefined,
+            'id': undefined,
+            'order': undefined,
+            'type': undefined,
+            'side': undefined,
+            'takerOrMaker': undefined,
+            'price': undefined,
+            'amount': undefined,
+            'cost': undefined,
+            'fee': fee,
+        };
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const market = undefined;
+        const trades = this.privatePostExchangeOrderTrades (params);
+        return this.parseTrades (trades, market, since, limit, params);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const market = undefined;
+        const trades = this.privatePostExchangeOrderTrades (params);
+        return this.parseTrades (trades, market, since, limit, params);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

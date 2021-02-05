@@ -43,7 +43,7 @@ class tprexchange(Exchange):
                 'fetchL2OrderBook': False,
                 'fetchLedger': False,
                 'fetchMarkets': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': True,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -55,7 +55,7 @@ class tprexchange(Exchange):
                 'fetchTicker': False,
                 'fetchTickers': False,
                 'fetchTime': False,
-                'fetchTrades': False,
+                'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTradingLimits': False,
@@ -422,6 +422,38 @@ class tprexchange(Exchange):
     def fetch_balance(self, params={}):
         response = self.privatePostUcBalance(params)
         return self.parse_balance(response)
+
+    def parse_trade(self, trade, market=None):
+        timestamp = 0
+        fee = {
+            'cost': None,
+            'currency': None,
+        }
+        return {
+            'info': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': None,
+            'id': None,
+            'order': None,
+            'type': None,
+            'side': None,
+            'takerOrMaker': None,
+            'price': None,
+            'amount': None,
+            'cost': None,
+            'fee': fee,
+        }
+
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        market = None
+        trades = self.privatePostExchangeTrades(params)
+        return self.parse_trades(trades, market, since, limit, params)
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        market = None
+        trades = self.privatePostExchangeTrades(params)
+        return self.parse_trades(trades, market, since, limit, params)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

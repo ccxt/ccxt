@@ -40,7 +40,7 @@ class tprexchange extends Exchange {
                 'fetchL2OrderBook' => false,
                 'fetchLedger' => false,
                 'fetchMarkets' => true,
-                'fetchMyTrades' => false,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => 'emulated',
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -52,7 +52,7 @@ class tprexchange extends Exchange {
                 'fetchTicker' => false,
                 'fetchTickers' => false,
                 'fetchTime' => false,
-                'fetchTrades' => false,
+                'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTradingLimits' => false,
@@ -444,6 +444,41 @@ class tprexchange extends Exchange {
     public function fetch_balance($params = array ()) {
         $response = $this->privatePostUcBalance ($params);
         return $this->parse_balance($response);
+    }
+
+    public function parse_trade($trade, $market = null) {
+        $timestamp = 0;
+        $fee = array(
+            'cost' => null,
+            'currency' => null,
+        );
+        return array(
+            'info' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => null,
+            'id' => null,
+            'order' => null,
+            'type' => null,
+            'side' => null,
+            'takerOrMaker' => null,
+            'price' => null,
+            'amount' => null,
+            'cost' => null,
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        $market = null;
+        $trades = $this->privatePostExchangeTrades ($params);
+        return $this->parse_trades($trades, $market, $since, $limit, $params);
+    }
+
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $market = null;
+        $trades = $this->privatePostExchangeTrades ($params);
+        return $this->parse_trades($trades, $market, $since, $limit, $params);
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
