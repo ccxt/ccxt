@@ -29,7 +29,7 @@ module.exports = class tprexchange extends Exchange {
                 'createOrder': true,
                 'deposit': false,
                 'editOrder': 'emulated',
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
@@ -41,7 +41,7 @@ module.exports = class tprexchange extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': 'emulated',
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': false,
                 'fetchOrderBooks': false,
@@ -85,6 +85,7 @@ module.exports = class tprexchange extends Exchange {
                     ],
                     'post': [
                         'uc/api-login',
+                        'uc/balance',
                         'exchange/order/add',
                         'exchange/order/find',
                         'exchange/order/all',
@@ -367,6 +368,81 @@ module.exports = class tprexchange extends Exchange {
         //     ]
         // }
         return this.parseOrders (response['content']);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // Request structure
+        // {
+        //   'symbol': Parameter from method arguments
+        //   'since': Timestamp of first order in list in Unix epoch format
+        //   'limit': Response list size
+        //   'memberId': May be set in params. May be not set
+        //   'status': one of TRADING COMPLETED CANCELED OVERTIMED. May be set in params
+        //   'page': for pagination. In this case limit is size of every page. May be set in params
+        // }
+        params['status'] = 'TRADING';
+        if ('page' in params) {
+            params['pageNo'] = this.safeString (params, 'page');
+        } else {
+            params['pageNo'] = 1;
+        }
+        const request = {
+            'symbol': symbol,
+            'since': since,
+            'pageSize': limit,
+        };
+        const fullRequest = this.extend (request, params);
+        const response = this.privatePostExchangeOrderAll (fullRequest);
+        // {
+        //     'content': [
+        //         {
+        //             'orderId':'E161183624377614',
+        //             'memberId':2,
+        //             'type':'LIMIT_PRICE',
+        //             'amount':1000.0,
+        //             'symbol':'BCH/USDT',
+        //             'tradedAmount':1000.0,
+        //             'turnover':1080.0,
+        //             'coinSymbol':'BCH',
+        //             'baseSymbol':'USDT',
+        //             'status':'COMPLETED',
+        //             'direction':'SELL',
+        //             'price':1.0,
+        //             'time':1611836243776,
+        //             'completedTime':1611836256242,
+        //         },
+        //         ...
+        //     ],
+        //     'totalElements':41,
+        //     'totalPages':3,
+        //     'last':False,
+        //     'size':20,
+        //     'number':1,
+        //     'first':False,
+        //     'numberOfElements':20,
+        //     'sort': [
+        //         {
+        //             'direction':'DESC',
+        //             'property':'time',
+        //             'ignoreCase':False,
+        //             'nullHandling':'NATIVE',
+        //             'ascending':False,
+        //             'descending':True,
+        //         }
+        //     ]
+        // }
+        return this.parseOrders (response['content']);
+    }
+
+    async parseBalance (balance) {
+        return {
+            'info': balance,
+        };
+    }
+
+    async fetchBalance (params = {}) {
+        const response = await this.privatePostUcBalance (params);
+        return await this.parseBalance (response);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

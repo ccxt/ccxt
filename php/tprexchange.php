@@ -30,7 +30,7 @@ class tprexchange extends Exchange {
                 'createOrder' => true,
                 'deposit' => false,
                 'editOrder' => 'emulated',
-                'fetchBalance' => false,
+                'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => false,
                 'fetchCurrencies' => false,
@@ -42,7 +42,7 @@ class tprexchange extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => 'emulated',
-                'fetchOpenOrders' => false,
+                'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => false,
                 'fetchOrderBooks' => false,
@@ -86,6 +86,7 @@ class tprexchange extends Exchange {
                     ),
                     'post' => array(
                         'uc/api-login',
+                        'uc/balance',
                         'exchange/order/add',
                         'exchange/order/find',
                         'exchange/order/all',
@@ -368,6 +369,81 @@ class tprexchange extends Exchange {
         //     )
         // }
         return $this->parse_orders($response['content']);
+    }
+
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        // Request structure
+        // {
+        //   'symbol' => Parameter from method arguments
+        //   'since' => Timestamp of first order in list in Unix epoch format
+        //   'limit' => Response list size
+        //   'memberId' => May be set in $params-> May be not set
+        //   'status' => one of TRADING COMPLETED CANCELED OVERTIMED. May be set in $params
+        //   'page' => for pagination. In this case $limit is size of every page. May be set in $params
+        // }
+        $params['status'] = 'TRADING';
+        if (is_array($params) && array_key_exists('page', $params)) {
+            $params['pageNo'] = $this->safe_string($params, 'page');
+        } else {
+            $params['pageNo'] = 1;
+        }
+        $request = array(
+            'symbol' => $symbol,
+            'since' => $since,
+            'pageSize' => $limit,
+        );
+        $fullRequest = array_merge($request, $params);
+        $response = $this->privatePostExchangeOrderAll ($fullRequest);
+        // {
+        //     'content' => array(
+        //         array(
+        //             'orderId':'E161183624377614',
+        //             'memberId':2,
+        //             'type':'LIMIT_PRICE',
+        //             'amount':1000.0,
+        //             'symbol':'BCH/USDT',
+        //             'tradedAmount':1000.0,
+        //             'turnover':1080.0,
+        //             'coinSymbol':'BCH',
+        //             'baseSymbol':'USDT',
+        //             'status':'COMPLETED',
+        //             'direction':'SELL',
+        //             'price':1.0,
+        //             'time':1611836243776,
+        //             'completedTime':1611836256242,
+        //         ),
+        //         ...
+        //     ),
+        //     'totalElements':41,
+        //     'totalPages':3,
+        //     'last':False,
+        //     'size':20,
+        //     'number':1,
+        //     'first':False,
+        //     'numberOfElements':20,
+        //     'sort' => array(
+        //         {
+        //             'direction':'DESC',
+        //             'property':'time',
+        //             'ignoreCase':False,
+        //             'nullHandling':'NATIVE',
+        //             'ascending':False,
+        //             'descending':True,
+        //         }
+        //     )
+        // }
+        return $this->parse_orders($response['content']);
+    }
+
+    public function parse_balance($balance) {
+        return array(
+            'info' => $balance,
+        );
+    }
+
+    public function fetch_balance($params = array ()) {
+        $response = $this->privatePostUcBalance ($params);
+        return $this->parse_balance($response);
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
