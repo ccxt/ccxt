@@ -279,12 +279,13 @@ module.exports = class bkex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const method = 'privatePostOrderCreate';
         const direction = side === 'buy' ? 'BID' : 'ASK';
         const request = {
             'volume': amount,
             'direction': direction,
-            'symbol': symbol,
+            'symbol': market['id'],
             'price': price,
             'type': type,
         };
@@ -310,7 +311,7 @@ module.exports = class bkex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': this.safeString (market, 'id'),
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['size'] = limit;
