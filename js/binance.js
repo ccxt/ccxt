@@ -2064,6 +2064,8 @@ module.exports = class binance extends Exchange {
         let method = undefined;
         if (type === 'spot') {
             method = 'privateGetMyTrades';
+        } else if (type === 'margin') {
+            method = 'sapiGetMarginMyTrades';
         } else if (type === 'future') {
             method = 'fapiPrivateGetUserTrades';
         } else if (type === 'delivery') {
