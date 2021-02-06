@@ -56,8 +56,8 @@ module.exports = class idex extends Exchange {
                 },
                 'logo': 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
                 'api': {
-                    'public': 'https://api.idex.io',
-                    'private': 'https://api.idex.io',
+                    'ETH': 'https://api-eth.idex.io',
+                    'BSC': 'https://api-bsc.idex.io',
                 },
                 'www': 'https://idex.io',
                 'doc': [
@@ -103,6 +103,7 @@ module.exports = class idex extends Exchange {
             'options': {
                 'defaultTimeInForce': 'gtc',
                 'defaultSelfTradePrevention': 'cn',
+                'network': 'ETH', // also supports BSC
             },
             'exceptions': {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,
@@ -944,7 +945,8 @@ module.exports = class idex extends Exchange {
         }
         const sideEnum = (side === 'buy') ? 0 : 1;
         const walletBytes = this.remove0xPrefix (this.walletAddress);
-        const orderVersion = 1;
+        const network = this.safeString (this.options, 'network', 'ETH');
+        const orderVersion = (network === 'ETH') ? 1 : 2;
         const amountString = this.amountToPrecision (symbol, amount);
         // https://docs.idex.io/#time-in-force
         const timeInForceEnums = {
@@ -1273,8 +1275,9 @@ module.exports = class idex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const network = this.safeString (this.options, 'network', 'ETH');
         const version = this.safeString (this.options, 'version', 'v1');
-        let url = this.urls['api'][api] + '/' + version + '/' + path;
+        let url = this.urls['api'][network] + '/' + version + '/' + path;
         const keys = Object.keys (params);
         const length = keys.length;
         let query = undefined;
