@@ -365,55 +365,71 @@ module.exports = class equos extends Exchange {
         return [timestamp, open, high, low, close, volume];
     }
 
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {
+        if (market === undefined) {
+            throw new ArgumentsRequired (this.id + ' parseBidAsk() requires a market argument');
+        }
+        const price = this.safeFloat (bidask, priceKey);
+        const amount = this.safeFloat (bidask, amountKey);
+        return [
+            this.convertFromScale (price, market['precision']['price']),
+            this.convertFromScale (amount, market['precision']['amount']),
+        ];
+    }
+
+    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+        const result = {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        };
+        const sides = [ bidsKey, asksKey ];
+        for (let i = 0; i < sides.length; i++) {
+            const side = sides[i];
+            const orders = [];
+            const bidasks = this.safeValue (orderbook, side);
+            for (let k = 0; k < bidasks.length; k++) {
+                orders.push (this.parseBidAsk (bidasks[k], priceKey, amountKey, market));
+            }
+            result[side] = orders;
+        }
+        result[bidsKey] = this.sortBy (result[bidsKey], 0, true);
+        result[asksKey] = this.sortBy (result[asksKey], 0);
+        return result;
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = this.extend ({
+        const request = {
             'pairId': market['numericId'],
-        }, params);
-        // apply limit though does not work with API
-        if (limit !== undefined) {
-            request = this.extend ({ 'limit': limit }, request);
-        }
+        };
+        // // apply limit though does not work with API
+        // if (limit !== undefined) {
+        //     request = this.extend ({ 'limit': limit }, request);
+        // }
         const response = await this.publicGetGetOrderBook (this.extend (request, params));
-        // we need to tranform response here as parseOrderBook - parseBidAsk does not have market param
-        if (response !== undefined) {
-            const orderBook = {
-                'bids': [],
-                'asks': [],
-            };
-            const bidData = this.safeValue (response, 'bids');
-            const askData = this.safeValue (response, 'asks');
-            if (bidData !== undefined) {
-                for (let i = 0; i < bidData.length; i++) {
-                    if (bidData[i] !== undefined) {
-                        const price = this.convertFromScale (bidData[i][0], market['precision']['price']);
-                        const amount = this.convertFromScale (bidData[i][1], market['precision']['amount']);
-                        if (price > 0 && amount > 0) {
-                            orderBook['bids'].push ({
-                                'price': price,
-                                'amount': amount,
-                            });
-                        }
-                    }
-                }
-            }
-            if (askData !== undefined) {
-                for (let i = 0; i < askData.length; i++) {
-                    if (askData[i] !== undefined) {
-                        const price = this.convertFromScale (askData[i][0], market['precision']['price']);
-                        const amount = this.convertFromScale (askData[i][1], market['precision']['amount']);
-                        if (price > 0 && amount > 0) {
-                            orderBook['asks'].push ({
-                                'price': price,
-                                'amount': amount,
-                            });
-                        }
-                    }
-                }
-            }
-            return this.parseOrderBook (orderBook, undefined, 'bids', 'asks', 'price', 'amount');
-        }
+        //
+        //     {
+        //         "bids":[
+        //             [4000480,30000,1612644984667],
+        //             [3999304,200000,1612644984667],
+        //             [3998862,50000,1612644984667],
+        //         ],
+        //         "asks":[
+        //             [4001962,1790000,1612644984667],
+        //             [4002616,1000,1612644984667],
+        //             [4003889,1000,1612644984667],
+        //         ],
+        //         "usdMark":40011.02,
+        //         "marketStatus":0,
+        //         "estFundingRate":0.0,
+        //         "fundingRateTime":0,
+        //         "auctionPrice":0.0,
+        //         "auctionVolume":0.0
+        //     }
+        //
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 0, 1, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
