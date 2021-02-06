@@ -28,6 +28,7 @@ const {
     , buildOHLCVC
     , decimalToPrecision
     , defaultFetch
+    , jsonParse
 } = functions
 
 const { // eslint-disable-line object-curly-newline
@@ -527,6 +528,21 @@ module.exports = class Exchange {
         }
     }
 
+    parseJsonNumbersAsStrings (jsonString) {
+        try {
+            if (this.isJsonEncodedObject (jsonString)) {
+                let obj = JSON.parse (jsonString)
+                // This parser returns numbers as strings to preserve precision.
+                // This parser is not as robust, so keep standard parse above to detect errors.
+                obj = this.jsonParse (jsonString)
+                return obj
+            }
+        } catch (e) {
+            // SyntaxError
+            return undefined
+        }
+    }
+
     throwExactlyMatchedException (exact, string, message) {
         if (string in exact) {
             throw new exact[string] (message)
@@ -579,7 +595,12 @@ module.exports = class Exchange {
 
             responseBody = responseBody.trim ()
 
-            const json = this.parseJson (responseBody.replace (/:(\d{15,}),/g, ':"$1",'))
+            let json
+            if ('numbersAsStrings' in this.options) {
+                json = this.parseJsonNumbersAsStrings (responseBody)
+            } else {
+                json = this.parseJson (responseBody.replace (/:(\d{15,}),/g, ':"$1",'))
+            }
 
             const responseHeaders = this.getResponseHeaders (response)
 
