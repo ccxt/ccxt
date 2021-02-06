@@ -60,8 +60,8 @@ class idex extends Exchange {
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
                 'api' => array(
-                    'public' => 'https://api.idex.io',
-                    'private' => 'https://api.idex.io',
+                    'ETH' => 'https://api-eth.idex.io',
+                    'BSC' => 'https://api-bsc.idex.io',
                 ),
                 'www' => 'https://idex.io',
                 'doc' => array(
@@ -107,6 +107,7 @@ class idex extends Exchange {
             'options' => array(
                 'defaultTimeInForce' => 'gtc',
                 'defaultSelfTradePrevention' => 'cn',
+                'network' => 'ETH', // also supports BSC
             ),
             'exceptions' => array(
                 'INVALID_ORDER_QUANTITY' => '\\ccxt\\InvalidOrder',
@@ -948,7 +949,8 @@ class idex extends Exchange {
         }
         $sideEnum = ($side === 'buy') ? 0 : 1;
         $walletBytes = $this->remove0x_prefix($this->walletAddress);
-        $orderVersion = 1;
+        $network = $this->safe_string($this->options, 'network', 'ETH');
+        $orderVersion = ($network === 'ETH') ? 1 : 2;
         $amountString = $this->amount_to_precision($symbol, $amount);
         // https://docs.idex.io/#time-in-force
         $timeInForceEnums = array(
@@ -1277,8 +1279,9 @@ class idex extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $network = $this->safe_string($this->options, 'network', 'ETH');
         $version = $this->safe_string($this->options, 'version', 'v1');
-        $url = $this->urls['api'][$api] . '/' . $version . '/' . $path;
+        $url = $this->urls['api'][$network] . '/' . $version . '/' . $path;
         $keys = is_array($params) ? array_keys($params) : array();
         $length = is_array($keys) ? count($keys) : 0;
         $query = null;

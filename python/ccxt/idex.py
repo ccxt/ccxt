@@ -67,8 +67,8 @@ class idex(Exchange):
                 },
                 'logo': 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
                 'api': {
-                    'public': 'https://api.idex.io',
-                    'private': 'https://api.idex.io',
+                    'ETH': 'https://api-eth.idex.io',
+                    'BSC': 'https://api-bsc.idex.io',
                 },
                 'www': 'https://idex.io',
                 'doc': [
@@ -114,6 +114,7 @@ class idex(Exchange):
             'options': {
                 'defaultTimeInForce': 'gtc',
                 'defaultSelfTradePrevention': 'cn',
+                'network': 'ETH',  # also supports BSC
             },
             'exceptions': {
                 'INVALID_ORDER_QUANTITY': InvalidOrder,
@@ -898,7 +899,8 @@ class idex(Exchange):
             amount = self.safe_float(params, 'quoteOrderQuantity')
         sideEnum = 0 if (side == 'buy') else 1
         walletBytes = self.remove0x_prefix(self.walletAddress)
-        orderVersion = 1
+        network = self.safe_string(self.options, 'network', 'ETH')
+        orderVersion = 1 if (network == 'ETH') else 2
         amountString = self.amount_to_precision(symbol, amount)
         # https://docs.idex.io/#time-in-force
         timeInForceEnums = {
@@ -1201,8 +1203,9 @@ class idex(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        network = self.safe_string(self.options, 'network', 'ETH')
         version = self.safe_string(self.options, 'version', 'v1')
-        url = self.urls['api'][api] + '/' + version + '/' + path
+        url = self.urls['api'][network] + '/' + version + '/' + path
         keys = list(params.keys())
         length = len(keys)
         query = None
