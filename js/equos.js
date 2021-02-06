@@ -68,28 +68,34 @@ module.exports = class equos extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'getInstrumentPairs',
                         'getInstruments',
-                        'getChart',
+                        'getInstrumentPairs',
                         'getOrderBook',
                         'getTradeHistory',
-                        'getExchangeInfo',
+                        'getFundingRateHistory',
+                        'getChart',
+                        'getExchangeInfo', // not documented
                     ],
                 },
                 'private': {
                     'post': [
-                        'getPositions',
+                        'logon',
                         'order',
-                        'getOrderStatus',
-                        'getOrders',
                         'cancelOrder',
                         'cancelReplaceOrder',
+                        'getOrders',
+                        'getOrderStatus',
+                        'getOrderHistory',
+                        'userTrades',
+                        'getPositions',
+                        'cancelAll',
+                        'getUserHistory',
+                        'getRisk',
                         'getDepositAddresses',
-                        'getDepositHistory',
+                        'getDepositHistory', // not documented
                         'getWithdrawRequests',
                         'sendWithdrawRequest',
-                        'getUserHistory',
-                        'userTrades',
+                        'getTransferHistory',
                     ],
                 },
             },
@@ -97,28 +103,133 @@ module.exports = class equos extends Exchange {
                 'apiKey': true,
                 'secret': true,
                 'uid': true,
-                'login': false,
-                'password': false,
-                'twofa': false, // 2-factor authentication (one-time password key)
-                'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
-                'walletAddress': false, // the wallet address "0x"-prefixed hexstring
-                'token': false, // reserved for HTTP auth in some cases
             },
         });
     }
 
     async fetchMarkets (params = {}) {
-        // we need currency to parse market
-        if (this.currencies_by_id === undefined) {
-            await this.fetchCurrencies ();
-        }
-        const response = await this.publicGetGetInstrumentPairs (params);
+        const request = {
+            'verbose': true,
+        };
+        const response = await this.publicGetGetInstrumentPairs (this.extend (request, params));
+        //
+        //     {
+        //         "instrumentPairs":[
+        //             {
+        //                 "instrumentId":52,
+        //                 "symbol":"BTC/USDC",
+        //                 "quoteId":1,
+        //                 "baseId":3,
+        //                 "price_scale":2,
+        //                 "quantity_scale":6,
+        //                 "securityStatus":1,
+        //                 "securityDesc":"BTC/USDC", // "BTC/USDC[F]"
+        //                 "assetType":"PAIR", // "PERPETUAL_SWAP"
+        //                 "currency":"BTC",
+        //                 "contAmtCurr":"USDC",
+        //                 "settlCurrency":"USDC",
+        //                 "commCurrency":"USDC",
+        //                 "cfiCode":"XXXXXX",
+        //                 "securityExchange":"XXXX",
+        //                 "instrumentPricePrecision":2,
+        //                 "minPriceIncrement":1.0,
+        //                 "minPriceIncrementAmount":1.0,
+        //                 "roundLot":1,
+        //                 "minTradeVol":0.001000,
+        //                 "maxTradeVol":0.000000
+        //                 // contracts onlye
+        //                 "qtyType":0,
+        //                 "contractMultiplier":1.0,
+        //                 "issueDate":1598608087000
+        //             },
+        //         ]
+        //     }
+        //
+        const instrumentPairs = this.safeValue (response, 'instrumentPairs', []);
         const markets = [];
-        const results = this.safeValue (response, 'instrumentPairs', []);
-        for (let i = 0; i < results.length; i++) {
-            markets.push (this.parseMarket (results[i]));
+        for (let i = 0; i < instrumentPairs.length; i++) {
+            const market = this.parseMarket (instrumentPairs[i]);
+            markets.push (market);
         }
         return markets;
+    }
+
+    parseMarket (market) {
+        //
+        //     {
+        //         "instrumentId":52,
+        //         "symbol":"BTC/USDC", // "BTC/USDC[F]"
+        //         "quoteId":1,
+        //         "baseId":3,
+        //         "price_scale":2,
+        //         "quantity_scale":6,
+        //         "securityStatus":1,
+        //         "securityDesc":"BTC/USDC", // "BTC/USDC[F]"
+        //         "assetType":"PAIR", // "PERPETUAL_SWAP"
+        //         "currency":"BTC",
+        //         "contAmtCurr":"USDC",
+        //         "settlCurrency":"USDC",
+        //         "commCurrency":"USDC",
+        //         "cfiCode":"XXXXXX",
+        //         "securityExchange":"XXXX",
+        //         "instrumentPricePrecision":2,
+        //         "minPriceIncrement":1.0,
+        //         "minPriceIncrementAmount":1.0,
+        //         "roundLot":1,
+        //         "minTradeVol":0.001000,
+        //         "maxTradeVol":0.000000
+        //         // contracts onlye
+        //         "qtyType":0,
+        //         "contractMultiplier":1.0,
+        //         "issueDate":1598608087000
+        //     }
+        //
+        const id = this.safeString (market, 'symbol');
+        const numericId = this.safeInteger (market, 'instrumentId');
+        const assetType = this.safeString (market, 'assetType');
+        const spot = (assetType === 'PAIR');
+        const swap = (assetType === 'PERPETUAL_SWAP');
+        const type = swap ? 'swap' : 'spot';
+        const baseId = this.safeString (market, 'currency');
+        const quoteId = this.safeString (market, 'contAmtCurr');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = swap ? id : (base + '/' + quote);
+        const status = this.safeInteger (market, 'securityStatus');
+        const active = (status === 1);
+        const precision = {
+            'amount': this.safeInteger (market, 'quantity_scale'),
+            'price': this.safeInteger (market, 'price_scale'),
+        };
+        return {
+            'id': id,
+            'numericId': numericId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'type': type,
+            'spot': spot,
+            'swap': swap,
+            'active': active,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': this.safeFloat (market, 'minTradeVol'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': market,
+        };
     }
 
     async fetchCurrencies (params = {}) {
@@ -130,9 +241,6 @@ module.exports = class equos extends Exchange {
             const code = currency['code'];
             currencies[code] = currency;
         }
-        // we need this to parse Markets
-        this.currencies = currencies;
-        this.currencies_by_id = this.indexBy (currencies, 'id');
         return currencies;
     }
 
@@ -685,60 +793,6 @@ module.exports = class equos extends Exchange {
             'trades': trades,
             'fee': fee,
             'info': order,
-        };
-    }
-
-    parseMarket (market) {
-        const id = market[0]; // instrumentId
-        const symbol = market[1]; // symbol
-        const splitSymbol = symbol.split ('/');
-        let base = splitSymbol[0].toLowerCase ();
-        let quote = splitSymbol[1].toLowerCase ();
-        const baseId = market[3]; // baseId
-        const quoteId = market[2]; // quotedId
-        const baseCurrency = this.safeValue (this.currencies_by_id, baseId);
-        const quoteCurrency = this.safeValue (this.currencies_by_id, quoteId);
-        if (baseCurrency !== undefined) {
-            base = baseCurrency['code'];
-        }
-        if (quoteCurrency !== undefined) {
-            quote = quoteCurrency['code'];
-        }
-        // status
-        let active = false;
-        if (market[6] === 1) {
-            active = true;
-        }
-        const precision = {
-            'amount': market[5], // quantity_scale
-            'price': market[4], // price_scale
-            'cost': undefined,
-        };
-        const limits = {
-            'amount': {
-                'min': undefined,
-                'max': undefined,
-            },
-            'price': {
-                'min': undefined,
-                'max': undefined,
-            },
-            'cost': {
-                'min': undefined,
-                'max': undefined,
-            },
-        };
-        return {
-            'id': id,
-            'symbol': symbol,
-            'base': base,
-            'quote': quote,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'active': active,
-            'precision': precision,
-            'limits': limits,
-            'info': market,
         };
     }
 
