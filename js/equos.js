@@ -11,7 +11,7 @@ module.exports = class equos extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'equos',
             'name': 'Equos',
-            'countries': ['US', 'SG'],
+            'countries': [ 'US', 'SG' ], // United States, Singapore
             'rateLimit': 10,
             'certified': false,
             'has': {
@@ -51,13 +51,17 @@ module.exports = class equos extends Exchange {
             },
             'urls': {
                 'logo': 'https://equos.io/assets/img/logo.svg',
-                'api': {
-                    'public': 'https://www.equos.io/api/',
-                    'private': 'https://www.equos.io/api/',
+                'test': {
+                    'public': 'https://testnet.equos.io/api',
+                    'private': 'https://testnet.equos.io/api',
                 },
-                'www': 'https://www.equos.io/',
+                'api': {
+                    'public': 'https://equos.io/api',
+                    'private': 'https://equos.io/api',
+                },
+                'www': 'https://equos.io',
                 'doc': [
-                    'https://developer.equos.io/',
+                    'https://developer.equos.io',
                 ],
             },
             'api': {
@@ -1328,7 +1332,7 @@ module.exports = class equos extends Exchange {
                 body = this.json (params);
             }
         }
-        const url = this.urls['api'][api] + query;
+        const url = this.urls['api'][api] + '/' + query;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
