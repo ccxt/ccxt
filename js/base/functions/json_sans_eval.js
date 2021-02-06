@@ -132,7 +132,8 @@ var jsonParse = (function () {
       switch (tok.charCodeAt(0)) {
         default:  // sign or digit
           cont = stack[0];
-          cont[key || cont.length] = +(tok);
+          // Keep numbers as strings to avoid loss of precision.
+          cont[key || cont.length] = tok;
           key = void 0;
           break;
         case 0x22:  // '"'
