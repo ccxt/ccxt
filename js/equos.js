@@ -18,16 +18,11 @@ module.exports = class equos extends Exchange {
                 'CORS': false,
                 'fetchMarkets': true,
                 'fetchCurrencies': true,
-                'fetchTradingLimits': false,
                 'fetchTradingFees': true,
-                'fetchFundingLimits': false,
-                'fetchTicker': true,
-                'fetchTickers': false,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchOHLCV': true,
                 'fetchBalance': true,
-                'fetchAccounts': false,
                 'createOrder': true,
                 'cancelOrder': true,
                 'editOrder': true,
@@ -313,32 +308,11 @@ module.exports = class equos extends Exchange {
         };
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = this.extend ({
-            'pairId': market['id'],
-            'timespan': 1,
-        }, params);
-        const response = await this.publicGetGetChart (this.extend (request, params));
-        const charts = this.safeValue (response, 'chart', []);
-        const chart = this.safeValue (charts, 0);
-        // let volume = undefined;
-        if (chart !== undefined) {
-            return this.parseTicker (chart, market);
-        } else {
-            return this.parseTicker (undefined, market);
-        }
-    }
-
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (this.timeframes[timeframe] === undefined) {
-            throw new BadRequest (this.id + ': timeframe ' + timeframe + ' is not supported');
-        }
         const request = this.extend ({
-            'pairId': market['id'],
+            'pairId': market['numericId'],
             'timespan': this.timeframes[timeframe],
         }, params);
         const response = await this.publicGetGetChart (this.extend (request, params));
@@ -350,7 +324,7 @@ module.exports = class equos extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let request = this.extend ({
-            'pairId': market['id'],
+            'pairId': market['numericId'],
         }, params);
         // apply limit though does not work with API
         if (limit !== undefined) {
