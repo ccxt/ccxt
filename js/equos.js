@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, BadRequest, BadSymbol, OrderNotFound } = require ('./base/errors');
+const { ArgumentsRequired, BadSymbol, OrderNotFound } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
@@ -311,13 +311,58 @@ module.exports = class equos extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = this.extend ({
+        const request = {
             'pairId': market['numericId'],
             'timespan': this.timeframes[timeframe],
-        }, params);
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicGetGetChart (this.extend (request, params));
-        const results = this.safeValue (response, 'chart', []);
-        return this.parseOHLCVs (results, market, timeframe, since, limit);
+        //
+        //     {
+        //         "pairId":57,
+        //         "t":1,
+        //         "s":"ETH/BTC",
+        //         "lastPx":44099,
+        //         "lastQty":100000,
+        //         "o":0.043831000000000016,
+        //         "h":0.04427100000000002,
+        //         "l":0.032000000000000015,
+        //         "c":0.04409900000000002,
+        //         "v":0.21267333000000016,
+        //         "q":4.850000000000001,
+        //         "chart":[
+        //             [1612519260000,44099,44099,44099,44099,0,441],
+        //             [1612519200000,44099,44099,44099,44099,0,440],
+        //             [1612519140000,44269,44271,44269,44271,0,439],
+        //         ]
+        //     }
+        //
+        const chart = this.safeValue (response, 'chart', []);
+        return this.parseOHLCVs (chart, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         1612519260000, // timestamp
+        //         44099,         // open
+        //         44099,         // high
+        //         44099,         // low
+        //         44099,         // close
+        //         0,             // base volume
+        //         441,           // seqNumber
+        //     ]
+        //
+        const timestamp = this.safeInteger (ohlcv, 0);
+        const open = this.convertFromScale (ohlcv[1], market['precision']['price']);
+        const high = this.convertFromScale (ohlcv[2], market['precision']['price']);
+        const low = this.convertFromScale (ohlcv[3], market['precision']['price']);
+        const close = this.convertFromScale (ohlcv[4], market['precision']['price']);
+        const volume = this.convertFromScale (ohlcv[5], market['precision']['amount']);
+        // volume = ohlcv[5];
+        return [timestamp, open, high, low, close, volume];
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -878,17 +923,6 @@ module.exports = class equos extends Exchange {
             'quoteVolume': undefined,
             'info': ticker,
         };
-    }
-
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        const timestamp = ohlcv[0];
-        const open = this.convertFromScale (ohlcv[1], market['precision']['price']);
-        const high = this.convertFromScale (ohlcv[2], market['precision']['price']);
-        const low = this.convertFromScale (ohlcv[3], market['precision']['price']);
-        const close = this.convertFromScale (ohlcv[4], market['precision']['price']);
-        const volume = this.convertFromScale (ohlcv[5], market['precision']['amount']);
-        // volume = ohlcv[5];
-        return [timestamp, open, high, low, close, volume];
     }
 
     parseTrade (trade, market) {
