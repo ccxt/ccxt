@@ -435,16 +435,105 @@ module.exports = class equos extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = this.extend ({
-            'pairId': market['id'],
-        }, params);
-        // apply limit though does not work with API
-        if (limit !== undefined) {
-            request = this.extend ({ 'limit': limit }, request);
-        }
-        const response = await this.publicGetGetTradeHistory (request);
+        const request = {
+            'pairId': market['numericId'],
+        };
+        const response = await this.publicGetGetTradeHistory (this.extend (request, params));
+        //
+        //     {
+        //         "trades":[
+        //             [4022800,47000,"20210206-21:39:12.886",256323,1],
+        //             [4023066,1000,"20210206-21:38:55.030",256322,1],
+        //             [4022406,50000,"20210206-21:36:56.334",256321,1],
+        //         ]
+        //     }
+        //
         const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit, params);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // public fetchTrades
+        //
+        //     [
+        //         4022800,                 // 0 price
+        //         47000,                   // 1 quantity
+        //         "20210206-21:39:12.886", // 2 timestamp
+        //         256323,                  // 3 sequence number
+        //         1                        // 4 taker side 1 = buy, 2 = sell
+        //     ]
+        //
+        // private fetchMyTrades
+        //
+        //     ...
+        //
+        let id = undefined;
+        let timestamp = undefined;
+        let orderId = undefined;
+        let type = undefined;
+        let side = undefined;
+        let takerOrMaker = undefined;
+        let price = undefined;
+        let amount = undefined;
+        let cost = undefined;
+        let fee = undefined;
+        if (Array.isArray (trade)) {
+            id = this.safeString (trade, 3);
+            price = this.convertFromScale (this.safeInteger (trade, 0), market['precision']['price']);
+            amount = this.convertFromScale (this.safeInteger (trade, 1), market['precision']['amount']);
+            timestamp = this.toMilliseconds (this.safeString (trade, 2));
+            const takerSide = this.safeInteger (trade, 4);
+            if (takerSide === 1) {
+                side = 'buy';
+            } else if (takerSide === 2) {
+                side = 'sell';
+            }
+        } else {
+            id = this.safeString (trade, 'id');
+            timestamp = this.safeInteger (trade, 'time');
+            const marketId = this.safeString (trade, 'symbol');
+            market = this.safeMarket (marketId, market, '/');
+            orderId = this.safeString (trade, 'orderId');
+            side = this.safeStringLower (trade, 'side');
+            type = this.parseOrderType (this.safeString (trade, 'ordType'));
+            const isMaker = this.safeValue (trade, 'maker');
+            if (isMaker === true) {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
+            }
+            price = this.safeFloat (trade, 'price');
+            amount = this.safeFloat (trade, 'qty');
+            const feeCost = this.safeFloat (trade, 'commission');
+            const feeCurrency = this.safeString (trade, 'commissionAsset');
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': undefined,
+            };
+        }
+        const symbol = market ? market['symbol'] : undefined;
+        if (cost === undefined) {
+            if ((amount !== undefined) && (price !== undefined)) {
+                cost = amount * price;
+            }
+        }
+        return {
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': orderId,
+            'type': type,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
     }
 
     async fetchBalance (params = {}) {
@@ -941,77 +1030,6 @@ module.exports = class equos extends Exchange {
         };
     }
 
-    parseTrade (trade, market) {
-        // parsing for fetchMyTrades it is object
-        if (this.safeValue (trade, 'id') !== undefined) {
-            const id = this.safeString (trade, 'id');
-            const timestamp = this.safeInteger (trade, 'time');
-            const markeySymbol = this.market (this.safeString (trade, 'symbol'));
-            const dateTime = this.iso8601 (timestamp);
-            const orderId = this.safeString (trade, 'orderId');
-            const side = this.safeStringLower (trade, 'side');
-            const type = this.parseOrderType (this.safeString (trade, 'ordType'));
-            let takerOrMaker = undefined;
-            const isMaker = this.safeValue (trade, 'maker');
-            if (isMaker === true) {
-                takerOrMaker = 'maker';
-            } else {
-                takerOrMaker = 'taker';
-            }
-            const price = this.safeFloat (trade, 'price');
-            const amount = this.safeFloat (trade, 'qty');
-            const cost = price * amount;
-            const feeCost = this.safeFloat (trade, 'commission');
-            const feeCurrency = this.safeString (trade, 'commissionAsset');
-            return {
-                'info': trade,                    // the original decoded JSON as is
-                'id': id,  // string trade id
-                'timestamp': timestamp,              // Unix timestamp in milliseconds
-                'datetime': dateTime,  // ISO8601 datetime with milliseconds
-                'symbol': markeySymbol['symbol'],                  // symbol
-                'order': orderId,  // string order id or undefined/None/null
-                'type': type,                    // order type, 'market', 'limit' or undefined/None/null
-                'side': side,                      // direction of the trade, 'buy' or 'sell'
-                'takerOrMaker': takerOrMaker,                    // string, 'taker' or 'maker'
-                'price': price,                 // float price in quote currency
-                'amount': amount,                        // amount of base currency
-                'cost': cost,                 // total cost (including fees), `price * amount`
-                'fee': {                           // provided by exchange or calculated by ccxt
-                    'cost': feeCost,                        // float
-                    'currency': feeCurrency,                      // usually base currency for buys, quote currency for sells
-                    'rate': undefined,                          // the fee rate (if available)
-                },
-            };
-        } else {
-            // parsing for fetchAllTrades it is array
-            const price = this.convertFromScale (this.safeInteger (trade, 0), market['precision']['price']);
-            const amount = this.convertFromScale (this.safeInteger (trade, 1), market['precision']['amount']);
-            const date = this.convertToISO8601Date (this.safeString (trade, 2));
-            const timestamp = this.parse8601 (date);
-            const dateTime = this.iso8601 (timestamp);
-            const seqNumber = this.safeString (trade, 3);
-            return {
-                'info': { 'trade': trade },                    // the original decoded JSON as is
-                'id': seqNumber,  // string trade id
-                'timestamp': timestamp,              // Unix timestamp in milliseconds
-                'datetime': dateTime,  // ISO8601 datetime with milliseconds
-                'symbol': market['symbol'],                  // symbol
-                'order': undefined,  // string order id or undefined/None/null
-                'type': undefined,                    // order type, 'market', 'limit' or undefined/None/null
-                'side': undefined,                      // direction of the trade, 'buy' or 'sell'
-                'takerOrMaker': undefined,                    // string, 'taker' or 'maker'
-                'price': price,                 // float price in quote currency
-                'amount': amount,                        // amount of base currency
-                'cost': undefined,                 // total cost (including fees), `price * amount`
-                'fee': {                           // provided by exchange or calculated by ccxt
-                    'cost': undefined,                        // float
-                    'currency': undefined,                      // usually base currency for buys, quote currency for sells
-                    'rate': undefined,                          // the fee rate (if available)
-                },
-            };
-        }
-    }
-
     isOpenOrder (order) {
         let conditionOne = false;
         let conditionTwo = false;
@@ -1251,24 +1269,22 @@ module.exports = class equos extends Exchange {
         return status;
     }
 
-    convertToISO8601Date (dateString) {
-        if (dateString !== undefined) {
-            // '20200328-10:31:01.575' -> '2020-03-28 12:42:48.000'
-            const splits = dateString.split ('-');
-            const partOne = this.safeString (splits, 0);
-            const PartTwo = this.safeString (splits, 1);
-            if (partOne === undefined || PartTwo === undefined) {
-                return undefined;
-            }
-            if (partOne.length !== 8) {
-                return undefined;
-            }
-            const date = partOne.slice (0, 4) + '-' + partOne.slice (4, 6) + '-' + partOne.slice (6, 8);
-            const datetime = date + ' ' + PartTwo;
-            return datetime;
-        } else {
-            return '';
+    toMilliseconds (dateString) {
+        if (dateString === undefined) {
+            return dateString;
         }
+        // '20200328-10:31:01.575' -> '2020-03-28 12:42:48.000'
+        const splits = dateString.split ('-');
+        const partOne = this.safeString (splits, 0);
+        const partTwo = this.safeString (splits, 1);
+        if (partOne === undefined || partTwo === undefined) {
+            return undefined;
+        }
+        if (partOne.length !== 8) {
+            return undefined;
+        }
+        const date = partOne.slice (0, 4) + '-' + partOne.slice (4, 6) + '-' + partOne.slice (6, 8);
+        return this.parse8601 (date + ' ' + partTwo);
     }
 
     convertFromScale (number, scale) {
