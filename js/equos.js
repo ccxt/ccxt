@@ -234,14 +234,83 @@ module.exports = class equos extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetGetInstruments (params);
+        //
+        //     {
+        //         "instruments": [
+        //             [
+        //                 3,     // id
+        //                 "BTC", // symbol
+        //                 2,     // price_scale
+        //                 6,     // amount_scale
+        //                 1,     // status
+        //                 0,     // withdraw_fee
+        //                 "BTC", // name
+        //                 true,  // withdrawal_pct
+        //             ],
+        //         ]
+        //     }
+        //
         const currencies = {};
-        const results = this.safeValue (response, 'instruments', []);
-        for (let i = 0; i < results.length; i++) {
-            const currency = this.parseCurrency (results[i]);
+        const instruments = this.safeValue (response, 'instruments', []);
+        for (let i = 0; i < instruments.length; i++) {
+            const currency = this.parseCurrency (instruments[i]);
             const code = currency['code'];
             currencies[code] = currency;
         }
         return currencies;
+    }
+
+    parseCurrency (currency) {
+        //
+        //     [
+        //         3,     // 0 id
+        //         "BTC", // 1 symbol
+        //         2,     // 2 price_scale
+        //         6,     // 3 amount_scale
+        //         1,     // 4 status
+        //         0,     // 5 withdraw_fee
+        //         "BTC", // 6 name
+        //         true,  // 7 withdrawal_pct
+        //     ],
+        //
+        const numericId = this.safeInteger (currency, 0);
+        const id = this.safeString (currency, 1);
+        const code = this.safeCurrencyCode (id);
+        const priceScale = this.safeInteger (currency, 2);
+        const amountScale = this.safeInteger (currency, 3);
+        const precision = Math.max (priceScale, amountScale);
+        const name = this.safeString (currency, 6);
+        const status = this.safeInteger (currency, 4);
+        const active = (status === 1);
+        const fee = this.safeFloat (currency, 5); // withdraw_fee
+        return {
+            'id': id,
+            'info': currency,
+            'numericId': numericId,
+            'code': code,
+            'name': name,
+            'precision': precision,
+            'fee': fee,
+            'active': active,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        };
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -793,47 +862,6 @@ module.exports = class equos extends Exchange {
             'trades': trades,
             'fee': fee,
             'info': order,
-        };
-    }
-
-    parseCurrency (currency) {
-        const id = currency[0]; // instrumentId
-        const code = currency[1]; // symbol
-        const name = currency[6]; // name
-        let active = false;
-        // status
-        if (currency[4] === 1) {
-            active = true;
-        }
-        const precision = currency[2]; // price_scale
-        const fee = currency[5]; // withdraw_fee
-        const limits = {
-            'amount': {
-                'min': undefined,
-                'max': undefined,
-            },
-            'price': {
-                'min': undefined,
-                'max': undefined,
-            },
-            'cost': {
-                'min': undefined,
-                'max': undefined,
-            },
-            'withdraw': {
-                'min': undefined,
-                'max': undefined,
-            },
-        };
-        return {
-            'id': id,
-            'code': code,
-            'name': name,
-            'active': active,
-            'precision': precision,
-            'limits': limits,
-            'fee': fee,
-            'info': currency,
         };
     }
 
