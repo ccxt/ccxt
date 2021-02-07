@@ -13,7 +13,9 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class gopax(Exchange):
@@ -225,6 +227,10 @@ class gopax(Exchange):
             minimums = self.safe_value(market, 'restApiOrderAmountMin', {})
             marketAsk = self.safe_value(minimums, 'marketAsk', {})
             marketBid = self.safe_value(minimums, 'marketBid', {})
+            takerFeePercent = self.safe_float(market, 'takerFeePercent')
+            makerFeePercent = self.safe_float(market, 'makerFeePercent')
+            taker = float(self.decimal_to_precision(takerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE))
+            maker = float(self.decimal_to_precision(makerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE))
             result.append({
                 'id': id,
                 'info': market,
@@ -235,8 +241,8 @@ class gopax(Exchange):
                 'baseId': self.safe_string(market, 'baseAsset'),
                 'quoteId': self.safe_string(market, 'quoteAsset'),
                 'active': True,
-                'taker': self.safe_float(market, 'takerFeePercent'),
-                'maker': self.safe_float(market, 'makerFeePercent'),
+                'taker': taker,
+                'maker': maker,
                 'precision': precision,
                 'limits': {
                     'amount': {
