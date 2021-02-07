@@ -625,7 +625,7 @@ module.exports = class bitfinex extends Exchange {
             const balance = response[i];
             const type = this.safeString (balance, 'type');
             const parsedType = this.safeString (types, type);
-            if (parsedType === balanceType) {
+            if ((parsedType === balanceType) || (type === balanceType)) {
                 const currencyId = this.safeString (balance, 'currency');
                 const code = this.safeCurrencyCode (currencyId);
                 // bitfinex had BCH previously, now it's BAB, but the old
