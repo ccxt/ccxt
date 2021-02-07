@@ -387,7 +387,6 @@ module.exports = class binance extends Exchange {
                         'apiReferral/ifNewUser',
                         'apiReferral/customization',
                         'apiReferral/userCustomization',
-                        'income',
                         'apiReferral/traderNum',
                         'apiReferral/overview',
                         'apiReferral/tradeVol',
