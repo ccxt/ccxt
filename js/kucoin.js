@@ -236,10 +236,10 @@ module.exports = class kucoin extends Exchange {
                     'public': {
                         'GET': {
                             'status': 'v1',
-                            'market/orderbook/level{level}': 'v1',
+                            'market/orderbook/level{level}': 'v2',
                             'market/orderbook/level2': 'v2',
-                            'market/orderbook/level2_20': 'v1',
-                            'market/orderbook/level2_100': 'v1',
+                            'market/orderbook/level2_20': 'v2',
+                            'market/orderbook/level2_100': 'v2',
                         },
                     },
                     'private': {
