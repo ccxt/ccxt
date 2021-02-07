@@ -183,8 +183,8 @@ class bitso extends Exchange {
             $taker = $this->safe_float($flatRate, 'taker');
             $feeTiers = $this->safe_value($fees, 'structure', array());
             $fee = array(
-                'maker' => $maker,
-                'taker' => $taker,
+                'taker' => floatval($this->decimal_to_precision($taker / 100, ROUND, 0.00000001, TICK_SIZE)),
+                'maker' => floatval($this->decimal_to_precision($maker / 100, ROUND, 0.00000001, TICK_SIZE)),
                 'percentage' => true,
                 'tierBased' => true,
             );
@@ -195,11 +195,13 @@ class bitso extends Exchange {
                 $volume = $this->safe_float($tier, 'volume');
                 $takerFee = $this->safe_float($tier, 'taker');
                 $makerFee = $this->safe_float($tier, 'maker');
-                $takerFees[] = array( $volume, $takerFee );
-                $makerFees[] = array( $volume, $makerFee );
+                $takerFeeToPrecision = floatval($this->decimal_to_precision($takerFee / 100, ROUND, 0.00000001, TICK_SIZE));
+                $makerFeeToPrecision = floatval($this->decimal_to_precision($makerFee / 100, ROUND, 0.00000001, TICK_SIZE));
+                $takerFees[] = array( $volume, $takerFeeToPrecision );
+                $makerFees[] = array( $volume, $makerFeeToPrecision );
                 if ($j === 0) {
-                    $fee['taker'] = $taker;
-                    $fee['maker'] = $maker;
+                    $fee['taker'] = floatval($this->decimal_to_precision($taker / 100, ROUND, 0.00000001, TICK_SIZE));
+                    $fee['maker'] = floatval($this->decimal_to_precision($maker / 100, ROUND, 0.00000001, TICK_SIZE));
                 }
             }
             $tiers = array(
