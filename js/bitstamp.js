@@ -55,8 +55,8 @@ module.exports = class bitstamp extends ccxt.bitstamp {
             'params': params,
         };
         const message = this.extend (request, params);
-        const future = this.watch (url, messageHash, message, messageHash, subscription);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
@@ -198,8 +198,8 @@ module.exports = class bitstamp extends ccxt.bitstamp {
             'params': params,
         };
         const message = this.extend (request, params);
-        const future = this.watch (url, messageHash, message, messageHash, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = this.watch (url, messageHash, message, messageHash, subscription);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     parseTrade (trade, market = undefined) {
