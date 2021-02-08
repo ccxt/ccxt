@@ -52,13 +52,13 @@ module.exports = class upbit extends ccxt.upbit {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const future = this.watchPublic (symbol, 'trade');
-        return await this.after (future, this.filterBySinceLimit, since, limit, true);
+        const trades = await this.watchPublic (symbol, 'trade');
+        return this.filterBySinceLimit (trades, since, limit, true);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        const future = this.watchPublic (symbol, 'orderbook');
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watchPublic (symbol, 'orderbook');
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     handleTicker (client, message) {
