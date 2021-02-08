@@ -59,8 +59,8 @@ module.exports = class hitbtc extends ccxt.hitbtc {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        const future = this.watchPublic (symbol, 'orderbook', undefined, params);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watchPublic (symbol, 'orderbook', undefined, params);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     handleOrderBookSnapshot (client, message) {
@@ -192,8 +192,8 @@ module.exports = class hitbtc extends ccxt.hitbtc {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const future = this.watchPublic (symbol, 'trades', undefined, params);
-        return await this.after (future, this.filterBySinceLimit, since, limit, true);
+        const trades = await this.watchPublic (symbol, 'trades', undefined, params);
+        return this.filterBySinceLimit (trades, since, limit, true);
     }
 
     handleTrades (client, message) {
@@ -259,8 +259,8 @@ module.exports = class hitbtc extends ccxt.hitbtc {
             },
         };
         const requestParams = this.deepExtend (request, params);
-        const future = this.watchPublic (symbol, 'ohlcv', period, requestParams);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const ohlcv = await this.watchPublic (symbol, 'ohlcv', period, requestParams);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
