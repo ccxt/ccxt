@@ -16,12 +16,13 @@ const ccxt = require ('ccxt')
 
 module.exports = class Client {
 
-    constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, config = {}) {
+    constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         const defaults = {
             url,
             onMessageCallback,
             onErrorCallback,
             onCloseCallback,
+            onConnectedCallback,
             verbose: false, // verbose output
             protocols: undefined, // ws-specific protocols
             options: undefined, // ws-specific options
@@ -187,6 +188,7 @@ module.exports = class Client {
         // this.connection.terminate () // debugging
         this.clearConnectionTimeout ()
         this.setPingInterval ()
+        this.onConnectedCallback (this)
     }
 
     // this method is not used at this time, because in JS the ws client will
@@ -209,8 +211,10 @@ module.exports = class Client {
         if (this.verbose) {
             this.print (new Date (), 'onError', error.message)
         }
-        // convert ws errors to ccxt errors if necessary
-        // this.error = new NetworkError (error.message)
+        if (!(error instanceof ccxt.BaseError)) {
+            // in case of ErrorEvent from node_modules/ws/lib/event-target.js
+            error = new ccxt.NetworkError (error.message)
+        }
         this.error = error
         this.reset (this.error)
         this.onErrorCallback (this, this.error)
@@ -260,7 +264,9 @@ module.exports = class Client {
             if (message instanceof Buffer) {
                 message = message.toString ()
             }
-            message = isJsonEncodedObject (message) ? JSON.parse (message) : message
+            if (isJsonEncodedObject (message)) {
+                message = JSON.parse (message.replace (/:(\d{15,}),/g, ':"$1",'))
+            }
             if (this.verbose) {
                 this.print (new Date (), 'onMessage', message)
                 // unlimited depth

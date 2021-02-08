@@ -7,7 +7,7 @@
 const fs = require ('fs')
     , log = require ('ololog')
     , ansi = require ('ansicolor').nice
-    , { unCamelCase, precisionConstants, safeString } = require ('ccxt/js/base/functions.js')
+    , { unCamelCase, precisionConstants, safeString, unique } = require ('ccxt/js/base/functions.js')
     , {
         createFolderRecursively,
         overwriteFile,
@@ -73,24 +73,14 @@ class CCXTProTranspiler extends Transpiler {
     }
 
     createPythonClassHeader (ccxtImports, bodyAsString) {
-        let imports = ccxtImports
-        const importArrayCache = bodyAsString.match (/\bArrayCache\b/i)
-        const importArrayCacheBySymbolById = bodyAsString.match (/\bArrayCacheBySymbolById\b/i)
-        if (importArrayCache && importArrayCacheBySymbolById) {
-            imports = [
-                ... imports,
-                'from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById',
-            ]
-        } else if (importArrayCache) {
-            imports = [
-                ... imports,
-                'from ccxtpro.base.cache import ArrayCache',
-            ]
-        } else if (importArrayCacheBySymbolById) {
-            imports = [
-                ... imports,
-                'from ccxtpro.base.cache import ArrayCacheBySymbolById',
-            ]
+        const imports = [
+            ... ccxtImports,
+        ]
+        const arrayCacheClasses = bodyAsString.match (/\bArrayCache(?:[A-Z][A-Za-z]+)?\b/g)
+        if (arrayCacheClasses) {
+            const uniqueArrayCacheClasses = unique (arrayCacheClasses).sort ()
+            const arrayCacheImport = 'from ccxtpro.base.cache import ' + uniqueArrayCacheClasses.join (', ')
+            imports.push (arrayCacheImport)
         }
         return [
             "# -*- coding: utf-8 -*-",
@@ -115,7 +105,7 @@ class CCXTProTranspiler extends Transpiler {
 
     createPHPClassDeclaration (className, baseClass) {
         let lines = [
-            'class ' + className + ' extends ' + baseClass.replace ('ccxt.', '\\ccxt\\') + ' {',
+            'class ' + className + ' extends ' + baseClass.replace ('ccxt.', '\\ccxt\\async\\') + ' {',
         ]
         if (baseClass.indexOf ('ccxt.') === 0) {
             lines = lines.concat ([
@@ -226,22 +216,22 @@ class CCXTProTranspiler extends Transpiler {
 
     // ------------------------------------------------------------------------
 
-    transpileEverything () {
+    transpileEverything (force = false) {
 
         // default pattern is '.js'
-        const [ /* node */, /* script */, pattern ] = process.argv
+        const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
             // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
             , python3Folder = './python/ccxtpro/'
-            , phpFolder     = './php/'
-            , options = { /* python2Folder, */ python3Folder, phpFolder }
+            , phpAsyncFolder     = './php/'
+            , options = { /* python2Folder, */ python3Folder, phpAsyncFolder }
 
         // createFolderRecursively (python2Folder)
         createFolderRecursively (python3Folder)
-        createFolderRecursively (phpFolder)
+        createFolderRecursively (phpAsyncFolder)
 
         this.transpileCacheTest ()
         this.transpileOrderBookTest ()
-        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern)
+        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force)
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
@@ -270,7 +260,9 @@ if (require.main === module) {
     // if called directly like `node module`
 
     const transpiler = new CCXTProTranspiler ()
-    transpiler.transpileEverything ()
+    const force = process.argv.includes ('--force')
+    log.bright.green ({ force })
+    transpiler.transpileEverything (force)
 
 } else {
 

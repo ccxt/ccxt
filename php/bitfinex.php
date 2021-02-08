@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 
-class bitfinex extends \ccxt\bitfinex {
+class bitfinex extends \ccxt\async\bitfinex {
 
     use ClientTrait;
 
@@ -43,7 +43,7 @@ class bitfinex extends \ccxt\bitfinex {
     }
 
     public function subscribe($channel, $symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
         $url = $this->urls['api']['ws']['public'];
@@ -55,16 +55,16 @@ class bitfinex extends \ccxt\bitfinex {
             'symbol' => $marketId,
             'messageHash' => $messageHash,
         );
-        return $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+        return yield $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $future = $this->subscribe('trades', $symbol, $params);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return $this->subscribe('ticker', $symbol, $params);
+        return yield $this->subscribe('ticker', $symbol, $params);
     }
 
     public function handle_trades($client, $message, $subscription) {
@@ -162,7 +162,10 @@ class bitfinex extends \ccxt\bitfinex {
         $seq = $this->safe_string($trade, 2);
         $parts = explode('-', $seq);
         $marketId = $this->safe_string($parts, 1);
-        $symbol = $this->safe_symbol($marketId);
+        if ($marketId !== null) {
+            $marketId = str_replace('t', '', $marketId);
+        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $takerOrMaker = null;
         $orderId = null;
         return array(
@@ -250,10 +253,10 @@ class bitfinex extends \ccxt\bitfinex {
             // 'symbol' => marketId, // added in subscribe()
             'prec' => $prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq' => $freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
-            // 'len' => '25', // string, number of price points, '25', '100', default = '25'
+            'len' => $limit, // string, number of price points, '25', '100', default = '25'
         );
         $future = $this->subscribe('book', $symbol, $this->deep_extend($request, $params));
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function handle_order_book($client, $message, $subscription) {
@@ -385,7 +388,7 @@ class bitfinex extends \ccxt\bitfinex {
         return $message;
     }
 
-    public function authenticate() {
+    public function authenticate($params = array ()) {
         $url = $this->urls['api']['ws']['private'];
         $client = $this->client($url);
         $future = $client->future ('authenticated');
@@ -408,7 +411,7 @@ class bitfinex extends \ccxt\bitfinex {
             );
             $this->spawn(array($this, 'watch'), $url, $method, $request, 1);
         }
-        return $future;
+        return yield $future;
     }
 
     public function handle_authentication_message($client, $message) {
@@ -429,19 +432,19 @@ class bitfinex extends \ccxt\bitfinex {
     }
 
     public function watch_order($id, $symbol = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $url = $this->urls['api']['ws']['private'];
         $future = $this->authenticate();
-        return $this->after_dropped($future, array($this, 'watch'), $url, $id, null, 1);
+        return yield $this->after_dropped($future, array($this, 'watch'), $url, $id, null, 1);
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $future = $this->authenticate();
         $url = $this->urls['api']['ws']['private'];
         $watching = $this->after_dropped($future, array($this, 'watch'), $url, 'os', null, 1);
         // purgeOrders here
-        return $this->after($watching, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        return yield $this->after($watching, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
     public function handle_orders($client, $message) {
@@ -558,6 +561,7 @@ class bitfinex extends \ccxt\bitfinex {
             'type' => $type,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'average' => null,
             'amount' => $amount,
             'remaining' => $remaining,

@@ -15,13 +15,14 @@ class binance(Exchange, ccxt.binance):
         return self.deep_extend(super(binance, self).describe(), {
             'has': {
                 'ws': True,
-                'watchOrderBook': True,
-                'watchTrades': True,
+                'watchBalance': True,
+                'watchMyTrades': True,
                 'watchOHLCV': True,
+                'watchOrderBook': True,
+                'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': False,  # for now
-                'watchOrders': True,
-                'watchBalance': True,
+                'watchTrades': True,
             },
             'urls': {
                 'test': {
@@ -51,8 +52,12 @@ class binance(Exchange, ccxt.binance):
                 'requestId': {},
                 'watchOrderBookLimit': 1000,  # default limit
                 'watchTrades': {
-                    'type': 'trade',  # 'trade' or 'aggTrade'
+                    'name': 'trade',  # 'trade' or 'aggTrade'
                 },
+                'watchTicker': {
+                    'name': 'ticker',  # ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
+                },
+                'wallet': 'wb',  # wb = wallet balance, cb = cross balance
             },
         })
 
@@ -306,12 +311,30 @@ class binance(Exchange, ccxt.binance):
         await self.load_markets()
         market = self.market(symbol)
         options = self.safe_value(self.options, 'watchTrades', {})
-        name = self.safe_string(options, 'type', 'trade')
+        name = self.safe_string(options, 'name', 'trade')
         messageHash = market['lowercaseId'] + '@' + name
-        future = self.watch_public(messageHash, params)
+        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+        watchTradesType = self.safe_string_2(options, 'type', 'defaultType', defaultType)
+        type = self.safe_string(params, 'type', watchTradesType)
+        query = self.omit(params, 'type')
+        url = self.urls['api']['ws'][type]
+        requestId = self.request_id(url)
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+                messageHash,
+            ],
+            'id': requestId,
+        }
+        subscribe = {
+            'id': requestId,
+        }
+        future = self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
         return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
 
     def parse_trade(self, trade, market=None):
+        #
+        # public watchTrades
         #
         #     {
         #         e: 'trade',       # event type
@@ -341,24 +364,112 @@ class binance(Exchange, ccxt.binance):
         #        "M": True         # Ignore
         #     }
         #
-        event = self.safe_string(trade, 'e')
-        if event is None:
+        # private watchMyTrades spot
+        #
+        #     {
+        #         e: 'executionReport',
+        #         E: 1611063861489,
+        #         s: 'BNBUSDT',
+        #         c: 'm4M6AD5MF3b1ERe65l4SPq',
+        #         S: 'BUY',
+        #         o: 'MARKET',
+        #         f: 'GTC',
+        #         q: '2.00000000',
+        #         p: '0.00000000',
+        #         P: '0.00000000',
+        #         F: '0.00000000',
+        #         g: -1,
+        #         C: '',
+        #         x: 'TRADE',
+        #         X: 'PARTIALLY_FILLED',
+        #         r: 'NONE',
+        #         i: 1296882607,
+        #         l: '0.33200000',
+        #         z: '0.33200000',
+        #         L: '46.86600000',
+        #         n: '0.00033200',
+        #         N: 'BNB',
+        #         T: 1611063861488,
+        #         t: 109747654,
+        #         I: 2696953381,
+        #         w: False,
+        #         m: False,
+        #         M: True,
+        #         O: 1611063861488,
+        #         Z: '15.55951200',
+        #         Y: '15.55951200',
+        #         Q: '0.00000000'
+        #     }
+        #
+        # private watchMyTrades future/delivery
+        #
+        #     {
+        #         s: 'BTCUSDT',
+        #         c: 'pb2jD6ZQHpfzSdUac8VqMK',
+        #         S: 'SELL',
+        #         o: 'MARKET',
+        #         f: 'GTC',
+        #         q: '0.001',
+        #         p: '0',
+        #         ap: '33468.46000',
+        #         sp: '0',
+        #         x: 'TRADE',
+        #         X: 'FILLED',
+        #         i: 13351197194,
+        #         l: '0.001',
+        #         z: '0.001',
+        #         L: '33468.46',
+        #         n: '0.00027086',
+        #         N: 'BNB',
+        #         T: 1612095165362,
+        #         t: 458032604,
+        #         b: '0',
+        #         a: '0',
+        #         m: False,
+        #         R: False,
+        #         wt: 'CONTRACT_PRICE',
+        #         ot: 'MARKET',
+        #         ps: 'BOTH',
+        #         cp: False,
+        #         rp: '0.00335000',
+        #         pP: False,
+        #         si: 0,
+        #         ss: 0
+        #     }
+        #
+        executionType = self.safe_string(trade, 'x')
+        isTradeExecution = (executionType == 'TRADE')
+        if not isTradeExecution:
             return super(binance, self).parse_trade(trade, market)
         id = self.safe_string_2(trade, 't', 'a')
         timestamp = self.safe_integer(trade, 'T')
-        price = self.safe_float(trade, 'p')
+        price = self.safe_float_2(trade, 'L', 'p')
         amount = self.safe_float(trade, 'q')
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
+        if isTradeExecution:
+            amount = self.safe_float(trade, 'l', amount)
+        cost = self.safe_float(trade, 'Y')
+        if cost is None:
+            if (price is not None) and (amount is not None):
+                cost = price * amount
         marketId = self.safe_string(trade, 's')
         symbol = self.safe_symbol(marketId)
-        side = None
+        side = self.safe_string_lower(trade, 'S')
         takerOrMaker = None
-        orderId = None
+        orderId = self.safe_string(trade, 'i')
         if 'm' in trade:
-            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
+            if side is None:
+                side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
             takerOrMaker = 'maker' if trade['m'] else 'taker'
+        fee = None
+        feeCost = self.safe_float(trade, 'n')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'N')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
+        type = self.safe_string_lower(trade, 'o')
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -366,13 +477,13 @@ class binance(Exchange, ccxt.binance):
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': None,
+            'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
     def handle_trade(self, client, message):
@@ -400,7 +511,24 @@ class binance(Exchange, ccxt.binance):
         interval = self.timeframes[timeframe]
         name = 'kline'
         messageHash = marketId + '@' + name + '_' + interval
-        future = self.watch_public(messageHash, params)
+        options = self.safe_value(self.options, 'watchOHLCV', {})
+        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+        watchOHLCVType = self.safe_string_2(options, 'type', 'defaultType', defaultType)
+        type = self.safe_string(params, 'type', watchOHLCVType)
+        query = self.omit(params, 'type')
+        url = self.urls['api']['ws'][type]
+        requestId = self.request_id(url)
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': [
+                messageHash,
+            ],
+            'id': requestId,
+        }
+        subscribe = {
+            'id': requestId,
+        }
+        future = self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
         return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
@@ -460,9 +588,16 @@ class binance(Exchange, ccxt.binance):
             stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    async def watch_public(self, messageHash, params={}):
-        defaultType = self.safe_string_2(self.options, 'watchOrderBook', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
+    async def watch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        marketId = market['lowercaseId']
+        options = self.safe_value(self.options, 'watchTicker', {})
+        name = self.safe_string(options, 'name', 'ticker')
+        messageHash = marketId + '@' + name
+        defaultType = self.safe_string_2(self.options, 'defaultType', 'spot')
+        watchTickerType = self.safe_string_2(options, 'type', 'defaultType', defaultType)
+        type = self.safe_string(params, 'type', watchTickerType)
         query = self.omit(params, 'type')
         url = self.urls['api']['ws'][type]
         requestId = self.request_id(url)
@@ -477,14 +612,6 @@ class binance(Exchange, ccxt.binance):
             'id': requestId,
         }
         return await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
-
-    async def watch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        marketId = market['lowercaseId']
-        name = 'ticker'
-        messageHash = marketId + '@' + name
-        return await self.watch_public(messageHash, params)
 
     def handle_ticker(self, client, message):
         #
@@ -518,10 +645,12 @@ class binance(Exchange, ccxt.binance):
         #         n: 163222,            # total number of trades
         #     }
         #
-        event = 'ticker'  # message['e'] == 24hrTicker
+        event = self.safe_string(message, 'e', 'bookTicker')
+        if event == '24hrTicker':
+            event = 'ticker'
         wsMarketId = self.safe_string_lower(message, 's')
         messageHash = wsMarketId + '@' + event
-        timestamp = self.safe_integer(message, 'C')
+        timestamp = self.safe_integer(message, 'C', self.milliseconds())
         marketId = self.safe_string(message, 's')
         symbol = self.safe_symbol(marketId)
         last = self.safe_float(message, 'c')
@@ -550,7 +679,7 @@ class binance(Exchange, ccxt.binance):
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
-    async def authenticate(self):
+    async def authenticate(self, params={}):
         time = self.seconds()
         type = self.safe_string_2(self.options, 'defaultType', 'authenticate', 'spot')
         options = self.safe_value(self.options, type, {})
@@ -573,32 +702,59 @@ class binance(Exchange, ccxt.binance):
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
-        messageHash = 'outboundAccountInfo'
+        messageHash = 'outboundAccountPosition'
         return await self.watch(url, messageHash)
 
     def handle_balance(self, client, message):
+        #
         # sent upon creating or filling an order
         #
         #     {
-        #         "e": "outboundAccountInfo",   # Event type
-        #         "E": 1499405658849,           # Event time
-        #         "m": 0,                       # Maker commission rate(bips)
-        #         "t": 0,                       # Taker commission rate(bips)
-        #         "b": 0,                       # Buyer commission rate(bips)
-        #         "s": 0,                       # Seller commission rate(bips)
-        #         "T": True,                    # Can trade?
-        #         "W": True,                    # Can withdraw?
-        #         "D": True,                    # Can deposit?
-        #         "u": 1499405658848,           # Time of last account update
-        #         "B": [                       # Balances array
+        #         "e": "outboundAccountPosition",  # Event type
+        #         "E": 1564034571105,             # Event Time
+        #         "u": 1564034571073,             # Time of last account update
+        #         "B": [                         # Balances Array
         #             {
-        #                 "a": "LTC",               # Asset
-        #                 "f": "17366.18538083",    # Free amount
-        #                 "l": "0.00000000"         # Locked amount
-        #             },
+        #                 "a": "ETH",                 # Asset
+        #                 "f": "10000.000000",        # Free
+        #                 "l": "0.000000"             # Locked
+        #             }
         #         ]
         #     }
         #
+        # future/delivery
+        #
+        #     {
+        #         "e": "ACCOUNT_UPDATE",            # Event Type
+        #         "E": 1564745798939,               # Event Time
+        #         "T": 1564745798938 ,              # Transaction
+        #         "i": "SfsR",                      # Account Alias
+        #         "a": {                           # Update Data
+        #             "m":"ORDER",                  # Event reason type
+        #             "B":[                        # Balances
+        #                 {
+        #                     "a":"BTC",                # Asset
+        #                     "wb":"122624.12345678",   # Wallet Balance
+        #                     "cw":"100.12345678"       # Cross Wallet Balance
+        #                 },
+        #             ],
+        #             "P":[
+        #                 {
+        #                     "s":"BTCUSD_200925",      # Symbol
+        #                     "pa":"0",                 # Position Amount
+        #                     "ep":"0.0",               # Entry Price
+        #                     "cr":"200",               #(Pre-fee) Accumulated Realized
+        #                     "up":"0",                 # Unrealized PnL
+        #                     "mt":"isolated",          # Margin Type
+        #                     "iw":"0.00000000",        # Isolated Wallet(if isolated position)
+        #                     "ps":"BOTH"               # Position Side
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        wallet = self.safe_value(self.options, 'wallet', 'wb')
+        message = self.safe_value(message, 'a', message)
         balances = self.safe_value(message, 'B', [])
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -607,6 +763,7 @@ class binance(Exchange, ccxt.binance):
             account = self.account()
             account['free'] = self.safe_float(balance, 'f')
             account['used'] = self.safe_float(balance, 'l')
+            account['total'] = self.safe_float(balance, wallet)
             self.balance[code] = account
         self.balance = self.parse_balance(self.balance)
         messageHash = self.safe_string(message, 'e')
@@ -618,11 +775,17 @@ class binance(Exchange, ccxt.binance):
         defaultType = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
-        messageHash = 'executionReport'
-        future = self.watch(url, messageHash)
+        messageHash = 'orders'
+        subscriptionHash = messageHash
+        if symbol is not None:
+            subscriptionHash += ':' + symbol
+        message = None
+        future = self.watch(url, messageHash, message, subscriptionHash)
         return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
 
-    def handle_order(self, client, message):
+    def parse_ws_order(self, order, market=None):
+        #
+        # spot
         #
         #     {
         #         "e": "executionReport",        # Event type
@@ -659,40 +822,90 @@ class binance(Exchange, ccxt.binance):
         #         "Q": "0.00000000"              # Quote Order Qty
         #     }
         #
-        messageHash = self.safe_string(message, 'e')
-        orderId = self.safe_string(message, 'i')
-        marketId = self.safe_string(message, 's')
+        # future
+        #
+        #     {
+        #         "s":"BTCUSDT",                 # Symbol
+        #         "c":"TEST",                    # Client Order Id
+        #                                        # special client order id:
+        #                                        # starts with "autoclose-": liquidation order
+        #                                        # "adl_autoclose": ADL auto close order
+        #         "S":"SELL",                    # Side
+        #         "o":"TRAILING_STOP_MARKET",    # Order Type
+        #         "f":"GTC",                     # Time in Force
+        #         "q":"0.001",                   # Original Quantity
+        #         "p":"0",                       # Original Price
+        #         "ap":"0",                      # Average Price
+        #         "sp":"7103.04",                # Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        #         "x":"NEW",                     # Execution Type
+        #         "X":"NEW",                     # Order Status
+        #         "i":8886774,                   # Order Id
+        #         "l":"0",                       # Order Last Filled Quantity
+        #         "z":"0",                       # Order Filled Accumulated Quantity
+        #         "L":"0",                       # Last Filled Price
+        #         "N":"USDT",                    # Commission Asset, will not push if no commission
+        #         "n":"0",                       # Commission, will not push if no commission
+        #         "T":1568879465651,             # Order Trade Time
+        #         "t":0,                         # Trade Id
+        #         "b":"0",                       # Bids Notional
+        #         "a":"9.91",                    # Ask Notional
+        #         "m":false,                     # Is self trade the maker side?
+        #         "R":false,                     # Is self reduce only
+        #         "wt":"CONTRACT_PRICE",         # Stop Price Working Type
+        #         "ot":"TRAILING_STOP_MARKET",   # Original Order Type
+        #         "ps":"LONG",                   # Position Side
+        #         "cp":false,                    # If Close-All, pushed with conditional order
+        #         "AP":"7476.89",                # Activation Price, only puhed with TRAILING_STOP_MARKET order
+        #         "cr":"5.0",                    # Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        #         "rp":"0"                       # Realized Profit of the trade
+        #     }
+        #
+        executionType = self.safe_string(order, 'x')
+        orderId = self.safe_string(order, 'i')
+        marketId = self.safe_string(order, 's')
         symbol = self.safe_symbol(marketId)
-        timestamp = self.safe_integer(message, 'O')
-        lastTradeTimestamp = self.safe_string(message, 'T')
-        feeAmount = self.safe_float(message, 'n')
-        feeCurrency = self.safe_currency_code(self.safe_string(message, 'N'))
-        fee = {
-            'cost': feeAmount,
-            'currency': feeCurrency,
-        }
-        price = self.safe_float(message, 'p')
-        amount = self.safe_float(message, 'q')
-        side = self.safe_string_lower(message, 'S')
-        type = self.safe_string_lower(message, 'o')
-        filled = self.safe_float(message, 'z')
-        cumulativeQuote = self.safe_float(message, 'Z')
+        timestamp = self.safe_integer(order, 'O')
+        T = self.safe_string(order, 'T')
+        lastTradeTimestamp = None
+        if executionType == 'NEW':
+            if timestamp is None:
+                timestamp = T
+        elif executionType == 'TRADE':
+            lastTradeTimestamp = T
+        fee = None
+        feeCost = self.safe_float(order, 'n')
+        if (feeCost is not None) and (feeCost > 0):
+            feeCurrencyId = self.safe_string(order, 'N')
+            feeCurrency = self.safe_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
+        price = self.safe_float(order, 'p')
+        amount = self.safe_float(order, 'q')
+        side = self.safe_string_lower(order, 'S')
+        type = self.safe_string_lower(order, 'o')
+        filled = self.safe_float(order, 'z')
+        cumulativeQuote = self.safe_float(order, 'Z')
         remaining = amount
-        average = None
-        cost = None
+        average = self.safe_float(order, 'ap')
+        cost = cumulativeQuote
         if filled is not None:
-            if price is not None:
-                cost = filled * price
+            if cost is None:
+                if price is not None:
+                    cost = filled * price
             if amount is not None:
                 remaining = max(amount - filled, 0)
-            if (cumulativeQuote is not None) and (filled > 0):
+            if (average is None) and (cumulativeQuote is not None) and (filled > 0):
                 average = cumulativeQuote / filled
-        rawStatus = self.safe_string(message, 'X')
+        rawStatus = self.safe_string(order, 'X')
         status = self.parse_order_status(rawStatus)
         trades = None
-        clientOrderId = self.safe_string(message, 'c')
-        parsed = {
-            'info': message,
+        clientOrderId = self.safe_string(order, 'c')
+        stopPrice = self.safe_float_2(order, 'P', 'sp')
+        timeInForce = self.safe_string(order, 'f')
+        return {
+            'info': order,
             'symbol': symbol,
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -700,8 +913,11 @@ class binance(Exchange, ccxt.binance):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -711,12 +927,189 @@ class binance(Exchange, ccxt.binance):
             'fee': fee,
             'trades': trades,
         }
-        if self.orders is None:
-            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-            self.orders = ArrayCacheBySymbolById(limit)
-        orders = self.orders
-        orders.append(parsed)
-        client.resolve(self.orders, messageHash)
+
+    def handle_order_update(self, client, message):
+        #
+        # spot
+        #
+        #     {
+        #         "e": "executionReport",        # Event type
+        #         "E": 1499405658658,            # Event time
+        #         "s": "ETHBTC",                 # Symbol
+        #         "c": "mUvoqJxFIILMdfAW5iGSOW",  # Client order ID
+        #         "S": "BUY",                    # Side
+        #         "o": "LIMIT",                  # Order type
+        #         "f": "GTC",                    # Time in force
+        #         "q": "1.00000000",             # Order quantity
+        #         "p": "0.10264410",             # Order price
+        #         "P": "0.00000000",             # Stop price
+        #         "F": "0.00000000",             # Iceberg quantity
+        #         "g": -1,                       # OrderListId
+        #         "C": null,                     # Original client order ID; This is the ID of the order being canceled
+        #         "x": "NEW",                    # Current execution type
+        #         "X": "NEW",                    # Current order status
+        #         "r": "NONE",                   # Order reject reason; will be an error code.
+        #         "i": 4293153,                  # Order ID
+        #         "l": "0.00000000",             # Last executed quantity
+        #         "z": "0.00000000",             # Cumulative filled quantity
+        #         "L": "0.00000000",             # Last executed price
+        #         "n": "0",                      # Commission amount
+        #         "N": null,                     # Commission asset
+        #         "T": 1499405658657,            # Transaction time
+        #         "t": -1,                       # Trade ID
+        #         "I": 8641984,                  # Ignore
+        #         "w": True,                     # Is the order on the book?
+        #         "m": False,                    # Is self trade the maker side?
+        #         "M": False,                    # Ignore
+        #         "O": 1499405658657,            # Order creation time
+        #         "Z": "0.00000000",             # Cumulative quote asset transacted quantity
+        #         "Y": "0.00000000"              # Last quote asset transacted quantity(i.e. lastPrice * lastQty),
+        #         "Q": "0.00000000"              # Quote Order Qty
+        #     }
+        #
+        # future
+        #
+        #     {
+        #         "e":"ORDER_TRADE_UPDATE",           # Event Type
+        #         "E":1568879465651,                  # Event Time
+        #         "T":1568879465650,                  # Trasaction Time
+        #         "o": {
+        #             "s":"BTCUSDT",                  # Symbol
+        #             "c":"TEST",                     # Client Order Id
+        #                                             # special client order id:
+        #                                             # starts with "autoclose-": liquidation order
+        #                                             # "adl_autoclose": ADL auto close order
+        #             "S":"SELL",                     # Side
+        #             "o":"TRAILING_STOP_MARKET",     # Order Type
+        #             "f":"GTC",                      # Time in Force
+        #             "q":"0.001",                    # Original Quantity
+        #             "p":"0",                        # Original Price
+        #             "ap":"0",                       # Average Price
+        #             "sp":"7103.04",                 # Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        #             "x":"NEW",                      # Execution Type
+        #             "X":"NEW",                      # Order Status
+        #             "i":8886774,                    # Order Id
+        #             "l":"0",                        # Order Last Filled Quantity
+        #             "z":"0",                        # Order Filled Accumulated Quantity
+        #             "L":"0",                        # Last Filled Price
+        #             "N":"USDT",                     # Commission Asset, will not push if no commission
+        #             "n":"0",                        # Commission, will not push if no commission
+        #             "T":1568879465651,              # Order Trade Time
+        #             "t":0,                          # Trade Id
+        #             "b":"0",                        # Bids Notional
+        #             "a":"9.91",                     # Ask Notional
+        #             "m":false,                      # Is self trade the maker side?
+        #             "R":false,                      # Is self reduce only
+        #             "wt":"CONTRACT_PRICE",          # Stop Price Working Type
+        #             "ot":"TRAILING_STOP_MARKET",    # Original Order Type
+        #             "ps":"LONG",                    # Position Side
+        #             "cp":false,                     # If Close-All, pushed with conditional order
+        #             "AP":"7476.89",                 # Activation Price, only puhed with TRAILING_STOP_MARKET order
+        #             "cr":"5.0",                     # Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        #             "rp":"0"                        # Realized Profit of the trade
+        #         }
+        #     }
+        #
+        e = self.safe_string(message, 'e')
+        if e == 'ORDER_TRADE_UPDATE':
+            message = self.safe_value(message, 'o', message)
+        self.handle_my_trade(client, message)
+        self.handle_order(client, message)
+
+    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        await self.authenticate()
+        defaultType = self.safe_string_2(self.options, 'watchMyTrades', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
+        messageHash = 'myTrades'
+        subscriptionHash = messageHash
+        if symbol is not None:
+            subscriptionHash += ':' + symbol
+        message = None
+        future = self.watch(url, messageHash, message, subscriptionHash)
+        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+
+    def handle_my_trade(self, client, message):
+        messageHash = 'myTrades'
+        executionType = self.safe_string(message, 'x')
+        if executionType == 'TRADE':
+            trade = self.parse_trade(message)
+            orderId = self.safe_string(trade, 'order')
+            tradeFee = self.safe_value(trade, 'fee')
+            symbol = self.safe_string(trade, 'symbol')
+            if orderId is not None and tradeFee is not None and symbol is not None:
+                cachedOrders = self.orders
+                if cachedOrders is not None:
+                    orders = self.safe_value(cachedOrders.hashmap, symbol, {})
+                    order = self.safe_value(orders, orderId)
+                    if order is not None:
+                        # accumulate order fees
+                        fees = self.safe_value(order, 'fees')
+                        fee = self.safe_value(order, 'fee')
+                        if fees is not None:
+                            insertNewFeeCurrency = True
+                            for i in range(0, len(fees)):
+                                orderFee = fees[i]
+                                if orderFee['currency'] == tradeFee['currency']:
+                                    feeCost = self.sum(tradeFee['cost'], orderFee['cost'])
+                                    order['fees'][i]['cost'] = float(self.currency_to_precision(tradeFee['currency'], feeCost))
+                                    insertNewFeeCurrency = False
+                                    break
+                            if insertNewFeeCurrency:
+                                order['fees'].append(tradeFee)
+                        elif fee is not None:
+                            if fee['currency'] == tradeFee['currency']:
+                                feeCost = self.sum(fee['cost'], tradeFee['cost'])
+                                order['fee']['cost'] = float(self.currency_to_precision(tradeFee['currency'], feeCost))
+                            elif fee['currency'] is None:
+                                order['fee'] = tradeFee
+                            else:
+                                order['fees'] = [fee, tradeFee]
+                                order['fee'] = None
+                        else:
+                            order['fee'] = tradeFee
+                        # save self trade in the order
+                        orderTrades = self.safe_value(order, 'trades', [])
+                        orderTrades.append(trade)
+                        order['trades'] = orderTrades
+                        # save the order
+                        cachedOrders.append(order)
+            if self.myTrades is None:
+                limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+                self.myTrades = ArrayCacheBySymbolById(limit)
+            myTrades = self.myTrades
+            myTrades.append(trade)
+            client.resolve(self.myTrades, messageHash)
+            messageHashSymbol = messageHash + ':' + symbol
+            client.resolve(self.myTrades, messageHashSymbol)
+
+    def handle_order(self, client, message):
+        messageHash = 'orders'
+        parsed = self.parse_ws_order(message)
+        symbol = self.safe_string(parsed, 'symbol')
+        orderId = self.safe_string(parsed, 'id')
+        if symbol is not None:
+            if self.orders is None:
+                limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+                self.orders = ArrayCacheBySymbolById(limit)
+            cachedOrders = self.orders
+            orders = self.safe_value(cachedOrders.hashmap, symbol, {})
+            order = self.safe_value(orders, orderId)
+            if order is not None:
+                fee = self.safe_value(order, 'fee')
+                if fee is not None:
+                    parsed['fee'] = fee
+                fees = self.safe_value(order, 'fees')
+                if fees is not None:
+                    parsed['fees'] = fees
+                parsed['trades'] = self.safe_value(order, 'trades')
+                parsed['timestamp'] = self.safe_integer(order, 'timestamp')
+                parsed['datetime'] = self.safe_string(order, 'datetime')
+            cachedOrders.append(parsed)
+            client.resolve(self.orders, messageHash)
+            messageHashSymbol = messageHash + ':' + symbol
+            client.resolve(self.orders, messageHashSymbol)
 
     def handle_message(self, client, message):
         methods = {
@@ -725,8 +1118,11 @@ class binance(Exchange, ccxt.binance):
             'aggTrade': self.handle_trade,
             'kline': self.handle_ohlcv,
             '24hrTicker': self.handle_ticker,
-            'outboundAccountInfo': self.handle_balance,
-            'executionReport': self.handle_order,
+            'bookTicker': self.handle_ticker,
+            'outboundAccountPosition': self.handle_balance,
+            'ACCOUNT_UPDATE': self.handle_balance,
+            'executionReport': self.handle_order_update,
+            'ORDER_TRADE_UPDATE': self.handle_order_update,
         }
         event = self.safe_string(message, 'e')
         method = self.safe_value(methods, event)
@@ -734,6 +1130,18 @@ class binance(Exchange, ccxt.binance):
             requestId = self.safe_string(message, 'id')
             if requestId is not None:
                 return self.handle_subscription_status(client, message)
-            return message
+            # special case for the real-time bookTicker, since it comes without an event identifier
+            #
+            #     {
+            #         u: 7488717758,
+            #         s: 'BTCUSDT',
+            #         b: '28621.74000000',
+            #         B: '1.43278800',
+            #         a: '28621.75000000',
+            #         A: '2.52500800'
+            #     }
+            #
+            if event is None:
+                self.handle_ticker(client, message)
         else:
             return method(client, message)

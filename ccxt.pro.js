@@ -11,7 +11,7 @@ const ccxt = require ('ccxt')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '0.4.51'
+const version = '0.5.57'
 
 // Exchange.ccxtVersion = version
 
@@ -20,7 +20,6 @@ const version = '0.4.51'
 const exchanges = {
     'bequant':                 require ('./js/bequant.js'),
     'binance':                 require ('./js/binance.js'),
-    'binanceje':               require ('./js/binanceje.js'),
     'binanceus':               require ('./js/binanceus.js'),
     'bitcoincom':              require ('./js/bitcoincom.js'),
     'bitfinex':                require ('./js/bitfinex.js'),
@@ -28,15 +27,16 @@ const exchanges = {
     'bitstamp':                require ('./js/bitstamp.js'),
     'bittrex':                 require ('./js/bittrex.js'),
     'bitvavo':                 require ('./js/bitvavo.js'),
+    'cdax':                    require ('./js/cdax.js'),
     'coinbaseprime':           require ('./js/coinbaseprime.js'),
     'coinbasepro':             require ('./js/coinbasepro.js'),
     'currencycom':             require ('./js/currencycom.js'),
     'ftx':                     require ('./js/ftx.js'),
     'gateio':                  require ('./js/gateio.js'),
+    'gopax':                   require ('./js/gopax.js'),
     'hitbtc':                  require ('./js/hitbtc.js'),
     'huobijp':                 require ('./js/huobijp.js'),
     'huobipro':                require ('./js/huobipro.js'),
-    'huobiru':                 require ('./js/huobiru.js'),
     'idex':                    require ('./js/idex.js'),
     'kraken':                  require ('./js/kraken.js'),
     'kucoin':                  require ('./js/kucoin.js'),

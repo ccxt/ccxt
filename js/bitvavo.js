@@ -95,8 +95,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const future = this.watchPublic ('trades', symbol, params);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.watchPublic ('trades', symbol, params);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrade (client, message) {
@@ -146,8 +146,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             ],
         };
         const message = this.extend (request, params);
-        const future = this.watch (url, messageHash, message, messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const ohlcv = await this.watch (url, messageHash, message, messageHash);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -224,8 +224,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             'params': params,
         };
         const message = this.extend (request, params);
-        const future = this.watch (url, messageHash, message, messageHash, subscription);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     handleDelta (bookside, delta) {
@@ -316,8 +316,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             'action': name,
             'market': marketId,
         };
-        const future = this.watch (url, messageHash, request, messageHash, subscription);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, messageHash, request, messageHash, subscription);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     handleOrderBookSnapshot (client, message) {
@@ -399,7 +399,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
-        const authenticate = this.authenticate ();
+        await this.authenticate ();
         const market = this.market (symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
@@ -415,8 +415,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
                 },
             ],
         };
-        const future = this.afterDropped (authenticate, this.watch, url, messageHash, request, subscriptionHash);
-        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -424,7 +424,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
-        const authenticate = this.authenticate ();
+        await this.authenticate ();
         const market = this.market (symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
@@ -440,8 +440,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
                 },
             ],
         };
-        const future = this.afterDropped (authenticate, this.watch, url, messageHash, request, subscriptionHash);
-        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
     handleOrder (client, message) {
@@ -560,7 +560,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         return message;
     }
 
-    async authenticate () {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const future = client.future ('authenticated');

@@ -120,9 +120,9 @@ module.exports = class kucoin extends ccxt.kucoin {
 
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const negotiate = this.negotiate ();
+        const negotiation = await this.negotiate ();
         const topic = '/market/snapshot';
-        return await this.afterAsync (negotiate, this.subscribe, topic, undefined, symbol, params);
+        return await this.subscribe (negotiation, topic, undefined, symbol, params);
     }
 
     handleTicker (client, message) {
@@ -174,10 +174,10 @@ module.exports = class kucoin extends ccxt.kucoin {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const negotiate = this.negotiate ();
+        const negotiation = await this.negotiate ();
         const topic = '/market/match';
-        const future = this.afterAsync (negotiate, this.subscribe, topic, undefined, symbol, params);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.subscribe (negotiation, topic, undefined, symbol, params);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrade (client, message) {
@@ -204,14 +204,14 @@ module.exports = class kucoin extends ccxt.kucoin {
         const trade = this.parseTrade (data);
         const messageHash = this.safeString (message, 'topic');
         const symbol = trade['symbol'];
-        let array = this.safeValue (this.trades, symbol);
-        if (array === undefined) {
+        let trades = this.safeValue (this.trades, symbol);
+        if (trades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            array = new ArrayCache (limit);
-            this.trades[symbol] = array;
+            trades = new ArrayCache (limit);
+            this.trades[symbol] = trades;
         }
-        array.append (trade);
-        client.resolve (array, messageHash);
+        trades.append (trade);
+        client.resolve (trades, messageHash);
         return message;
     }
 
@@ -237,10 +237,10 @@ module.exports = class kucoin extends ccxt.kucoin {
             }
         }
         await this.loadMarkets ();
-        const negotiate = this.negotiate ();
+        const negotiation = await this.negotiate ();
         const topic = '/market/level2';
-        const future = this.afterAsync (negotiate, this.subscribe, topic, this.handleOrderBookSubscription, symbol, params);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.subscribe (negotiation, topic, this.handleOrderBookSubscription, symbol, params);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {

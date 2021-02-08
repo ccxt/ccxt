@@ -514,7 +514,7 @@ class bitvavo(Exchange, ccxt.bitvavo):
                 method(client, message, subscription)
         return message
 
-    async def authenticate(self):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
         future = client.future('authenticated')

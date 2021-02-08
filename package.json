@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "0.4.51",
+  "version": "0.5.57",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
@@ -14,7 +14,10 @@
   "readme": "README.md",
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
-    "build": "npm run export-exchanges && npm run vss && npm run check-js-syntax && npm run browserify && npm run transpile && npm run check-python-syntax && npm run check-php-syntax",
+    "build": "npm run pre-transpile && npm run transpile && npm run post-transpile",
+    "force-build": "npm run pre-transpile && npm run force-transpile && npm run post-transpile",
+    "pre-transpile": "npm run export-exchanges && npm run vss && npm run check-js-syntax && npm run browserify",
+    "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
     "test": "npm run build && node run-tests",
     "fast-test": "node run-tests --js",
     "test-base": "npm run test-js-base && npm run test-python-base && npm run test-php-base",
@@ -29,6 +32,7 @@
     "test-php-orderbook": "php -f php/test/OrderBook.php",
     "export-exchanges": "node build/export-exchanges",
     "transpile": "node build/transpile",
+    "force-transpile": "node build/transpile --force",
     "vss": "node build/vss",
     "lint": "eslint",
     "check-syntax": "npm run transpile && npm run check-js-syntax && npm run check-python-syntax && npm run check-php-syntax",
@@ -40,7 +44,7 @@
   },
   "types": "./ccxt.pro.d.ts",
   "dependencies": {
-    "ccxt": "^1.37.12",
+    "ccxt": "^1.41.68",
     "ws": "^7.2.1"
   },
   "devDependencies": {
@@ -490,6 +494,10 @@
     "exchange.ripio.com",
     "Ripio",
     "exchange.bitcoin.com",
-    "bitcoin.com"
+    "bitcoin.com",
+    "cdax.io",
+    "CDAX",
+    "gopax.co.kr",
+    "GOPAX"
   ]
 }

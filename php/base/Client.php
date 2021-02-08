@@ -30,6 +30,7 @@ class Client {
     public $on_message_callback;
     public $on_error_callback;
     public $on_close_callback;
+    public $on_connected_callback;
 
     public $error;
     public $connectionStarted;
@@ -113,6 +114,7 @@ class Client {
             callable $on_message_callback,
             callable $on_error_callback,
             callable $on_close_callback,
+            callable $on_connected_callback,
             $config
         ) {
 
@@ -123,6 +125,7 @@ class Client {
         $this->on_message_callback = $on_message_callback;
         $this->on_error_callback = $on_error_callback;
         $this->on_close_callback = $on_close_callback;
+        $this->on_connected_callback = $on_connected_callback;
 
         foreach ($config as $key => $value) {
             $this->{$key} =
@@ -163,6 +166,8 @@ class Client {
                 $this->connected->resolve($this->url);
                 $this->isConnected = true;
                 $this->set_ping_interval();
+                $on_connected_callback = $this->on_connected_callback;
+                $on_connected_callback($this);
             },
             function(\Exception $error) {
                 // echo date('c'), ' connection failed ', get_class($error), ' ', $error->getMessage(), "\n";

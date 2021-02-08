@@ -27,7 +27,7 @@ class ftx(Exchange, ccxt.ftx):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ftx.com/ws',
+                    'ws': 'wss://{hostname}/ws',
                 },
             },
             'options': {
@@ -52,7 +52,7 @@ class ftx(Exchange, ccxt.ftx):
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
-        url = self.urls['api']['ws']
+        url = self.implode_params(self.urls['api']['ws'], {'hostname': self.hostname})
         request = {
             'op': 'subscribe',
             'channel': channel,
@@ -67,7 +67,7 @@ class ftx(Exchange, ccxt.ftx):
         if symbol is not None:
             market = self.market(symbol)
             messageHash = messageHash + ':' + market['id']
-        url = self.urls['api']['ws']
+        url = self.implode_params(self.urls['api']['ws'], {'hostname': self.hostname})
         request = {
             'op': 'subscribe',
             'channel': channel,
@@ -75,8 +75,8 @@ class ftx(Exchange, ccxt.ftx):
         future = self.authenticate()
         return await self.after_dropped(future, self.watch, url, messageHash, request, channel)
 
-    def authenticate(self):
-        url = self.urls['api']['ws']
+    def authenticate(self, params={}):
+        url = self.implode_params(self.urls['api']['ws'], {'hostname': self.hostname})
         client = self.client(url)
         authenticate = 'authenticate'
         method = 'login'
@@ -86,12 +86,18 @@ class ftx(Exchange, ccxt.ftx):
             time = self.milliseconds()
             payload = str(time) + 'websocket_login'
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
+            messageArgs = {
+                'key': self.apiKey,
+                'time': time,
+                'sign': signature,
+            }
+            options = self.safe_value(self.options, 'sign', {})
+            headerPrefix = self.safe_string(options, self.hostname, 'FTX')
+            subaccount = self.safe_string(self.headers, headerPrefix + '-SUBACCOUNT')
+            if subaccount is not None:
+                messageArgs['subaccount'] = subaccount
             message = {
-                'args': {
-                    'key': self.apiKey,
-                    'time': time,
-                    'sign': signature,
-                },
+                'args': messageArgs,
                 'op': method,
             }
             # ftx does not reply to self message

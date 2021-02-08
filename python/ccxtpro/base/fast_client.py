@@ -9,8 +9,8 @@ from ccxtpro.base.aiohttp_client import AiohttpClient
 class FastClient(AiohttpClient):
     transport = None
 
-    def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, config={}):
-        super(FastClient, self).__init__(url, on_message_callback, on_error_callback, on_close_callback, config)
+    def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, on_connected_callback, config={}):
+        super(FastClient, self).__init__(url, on_message_callback, on_error_callback, on_close_callback, on_connected_callback, config)
         # instead of using the deque in aiohttp we implement our own for speed
         # https://github.com/aio-libs/aiohttp/blob/1d296d549050aa335ef542421b8b7dad788246d5/aiohttp/streams.py#L534
         self.stack = collections.deque()

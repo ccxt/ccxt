@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class poloniex extends \ccxt\poloniex {
+class poloniex extends \ccxt\async\poloniex {
 
     use ClientTrait;
 
@@ -106,13 +106,13 @@ class poloniex extends \ccxt\poloniex {
 
     public function watch_balance($params = array ()) {
         $this->check_required_credentials();
-        $this->load_markets();
+        yield $this->load_markets();
         $channelId = '1000';
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
         $messageHash = $channelId . ':b:e';
         if (!(is_array($client->subscriptions) && array_key_exists($channelId, $client->subscriptions))) {
-            $this->balance = $this->fetchBalance ($params);
+            $this->balance = yield $this->fetchBalance ($params);
             $nonce = $this->nonce();
             $payload = $this->urlencode(array( 'nonce' => $nonce ));
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512');
@@ -123,14 +123,14 @@ class poloniex extends \ccxt\poloniex {
                 'payload' => $payload,
                 'sign' => $signature,
             );
-            return $this->watch($url, $messageHash, $subscribe, $channelId);
+            return yield $this->watch($url, $messageHash, $subscribe, $channelId);
         } else {
-            return $this->watch($url, $messageHash, array(), $channelId);
+            return yield $this->watch($url, $messageHash, array(), $channelId);
         }
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $numericId = $this->safe_string($market, 'numericId');
         $channelId = '1002';
@@ -140,11 +140,11 @@ class poloniex extends \ccxt\poloniex {
             'command' => 'subscribe',
             'channel' => $channelId,
         );
-        return $this->watch($url, $messageHash, $subscribe, $channelId);
+        return yield $this->watch($url, $messageHash, $subscribe, $channelId);
     }
 
     public function watch_tickers($symbols = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $channelId = '1002';
         $messageHash = $channelId;
         $url = $this->urls['api']['ws'];
@@ -153,11 +153,11 @@ class poloniex extends \ccxt\poloniex {
             'channel' => $channelId,
         );
         $future = $this->watch($url, $messageHash, $subscribe, $channelId);
-        return $this->after($future, array($this, 'filter_by_array'), 'symbol', $symbols);
+        return yield $this->after($future, array($this, 'filter_by_array'), 'symbol', $symbols);
     }
 
     public function load_markets($reload = false, $params = array ()) {
-        $markets = parent::load_markets($reload, $params);
+        $markets = yield parent::load_markets($reload, $params);
         $marketsByNumericId = $this->safe_value($this->options, 'marketsByNumericId');
         if (($marketsByNumericId === null) || $reload) {
             $marketsByNumericId = array();
@@ -173,7 +173,7 @@ class poloniex extends \ccxt\poloniex {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $numericId = $this->safe_string($market, 'numericId');
         $messageHash = 'trades:' . $numericId;
@@ -183,11 +183,11 @@ class poloniex extends \ccxt\poloniex {
             'channel' => $numericId,
         );
         $future = $this->watch($url, $messageHash, $subscribe, $numericId);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $numericId = $this->safe_string($market, 'numericId');
         $messageHash = 'orderbook:' . $numericId;
@@ -197,14 +197,14 @@ class poloniex extends \ccxt\poloniex {
             'channel' => $numericId,
         );
         $future = $this->watch($url, $messageHash, $subscribe, $numericId);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function watch_heartbeat($params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $channelId = '1010';
         $url = $this->urls['api']['ws'];
-        return $this->watch($url, $channelId);
+        return yield $this->watch($url, $channelId);
     }
 
     public function handle_heartbeat($client, $message) {

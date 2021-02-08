@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\NotSupported;
 
-class kraken extends \ccxt\kraken {
+class kraken extends \ccxt\async\kraken {
 
     use ClientTrait;
 
@@ -17,13 +17,16 @@ class kraken extends \ccxt\kraken {
         return $this->deep_extend(parent::describe (), array(
             'has' => array(
                 'ws' => true,
+                'watchBalance' => false, // no such type of subscription as of 2021-01-05
+                'watchMyTrades' => true,
+                'watchOHLCV' => true,
+                'watchOrderBook' => true,
+                'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => false, // for now
                 'watchTrades' => true,
-                'watchOrderBook' => true,
-                // 'watchStatus' => true,
                 // 'watchHeartbeat' => true,
-                'watchOHLCV' => true,
+                // 'watchStatus' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -114,11 +117,6 @@ class kraken extends \ccxt\kraken {
         // trigger correct watchTickers calls upon receiving any of symbols
         $this->tickers[$symbol] = $result;
         $client->resolve ($result, $messageHash);
-    }
-
-    public function watch_balance($params = array ()) {
-        $this->load_markets();
-        throw new NotSupported($this->id . ' watchBalance() not implemented yet');
     }
 
     public function handle_trades($client, $message, $subscription) {
@@ -217,7 +215,7 @@ class kraken extends \ccxt\kraken {
     }
 
     public function watch_public($name, $symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $wsName = $this->safe_value($market['info'], 'wsname');
         $messageHash = $name . ':' . $wsName;
@@ -234,17 +232,17 @@ class kraken extends \ccxt\kraken {
             ),
         );
         $request = $this->deep_extend($subscribe, $params);
-        return $this->watch($url, $messageHash, $request, $messageHash);
+        return yield $this->watch($url, $messageHash, $request, $messageHash);
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return $this->watch_public('ticker', $symbol, $params);
+        return yield $this->watch_public('ticker', $symbol, $params);
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'trade';
         $future = $this->watch_public($name, $symbol, $params);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
@@ -260,11 +258,11 @@ class kraken extends \ccxt\kraken {
             }
         }
         $future = $this->watch_public($name, $symbol, array_merge($request, $params));
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $name = 'ohlc';
         $market = $this->market($symbol);
         $wsName = $this->safe_value($market['info'], 'wsname');
@@ -284,11 +282,11 @@ class kraken extends \ccxt\kraken {
         );
         $request = $this->deep_extend($subscribe, $params);
         $future = $this->watch($url, $messageHash, $request, $messageHash);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function load_markets($reload = false, $params = array ()) {
-        $markets = parent::load_markets($reload, $params);
+        $markets = yield parent::load_markets($reload, $params);
         $marketsByWsName = $this->safe_value($this->options, 'marketsByWsName');
         if (($marketsByWsName === null) || $reload) {
             $marketsByWsName = array();
@@ -307,10 +305,10 @@ class kraken extends \ccxt\kraken {
     }
 
     public function watch_heartbeat($params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $event = 'heartbeat';
         $url = $this->urls['api']['ws']['public'];
-        return $this->watch($url, $event);
+        return yield $this->watch($url, $event);
     }
 
     public function handle_heartbeat($client, $message) {
@@ -447,7 +445,425 @@ class kraken extends \ccxt\kraken {
         return $message;
     }
 
+    public function authenticate($params = array ()) {
+        $url = $this->urls['api']['ws']['private'];
+        $client = $this->client($url);
+        $authenticated = 'authenticated';
+        $subscription = $this->safe_value($client->subscriptions, $authenticated);
+        if ($subscription === null) {
+            $response = yield $this->privatePostGetWebSocketsToken ($params);
+            //
+            //     {
+            //         "error":array(),
+            //         "result":{
+            //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+            //             "expires":900
+            //         }
+            //     }
+            //
+            $subscription = $this->safe_value($response, 'result');
+            $client->subscriptions[$authenticated] = $subscription;
+        }
+        return $this->safe_string($subscription, 'token');
+    }
+
+    public function watch_private($name, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $token = yield $this->authenticate();
+        $subscriptionHash = $name;
+        $messageHash = $name;
+        if ($symbol !== null) {
+            $messageHash .= ':' . $symbol;
+        }
+        $url = $this->urls['api']['ws']['private'];
+        $requestId = $this->request_id();
+        $subscribe = array(
+            'event' => 'subscribe',
+            'reqid' => $requestId,
+            'subscription' => array(
+                'name' => $name,
+                'token' => $token,
+            ),
+        );
+        $request = $this->deep_extend($subscribe, $params);
+        $future = $this->watch($url, $messageHash, $request, $subscriptionHash);
+        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+    }
+
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return yield $this->watch_private('ownTrades', $symbol, $since, $limit, $params);
+    }
+
+    public function handle_my_trades($client, $message, $subscription = null) {
+        //
+        //     array(
+        //         array(
+        //             {
+        //                 'TT5UC3-GOIRW-6AZZ6R' => array(
+        //                     cost => '1493.90107',
+        //                     fee => '3.88415',
+        //                     margin => '0.00000',
+        //                     ordertxid => 'OTLAS3-RRHUF-NDWH5A',
+        //                     ordertype => 'market',
+        //                     pair => 'XBT/USDT',
+        //                     postxid => 'TKH2SE-M7IF5-CFI7LT',
+        //                     price => '6851.50005',
+        //                     time => '1586822919.335498',
+        //                     type => 'sell',
+        //                     vol => '0.21804000'
+        //                 }
+        //             ),
+        //             {
+        //                 'TIY6G4-LKLAI-Y3GD4A' => array(
+        //                     cost => '22.17134',
+        //                     fee => '0.05765',
+        //                     margin => '0.00000',
+        //                     ordertxid => 'ODQXS7-MOLK6-ICXKAA',
+        //                     ordertype => 'market',
+        //                     pair => 'ETH/USD',
+        //                     postxid => 'TKH2SE-M7IF5-CFI7LT',
+        //                     price => '169.97999',
+        //                     time => '1586340530.895739',
+        //                     type => 'buy',
+        //                     vol => '0.13043500'
+        //                 }
+        //             ),
+        //         ),
+        //         'ownTrades',
+        //         array( sequence => 1 )
+        //     )
+        //
+        $allTrades = $this->safe_value($message, 0, array());
+        $allTradesLength = is_array($allTrades) ? count($allTrades) : 0;
+        if ($allTradesLength > 0) {
+            if ($this->myTrades === null) {
+                $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+                $this->myTrades = new ArrayCache ($limit);
+            }
+            $stored = $this->myTrades;
+            $symbols = array();
+            for ($i = 0; $i < count($allTrades); $i++) {
+                $trades = $this->safe_value($allTrades, $i, array());
+                $ids = is_array($trades) ? array_keys($trades) : array();
+                for ($j = 0; $j < count($ids); $j++) {
+                    $id = $ids[$j];
+                    $trade = $trades[$id];
+                    $parsed = $this->parse_ws_trade(array_merge(array( 'id' => $id ), $trade));
+                    $stored->append ($parsed);
+                    $symbol = $parsed['symbol'];
+                    $symbols[$symbol] = true;
+                }
+            }
+            $name = 'ownTrades';
+            $client->resolve ($this->myTrades, $name);
+            $keys = is_array($symbols) ? array_keys($symbols) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $messageHash = $name . ':' . $keys[$i];
+                $client->resolve ($this->myTrades, $messageHash);
+            }
+        }
+    }
+
+    public function parse_ws_trade($trade, $market = null) {
+        //
+        //     {
+        //         $id => 'TIMIRG-WUNNE-RRJ6GT', // injected from outside
+        //         ordertxid => 'OQRPN2-LRHFY-HIFA7D',
+        //         postxid => 'TKH2SE-M7IF5-CFI7LT',
+        //         pair => 'USDCUSDT',
+        //         time => 1586340086.457,
+        //         $type => 'sell',
+        //         ordertype => 'market',
+        //         $price => '0.99860000',
+        //         $cost => '22.16892001',
+        //         $fee => '0.04433784',
+        //         vol => '22.20000000',
+        //         margin => '0.00000000',
+        //         misc => ''
+        //     }
+        //
+        //     {
+        //         $id => 'TIY6G4-LKLAI-Y3GD4A',
+        //         $cost => '22.17134',
+        //         $fee => '0.05765',
+        //         margin => '0.00000',
+        //         ordertxid => 'ODQXS7-MOLK6-ICXKAA',
+        //         ordertype => 'market',
+        //         pair => 'ETH/USD',
+        //         postxid => 'TKH2SE-M7IF5-CFI7LT',
+        //         $price => '169.97999',
+        //         time => '1586340530.895739',
+        //         $type => 'buy',
+        //         vol => '0.13043500'
+        //     }
+        //
+        $wsName = $this->safe_string($trade, 'pair');
+        $market = $this->safe_value($this->options['marketsByWsName'], $wsName, $market);
+        $symbol = null;
+        $orderId = $this->safe_string($trade, 'ordertxid');
+        $id = $this->safe_string_2($trade, 'id', 'postxid');
+        $timestamp = $this->safe_timestamp($trade, 'time');
+        $side = $this->safe_string($trade, 'type');
+        $type = $this->safe_string($trade, 'ordertype');
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'vol');
+        $cost = null;
+        $fee = null;
+        if (is_array($trade) && array_key_exists('fee', $trade)) {
+            $currency = null;
+            if ($market !== null) {
+                $currency = $market['quote'];
+            }
+            $fee = array(
+                'cost' => $this->safe_float($trade, 'fee'),
+                'currency' => $currency,
+            );
+        }
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
+        return array(
+            'id' => $id,
+            'order' => $orderId,
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => $fee,
+        );
+    }
+
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return yield $this->watch_private('openOrders', $symbol, $since, $limit, $params);
+    }
+
+    public function handle_orders($client, $message, $subscription = null) {
+        //
+        //     array(
+        //         array(
+        //             {
+        //                 "OGTT3Y-C6I3P-XRI6HX" => array(
+        //                     "cost" => "0.00000",
+        //                     "descr" => array(
+        //                         "close" => "",
+        //                         "leverage" => "0:1",
+        //                         "$order" => "sell 10.00345345 XBT/EUR @ $limit 34.50000 with 0:1 leverage",
+        //                         "ordertype" => "$limit",
+        //                         "pair" => "XBT/EUR",
+        //                         "price" => "34.50000",
+        //                         "price2" => "0.00000",
+        //                         "type" => "sell"
+        //                     ),
+        //                     "expiretm" => "0.000000",
+        //                     "fee" => "0.00000",
+        //                     "limitprice" => "34.50000",
+        //                     "misc" => "",
+        //                     "oflags" => "fcib",
+        //                     "opentm" => "0.000000",
+        //                     "price" => "34.50000",
+        //                     "refid" => "OKIVMP-5GVZN-Z2D2UA",
+        //                     "starttm" => "0.000000",
+        //                     "status" => "open",
+        //                     "stopprice" => "0.000000",
+        //                     "userref" => 0,
+        //                     "vol" => "10.00345345",
+        //                     "vol_exec" => "0.00000000"
+        //                 }
+        //             ),
+        //             {
+        //                 "OGTT3Y-C6I3P-XRI6HX" => array(
+        //                     "cost" => "0.00000",
+        //                     "descr" => array(
+        //                         "close" => "",
+        //                         "leverage" => "0:1",
+        //                         "$order" => "sell 0.00000010 XBT/EUR @ $limit 5334.60000 with 0:1 leverage",
+        //                         "ordertype" => "$limit",
+        //                         "pair" => "XBT/EUR",
+        //                         "price" => "5334.60000",
+        //                         "price2" => "0.00000",
+        //                         "type" => "sell"
+        //                     ),
+        //                     "expiretm" => "0.000000",
+        //                     "fee" => "0.00000",
+        //                     "limitprice" => "5334.60000",
+        //                     "misc" => "",
+        //                     "oflags" => "fcib",
+        //                     "opentm" => "0.000000",
+        //                     "price" => "5334.60000",
+        //                     "refid" => "OKIVMP-5GVZN-Z2D2UA",
+        //                     "starttm" => "0.000000",
+        //                     "status" => "open",
+        //                     "stopprice" => "0.000000",
+        //                     "userref" => 0,
+        //                     "vol" => "0.00000010",
+        //                     "vol_exec" => "0.00000000"
+        //                 }
+        //             ),
+        //         ),
+        //         "openOrders",
+        //         array( "sequence" => 234 )
+        //     )
+        //
+        // status-change
+        //
+        //     array(
+        //         array(
+        //             array( "OGTT3Y-C6I3P-XRI6HX" => array( "status" => "closed" )),
+        //             array( "OGTT3Y-C6I3P-XRI6HX" => array( "status" => "closed" )),
+        //         ),
+        //         "openOrders",
+        //         array( "sequence" => 59342 )
+        //     )
+        //
+        $allOrders = $this->safe_value($message, 0, array());
+        $allOrdersLength = is_array($allOrders) ? count($allOrders) : 0;
+        if ($allOrdersLength > 0) {
+            if ($this->orders === null) {
+                $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+                $this->orders = new ArrayCacheById ($limit);
+            }
+            $stored = $this->orders;
+            $symbols = array();
+            for ($i = 0; $i < count($allOrders); $i++) {
+                $orders = $this->safe_value($allOrders, $i, array());
+                $ids = is_array($orders) ? array_keys($orders) : array();
+                for ($j = 0; $j < count($ids); $j++) {
+                    $id = $ids[$j];
+                    $order = $orders[$id];
+                    $previousOrder = $this->safe_value($stored->hashmap, $id);
+                    if ($previousOrder !== null) {
+                        $order = array_merge($previousOrder['info'], $order);
+                    }
+                    $parsed = $this->parse_ws_order(array_merge(array( 'id' => $id ), $order));
+                    $stored->append ($parsed);
+                    $symbol = $parsed['symbol'];
+                    $symbols[$symbol] = true;
+                }
+            }
+            $name = 'openOrders';
+            $client->resolve ($this->orders, $name);
+            $keys = is_array($symbols) ? array_keys($symbols) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $messageHash = $name . ':' . $keys[$i];
+                $client->resolve ($this->orders, $messageHash);
+            }
+        }
+    }
+
+    public function parse_ws_order($order, $market = null) {
+        //
+        // createOrder
+        //
+        //     {
+        //         descr => array( $order => 'buy 0.02100000 ETHUSDT @ limit 330.00' ),
+        //         $txid => array( 'OEKVV2-IH52O-TPL6GZ' )
+        //     }
+        //
+        $description = $this->safe_value($order, 'descr', array());
+        $orderDescription = $this->safe_string($description, 'order');
+        $side = null;
+        $type = null;
+        $wsName = null;
+        $price = null;
+        $amount = null;
+        if ($orderDescription !== null) {
+            $parts = explode(' ', $orderDescription);
+            $side = $this->safe_string($parts, 0);
+            $amount = $this->safe_float($parts, 1);
+            $wsName = $this->safe_string($parts, 2);
+            $type = $this->safe_string($parts, 4);
+            $price = $this->safe_float($parts, 5);
+        }
+        $side = $this->safe_string($description, 'type', $side);
+        $type = $this->safe_string($description, 'ordertype', $type);
+        $wsName = $this->safe_string($description, 'pair', $wsName);
+        $market = $this->safe_value($this->options['marketsByWsName'], $wsName, $market);
+        $symbol = null;
+        $timestamp = $this->safe_timestamp($order, 'opentm');
+        $amount = $this->safe_float($order, 'vol', $amount);
+        $filled = $this->safe_float($order, 'vol_exec');
+        $remaining = null;
+        if (($amount !== null) && ($filled !== null)) {
+            $remaining = $amount - $filled;
+        }
+        $fee = null;
+        $cost = $this->safe_float($order, 'cost');
+        $price = $this->safe_float($description, 'price', $price);
+        if (($price === null) || ($price === 0.0)) {
+            $price = $this->safe_float($description, 'price2');
+        }
+        if (($price === null) || ($price === 0.0)) {
+            $price = $this->safe_float($order, 'price', $price);
+        }
+        $average = $this->safe_float($order, 'price');
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+            if (is_array($order) && array_key_exists('fee', $order)) {
+                $flags = $order['oflags'];
+                $feeCost = $this->safe_float($order, 'fee');
+                $fee = array(
+                    'cost' => $feeCost,
+                    'rate' => null,
+                );
+                if (mb_strpos($flags, 'fciq') !== false) {
+                    $fee['currency'] = $market['quote'];
+                } else if (mb_strpos($flags, 'fcib') !== false) {
+                    $fee['currency'] = $market['base'];
+                }
+            }
+        }
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $id = $this->safe_string($order, 'id');
+        if ($id === null) {
+            $txid = $this->safe_value($order, 'txid');
+            $id = $this->safe_string($txid, 0);
+        }
+        $clientOrderId = $this->safe_string($order, 'userref');
+        $rawTrades = $this->safe_value($order, 'trades');
+        $trades = null;
+        if ($rawTrades !== null) {
+            $trades = $this->parse_trades($rawTrades, $market, null, null, array( 'order' => $id ));
+        }
+        $stopPrice = $this->safe_float($order, 'stopprice');
+        return array(
+            'id' => $id,
+            'clientOrderId' => $clientOrderId,
+            'info' => $order,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
+            'status' => $status,
+            'symbol' => $symbol,
+            'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
+            'price' => $price,
+            'stopPrice' => $stopPrice,
+            'cost' => $cost,
+            'amount' => $amount,
+            'filled' => $filled,
+            'average' => $average,
+            'remaining' => $remaining,
+            'fee' => $fee,
+            'trades' => $trades,
+        );
+    }
+
     public function handle_subscription_status($client, $message) {
+        //
+        // public
         //
         //     {
         //         channelID => 210,
@@ -459,8 +875,20 @@ class kraken extends \ccxt\kraken {
         //         subscription => array( depth => 10, name => 'book' )
         //     }
         //
+        // private
+        //
+        //     {
+        //         channelName => 'openOrders',
+        //         event => 'subscriptionStatus',
+        //         reqid => 1,
+        //         status => 'subscribed',
+        //         subscription => array( maxratecount => 125, name => 'openOrders' )
+        //     }
+        //
         $channelId = $this->safe_string($message, 'channelID');
-        $client->subscriptions[$channelId] = $message;
+        if ($channelId !== null) {
+            $client->subscriptions[$channelId] = $message;
+        }
         // $requestId = $this->safe_string($message, 'reqid');
         // if (is_array($client->futures) && array_key_exists($requestId, $client->futures)) {
         //     unset($client->futures[$requestId]);
@@ -499,17 +927,23 @@ class kraken extends \ccxt\kraken {
 
     public function handle_message($client, $message) {
         if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
-            $channelId = (string) $message[0];
+            $channelId = $this->safe_string($message, 0);
             $subscription = $this->safe_value($client->subscriptions, $channelId, array());
             $info = $this->safe_value($subscription, 'subscription', array());
+            $messageLength = is_array($message) ? count($message) : 0;
+            $channelName = $this->safe_string($message, $messageLength - 2);
             $name = $this->safe_string($info, 'name');
             $methods = array(
+                // public
                 'book' => array($this, 'handle_order_book'),
                 'ohlc' => array($this, 'handle_ohlcv'),
                 'ticker' => array($this, 'handle_ticker'),
                 'trade' => array($this, 'handle_trades'),
+                // private
+                'openOrders' => array($this, 'handle_orders'),
+                'ownTrades' => array($this, 'handle_my_trades'),
             );
-            $method = $this->safe_value($methods, $name);
+            $method = $this->safe_value_2($methods, $name, $channelName);
             if ($method === null) {
                 return $message;
             } else {

@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class currencycom extends \ccxt\currencycom {
+class currencycom extends \ccxt\async\currencycom {
 
     use ClientTrait;
 
@@ -298,7 +298,7 @@ class currencycom extends \ccxt\currencycom {
     }
 
     public function watch_public($destination, $symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $messageHash = $destination . ':' . $symbol;
         $url = $this->urls['api']['ws'];
@@ -314,11 +314,11 @@ class currencycom extends \ccxt\currencycom {
             'messageHash' => $messageHash,
             'symbol' => $symbol,
         ));
-        return $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        return yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
     }
 
     public function watch_private($destination, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $messageHash = '/api/v1/account';
         $url = $this->urls['api']['ws'];
         $requestId = (string) $this->request_id();
@@ -336,16 +336,16 @@ class currencycom extends \ccxt\currencycom {
         $subscription = array_merge($request, array(
             'messageHash' => $messageHash,
         ));
-        return $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        return yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
     }
 
     public function watch_balance($params = array ()) {
-        $this->load_markets();
-        return $this->watch_private('/api/v1/account', $params);
+        yield $this->load_markets();
+        return yield $this->watch_private('/api/v1/account', $params);
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $destination = '/api/v1/ticker/24hr';
         $messageHash = $destination . ':' . $symbol;
@@ -362,17 +362,17 @@ class currencycom extends \ccxt\currencycom {
             'messageHash' => $messageHash,
             'symbol' => $symbol,
         ));
-        return $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        return yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $future = $this->watch_public('trades.subscribe', $symbol, $params);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $future = $this->watch_public('depthMarketData.subscribe', $symbol, $params);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -388,7 +388,7 @@ class currencycom extends \ccxt\currencycom {
             ),
         );
         $future = $this->watch_public($messageHash, $symbol, array_merge($request, $params));
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function handle_deltas($bookside, $deltas) {

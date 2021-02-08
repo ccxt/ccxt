@@ -148,7 +148,9 @@ class bitfinex(Exchange, ccxt.bitfinex):
         seq = self.safe_string(trade, 2)
         parts = seq.split('-')
         marketId = self.safe_string(parts, 1)
-        symbol = self.safe_symbol(marketId)
+        if marketId is not None:
+            marketId = marketId.replace('t', '')
+        symbol = self.safe_symbol(marketId, market)
         takerOrMaker = None
         orderId = None
         return {
@@ -231,7 +233,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
             # 'symbol': marketId,  # added in subscribe()
             'prec': prec,  # string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq': freq,  # string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
-            # 'len': '25',  # string, number of price points, '25', '100', default = '25'
+            'len': limit,  # string, number of price points, '25', '100', default = '25'
         }
         future = self.subscribe('book', symbol, self.deep_extend(request, params))
         return await self.after(future, self.limit_order_book, symbol, limit, params)
@@ -355,7 +357,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
         client.subscriptions[channelId] = message
         return message
 
-    async def authenticate(self):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']['private']
         client = self.client(url)
         future = client.future('authenticated')
@@ -514,6 +516,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
             'type': type,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': None,
             'amount': amount,
             'remaining': remaining,

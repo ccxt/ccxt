@@ -378,7 +378,10 @@ class phemex(Exchange, ccxt.phemex):
     def from_ev(self, ev, market=None):
         if (ev is None) or (market is None):
             return ev
-        return self.from_en(ev, market['valueScale'], market['precision']['amount'])
+        if market['spot']:
+            return self.from_en(ev, market['valueScale'], market['precision']['amount'])
+        else:
+            return self.from_en(ev, market['valueScale'], 1 / math.pow(10, market['valueScale']))
 
     def handle_message(self, client, message):
         if ('market24h' in message) or ('spot_market24h' in message):

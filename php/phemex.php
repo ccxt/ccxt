@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\NotSupported;
 
-class phemex extends \ccxt\phemex {
+class phemex extends \ccxt\async\phemex {
 
     use ClientTrait;
 
@@ -162,7 +162,7 @@ class phemex extends \ccxt\phemex {
     }
 
     public function watch_balance($params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         throw new NotSupported($this->id . ' watchBalance() not implemented yet');
     }
 
@@ -247,7 +247,7 @@ class phemex extends \ccxt\phemex {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $name = $market['spot'] ? 'spot_market24h' : 'market24h';
         $url = $this->urls['api']['ws'];
@@ -260,11 +260,11 @@ class phemex extends \ccxt\phemex {
             'params' => array(),
         );
         $request = $this->deep_extend($subscribe, $params);
-        return $this->watch($url, $messageHash, $request, $subscriptionHash);
+        return yield $this->watch($url, $messageHash, $request, $subscriptionHash);
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id();
@@ -280,11 +280,11 @@ class phemex extends \ccxt\phemex {
         );
         $request = $this->deep_extend($subscribe, $params);
         $future = $this->watch($url, $messageHash, $request, $messageHash);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id();
@@ -300,11 +300,11 @@ class phemex extends \ccxt\phemex {
         );
         $request = $this->deep_extend($subscribe, $params);
         $future = $this->watch($url, $messageHash, $request, $messageHash);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id();
@@ -321,7 +321,7 @@ class phemex extends \ccxt\phemex {
         );
         $request = $this->deep_extend($subscribe, $params);
         $future = $this->watch($url, $messageHash, $request, $messageHash);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function handle_delta($bookside, $delta, $market = null) {
@@ -409,7 +409,11 @@ class phemex extends \ccxt\phemex {
         if (($ev === null) || ($market === null)) {
             return $ev;
         }
-        return $this->from_en($ev, $market['valueScale'], $market['precision']['amount']);
+        if ($market['spot']) {
+            return $this->from_en($ev, $market['valueScale'], $market['precision']['amount']);
+        } else {
+            return $this->from_en($ev, $market['valueScale'], 1 / pow(10, $market['valueScale']));
+        }
     }
 
     public function handle_message($client, $message) {

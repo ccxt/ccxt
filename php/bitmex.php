@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 
-class bitmex extends \ccxt\bitmex {
+class bitmex extends \ccxt\async\bitmex {
 
     use ClientTrait;
 
@@ -21,11 +21,15 @@ class bitmex extends \ccxt\bitmex {
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
+                'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
             ),
             'urls' => array(
+                'test' => array(
+                    'ws' => 'wss://testnet.bitmex.com/realtime',
+                ),
                 'api' => array(
                     'ws' => 'wss://www.bitmex.com/realtime',
                 ),
@@ -51,7 +55,7 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $name = 'instrument';
         $messageHash = $name . ':' . $market['id'];
@@ -62,7 +66,7 @@ class bitmex extends \ccxt\bitmex {
                 $messageHash,
             ),
         );
-        return $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
+        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
     }
 
     public function handle_ticker($client, $message) {
@@ -310,7 +314,7 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function watch_balance($params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $authenticate = $this->authenticate();
         $messageHash = 'margin';
         $url = $this->urls['api']['ws'];
@@ -320,7 +324,7 @@ class bitmex extends \ccxt\bitmex {
                 $messageHash,
             ),
         );
-        return $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
+        return yield $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
     }
 
     public function handle_balance($client, $message) {
@@ -513,7 +517,7 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $table = 'trade';
         $messageHash = $table . ':' . $market['id'];
@@ -525,10 +529,10 @@ class bitmex extends \ccxt\bitmex {
             ),
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
-    public function authenticate() {
+    public function authenticate($params = array ()) {
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
         $future = $client->future ('authenticated');
@@ -556,7 +560,7 @@ class bitmex extends \ccxt\bitmex {
                 }
             }
         }
-        return $future;
+        return yield $future;
     }
 
     public function handle_authentication_message($client, $message) {
@@ -576,19 +580,228 @@ class bitmex extends \ccxt\bitmex {
         }
     }
 
-    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
         $authenticate = $this->authenticate();
-        $messageHash = 'execution';
+        $name = 'order';
+        $subscriptionHash = $name;
+        $messageHash = $name;
+        if ($symbol !== null) {
+            $messageHash .= ':' . $symbol;
+        }
         $url = $this->urls['api']['ws'];
         $request = array(
             'op' => 'subscribe',
             'args' => array(
-                $messageHash,
+                $subscriptionHash,
             ),
         );
-        $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $messageHash);
-        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
+        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+    }
+
+    public function handle_orders($client, $message) {
+        //
+        //     {
+        //         table => 'order',
+        //         action => 'partial',
+        //         $keys => array( 'orderID' ),
+        //         types => array(
+        //             orderID => 'guid',
+        //             clOrdID => 'string',
+        //             clOrdLinkID => 'symbol',
+        //             account => 'long',
+        //             $symbol => 'symbol',
+        //             side => 'symbol',
+        //             simpleOrderQty => 'float',
+        //             orderQty => 'long',
+        //             price => 'float',
+        //             displayQty => 'long',
+        //             stopPx => 'float',
+        //             pegOffsetValue => 'float',
+        //             pegPriceType => 'symbol',
+        //             currency => 'symbol',
+        //             settlCurrency => 'symbol',
+        //             ordType => 'symbol',
+        //             timeInForce => 'symbol',
+        //             execInst => 'symbol',
+        //             contingencyType => 'symbol',
+        //             exDestination => 'symbol',
+        //             ordStatus => 'symbol',
+        //             triggered => 'symbol',
+        //             workingIndicator => 'boolean',
+        //             ordRejReason => 'symbol',
+        //             simpleLeavesQty => 'float',
+        //             leavesQty => 'long',
+        //             simpleCumQty => 'float',
+        //             cumQty => 'long',
+        //             avgPx => 'float',
+        //             multiLegReportingType => 'symbol',
+        //             text => 'string',
+        //             transactTime => 'timestamp',
+        //             timestamp => 'timestamp'
+        //         ),
+        //         foreignKeys => array( $symbol => 'instrument', side => 'side', ordStatus => 'ordStatus' ),
+        //         attributes => array(
+        //             orderID => 'grouped',
+        //             account => 'grouped',
+        //             ordStatus => 'grouped',
+        //             workingIndicator => 'grouped'
+        //         ),
+        //         filter => array( account => 1455728 ),
+        //         $data => array(
+        //             {
+        //                 orderID => '56222c7a-9956-413a-82cf-99f4812c214b',
+        //                 clOrdID => '',
+        //                 clOrdLinkID => '',
+        //                 account => 1455728,
+        //                 $symbol => 'XBTUSD',
+        //                 side => 'Sell',
+        //                 simpleOrderQty => null,
+        //                 orderQty => 1,
+        //                 price => 40000,
+        //                 displayQty => null,
+        //                 stopPx => null,
+        //                 pegOffsetValue => null,
+        //                 pegPriceType => '',
+        //                 currency => 'USD',
+        //                 settlCurrency => 'XBt',
+        //                 ordType => 'Limit',
+        //                 timeInForce => 'GoodTillCancel',
+        //                 execInst => '',
+        //                 contingencyType => '',
+        //                 exDestination => 'XBME',
+        //                 ordStatus => 'New',
+        //                 triggered => '',
+        //                 workingIndicator => true,
+        //                 ordRejReason => '',
+        //                 simpleLeavesQty => null,
+        //                 leavesQty => 1,
+        //                 simpleCumQty => null,
+        //                 cumQty => 0,
+        //                 avgPx => null,
+        //                 multiLegReportingType => 'SingleSecurity',
+        //                 text => 'Submitted via API.',
+        //                 transactTime => '2021-01-02T21:38:49.246Z',
+        //                 timestamp => '2021-01-02T21:38:49.246Z'
+        //             }
+        //         )
+        //     }
+        //
+        //     {
+        //         table => 'order',
+        //         action => 'insert',
+        //         $data => array(
+        //             {
+        //                 orderID => 'fa993d8e-f7e4-46ed-8097-04f8e9393585',
+        //                 clOrdID => '',
+        //                 clOrdLinkID => '',
+        //                 account => 1455728,
+        //                 $symbol => 'XBTUSD',
+        //                 side => 'Sell',
+        //                 simpleOrderQty => null,
+        //                 orderQty => 1,
+        //                 price => 40000,
+        //                 displayQty => null,
+        //                 stopPx => null,
+        //                 pegOffsetValue => null,
+        //                 pegPriceType => '',
+        //                 currency => 'USD',
+        //                 settlCurrency => 'XBt',
+        //                 ordType => 'Limit',
+        //                 timeInForce => 'GoodTillCancel',
+        //                 execInst => '',
+        //                 contingencyType => '',
+        //                 exDestination => 'XBME',
+        //                 ordStatus => 'New',
+        //                 triggered => '',
+        //                 workingIndicator => true,
+        //                 ordRejReason => '',
+        //                 simpleLeavesQty => null,
+        //                 leavesQty => 1,
+        //                 simpleCumQty => null,
+        //                 cumQty => 0,
+        //                 avgPx => null,
+        //                 multiLegReportingType => 'SingleSecurity',
+        //                 text => 'Submitted via API.',
+        //                 transactTime => '2021-01-02T23:49:02.286Z',
+        //                 timestamp => '2021-01-02T23:49:02.286Z'
+        //             }
+        //         )
+        //     }
+        //
+        //
+        //
+        //     {
+        //         table => 'order',
+        //         action => 'update',
+        //         $data => array(
+        //             {
+        //                 orderID => 'fa993d8e-f7e4-46ed-8097-04f8e9393585',
+        //                 ordStatus => 'Canceled',
+        //                 workingIndicator => false,
+        //                 leavesQty => 0,
+        //                 text => 'Canceled => Canceled via API.\nSubmitted via API.',
+        //                 timestamp => '2021-01-02T23:50:51.272Z',
+        //                 clOrdID => '',
+        //                 account => 1455728,
+        //                 $symbol => 'XBTUSD'
+        //             }
+        //         )
+        //     }
+        //
+        // console.dir ($message, array( depth => null ));
+        $data = $this->safe_value($message, 'data', array());
+        $messageHash = 'order';
+        // initial subscription response with multiple orders
+        $dataLength = is_array($data) ? count($data) : 0;
+        if ($dataLength > 0) {
+            if ($this->orders === null) {
+                $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+                $this->orders = new ArrayCacheById ($limit);
+            }
+            $stored = $this->orders;
+            $symbols = array();
+            for ($i = 0; $i < $dataLength; $i++) {
+                $currentOrder = $data[$i];
+                $orderId = $this->safe_string($currentOrder, 'orderID');
+                $previousOrder = $this->safe_value($stored->hashmap, $orderId);
+                $rawOrder = $currentOrder;
+                if ($previousOrder !== null) {
+                    $rawOrder = array_merge($previousOrder['info'], $currentOrder);
+                }
+                $order = $this->parse_order($rawOrder);
+                $stored->append ($order);
+                $symbol = $order['symbol'];
+                $symbols[$symbol] = true;
+            }
+            $client->resolve ($this->orders, $messageHash);
+            $keys = is_array($symbols) ? array_keys($symbols) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $symbol = $keys[$i];
+                $client->resolve ($this->orders, $messageHash . ':' . $symbol);
+            }
+        }
+    }
+
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $authenticate = $this->authenticate();
+        $name = 'execution';
+        $subscriptionHash = $name;
+        $messageHash = $name;
+        if ($symbol !== null) {
+            $messageHash .= ':' . $symbol;
+        }
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'op' => 'subscribe',
+            'args' => array(
+                $subscriptionHash,
+            ),
+        );
+        $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
+        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
     public function handle_my_trades($client, $message) {
@@ -603,7 +816,7 @@ class bitmex extends \ccxt\bitmex {
         //                 "clOrdID":"",
         //                 "clOrdLinkID":"",
         //                 "account":2,
-        //                 "symbol":"XBTUSD",
+        //                 "$symbol":"XBTUSD",
         //                 "side":"Sell",
         //                 "lastQty":1,
         //                 "lastPx":1134.37,
@@ -659,12 +872,20 @@ class bitmex extends \ccxt\bitmex {
             $this->myTrades = new ArrayCacheBySymbolById ($limit);
         }
         $stored = $this->myTrades;
+        $symbols = array();
         for ($j = 0; $j < count($trades); $j++) {
-            $stored->append ($trades[$j]);
+            $trade = $trades[$j];
+            $symbol = $trade['symbol'];
+            $stored->append ($trade);
+            $symbols[$symbol] = $trade;
         }
         $numTrades = is_array($trades) ? count($trades) : 0;
         if ($numTrades > 0) {
             $client->resolve ($stored, $messageHash);
+        }
+        $keys = is_array($symbols) ? array_keys($symbols) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $client->resolve ($stored, $messageHash . ':' . $keys[$i]);
         }
     }
 
@@ -679,7 +900,7 @@ class bitmex extends \ccxt\bitmex {
         } else {
             throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null (L2), 25 (L2) or 10 (L3)');
         }
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $messageHash = $table . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -690,11 +911,11 @@ class bitmex extends \ccxt\bitmex {
             ),
         );
         $future = $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $table = 'tradeBin' . $this->timeframes[$timeframe];
         $messageHash = $table . ':' . $market['id'];
@@ -706,7 +927,7 @@ class bitmex extends \ccxt\bitmex {
             ),
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -818,10 +1039,10 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function watch_heartbeat($params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $event = 'heartbeat';
         $url = $this->urls['api']['ws'];
-        return $this->watch($url, $event);
+        return yield $this->watch($url, $event);
     }
 
     public function handle_order_book($client, $message) {
@@ -1036,6 +1257,7 @@ class bitmex extends \ccxt\bitmex {
                 'tradeBin5m' => array($this, 'handle_ohlcv'),
                 'tradeBin1h' => array($this, 'handle_ohlcv'),
                 'tradeBin1d' => array($this, 'handle_ohlcv'),
+                'order' => array($this, 'handle_orders'),
                 'execution' => array($this, 'handle_my_trades'),
                 'margin' => array($this, 'handle_balance'),
             );

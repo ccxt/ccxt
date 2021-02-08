@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
-const { ArrayCache } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -71,8 +71,8 @@ module.exports = class gateio extends ccxt.gateio {
         const subscription = {
             'id': requestId,
         };
-        const future = this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     handleDelta (bookside, delta) {
@@ -211,8 +211,8 @@ module.exports = class gateio extends ccxt.gateio {
             'id': requestId,
         };
         const messageHash = 'trades.update' + ':' + marketId;
-        const future = this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrades (client, message) {
@@ -278,8 +278,8 @@ module.exports = class gateio extends ccxt.gateio {
         // two or more different timeframes within the same symbol
         // thus the exchange API is limited to one timeframe per symbol
         const messageHash = 'kline.update' + ':' + marketId;
-        const future = this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const ohlcv = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -341,7 +341,7 @@ module.exports = class gateio extends ccxt.gateio {
         client.resolve (stored, messageHash);
     }
 
-    async authenticate () {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const future = client.future ('authenticated');
@@ -369,7 +369,7 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const future = this.authenticate ();
+        await this.authenticate ();
         const requestId = this.nonce ();
         const method = 'balance.update';
         const subscribeMessage = {
@@ -381,14 +381,14 @@ module.exports = class gateio extends ccxt.gateio {
             'id': requestId,
             'method': this.handleBalanceSubscription,
         };
-        return await this.afterDropped (future, this.watch, url, method, subscribeMessage, method, subscription);
+        return await this.watch (url, method, subscribeMessage, method, subscription);
     }
 
     async fetchBalanceSnapshot () {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const future = this.authenticate ();
+        await this.authenticate ();
         const requestId = this.nonce ();
         const method = 'balance.query';
         const subscribeMessage = {
@@ -400,7 +400,7 @@ module.exports = class gateio extends ccxt.gateio {
             'id': requestId,
             'method': this.handleBalanceSnapshot,
         };
-        return await this.afterDropped (future, this.watch, url, requestId, subscribeMessage, method, subscription);
+        return await this.watch (url, requestId, subscribeMessage, method, subscription);
     }
 
     handleBalanceSnapshot (client, message) {
@@ -432,28 +432,64 @@ module.exports = class gateio extends ccxt.gateio {
         client.resolve (this.parseBalance (this.balance), messageHash);
     }
 
-    async watchOrders (params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        const url = this.urls['api']['ws'];
-        const future = this.authenticate ();
-        const requestId = this.nonce ();
         const method = 'order.update';
+        let messageHash = method;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            messageHash = method + ':' + market['id'];
+        }
+        const url = this.urls['api']['ws'];
+        await this.authenticate ();
+        const requestId = this.nonce ();
         const subscribeMessage = {
             'id': requestId,
             'method': 'order.subscribe',
             'params': [],
         };
-        return await this.afterDropped (future, this.watch, url, method, subscribeMessage, method);
+        const subscription = {
+            'id': requestId,
+        };
+        const orders = await this.watch (url, messageHash, subscribeMessage, method, subscription);
+        return this.filterBySinceLimit (orders, since, limit);
     }
 
     handleOrder (client, message) {
-        const messageHash = message['method'];
-        const order = message['params'][1];
+        const method = this.safeString (message, 'method');
+        const params = this.safeValue (message, 'params');
+        const event = this.safeInteger (params, 0);
+        const order = this.safeValue (params, 1);
         const marketId = this.safeStringLower (order, 'market');
         const market = this.safeMarket (marketId, undefined, '_');
         const parsed = this.parseOrder (order, market);
-        client.resolve (parsed, messageHash);
+        if (event === 1) {
+            // put
+            parsed['status'] = 'open';
+        } else if (event === 2) {
+            // update
+            parsed['status'] = 'open';
+        } else if (event === 3) {
+            // finish
+            const filled = this.safeFloat (parsed, 'filled');
+            const amount = this.safeFloat (parsed, 'amount');
+            if ((filled !== undefined) && (amount !== undefined)) {
+                parsed['status'] = (filled >= amount) ? 'closed' : 'canceled';
+            } else {
+                parsed['status'] = 'closed';
+            }
+        }
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        orders.append (parsed);
+        const symbolSpecificMessageHash = method + ':' + marketId;
+        client.resolve (orders, method);
+        client.resolve (orders, symbolSpecificMessageHash);
     }
 
     handleAuthenticationMessage (client, message, subscription) {
@@ -471,7 +507,7 @@ module.exports = class gateio extends ccxt.gateio {
             // allows subsequent calls to subscribe to reauthenticate
             // avoids sending two authentication messages before receiving a reply
             const error = new AuthenticationError ('not success');
-            client.reject (error, 'autheticated');
+            client.reject (error, 'authenticated');
             if ('server.sign' in client.subscriptions) {
                 delete client.subscriptions['server.sign'];
             }
@@ -494,7 +530,7 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleSubscriptionStatus (client, message) {
-        const messageId = message['id'];
+        const messageId = this.safeInteger (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, messageId, {});
         const method = this.safeValue (subscription, 'method');

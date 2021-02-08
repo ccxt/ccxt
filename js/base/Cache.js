@@ -24,11 +24,11 @@ class ArrayCache extends Array {
     }
 }
 
-class ArrayCacheBySymbolById extends ArrayCache {
+class ArrayCacheById extends ArrayCache {
 
     constructor (maxSize = undefined) {
         super (maxSize)
-        Object.defineProperty (this, 'hashMap', {
+        Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
             value: {},
             writable: true,
@@ -36,14 +36,40 @@ class ArrayCacheBySymbolById extends ArrayCache {
     }
 
     append (item) {
-        const byId = this.hashMap[item.symbol] = this.hashMap[item.symbol] || {}
+        if (item.id in this.hashmap) {
+            const reference = this.hashmap[item.id]
+            if (reference !== item) {
+                for (const prop in reference) {
+                    delete reference[prop]
+                }
+                for (const prop in item) {
+                    reference[prop] = item[prop]
+                }
+            }
+        } else {
+            this.hashmap[item.id] = item
+            if (this.maxSize && (this.length === this.maxSize)) {
+                const deleteReference = this.shift ()
+                delete this.hashmap[deleteReference.id]
+            }
+            this.push (item)
+        }
+    }
+}
+
+class ArrayCacheBySymbolById extends ArrayCacheById {
+
+    append (item) {
+        const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
         if (item.id in byId) {
             const reference = byId[item.id]
-            for (const prop in reference) {
-                delete reference[prop]
-            }
-            for (const prop in item) {
-                reference[prop] = item[prop]
+            if (reference !== item) {
+                for (const prop in reference) {
+                    delete reference[prop]
+                }
+                for (const prop in item) {
+                    reference[prop] = item[prop]
+                }
             }
         } else {
             byId[item.id] = item
@@ -58,5 +84,6 @@ class ArrayCacheBySymbolById extends ArrayCache {
 
 module.exports = {
     ArrayCache,
+    ArrayCacheById,
     ArrayCacheBySymbolById,
 }

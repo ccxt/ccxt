@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -327,7 +327,7 @@ class gateio(Exchange, ccxt.gateio):
         messageHash = methodType + ':' + marketId
         client.resolve(stored, messageHash)
 
-    async def authenticate(self):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
         future = client.future('authenticated')
@@ -409,27 +409,59 @@ class gateio(Exchange, ccxt.gateio):
             self.balance[code] = account
         client.resolve(self.parse_balance(self.balance), messageHash)
 
-    async def watch_orders(self, params={}):
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.check_required_credentials()
         await self.load_markets()
-        url = self.urls['api']['ws']
-        future = self.authenticate()
-        requestId = self.nonce()
         method = 'order.update'
+        messageHash = method
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            messageHash = method + ':' + market['id']
+        url = self.urls['api']['ws']
+        authenticated = self.authenticate()
+        requestId = self.nonce()
         subscribeMessage = {
             'id': requestId,
             'method': 'order.subscribe',
             'params': [],
         }
-        return await self.after_dropped(future, self.watch, url, method, subscribeMessage, method)
+        subscription = {
+            'id': requestId,
+        }
+        future = self.after_dropped(authenticated, self.watch, url, messageHash, subscribeMessage, method, subscription)
+        return await self.after(future, self.filter_by_since_limit, since, limit)
 
     def handle_order(self, client, message):
-        messageHash = message['method']
-        order = message['params'][1]
+        method = self.safe_string(message, 'method')
+        params = self.safe_value(message, 'params')
+        event = self.safe_integer(params, 0)
+        order = self.safe_value(params, 1)
         marketId = self.safe_string_lower(order, 'market')
         market = self.safe_market(marketId, None, '_')
         parsed = self.parse_order(order, market)
-        client.resolve(parsed, messageHash)
+        if event == 1:
+            # put
+            parsed['status'] = 'open'
+        elif event == 2:
+            # update
+            parsed['status'] = 'open'
+        elif event == 3:
+            # finish
+            filled = self.safe_float(parsed, 'filled')
+            amount = self.safe_float(parsed, 'amount')
+            if (filled is not None) and (amount is not None):
+                parsed['status'] = 'closed' if (filled >= amount) else 'canceled'
+            else:
+                parsed['status'] = 'closed'
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        orders = self.orders
+        orders.append(parsed)
+        symbolSpecificMessageHash = method + ':' + marketId
+        client.resolve(orders, method)
+        client.resolve(orders, symbolSpecificMessageHash)
 
     def handle_authentication_message(self, client, message, subscription):
         result = self.safe_value(message, 'result')
@@ -445,7 +477,7 @@ class gateio(Exchange, ccxt.gateio):
             # allows subsequent calls to subscribe to reauthenticate
             # avoids sending two authentication messages before receiving a reply
             error = AuthenticationError('not success')
-            client.reject(error, 'autheticated')
+            client.reject(error, 'authenticated')
             if 'server.sign' in client.subscriptions:
                 del client.subscriptions['server.sign']
 
@@ -462,7 +494,7 @@ class gateio(Exchange, ccxt.gateio):
         self.spawn(self.fetch_balance_snapshot)
 
     def handle_subscription_status(self, client, message):
-        messageId = message['id']
+        messageId = self.safe_integer(message, 'id')
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_value(subscriptionsById, messageId, {})
         method = self.safe_value(subscription, 'method')

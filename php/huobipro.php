@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 
-class huobipro extends \ccxt\huobipro {
+class huobipro extends \ccxt\async\huobipro {
 
     use ClientTrait;
 
@@ -56,7 +56,7 @@ class huobipro extends \ccxt\huobipro {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         // only supports a limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.detail';
@@ -74,7 +74,7 @@ class huobipro extends \ccxt\huobipro {
             'symbol' => $symbol,
             'params' => $params,
         );
-        return $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
     }
 
     public function handle_ticker($client, $message) {
@@ -111,7 +111,7 @@ class huobipro extends \ccxt\huobipro {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         // only supports a $limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.trade.detail';
@@ -130,7 +130,7 @@ class huobipro extends \ccxt\huobipro {
             'params' => $params,
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function handle_trades($client, $message) {
@@ -141,7 +141,7 @@ class huobipro extends \ccxt\huobipro {
         //         $tick => {
         //             id => 105004645372,
         //             ts => 1583495833751,
-        //             $data => $array(
+        //             $data => array(
         //                 {
         //                     id => 1.050046453727319e+22,
         //                     ts => 1583495833751,
@@ -154,29 +154,29 @@ class huobipro extends \ccxt\huobipro {
         //         }
         //     }
         //
-        $tick = $this->safe_value($message, 'tick', $array());
-        $data = $this->safe_value($tick, 'data', $array());
+        $tick = $this->safe_value($message, 'tick', array());
+        $data = $this->safe_value($tick, 'data', array());
         $ch = $this->safe_string($message, 'ch');
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $array = $this->safe_value($this->trades, $symbol);
-        if ($array === null) {
+        $tradesCache = $this->safe_value($this->trades, $symbol);
+        if ($tradesCache === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $array = new ArrayCache ($limit);
-            $this->trades[$symbol] = $array;
+            $tradesCache = new ArrayCache ($limit);
+            $this->trades[$symbol] = $tradesCache;
         }
         for ($i = 0; $i < count($data); $i++) {
             $trade = $this->parse_trade($data[$i], $market);
-            $array->append ($trade);
+            $tradesCache->append ($trade);
         }
-        $client->resolve ($array, $ch);
+        $client->resolve ($tradesCache, $ch);
         return $message;
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $interval = $this->timeframes[$timeframe];
         $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
@@ -196,7 +196,7 @@ class huobipro extends \ccxt\huobipro {
             'params' => $params,
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -245,7 +245,7 @@ class huobipro extends \ccxt\huobipro {
         if (($limit !== null) && ($limit !== 150)) {
             throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
         }
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         // only supports a $limit of 150 at this time
         $limit = ($limit === null) ? 150 : $limit;
@@ -267,7 +267,7 @@ class huobipro extends \ccxt\huobipro {
             'method' => array($this, 'handle_order_book_subscription'),
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function handle_order_book_snapshot($client, $message, $subscription) {
@@ -332,7 +332,7 @@ class huobipro extends \ccxt\huobipro {
             'method' => array($this, 'handle_order_book_snapshot'),
         );
         $future = $this->watch($url, $requestId, $request, $requestId, $snapshotSubscription);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -517,7 +517,7 @@ class huobipro extends \ccxt\huobipro {
         //
         //     array( ping => 1583491673714 )
         //
-        $client->send (array( 'pong' => $this->safe_integer($message, 'ping') ));
+        yield $client->send (array( 'pong' => $this->safe_integer($message, 'ping') ));
     }
 
     public function handle_ping($client, $message) {
@@ -547,7 +547,9 @@ class huobipro extends \ccxt\huobipro {
                     $messageHash = $this->safe_string($subscription, 'messageHash');
                     $client->reject ($e, $messageHash);
                     $client->reject ($e, $id);
-                    unset($client->subscriptions[$id]);
+                    if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+                        unset($client->subscriptions[$id]);
+                    }
                 }
             }
             return false;

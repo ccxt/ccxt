@@ -7,9 +7,10 @@ from ccxt import NetworkError
 async def test_watch_order_book(exchange, symbol):
     # log (symbol.green, 'watching order book...')
     method = 'watchOrderBook'
-    # we have to skip some exchanges here due to the frequency of trading
+    # we have to skip some exchanges here due to the frequency of trading or for other reasons
     skipped_exchanges = [
         'ripio',
+        'gopax',  # requires authentication for watch_order_book
     ]
     if exchange.id in skipped_exchanges:
         print(exchange.id, method, 'test skipped')

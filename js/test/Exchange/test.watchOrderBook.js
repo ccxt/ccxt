@@ -14,9 +14,10 @@ module.exports = async (exchange, symbol) => {
 
     const method = 'watchOrderBook'
 
-    // we have to skip some exchanges here due to the frequency of trading
+    // we have to skip some exchanges here due to the frequency of trading or to other factors
     const skippedExchanges = [
         'ripio',
+        'gopax', // requires authentication for public orderbooks
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

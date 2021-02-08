@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError, ExchangeError, RateLimitExceeded } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheById, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,11 +17,15 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
             },
             'urls': {
+                'test': {
+                    'ws': 'wss://testnet.bitmex.com/realtime',
+                },
                 'api': {
                     'ws': 'wss://www.bitmex.com/realtime',
                 },
@@ -307,7 +311,7 @@ module.exports = class bitmex extends ccxt.bitmex {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        const authenticate = this.authenticate ();
+        await this.authenticate ();
         const messageHash = 'margin';
         const url = this.urls['api']['ws'];
         const request = {
@@ -316,7 +320,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 messageHash,
             ],
         };
-        return await this.afterDropped (authenticate, this.watch, url, messageHash, this.extend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
     handleBalance (client, message) {
@@ -520,11 +524,11 @@ module.exports = class bitmex extends ccxt.bitmex {
                 messageHash,
             ],
         };
-        const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async authenticate () {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const future = client.future ('authenticated');
@@ -572,19 +576,228 @@ module.exports = class bitmex extends ccxt.bitmex {
         }
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const authenticate = this.authenticate ();
-        const messageHash = 'execution';
+        await this.authenticate ();
+        const name = 'order';
+        const subscriptionHash = name;
+        let messageHash = name;
+        if (symbol !== undefined) {
+            messageHash += ':' + symbol;
+        }
         const url = this.urls['api']['ws'];
         const request = {
             'op': 'subscribe',
             'args': [
-                messageHash,
+                subscriptionHash,
             ],
         };
-        const future = this.afterDropped (authenticate, this.watch, url, messageHash, request, messageHash);
-        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+    }
+
+    handleOrders (client, message) {
+        //
+        //     {
+        //         table: 'order',
+        //         action: 'partial',
+        //         keys: [ 'orderID' ],
+        //         types: {
+        //             orderID: 'guid',
+        //             clOrdID: 'string',
+        //             clOrdLinkID: 'symbol',
+        //             account: 'long',
+        //             symbol: 'symbol',
+        //             side: 'symbol',
+        //             simpleOrderQty: 'float',
+        //             orderQty: 'long',
+        //             price: 'float',
+        //             displayQty: 'long',
+        //             stopPx: 'float',
+        //             pegOffsetValue: 'float',
+        //             pegPriceType: 'symbol',
+        //             currency: 'symbol',
+        //             settlCurrency: 'symbol',
+        //             ordType: 'symbol',
+        //             timeInForce: 'symbol',
+        //             execInst: 'symbol',
+        //             contingencyType: 'symbol',
+        //             exDestination: 'symbol',
+        //             ordStatus: 'symbol',
+        //             triggered: 'symbol',
+        //             workingIndicator: 'boolean',
+        //             ordRejReason: 'symbol',
+        //             simpleLeavesQty: 'float',
+        //             leavesQty: 'long',
+        //             simpleCumQty: 'float',
+        //             cumQty: 'long',
+        //             avgPx: 'float',
+        //             multiLegReportingType: 'symbol',
+        //             text: 'string',
+        //             transactTime: 'timestamp',
+        //             timestamp: 'timestamp'
+        //         },
+        //         foreignKeys: { symbol: 'instrument', side: 'side', ordStatus: 'ordStatus' },
+        //         attributes: {
+        //             orderID: 'grouped',
+        //             account: 'grouped',
+        //             ordStatus: 'grouped',
+        //             workingIndicator: 'grouped'
+        //         },
+        //         filter: { account: 1455728 },
+        //         data: [
+        //             {
+        //                 orderID: '56222c7a-9956-413a-82cf-99f4812c214b',
+        //                 clOrdID: '',
+        //                 clOrdLinkID: '',
+        //                 account: 1455728,
+        //                 symbol: 'XBTUSD',
+        //                 side: 'Sell',
+        //                 simpleOrderQty: null,
+        //                 orderQty: 1,
+        //                 price: 40000,
+        //                 displayQty: null,
+        //                 stopPx: null,
+        //                 pegOffsetValue: null,
+        //                 pegPriceType: '',
+        //                 currency: 'USD',
+        //                 settlCurrency: 'XBt',
+        //                 ordType: 'Limit',
+        //                 timeInForce: 'GoodTillCancel',
+        //                 execInst: '',
+        //                 contingencyType: '',
+        //                 exDestination: 'XBME',
+        //                 ordStatus: 'New',
+        //                 triggered: '',
+        //                 workingIndicator: true,
+        //                 ordRejReason: '',
+        //                 simpleLeavesQty: null,
+        //                 leavesQty: 1,
+        //                 simpleCumQty: null,
+        //                 cumQty: 0,
+        //                 avgPx: null,
+        //                 multiLegReportingType: 'SingleSecurity',
+        //                 text: 'Submitted via API.',
+        //                 transactTime: '2021-01-02T21:38:49.246Z',
+        //                 timestamp: '2021-01-02T21:38:49.246Z'
+        //             }
+        //         ]
+        //     }
+        //
+        //     {
+        //         table: 'order',
+        //         action: 'insert',
+        //         data: [
+        //             {
+        //                 orderID: 'fa993d8e-f7e4-46ed-8097-04f8e9393585',
+        //                 clOrdID: '',
+        //                 clOrdLinkID: '',
+        //                 account: 1455728,
+        //                 symbol: 'XBTUSD',
+        //                 side: 'Sell',
+        //                 simpleOrderQty: null,
+        //                 orderQty: 1,
+        //                 price: 40000,
+        //                 displayQty: null,
+        //                 stopPx: null,
+        //                 pegOffsetValue: null,
+        //                 pegPriceType: '',
+        //                 currency: 'USD',
+        //                 settlCurrency: 'XBt',
+        //                 ordType: 'Limit',
+        //                 timeInForce: 'GoodTillCancel',
+        //                 execInst: '',
+        //                 contingencyType: '',
+        //                 exDestination: 'XBME',
+        //                 ordStatus: 'New',
+        //                 triggered: '',
+        //                 workingIndicator: true,
+        //                 ordRejReason: '',
+        //                 simpleLeavesQty: null,
+        //                 leavesQty: 1,
+        //                 simpleCumQty: null,
+        //                 cumQty: 0,
+        //                 avgPx: null,
+        //                 multiLegReportingType: 'SingleSecurity',
+        //                 text: 'Submitted via API.',
+        //                 transactTime: '2021-01-02T23:49:02.286Z',
+        //                 timestamp: '2021-01-02T23:49:02.286Z'
+        //             }
+        //         ]
+        //     }
+        //
+        //
+        //
+        //     {
+        //         table: 'order',
+        //         action: 'update',
+        //         data: [
+        //             {
+        //                 orderID: 'fa993d8e-f7e4-46ed-8097-04f8e9393585',
+        //                 ordStatus: 'Canceled',
+        //                 workingIndicator: false,
+        //                 leavesQty: 0,
+        //                 text: 'Canceled: Canceled via API.\nSubmitted via API.',
+        //                 timestamp: '2021-01-02T23:50:51.272Z',
+        //                 clOrdID: '',
+        //                 account: 1455728,
+        //                 symbol: 'XBTUSD'
+        //             }
+        //         ]
+        //     }
+        //
+        // console.dir (message, { depth: null });
+        const data = this.safeValue (message, 'data', []);
+        const messageHash = 'order';
+        // initial subscription response with multiple orders
+        const dataLength = data.length;
+        if (dataLength > 0) {
+            if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheById (limit);
+            }
+            const stored = this.orders;
+            const symbols = {};
+            for (let i = 0; i < dataLength; i++) {
+                const currentOrder = data[i];
+                const orderId = this.safeString (currentOrder, 'orderID');
+                const previousOrder = this.safeValue (stored.hashmap, orderId);
+                let rawOrder = currentOrder;
+                if (previousOrder !== undefined) {
+                    rawOrder = this.extend (previousOrder['info'], currentOrder);
+                }
+                const order = this.parseOrder (rawOrder);
+                stored.append (order);
+                const symbol = order['symbol'];
+                symbols[symbol] = true;
+            }
+            client.resolve (this.orders, messageHash);
+            const keys = Object.keys (symbols);
+            for (let i = 0; i < keys.length; i++) {
+                const symbol = keys[i];
+                client.resolve (this.orders, messageHash + ':' + symbol);
+            }
+        }
+    }
+
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const name = 'execution';
+        const subscriptionHash = name;
+        let messageHash = name;
+        if (symbol !== undefined) {
+            messageHash += ':' + symbol;
+        }
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': [
+                subscriptionHash,
+            ],
+        };
+        const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
     handleMyTrades (client, message) {
@@ -655,12 +868,20 @@ module.exports = class bitmex extends ccxt.bitmex {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.myTrades;
+        const symbols = {};
         for (let j = 0; j < trades.length; j++) {
-            stored.append (trades[j]);
+            const trade = trades[j];
+            const symbol = trade['symbol'];
+            stored.append (trade);
+            symbols[symbol] = trade;
         }
         const numTrades = trades.length;
         if (numTrades > 0) {
             client.resolve (stored, messageHash);
+        }
+        const keys = Object.keys (symbols);
+        for (let i = 0; i < keys.length; i++) {
+            client.resolve (stored, messageHash + ':' + keys[i]);
         }
     }
 
@@ -685,8 +906,8 @@ module.exports = class bitmex extends ccxt.bitmex {
                 messageHash,
             ],
         };
-        const future = this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -701,8 +922,8 @@ module.exports = class bitmex extends ccxt.bitmex {
                 messageHash,
             ],
         };
-        const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -1032,6 +1253,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 'tradeBin5m': this.handleOHLCV,
                 'tradeBin1h': this.handleOHLCV,
                 'tradeBin1d': this.handleOHLCV,
+                'order': this.handleOrders,
                 'execution': this.handleMyTrades,
                 'margin': this.handleBalance,
             };

@@ -126,8 +126,8 @@ module.exports = class huobipro extends ccxt.huobipro {
             'symbol': symbol,
             'params': params,
         };
-        const future = this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrades (client, message) {
@@ -158,17 +158,17 @@ module.exports = class huobipro extends ccxt.huobipro {
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let array = this.safeValue (this.trades, symbol);
-        if (array === undefined) {
+        let tradesCache = this.safeValue (this.trades, symbol);
+        if (tradesCache === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            array = new ArrayCache (limit);
-            this.trades[symbol] = array;
+            tradesCache = new ArrayCache (limit);
+            this.trades[symbol] = tradesCache;
         }
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade (data[i], market);
-            array.append (trade);
+            tradesCache.append (trade);
         }
-        client.resolve (array, ch);
+        client.resolve (tradesCache, ch);
         return message;
     }
 
@@ -192,8 +192,8 @@ module.exports = class huobipro extends ccxt.huobipro {
             'timeframe': timeframe,
             'params': params,
         };
-        const future = this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -263,8 +263,8 @@ module.exports = class huobipro extends ccxt.huobipro {
             'params': params,
             'method': this.handleOrderBookSubscription,
         };
-        const future = this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     handleOrderBookSnapshot (client, message, subscription) {
@@ -328,8 +328,8 @@ module.exports = class huobipro extends ccxt.huobipro {
             'params': params,
             'method': this.handleOrderBookSnapshot,
         };
-        const future = this.watch (url, requestId, request, requestId, snapshotSubscription);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     handleDelta (bookside, delta) {
@@ -544,7 +544,9 @@ module.exports = class huobipro extends ccxt.huobipro {
                     const messageHash = this.safeString (subscription, 'messageHash');
                     client.reject (e, messageHash);
                     client.reject (e, id);
-                    delete client.subscriptions[id];
+                    if (id in client.subscriptions) {
+                        delete client.subscriptions[id];
+                    }
                 }
             }
             return false;

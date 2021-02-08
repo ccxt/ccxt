@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.4.51'
+__version__ = '0.5.57'
 
 # -----------------------------------------------------------------------------
 
@@ -47,13 +47,13 @@ class Exchange(BaseExchange):
     def gunzip(data):
         return gunzip(data)
 
-    def order_book(self, snapshot={}, depth=float('inf')):
+    def order_book(self, snapshot={}, depth=None):
         return OrderBook(snapshot, depth)
 
-    def indexed_order_book(self, snapshot={}, depth=float('inf')):
+    def indexed_order_book(self, snapshot={}, depth=None):
         return IndexedOrderBook(snapshot, depth)
 
-    def counted_order_book(self, snapshot={}, depth=float('inf')):
+    def counted_order_book(self, snapshot={}, depth=None):
         return CountedOrderBook(snapshot, depth)
 
     def client(self, url):
@@ -62,6 +62,7 @@ class Exchange(BaseExchange):
             on_message = self.handle_message
             on_error = self.on_error
             on_close = self.on_close
+            on_connected = self.on_connected
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             ws_options = self.safe_value(self.options, 'ws', {})
             options = self.extend(self.streaming, {
@@ -73,7 +74,7 @@ class Exchange(BaseExchange):
                 }, self.tokenBucket)),
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
-            self.clients[url] = FastClient(url, on_message, on_error, on_close, options)
+            self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
         return self.clients[url]
 
     async def after(self, future, method, *args):
@@ -126,6 +127,11 @@ class Exchange(BaseExchange):
 
         def after(fut):
             rate_limit = None
+            exception = fut.exception()
+            if exception is not None:
+                # future will already have this exception set to it in self.reset
+                # so we don't set it again here to avoid an InvalidState error
+                return
             if subscribe_hash not in client.subscriptions:
                 client.subscriptions[subscribe_hash] = subscription or True
                 if self.enableRateLimit:
@@ -136,12 +142,20 @@ class Exchange(BaseExchange):
                     async def send_message(rate_limit):
                         if rate_limit is not None:
                             await client.throttle(rate_limit)
-                        await client.send(message)
+                        try:
+                            await client.send(message)
+                        except ConnectionError as e:
+                            future.reject(e)
                     asyncio.ensure_future(send_message(rate_limit))
 
         connected.add_done_callback(after)
 
         return future
+
+    def on_connected(self, client, message=None):
+        # for user hooks
+        # print('Connected to', client.url)
+        pass
 
     def on_error(self, client, error):
         if client.url in self.clients and self.clients[client.url].error:
@@ -149,7 +163,7 @@ class Exchange(BaseExchange):
 
     def on_close(self, client, error):
         if client.error:
-            # connection closed due to an error, do nothing
+            # connection closed due to an error
             pass
         else:
             # server disconnected a working connection
