@@ -237,8 +237,8 @@ module.exports = class kraken extends ccxt.kraken {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const name = 'trade';
-        const future = this.watchPublic (name, symbol, params);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.watchPublic (name, symbol, params);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -253,8 +253,8 @@ module.exports = class kraken extends ccxt.kraken {
                 throw new NotSupported (this.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only');
             }
         }
-        const future = this.watchPublic (name, symbol, this.extend (request, params));
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watchPublic (name, symbol, this.extend (request, params));
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -277,8 +277,8 @@ module.exports = class kraken extends ccxt.kraken {
             },
         };
         const request = this.deepExtend (subscribe, params);
-        const future = this.watch (url, messageHash, request, messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     async loadMarkets (reload = false, params = {}) {
@@ -482,8 +482,8 @@ module.exports = class kraken extends ccxt.kraken {
             },
         };
         const request = this.deepExtend (subscribe, params);
-        const future = this.watch (url, messageHash, request, subscriptionHash);
-        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        const result = await this.watch (url, messageHash, request, subscriptionHash);
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
