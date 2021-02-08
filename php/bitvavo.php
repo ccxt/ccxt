@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 
-class bitvavo extends \ccxt\bitvavo {
+class bitvavo extends \ccxt\async\bitvavo {
 
     use ClientTrait;
 
@@ -38,7 +38,7 @@ class bitvavo extends \ccxt\bitvavo {
     }
 
     public function watch_public($name, $symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $messageHash = $name . '@' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -54,11 +54,11 @@ class bitvavo extends \ccxt\bitvavo {
             ],
         );
         $message = array_merge($request, $params);
-        return $this->watch($url, $messageHash, $message, $messageHash);
+        return yield $this->watch($url, $messageHash, $message, $messageHash);
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return $this->watch_public('ticker24h', $symbol, $params);
+        return yield $this->watch_public('ticker24h', $symbol, $params);
     }
 
     public function handle_ticker($client, $message) {
@@ -100,7 +100,7 @@ class bitvavo extends \ccxt\bitvavo {
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $future = $this->watch_public('trades', $symbol, $params);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function handle_trade($client, $message) {
@@ -132,7 +132,7 @@ class bitvavo extends \ccxt\bitvavo {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $name = 'candles';
         $marketId = $market['id'];
@@ -151,7 +151,7 @@ class bitvavo extends \ccxt\bitvavo {
         );
         $message = array_merge($request, $params);
         $future = $this->watch($url, $messageHash, $message, $messageHash);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -202,7 +202,7 @@ class bitvavo extends \ccxt\bitvavo {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $name = 'book';
         $messageHash = $name . '@' . $market['id'];
@@ -229,7 +229,7 @@ class bitvavo extends \ccxt\bitvavo {
         );
         $message = array_merge($request, $params);
         $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -321,7 +321,7 @@ class bitvavo extends \ccxt\bitvavo {
             'market' => $marketId,
         );
         $future = $this->watch($url, $messageHash, $request, $messageHash, $subscription);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function handle_order_book_snapshot($client, $message) {
@@ -402,7 +402,7 @@ class bitvavo extends \ccxt\bitvavo {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
         }
-        $this->load_markets();
+        yield $this->load_markets();
         $authenticate = $this->authenticate();
         $market = $this->market($symbol);
         $marketId = $market['id'];
@@ -420,14 +420,14 @@ class bitvavo extends \ccxt\bitvavo {
             ),
         );
         $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
-        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' watchMyTrades requires a $symbol argument');
         }
-        $this->load_markets();
+        yield $this->load_markets();
         $authenticate = $this->authenticate();
         $market = $this->market($symbol);
         $marketId = $market['id'];
@@ -445,7 +445,7 @@ class bitvavo extends \ccxt\bitvavo {
             ),
         );
         $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
-        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
     public function handle_order($client, $message) {
@@ -592,7 +592,7 @@ class bitvavo extends \ccxt\bitvavo {
                 }
             }
         }
-        return $future;
+        return yield $future;
     }
 
     public function handle_authentication_message($client, $message) {

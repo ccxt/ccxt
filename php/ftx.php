@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 
-class ftx extends \ccxt\ftx {
+class ftx extends \ccxt\async\ftx {
 
     use ClientTrait;
 
@@ -50,7 +50,7 @@ class ftx extends \ccxt\ftx {
     }
 
     public function watch_public($symbol, $channel, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
         $url = $this->implode_params($this->urls['api']['ws'], array( 'hostname' => $this->hostname ));
@@ -60,11 +60,11 @@ class ftx extends \ccxt\ftx {
             'market' => $marketId,
         );
         $messageHash = $channel . ':' . $marketId;
-        return $this->watch($url, $messageHash, $request, $messageHash);
+        return yield $this->watch($url, $messageHash, $request, $messageHash);
     }
 
     public function watch_private($channel, $symbol = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $messageHash = $channel;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -76,7 +76,7 @@ class ftx extends \ccxt\ftx {
             'channel' => $channel,
         );
         $future = $this->authenticate();
-        return $this->after_dropped($future, array($this, 'watch'), $url, $messageHash, $request, $channel);
+        return yield $this->after_dropped($future, array($this, 'watch'), $url, $messageHash, $request, $channel);
     }
 
     public function authenticate($params = array ()) {
@@ -113,17 +113,17 @@ class ftx extends \ccxt\ftx {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return $this->watch_public($symbol, 'ticker');
+        return yield $this->watch_public($symbol, 'ticker');
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $future = $this->watch_public($symbol, 'trades');
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $future = $this->watch_public($symbol, 'orderbook');
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function handle_partial($client, $message) {
@@ -399,9 +399,9 @@ class ftx extends \ccxt\ftx {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $future = $this->watch_private('orders', $symbol);
-        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
     public function handle_order($client, $message) {
@@ -472,9 +472,9 @@ class ftx extends \ccxt\ftx {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $future = $this->watch_private('fills', $symbol);
-        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
     public function handle_my_trade($client, $message) {

@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class bitstamp extends \ccxt\bitstamp {
+class bitstamp extends \ccxt\async\bitstamp {
 
     use ClientTrait;
 
@@ -37,7 +37,7 @@ class bitstamp extends \ccxt\bitstamp {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $options = $this->safe_value($this->options, 'watchOrderBook', array());
         $type = $this->safe_string($options, 'type', 'order_book');
@@ -59,7 +59,7 @@ class bitstamp extends \ccxt\bitstamp {
         );
         $message = array_merge($request, $params);
         $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
@@ -68,7 +68,7 @@ class bitstamp extends \ccxt\bitstamp {
         $params = $this->safe_value($subscription, 'params');
         $messageHash = $this->safe_string($subscription, 'messageHash');
         // todo => this is a synch blocking call in ccxt.php - make it async
-        $snapshot = $this->fetch_order_book($symbol, $limit, $params);
+        $snapshot = yield $this->fetch_order_book($symbol, $limit, $params);
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook !== null) {
             $orderbook->reset ($snapshot);
@@ -181,7 +181,7 @@ class bitstamp extends \ccxt\bitstamp {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $options = $this->safe_value($this->options, 'watchTrades', array());
         $type = $this->safe_string($options, 'type', 'live_trades');
@@ -202,7 +202,7 @@ class bitstamp extends \ccxt\bitstamp {
         );
         $message = array_merge($request, $params);
         $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function parse_trade($trade, $market = null) {

@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class gopax extends \ccxt\gopax {
+class gopax extends \ccxt\async\gopax {
 
     use ClientTrait;
 
@@ -55,7 +55,7 @@ class gopax extends \ccxt\gopax {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $name = 'orderbook';
         $messageHash = $name . ':' . $market['id'];
@@ -77,7 +77,7 @@ class gopax extends \ccxt\gopax {
         );
         $message = array_merge($request, $params);
         $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function handle_delta($orderbook, $bookside, $delta) {
@@ -198,7 +198,7 @@ class gopax extends \ccxt\gopax {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $name = 'orders';
         $subscriptionHash = $name;
         $messageHash = $name;
@@ -220,7 +220,7 @@ class gopax extends \ccxt\gopax {
         );
         $message = array_merge($request, $params);
         $future = $this->watch($url, $messageHash, $message, $subscriptionHash, $subscription);
-        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
     public function parse_ws_order_status($status) {
@@ -442,7 +442,7 @@ class gopax extends \ccxt\gopax {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $name = 'myTrades';
         $subscriptionHash = $name;
         $messageHash = $name;
@@ -464,7 +464,7 @@ class gopax extends \ccxt\gopax {
         );
         $message = array_merge($request, $params);
         $future = $this->watch($url, $messageHash, $message, $subscriptionHash, $subscription);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function handle_my_trades($client, $message) {
@@ -510,7 +510,7 @@ class gopax extends \ccxt\gopax {
     }
 
     public function watch_balance($params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $name = 'balance';
         $messageHash = $name;
         $url = $this->get_signed_url();
@@ -524,7 +524,7 @@ class gopax extends \ccxt\gopax {
             'params' => $params,
         );
         $message = array_merge($request, $params);
-        return $this->watch($url, $messageHash, $message, $messageHash, $subscription);
+        return yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
     }
 
     public function handle_balance($client, $message) {
@@ -575,7 +575,7 @@ class gopax extends \ccxt\gopax {
         $parts = explode('::', $messageString);
         $requestId = $this->safe_string($parts, 2);
         $response = 'primus::pong::' . $requestId;
-        $client->send ($response);
+        yield $client->send ($response);
     }
 
     public function handle_ping($client, $message) {

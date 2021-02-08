@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class ripio extends \ccxt\ripio {
+class ripio extends \ccxt\async\ripio {
 
     use ClientTrait;
 
@@ -32,7 +32,7 @@ class ripio extends \ccxt\ripio {
     }
 
     public function watch_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $name = 'trades';
         $messageHash = $name . '_' . strtolower($market['id']);
@@ -44,7 +44,7 @@ class ripio extends \ccxt\ripio {
             'method' => array($this, 'handle_trade'),
         );
         $future = $this->watch($url, $messageHash, null, $messageHash, $subscription);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function handle_trade($client, $message, $subscription) {
@@ -90,7 +90,7 @@ class ripio extends \ccxt\ripio {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $name = 'rate';
         $messageHash = $name . '_' . strtolower($market['id']);
@@ -101,7 +101,7 @@ class ripio extends \ccxt\ripio {
             'messageHash' => $messageHash,
             'method' => array($this, 'handle_ticker'),
         );
-        return $this->watch($url, $messageHash, null, $messageHash, $subscription);
+        return yield $this->watch($url, $messageHash, null, $messageHash, $subscription);
     }
 
     public function handle_ticker($client, $message, $subscription) {
@@ -142,7 +142,7 @@ class ripio extends \ccxt\ripio {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $name = 'orderbook';
         $messageHash = $name . '_' . strtolower($market['id']);
@@ -163,7 +163,7 @@ class ripio extends \ccxt\ripio {
             $this->delay($delay, array($this, 'fetch_order_book_snapshot'), $client, $subscription);
         }
         $future = $this->watch($url, $messageHash, null, $messageHash, $subscription);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function fetch_order_book_snapshot($client, $subscription) {
@@ -171,7 +171,7 @@ class ripio extends \ccxt\ripio {
         $messageHash = $this->safe_string($subscription, 'messageHash');
         try {
             // todo => this is a synch blocking call in ccxt.php - make it async
-            $snapshot = $this->fetch_order_book($symbol);
+            $snapshot = yield $this->fetch_order_book($symbol);
             $orderbook = $this->orderbooks[$symbol];
             $messages = $orderbook->cache;
             $orderbook->reset ($snapshot);
@@ -256,7 +256,7 @@ class ripio extends \ccxt\ripio {
 
     public function ack($client, $messageId) {
         // the exchange requires acknowledging each received message
-        $client->send (array( 'messageId' => $messageId ));
+        yield $client->send (array( 'messageId' => $messageId ));
     }
 
     public function handle_message($client, $message) {

@@ -7,7 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 
-class coinbasepro extends \ccxt\coinbasepro {
+class coinbasepro extends \ccxt\async\coinbasepro {
 
     use ClientTrait;
 
@@ -32,7 +32,7 @@ class coinbasepro extends \ccxt\coinbasepro {
     }
 
     public function subscribe($name, $symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $messageHash = $name . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -46,23 +46,23 @@ class coinbasepro extends \ccxt\coinbasepro {
             ),
         );
         $request = array_merge($subscribe, $params);
-        return $this->watch($url, $messageHash, $request, $messageHash);
+        return yield $this->watch($url, $messageHash, $request, $messageHash);
     }
 
     public function watch_ticker($symbol, $params = array ()) {
         $name = 'ticker';
-        return $this->subscribe($name, $symbol, $params);
+        return yield $this->subscribe($name, $symbol, $params);
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'matches';
         $future = $this->subscribe($name, $symbol, $params);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $name = 'level2';
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $messageHash = $name . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -84,7 +84,7 @@ class coinbasepro extends \ccxt\coinbasepro {
         );
         $future = $this->watch($url, $messageHash, $request, $messageHash, $subscription);
         // $this->subscribe($name, $symbol, $params);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function handle_trade($client, $message) {

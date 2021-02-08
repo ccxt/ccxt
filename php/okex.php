@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 
-class okex extends \ccxt\okex {
+class okex extends \ccxt\async\okex {
 
     use ClientTrait;
 
@@ -53,7 +53,7 @@ class okex extends \ccxt\okex {
     }
 
     public function subscribe($channel, $symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $url = $this->urls['api']['ws'];
         $messageHash = $market['type'] . '/' . $channel . ':' . $market['id'];
@@ -61,16 +61,16 @@ class okex extends \ccxt\okex {
             'op' => 'subscribe',
             'args' => array( $messageHash ),
         );
-        return $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+        return yield $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $future = $this->subscribe('trade', $symbol, $params);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return $this->subscribe('ticker', $symbol, $params);
+        return yield $this->subscribe('ticker', $symbol, $params);
     }
 
     public function handle_trade($client, $message) {
@@ -148,7 +148,7 @@ class okex extends \ccxt\okex {
         $interval = $this->timeframes[$timeframe];
         $name = 'candle' . $interval . 's';
         $future = $this->subscribe($name, $symbol, $params);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -206,7 +206,7 @@ class okex extends \ccxt\okex {
         $options = $this->safe_value($this->options, 'watchOrderBook', array());
         $depth = $this->safe_string($options, 'depth', 'depth_l2_tbt');
         $future = $this->subscribe($depth, $symbol, $params);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -358,7 +358,7 @@ class okex extends \ccxt\okex {
             );
             $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
         }
-        return $future;
+        return yield $future;
     }
 
     public function watch_balance($params = array ()) {
@@ -369,7 +369,7 @@ class okex extends \ccxt\okex {
         }
         // $query = $this->omit($params, 'type');
         $future = $this->authenticate();
-        return $this->after_async($future, array($this, 'subscribe_to_user_account'), $params);
+        return yield $this->after_async($future, array($this, 'subscribe_to_user_account'), $params);
     }
 
     public function subscribe_to_user_account($negotiation, $params = array ()) {
@@ -378,7 +378,7 @@ class okex extends \ccxt\okex {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . " watchBalance requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap')");
         }
-        $this->load_markets();
+        yield $this->load_markets();
         $currencyId = $this->safe_string($params, 'currency');
         $code = $this->safe_string($params, 'code', $this->safe_currency_code($currencyId));
         $currency = null;
@@ -426,7 +426,7 @@ class okex extends \ccxt\okex {
             'args' => array( $subscriptionHash ),
         );
         $query = $this->omit($params, array( 'currency', 'code', 'instrument_id', 'symbol', 'type' ));
-        return $this->watch($url, $messageHash, $this->deep_extend($request, $query), $subscriptionHash);
+        return yield $this->watch($url, $messageHash, $this->deep_extend($request, $query), $subscriptionHash);
     }
 
     public function handle_balance($client, $message) {
