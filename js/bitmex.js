@@ -311,7 +311,7 @@ module.exports = class bitmex extends ccxt.bitmex {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        const authenticate = this.authenticate ();
+        await this.authenticate ();
         const messageHash = 'margin';
         const url = this.urls['api']['ws'];
         const request = {
@@ -320,7 +320,7 @@ module.exports = class bitmex extends ccxt.bitmex {
                 messageHash,
             ],
         };
-        return await this.afterDropped (authenticate, this.watch, url, messageHash, this.extend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
     handleBalance (client, message) {
@@ -524,8 +524,8 @@ module.exports = class bitmex extends ccxt.bitmex {
                 messageHash,
             ],
         };
-        const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async authenticate (params = {}) {
@@ -578,7 +578,7 @@ module.exports = class bitmex extends ccxt.bitmex {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const authenticate = this.authenticate ();
+        await this.authenticate ();
         const name = 'order';
         const subscriptionHash = name;
         let messageHash = name;
@@ -592,8 +592,8 @@ module.exports = class bitmex extends ccxt.bitmex {
                 subscriptionHash,
             ],
         };
-        const future = this.afterDropped (authenticate, this.watch, url, messageHash, request, subscriptionHash);
-        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     handleOrders (client, message) {
@@ -782,7 +782,7 @@ module.exports = class bitmex extends ccxt.bitmex {
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const authenticate = this.authenticate ();
+        await this.authenticate ();
         const name = 'execution';
         const subscriptionHash = name;
         let messageHash = name;
@@ -796,8 +796,8 @@ module.exports = class bitmex extends ccxt.bitmex {
                 subscriptionHash,
             ],
         };
-        const future = this.afterDropped (authenticate, this.watch, url, messageHash, request, subscriptionHash);
-        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
     handleMyTrades (client, message) {
@@ -906,8 +906,8 @@ module.exports = class bitmex extends ccxt.bitmex {
                 messageHash,
             ],
         };
-        const future = this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -922,8 +922,8 @@ module.exports = class bitmex extends ccxt.bitmex {
                 messageHash,
             ],
         };
-        const future = this.watch (url, messageHash, this.extend (request, params), messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
