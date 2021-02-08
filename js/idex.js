@@ -139,8 +139,8 @@ module.exports = class idex extends ccxt.idex {
             'markets': [ market['id'] ],
         };
         const messageHash = name + ':' + market['id'];
-        const future = this.subscribe (subscribeObject, messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit);
+        const trades = await this.subscribe (subscribeObject, messageHash);
+        return this.filterBySinceLimit (trades, since, limit);
     }
 
     handleTrade (client, message) {
@@ -224,8 +224,8 @@ module.exports = class idex extends ccxt.idex {
             'interval': interval,
         };
         const messageHash = name + ':' + market['id'];
-        const future = this.subscribe (subscribeObject, messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit);
+        const ohlcv = await this.subscribe (subscribeObject, messageHash);
+        return this.filterBySinceLimit (ohlcv, since, limit);
     }
 
     handleOHLCV (client, message) {
@@ -390,8 +390,8 @@ module.exports = class idex extends ccxt.idex {
             'limit': 0,  // get the complete order book snapshot
         };
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
-        const future = this.subscribe (subscribeObject, messageHash, subscription);
-        return await this.after (future, this.limitOrderBook, symbol, limit);
+        const orderbook = await this.subscribe (subscribeObject, messageHash, subscription);
+        return this.limitOrderBook (orderbook, symbol, limit);
     }
 
     handleOrderBook (client, message) {
@@ -480,8 +480,8 @@ module.exports = class idex extends ccxt.idex {
             subscribeObject['markets'] = [ marketId ];
             messageHash = name + ':' + marketId;
         }
-        const future = this.subscribePrivate (subscribeObject, messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit);
+        const orders = await this.subscribePrivate (subscribeObject, messageHash);
+        return this.filterBySinceLimit (orders, since, limit);
     }
 
     handleOrder (client, message) {
@@ -603,8 +603,8 @@ module.exports = class idex extends ccxt.idex {
         if (code !== undefined) {
             messageHash = name + ':' + code;
         }
-        const future = this.subscribePrivate (subscribeObject, messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit);
+        const transactions = await this.subscribePrivate (subscribeObject, messageHash);
+        return this.filterBySinceLimit (transactions, since, limit);
     }
 
     handleTransaction (client, message) {
