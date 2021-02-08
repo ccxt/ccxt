@@ -14,8 +14,6 @@ trait ClientTrait {
         'maxPingPongMisses' => 2.0,
     );
 
-    public $loop = null; // reactphp's loop
-
     public function inflate($data) {
         return \ccxtpro\inflate($data); // zlib_decode($data);
     }
@@ -50,7 +48,7 @@ trait ClientTrait {
             $options = array_replace_recursive(array(
                 'print' => array($this, 'print'),
                 'verbose' => $this->verbose,
-                'loop' => $this->loop, // reactphp-specific
+                'loop' => static::$loop, // reactphp-specific
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
         }
@@ -59,35 +57,23 @@ trait ClientTrait {
 
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function after($future, callable $method, ... $args) {
-        return $future->then(function($result) use ($method, $args) {
-            return $method($result, ... $args);
-        });
+        $result = yield $future;
+        $method($result, ...$args);
     }
 
     public function after_async($future, callable $method, ... $args) {
-        $await = new Future();
-        $future->then(function($result) use ($method, $args, $await) {
-            return $method($result, ... $args)->then(
-                function($result) use ($await) {
-                    $await->resolve($result);
-                },
-                function($error) use ($await) {
-                    $await->reject($error);
-                }
-            );
-        });
-        return $await;
+        $result = yield $future;
+        return yield $method($result, ...$args);
     }
 
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function after_dropped($future, callable $method, ... $args) {
-        return $future->then(function($result) use ($method, $args) {
-                return $method(... $args);
-        });
+        yield $future;
+        return $method(...$args);
     }
 
     public function spawn($method, ... $args) {
-        $this->loop->futureTick(function () use ($method, $args) {
+        static::$loop->futureTick(function () use ($method, $args) {
             try {
                 $method(... $args);
             } catch (\Exception $e) {
@@ -97,7 +83,7 @@ trait ClientTrait {
     }
 
     public function delay($timeout, $method, ... $args) {
-        $this->loop->addTimer($timeout / 1000, function () use ($method, $args) {
+        static::$loop->addTimer($timeout / 1000, function () use ($method, $args) {
             try {
                 $method(... $args);
             } catch (\Exception $e) {
