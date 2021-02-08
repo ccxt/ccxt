@@ -141,8 +141,8 @@ module.exports = class binance extends ccxt.binance {
         };
         const message = this.extend (request, query);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        const future = this.watch (url, messageHash, message, messageHash, subscription);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
@@ -360,8 +360,8 @@ module.exports = class binance extends ccxt.binance {
         const subscribe = {
             'id': requestId,
         };
-        const future = this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     parseTrade (trade, market = undefined) {
@@ -570,8 +570,8 @@ module.exports = class binance extends ccxt.binance {
         const subscribe = {
             'id': requestId,
         };
-        const future = this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -836,8 +836,8 @@ module.exports = class binance extends ccxt.binance {
             subscriptionHash += ':' + symbol;
         }
         const message = undefined;
-        const future = this.watch (url, messageHash, message, subscriptionHash);
-        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        const orders = await this.watch (url, messageHash, message, subscriptionHash);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     parseWsOrder (order, market = undefined) {
@@ -1096,8 +1096,8 @@ module.exports = class binance extends ccxt.binance {
             subscriptionHash += ':' + symbol;
         }
         const message = undefined;
-        const future = this.watch (url, messageHash, message, subscriptionHash);
-        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        const trades = await this.watch (url, messageHash, message, subscriptionHash);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
     handleMyTrade (client, message) {
