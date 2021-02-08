@@ -364,8 +364,8 @@ module.exports = class bittrex extends ccxt.bittrex {
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
-        const ohlcvs = await this.subscribeToOHLCV (negotiation, symbol, timeframe, params);
-        return this.filterBySinceLimit (ohlcvs, since, limit, 0, true);
+        const ohlcv = await this.subscribeToOHLCV (negotiation, symbol, timeframe, params);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     async subscribeToOHLCV (negotiation, symbol, timeframe = '1m', params = {}) {
