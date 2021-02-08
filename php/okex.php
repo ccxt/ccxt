@@ -65,8 +65,8 @@ class okex extends \ccxt\async\okex {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $future = $this->subscribe('trade', $symbol, $params);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->subscribe('trade', $symbol, $params);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_ticker($symbol, $params = array ()) {
@@ -147,8 +147,8 @@ class okex extends \ccxt\async\okex {
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $interval = $this->timeframes[$timeframe];
         $name = 'candle' . $interval . 's';
-        $future = $this->subscribe($name, $symbol, $params);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        $ohlcv = yield $this->subscribe($name, $symbol, $params);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -205,8 +205,8 @@ class okex extends \ccxt\async\okex {
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $options = $this->safe_value($this->options, 'watchOrderBook', array());
         $depth = $this->safe_string($options, 'depth', 'depth_l2_tbt');
-        $future = $this->subscribe($depth, $symbol, $params);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->subscribe($depth, $symbol, $params);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -368,8 +368,8 @@ class okex extends \ccxt\async\okex {
             throw new ArgumentsRequired($this->id . " watchBalance requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap')");
         }
         // $query = $this->omit($params, 'type');
-        $future = $this->authenticate();
-        return yield $this->after_async($future, array($this, 'subscribe_to_user_account'), $params);
+        $negotiation = yield $this->authenticate();
+        return yield $this->subscribe_to_user_account($negotiation, $params);
     }
 
     public function subscribe_to_user_account($negotiation, $params = array ()) {

@@ -75,8 +75,8 @@ class gateio extends \ccxt\async\gateio {
         $subscription = array(
             'id' => $requestId,
         );
-        $future = $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -215,8 +215,8 @@ class gateio extends \ccxt\async\gateio {
             'id' => $requestId,
         );
         $messageHash = 'trades.update' . ':' . $marketId;
-        $future = $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_trades($client, $message) {
@@ -282,8 +282,8 @@ class gateio extends \ccxt\async\gateio {
         // two or more different timeframes within the same $symbol
         // thus the exchange API is limited to one $timeframe per $symbol
         $messageHash = 'kline.update' . ':' . $marketId;
-        $future = $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        $ohlcv = yield $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -373,7 +373,7 @@ class gateio extends \ccxt\async\gateio {
         yield $this->load_markets();
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
-        $future = $this->authenticate();
+        yield $this->authenticate();
         $requestId = $this->nonce();
         $method = 'balance.update';
         $subscribeMessage = array(
@@ -385,14 +385,14 @@ class gateio extends \ccxt\async\gateio {
             'id' => $requestId,
             'method' => array($this, 'handle_balance_subscription'),
         );
-        return yield $this->after_dropped($future, array($this, 'watch'), $url, $method, $subscribeMessage, $method, $subscription);
+        return yield $this->watch($url, $method, $subscribeMessage, $method, $subscription);
     }
 
     public function fetch_balance_snapshot() {
         yield $this->load_markets();
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
-        $future = $this->authenticate();
+        yield $this->authenticate();
         $requestId = $this->nonce();
         $method = 'balance.query';
         $subscribeMessage = array(
@@ -404,7 +404,7 @@ class gateio extends \ccxt\async\gateio {
             'id' => $requestId,
             'method' => array($this, 'handle_balance_snapshot'),
         );
-        return yield $this->after_dropped($future, array($this, 'watch'), $url, $requestId, $subscribeMessage, $method, $subscription);
+        return yield $this->watch($url, $requestId, $subscribeMessage, $method, $subscription);
     }
 
     public function handle_balance_snapshot($client, $message) {
@@ -447,7 +447,7 @@ class gateio extends \ccxt\async\gateio {
             $messageHash = $method . ':' . $market['id'];
         }
         $url = $this->urls['api']['ws'];
-        $authenticated = $this->authenticate();
+        yield $this->authenticate();
         $requestId = $this->nonce();
         $subscribeMessage = array(
             'id' => $requestId,
@@ -457,8 +457,8 @@ class gateio extends \ccxt\async\gateio {
         $subscription = array(
             'id' => $requestId,
         );
-        $future = $this->after_dropped($authenticated, array($this, 'watch'), $url, $messageHash, $subscribeMessage, $method, $subscription);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
+        $orders = yield $this->watch($url, $messageHash, $subscribeMessage, $method, $subscription);
+        return $this->filter_by_since_limit($orders, $since, $limit);
     }
 
     public function handle_order($client, $message) {

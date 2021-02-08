@@ -135,8 +135,8 @@ class idex(Exchange, ccxt.idex):
             'markets': [market['id']],
         }
         messageHash = name + ':' + market['id']
-        future = self.subscribe(subscribeObject, messageHash)
-        return await self.after(future, self.filter_by_since_limit, since, limit)
+        trades = await self.subscribe(subscribeObject, messageHash)
+        return self.filter_by_since_limit(trades, since, limit)
 
     def handle_trade(self, client, message):
         type = self.safe_string(message, 'type')
@@ -216,8 +216,8 @@ class idex(Exchange, ccxt.idex):
             'interval': interval,
         }
         messageHash = name + ':' + market['id']
-        future = self.subscribe(subscribeObject, messageHash)
-        return await self.after(future, self.filter_by_since_limit, since, limit)
+        ohlcv = await self.subscribe(subscribeObject, messageHash)
+        return self.filter_by_since_limit(ohlcv, since, limit)
 
     def handle_ohlcv(self, client, message):
         # {type: 'candles',
@@ -365,8 +365,8 @@ class idex(Exchange, ccxt.idex):
             'limit': 0,  # get the complete order book snapshot
         }
         # 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
-        future = self.subscribe(subscribeObject, messageHash, subscription)
-        return await self.after(future, self.limit_order_book, symbol, limit)
+        orderbook = await self.subscribe(subscribeObject, messageHash, subscription)
+        return self.limit_order_book(orderbook, symbol, limit)
 
     def handle_order_book(self, client, message):
         data = self.safe_value(message, 'data')
@@ -445,8 +445,8 @@ class idex(Exchange, ccxt.idex):
             marketId = self.market_id(symbol)
             subscribeObject['markets'] = [marketId]
             messageHash = name + ':' + marketId
-        future = self.subscribe_private(subscribeObject, messageHash)
-        return await self.after(future, self.filter_by_since_limit, since, limit)
+        orders = await self.subscribe_private(subscribeObject, messageHash)
+        return self.filter_by_since_limit(orders, since, limit)
 
     def handle_order(self, client, message):
         # {
@@ -560,8 +560,8 @@ class idex(Exchange, ccxt.idex):
         messageHash = name
         if code is not None:
             messageHash = name + ':' + code
-        future = self.subscribe_private(subscribeObject, messageHash)
-        return await self.after(future, self.filter_by_since_limit, since, limit)
+        transactions = await self.subscribe_private(subscribeObject, messageHash)
+        return self.filter_by_since_limit(transactions, since, limit)
 
     def handle_transaction(self, client, message):
         # Update Speed: Real time, updates on any deposit or withdrawal of the wallet

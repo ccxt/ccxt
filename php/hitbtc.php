@@ -62,8 +62,8 @@ class hitbtc extends \ccxt\async\hitbtc {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $future = $this->watch_public($symbol, 'orderbook', null, $params);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch_public($symbol, 'orderbook', null, $params);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function handle_order_book_snapshot($client, $message) {
@@ -195,8 +195,8 @@ class hitbtc extends \ccxt\async\hitbtc {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $future = $this->watch_public($symbol, 'trades', null, $params);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, true);
+        $trades = yield $this->watch_public($symbol, 'trades', null, $params);
+        return $this->filter_by_since_limit($trades, $since, $limit, true);
     }
 
     public function handle_trades($client, $message) {
@@ -262,8 +262,8 @@ class hitbtc extends \ccxt\async\hitbtc {
             ),
         );
         $requestParams = $this->deep_extend($request, $params);
-        $future = $this->watch_public($symbol, 'ohlcv', $period, $requestParams);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        $ohlcv = yield $this->watch_public($symbol, 'ohlcv', $period, $requestParams);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {

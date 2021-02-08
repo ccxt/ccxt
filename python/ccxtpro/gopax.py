@@ -81,8 +81,8 @@ class gopax(Exchange, ccxt.gopax):
             'params': params,
         }
         message = self.extend(request, params)
-        future = self.watch(url, messageHash, message, messageHash, subscription)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     def handle_delta(self, orderbook, bookside, delta):
         #
@@ -212,8 +212,8 @@ class gopax(Exchange, ccxt.gopax):
             'params': params,
         }
         message = self.extend(request, params)
-        future = self.watch(url, messageHash, message, subscriptionHash, subscription)
-        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+        orders = await self.watch(url, messageHash, message, subscriptionHash, subscription)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def parse_ws_order_status(self, status):
         statuses = {
@@ -438,8 +438,8 @@ class gopax(Exchange, ccxt.gopax):
             'params': params,
         }
         message = self.extend(request, params)
-        future = self.watch(url, messageHash, message, subscriptionHash, subscription)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.watch(url, messageHash, message, subscriptionHash, subscription)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_my_trades(self, client, message):
         #

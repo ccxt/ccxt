@@ -58,8 +58,8 @@ class hitbtc(Exchange, ccxt.hitbtc):
         return await self.watch(url, messageHash, request, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
-        future = self.watch_public(symbol, 'orderbook', None, params)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch_public(symbol, 'orderbook', None, params)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     def handle_order_book_snapshot(self, client, message):
         #
@@ -181,8 +181,8 @@ class hitbtc(Exchange, ccxt.hitbtc):
         client.resolve(result, messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
-        future = self.watch_public(symbol, 'trades', None, params)
-        return await self.after(future, self.filter_by_since_limit, since, limit, True)
+        trades = await self.watch_public(symbol, 'trades', None, params)
+        return self.filter_by_since_limit(trades, since, limit, True)
 
     def handle_trades(self, client, message):
         #
@@ -243,8 +243,8 @@ class hitbtc(Exchange, ccxt.hitbtc):
             },
         }
         requestParams = self.deep_extend(request, params)
-        future = self.watch_public(symbol, 'ohlcv', period, requestParams)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
+        ohlcv = await self.watch_public(symbol, 'ohlcv', period, requestParams)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         #

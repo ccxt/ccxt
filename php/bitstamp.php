@@ -58,8 +58,8 @@ class bitstamp extends \ccxt\async\bitstamp {
             'params' => $params,
         );
         $message = array_merge($request, $params);
-        $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
@@ -201,8 +201,8 @@ class bitstamp extends \ccxt\async\bitstamp {
             'params' => $params,
         );
         $message = array_merge($request, $params);
-        $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function parse_trade($trade, $market = null) {

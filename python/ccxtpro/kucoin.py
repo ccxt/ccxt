@@ -117,9 +117,9 @@ class kucoin(Exchange, ccxt.kucoin):
 
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
-        negotiate = self.negotiate()
+        negotiation = await self.negotiate()
         topic = '/market/snapshot'
-        return await self.after_async(negotiate, self.subscribe, topic, None, symbol, params)
+        return await self.subscribe(negotiation, topic, None, symbol, params)
 
     def handle_ticker(self, client, message):
         #
@@ -168,10 +168,10 @@ class kucoin(Exchange, ccxt.kucoin):
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
-        negotiate = self.negotiate()
+        negotiation = await self.negotiate()
         topic = '/market/match'
-        future = self.after_async(negotiate, self.subscribe, topic, None, symbol, params)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.subscribe(negotiation, topic, None, symbol, params)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trade(self, client, message):
         #
@@ -226,10 +226,10 @@ class kucoin(Exchange, ccxt.kucoin):
             if (limit != 20) and (limit != 100):
                 raise ExchangeError(self.id + " watchOrderBook 'limit' argument must be None, 20 or 100")
         await self.load_markets()
-        negotiate = self.negotiate()
+        negotiation = await self.negotiate()
         topic = '/market/level2'
-        future = self.after_async(negotiate, self.subscribe, topic, self.handle_order_book_subscription, symbol, params)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.subscribe(negotiation, topic, self.handle_order_book_subscription, symbol, params)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')

@@ -241,8 +241,8 @@ class kraken extends \ccxt\async\kraken {
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'trade';
-        $future = $this->watch_public($name, $symbol, $params);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->watch_public($name, $symbol, $params);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
@@ -257,8 +257,8 @@ class kraken extends \ccxt\async\kraken {
                 throw new NotSupported($this->id . ' watchOrderBook accepts $limit values of 10, 25, 100, 500 and 1000 only');
             }
         }
-        $future = $this->watch_public($name, $symbol, array_merge($request, $params));
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch_public($name, $symbol, array_merge($request, $params));
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -281,8 +281,8 @@ class kraken extends \ccxt\async\kraken {
             ),
         );
         $request = $this->deep_extend($subscribe, $params);
-        $future = $this->watch($url, $messageHash, $request, $messageHash);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        $ohlcv = yield $this->watch($url, $messageHash, $request, $messageHash);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function load_markets($reload = false, $params = array ()) {
@@ -486,8 +486,8 @@ class kraken extends \ccxt\async\kraken {
             ),
         );
         $request = $this->deep_extend($subscribe, $params);
-        $future = $this->watch($url, $messageHash, $request, $subscriptionHash);
-        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        $result = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

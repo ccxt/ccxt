@@ -51,12 +51,12 @@ class upbit(Exchange, ccxt.upbit):
         return await self.watch_public(symbol, 'ticker')
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
-        future = self.watch_public(symbol, 'trade')
-        return await self.after(future, self.filter_by_since_limit, since, limit, True)
+        trades = await self.watch_public(symbol, 'trade')
+        return self.filter_by_since_limit(trades, since, limit, True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
-        future = self.watch_public(symbol, 'orderbook')
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch_public(symbol, 'orderbook')
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     def handle_ticker(self, client, message):
         # 2020-03-17T23:07:36.511Z 'onMessage' <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >

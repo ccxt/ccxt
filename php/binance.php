@@ -144,8 +144,8 @@ class binance extends \ccxt\async\binance {
         );
         $message = array_merge($request, $query);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
@@ -363,8 +363,8 @@ class binance extends \ccxt\async\binance {
         $subscribe = array(
             'id' => $requestId,
         );
-        $future = $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -573,8 +573,8 @@ class binance extends \ccxt\async\binance {
         $subscribe = array(
             'id' => $requestId,
         );
-        $future = $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        $ohlcv = yield $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -839,8 +839,8 @@ class binance extends \ccxt\async\binance {
             $subscriptionHash .= ':' . $symbol;
         }
         $message = null;
-        $future = $this->watch($url, $messageHash, $message, $subscriptionHash);
-        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        $orders = yield $this->watch($url, $messageHash, $message, $subscriptionHash);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
     public function parse_ws_order($order, $market = null) {
@@ -1099,8 +1099,8 @@ class binance extends \ccxt\async\binance {
             $subscriptionHash .= ':' . $symbol;
         }
         $message = null;
-        $future = $this->watch($url, $messageHash, $message, $subscriptionHash);
-        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        $trades = yield $this->watch($url, $messageHash, $message, $subscriptionHash);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
     }
 
     public function handle_my_trade($client, $message) {

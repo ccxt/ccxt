@@ -129,8 +129,8 @@ class huobipro extends \ccxt\async\huobipro {
             'symbol' => $symbol,
             'params' => $params,
         );
-        $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_trades($client, $message) {
@@ -195,8 +195,8 @@ class huobipro extends \ccxt\async\huobipro {
             'timeframe' => $timeframe,
             'params' => $params,
         );
-        $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        $ohlcv = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -266,8 +266,8 @@ class huobipro extends \ccxt\async\huobipro {
             'params' => $params,
             'method' => array($this, 'handle_order_book_subscription'),
         );
-        $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function handle_order_book_snapshot($client, $message, $subscription) {
@@ -331,8 +331,8 @@ class huobipro extends \ccxt\async\huobipro {
             'params' => $params,
             'method' => array($this, 'handle_order_book_snapshot'),
         );
-        $future = $this->watch($url, $requestId, $request, $requestId, $snapshotSubscription);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch($url, $requestId, $request, $requestId, $snapshotSubscription);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function handle_delta($bookside, $delta) {

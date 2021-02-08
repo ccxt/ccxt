@@ -43,8 +43,8 @@ class ripio extends \ccxt\async\ripio {
             'messageHash' => $messageHash,
             'method' => array($this, 'handle_trade'),
         );
-        $future = $this->watch($url, $messageHash, null, $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->watch($url, $messageHash, null, $messageHash, $subscription);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_trade($client, $message, $subscription) {
@@ -162,8 +162,8 @@ class ripio extends \ccxt\async\ripio {
             // fetch the snapshot in a separate async call after a warmup $delay
             $this->delay($delay, array($this, 'fetch_order_book_snapshot'), $client, $subscription);
         }
-        $future = $this->watch($url, $messageHash, null, $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch($url, $messageHash, null, $messageHash, $subscription);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function fetch_order_book_snapshot($client, $subscription) {

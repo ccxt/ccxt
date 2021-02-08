@@ -124,9 +124,9 @@ class kucoin extends \ccxt\async\kucoin {
 
     public function watch_ticker($symbol, $params = array ()) {
         yield $this->load_markets();
-        $negotiate = $this->negotiate();
+        $negotiation = yield $this->negotiate();
         $topic = '/market/snapshot';
-        return yield $this->after_async($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $params);
+        return yield $this->subscribe($negotiation, $topic, null, $symbol, $params);
     }
 
     public function handle_ticker($client, $message) {
@@ -178,10 +178,10 @@ class kucoin extends \ccxt\async\kucoin {
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $negotiate = $this->negotiate();
+        $negotiation = yield $this->negotiate();
         $topic = '/market/match';
-        $future = $this->after_async($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $params);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->subscribe($negotiation, $topic, null, $symbol, $params);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_trade($client, $message) {
@@ -241,10 +241,10 @@ class kucoin extends \ccxt\async\kucoin {
             }
         }
         yield $this->load_markets();
-        $negotiate = $this->negotiate();
+        $negotiation = yield $this->negotiate();
         $topic = '/market/level2';
-        $future = $this->after_async($negotiate, array($this, 'subscribe'), $topic, array($this, 'handle_order_book_subscription'), $symbol, $params);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->subscribe($negotiation, $topic, array($this, 'handle_order_book_subscription'), $symbol, $params);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {

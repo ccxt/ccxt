@@ -63,8 +63,8 @@ class okex(Exchange, ccxt.okex):
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
-        future = self.subscribe('trade', symbol, params)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.subscribe('trade', symbol, params)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_ticker(self, symbol, params={}):
         return await self.subscribe('ticker', symbol, params)
@@ -138,8 +138,8 @@ class okex(Exchange, ccxt.okex):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         interval = self.timeframes[timeframe]
         name = 'candle' + interval + 's'
-        future = self.subscribe(name, symbol, params)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
+        ohlcv = await self.subscribe(name, symbol, params)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         #
@@ -191,8 +191,8 @@ class okex(Exchange, ccxt.okex):
     async def watch_order_book(self, symbol, limit=None, params={}):
         options = self.safe_value(self.options, 'watchOrderBook', {})
         depth = self.safe_string(options, 'depth', 'depth_l2_tbt')
-        future = self.subscribe(depth, symbol, params)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.subscribe(depth, symbol, params)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -341,8 +341,8 @@ class okex(Exchange, ccxt.okex):
         if type is None:
             raise ArgumentsRequired(self.id + " watchBalance requires a type parameter(one of 'spot', 'margin', 'futures', 'swap')")
         # query = self.omit(params, 'type')
-        future = self.authenticate()
-        return await self.after_async(future, self.subscribe_to_user_account, params)
+        negotiation = await self.authenticate()
+        return await self.subscribe_to_user_account(negotiation, params)
 
     async def subscribe_to_user_account(self, negotiation, params={}):
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType')

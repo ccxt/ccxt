@@ -103,8 +103,8 @@ class bittrex extends \ccxt\async\bittrex {
 
     public function authenticate($params = array ()) {
         yield $this->load_markets();
-        $future = $this->negotiate();
-        return yield $this->after_async($future, array($this, 'send_request_to_authenticate'), false, $params);
+        $request = yield $this->negotiate();
+        return yield $this->send_request_to_authenticate($request, false, $params);
     }
 
     public function send_request_to_authenticate($negotiation, $expired = false, $params = array ()) {
@@ -212,9 +212,9 @@ class bittrex extends \ccxt\async\bittrex {
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $authenticate = $this->authenticate();
-        $future = $this->after_async($authenticate, array($this, 'subscribe_to_orders'), $params);
-        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        $authentication = yield $this->authenticate();
+        $orders = yield $this->subscribe_to_orders($authentication, $params);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
     public function subscribe_to_orders($authentication, $params = array ()) {
@@ -258,8 +258,8 @@ class bittrex extends \ccxt\async\bittrex {
 
     public function watch_balance($params = array ()) {
         yield $this->load_markets();
-        $authenticate = $this->authenticate();
-        return yield $this->after_async($authenticate, array($this, 'subscribe_to_balance'), $params);
+        $authentication = yield $this->authenticate();
+        return yield $this->subscribe_to_balance($authentication, $params);
     }
 
     public function subscribe_to_balance($authentication, $params = array ()) {
@@ -294,8 +294,8 @@ class bittrex extends \ccxt\async\bittrex {
 
     public function watch_heartbeat($params = array ()) {
         yield $this->load_markets();
-        $negotiate = $this->negotiate();
-        return yield $this->after_async($negotiate, array($this, 'subscribe_to_heartbeat'), $params);
+        $negotiation = yield $this->negotiate();
+        return yield $this->subscribe_to_heartbeat($negotiation, $params);
     }
 
     public function subscribe_to_heartbeat($negotiation, $params = array ()) {
@@ -324,8 +324,8 @@ class bittrex extends \ccxt\async\bittrex {
 
     public function watch_ticker($symbol, $params = array ()) {
         yield $this->load_markets();
-        $negotiate = $this->negotiate();
-        return yield $this->after_async($negotiate, array($this, 'subscribe_to_ticker'), $symbol, $params);
+        $negotiation = yield $this->negotiate();
+        return yield $this->subscribe_to_ticker($negotiation, $symbol, $params);
     }
 
     public function subscribe_to_ticker($negotiation, $symbol, $params = array ()) {
@@ -367,9 +367,9 @@ class bittrex extends \ccxt\async\bittrex {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $negotiate = $this->negotiate();
-        $future = $this->after_async($negotiate, array($this, 'subscribe_to_ohlcv'), $symbol, $timeframe, $params);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        $negotiation = yield $this->negotiate();
+        $ohlcv = yield $this->subscribe_to_ohlcv($negotiation, $symbol, $timeframe, $params);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function subscribe_to_ohlcv($negotiation, $symbol, $timeframe = '1m', $params = array ()) {
@@ -430,9 +430,9 @@ class bittrex extends \ccxt\async\bittrex {
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $negotiate = $this->negotiate();
-        $future = $this->after_async($negotiate, array($this, 'subscribe_to_trades'), $symbol, $params);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $negotiation = yield $this->negotiate();
+        $trades = yield $this->subscribe_to_trades($negotiation, $symbol, $params);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function subscribe_to_trades($negotiation, $symbol, $params = array ()) {
@@ -489,19 +489,19 @@ class bittrex extends \ccxt\async\bittrex {
             throw new BadRequest($this->id . ' watchOrderBook() $limit argument must be null, 1, 25 or 500, default is 25');
         }
         yield $this->load_markets();
-        $negotiate = $this->negotiate();
+        $negotiation = yield $this->negotiate();
         //
         //     1. Subscribe to the relevant socket streams
         //     2. Begin to queue up messages without processing them
-        //     3. Call the equivalent v3 REST API and record both the results and the value of the returned Sequence header. Refer to the descriptions of individual streams to find the corresponding REST API. Note that you must call the REST API with the same parameters as you used to subscribed to the stream to get the right snapshot. For example, orderbook snapshots of different depths will have different sequence numbers.
+        //     3. Call the equivalent v3 REST API and record both the results and the value of the returned Sequence header. Refer to the descriptions of individual streams to find the corresponding REST API. Note that you must call the REST API with the same parameters as you used to subscribed to the stream to get the right snapshot. For example, $orderbook snapshots of different depths will have different sequence numbers.
         //     4. If the Sequence header is less than the sequence number of the first queued socket message received (unlikely), discard the results of step 3 and then repeat step 3 until this check passes.
         //     5. Discard all socket messages where the sequence number is less than or equal to the Sequence header retrieved from the REST call
         //     6. Apply the remaining socket messages in order on top of the results of the REST call. The objects received in the socket deltas have the same schemas as the objects returned by the REST API. Each socket delta is a snapshot of an object. The identity of the object is defined by a unique key made up of one or more fields in the message (see documentation of individual streams for details). To apply socket deltas to a local cache of data, simply replace the objects in the cache with those coming from the socket where the keys match.
         //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note => for private streams, the sequence number is scoped to a single account or subaccount).
         //     8. If a message is received that is not the next in order, return to step 2 in this process
         //
-        $future = $this->after_async($negotiate, array($this, 'subscribe_to_order_book'), $symbol, $limit, $params);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->subscribe_to_order_book($negotiation, $symbol, $limit, $params);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function subscribe_to_order_book($negotiation, $symbol, $limit = null, $params = array ()) {
