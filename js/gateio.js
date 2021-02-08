@@ -71,8 +71,8 @@ module.exports = class gateio extends ccxt.gateio {
         const subscription = {
             'id': requestId,
         };
-        const future = this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     handleDelta (bookside, delta) {
@@ -211,8 +211,8 @@ module.exports = class gateio extends ccxt.gateio {
             'id': requestId,
         };
         const messageHash = 'trades.update' + ':' + marketId;
-        const future = this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrades (client, message) {
@@ -278,8 +278,8 @@ module.exports = class gateio extends ccxt.gateio {
         // two or more different timeframes within the same symbol
         // thus the exchange API is limited to one timeframe per symbol
         const messageHash = 'kline.update' + ':' + marketId;
-        const future = this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const ohlcv = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -369,7 +369,7 @@ module.exports = class gateio extends ccxt.gateio {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const future = this.authenticate ();
+        await this.authenticate ();
         const requestId = this.nonce ();
         const method = 'balance.update';
         const subscribeMessage = {
@@ -381,14 +381,14 @@ module.exports = class gateio extends ccxt.gateio {
             'id': requestId,
             'method': this.handleBalanceSubscription,
         };
-        return await this.afterDropped (future, this.watch, url, method, subscribeMessage, method, subscription);
+        return await this.watch (url, method, subscribeMessage, method, subscription);
     }
 
     async fetchBalanceSnapshot () {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const future = this.authenticate ();
+        await this.authenticate ();
         const requestId = this.nonce ();
         const method = 'balance.query';
         const subscribeMessage = {
@@ -400,7 +400,7 @@ module.exports = class gateio extends ccxt.gateio {
             'id': requestId,
             'method': this.handleBalanceSnapshot,
         };
-        return await this.afterDropped (future, this.watch, url, requestId, subscribeMessage, method, subscription);
+        return await this.watch (url, requestId, subscribeMessage, method, subscription);
     }
 
     handleBalanceSnapshot (client, message) {
@@ -443,7 +443,7 @@ module.exports = class gateio extends ccxt.gateio {
             messageHash = method + ':' + market['id'];
         }
         const url = this.urls['api']['ws'];
-        const authenticated = this.authenticate ();
+        await this.authenticate ();
         const requestId = this.nonce ();
         const subscribeMessage = {
             'id': requestId,
@@ -453,8 +453,8 @@ module.exports = class gateio extends ccxt.gateio {
         const subscription = {
             'id': requestId,
         };
-        const future = this.afterDropped (authenticated, this.watch, url, messageHash, subscribeMessage, method, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit);
+        const orders = await this.watch (url, messageHash, subscribeMessage, method, subscription);
+        return this.filterBySinceLimit (orders, since, limit);
     }
 
     handleOrder (client, message) {

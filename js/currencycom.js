@@ -363,13 +363,13 @@ module.exports = class currencycom extends ccxt.currencycom {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const future = this.watchPublic ('trades.subscribe', symbol, params);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.watchPublic ('trades.subscribe', symbol, params);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        const future = this.watchPublic ('depthMarketData.subscribe', symbol, params);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watchPublic ('depthMarketData.subscribe', symbol, params);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -384,8 +384,8 @@ module.exports = class currencycom extends ccxt.currencycom {
                 ],
             },
         };
-        const future = this.watchPublic (messageHash, symbol, this.extend (request, params));
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const ohlcv = await this.watchPublic (messageHash, symbol, this.extend (request, params));
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleDeltas (bookside, deltas) {

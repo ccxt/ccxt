@@ -55,8 +55,8 @@ module.exports = class bitfinex extends ccxt.bitfinex {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const future = this.subscribe ('trades', symbol, params);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.subscribe ('trades', symbol, params);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -251,8 +251,8 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             'freq': freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
             'len': limit, // string, number of price points, '25', '100', default = '25'
         };
-        const future = this.subscribe ('book', symbol, this.deepExtend (request, params));
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.subscribe ('book', symbol, this.deepExtend (request, params));
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     handleOrderBook (client, message, subscription) {
@@ -430,17 +430,17 @@ module.exports = class bitfinex extends ccxt.bitfinex {
     async watchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['private'];
-        const future = this.authenticate ();
-        return await this.afterDropped (future, this.watch, url, id, undefined, 1);
+        await this.authenticate ();
+        return await this.watch (url, id, undefined, 1);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const future = this.authenticate ();
+        await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
-        const watching = this.afterDropped (future, this.watch, url, 'os', undefined, 1);
+        const orders = await this.watch (url, 'os', undefined, 1);
         // purgeOrders here
-        return await this.after (watching, this.filterBySymbolSinceLimit, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     handleOrders (client, message) {

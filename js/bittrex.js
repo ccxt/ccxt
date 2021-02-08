@@ -99,8 +99,8 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     async authenticate (params = {}) {
         await this.loadMarkets ();
-        const future = this.negotiate ();
-        return await this.afterAsync (future, this.sendRequestToAuthenticate, false, params);
+        const request = await this.negotiate ();
+        return await this.sendRequestToAuthenticate (request, false, params);
     }
 
     async sendRequestToAuthenticate (negotiation, expired = false, params = {}) {
@@ -208,9 +208,9 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const authenticate = this.authenticate ();
-        const future = this.afterAsync (authenticate, this.subscribeToOrders, params);
-        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        const authentication = await this.authenticate ();
+        const orders = await this.subscribeToOrders (authentication, params);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async subscribeToOrders (authentication, params = {}) {
@@ -254,8 +254,8 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        const authenticate = this.authenticate ();
-        return await this.afterAsync (authenticate, this.subscribeToBalance, params);
+        const authentication = await this.authenticate ();
+        return await this.subscribeToBalance (authentication, params);
     }
 
     async subscribeToBalance (authentication, params = {}) {
@@ -290,8 +290,8 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
-        const negotiate = this.negotiate ();
-        return await this.afterAsync (negotiate, this.subscribeToHeartbeat, params);
+        const negotiation = await this.negotiate ();
+        return await this.subscribeToHeartbeat (negotiation, params);
     }
 
     async subscribeToHeartbeat (negotiation, params = {}) {
@@ -320,8 +320,8 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const negotiate = this.negotiate ();
-        return await this.afterAsync (negotiate, this.subscribeToTicker, symbol, params);
+        const negotiation = await this.negotiate ();
+        return await this.subscribeToTicker (negotiation, symbol, params);
     }
 
     async subscribeToTicker (negotiation, symbol, params = {}) {
@@ -363,9 +363,9 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const negotiate = this.negotiate ();
-        const future = this.afterAsync (negotiate, this.subscribeToOHLCV, symbol, timeframe, params);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const negotiation = await this.negotiate ();
+        const ohlcv = await this.subscribeToOHLCV (negotiation, symbol, timeframe, params);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     async subscribeToOHLCV (negotiation, symbol, timeframe = '1m', params = {}) {
@@ -426,9 +426,9 @@ module.exports = class bittrex extends ccxt.bittrex {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const negotiate = this.negotiate ();
-        const future = this.afterAsync (negotiate, this.subscribeToTrades, symbol, params);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const negotiation = await this.negotiate ();
+        const trades = await this.subscribeToTrades (negotiation, symbol, params);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async subscribeToTrades (negotiation, symbol, params = {}) {
@@ -485,7 +485,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             throw new BadRequest (this.id + ' watchOrderBook() limit argument must be undefined, 1, 25 or 500, default is 25');
         }
         await this.loadMarkets ();
-        const negotiate = this.negotiate ();
+        const negotiation = await this.negotiate ();
         //
         //     1. Subscribe to the relevant socket streams
         //     2. Begin to queue up messages without processing them
@@ -496,8 +496,8 @@ module.exports = class bittrex extends ccxt.bittrex {
         //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note: for private streams, the sequence number is scoped to a single account or subaccount).
         //     8. If a message is received that is not the next in order, return to step 2 in this process
         //
-        const future = this.afterAsync (negotiate, this.subscribeToOrderBook, symbol, limit, params);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.subscribeToOrderBook (negotiation, symbol, limit, params);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     async subscribeToOrderBook (negotiation, symbol, limit = undefined, params = {}) {

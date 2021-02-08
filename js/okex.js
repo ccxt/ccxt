@@ -61,8 +61,8 @@ module.exports = class okex extends ccxt.okex {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const future = this.subscribe ('trade', symbol, params);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.subscribe ('trade', symbol, params);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -143,8 +143,8 @@ module.exports = class okex extends ccxt.okex {
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const interval = this.timeframes[timeframe];
         const name = 'candle' + interval + 's';
-        const future = this.subscribe (name, symbol, params);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const ohlcv = await this.subscribe (name, symbol, params);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -201,8 +201,8 @@ module.exports = class okex extends ccxt.okex {
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const depth = this.safeString (options, 'depth', 'depth_l2_tbt');
-        const future = this.subscribe (depth, symbol, params);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.subscribe (depth, symbol, params);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     handleDelta (bookside, delta) {
@@ -364,8 +364,8 @@ module.exports = class okex extends ccxt.okex {
             throw new ArgumentsRequired (this.id + " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')");
         }
         // const query = this.omit (params, 'type');
-        const future = this.authenticate ();
-        return await this.afterAsync (future, this.subscribeToUserAccount, params);
+        const negotiation = await this.authenticate ();
+        return await this.subscribeToUserAccount (negotiation, params);
     }
 
     async subscribeToUserAccount (negotiation, params = {}) {

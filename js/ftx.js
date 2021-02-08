@@ -66,13 +66,13 @@ module.exports = class ftx extends ccxt.ftx {
             const market = this.market (symbol);
             messageHash = messageHash + ':' + market['id'];
         }
+        await this.authenticate ();
         const url = this.implodeParams (this.urls['api']['ws'], { 'hostname': this.hostname });
         const request = {
             'op': 'subscribe',
             'channel': channel,
         };
-        const future = this.authenticate ();
-        return await this.afterDropped (future, this.watch, url, messageHash, request, channel);
+        return await this.watch (url, messageHash, request, channel);
     }
 
     authenticate (params = {}) {
@@ -113,13 +113,13 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const future = this.watchPublic (symbol, 'trades');
-        return await this.after (future, this.filterBySinceLimit, since, limit, true);
+        const trades = await this.watchPublic (symbol, 'trades');
+        return this.filterBySinceLimit (trades, since, limit, true);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        const future = this.watchPublic (symbol, 'orderbook');
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watchPublic (symbol, 'orderbook');
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     handlePartial (client, message) {
@@ -396,8 +396,8 @@ module.exports = class ftx extends ccxt.ftx {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const future = this.watchPrivate ('orders', symbol);
-        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        const orders = await this.watchPrivate ('orders', symbol);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     handleOrder (client, message) {
@@ -469,8 +469,8 @@ module.exports = class ftx extends ccxt.ftx {
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const future = this.watchPrivate ('fills', symbol);
-        return await this.after (future, this.filterBySymbolSinceLimit, symbol, since, limit);
+        const trades = await this.watchPrivate ('fills', symbol);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
     handleMyTrade (client, message) {

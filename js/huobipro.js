@@ -126,8 +126,8 @@ module.exports = class huobipro extends ccxt.huobipro {
             'symbol': symbol,
             'params': params,
         };
-        const future = this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrades (client, message) {
@@ -192,8 +192,8 @@ module.exports = class huobipro extends ccxt.huobipro {
             'timeframe': timeframe,
             'params': params,
         };
-        const future = this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -263,8 +263,8 @@ module.exports = class huobipro extends ccxt.huobipro {
             'params': params,
             'method': this.handleOrderBookSubscription,
         };
-        const future = this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     handleOrderBookSnapshot (client, message, subscription) {
@@ -328,8 +328,8 @@ module.exports = class huobipro extends ccxt.huobipro {
             'params': params,
             'method': this.handleOrderBookSnapshot,
         };
-        const future = this.watch (url, requestId, request, requestId, snapshotSubscription);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     handleDelta (bookside, delta) {
