@@ -40,8 +40,8 @@ module.exports = class ripio extends ccxt.ripio {
             'messageHash': messageHash,
             'method': this.handleTrade,
         };
-        const future = this.watch (url, messageHash, undefined, messageHash, subscription);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.watch (url, messageHash, undefined, messageHash, subscription);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrade (client, message, subscription) {
@@ -159,8 +159,8 @@ module.exports = class ripio extends ccxt.ripio {
             // fetch the snapshot in a separate async call after a warmup delay
             this.delay (delay, this.fetchOrderBookSnapshot, client, subscription);
         }
-        const future = this.watch (url, messageHash, undefined, messageHash, subscription);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, messageHash, undefined, messageHash, subscription);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     async fetchOrderBookSnapshot (client, subscription) {
