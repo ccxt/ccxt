@@ -105,7 +105,7 @@ class CCXTProTranspiler extends Transpiler {
 
     createPHPClassDeclaration (className, baseClass) {
         let lines = [
-            'class ' + className + ' extends ' + baseClass.replace ('ccxt.', '\\ccxt\\') + ' {',
+            'class ' + className + ' extends ' + baseClass.replace ('ccxt.', '\\ccxt\\async\\') + ' {',
         ]
         if (baseClass.indexOf ('ccxt.') === 0) {
             lines = lines.concat ([
@@ -222,12 +222,12 @@ class CCXTProTranspiler extends Transpiler {
         const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
             // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
             , python3Folder = './python/ccxtpro/'
-            , phpFolder     = './php/'
-            , options = { /* python2Folder, */ python3Folder, phpFolder }
+            , phpAsyncFolder     = './php/'
+            , options = { /* python2Folder, */ python3Folder, phpAsyncFolder }
 
         // createFolderRecursively (python2Folder)
         createFolderRecursively (python3Folder)
-        createFolderRecursively (phpFolder)
+        createFolderRecursively (phpAsyncFolder)
 
         this.transpileCacheTest ()
         this.transpileOrderBookTest ()
