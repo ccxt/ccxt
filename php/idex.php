@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\InvalidNonce;
 
-class idex extends \ccxt\idex {
+class idex extends \ccxt\async\idex {
 
     use ClientTrait;
 
@@ -51,11 +51,11 @@ class idex extends \ccxt\idex {
                 $subscribeObject,
             ),
         );
-        return $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        return yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
     }
 
     public function subscribe_private($subscribeObject, $messageHash) {
-        $token = $this->authenticate();
+        $token = yield $this->authenticate();
         $url = $this->urls['test']['ws'];
         $request = array(
             'method' => 'subscribe',
@@ -64,11 +64,11 @@ class idex extends \ccxt\idex {
                 $subscribeObject,
             ),
         );
-        return $this->watch($url, $messageHash, $request, $messageHash);
+        return yield $this->watch($url, $messageHash, $request, $messageHash);
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $name = 'tickers';
         $subscribeObject = array(
@@ -76,7 +76,7 @@ class idex extends \ccxt\idex {
             'markets' => [ $market['id'] ],
         );
         $messageHash = $name . ':' . $market['id'];
-        return $this->subscribe(array_merge($subscribeObject, $params), $messageHash);
+        return yield $this->subscribe(array_merge($subscribeObject, $params), $messageHash);
     }
 
     public function handle_ticker($client, $message) {
@@ -134,7 +134,7 @@ class idex extends \ccxt\idex {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $name = 'trades';
         $subscribeObject = array(
@@ -143,7 +143,7 @@ class idex extends \ccxt\idex {
         );
         $messageHash = $name . ':' . $market['id'];
         $future = $this->subscribe($subscribeObject, $messageHash);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
     }
 
     public function handle_trade($client, $message) {
@@ -217,7 +217,7 @@ class idex extends \ccxt\idex {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $name = 'candles';
         $interval = $this->timeframes[$timeframe];
@@ -228,7 +228,7 @@ class idex extends \ccxt\idex {
         );
         $messageHash = $name . ':' . $market['id'];
         $future = $this->subscribe($subscribeObject, $messageHash);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -328,7 +328,7 @@ class idex extends \ccxt\idex {
         try {
             $limit = $this->safe_integer($subscription, 'limit', 0);
             // 3. Request a level-2 order book $snapshot for the $market from the REST API Order Books endpoint with $limit set to 0.
-            $snapshot = $this->fetch_order_book($symbol, $limit);
+            $snapshot = yield $this->fetch_order_book($symbol, $limit);
             $firstBuffered = $this->safe_value($orderbook->cache, 0);
             $firstData = $this->safe_value($firstBuffered, 'data');
             $firstNonce = $this->safe_integer($firstData, 'u');
@@ -378,7 +378,7 @@ class idex extends \ccxt\idex {
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $name = 'l2orderbook';
         $subscribeObject = array(
@@ -394,7 +394,7 @@ class idex extends \ccxt\idex {
         );
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target $market->
         $future = $this->subscribe($subscribeObject, $messageHash, $subscription);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit);
     }
 
     public function handle_order_book($client, $message) {
@@ -464,7 +464,7 @@ class idex extends \ccxt\idex {
                 'wallet' => $this->walletAddress,
                 'nonce' => $this->uuidv1(),
             );
-            $response = $this->privateGetWsToken (array_merge($request, $params));
+            $response = yield $this->privateGetWsToken (array_merge($request, $params));
             $this->options['lastAuthenticatedTime'] = $time;
             $this->options['token'] = $this->safe_string($response, 'token');
         }
@@ -472,7 +472,7 @@ class idex extends \ccxt\idex {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $name = 'orders';
         $subscribeObject = array(
             'name' => $name,
@@ -484,7 +484,7 @@ class idex extends \ccxt\idex {
             $messageHash = $name . ':' . $marketId;
         }
         $future = $this->subscribe_private($subscribeObject, $messageHash);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
     }
 
     public function handle_order($client, $message) {
@@ -597,7 +597,7 @@ class idex extends \ccxt\idex {
     }
 
     public function watch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $name = 'balances';
         $subscribeObject = array(
             'name' => $name,
@@ -607,7 +607,7 @@ class idex extends \ccxt\idex {
             $messageHash = $name . ':' . $code;
         }
         $future = $this->subscribe_private($subscribeObject, $messageHash);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
     }
 
     public function handle_transaction($client, $message) {

@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\NotSupported;
 
-class kraken extends \ccxt\kraken {
+class kraken extends \ccxt\async\kraken {
 
     use ClientTrait;
 
@@ -215,7 +215,7 @@ class kraken extends \ccxt\kraken {
     }
 
     public function watch_public($name, $symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $wsName = $this->safe_value($market['info'], 'wsname');
         $messageHash = $name . ':' . $wsName;
@@ -232,17 +232,17 @@ class kraken extends \ccxt\kraken {
             ),
         );
         $request = $this->deep_extend($subscribe, $params);
-        return $this->watch($url, $messageHash, $request, $messageHash);
+        return yield $this->watch($url, $messageHash, $request, $messageHash);
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        return $this->watch_public('ticker', $symbol, $params);
+        return yield $this->watch_public('ticker', $symbol, $params);
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'trade';
         $future = $this->watch_public($name, $symbol, $params);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
@@ -258,11 +258,11 @@ class kraken extends \ccxt\kraken {
             }
         }
         $future = $this->watch_public($name, $symbol, array_merge($request, $params));
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $name = 'ohlc';
         $market = $this->market($symbol);
         $wsName = $this->safe_value($market['info'], 'wsname');
@@ -282,11 +282,11 @@ class kraken extends \ccxt\kraken {
         );
         $request = $this->deep_extend($subscribe, $params);
         $future = $this->watch($url, $messageHash, $request, $messageHash);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function load_markets($reload = false, $params = array ()) {
-        $markets = parent::load_markets($reload, $params);
+        $markets = yield parent::load_markets($reload, $params);
         $marketsByWsName = $this->safe_value($this->options, 'marketsByWsName');
         if (($marketsByWsName === null) || $reload) {
             $marketsByWsName = array();
@@ -305,10 +305,10 @@ class kraken extends \ccxt\kraken {
     }
 
     public function watch_heartbeat($params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $event = 'heartbeat';
         $url = $this->urls['api']['ws']['public'];
-        return $this->watch($url, $event);
+        return yield $this->watch($url, $event);
     }
 
     public function handle_heartbeat($client, $message) {
@@ -451,7 +451,7 @@ class kraken extends \ccxt\kraken {
         $authenticated = 'authenticated';
         $subscription = $this->safe_value($client->subscriptions, $authenticated);
         if ($subscription === null) {
-            $response = $this->privatePostGetWebSocketsToken ($params);
+            $response = yield $this->privatePostGetWebSocketsToken ($params);
             //
             //     {
             //         "error":array(),
@@ -468,8 +468,8 @@ class kraken extends \ccxt\kraken {
     }
 
     public function watch_private($name, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $token = $this->authenticate();
+        yield $this->load_markets();
+        $token = yield $this->authenticate();
         $subscriptionHash = $name;
         $messageHash = $name;
         if ($symbol !== null) {
@@ -487,11 +487,11 @@ class kraken extends \ccxt\kraken {
         );
         $request = $this->deep_extend($subscribe, $params);
         $future = $this->watch($url, $messageHash, $request, $subscriptionHash);
-        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->watch_private('ownTrades', $symbol, $since, $limit, $params);
+        return yield $this->watch_private('ownTrades', $symbol, $since, $limit, $params);
     }
 
     public function handle_my_trades($client, $message, $subscription = null) {
@@ -645,7 +645,7 @@ class kraken extends \ccxt\kraken {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->watch_private('openOrders', $symbol, $since, $limit, $params);
+        return yield $this->watch_private('openOrders', $symbol, $since, $limit, $params);
     }
 
     public function handle_orders($client, $message, $subscription = null) {

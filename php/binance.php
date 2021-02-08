@@ -8,7 +8,7 @@ namespace ccxtpro;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 
-class binance extends \ccxt\binance {
+class binance extends \ccxt\async\binance {
 
     use ClientTrait;
 
@@ -84,7 +84,7 @@ class binance extends \ccxt\binance {
             }
         }
         //
-        $this->load_markets();
+        yield $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'watchOrderBook', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $query = $this->omit($params, 'type');
@@ -145,7 +145,7 @@ class binance extends \ccxt\binance {
         $message = array_merge($request, $query);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
@@ -158,7 +158,7 @@ class binance extends \ccxt\binance {
         // 3. Get a depth $snapshot from https://www.binance.com/api/v1/depth?$symbol=BNBBTC&$limit=1000 .
         // todo => this is a synch blocking call in ccxt.php - make it async
         // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        $snapshot = $this->fetch_order_book($symbol, $limit, $params);
+        $snapshot = yield $this->fetch_order_book($symbol, $limit, $params);
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
             // if the $orderbook is dropped before the $snapshot is received
@@ -342,7 +342,7 @@ class binance extends \ccxt\binance {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $options = $this->safe_value($this->options, 'watchTrades', array());
         $name = $this->safe_string($options, 'name', 'trade');
@@ -364,7 +364,7 @@ class binance extends \ccxt\binance {
             'id' => $requestId,
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -550,7 +550,7 @@ class binance extends \ccxt\binance {
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['lowercaseId'];
         $interval = $this->timeframes[$timeframe];
@@ -574,7 +574,7 @@ class binance extends \ccxt\binance {
             'id' => $requestId,
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -638,7 +638,7 @@ class binance extends \ccxt\binance {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['lowercaseId'];
         $options = $this->safe_value($this->options, 'watchTicker', array());
@@ -660,7 +660,7 @@ class binance extends \ccxt\binance {
         $subscribe = array(
             'id' => $requestId,
         );
-        return $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
+        return yield $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
     }
 
     public function handle_ticker($client, $message) {
@@ -743,7 +743,7 @@ class binance extends \ccxt\binance {
             } else if ($type === 'margin') {
                 $method = 'sapiPostUserDataStream';
             }
-            $response = $this->$method ();
+            $response = yield $this->$method ();
             $this->options[$type] = array_merge($options, array(
                 'listenKey' => $this->safe_string($response, 'listenKey'),
                 'lastAuthenticatedTime' => $time,
@@ -752,13 +752,13 @@ class binance extends \ccxt\binance {
     }
 
     public function watch_balance($params = array ()) {
-        $this->load_markets();
-        $this->authenticate();
+        yield $this->load_markets();
+        yield $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
         $messageHash = 'outboundAccountPosition';
-        return $this->watch($url, $messageHash);
+        return yield $this->watch($url, $messageHash);
     }
 
     public function handle_balance($client, $message) {
@@ -828,8 +828,8 @@ class binance extends \ccxt\binance {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $this->authenticate();
+        yield $this->load_markets();
+        yield $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
@@ -840,7 +840,7 @@ class binance extends \ccxt\binance {
         }
         $message = null;
         $future = $this->watch($url, $messageHash, $message, $subscriptionHash);
-        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
     public function parse_ws_order($order, $market = null) {
@@ -1088,8 +1088,8 @@ class binance extends \ccxt\binance {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $this->authenticate();
+        yield $this->load_markets();
+        yield $this->authenticate();
         $defaultType = $this->safe_string_2($this->options, 'watchMyTrades', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
@@ -1100,7 +1100,7 @@ class binance extends \ccxt\binance {
         }
         $message = null;
         $future = $this->watch($url, $messageHash, $message, $subscriptionHash);
-        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
     public function handle_my_trade($client, $message) {

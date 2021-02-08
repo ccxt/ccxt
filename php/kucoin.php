@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\InvalidNonce;
 
-class kucoin extends \ccxt\kucoin {
+class kucoin extends \ccxt\async\kucoin {
 
     use ClientTrait;
 
@@ -51,7 +51,7 @@ class kucoin extends \ccxt\kucoin {
             $response = null;
             $throwException = false;
             if ($this->check_required_credentials($throwException)) {
-                $response = $this->privatePostBulletPrivate ();
+                $response = yield $this->privatePostBulletPrivate ();
                 //
                 //     {
                 //         code => "200000",
@@ -70,7 +70,7 @@ class kucoin extends \ccxt\kucoin {
                 //     }
                 //
             } else {
-                $response = $this->publicPostBulletPublic ();
+                $response = yield $this->publicPostBulletPublic ();
             }
             $client->resolve ($response, $messageHash);
             // $data = $this->safe_value($response, 'data', array());
@@ -79,7 +79,7 @@ class kucoin extends \ccxt\kucoin {
             // $endpoint = $this->safe_string($firstServer, 'endpoint');
             // $token = $this->safe_string($data, 'token');
         }
-        return $future;
+        return yield $future;
     }
 
     public function request_id() {
@@ -89,7 +89,7 @@ class kucoin extends \ccxt\kucoin {
     }
 
     public function subscribe($negotiation, $topic, $method, $symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $data = $this->safe_value($negotiation, 'data', array());
         $instanceServers = $this->safe_value($data, 'instanceServers', array());
@@ -119,14 +119,14 @@ class kucoin extends \ccxt\kucoin {
             'method' => $method,
         );
         $request = array_merge($subscribe, $params);
-        return $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        return yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $negotiate = $this->negotiate();
         $topic = '/market/snapshot';
-        return $this->after_async($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $params);
+        return yield $this->after_async($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $params);
     }
 
     public function handle_ticker($client, $message) {
@@ -177,11 +177,11 @@ class kucoin extends \ccxt\kucoin {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $negotiate = $this->negotiate();
         $topic = '/market/match';
         $future = $this->after_async($negotiate, array($this, 'subscribe'), $topic, null, $symbol, $params);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function handle_trade($client, $message) {
@@ -240,11 +240,11 @@ class kucoin extends \ccxt\kucoin {
                 throw new ExchangeError($this->id . " watchOrderBook 'limit' argument must be null, 20 or 100");
             }
         }
-        $this->load_markets();
+        yield $this->load_markets();
         $negotiate = $this->negotiate();
         $topic = '/market/level2';
         $future = $this->after_async($negotiate, array($this, 'subscribe'), $topic, array($this, 'handle_order_book_subscription'), $symbol, $params);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
@@ -254,7 +254,7 @@ class kucoin extends \ccxt\kucoin {
         try {
             // 2. Initiate a REST request to get the $snapshot $data of Level 2 order book.
             // todo => this is a synch blocking call in ccxt.php - make it async
-            $snapshot = $this->fetch_order_book($symbol, $limit);
+            $snapshot = yield $this->fetch_order_book($symbol, $limit);
             $orderbook = $this->orderbooks[$symbol];
             $messages = $orderbook->cache;
             // make sure we have at least one delta before fetching the $snapshot

@@ -9,7 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 
-class bitmex extends \ccxt\bitmex {
+class bitmex extends \ccxt\async\bitmex {
 
     use ClientTrait;
 
@@ -55,7 +55,7 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function watch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $name = 'instrument';
         $messageHash = $name . ':' . $market['id'];
@@ -66,7 +66,7 @@ class bitmex extends \ccxt\bitmex {
                 $messageHash,
             ),
         );
-        return $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
+        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
     }
 
     public function handle_ticker($client, $message) {
@@ -314,7 +314,7 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function watch_balance($params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $authenticate = $this->authenticate();
         $messageHash = 'margin';
         $url = $this->urls['api']['ws'];
@@ -324,7 +324,7 @@ class bitmex extends \ccxt\bitmex {
                 $messageHash,
             ),
         );
-        return $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
+        return yield $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
     }
 
     public function handle_balance($client, $message) {
@@ -517,7 +517,7 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $table = 'trade';
         $messageHash = $table . ':' . $market['id'];
@@ -529,7 +529,7 @@ class bitmex extends \ccxt\bitmex {
             ),
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
     }
 
     public function authenticate($params = array ()) {
@@ -560,7 +560,7 @@ class bitmex extends \ccxt\bitmex {
                 }
             }
         }
-        return $future;
+        return yield $future;
     }
 
     public function handle_authentication_message($client, $message) {
@@ -581,7 +581,7 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $authenticate = $this->authenticate();
         $name = 'order';
         $subscriptionHash = $name;
@@ -597,7 +597,7 @@ class bitmex extends \ccxt\bitmex {
             ),
         );
         $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
-        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
     public function handle_orders($client, $message) {
@@ -785,7 +785,7 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $authenticate = $this->authenticate();
         $name = 'execution';
         $subscriptionHash = $name;
@@ -801,7 +801,7 @@ class bitmex extends \ccxt\bitmex {
             ),
         );
         $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
-        return $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
     }
 
     public function handle_my_trades($client, $message) {
@@ -900,7 +900,7 @@ class bitmex extends \ccxt\bitmex {
         } else {
             throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null (L2), 25 (L2) or 10 (L3)');
         }
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $messageHash = $table . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -911,11 +911,11 @@ class bitmex extends \ccxt\bitmex {
             ),
         );
         $future = $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
-        return $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $market = $this->market($symbol);
         $table = 'tradeBin' . $this->timeframes[$timeframe];
         $messageHash = $table . ':' . $market['id'];
@@ -927,7 +927,7 @@ class bitmex extends \ccxt\bitmex {
             ),
         );
         $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
-        return $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -1039,10 +1039,10 @@ class bitmex extends \ccxt\bitmex {
     }
 
     public function watch_heartbeat($params = array ()) {
-        $this->load_markets();
+        yield $this->load_markets();
         $event = 'heartbeat';
         $url = $this->urls['api']['ws'];
-        return $this->watch($url, $event);
+        return yield $this->watch($url, $event);
     }
 
     public function handle_order_book($client, $message) {
