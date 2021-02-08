@@ -277,8 +277,8 @@ module.exports = class phemex extends ccxt.phemex {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const future = this.watch (url, messageHash, request, messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 'timestamp', true);
+        const trades = await this.watch (url, messageHash, request, messageHash);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -297,8 +297,8 @@ module.exports = class phemex extends ccxt.phemex {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const future = this.watch (url, messageHash, request, messageHash);
-        return await this.after (future, this.limitOrderBook, symbol, limit, params);
+        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        return this.limitOrderBook (orderbook, symbol, limit, params);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -318,8 +318,8 @@ module.exports = class phemex extends ccxt.phemex {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const future = this.watch (url, messageHash, request, messageHash);
-        return await this.after (future, this.filterBySinceLimit, since, limit, 0, true);
+        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleDelta (bookside, delta, market = undefined) {
