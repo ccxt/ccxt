@@ -216,7 +216,7 @@ module.exports = class gopax extends ccxt.gopax {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orders = this.watch (url, messageHash, message, subscriptionHash, subscription);
+        const orders = await this.watch (url, messageHash, message, subscriptionHash, subscription);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
