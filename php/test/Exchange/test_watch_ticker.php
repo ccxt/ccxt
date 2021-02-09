@@ -1,7 +1,5 @@
 <?php
 
-use React\Promise;
-
 function test_watch_ticker($exchange, $symbol) {
 
     echo __FUNCTION__ . "\n";
@@ -28,13 +26,13 @@ function test_watch_ticker($exchange, $symbol) {
     $ends = $now + 20000;
     while ($now < $ends) {
         try {
-            $result = yield call_user_func(array($exchange, $method), $symbol);
+            $result = yield $exchange->watch_ticker($symbol);
             echo $result['datetime'], ' ', $exchange->id, ' ', $symbol, ' watch_ticker ', $result['last'] . "\n";
         } catch (Exception $e) {
             if (!($e instanceof \ccxt\NetworkError)) {
                 throw $e;
             }
         }
-        $now = $exchange->millseconds();
+        $now = $exchange->milliseconds();
     }
 }

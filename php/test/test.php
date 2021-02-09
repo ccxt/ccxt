@@ -33,6 +33,7 @@ $id = $argv[1];
 function test_public($exchange, $symbol) {
     echo "test_public\n";
     //
+    yield test_order_book($exchange, $symbol);
     yield test_watch_ticker($exchange, $symbol);
     //
 };
@@ -73,14 +74,12 @@ function test_exchange($exchange) {
 
 // ----------------------------------------------------------------------------
 
-$test = function () use ($id, $config, $loop, $verbose) {
-    echo "got to here";
+$test = function () use ($id, $config, $verbose) {
 
     $options = array_key_exists($id, $config) ? $config[$id] : array();
     $exchange_class = '\\ccxtpro\\' . $id;
     $exchange = new $exchange_class(array_merge_recursive(array(
         'enableRateLimit' => true,
-        'loop' => $loop,
         'verbose' => $verbose,
         // 'urls' => array(
         //     'api' => array(
@@ -113,6 +112,7 @@ $test = function () use ($id, $config, $loop, $verbose) {
         yield $exchange->load_markets();
 
         yield test_exchange($exchange);
+        $exchange::get_kernel()->stop();
     }
 };
 
