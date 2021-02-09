@@ -970,6 +970,8 @@ class coinbasepro(Exchange):
         else:
             method += 'Crypto'
             request['crypto_address'] = address
+            if tag is not None:
+                request['destination_tag'] = tag
         response = getattr(self, method)(self.extend(request, params))
         if not response:
             raise ExchangeError(self.id + ' withdraw() error: ' + self.json(response))
