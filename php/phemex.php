@@ -106,6 +106,7 @@ class phemex extends Exchange {
                         'exchange/spot/order/trades', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         // swap
                         'accounts/accountPositions', // ?currency=<currency>
+                        'accounts/positions', // ?currency=<currency>
                         'orders/activeList', // ?symbol=<symbol>
                         'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
