@@ -4,16 +4,11 @@ error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 require_once 'vendor/autoload.php';
 
-$loop = \React\EventLoop\Factory::create();
-
 $id = 'poloniex';
 $exchange_class = '\\ccxtpro\\' . $id;
 $exchange = new $exchange_class(array(
     'enableRateLimit' => true,
-    'loop' => $loop,
 ));
-
-$exchange->load_markets();
 
 $symbols = array('BTC/USDT', 'ETH/USDT', 'ETH/BTC');
 
@@ -25,17 +20,15 @@ function print_orderbook($orderbook, $symbol) {
 }
 
 function loop($exchange, $symbol) {
-    $exchange->watch_order_book($symbol)->then(function($orderbook) use ($exchange, $symbol) {
+    while (true) {
+        $orderbook = yield $exchange->watch_order_book($symbol);
         print_orderbook($orderbook, $symbol);
-        loop($exchange, $symbol);
-    });
-};
-
-$main = function () use ($exchange, $symbols) {
-    foreach ($symbols as $symbol) {
-        loop($exchange, $symbol);
     }
 };
 
-$loop->futureTick($main);
-$loop->run ();
+$kernel = $exchange::get_kernel();
+foreach ($symbols as $symbol) {
+    $kernel->execute(loop($exchange, $symbol));
+}
+
+$kernel->run();
