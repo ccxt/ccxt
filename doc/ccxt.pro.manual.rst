@@ -514,7 +514,7 @@ The ``limit`` argument does not guarantee that the number of bids or asks will a
                    $orderbook = yield $exchange->watch_order_book($symbol, $limit, $params);
                    echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
                } catch (Exception $e) {
-                   echo get_class ($e), ' ', $e->getMessage (), "\n";
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
                }
            }
        });
@@ -562,7 +562,7 @@ watchTicker
                    $ticker = yield $exchange->watch_ticker($symbol, $params);
                    echo date('c'), ' ', json_encode($ticker), "\n";
                } catch (Exception $e) {
-                   echo get_class ($e), ' ', $e->getMessage (), "\n";
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
                }
            }
        });
@@ -610,7 +610,7 @@ watchTickers
                    $tickers = yield $exchange->watch_tickers($symbols, $params);
                    echo date('c'), ' ', json_encode($tickers), "\n";
                } catch (Exception $e) {
-                   echo get_class ($e), ' ', $e->getMessage (), "\n";
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
                }
            }
        });
@@ -659,7 +659,7 @@ watchOHLCV
                    $candles = yield $exchange->watch_ohlcv($symbol, $timeframe, $since, $limit, $params);
                    echo date('c'), ' ', $symbol, ' ', $timeframe, ' ', json_encode($candles), "\n";
                } catch (Exception $e) {
-                   echo get_class ($e), ' ', $e->getMessage (), "\n";
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
                }
            }
        });
@@ -707,7 +707,7 @@ watchTrades
                    $trades = yield $exchange->watch_trades($symbol, $since, $limit, $params);
                    echo date('c'), ' ', json_encode($trades), "\n";
                } catch (Exception $e) {
-                   echo get_class ($e), ' ', $e->getMessage (), "\n";
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
                }
            }
        });
@@ -770,7 +770,7 @@ watchBalance
                    $balance = yield $exchange->watch_balance($params);
                    echo date('c'), ' ', json_encode($balance), "\n";
                } catch (Exception $e) {
-                   echo get_class ($e), ' ', $e->getMessage (), "\n";
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
                }
            }
        });
