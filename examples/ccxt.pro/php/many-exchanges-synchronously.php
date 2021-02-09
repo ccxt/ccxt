@@ -4,8 +4,9 @@ namespace ccxtpro;
 
 require_once 'vendor/autoload.php';
 
-$binance = new binance();
-$bittrex = new bittrex();
+$config = array('enableRateLimit' => true);
+$binance = new binance($config);
+$bittrex = new bittrex($config);
 $symbol = "BTC/USDT";
 
 function loop($exchange, $symbol) {
