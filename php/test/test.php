@@ -32,34 +32,21 @@ $id = $argv[1];
 
 function test_public($exchange, $symbol) {
     echo "test_public\n";
-    $future = new \ccxtpro\Future();
     //
-    test_watch_order_book($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
-        test_watch_ticker($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
-            test_watch_trades($exchange, $symbol)->then(function() use ($exchange, $symbol, $future) {
-                $future->resolve(true);
-            });
-        });
-    });
-    //
-    return $future;
+    yield test_watch_order_book($exchange, $symbol);
+    yield test_watch_ticker($exchange, $symbol);
+    yield test_watch_trades($exchange, $symbol);
 };
 
 function test_private($exchange, $symbol, $code) {
     echo "test_private\n";
-    $future = new \ccxtpro\Future();
     if ($exchange->check_required_credentials(false)) {
-        // test_watch_balance($exchange)->then(function() use (&$future) {
-            $future->resolve(true);
-        // });
-    } else {
-        $future->resolve(true);
+        NULL;
     }
-    return $future;
+    yield 0;
 };
 
 function test_exchange($exchange) {
-    $delay = $exchange->rateLimit * 1000;
     $symbol = is_array($exchange->symbols) ? current($exchange->symbols) : '';
     $symbols = array(
         'BTC/KRW',
@@ -79,28 +66,20 @@ function test_exchange($exchange) {
         }
     }
     $code = 'BTC'; // wip
-    $future = new \ccxtpro\Future();
     if (strpos($symbol, '.d') === false) {
-        test_public($exchange, $symbol)->then(function() use ($exchange, $symbol, $code, $future) {
-            test_private($exchange, $symbol, $code)->then(function () use (&$future) {
-                $future->resolve(true);
-            });
-        });
-    } else {
-        $future->resolve(true);
+        yield test_public($exchange, $symbol);
+        yield test_private($exchange, $symbol, $code);
     }
-    return $future;
 };
 
 // ----------------------------------------------------------------------------
 
-$test = function () use ($id, $config, $loop, $verbose) {
+$test = function () use ($id, $config, $verbose) {
 
     $options = array_key_exists($id, $config) ? $config[$id] : array();
     $exchange_class = '\\ccxtpro\\' . $id;
     $exchange = new $exchange_class(array_merge_recursive(array(
         'enableRateLimit' => true,
-        'loop' => $loop,
         'verbose' => $verbose,
         // 'urls' => array(
         //     'api' => array(
@@ -126,20 +105,17 @@ $test = function () use ($id, $config, $loop, $verbose) {
 
         echo $exchange->id, " [Skipped]\n";
         echo "Done.\n";
-        exit ();
+        exit();
 
     } else {
 
-        $exchange->load_markets();
+        yield $exchange->load_markets();
 
-        test_exchange($exchange)->then(function() {
-            echo "Done.\n";
-            exit ();
-        });
+        yield test_exchange($exchange);
+        $exchange::get_kernel()->stop();
     }
 };
 
 // ----------------------------------------------------------------------------
 
-$loop->futureTick($test);
-$loop->run ();
+\ccxtpro\Exchange::execute_and_run($test);

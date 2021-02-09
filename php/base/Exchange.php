@@ -8,7 +8,7 @@ const ROUND = 1;
 const ROUND_UP = 2;
 const ROUND_DOWN = 3;
 
-class Exchange extends \ccxt\Exchange {
+class Exchange extends \ccxt\async\Exchange {
 
     // todo: fix version numbers in php
 
