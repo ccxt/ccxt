@@ -33,14 +33,7 @@ $id = $argv[1];
 function test_public($exchange, $symbol) {
     echo "test_public\n";
     //
-    return test_watch_order_book($exchange, $symbol)->then(function() use ($exchange, $symbol) {
-        return test_watch_ticker($exchange, $symbol)->then(function() use ($exchange, $symbol) {
-            return test_watch_trades($exchange, $symbol);
-        });
-    }, function($error) use ($exchange) {
-        echo "Error in " . $exchange->name . PHP_EOL;
-        var_dump($error);
-    });
+    yield test_watch_ticker($exchange, $symbol);
     //
 };
 
@@ -74,17 +67,14 @@ function test_exchange($exchange) {
     }
     $code = 'BTC'; // wip
     if (strpos($symbol, '.d') === false) {
-        return test_public($exchange, $symbol)->then(function() use ($exchange, $symbol, $code) {
-            return test_private($exchange, $symbol, $code);
-        });
-    } else {
-        return \React\Promise\resolve(true);
+        yield test_public($exchange, $symbol);
     }
 };
 
 // ----------------------------------------------------------------------------
 
 $test = function () use ($id, $config, $loop, $verbose) {
+    echo "got to here";
 
     $options = array_key_exists($id, $config) ? $config[$id] : array();
     $exchange_class = '\\ccxtpro\\' . $id;
@@ -120,16 +110,12 @@ $test = function () use ($id, $config, $loop, $verbose) {
 
     } else {
 
-        $exchange->load_markets();
+        yield $exchange->load_markets();
 
-        test_exchange($exchange)->done(function() use ($loop) {
-            echo "Done.\n";
-            $loop->stop();
-        });
+        yield test_exchange($exchange);
     }
 };
 
 // ----------------------------------------------------------------------------
 
-$loop->futureTick($test);
-$loop->run ();
+\ccxtpro\Exchange::execute_and_run($test);
