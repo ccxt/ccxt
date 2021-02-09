@@ -24,6 +24,8 @@ markets = exchange.load_markets()
 
 # exchange.verbose = True  # uncomment for debugging
 
+# https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods
+
 # -----------------------------------------------------------------------------
 
 symbol = 'BTC/USDT'
