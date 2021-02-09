@@ -99,8 +99,8 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $future = $this->watch_public('trades', $symbol, $params);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->watch_public('trades', $symbol, $params);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_trade($client, $message) {
@@ -150,8 +150,8 @@ class bitvavo extends \ccxt\async\bitvavo {
             ),
         );
         $message = array_merge($request, $params);
-        $future = $this->watch($url, $messageHash, $message, $messageHash);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        $ohlcv = yield $this->watch($url, $messageHash, $message, $messageHash);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -228,8 +228,8 @@ class bitvavo extends \ccxt\async\bitvavo {
             'params' => $params,
         );
         $message = array_merge($request, $params);
-        $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -320,8 +320,8 @@ class bitvavo extends \ccxt\async\bitvavo {
             'action' => $name,
             'market' => $marketId,
         );
-        $future = $this->watch($url, $messageHash, $request, $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function handle_order_book_snapshot($client, $message) {
@@ -403,7 +403,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
         }
         yield $this->load_markets();
-        $authenticate = $this->authenticate();
+        yield $this->authenticate();
         $market = $this->market($symbol);
         $marketId = $market['id'];
         $url = $this->urls['api']['ws'];
@@ -419,8 +419,8 @@ class bitvavo extends \ccxt\async\bitvavo {
                 ),
             ),
         );
-        $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
-        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        $orders = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -428,7 +428,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             throw new ArgumentsRequired($this->id . ' watchMyTrades requires a $symbol argument');
         }
         yield $this->load_markets();
-        $authenticate = $this->authenticate();
+        yield $this->authenticate();
         $market = $this->market($symbol);
         $marketId = $market['id'];
         $url = $this->urls['api']['ws'];
@@ -444,8 +444,8 @@ class bitvavo extends \ccxt\async\bitvavo {
                 ),
             ),
         );
-        $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
-        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        $trades = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
     }
 
     public function handle_order($client, $message) {

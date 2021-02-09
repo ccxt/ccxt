@@ -56,8 +56,8 @@ class bitstamp(Exchange, ccxt.bitstamp):
             'params': params,
         }
         message = self.extend(request, params)
-        future = self.watch(url, messageHash, message, messageHash, subscription)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
@@ -182,8 +182,8 @@ class bitstamp(Exchange, ccxt.bitstamp):
             'params': params,
         }
         message = self.extend(request, params)
-        future = self.watch(url, messageHash, message, messageHash, subscription)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.watch(url, messageHash, message, messageHash, subscription)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def parse_trade(self, trade, market=None):
         #

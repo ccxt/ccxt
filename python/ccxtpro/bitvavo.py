@@ -93,8 +93,8 @@ class bitvavo(Exchange, ccxt.bitvavo):
         return message
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
-        future = self.watch_public('trades', symbol, params)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.watch_public('trades', symbol, params)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trade(self, client, message):
         #
@@ -141,8 +141,8 @@ class bitvavo(Exchange, ccxt.bitvavo):
             ],
         }
         message = self.extend(request, params)
-        future = self.watch(url, messageHash, message, messageHash)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
+        ohlcv = await self.watch(url, messageHash, message, messageHash)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         #
@@ -214,8 +214,8 @@ class bitvavo(Exchange, ccxt.bitvavo):
             'params': params,
         }
         message = self.extend(request, params)
-        future = self.watch(url, messageHash, message, messageHash, subscription)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -296,8 +296,8 @@ class bitvavo(Exchange, ccxt.bitvavo):
             'action': name,
             'market': marketId,
         }
-        future = self.watch(url, messageHash, request, messageHash, subscription)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch(url, messageHash, request, messageHash, subscription)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     def handle_order_book_snapshot(self, client, message):
         #
@@ -366,7 +366,7 @@ class bitvavo(Exchange, ccxt.bitvavo):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
         await self.load_markets()
-        authenticate = self.authenticate()
+        await self.authenticate()
         market = self.market(symbol)
         marketId = market['id']
         url = self.urls['api']['ws']
@@ -382,14 +382,14 @@ class bitvavo(Exchange, ccxt.bitvavo):
                 },
             ],
         }
-        future = self.after_dropped(authenticate, self.watch, url, messageHash, request, subscriptionHash)
-        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+        orders = await self.watch(url, messageHash, request, subscriptionHash)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades requires a symbol argument')
         await self.load_markets()
-        authenticate = self.authenticate()
+        await self.authenticate()
         market = self.market(symbol)
         marketId = market['id']
         url = self.urls['api']['ws']
@@ -405,8 +405,8 @@ class bitvavo(Exchange, ccxt.bitvavo):
                 },
             ],
         }
-        future = self.after_dropped(authenticate, self.watch, url, messageHash, request, subscriptionHash)
-        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+        trades = await self.watch(url, messageHash, request, subscriptionHash)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     def handle_order(self, client, message):
         #

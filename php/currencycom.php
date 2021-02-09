@@ -366,13 +366,13 @@ class currencycom extends \ccxt\async\currencycom {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $future = $this->watch_public('trades.subscribe', $symbol, $params);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->watch_public('trades.subscribe', $symbol, $params);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $future = $this->watch_public('depthMarketData.subscribe', $symbol, $params);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch_public('depthMarketData.subscribe', $symbol, $params);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -387,8 +387,8 @@ class currencycom extends \ccxt\async\currencycom {
                 ],
             ),
         );
-        $future = $this->watch_public($messageHash, $symbol, array_merge($request, $params));
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        $ohlcv = yield $this->watch_public($messageHash, $symbol, array_merge($request, $params));
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_deltas($bookside, $deltas) {

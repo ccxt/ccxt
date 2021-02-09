@@ -70,13 +70,13 @@ class ftx extends \ccxt\async\ftx {
             $market = $this->market($symbol);
             $messageHash = $messageHash . ':' . $market['id'];
         }
+        yield $this->authenticate();
         $url = $this->implode_params($this->urls['api']['ws'], array( 'hostname' => $this->hostname ));
         $request = array(
             'op' => 'subscribe',
             'channel' => $channel,
         );
-        $future = $this->authenticate();
-        return yield $this->after_dropped($future, array($this, 'watch'), $url, $messageHash, $request, $channel);
+        return yield $this->watch($url, $messageHash, $request, $channel);
     }
 
     public function authenticate($params = array ()) {
@@ -117,13 +117,13 @@ class ftx extends \ccxt\async\ftx {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $future = $this->watch_public($symbol, 'trades');
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, true);
+        $trades = yield $this->watch_public($symbol, 'trades');
+        return $this->filter_by_since_limit($trades, $since, $limit, true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $future = $this->watch_public($symbol, 'orderbook');
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch_public($symbol, 'orderbook');
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function handle_partial($client, $message) {
@@ -400,8 +400,8 @@ class ftx extends \ccxt\async\ftx {
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $future = $this->watch_private('orders', $symbol);
-        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        $orders = yield $this->watch_private('orders', $symbol);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
     public function handle_order($client, $message) {
@@ -473,8 +473,8 @@ class ftx extends \ccxt\async\ftx {
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $future = $this->watch_private('fills', $symbol);
-        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        $trades = yield $this->watch_private('fills', $symbol);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
     }
 
     public function handle_my_trade($client, $message) {

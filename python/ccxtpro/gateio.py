@@ -73,8 +73,8 @@ class gateio(Exchange, ccxt.gateio):
         subscription = {
             'id': requestId,
         }
-        future = self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -205,8 +205,8 @@ class gateio(Exchange, ccxt.gateio):
             'id': requestId,
         }
         messageHash = 'trades.update' + ':' + marketId
-        future = self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client, message):
         #
@@ -268,8 +268,8 @@ class gateio(Exchange, ccxt.gateio):
         # two or more different timeframes within the same symbol
         # thus the exchange API is limited to one timeframe per symbol
         messageHash = 'kline.update' + ':' + marketId
-        future = self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
+        ohlcv = await self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         #
@@ -353,7 +353,7 @@ class gateio(Exchange, ccxt.gateio):
         await self.load_markets()
         self.check_required_credentials()
         url = self.urls['api']['ws']
-        future = self.authenticate()
+        await self.authenticate()
         requestId = self.nonce()
         method = 'balance.update'
         subscribeMessage = {
@@ -365,13 +365,13 @@ class gateio(Exchange, ccxt.gateio):
             'id': requestId,
             'method': self.handle_balance_subscription,
         }
-        return await self.after_dropped(future, self.watch, url, method, subscribeMessage, method, subscription)
+        return await self.watch(url, method, subscribeMessage, method, subscription)
 
     async def fetch_balance_snapshot(self):
         await self.load_markets()
         self.check_required_credentials()
         url = self.urls['api']['ws']
-        future = self.authenticate()
+        await self.authenticate()
         requestId = self.nonce()
         method = 'balance.query'
         subscribeMessage = {
@@ -383,7 +383,7 @@ class gateio(Exchange, ccxt.gateio):
             'id': requestId,
             'method': self.handle_balance_snapshot,
         }
-        return await self.after_dropped(future, self.watch, url, requestId, subscribeMessage, method, subscription)
+        return await self.watch(url, requestId, subscribeMessage, method, subscription)
 
     def handle_balance_snapshot(self, client, message):
         messageHash = message['id']
@@ -419,7 +419,7 @@ class gateio(Exchange, ccxt.gateio):
             market = self.market(symbol)
             messageHash = method + ':' + market['id']
         url = self.urls['api']['ws']
-        authenticated = self.authenticate()
+        await self.authenticate()
         requestId = self.nonce()
         subscribeMessage = {
             'id': requestId,
@@ -429,8 +429,8 @@ class gateio(Exchange, ccxt.gateio):
         subscription = {
             'id': requestId,
         }
-        future = self.after_dropped(authenticated, self.watch, url, messageHash, subscribeMessage, method, subscription)
-        return await self.after(future, self.filter_by_since_limit, since, limit)
+        orders = await self.watch(url, messageHash, subscribeMessage, method, subscription)
+        return self.filter_by_since_limit(orders, since, limit)
 
     def handle_order(self, client, message):
         method = self.safe_string(message, 'method')

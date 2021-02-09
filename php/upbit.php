@@ -55,13 +55,13 @@ class upbit extends \ccxt\async\upbit {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $future = $this->watch_public($symbol, 'trade');
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, true);
+        $trades = yield $this->watch_public($symbol, 'trade');
+        return $this->filter_by_since_limit($trades, $since, $limit, true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
-        $future = $this->watch_public($symbol, 'orderbook');
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch_public($symbol, 'orderbook');
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function handle_ticker($client, $message) {

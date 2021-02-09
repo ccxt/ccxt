@@ -315,7 +315,7 @@ class bitmex extends \ccxt\async\bitmex {
 
     public function watch_balance($params = array ()) {
         yield $this->load_markets();
-        $authenticate = $this->authenticate();
+        yield $this->authenticate();
         $messageHash = 'margin';
         $url = $this->urls['api']['ws'];
         $request = array(
@@ -324,7 +324,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $messageHash,
             ),
         );
-        return yield $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
+        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
     }
 
     public function handle_balance($client, $message) {
@@ -528,8 +528,8 @@ class bitmex extends \ccxt\async\bitmex {
                 $messageHash,
             ),
         );
-        $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function authenticate($params = array ()) {
@@ -582,7 +582,7 @@ class bitmex extends \ccxt\async\bitmex {
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $authenticate = $this->authenticate();
+        yield $this->authenticate();
         $name = 'order';
         $subscriptionHash = $name;
         $messageHash = $name;
@@ -596,8 +596,8 @@ class bitmex extends \ccxt\async\bitmex {
                 $subscriptionHash,
             ),
         );
-        $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
-        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        $orders = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
     public function handle_orders($client, $message) {
@@ -786,7 +786,7 @@ class bitmex extends \ccxt\async\bitmex {
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $authenticate = $this->authenticate();
+        yield $this->authenticate();
         $name = 'execution';
         $subscriptionHash = $name;
         $messageHash = $name;
@@ -800,8 +800,8 @@ class bitmex extends \ccxt\async\bitmex {
                 $subscriptionHash,
             ),
         );
-        $future = $this->after_dropped($authenticate, array($this, 'watch'), $url, $messageHash, $request, $subscriptionHash);
-        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        $trades = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
     }
 
     public function handle_my_trades($client, $message) {
@@ -910,8 +910,8 @@ class bitmex extends \ccxt\async\bitmex {
                 $messageHash,
             ),
         );
-        $future = $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -926,8 +926,8 @@ class bitmex extends \ccxt\async\bitmex {
                 $messageHash,
             ),
         );
-        $future = $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 0, true);
+        $ohlcv = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {

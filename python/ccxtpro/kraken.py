@@ -229,8 +229,8 @@ class kraken(Exchange, ccxt.kraken):
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         name = 'trade'
-        future = self.watch_public(name, symbol, params)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.watch_public(name, symbol, params)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         name = 'book'
@@ -242,8 +242,8 @@ class kraken(Exchange, ccxt.kraken):
                 }
             else:
                 raise NotSupported(self.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only')
-        future = self.watch_public(name, symbol, self.extend(request, params))
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch_public(name, symbol, self.extend(request, params))
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -265,8 +265,8 @@ class kraken(Exchange, ccxt.kraken):
             },
         }
         request = self.deep_extend(subscribe, params)
-        future = self.watch(url, messageHash, request, messageHash)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
+        ohlcv = await self.watch(url, messageHash, request, messageHash)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(kraken, self).load_markets(reload, params)
@@ -450,8 +450,8 @@ class kraken(Exchange, ccxt.kraken):
             },
         }
         request = self.deep_extend(subscribe, params)
-        future = self.watch(url, messageHash, request, subscriptionHash)
-        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+        result = await self.watch(url, messageHash, request, subscriptionHash)
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         return await self.watch_private('ownTrades', symbol, since, limit, params)

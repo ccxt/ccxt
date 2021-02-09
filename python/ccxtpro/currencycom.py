@@ -343,12 +343,12 @@ class currencycom(Exchange, ccxt.currencycom):
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
-        future = self.watch_public('trades.subscribe', symbol, params)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.watch_public('trades.subscribe', symbol, params)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
-        future = self.watch_public('depthMarketData.subscribe', symbol, params)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch_public('depthMarketData.subscribe', symbol, params)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         destination = 'OHLCMarketData.subscribe'
@@ -362,8 +362,8 @@ class currencycom(Exchange, ccxt.currencycom):
                 ],
             },
         }
-        future = self.watch_public(messageHash, symbol, self.extend(request, params))
-        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
+        ohlcv = await self.watch_public(messageHash, symbol, self.extend(request, params))
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_deltas(self, bookside, deltas):
         prices = list(deltas.keys())

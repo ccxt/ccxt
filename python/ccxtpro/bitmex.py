@@ -311,7 +311,7 @@ class bitmex(Exchange, ccxt.bitmex):
 
     async def watch_balance(self, params={}):
         await self.load_markets()
-        authenticate = self.authenticate()
+        await self.authenticate()
         messageHash = 'margin'
         url = self.urls['api']['ws']
         request = {
@@ -320,7 +320,7 @@ class bitmex(Exchange, ccxt.bitmex):
                 messageHash,
             ],
         }
-        return await self.after_dropped(authenticate, self.watch, url, messageHash, self.extend(request, params), messageHash)
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     def handle_balance(self, client, message):
         #
@@ -518,8 +518,8 @@ class bitmex(Exchange, ccxt.bitmex):
                 messageHash,
             ],
         }
-        future = self.watch(url, messageHash, self.extend(request, params), messageHash)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.watch(url, messageHash, self.extend(request, params), messageHash)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def authenticate(self, params={}):
         url = self.urls['api']['ws']
@@ -564,7 +564,7 @@ class bitmex(Exchange, ccxt.bitmex):
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        authenticate = self.authenticate()
+        await self.authenticate()
         name = 'order'
         subscriptionHash = name
         messageHash = name
@@ -577,8 +577,8 @@ class bitmex(Exchange, ccxt.bitmex):
                 subscriptionHash,
             ],
         }
-        future = self.after_dropped(authenticate, self.watch, url, messageHash, request, subscriptionHash)
-        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+        orders = await self.watch(url, messageHash, request, subscriptionHash)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client, message):
         #
@@ -760,7 +760,7 @@ class bitmex(Exchange, ccxt.bitmex):
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        authenticate = self.authenticate()
+        await self.authenticate()
         name = 'execution'
         subscriptionHash = name
         messageHash = name
@@ -773,8 +773,8 @@ class bitmex(Exchange, ccxt.bitmex):
                 subscriptionHash,
             ],
         }
-        future = self.after_dropped(authenticate, self.watch, url, messageHash, request, subscriptionHash)
-        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+        trades = await self.watch(url, messageHash, request, subscriptionHash)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     def handle_my_trades(self, client, message):
         #
@@ -876,8 +876,8 @@ class bitmex(Exchange, ccxt.bitmex):
                 messageHash,
             ],
         }
-        future = self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -891,8 +891,8 @@ class bitmex(Exchange, ccxt.bitmex):
                 messageHash,
             ],
         }
-        future = self.watch(url, messageHash, self.extend(request, params), messageHash)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
+        ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         #

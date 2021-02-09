@@ -152,8 +152,8 @@ class poloniex extends \ccxt\async\poloniex {
             'command' => 'subscribe',
             'channel' => $channelId,
         );
-        $future = $this->watch($url, $messageHash, $subscribe, $channelId);
-        return yield $this->after($future, array($this, 'filter_by_array'), 'symbol', $symbols);
+        $tickers = yield $this->watch($url, $messageHash, $subscribe, $channelId);
+        return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
     public function load_markets($reload = false, $params = array ()) {
@@ -182,8 +182,8 @@ class poloniex extends \ccxt\async\poloniex {
             'command' => 'subscribe',
             'channel' => $numericId,
         );
-        $future = $this->watch($url, $messageHash, $subscribe, $numericId);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->watch($url, $messageHash, $subscribe, $numericId);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
@@ -196,8 +196,8 @@ class poloniex extends \ccxt\async\poloniex {
             'command' => 'subscribe',
             'channel' => $numericId,
         );
-        $future = $this->watch($url, $messageHash, $subscribe, $numericId);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch($url, $messageHash, $subscribe, $numericId);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function watch_heartbeat($params = array ()) {

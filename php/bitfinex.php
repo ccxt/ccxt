@@ -59,8 +59,8 @@ class bitfinex extends \ccxt\async\bitfinex {
     }
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        $future = $this->subscribe('trades', $symbol, $params);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->subscribe('trades', $symbol, $params);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_ticker($symbol, $params = array ()) {
@@ -255,8 +255,8 @@ class bitfinex extends \ccxt\async\bitfinex {
             'freq' => $freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
             'len' => $limit, // string, number of price points, '25', '100', default = '25'
         );
-        $future = $this->subscribe('book', $symbol, $this->deep_extend($request, $params));
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->subscribe('book', $symbol, $this->deep_extend($request, $params));
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function handle_order_book($client, $message, $subscription) {
@@ -434,17 +434,17 @@ class bitfinex extends \ccxt\async\bitfinex {
     public function watch_order($id, $symbol = null, $params = array ()) {
         yield $this->load_markets();
         $url = $this->urls['api']['ws']['private'];
-        $future = $this->authenticate();
-        return yield $this->after_dropped($future, array($this, 'watch'), $url, $id, null, 1);
+        yield $this->authenticate();
+        return yield $this->watch($url, $id, null, 1);
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        $future = $this->authenticate();
+        yield $this->authenticate();
         $url = $this->urls['api']['ws']['private'];
-        $watching = $this->after_dropped($future, array($this, 'watch'), $url, 'os', null, 1);
+        $orders = yield $this->watch($url, 'os', null, 1);
         // purgeOrders here
-        return yield $this->after($watching, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
     public function handle_orders($client, $message) {

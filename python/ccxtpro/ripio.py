@@ -42,8 +42,8 @@ class ripio(Exchange, ccxt.ripio):
             'messageHash': messageHash,
             'method': self.handle_trade,
         }
-        future = self.watch(url, messageHash, None, messageHash, subscription)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.watch(url, messageHash, None, messageHash, subscription)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trade(self, client, message, subscription):
         #
@@ -152,8 +152,8 @@ class ripio(Exchange, ccxt.ripio):
             delay = self.safe_integer(options, 'delay', self.rateLimit)
             # fetch the snapshot in a separate async call after a warmup delay
             self.delay(delay, self.fetch_order_book_snapshot, client, subscription)
-        future = self.watch(url, messageHash, None, messageHash, subscription)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch(url, messageHash, None, messageHash, subscription)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     async def fetch_order_book_snapshot(self, client, subscription):
         symbol = self.safe_string(subscription, 'symbol')

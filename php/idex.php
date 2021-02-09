@@ -142,8 +142,8 @@ class idex extends \ccxt\async\idex {
             'markets' => [ $market['id'] ],
         );
         $messageHash = $name . ':' . $market['id'];
-        $future = $this->subscribe($subscribeObject, $messageHash);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
+        $trades = yield $this->subscribe($subscribeObject, $messageHash);
+        return $this->filter_by_since_limit($trades, $since, $limit);
     }
 
     public function handle_trade($client, $message) {
@@ -227,8 +227,8 @@ class idex extends \ccxt\async\idex {
             'interval' => $interval,
         );
         $messageHash = $name . ':' . $market['id'];
-        $future = $this->subscribe($subscribeObject, $messageHash);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
+        $ohlcv = yield $this->subscribe($subscribeObject, $messageHash);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -393,8 +393,8 @@ class idex extends \ccxt\async\idex {
             'limit' => 0,  // get the complete order book snapshot
         );
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target $market->
-        $future = $this->subscribe($subscribeObject, $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit);
+        $orderbook = yield $this->subscribe($subscribeObject, $messageHash, $subscription);
+        return $this->limit_order_book($orderbook, $symbol, $limit);
     }
 
     public function handle_order_book($client, $message) {
@@ -483,8 +483,8 @@ class idex extends \ccxt\async\idex {
             $subscribeObject['markets'] = array( $marketId );
             $messageHash = $name . ':' . $marketId;
         }
-        $future = $this->subscribe_private($subscribeObject, $messageHash);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
+        $orders = yield $this->subscribe_private($subscribeObject, $messageHash);
+        return $this->filter_by_since_limit($orders, $since, $limit);
     }
 
     public function handle_order($client, $message) {
@@ -606,8 +606,8 @@ class idex extends \ccxt\async\idex {
         if ($code !== null) {
             $messageHash = $name . ':' . $code;
         }
-        $future = $this->subscribe_private($subscribeObject, $messageHash);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit);
+        $transactions = yield $this->subscribe_private($subscribeObject, $messageHash);
+        return $this->filter_by_since_limit($transactions, $since, $limit);
     }
 
     public function handle_transaction($client, $message) {

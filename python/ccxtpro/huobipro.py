@@ -124,8 +124,8 @@ class huobipro(Exchange, ccxt.huobipro):
             'symbol': symbol,
             'params': params,
         }
-        future = self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client, message):
         #
@@ -186,8 +186,8 @@ class huobipro(Exchange, ccxt.huobipro):
             'timeframe': timeframe,
             'params': params,
         }
-        future = self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
+        ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         #
@@ -252,8 +252,8 @@ class huobipro(Exchange, ccxt.huobipro):
             'params': params,
             'method': self.handle_order_book_subscription,
         }
-        future = self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     def handle_order_book_snapshot(self, client, message, subscription):
         #
@@ -314,8 +314,8 @@ class huobipro(Exchange, ccxt.huobipro):
             'params': params,
             'method': self.handle_order_book_snapshot,
         }
-        future = self.watch(url, requestId, request, requestId, snapshotSubscription)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)

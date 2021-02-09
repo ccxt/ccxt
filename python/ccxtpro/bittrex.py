@@ -97,8 +97,8 @@ class bittrex(Exchange, ccxt.bittrex):
 
     async def authenticate(self, params={}):
         await self.load_markets()
-        future = self.negotiate()
-        return await self.after_async(future, self.send_request_to_authenticate, False, params)
+        request = await self.negotiate()
+        return await self.send_request_to_authenticate(request, False, params)
 
     async def send_request_to_authenticate(self, negotiation, expired=False, params={}):
         url = self.get_signal_r_url(negotiation)
@@ -195,9 +195,9 @@ class bittrex(Exchange, ccxt.bittrex):
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        authenticate = self.authenticate()
-        future = self.after_async(authenticate, self.subscribe_to_orders, params)
-        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+        authentication = await self.authenticate()
+        orders = await self.subscribe_to_orders(authentication, params)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     async def subscribe_to_orders(self, authentication, params={}):
         messageHash = 'order'
@@ -237,8 +237,8 @@ class bittrex(Exchange, ccxt.bittrex):
 
     async def watch_balance(self, params={}):
         await self.load_markets()
-        authenticate = self.authenticate()
-        return await self.after_async(authenticate, self.subscribe_to_balance, params)
+        authentication = await self.authenticate()
+        return await self.subscribe_to_balance(authentication, params)
 
     async def subscribe_to_balance(self, authentication, params={}):
         messageHash = 'balance'
@@ -270,8 +270,8 @@ class bittrex(Exchange, ccxt.bittrex):
 
     async def watch_heartbeat(self, params={}):
         await self.load_markets()
-        negotiate = self.negotiate()
-        return await self.after_async(negotiate, self.subscribe_to_heartbeat, params)
+        negotiation = await self.negotiate()
+        return await self.subscribe_to_heartbeat(negotiation, params)
 
     async def subscribe_to_heartbeat(self, negotiation, params={}):
         await self.load_markets()
@@ -297,8 +297,8 @@ class bittrex(Exchange, ccxt.bittrex):
 
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
-        negotiate = self.negotiate()
-        return await self.after_async(negotiate, self.subscribe_to_ticker, symbol, params)
+        negotiation = await self.negotiate()
+        return await self.subscribe_to_ticker(negotiation, symbol, params)
 
     async def subscribe_to_ticker(self, negotiation, symbol, params={}):
         await self.load_markets()
@@ -337,9 +337,9 @@ class bittrex(Exchange, ccxt.bittrex):
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
-        negotiate = self.negotiate()
-        future = self.after_async(negotiate, self.subscribe_to_ohlcv, symbol, timeframe, params)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
+        negotiation = await self.negotiate()
+        ohlcv = await self.subscribe_to_ohlcv(negotiation, symbol, timeframe, params)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     async def subscribe_to_ohlcv(self, negotiation, symbol, timeframe='1m', params={}):
         await self.load_markets()
@@ -395,9 +395,9 @@ class bittrex(Exchange, ccxt.bittrex):
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
-        negotiate = self.negotiate()
-        future = self.after_async(negotiate, self.subscribe_to_trades, symbol, params)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        negotiation = await self.negotiate()
+        trades = await self.subscribe_to_trades(negotiation, symbol, params)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def subscribe_to_trades(self, negotiation, symbol, params={}):
         await self.load_markets()
@@ -448,7 +448,7 @@ class bittrex(Exchange, ccxt.bittrex):
         if (limit != 1) and (limit != 25) and (limit != 500):
             raise BadRequest(self.id + ' watchOrderBook() limit argument must be None, 1, 25 or 500, default is 25')
         await self.load_markets()
-        negotiate = self.negotiate()
+        negotiation = await self.negotiate()
         #
         #     1. Subscribe to the relevant socket streams
         #     2. Begin to queue up messages without processing them
@@ -459,8 +459,8 @@ class bittrex(Exchange, ccxt.bittrex):
         #     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message(Note: for private streams, the sequence number is scoped to a single account or subaccount).
         #     8. If a message is received that is not the next in order, return to step 2 in self process
         #
-        future = self.after_async(negotiate, self.subscribe_to_order_book, symbol, limit, params)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.subscribe_to_order_book(negotiation, symbol, limit, params)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     async def subscribe_to_order_book(self, negotiation, symbol, limit=None, params={}):
         await self.load_markets()

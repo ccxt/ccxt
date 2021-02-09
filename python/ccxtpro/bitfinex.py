@@ -57,8 +57,8 @@ class bitfinex(Exchange, ccxt.bitfinex):
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
-        future = self.subscribe('trades', symbol, params)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.subscribe('trades', symbol, params)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_ticker(self, symbol, params={}):
         return await self.subscribe('ticker', symbol, params)
@@ -235,8 +235,8 @@ class bitfinex(Exchange, ccxt.bitfinex):
             'freq': freq,  # string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
             'len': limit,  # string, number of price points, '25', '100', default = '25'
         }
-        future = self.subscribe('book', symbol, self.deep_extend(request, params))
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.subscribe('book', symbol, self.deep_extend(request, params))
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     def handle_order_book(self, client, message, subscription):
         #
@@ -398,16 +398,16 @@ class bitfinex(Exchange, ccxt.bitfinex):
     async def watch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         url = self.urls['api']['ws']['private']
-        future = self.authenticate()
-        return await self.after_dropped(future, self.watch, url, id, None, 1)
+        await self.authenticate()
+        return await self.watch(url, id, None, 1)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        future = self.authenticate()
+        await self.authenticate()
         url = self.urls['api']['ws']['private']
-        watching = self.after_dropped(future, self.watch, url, 'os', None, 1)
+        orders = await self.watch(url, 'os', None, 1)
         # purgeOrders here
-        return await self.after(watching, self.filter_by_symbol_since_limit, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client, message):
         #

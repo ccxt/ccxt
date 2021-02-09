@@ -67,13 +67,13 @@ class ftx(Exchange, ccxt.ftx):
         if symbol is not None:
             market = self.market(symbol)
             messageHash = messageHash + ':' + market['id']
+        await self.authenticate()
         url = self.implode_params(self.urls['api']['ws'], {'hostname': self.hostname})
         request = {
             'op': 'subscribe',
             'channel': channel,
         }
-        future = self.authenticate()
-        return await self.after_dropped(future, self.watch, url, messageHash, request, channel)
+        return await self.watch(url, messageHash, request, channel)
 
     def authenticate(self, params={}):
         url = self.implode_params(self.urls['api']['ws'], {'hostname': self.hostname})
@@ -109,12 +109,12 @@ class ftx(Exchange, ccxt.ftx):
         return await self.watch_public(symbol, 'ticker')
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
-        future = self.watch_public(symbol, 'trades')
-        return await self.after(future, self.filter_by_since_limit, since, limit, True)
+        trades = await self.watch_public(symbol, 'trades')
+        return self.filter_by_since_limit(trades, since, limit, True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
-        future = self.watch_public(symbol, 'orderbook')
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch_public(symbol, 'orderbook')
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     def handle_partial(self, client, message):
         methods = {
@@ -360,8 +360,8 @@ class ftx(Exchange, ccxt.ftx):
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        future = self.watch_private('orders', symbol)
-        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+        orders = await self.watch_private('orders', symbol)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_order(self, client, message):
         #
@@ -430,8 +430,8 @@ class ftx(Exchange, ccxt.ftx):
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        future = self.watch_private('fills', symbol)
-        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+        trades = await self.watch_private('fills', symbol)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     def handle_my_trade(self, client, message):
         #

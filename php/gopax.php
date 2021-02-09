@@ -76,8 +76,8 @@ class gopax extends \ccxt\async\gopax {
             'params' => $params,
         );
         $message = array_merge($request, $params);
-        $future = $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        $orderbook = yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function handle_delta($orderbook, $bookside, $delta) {
@@ -219,8 +219,8 @@ class gopax extends \ccxt\async\gopax {
             'params' => $params,
         );
         $message = array_merge($request, $params);
-        $future = $this->watch($url, $messageHash, $message, $subscriptionHash, $subscription);
-        return yield $this->after($future, array($this, 'filter_by_symbol_since_limit'), $symbol, $since, $limit);
+        $orders = yield $this->watch($url, $messageHash, $message, $subscriptionHash, $subscription);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
     public function parse_ws_order_status($status) {
@@ -463,8 +463,8 @@ class gopax extends \ccxt\async\gopax {
             'params' => $params,
         );
         $message = array_merge($request, $params);
-        $future = $this->watch($url, $messageHash, $message, $subscriptionHash, $subscription);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->watch($url, $messageHash, $message, $subscriptionHash, $subscription);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_my_trades($client, $message) {

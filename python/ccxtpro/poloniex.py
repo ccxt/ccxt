@@ -144,8 +144,8 @@ class poloniex(Exchange, ccxt.poloniex):
             'command': 'subscribe',
             'channel': channelId,
         }
-        future = self.watch(url, messageHash, subscribe, channelId)
-        return await self.after(future, self.filter_by_array, 'symbol', symbols)
+        tickers = await self.watch(url, messageHash, subscribe, channelId)
+        return self.filter_by_array(tickers, 'symbol', symbols)
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(poloniex, self).load_markets(reload, params)
@@ -170,8 +170,8 @@ class poloniex(Exchange, ccxt.poloniex):
             'command': 'subscribe',
             'channel': numericId,
         }
-        future = self.watch(url, messageHash, subscribe, numericId)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.watch(url, messageHash, subscribe, numericId)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -183,8 +183,8 @@ class poloniex(Exchange, ccxt.poloniex):
             'command': 'subscribe',
             'channel': numericId,
         }
-        future = self.watch(url, messageHash, subscribe, numericId)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch(url, messageHash, subscribe, numericId)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     async def watch_heartbeat(self, params={}):
         await self.load_markets()

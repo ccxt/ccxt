@@ -139,8 +139,8 @@ class binance(Exchange, ccxt.binance):
         }
         message = self.extend(request, query)
         # 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        future = self.watch(url, messageHash, message, messageHash, subscription)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
@@ -329,8 +329,8 @@ class binance(Exchange, ccxt.binance):
         subscribe = {
             'id': requestId,
         }
-        future = self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def parse_trade(self, trade, market=None):
         #
@@ -528,8 +528,8 @@ class binance(Exchange, ccxt.binance):
         subscribe = {
             'id': requestId,
         }
-        future = self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 0, True)
+        ohlcv = await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         #
@@ -780,8 +780,8 @@ class binance(Exchange, ccxt.binance):
         if symbol is not None:
             subscriptionHash += ':' + symbol
         message = None
-        future = self.watch(url, messageHash, message, subscriptionHash)
-        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+        orders = await self.watch(url, messageHash, message, subscriptionHash)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def parse_ws_order(self, order, market=None):
         #
@@ -1027,8 +1027,8 @@ class binance(Exchange, ccxt.binance):
         if symbol is not None:
             subscriptionHash += ':' + symbol
         message = None
-        future = self.watch(url, messageHash, message, subscriptionHash)
-        return await self.after(future, self.filter_by_symbol_since_limit, symbol, since, limit)
+        trades = await self.watch(url, messageHash, message, subscriptionHash)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     def handle_my_trade(self, client, message):
         messageHash = 'myTrades'
