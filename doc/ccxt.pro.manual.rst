@@ -508,10 +508,10 @@ The ``limit`` argument does not guarantee that the number of bids or asks will a
 
    // PHP
    if ($exchange->has['watchOrderBook']) {
-       $exchange::execute_and_run(function() use ($exchange, $symbol) {
+       $exchange::execute_and_run(function() use ($exchange, $symbol, $limit, $params) {
            while (true) {
                try {
-                   $orderbook = yield $exchange->watch_order_book('ETH/BTC');
+                   $orderbook = yield $exchange->watch_order_book($symbol, $limit, $params);
                    echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
                } catch (Exception $e) {
                    echo get_class ($e), ' ', $e->getMessage (), "\n";
