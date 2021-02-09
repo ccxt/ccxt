@@ -208,7 +208,8 @@ class Client {
         if ($this->verbose) {
             echo date('c'), ' sending ', $message, "\n";
         }
-        return $this->connection->send($message);
+        $this->connection->send($message);
+        return null;
     }
 
     public function close() {
