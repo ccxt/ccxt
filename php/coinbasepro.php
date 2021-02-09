@@ -56,8 +56,8 @@ class coinbasepro extends \ccxt\async\coinbasepro {
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'matches';
-        $future = $this->subscribe($name, $symbol, $params);
-        return yield $this->after($future, array($this, 'filter_by_since_limit'), $since, $limit, 'timestamp', true);
+        $trades = yield $this->subscribe($name, $symbol, $params);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
@@ -82,9 +82,9 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             'marketId' => $market['id'],
             'limit' => $limit,
         );
-        $future = $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        $orderbook = yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
         // $this->subscribe($name, $symbol, $params);
-        return yield $this->after($future, array($this, 'limit_order_book'), $symbol, $limit, $params);
+        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
     }
 
     public function handle_trade($client, $message) {

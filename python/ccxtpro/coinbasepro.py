@@ -52,8 +52,8 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         name = 'matches'
-        future = self.subscribe(name, symbol, params)
-        return await self.after(future, self.filter_by_since_limit, since, limit, 'timestamp', True)
+        trades = await self.subscribe(name, symbol, params)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         name = 'level2'
@@ -77,9 +77,9 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             'marketId': market['id'],
             'limit': limit,
         }
-        future = self.watch(url, messageHash, request, messageHash, subscription)
+        orderbook = await self.watch(url, messageHash, request, messageHash, subscription)
         # self.subscribe(name, symbol, params)
-        return await self.after(future, self.limit_order_book, symbol, limit, params)
+        return self.limit_order_book(orderbook, symbol, limit, params)
 
     def handle_trade(self, client, message):
         #
