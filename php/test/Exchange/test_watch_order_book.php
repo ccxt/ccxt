@@ -2,12 +2,12 @@
 
 function print_orderbook($orderbook, $symbol) {
     $id = isset($orderbook['nonce']) ? $orderbook['nonce'] : $orderbook['datetime'];
-    echo $id, ' ', $symbol, ' ',
+    echo $orderbook['datetime'], ' ', $id, ' ', $symbol, ' ',
         count($orderbook['asks']), ' asks ', json_encode($orderbook['asks'][0]), ' ',
         count($orderbook['bids']), ' bids ', json_encode($orderbook['bids'][0]), "\n";
 }
 
-function test_order_book($exchange, $symbol) {
+function test_watch_order_book($exchange, $symbol) {
 
     echo __FUNCTION__ . "\n";
 
@@ -34,7 +34,6 @@ function test_order_book($exchange, $symbol) {
     $ends = $now + 20000;
     while ($now < $ends) {
         try {
-            echo "here.......";
             $result = yield $exchange->watch_order_book($symbol);
             print_orderbook($result, $symbol);
         } catch (Exception $e) {

@@ -26,8 +26,8 @@ function test_watch_ticker($exchange, $symbol) {
     $ends = $now + 20000;
     while ($now < $ends) {
         try {
-            $result = yield $exchange->watch_ticker($symbol);
-            echo $result['datetime'], ' ', $exchange->id, ' ', $symbol, ' watch_ticker ', $result['last'] . "\n";
+            $ticker = yield $exchange->watch_ticker($symbol);
+            echo $ticker['datetime'], ' ', $exchange->id, ' ', $symbol, ' watch_ticker ', $ticker['last'] . "\n";
         } catch (Exception $e) {
             if (!($e instanceof \ccxt\NetworkError)) {
                 throw $e;

@@ -33,9 +33,9 @@ $id = $argv[1];
 function test_public($exchange, $symbol) {
     echo "test_public\n";
     //
-    yield test_order_book($exchange, $symbol);
+    yield test_watch_order_book($exchange, $symbol);
     yield test_watch_ticker($exchange, $symbol);
-    //
+    yield test_watch_trades($exchange, $symbol);
 };
 
 function test_private($exchange, $symbol, $code) {
@@ -43,11 +43,10 @@ function test_private($exchange, $symbol, $code) {
     if ($exchange->check_required_credentials(false)) {
         NULL;
     }
-    return \React\Promise\resolve(true);
+    yield 0;
 };
 
 function test_exchange($exchange) {
-    $delay = $exchange->rateLimit * 1000;
     $symbol = is_array($exchange->symbols) ? current($exchange->symbols) : '';
     $symbols = array(
         'BTC/KRW',
@@ -69,6 +68,7 @@ function test_exchange($exchange) {
     $code = 'BTC'; // wip
     if (strpos($symbol, '.d') === false) {
         yield test_public($exchange, $symbol);
+        yield test_private($exchange, $symbol, $code);
     }
 };
 
@@ -105,7 +105,7 @@ $test = function () use ($id, $config, $verbose) {
 
         echo $exchange->id, " [Skipped]\n";
         echo "Done.\n";
-        exit ();
+        exit();
 
     } else {
 
