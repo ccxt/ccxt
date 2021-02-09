@@ -73,22 +73,12 @@ trait ClientTrait {
     }
 
     public function spawn($method, ... $args) {
-        static::$loop->futureTick(function () use ($method, $args) {
-            try {
-                $method(... $args);
-            } catch (\Exception $e) {
-                // todo: handle spawned errors
-            }
-        });
+        static::get_kernel()->execute($method(...$args));
     }
 
     public function delay($timeout, $method, ... $args) {
-        static::$loop->addTimer($timeout / 1000, function () use ($method, $args) {
-            try {
-                $method(... $args);
-            } catch (\Exception $e) {
-                // todo: handle spawned errors
-            }
+        static::get_loop()->addTimer($timeout / 1000, function () use ($method, $args) {
+            $this->spawn($method, ...$args);
         });
     }
 
