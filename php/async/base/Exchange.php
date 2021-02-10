@@ -28,11 +28,11 @@ use Exception;
 
 include 'throttle.php';
 
-$version = '1.41.70';
+$version = '1.41.78';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.41.70';
+    const VERSION = '1.41.78';
 
     public static $loop;
     public static $kernel;
@@ -73,7 +73,7 @@ class Exchange extends \ccxt\Exchange {
                 static::$loop = React\EventLoop\Factory::create();
             }
         } else if (array_key_exists('loop', $options)) {
-            throw new Exception($this->id, ' cannot use two different loops');
+            throw new Exception($this->id . ' cannot use two different loops');
         }
 
         if (static::$kernel === null) {
@@ -83,7 +83,7 @@ class Exchange extends \ccxt\Exchange {
                 static::$kernel = Recoil\React\ReactKernel::create(static::$loop);
             }
         } else if (array_key_exists('kernel', $options)) {
-            throw new Exception($this->id, ' cannot use two different loops');
+            throw new Exception($this->id . ' cannot use two different loops');
         }
 
         $connector = new React\Socket\Connector(static::$loop, array(

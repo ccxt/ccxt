@@ -723,12 +723,12 @@ class gateio(Exchange):
         tag = None
         if (address is not None) and (address.find('address') >= 0):
             raise InvalidAddress(self.id + ' queryDepositAddress ' + address)
-        if code == 'XRP':
+        if (code == 'XRP') or (code == 'HBAR') or (code == 'STEEM') or (code == 'XLM'):
             parts = address.split(' ')
             address = parts[0]
             tag = parts[1]
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,

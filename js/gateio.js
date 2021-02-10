@@ -755,13 +755,13 @@ module.exports = class gateio extends Exchange {
         if ((address !== undefined) && (address.indexOf ('address') >= 0)) {
             throw new InvalidAddress (this.id + ' queryDepositAddress ' + address);
         }
-        if (code === 'XRP') {
+        if ((code === 'XRP') || (code === 'HBAR') || (code === 'STEEM') || (code === 'XLM')) {
             const parts = address.split (' ');
             address = parts[0];
             tag = parts[1];
         }
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
