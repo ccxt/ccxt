@@ -776,11 +776,42 @@ module.exports = class equos extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'instrumentId': currency['id'],
+            'instrumentId': currency['numericId'],
         };
         const response = await this.privatePostGetDepositAddresses (this.extend (request, params));
+        //
+        //     {
+        //         "addresses":[
+        //             {"instrumentId":1,"userId":3583,"symbol":"USDC","address":"0xdff47af071ea3c537e57278290516cda32a78b97","status":1}
+        //         ]
+        //     }
+        //
         const addresses = this.safeValue (response, 'addresses', []);
-        return this.parseDepositAddress (addresses);
+        const address = this.safeValue (addresses, 0);
+        return this.parseDepositAddress (address, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "instrumentId":1,
+        //         "userId":3583,
+        //         "symbol":"USDC",
+        //         "address":"0xdff47af071ea3c537e57278290516cda32a78b97",
+        //         "status":1
+        //     }
+        //
+        const currencyId = this.safeString (depositAddress, 'symbol');
+        currency = this.safeCurrency (currencyId, currency);
+        const code = currency['code'];
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'info': depositAddress,
+        };
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1140,22 +1171,6 @@ module.exports = class equos extends Exchange {
             '4': 'stop limit',
         };
         return this.safeString (types, type, type);
-    }
-
-    parseDepositAddress (addresses) {
-        const address = {
-            'currency': undefined, // currency code
-            'address': undefined,   // address in terms of requested currency
-            'tag': undefined,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
-            'info': undefined,     // raw unparsed data as returned from the exchange
-        };
-        const addressesLength = addresses.length;
-        if (addresses && addressesLength > 0) {
-            address['currency'] = this.safeString (addresses[0], 'symbol');
-            address['address'] = this.safeString (addresses[0], 'address');
-            address['info'] = addresses[0];
-        }
-        return address;
     }
 
     parseTransaction (transaction, currency = undefined) {
