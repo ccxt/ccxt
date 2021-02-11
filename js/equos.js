@@ -1,10 +1,11 @@
 'use strict';
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, BadSymbol, OrderNotFound } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
-//  ---------------------------------------------------------------------------
+const { ArgumentsRequired, OrderNotFound } = require ('./base/errors');
+
+// ----------------------------------------------------------------------------
 
 module.exports = class equos extends Exchange {
     describe () {
