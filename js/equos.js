@@ -20,10 +20,7 @@ module.exports = class equos extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': true,
-                'fetchAllOrders': true,
                 'fetchBalance': true,
-                'fetchCancelledOrders': true,
-                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -31,7 +28,6 @@ module.exports = class equos extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -594,57 +590,79 @@ module.exports = class equos extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (type === undefined || side === undefined || amount === undefined) {
-            throw new ArgumentsRequired (this.id + ': Order does not have enough arguments');
-        }
-        const request = this.createOrderRequest (market, type, side, amount, price, params);
-        const order = await this.privatePostOrder (request);
-        return {
-            'info': order,
-            'id': this.safeInteger (order, 'id'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': undefined,
-            'average': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'status': this.safeString (order, 'status'),
-            'fee': undefined,
-        };
-    }
-
-    createOrderRequest (market, type, side, amount, price = undefined, params = {}) {
-        if (price === undefined) {
-            price = 0;
-        }
-        const amount_scale = this.getScale (amount);
-        const price_scale = this.getScale (price);
-        let ordType = 1;
-        let requestSide = 1;
-        if (type === 'limit') {
-            ordType = 2;
-        }
-        if (side === 'sell') {
-            requestSide = 2;
-        }
+        const orderSide = (side === 'buy') ? 1 : 2;
+        const quantityScale = this.getScale (amount);
         const request = {
-            'id': 0,
-            'instrumentId': market['id'],
-            'symbol': market['symbol'],
-            'side': requestSide,
-            'ordType': ordType,
-            'price': this.convertToScale (price, price_scale),
-            'price_scale': price_scale,
-            'quantity': this.convertToScale (amount, amount_scale),
-            'quantity_scale': amount_scale,
+            // 'id': 0,
+            // 'account': 0, // required for institutional users
+            'instrumentId': market['numericId'],
+            'symbol': market['id'],
+            // 'clOrdId': '',
+            'side': orderSide, // 1 = buy, 2 = sell
+            // 'ordType': 1, // 1 = market, 2 = limit, 3 = stop market, 4 = stop limit
+            // 'price': this.priceToPrecision (symbol, price), // required for limit and stop limit orders
+            // 'price_scale': this.getScale (price),
+            'quantity': this.convertToScale (amount, quantityScale),
+            'quantity_scale': quantityScale,
+            // 'stopPx': this.priceToPrecision (symbol, stopPx),
+            // 'stopPx_scale': this.getScale (stopPx),
+            // 'targetStrategy': 0,
+            // 'isHidden': false,
+            // 'timeInForce': 1, // 1 = Good Till Cancel (GTC), 3 = Immediate or Cancel (IOC), 4 = Fill or Kill (FOK), 5 = Good Till Crossing (GTX), 6 = Good Till Date (GTD)
+            // 'interval': 0,
+            // 'intervalCount': 0,
+            // 'intervalDelay': 0,
+            // 'price2': 0,
+            // 'price2_scale': this.getScale (price2),
+            // 'blockWaitAck': 0, // 1 = wait for order acknowledgement, when set, response will include the matching engine "orderId" field
         };
-        return this.extend (request, params);
+        if (type === 'market') {
+            request['ordType'] = 1;
+        } else if (type === 'limit') {
+            request['ordType'] = 2;
+            request['price'] = this.convertToScale (price, this.getScale (price));
+        } else {
+            const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stopPx');
+            params = this.omit (params, [ 'stopPrice', 'stopPx' ]);
+            if (stopPrice === undefined) {
+                if (type === 'stop') {
+                    if (price === undefined) {
+                        throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument or a stopPrice parameter or a stopPx parameter for ' + type + ' orders');
+                    }
+                    request['ordType'] = 3;
+                    request['stopPx'] = this.convertToScale (price, this.getScale (price));
+                } else if (type === 'stop limit') {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter or a stopPx parameter for ' + type + ' orders');
+                }
+            } else {
+                if (type === 'stop') {
+                    request['ordType'] = 3;
+                    request['stopPx'] = this.convertToScale (stopPrice, this.getScale (stopPrice));
+                } else if (type === 'stop limit') {
+                    request['ordType'] = 4;
+                    const priceScale = this.getScale (price);
+                    const stopPriceScale = this.getScale (stopPrice);
+                    request['price_scale'] = priceScale;
+                    request['stopPx_scale'] = stopPriceScale;
+                    request['stopPx'] = this.convertToScale (stopPrice, stopPriceScale);
+                    request['price'] = this.convertToScale (price, priceScale);
+                }
+            }
+        }
+        const response = await this.privatePostOrder (this.extend (request, params));
+        //
+        //     {
+        //         "status":"sent",
+        //         "id":385617863,
+        //         "instrumentId":53,
+        //         "clOrdId":"1613037510849637345",
+        //         "userId":3583,
+        //         "price":2000,
+        //         "quantity":200,
+        //         "ordType":2
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     createEditOrderRequest (orgOrder, market, type, side, amount, price = undefined, params = {}) {
@@ -734,28 +752,6 @@ module.exports = class equos extends Exchange {
         const response = await this.privatePostGetOrders (this.extend (request, params));
         const orders = this.parseOrders (this.safeValue (response, 'orders', []), market, since, limit, params);
         return orders;
-    }
-
-    async fetchAllOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, params);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        const openOrders = this.filterByValueSinceLimit (orders, 'status', 'open', since, limit);
-        return openOrders;
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        const closeOrders = this.filterByValueSinceLimit (orders, 'status', 'closed', since, limit);
-        return closeOrders;
-    }
-
-    async fetchCancelledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        const canceledOrders = this.filterByValueSinceLimit (orders, 'status', 'canceled', since, limit);
-        return canceledOrders;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1043,6 +1039,20 @@ module.exports = class equos extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "status":"sent",
+        //         "id":385617863,
+        //         "instrumentId":53,
+        //         "clOrdId":"1613037510849637345",
+        //         "userId":3583,
+        //         "price":2000,
+        //         "quantity":200,
+        //         "ordType":2
+        //     }
+        //
         const status = this.parseOrderStatus (order);
         let symbol = undefined;
         if (market !== undefined) {
@@ -1094,6 +1104,27 @@ module.exports = class equos extends Exchange {
         const type = this.parseOrderType (this.safeStringLower (order, 'ordType'));
         const side = this.parserOrderSide (this.safeStringLower (order, 'side'));
         const trades = this.parseTrades (this.safeValue (order, 'trades', []));
+        // --------------------------------------------------------------------
+        //
+        //     return {
+        //         'info': order,
+        //         'id': this.safeInteger (order, 'id'),
+        //         'timestamp': undefined,
+        //         'datetime': undefined,
+        //         'lastTradeTimestamp': undefined,
+        //         'symbol': market['symbol'],
+        //         'type': type,
+        //         'side': side,
+        //         'price': price,
+        //         'amount': amount,
+        //         'cost': undefined,
+        //         'average': undefined,
+        //         'filled': undefined,
+        //         'remaining': undefined,
+        //         'status': this.safeString (order, 'status'),
+        //         'fee': undefined,
+        //     };
+        //
         return {
             'id': id,
             'clientOrderId': clientOrderId,
