@@ -707,10 +707,6 @@ class kucoin extends Exchange {
         // BTC array("$code":"200000","$data":array("$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
         $data = $this->safe_value($response, 'data', array());
         $address = $this->safe_string($data, 'address');
-        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the $address
-        if ($address !== null) {
-            $address = str_replace('bitcoincash:', '', $address);
-        }
         $tag = $this->safe_string($data, 'memo');
         if ($code !== 'NIM') {
             // contains spaces
