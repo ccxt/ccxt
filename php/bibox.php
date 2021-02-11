@@ -114,9 +114,16 @@ class bibox extends Exchange {
                 '2021' => '\\ccxt\\InsufficientFunds', // Insufficient balance available for withdrawal
                 '2027' => '\\ccxt\\InsufficientFunds', // Insufficient balance available (for trade)
                 '2033' => '\\ccxt\\OrderNotFound', // operation failed! Orders have been completed or revoked
+                '2065' => '\\ccxt\\InvalidOrder', // Precatory price is exorbitant, please reset
+                '2066' => '\\ccxt\\InvalidOrder', // Precatory price is low, please reset
                 '2067' => '\\ccxt\\InvalidOrder', // Does not support market orders
                 '2068' => '\\ccxt\\InvalidOrder', // The number of orders can not be less than
+                '2078' => '\\ccxt\\InvalidOrder', // unvalid order price
                 '2085' => '\\ccxt\\InvalidOrder', // Order quantity is too small
+                '2091' => '\\ccxt\\RateLimitExceeded', // request is too frequency, please try again later
+                '2092' => '\\ccxt\\InvalidOrder', // Minimum amount not met
+                '3000' => '\\ccxt\\BadRequest', // Requested parameter incorrect
+                '3002' => '\\ccxt\\BadRequest', // Parameter cannot be null
                 '3012' => '\\ccxt\\AuthenticationError', // invalid apiKey
                 '3016' => '\\ccxt\\BadSymbol', // Trading pair error
                 '3024' => '\\ccxt\\PermissionDenied', // wrong apikey permissions

@@ -1015,6 +1015,9 @@ class coinbasepro extends Exchange {
         } else {
             $method .= 'Crypto';
             $request['crypto_address'] = $address;
+            if ($tag !== null) {
+                $request['destination_tag'] = $tag;
+            }
         }
         $response = $this->$method (array_merge($request, $params));
         if (!$response) {

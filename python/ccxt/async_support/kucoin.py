@@ -674,7 +674,9 @@ class kucoin(Exchange):
         if address is not None:
             address = address.replace('bitcoincash:', '')
         tag = self.safe_string(data, 'memo')
-        self.check_address(address)
+        if code != 'NIM':
+            # contains spaces
+            self.check_address(address)
         return {
             'info': response,
             'currency': code,
@@ -695,7 +697,9 @@ class kucoin(Exchange):
         if address is not None:
             address = address.replace('bitcoincash:', '')
         tag = self.safe_string(data, 'memo')
-        self.check_address(address)
+        if code != 'NIM':
+            # contains spaces
+            self.check_address(address)
         return {
             'info': response,
             'currency': code,

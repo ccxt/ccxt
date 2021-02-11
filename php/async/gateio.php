@@ -759,13 +759,13 @@ class gateio extends Exchange {
         if (($address !== null) && (mb_strpos($address, 'address') !== false)) {
             throw new InvalidAddress($this->id . ' queryDepositAddress ' . $address);
         }
-        if ($code === 'XRP') {
+        if (($code === 'XRP') || ($code === 'HBAR') || ($code === 'STEEM') || ($code === 'XLM')) {
             $parts = explode(' ', $address);
             $address = $parts[0];
             $tag = $parts[1];
         }
         return array(
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
             'tag' => $tag,
             'info' => $response,

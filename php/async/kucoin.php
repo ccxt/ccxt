@@ -686,7 +686,10 @@ class kucoin extends Exchange {
             $address = str_replace('bitcoincash:', '', $address);
         }
         $tag = $this->safe_string($data, 'memo');
-        $this->check_address($address);
+        if ($code !== 'NIM') {
+            // contains spaces
+            $this->check_address($address);
+        }
         return array(
             'info' => $response,
             'currency' => $code,
@@ -709,7 +712,10 @@ class kucoin extends Exchange {
             $address = str_replace('bitcoincash:', '', $address);
         }
         $tag = $this->safe_string($data, 'memo');
-        $this->check_address($address);
+        if ($code !== 'NIM') {
+            // contains spaces
+            $this->check_address($address);
+        }
         return array(
             'info' => $response,
             'currency' => $code,
