@@ -821,15 +821,30 @@ module.exports = class equos extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['instrumentId'] = currency['id'];
+            request['instrumentId'] = currency['numericId'];
         }
         const response = await this.privatePostGetDepositHistory (this.extend (request, params));
+        //
+        //     {
+        //         "deposits":[
+        //             {
+        //                 "id":4309,
+        //                 "instrumentId":1,
+        //                 "userId":3583,
+        //                 "symbol":"USDC",
+        //                 "address":"null",
+        //                 "timestamp":"1613021112189",
+        //                 "status":1,
+        //                 "balance":0.0,
+        //                 "balance_change":100.0,
+        //                 "confirms":1,
+        //                 "transactionId":"caba4500-489f-424e-abd7-b4dabc09a800"
+        //             }
+        //         ]
+        //     }
+        //
         const deposits = this.safeValue (response, 'deposits', []);
-        for (let i = 0; i < deposits.length; i++) {
-            const deposit = deposits[i];
-            deposit['type'] = 'deposit';
-        }
-        return this.parseTransactions (deposits, currency, since, limit);
+        return this.parseTransactions (deposits, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -838,16 +853,91 @@ module.exports = class equos extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['instrumentId'] = currency['id'];
+            request['instrumentId'] = currency['numericId'];
         }
-        // getWithdrawRequests
         const response = await this.privatePostGetWithdrawRequests (this.extend (request, params));
+        //
+        //     {
+        //         "addresses":[
+        //             {
+        //                 "id":3841,
+        //                 "instrumentId":3,
+        //                 "userId":4245,
+        //                 "symbol":"BTC",
+        //                 "address":"XXXXXYYYYYZZZZZ",
+        //                 "timestamp":"20200806-11:04:35.053",
+        //                 "status":0,
+        //                 "balance":1,
+        //                 "balance_scale":3,
+        //                 "confirms":0,
+        //                 "transactionId":"null"
+        //             }
+        //         ]
+        //     }
+        //
         const withdrawals = this.safeValue (response, 'addresses', []);
-        for (let i = 0; i < withdrawals.length; i++) {
-            const deposit = withdrawals[i];
-            deposit['type'] = 'withdrawal';
+        return this.parseTransactions (withdrawals, currency, since, limit, { 'type': 'withdrawal' });
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits, fetchWithdrawals
+        //
+        //     {
+        //         "id":4309,
+        //         "instrumentId":1,
+        //         "userId":3583,
+        //         "symbol":"USDC",
+        //         "address":"null",
+        //         "timestamp":"1613021112189",
+        //         "status":1,
+        //         "balance":0.0,
+        //         "balance_change":100.0,
+        //         "confirms":1,
+        //         "transactionId":"caba4500-489f-424e-abd7-b4dabc09a800"
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const txid = this.safeString (transaction, 'transactionId');
+        const timestamp = this.safeInteger (transaction, 'timestamp');
+        let address = this.safeString (transaction, 'address');
+        if (address === 'null') {
+            address = undefined;
         }
-        return this.parseTransactions (withdrawals, currency, since, limit);
+        const type = this.safeString (transaction, 'type');
+        const amount = this.safeFloat (transaction, 'balance_change');
+        const currencyId = this.safeString (transaction, 'symbol');
+        currency = this.safeCurrency (currencyId, currency);
+        const code = currency['code'];
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'addressFrom': undefined,
+            'address': address,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            '0': 'pending',
+            '1': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -964,7 +1054,7 @@ module.exports = class equos extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        const timestamp = this.parse8601 (this.convertToISO8601Date (this.safeString (order, 'timeStamp')));
+        const timestamp = this.toMilliseconds (this.safeString (order, 'timeStamp'));
         const lastTradeTimestamp = timestamp;
         let price = this.convertFromScale (this.safeInteger (order, 'lastPx', 0), this.safeInteger (order, 'lastPx_scale', 0));
         const amount = this.convertFromScale (this.safeInteger (order, 'quantity', 0), this.safeInteger (order, 'quantity_scale', 0));
@@ -1174,42 +1264,6 @@ module.exports = class equos extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransaction (transaction, currency = undefined) {
-        const id = this.safeString (transaction, 'id');
-        const txid = this.safeString (transaction, 'transactionId');
-        const datetime = this.convertToISO8601Date (this.safeString (transaction, 'timestamp', ' '));
-        const timestamp = this.parse8601 (datetime);
-        const address = this.safeString (transaction, 'address');
-        const type = this.safeString (transaction, 'type');
-        const amount = this.safeFloat (transaction, 'balance_change');
-        const code = this.safeString (transaction, 'symbol');
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        return {
-            'info': transaction,    // the JSON response from the exchange as is
-            'id': id,    // exchange-specific transaction id, string
-            'txid': txid,
-            'timestamp': timestamp,             // timestamp in milliseconds
-            'datetime': datetime, // ISO8601 string of the timestamp
-            'addressFrom': undefined, // sender
-            'address': address, // "from" or "to"
-            'addressTo': undefined, // receiver
-            'tagFrom': undefined, // "tag" or "memo" or "payment_id" associated with the sender
-            'tag': undefined, // "tag" or "memo" or "payment_id" associated with the address
-            'tagTo': undefined, // "tag" or "memo" or "payment_id" associated with the receiver
-            'type': type,   // or 'withdrawal', string
-            'amount': amount,     // float (does not include the fee)
-            'currency': code,       // a common unified currency code, string
-            'status': status,   // 'ok', 'failed', 'canceled', string
-            'updated': undefined,  // UTC timestamp of most recent status change in ms
-            'comment': undefined,
-            'fee': {                 // the entire fee structure may be undefined
-                'currency': undefined,   // a unified fee currency code
-                'cost': undefined,      // float
-                'rate': undefined,   // approximately, fee['cost'] / amount, float
-            },
-        };
-    }
-
     parseLedgerEntry (entry, currency = undefined) {
         const id = this.safeString (entry, 'reportid');
         const currencyId = this.safeInteger (entry, 'instrumentId1');
@@ -1283,10 +1337,6 @@ module.exports = class equos extends Exchange {
             '4028': 'transaction', // TX_EXPIRE_SETTLED
         };
         return this.safeString (types, type, type);
-    }
-
-    parseTransactionStatus (status) {
-        return status;
     }
 
     toMilliseconds (dateString) {
