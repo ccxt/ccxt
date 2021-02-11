@@ -3096,12 +3096,23 @@ class okex(Exchange):
         if limit is not None:
             request['limit'] = limit
         currency = None
-        if (type == 'spot') or (type == 'futures'):
+        if type == 'spot':
             if code is None:
                 raise ArgumentsRequired(self.id + " fetchLedger() requires a currency code argument for '" + type + "' markets")
             argument = 'Currency'
             currency = self.currency(code)
             request['currency'] = currency['id']
+        elif type == 'futures':
+            if code is None:
+                raise ArgumentsRequired(self.id + " fetchLedger() requires an underlying symbol for '" + type + "' markets")
+            argument = 'Underlying'
+            market = self.market(code)  # we intentionally put a market inside here for the margin and swap ledgers
+            marketInfo = self.safe_value(market, 'info', {})
+            settlementCurrencyId = self.safe_string(marketInfo, 'settlement_currency')
+            settlementCurrencyСode = self.safe_currency_code(settlementCurrencyId)
+            currency = self.currency(settlementCurrencyСode)
+            underlyingId = self.safe_string(marketInfo, 'underlying')
+            request['underlying'] = underlyingId
         elif (type == 'margin') or (type == 'swap'):
             if code is None:
                 raise ArgumentsRequired(self.id + " fetchLedger() requires a code argument(a market symbol) for '" + type + "' markets")
