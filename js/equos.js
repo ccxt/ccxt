@@ -545,32 +545,50 @@ module.exports = class equos extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         const response = await this.privatePostGetPositions (params);
+        //     {
+        //         "positions":[
+        //             {
+        //                 "instrumentId":1,
+        //                 "userId":3583,
+        //                 "quantity":0,
+        //                 "availableQuantity":0,
+        //                 "quantity_scale":6,
+        //                 "symbol":"USDC",
+        //                 "assetType":"ASSET",
+        //                 "usdCostBasis":0.0,
+        //                 "usdAvgCostBasis":0.0,
+        //                 "usdValue":0.0,
+        //                 "usdUnrealized":0.0,
+        //                 "usdRealized":0.0,
+        //                 "baseUsdMark":1.0,
+        //                 "settleCoinUsdMark":0.0,
+        //                 "settleCoinUnrealized":0.0,
+        //                 "settleCoinRealized":0.0
+        //             },
+        //         ]
+        //     }
         const positions = this.safeValue (response, 'positions', []);
-        const balance = {};
-        balance['info'] = response;
-        balance['free'] = {};
-        balance['used'] = {};
-        balance['total'] = {};
+        const result = {
+            'info': response,
+        };
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
-            if (position['assetType'] === 'ASSET') {
-                const symbol = position['symbol'];
-                const quantity = position['quantity'];
-                const availableQuantity = position['availableQuantity'];
-                const scale = position['quantity_scale'];
-                const free = this.convertFromScale (availableQuantity, scale);
-                const total = this.convertFromScale (quantity, scale);
-                const used = parseFloat (this.decimalToPrecision (total - free, ROUND, scale));
-                if (!this.safeValue (balance, symbol)) {
-                    balance[symbol] = this.account ();
-                }
-                balance[symbol]['free'] = free;
-                balance[symbol]['used'] = used;
-                balance[symbol]['total'] = this.sum (free, used);
+            const assetType = this.safeString (position, 'assetType');
+            if (assetType === 'ASSET') {
+                const currencyId = this.safeString (position, 'symbol');
+                const code = this.safeCurrencyCode (currencyId);
+                const quantity = this.safeFloat (position, 'quantity');
+                const availableQuantity = this.safeFloat (position, 'availableQuantity');
+                const scale = this.safeInteger (position, 'quantity_scale');
+                const account = this.account ();
+                account['free'] = this.convertFromScale (availableQuantity, scale);
+                account['total'] = this.convertFromScale (quantity, scale);
+                result[code] = account;
             }
         }
-        return this.parseBalance (balance);
+        return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1309,34 +1327,34 @@ module.exports = class equos extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let query = path;
-        if (method === 'GET') {
-            if (Object.keys (params).length) {
-                query += '?' + this.urlencode (params);
+        let url = this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
             }
-        } else if (method === 'POST') {
-            const format = this.safeValue (params, '_format');
-            if (format !== undefined) {
-                query += '?' + this.urlencode (format);
-                params = this.omit (params, '_format');
-            }
+        } else if (api === 'private') {
+            // const format = this.safeValue (params, '_format');
+            // if (format !== undefined) {
+            //     query += '?' + this.urlencode (format);
+            //     // params = this.omit (params, '_format');
+            // }
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ();
+            query = this.extend (query, {
+                'userId': this.uid,
+                'nonce': nonce,
+            });
+            params['nonce'] = this.nonce ();
+            body = this.json (query);
+            const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha384');
             headers = {
                 'Content-Type': 'application/json',
+                'requestToken': this.apiKey,
+                'signature': signature,
             };
-            params['nonce'] = this.nonce ();
-            if (api === 'private') {
-                this.checkRequiredCredentials ();
-                headers['requestToken'] = this.apiKey;
-                params['userId'] = this.uid;
-                body = this.json (params);
-                const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha384');
-                headers['signature'] = signature;
-            }
-            if (body === undefined) {
-                body = this.json (params);
-            }
         }
-        const url = this.urls['api'][api] + '/' + query;
+        url = this.urls['api'][api] + '/' + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
