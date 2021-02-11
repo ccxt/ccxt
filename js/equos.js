@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, OrderNotFound, BadSymbol } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -103,7 +103,25 @@ module.exports = class equos extends Exchange {
                 'secret': true,
                 'uid': true,
             },
+            'exceptions': {
+                'broad': {
+                    'symbol not found': BadSymbol,
+                },
+            },
         });
+    }
+
+    async loadMarkets (reload = false, params = {}) {
+        const markets = await super.loadMarkets (reload, params);
+        const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId');
+        if ((currenciesByNumericId === undefined) || reload) {
+            this.options['currenciesByNumericId'] = this.indexBy (this.currencies, 'numericId');
+        }
+        const marketsByNumericId = this.safeValue (this.options, 'marketsByNumericId');
+        if ((marketsByNumericId === undefined) || reload) {
+            this.options['marketsByNumericId'] = this.indexBy (this.markets, 'numericId');
+        }
+        return markets;
     }
 
     async fetchMarkets (params = {}) {
@@ -700,14 +718,29 @@ module.exports = class equos extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const order = await this.fetchOrder (id, symbol, params);
-        if (this.safeString (order, 'status') !== 'open') {
-            throw new OrderNotFound (this.id + ': order id ' + id + ' is not found in open order');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        const request = this.safeValue (order, 'info');
-        request['origOrderId'] = this.safeValue (request, 'orderId');
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'origOrderId': parseInt (id),
+            'instrumentId': market['numericId'],
+        };
         const response = await this.privatePostCancelOrder (this.extend (request, params));
-        return this.extend ({ 'info': response }, order);
+        //
+        //     {
+        //         "status":"sent",
+        //         "id":0,
+        //         "origOrderId":385613629,
+        //         "instrumentId":53,
+        //         "userId":3583,
+        //         "price":0,
+        //         "quantity":0,
+        //         "ordType":0
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -1040,7 +1073,7 @@ module.exports = class equos extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder
+        // createOrder, cancelOrder
         //
         //     {
         //         "status":"sent",
@@ -1053,10 +1086,19 @@ module.exports = class equos extends Exchange {
         //         "ordType":2
         //     }
         //
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        if (status === 'sent') {
+            status = undefined;
+        }
         const marketId = this.safeString (order, 'instrumentId');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketsByNumericId = this.safeValue (this.options, 'marketsByNumericId', {});
+        if (marketId in marketsByNumericId) {
+            market = marketsByNumericId[marketId];
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         const timestamp = this.toMilliseconds (this.safeString (order, 'timeStamp'));
         const lastTradeTimestamp = timestamp;
         let price = this.convertFromScale (this.safeInteger (order, 'lastPx', 0), this.safeInteger (order, 'lastPx_scale', 0));
@@ -1092,7 +1134,7 @@ module.exports = class equos extends Exchange {
             'cost': feeTotal,
             'rate': undefined,
         };
-        const id = this.safeString (order, 'orderId');
+        const id = this.safeString2 (order, 'origOrderId', 'id');
         const clientOrderId = this.safeString (order, 'clOrdId');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
         const side = this.parseOrderSide (this.safeString (order, 'side'));
@@ -1168,7 +1210,6 @@ module.exports = class equos extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            'sent': 'open',
             '0': 'open',
             '1': 'open', // 'partially filled',
             '2': 'closed', // 'filled',
@@ -1322,6 +1363,19 @@ module.exports = class equos extends Exchange {
 
     convertToScale (number, scale) {
         return parseInt (this.toWei (number, scale));
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        const error = this.safeString (response, 'error');
+        if (error !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions, error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions, body, feedback);
+            throw new ExchangeError (this.id + ' ' + body);
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
