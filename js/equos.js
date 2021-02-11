@@ -1053,17 +1053,10 @@ module.exports = class equos extends Exchange {
         //         "ordType":2
         //     }
         //
-        const status = this.parseOrderStatus (order);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            const marketId = this.safeString (order, 'instrumentId');
-            if (this.safeValue (this.markets_by_id, marketId) !== undefined) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
-        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const marketId = this.safeString (order, 'instrumentId');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.toMilliseconds (this.safeString (order, 'timeStamp'));
         const lastTradeTimestamp = timestamp;
         let price = this.convertFromScale (this.safeInteger (order, 'lastPx', 0), this.safeInteger (order, 'lastPx_scale', 0));
@@ -1094,55 +1087,41 @@ module.exports = class equos extends Exchange {
         if (this.safeInteger (order, 'feeTotal') !== undefined && this.safeInteger (order, 'fee_scale') !== undefined) {
             feeTotal = this.convertFromScale (this.safeInteger (order, 'feeTotal'), this.safeInteger (order, 'fee_scale'));
         }
-        const fee = {                         // fee info, if available
-            'currency': currencyCode,        // which currency the fee is (usually quote)
-            'cost': feeTotal,           // the fee amount in that currency
-            'rate': undefined,           // the fee rate (if available)
+        const fee = {
+            'currency': currencyCode,
+            'cost': feeTotal,
+            'rate': undefined,
         };
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clOrdId');
-        const type = this.parseOrderType (this.safeStringLower (order, 'ordType'));
-        const side = this.parserOrderSide (this.safeStringLower (order, 'side'));
+        const type = this.parseOrderType (this.safeString (order, 'ordType'));
+        const side = this.parseOrderSide (this.safeString (order, 'side'));
         const trades = this.parseTrades (this.safeValue (order, 'trades', []));
-        // --------------------------------------------------------------------
-        //
-        //     return {
-        //         'info': order,
-        //         'id': this.safeInteger (order, 'id'),
-        //         'timestamp': undefined,
-        //         'datetime': undefined,
-        //         'lastTradeTimestamp': undefined,
-        //         'symbol': market['symbol'],
-        //         'type': type,
-        //         'side': side,
-        //         'price': price,
-        //         'amount': amount,
-        //         'cost': undefined,
-        //         'average': undefined,
-        //         'filled': undefined,
-        //         'remaining': undefined,
-        //         'status': this.safeString (order, 'status'),
-        //         'fee': undefined,
-        //     };
-        //
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        const stopPriceScale = this.safeInteger (order, 'stopPx_scale', 0);
+        const stopPrice = this.convertFromScale (this.safeInteger (order, 'stopPx'), stopPriceScale);
         return {
+            'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
-            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
+            'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
-            'cost': cost,
-            'trades': trades,
+            'status': status,
             'fee': fee,
-            'info': order,
+            'trades': trades,
         };
     }
 
@@ -1187,97 +1166,30 @@ module.exports = class equos extends Exchange {
         };
     }
 
-    isOpenOrder (order) {
-        let conditionOne = false;
-        let conditionTwo = false;
-        const execType = this.safeValue (order, 'execType');
-        const leavesQty = this.safeValue (order, 'leavesQty');
-        const ordType = this.safeValue (order, 'ordType');
-        const ordStatus = this.safeValue (order, 'ordStatus');
-        if (execType === 'F' && leavesQty !== 0 && ordType !== '1') {
-            conditionOne = true;
-        }
-        if (execType !== 'F' && execType !== '4' && execType !== '8' && execType !== 'B' && execType !== 'C' && ordType !== '1') {
-            conditionTwo = true;
-        }
-        if ((conditionOne || conditionTwo) && ordStatus !== '8') {
-            return true;
-        } else {
-            return false;
-        }
+    parseOrderStatus (status) {
+        const statuses = {
+            'sent': 'open',
+            '0': 'open',
+            '1': 'open', // 'partially filled',
+            '2': 'closed', // 'filled',
+            '3': 'open', // 'done for day',
+            '4': 'canceled',
+            '5': 'canceled', // 'replaced',
+            '6': 'canceling', // 'pending cancel',
+            '7': 'canceled', // 'stopped',
+            '8': 'canceled', // 'rejected',
+            '9': 'canceled', // 'suspended',
+            'A': 'open', // 'pending new',
+            'B': 'open', // 'calculated',
+            'C': 'expired',
+            'D': 'accepted for bidding',
+            'E': 'canceling', // 'pending replace',
+            'F': 'trade', // (partial fill or fill)
+        };
+        return this.safeString (statuses, status, status);
     }
 
-    isClosedOrder (order) {
-        let conditionOne = false;
-        let conditionTwo = false;
-        const execType = this.safeValue (order, 'execType');
-        const ordType = this.safeValue (order, 'ordType');
-        const ordStatus = this.safeValue (order, 'ordStatus');
-        const cumQty = this.safeValue (order, 'cumQty');
-        if (execType !== '4' && execType !== '8' && ordStatus !== '8' && ordType === '1') {
-            conditionOne = true;
-        }
-        if (execType === 'F' || execType === 'B' || execType === 'C') {
-            conditionTwo = true;
-        }
-        if (conditionOne || (conditionTwo && cumQty !== 0)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    isCancelledOrder (order) {
-        let conditionOne = false;
-        let conditionTwo = false;
-        const execType = this.safeValue (order, 'execType');
-        const ordStatus = this.safeValue (order, 'ordStatus');
-        const cumQty = this.safeValue (order, 'cumQty');
-        if (execType === '4' || execType === '8' || ordStatus === '8') {
-            conditionOne = true;
-        }
-        if ((execType === 'B' || execType === 'C') && cumQty === 0) {
-            conditionTwo = true;
-        }
-        if (conditionOne || conditionTwo) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    parseOrderStatus (order) {
-        if (this.isOpenOrder (order)) {
-            return 'open';
-        } else if (this.isClosedOrder (order)) {
-            return 'closed';
-        } else if (this.isCancelledOrder (order)) {
-            return 'canceled';
-        } else {
-            return undefined;
-        }
-        // const statuses = {
-        //     '0': 'open',
-        //     '1': 'partially filled',
-        //     '2': 'filled',
-        //     '3': 'done for day',
-        //     '4': 'cancelled',
-        //     '5': 'replaced',
-        //     '6': 'pending cancel',
-        //     '7': 'stopped',
-        //     '8': 'rejected',
-        //     '9': 'suspended',
-        //     'A': 'pending New',
-        //     'B': 'calculated',
-        //     'C': 'expired',
-        //     'D': ' accepted for bidding',
-        //     'E': 'pending Replace',
-        //     'F': 'trade', // (partial fill or fill)
-        // };
-        // return this.safeString (statuses, status, status);
-    }
-
-    parserOrderSide (side) {
+    parseOrderSide (side) {
         const sides = {
             '1': 'buy',
             '2': 'sell',
@@ -1293,6 +1205,17 @@ module.exports = class equos extends Exchange {
             '4': 'stop limit',
         };
         return this.safeString (types, type, type);
+    }
+
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            '1': 'GTC', // Good Till Canceled
+            '3': 'IOC', // Immediate or Cancel
+            '4': 'FOK', // Fill or Kill
+            '5': 'GTX', // Good Till Crossing (GTX)
+            '6': 'GTD', // Good Till Date
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     parseLedgerEntry (entry, currency = undefined) {
