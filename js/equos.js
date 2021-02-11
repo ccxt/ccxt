@@ -774,7 +774,7 @@ module.exports = class equos extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const currency = this.getCurrencyByCode (code);
+        const currency = this.currency (code);
         const request = {
             'instrumentId': currency['id'],
         };
@@ -788,7 +788,7 @@ module.exports = class equos extends Exchange {
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.getCurrencyByCode (code);
+            currency = this.currency (code);
             request['instrumentId'] = currency['id'];
         }
         const response = await this.privatePostGetDepositHistory (this.extend (request, params));
@@ -805,7 +805,7 @@ module.exports = class equos extends Exchange {
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.getCurrencyByCode (code);
+            currency = this.currency (code);
             request['instrumentId'] = currency['id'];
         }
         // getWithdrawRequests
@@ -821,7 +821,7 @@ module.exports = class equos extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        const currency = this.getCurrencyByCode (code);
+        const currency = this.currency (code);
         const scale = this.getScale (amount);
         const quantity = this.convertToScale (amount, scale);
         const instrumentId = currency['id'];
@@ -903,7 +903,7 @@ module.exports = class equos extends Exchange {
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
-            currency = this.getCurrencyByCode (code);
+            currency = this.currency (code);
             request['instrumentId'] = currency['id'];
         }
         const _format = {};
@@ -918,14 +918,6 @@ module.exports = class equos extends Exchange {
 
     nonce () {
         return this.milliseconds ();
-    }
-
-    getCurrencyByCode (code) {
-        const currency = this.currencies[code];
-        if (currency === undefined) {
-            throw new BadSymbol (this.id + ': code ' + code + ' is not listed');
-        }
-        return currency;
     }
 
     parseOrder (order, market = undefined) {
