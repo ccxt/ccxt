@@ -600,13 +600,32 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
+        const types = {
+            'exchange': 'exchange',
+            'deposit': 'funding',
+            'trading': 'margin',
+        };
         const balanceType = this.safeString (params, 'type', 'exchange');
         const query = this.omit (params, 'type');
         const response = await this.privatePostBalances (query);
+        //    [ { type: 'deposit',
+        //        currency: 'btc',
+        //        amount: '0.00116721',
+        //        available: '0.00116721' },
+        //      { type: 'exchange',
+        //        currency: 'ust',
+        //        amount: '0.0000002',
+        //        available: '0.0000002' },
+        //      { type: 'trading',
+        //        currency: 'btc',
+        //        amount: '0.0005',
+        //        available: '0.0005' } ],
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            if (balance['type'] === balanceType) {
+            const type = this.safeString (balance, 'type');
+            const parsedType = this.safeString (types, type);
+            if ((parsedType === balanceType) || (type === balanceType)) {
                 const currencyId = this.safeString (balance, 'currency');
                 const code = this.safeCurrencyCode (currencyId);
                 // bitfinex had BCH previously, now it's BAB, but the old
