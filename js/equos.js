@@ -37,7 +37,6 @@ module.exports = class equos extends Exchange {
                 'fetchTicker': false,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
-                'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -817,19 +816,6 @@ module.exports = class equos extends Exchange {
             deposit['type'] = 'withdrawal';
         }
         return this.parseTransactions (withdrawals, currency, since, limit);
-    }
-
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const deposits = await this.fetchDeposits (code, since, undefined, params);
-        const withdrawals = await this.fetchWithdrawals (code, since, undefined, params);
-        let transactions = this.arrayConcat (deposits, withdrawals);
-        // sort combined array result, latest first
-        transactions = this.sortBy (transactions, 'timestamp', true);
-        // lets apply limit on combined array
-        if (limit !== undefined) {
-            return this.filterBySinceLimit (transactions, since, limit);
-        }
-        return transactions;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
