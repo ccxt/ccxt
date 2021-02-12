@@ -1086,10 +1086,7 @@ module.exports = class equos extends Exchange {
         //         "ordType":2
         //     }
         //
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        if (status === 'sent') {
-            status = undefined;
-        }
+        const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'instrumentId');
         const marketsByNumericId = this.safeValue (this.options, 'marketsByNumericId', {});
         if (marketId in marketsByNumericId) {
@@ -1139,7 +1136,10 @@ module.exports = class equos extends Exchange {
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
         const side = this.parseOrderSide (this.safeString (order, 'side'));
         const trades = this.parseTrades (this.safeValue (order, 'trades', []));
-        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        let timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        if (timeInForce === '0') {
+            timeInForce = undefined;
+        }
         const stopPriceScale = this.safeInteger (order, 'stopPx_scale', 0);
         const stopPrice = this.convertFromScale (this.safeInteger (order, 'stopPx'), stopPriceScale);
         return {
