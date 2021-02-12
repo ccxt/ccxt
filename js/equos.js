@@ -213,7 +213,7 @@ module.exports = class equos extends Exchange {
         const quoteId = this.safeString (market, 'contAmtCurr');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = swap ? id : (base + '/' + quote);
+        const symbol = swap ? uppercaseId : (base + '/' + quote);
         const status = this.safeInteger (market, 'securityStatus');
         const active = (status === 1);
         const precision = {
