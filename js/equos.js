@@ -204,7 +204,7 @@ module.exports = class equos extends Exchange {
         //     }
         //
         const id = this.safeString (market, 'instrumentId');
-        const uppercaseId = this.safeInteger (market, 'symbol');
+        const uppercaseId = this.safeString (market, 'symbol');
         const assetType = this.safeString (market, 'assetType');
         const spot = (assetType === 'PAIR');
         const swap = (assetType === 'PERPETUAL_SWAP');
