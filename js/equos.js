@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, OrderNotFound, BadSymbol } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadSymbol } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -681,40 +681,6 @@ module.exports = class equos extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createEditOrderRequest (orgOrder, market, type, side, amount, price = undefined, params = {}) {
-        if (price === undefined) {
-            price = 0;
-        }
-        const amount_scale = this.getScale (amount);
-        const price_scale = this.getScale (price);
-        let ordType = 1;
-        let requestSide = 1;
-        if (type === 'limit') {
-            ordType = 2;
-        }
-        if (side === 'sell') {
-            requestSide = 2;
-        }
-        const request = {
-            'id': 0,
-            'origOrderId': this.safeValue (orgOrder, 'info'),
-            'clOrdId': this.safeValue (orgOrder, 'clOrdId'),
-            'instrumentId': parseInt (market['id']),
-            'symbol': market['symbol'],
-            'side': requestSide,
-            'ordType': ordType,
-            'price': this.safeValue (orgOrder, 'price'),
-            'price_scale': this.safeValue (orgOrder, 'price_scale'),
-            'quantity': this.safeValue (orgOrder, 'quantity'),
-            'quantity_scale': this.safeValue (orgOrder, 'quantity_scale'),
-            'price2': this.convertToScale (price, price_scale),
-            'price2_scale': price_scale,
-            'quantity2': this.convertToScale (amount, amount_scale),
-            'quantity2_scale': amount_scale,
-        };
-        return this.extend (request, params);
-    }
-
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -741,19 +707,75 @@ module.exports = class equos extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        const order = await this.fetchOrder (id, symbol, params);
-        if (this.safeString (order, 'status') !== 'open') {
-            throw new OrderNotFound (this.id + ': order id ' + id + ' is not found in open order');
-        }
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         const market = this.market (symbol);
-        if (type === undefined || side === undefined || amount === undefined) {
-            throw new ArgumentsRequired (this.id + ': Order does not have enough arguments');
+        const orderSide = (side === 'buy') ? 1 : 2;
+        const quantityScale = this.getScale (amount);
+        const request = {
+            // 'id': 0,
+            'origOrderId': id,
+            // 'account': 0, // required for institutional users
+            'instrumentId': parseInt (market['id']),
+            'symbol': market['uppercaseId'],
+            // 'clOrdId': '',
+            'side': orderSide, // 1 = buy, 2 = sell
+            // 'ordType': 1, // 1 = market, 2 = limit, 3 = stop market, 4 = stop limit
+            // 'price': this.priceToPrecision (symbol, price), // required for limit and stop limit orders
+            // 'price_scale': this.getScale (price),
+            'quantity': this.convertToScale (amount, quantityScale),
+            'quantity_scale': quantityScale,
+            // 'stopPx': this.priceToPrecision (symbol, stopPx),
+            // 'stopPx_scale': this.getScale (stopPx),
+            // 'timeInForce': 1, // 1 = Good Till Cancel (GTC), 3 = Immediate or Cancel (IOC), 4 = Fill or Kill (FOK), 5 = Good Till Crossing (GTX), 6 = Good Till Date (GTD)
+        };
+        if (type === 'market') {
+            request['ordType'] = 1;
+        } else if (type === 'limit') {
+            request['ordType'] = 2;
+            request['price'] = this.convertToScale (price, this.getScale (price));
+        } else {
+            const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stopPx');
+            params = this.omit (params, [ 'stopPrice', 'stopPx' ]);
+            if (stopPrice === undefined) {
+                if (type === 'stop') {
+                    if (price === undefined) {
+                        throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument or a stopPrice parameter or a stopPx parameter for ' + type + ' orders');
+                    }
+                    request['ordType'] = 3;
+                    request['stopPx'] = this.convertToScale (price, this.getScale (price));
+                } else if (type === 'stop limit') {
+                    throw new ArgumentsRequired (this.id + ' editOrder() requires a stopPrice parameter or a stopPx parameter for ' + type + ' orders');
+                }
+            } else {
+                if (type === 'stop') {
+                    request['ordType'] = 3;
+                    request['stopPx'] = this.convertToScale (stopPrice, this.getScale (stopPrice));
+                } else if (type === 'stop limit') {
+                    request['ordType'] = 4;
+                    const priceScale = this.getScale (price);
+                    const stopPriceScale = this.getScale (stopPrice);
+                    request['price_scale'] = priceScale;
+                    request['stopPx_scale'] = stopPriceScale;
+                    request['stopPx'] = this.convertToScale (stopPrice, stopPriceScale);
+                    request['price'] = this.convertToScale (price, priceScale);
+                }
+            }
         }
-        const orgOrder = this.safeValue (order, 'info');
-        const newOrderRequest = this.createEditOrderRequest (orgOrder, market, type, side, amount, price, params);
-        const response = await this.privatePostCancelReplaceOrder (this.extend (newOrderRequest));
-        return this.extend ({ 'info': response });
+        const response = await this.privatePostOrder (this.extend (request, params));
+        //
+        //     {
+        //         "status":"sent",
+        //         "id":385617863,
+        //         "instrumentId":53,
+        //         "clOrdId":"1613037510849637345",
+        //         "userId":3583,
+        //         "price":2000,
+        //         "quantity":200,
+        //         "ordType":2
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1131,7 +1153,7 @@ module.exports = class equos extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder, cancelOrder
+        // createOrder, editOrder, cancelOrder
         //
         //     {
         //         "status":"sent",
@@ -1185,6 +1207,11 @@ module.exports = class equos extends Exchange {
         //         "lastQty_scale":6
         //     }
         //
+        let id = this.safeString2 (order, 'orderId', 'id');
+        id = this.safeString (order, 'origOrderId', id);
+        const clientOrderId = this.safeString (order, 'clOrdId');
+        const type = this.parseOrderType (this.safeString (order, 'ordType'));
+        const side = this.parseOrderSide (this.safeString (order, 'side'));
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'instrumentId');
         const marketsByNumericId = this.safeValue (this.options, 'marketsByNumericId', {});
@@ -1196,12 +1223,39 @@ module.exports = class equos extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.toMilliseconds (this.safeString (order, 'timeStamp'));
-        const lastTradeTimestamp = timestamp;
-        let price = this.convertFromScale (this.safeInteger (order, 'lastPx', 0), this.safeInteger (order, 'lastPx_scale', 0));
-        const amount = this.convertFromScale (this.safeInteger (order, 'quantity', 0), this.safeInteger (order, 'quantity_scale', 0));
-        const filled = this.convertFromScale (this.safeInteger (order, 'cumQty', 0), this.safeInteger (order, 'cumQty_scale', 0));
-        const remaining = this.convertFromScale (this.safeInteger (order, 'leavesQty', 0), this.safeInteger (order, 'leavesQty_scale', 0));
-        const average = this.convertFromScale (this.safeInteger (order, 'price', 0), this.safeInteger (order, 'price_scale', 0));
+        const lastTradeTimestamp = undefined;
+        let price = this.safeInteger (order, 'price');
+        if (price === 0) {
+            price = undefined;
+        }
+        const priceScale = this.safeInteger (order, 'price_scale');
+        price = this.convertFromScale (price, priceScale);
+        let amount = this.safeInteger (order, 'quantity');
+        if (amount === 0) {
+            amount = undefined;
+        }
+        const amountScale = this.safeInteger (order, 'quantity_scale');
+        amount = this.convertFromScale (amount, amountScale);
+        let filled = this.safeInteger (order, 'cumQty');
+        const filledScale = this.safeInteger (order, 'cumQty_scale');
+        filled = this.convertFromScale (filled, filledScale);
+        let remaining = this.safeInteger (order, 'leavesQty');
+        const remainingScale = this.safeInteger (order, 'leavesQty_scale');
+        remaining = this.convertFromScale (remaining, remainingScale);
+        if (remaining <= 0) {
+            if ((filled !== undefined) && (amount !== undefined) && (filled < amount)) {
+                remaining = undefined;
+            }
+        }
+        if ((remaining === undefined) && (amount !== undefined) && (filled !== undefined)) {
+            remaining = Math.max (amount - filled, 0);
+        }
+        let average = this.safeInteger (order, 'price', 0);
+        if (average === 0) {
+            average = undefined;
+        }
+        const averageScale = this.safeInteger (order, 'price_scale');
+        average = this.convertFromScale (average, averageScale);
         let cost = undefined;
         if (filled !== 0) {
             if (average > 0) {
@@ -1209,9 +1263,6 @@ module.exports = class equos extends Exchange {
             } else if (price > 0) {
                 cost = price * filled;
             }
-        }
-        if (price <= 0) {
-            price = average;
         }
         let currencyCode = undefined;
         const currencyId = this.safeInteger (order, 'feeInstrumentId');
@@ -1230,11 +1281,6 @@ module.exports = class equos extends Exchange {
             'cost': feeTotal,
             'rate': undefined,
         };
-        let id = this.safeString2 (order, 'origOrderId', 'id');
-        id = this.safeString (order, 'orderId', id);
-        const clientOrderId = this.safeString (order, 'clOrdId');
-        const type = this.parseOrderType (this.safeString (order, 'ordType'));
-        const side = this.parseOrderSide (this.safeString (order, 'side'));
         let timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         if (timeInForce === '0') {
             timeInForce = undefined;
@@ -1452,6 +1498,9 @@ module.exports = class equos extends Exchange {
     }
 
     convertFromScale (number, scale) {
+        if ((number === undefined) || (scale === undefined)) {
+            return undefined;
+        }
         return this.fromWei (number, scale);
     }
 
@@ -1461,6 +1510,9 @@ module.exports = class equos extends Exchange {
     }
 
     convertToScale (number, scale) {
+        if ((number === undefined) || (scale === undefined)) {
+            return undefined;
+        }
         return parseInt (this.toWei (number, scale));
     }
 
