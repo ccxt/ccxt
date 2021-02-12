@@ -784,6 +784,44 @@ module.exports = class equos extends Exchange {
             'orderId': parseInt (id),
         };
         const response = await this.privatePostGetOrderStatus (this.extend (request, params));
+        //
+        //     {
+        //         "orderId":388953019,
+        //         "clOrdId":"1613106766970339107",
+        //         "symbol":"ETH/USDC",
+        //         "instrumentId":53,
+        //         "side":"1",
+        //         "userId":3583,
+        //         "account":3583,
+        //         "execType":"F",
+        //         "ordType":"2",
+        //         "ordStatus":"2",
+        //         "timeInForce":"3",
+        //         "timeStamp":"20210212-05:12:46.971",
+        //         "execId":265757,
+        //         "targetStrategy":0,
+        //         "isHidden":false,
+        //         "isReduceOnly":false,
+        //         "isLiquidation":false,
+        //         "fee":0,
+        //         "fee_scale":6,
+        //         "feeInstrumentId":1,
+        //         "price":184204,
+        //         "price_scale":2,
+        //         "quantity":10000,
+        //         "quantity_scale":6,
+        //         "leavesQty":0,
+        //         "leavesQty_scale":6,
+        //         "cumQty":10000,
+        //         "cumQty_scale":6,
+        //         "lastPx":175622,
+        //         "lastPx_scale":2,
+        //         "avgPx":175622,
+        //         "avgPx_scale":2,
+        //         "lastQty":10000,
+        //         "lastQty_scale":6
+        //     }
+        //
         return this.parseOrder (response);
     }
 
@@ -1214,14 +1252,7 @@ module.exports = class equos extends Exchange {
         const side = this.parseOrderSide (this.safeString (order, 'side'));
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'instrumentId');
-        const marketsByNumericId = this.safeValue (this.options, 'marketsByNumericId', {});
-        if (marketId in marketsByNumericId) {
-            market = marketsByNumericId[marketId];
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.toMilliseconds (this.safeString (order, 'timeStamp'));
         const lastTradeTimestamp = undefined;
         let price = this.safeInteger (order, 'price');
@@ -1264,23 +1295,22 @@ module.exports = class equos extends Exchange {
                 cost = price * filled;
             }
         }
-        let currencyCode = undefined;
+        let fee = undefined;
         const currencyId = this.safeInteger (order, 'feeInstrumentId');
-        if (currencyId !== undefined) {
-            const currency = this.safeValue (this.currencies_by_id, currencyId);
-            if (currency !== undefined) {
-                currencyCode = currency['code'];
-            }
+        const feeCurrencyCode = this.safeCurrencyCode (currencyId);
+        let feeCost = this.safeInteger (order, 'feeTotal');
+        const feeScale = this.safeInteger (order, 'fee_scale');
+        if (feeCost !== undefined) {
+            feeCost = -feeCost;
+            feeCost = this.convertFromScale (feeCost, feeScale);
         }
-        let feeTotal = undefined;
-        if (this.safeInteger (order, 'feeTotal') !== undefined && this.safeInteger (order, 'fee_scale') !== undefined) {
-            feeTotal = this.convertFromScale (this.safeInteger (order, 'feeTotal'), this.safeInteger (order, 'fee_scale'));
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': feeCurrencyCode,
+                'cost': feeCost,
+                'rate': undefined,
+            };
         }
-        const fee = {
-            'currency': currencyCode,
-            'cost': feeTotal,
-            'rate': undefined,
-        };
         let timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         if (timeInForce === '0') {
             timeInForce = undefined;
