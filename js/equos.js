@@ -21,6 +21,8 @@ module.exports = class equos extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -771,6 +773,20 @@ module.exports = class equos extends Exchange {
         return order;
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'ordStatus': '2', // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'ordStatus': '4', // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -779,8 +795,8 @@ module.exports = class equos extends Exchange {
             // 'symbol': marketSymbol, // cannot be used with instrumentId
             // 'instrumentId': market['numericId'],
             // 'limit': limit,
-            // 'execType': execType, // 0 = New, 4 = Canceled, 5 = Replace, 8 = Rejected, C = Expired, F = Fill Status, I = Order Status
-            // 'ordStatus': ordStatus, // 0 = New, 1 = Partially filled, 2 = Filled, 4 = Cancelled, 8 = Rejected, C = Expired
+            // 'execType': execType, // '0' = New, '4' = Canceled, '5' = Replace, '8' = Rejected, 'C' = Expired, 'F' = Fill Status, 'I' = Order Status
+            // 'ordStatus': ordStatus, // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1138,6 +1154,47 @@ module.exports = class equos extends Exchange {
         //         "ordType":2
         //     }
         //
+        // fetchOrders
+        //
+        //     {
+        //         "orderId":385613629,
+        //         "orderUpdateSeq":1,
+        //         "clOrdId":"1613037448945798198",
+        //         "symbol":"ETH/USDC",
+        //         "instrumentId":53,
+        //         "side":"1",
+        //         "userId":3583,
+        //         "account":3583,
+        //         "execType":"4",
+        //         "ordType":"2",
+        //         "ordStatus":"C",
+        //         "timeInForce":"3",
+        //         "timeStamp":"20210211-09:57:28.944",
+        //         "execId":0,
+        //         "targetStrategy":0,
+        //         "isHidden":false,
+        //         "isReduceOnly":false,
+        //         "isLiquidation":false,
+        //         "fee":0,
+        //         "feeTotal":0,
+        //         "fee_scale":0,
+        //         "feeInstrumentId":0,
+        //         "price":999,
+        //         "price_scale":2,
+        //         "quantity":10000000,
+        //         "quantity_scale":6,
+        //         "leavesQty":10000000,
+        //         "leavesQty_scale":6,
+        //         "cumQty":0,
+        //         "cumQty_scale":0,
+        //         "lastPx":0,
+        //         "lastPx_scale":2,
+        //         "avgPx":0,
+        //         "avgPx_scale":0,
+        //         "lastQty":0,
+        //         "lastQty_scale":6
+        //     }
+        //
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'instrumentId');
         const marketsByNumericId = this.safeValue (this.options, 'marketsByNumericId', {});
@@ -1270,14 +1327,14 @@ module.exports = class equos extends Exchange {
             '5': 'canceled', // 'replaced',
             '6': 'canceling', // 'pending cancel',
             '7': 'canceled', // 'stopped',
-            '8': 'canceled', // 'rejected',
+            '8': 'rejected', // 'rejected',
             '9': 'canceled', // 'suspended',
             'A': 'open', // 'pending new',
             'B': 'open', // 'calculated',
             'C': 'expired',
-            'D': 'accepted for bidding',
+            'D': 'open', // 'accepted for bidding',
             'E': 'canceling', // 'pending replace',
-            'F': 'trade', // (partial fill or fill)
+            'F': 'open', // (partial fill or fill)
         };
         return this.safeString (statuses, status, status);
     }
