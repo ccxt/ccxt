@@ -909,15 +909,51 @@ module.exports = class equos extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const request = {
+            // 'account': 123, // for institutional users
+            // 'instrumentId': market['id'],
+            // 'startTime': since,
+            // 'endTime': this.milliseconds (),
+        };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            request['instrumentId'] = market['id'];
         }
-        const request = {};
         if (since !== undefined) {
-            request['timestamp'] = since;
+            request['startTime'] = since;
         }
         const response = await this.privatePostUserTrades (this.extend (request, params));
+        //
+        //     {
+        //         "trades":[
+        //             {
+        //                 "account":3583,
+        //                 "commission":"-0.015805",
+        //                 "commCurrency":"USDC",
+        //                 "execId":265757,
+        //                 "ordType":"2",
+        //                 "ordStatus":"2",
+        //                 "execType":"F",
+        //                 "aggressorIndicator":true,
+        //                 "orderId":388953019,
+        //                 "price":"1842.04",
+        //                 "qty":"0.010000",
+        //                 "lastPx":"1756.22",
+        //                 "avgPx":"1756.22",
+        //                 "cumQty":"0.010000",
+        //                 "quoteQty":"0.010000",
+        //                 "side":"BUY",
+        //                 "symbol":"ETH/USDC",
+        //                 "clOrdId":"1613106766970339107",
+        //                 "submitterId":3583,
+        //                 "targetStrategy":"0",
+        //                 "time":1613106766971,
+        //                 "date":"20210212-05:12:46.971"
+        //             }
+        //         ]
+        //     }
+        //
         const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
