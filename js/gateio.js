@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -321,21 +321,15 @@ module.exports = class gateio extends ccxt.gateio {
         // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         // const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
         // --------------------------------------------------------------------
-        const stored = this.safeValue (this.ohlcvs, symbol, []);
-        const length = stored.length;
-        if (length && parsed[0] === stored[length - 1][0]) {
-            stored[length - 1] = parsed;
-        } else {
-            stored.push (parsed);
+        let stored = this.safeValue (this.ohlcvs, symbol);
+        if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            if (length === limit) {
-                stored.shift ();
-            }
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol] = stored;
         }
         // --------------------------------------------------------------------
         // this.ohlcvs[symbol][timeframe] = stored;
         // --------------------------------------------------------------------
-        this.ohlcvs[symbol] = stored;
         const methodType = message['method'];
         const messageHash = methodType + ':' + marketId;
         client.resolve (stored, messageHash);

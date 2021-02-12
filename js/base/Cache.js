@@ -57,7 +57,7 @@ class ArrayCacheByTimestamp extends ArrayCache {
     }
 }
 
-class ArrayCacheBySymbolById extends ArrayCacheById {
+class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
 
     append (item) {
         const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}

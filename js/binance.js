@@ -618,13 +618,14 @@ module.exports = class binance extends ccxt.binance {
             this.safeFloat (kline, 'v'),
         ];
         const symbol = this.safeSymbol (marketId);
-        let ohlcvs = this.safeValue (this.ohlcvs, symbol);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let ohlcvs = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (ohlcvs === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             ohlcvs = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = ohlcvs;
         }
         ohlcvs.append (parsed);
-        this.ohlcvs[symbol] = ohlcvs;
         client.resolve (ohlcvs, messageHash);
     }
 

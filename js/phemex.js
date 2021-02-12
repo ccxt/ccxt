@@ -5,7 +5,7 @@
 const ccxt = require ('ccxt');
 const { NotSupported } = require ('ccxt/js/base/errors');
 const { ROUND } = require ('ccxt/js/base/functions/number');
-const { ArrayCache } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -224,21 +224,12 @@ module.exports = class phemex extends ccxt.phemex {
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCache (limit);
+                stored = new ArrayCacheByTimestamp (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             for (let i = 0; i < ohlcvs.length; i++) {
                 const candle = ohlcvs[i];
-                const length = stored.length;
-                if (length) {
-                    if (candle[0] === stored[length - 1][0]) {
-                        stored[length - 1] = candle;
-                    } else if (candle[0] > stored[length - 1][0]) {
-                        stored.append (candle);
-                    }
-                } else {
-                    stored.append (candle);
-                }
+                stored.append (candle);
             }
             client.resolve (stored, messageHash);
         }

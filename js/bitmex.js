@@ -1012,13 +1012,14 @@ module.exports = class bitmex extends ccxt.bitmex {
                 this.safeFloat (candle, 'close'),
                 this.safeFloat (candle, 'volume'),
             ];
-            let stored = this.safeValue (this.ohlcvs, symbol);
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (result);
-            this.ohlcvs[symbol] = stored;
             results[messageHash] = stored;
         }
         const messageHashes = Object.keys (results);

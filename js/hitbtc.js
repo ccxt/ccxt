@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ArrayCache } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -302,22 +302,17 @@ module.exports = class hitbtc extends ccxt.hitbtc {
         const period = this.safeString (params, 'period');
         const timeframe = this.findTimeframe (period);
         const messageHash = 'ohlcv:' + marketId + ':' + period;
-        const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
         for (let i = 0; i < data.length; i++) {
             const candle = data[i];
             const parsed = this.parseOHLCV (candle, market);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
-                stored = new ArrayCache (limit);
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCacheByTimestamp (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
-            const length = stored.length;
-            if (length && parsed[0] === stored[length - 1][0]) {
-                stored[length - 1] = parsed;
-            } else {
-                stored.append (parsed);
-            }
+            stored.append (parsed);
             client.resolve (stored, messageHash);
         }
         return message;
