@@ -47,36 +47,36 @@ class ArrayCache(list):
             return deque[item]
 
 
-class ArrayCacheById(ArrayCache):
+class ArrayCacheByTimestamp(ArrayCache):
     def __init__(self, max_size=None):
-        super(ArrayCacheById, self).__init__(max_size)
+        super(ArrayCacheByTimestamp, self).__init__(max_size)
         self.hashmap = {}
 
     def __getattribute__(self, item):
-        methods = ArrayCacheById.__dict__
+        methods = ArrayCacheByTimestamp.__dict__
         if item in methods and hasattr(methods[item], '__get__'):
             # method calls
-            return methods[item].__get__(self, ArrayCacheById)
+            return methods[item].__get__(self, ArrayCacheByTimestamp)
         variables = object.__getattribute__(self, '__dict__')
         if item in variables:
             return variables[item]
-        return super(ArrayCacheById, self).__getattribute__(item)
+        return super(ArrayCacheByTimestamp, self).__getattribute__(item)
 
     def append(self, item):
-        if item['id'] in self.hashmap:
-            reference = self.hashmap[item['id']]
+        if item[0] in self.hashmap:
+            reference = self.hashmap[item[0]]
             if reference != item:
                 reference.clear()
                 reference.update(item)
         else:
-            self.hashmap[item['id']] = item
+            self.hashmap[item[0]] = item
             if len(self._deque) == self._deque.maxlen:
                 delete_reference = self._deque.popleft()
-                del self.hashmap[delete_reference['id']]
+                del self.hashmap[delete_reference[0]]
             self._deque.append(item)
 
 
-class ArrayCacheBySymbolById(ArrayCacheById):
+class ArrayCacheBySymbolById(ArrayCacheByTimestamp):
 
     def append(self, item):
         by_id = self._index.setdefault(item['symbol'], {})

@@ -2,7 +2,7 @@
 
 namespace ccxtpro;
 
-class ArrayCacheBySymbolById extends ArrayCacheById {
+class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
 
     public function append($item) {
         if (array_key_exists($item['symbol'], $this->hashmap)) {
