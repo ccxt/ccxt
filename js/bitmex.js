@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError, ExchangeError, RateLimitExceeded } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheById, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -754,7 +754,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         if (dataLength > 0) {
             if (this.orders === undefined) {
                 const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                this.orders = new ArrayCacheById (limit);
+                this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
             const symbols = {};

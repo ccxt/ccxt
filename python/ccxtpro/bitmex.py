@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache, ArrayCacheById, ArrayCacheBySymbolById
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import RateLimitExceeded
@@ -738,7 +738,7 @@ class bitmex(Exchange, ccxt.bitmex):
         if dataLength > 0:
             if self.orders is None:
                 limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-                self.orders = ArrayCacheById(limit)
+                self.orders = ArrayCacheBySymbolById(limit)
             stored = self.orders
             symbols = {}
             for i in range(0, dataLength):

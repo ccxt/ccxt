@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { BadSymbol, BadRequest, ExchangeError, NotSupported } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheById } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -190,15 +190,10 @@ module.exports = class kraken extends ccxt.kraken {
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCache (limit);
+                stored = new ArrayCacheByTimestamp (limit);
                 this.ohlcvs[symbol][timeframe] = stored;
             }
-            const length = stored.length;
-            if (length && result[0] === stored[length - 1][0]) {
-                stored[length - 1] = result;
-            } else {
-                stored.append (result);
-            }
+            stored.append (result);
             client.resolve (stored, messageHash);
         }
     }
@@ -727,7 +722,7 @@ module.exports = class kraken extends ccxt.kraken {
         if (allOrdersLength > 0) {
             if (this.orders === undefined) {
                 const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                this.orders = new ArrayCacheById (limit);
+                this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
             const symbols = {};
