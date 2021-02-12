@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -618,20 +618,14 @@ module.exports = class binance extends ccxt.binance {
             this.safeFloat (kline, 'v'),
         ];
         const symbol = this.safeSymbol (marketId);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-        if (stored === undefined) {
+        let ohlcvs = this.safeValue (this.ohlcvs, symbol);
+        if (ohlcvs === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCache (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            ohlcvs = new ArrayCacheByTimestamp (limit);
         }
-        const length = stored.length;
-        if (length && (parsed[0] === stored[length - 1][0])) {
-            stored[length - 1] = parsed;
-        } else {
-            stored.append (parsed);
-        }
-        client.resolve (stored, messageHash);
+        ohlcvs.append (parsed);
+        this.ohlcvs[symbol] = ohlcvs;
+        client.resolve (ohlcvs, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {

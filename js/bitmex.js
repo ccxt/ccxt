@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError, ExchangeError, RateLimitExceeded } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheById, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheById, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -1012,19 +1012,13 @@ module.exports = class bitmex extends ccxt.bitmex {
                 this.safeFloat (candle, 'close'),
                 this.safeFloat (candle, 'volume'),
             ];
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.ohlcvs, symbol);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCache (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                stored = new ArrayCacheByTimestamp (limit);
             }
-            const length = stored.length;
-            if (length && result[0] === stored[length - 1][0]) {
-                stored[length - 1] = result;
-            } else {
-                stored.append (result);
-            }
+            stored.append (result);
+            this.ohlcvs[symbol] = stored;
             results[messageHash] = stored;
         }
         const messageHashes = Object.keys (results);

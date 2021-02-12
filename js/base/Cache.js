@@ -24,10 +24,14 @@ class ArrayCache extends Array {
     }
 }
 
-class ArrayCacheById extends ArrayCache {
+class ArrayCacheByField extends ArrayCache {
 
-    constructor (maxSize = undefined) {
+    constructor (field, maxSize = undefined) {
         super (maxSize)
+        Object.defineProperty (this, 'field', {
+            __proto__: null, // make it invisible
+            value: field,
+        })
         Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
             value: {},
@@ -36,8 +40,8 @@ class ArrayCacheById extends ArrayCache {
     }
 
     append (item) {
-        if (item.id in this.hashmap) {
-            const reference = this.hashmap[item.id]
+        if (item[this.field] in this.hashmap) {
+            const reference = this.hashmap[item[this.field]]
             if (reference !== item) {
                 for (const prop in reference) {
                     delete reference[prop]
@@ -47,13 +51,38 @@ class ArrayCacheById extends ArrayCache {
                 }
             }
         } else {
-            this.hashmap[item.id] = item
+            this.hashmap[item[this.field]] = item
             if (this.maxSize && (this.length === this.maxSize)) {
                 const deleteReference = this.shift ()
-                delete this.hashmap[deleteReference.id]
+                delete this.hashmap[deleteReference[this.field]]
             }
             this.push (item)
         }
+    }
+}
+
+class ArrayCacheById extends ArrayCacheByField {
+
+    constructor (maxSize = undefined) {
+        super ('id', maxSize)
+        Object.defineProperty (this, 'hashmap', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+        })
+    }
+}
+
+class ArrayCacheByTimestamp extends ArrayCacheByField {
+
+    constructor (maxSize = undefined) {
+        // the timestamp in an ohlcv is the zeroth index
+        super (0, maxSize)
+        Object.defineProperty (this, 'hashmap', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+        })
     }
 }
 
@@ -85,5 +114,6 @@ class ArrayCacheBySymbolById extends ArrayCacheById {
 module.exports = {
     ArrayCache,
     ArrayCacheById,
+    ArrayCacheByTimestamp,
     ArrayCacheBySymbolById,
 }
