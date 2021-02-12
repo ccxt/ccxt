@@ -327,6 +327,7 @@ module.exports = class gateio extends ccxt.gateio {
             stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol] = stored;
         }
+        stored.append (parsed);
         // --------------------------------------------------------------------
         // this.ohlcvs[symbol][timeframe] = stored;
         // --------------------------------------------------------------------
