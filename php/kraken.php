@@ -731,7 +731,7 @@ class kraken extends \ccxt\async\kraken {
         if ($allOrdersLength > 0) {
             if ($this->orders === null) {
                 $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-                $this->orders = new ArrayCacheById ($limit);
+                $this->orders = new ArrayCacheBySymbolById ($limit);
             }
             $stored = $this->orders;
             $symbols = array();
