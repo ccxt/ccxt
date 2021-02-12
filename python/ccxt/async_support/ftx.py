@@ -1228,9 +1228,7 @@ class ftx(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {
-            'order_id': int(id),
-        }
+        request = {}
         # support for canceling conditional orders
         # https://github.com/ccxt/ccxt/issues/6669
         options = self.safe_value(self.options, 'cancelOrder', {})
