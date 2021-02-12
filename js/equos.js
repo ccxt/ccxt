@@ -774,17 +774,69 @@ module.exports = class equos extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request = {
+            // 'account': id, // for institutional users
+            // 'symbol': marketSymbol, // cannot be used with instrumentId
+            // 'instrumentId': market['numericId'],
+            // 'limit': limit,
+            // 'execType': execType, // 0 = New, 4 = Canceled, 5 = Replace, 8 = Rejected, C = Expired, F = Fill Status, I = Order Status
+            // 'ordStatus': ordStatus, // 0 = New, 1 = Partially filled, 2 = Filled, 4 = Cancelled, 8 = Rejected, C = Expired
+        };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['instrumentId'] = market['id'];
+            request['instrumentId'] = market['numericId'];
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const response = await this.privatePostGetOrders (this.extend (request, params));
-        const orders = this.parseOrders (this.safeValue (response, 'orders', []), market, since, limit, params);
-        return orders;
+        //
+        //     {
+        //         "isInitialSnap":false,
+        //         "orders":[
+        //             {
+        //                 "orderId":385613629,
+        //                 "orderUpdateSeq":1,
+        //                 "clOrdId":"1613037448945798198",
+        //                 "symbol":"ETH/USDC",
+        //                 "instrumentId":53,
+        //                 "side":"1",
+        //                 "userId":3583,
+        //                 "account":3583,
+        //                 "execType":"4",
+        //                 "ordType":"2",
+        //                 "ordStatus":"C",
+        //                 "timeInForce":"3",
+        //                 "timeStamp":"20210211-09:57:28.944",
+        //                 "execId":0,
+        //                 "targetStrategy":0,
+        //                 "isHidden":false,
+        //                 "isReduceOnly":false,
+        //                 "isLiquidation":false,
+        //                 "fee":0,
+        //                 "feeTotal":0,
+        //                 "fee_scale":0,
+        //                 "feeInstrumentId":0,
+        //                 "price":999,
+        //                 "price_scale":2,
+        //                 "quantity":10000000,
+        //                 "quantity_scale":6,
+        //                 "leavesQty":10000000,
+        //                 "leavesQty_scale":6,
+        //                 "cumQty":0,
+        //                 "cumQty_scale":0,
+        //                 "lastPx":0,
+        //                 "lastPx_scale":2,
+        //                 "avgPx":0,
+        //                 "avgPx_scale":0,
+        //                 "lastQty":0,
+        //                 "lastQty_scale":6
+        //             }
+        //         ]
+        //     }
+        //
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit, params);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
