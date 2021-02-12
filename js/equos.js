@@ -47,7 +47,7 @@ module.exports = class equos extends Exchange {
                 '7d': 7,
             },
             'urls': {
-                'logo': 'https://equos.io/assets/img/logo.svg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/107758499-05edd180-6d38-11eb-9e09-0b69602a7a15.jpg',
                 'test': {
                     'public': 'https://testnet.equos.io/api',
                     'private': 'https://testnet.equos.io/api',
