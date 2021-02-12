@@ -754,7 +754,7 @@ module.exports = class bitmex extends ccxt.bitmex {
         if (dataLength > 0) {
             if (this.orders === undefined) {
                 const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                this.orders = new ArrayCacheBySymbolId (limit);
+                this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
             const symbols = {};
