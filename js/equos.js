@@ -11,10 +11,9 @@ module.exports = class equos extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'equos',
-            'name': 'Equos',
+            'name': 'EQUOS',
             'countries': [ 'US', 'SG' ], // United States, Singapore
             'rateLimit': 10,
-            'certified': false,
             'has': {
                 'CORS': false,
                 'cancelOrder': true,
@@ -62,6 +61,7 @@ module.exports = class equos extends Exchange {
                 'doc': [
                     'https://developer.equos.io',
                 ],
+                'referral': 'https://equos.io?referredByCode=zpa8kij4ouvBFup3',
             },
             'api': {
                 'public': {
@@ -111,19 +111,6 @@ module.exports = class equos extends Exchange {
                 },
             },
         });
-    }
-
-    async loadMarkets (reload = false, params = {}) {
-        const markets = await super.loadMarkets (reload, params);
-        const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId');
-        if ((currenciesByNumericId === undefined) || reload) {
-            this.options['currenciesByNumericId'] = this.indexBy (this.currencies, 'numericId');
-        }
-        const marketsByNumericId = this.safeValue (this.options, 'marketsByNumericId');
-        if ((marketsByNumericId === undefined) || reload) {
-            this.options['marketsByNumericId'] = this.indexBy (this.markets, 'numericId');
-        }
-        return markets;
     }
 
     async fetchMarkets (params = {}) {
@@ -486,18 +473,41 @@ module.exports = class equos extends Exchange {
         //
         // private fetchMyTrades
         //
-        //     ...
+        //     {
+        //         "account":3583,
+        //         "commission":"-0.015805",
+        //         "commCurrency":"USDC",
+        //         "execId":265757,
+        //         "ordType":"2",
+        //         "ordStatus":"2",
+        //         "execType":"F",
+        //         "aggressorIndicator":true,
+        //         "orderId":388953019,
+        //         "price":"1842.04",
+        //         "qty":"0.010000",
+        //         "lastPx":"1756.22",
+        //         "avgPx":"1756.22",
+        //         "cumQty":"0.010000",
+        //         "quoteQty":"0.010000",
+        //         "side":"BUY",
+        //         "symbol":"ETH/USDC",
+        //         "clOrdId":"1613106766970339107",
+        //         "submitterId":3583,
+        //         "targetStrategy":"0",
+        //         "time":1613106766971,
+        //         "date":"20210212-05:12:46.971"
+        //     }
         //
         let id = undefined;
         let timestamp = undefined;
         let orderId = undefined;
         let type = undefined;
         let side = undefined;
-        let takerOrMaker = undefined;
         let price = undefined;
         let amount = undefined;
         let cost = undefined;
         let fee = undefined;
+        let symbol = undefined;
         if (Array.isArray (trade)) {
             id = this.safeString (trade, 3);
             price = this.convertFromScale (this.safeInteger (trade, 0), market['precision']['price']);
@@ -510,30 +520,29 @@ module.exports = class equos extends Exchange {
                 side = 'sell';
             }
         } else {
-            id = this.safeString (trade, 'id');
+            id = this.safeString (trade, 'execId');
             timestamp = this.safeInteger (trade, 'time');
             const marketId = this.safeString (trade, 'symbol');
-            market = this.safeMarket (marketId, market, '/');
+            symbol = this.safeSymbol (marketId, market);
             orderId = this.safeString (trade, 'orderId');
             side = this.safeStringLower (trade, 'side');
             type = this.parseOrderType (this.safeString (trade, 'ordType'));
-            const isMaker = this.safeValue (trade, 'maker');
-            if (isMaker === true) {
-                takerOrMaker = 'maker';
-            } else {
-                takerOrMaker = 'taker';
+            price = this.safeFloat (trade, 'lastPx');
+            amount = this.safeFloat (trade, 'quoteQty');
+            let feeCost = this.safeFloat (trade, 'commission');
+            if (feeCost !== undefined) {
+                feeCost = -feeCost;
+                const feeCurrencyId = this.safeString (trade, 'commCurrency');
+                const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrencyCode,
+                };
             }
-            price = this.safeFloat (trade, 'price');
-            amount = this.safeFloat (trade, 'qty');
-            const feeCost = this.safeFloat (trade, 'commission');
-            const feeCurrency = this.safeString (trade, 'commissionAsset');
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-                'rate': undefined,
-            };
         }
-        const symbol = market ? market['symbol'] : undefined;
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         if (cost === undefined) {
             if ((amount !== undefined) && (price !== undefined)) {
                 cost = amount * price;
@@ -548,7 +557,7 @@ module.exports = class equos extends Exchange {
             'order': orderId,
             'type': type,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -1221,10 +1230,6 @@ module.exports = class equos extends Exchange {
         return this.parseLedger (positions, undefined, since, limit);
     }
 
-    nonce () {
-        return this.milliseconds ();
-    }
-
     parseOrder (order, market = undefined) {
         //
         // createOrder, editOrder, cancelOrder
@@ -1375,47 +1380,6 @@ module.exports = class equos extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
-    }
-
-    parseTicker (ticker, market = undefined) {
-        let timestamp = undefined;
-        let datetime = undefined;
-        let open = undefined;
-        let high = undefined;
-        let low = undefined;
-        let close = undefined;
-        // let volume = undefined;
-        if (ticker !== undefined) {
-            timestamp = ticker[0];
-            datetime = this.iso8601 (timestamp);
-            open = this.convertFromScale (ticker[1], market['precision']['price']);
-            high = this.convertFromScale (ticker[2], market['precision']['price']);
-            low = this.convertFromScale (ticker[3], market['precision']['price']);
-            close = this.convertFromScale (ticker[4], market['precision']['price']);
-            // volume = this.convertToScale (chart[5], market['precision']['amount'])
-        }
-        return {
-            'symbol': market['symbol'],
-            'timestamp': timestamp,
-            'datetime': datetime,
-            'bid': undefined,
-            'ask': undefined,
-            'last': close,
-            'high': high,
-            'low': low,
-            'bidVolume': undefined,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': open,
-            'close': close,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
-            'info': ticker,
         };
     }
 
@@ -1580,6 +1544,10 @@ module.exports = class equos extends Exchange {
             return undefined;
         }
         return parseInt (this.toWei (number, scale));
+    }
+
+    nonce () {
+        return this.milliseconds ();
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
