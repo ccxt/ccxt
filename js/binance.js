@@ -619,14 +619,14 @@ module.exports = class binance extends ccxt.binance {
         ];
         const symbol = this.safeSymbol (marketId);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let ohlcvs = this.safeValue (this.ohlcvs[symbol], timeframe);
-        if (ohlcvs === undefined) {
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            ohlcvs = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = ohlcvs;
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
         }
-        ohlcvs.append (parsed);
-        client.resolve (ohlcvs, messageHash);
+        stored.append (parsed);
+        client.resolve (stored, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
