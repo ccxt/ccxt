@@ -1090,15 +1090,39 @@ module.exports = class equos extends Exchange {
         //         "transactionId":"caba4500-489f-424e-abd7-b4dabc09a800"
         //     }
         //
-        const id = this.safeString (transaction, 'id');
-        const txid = this.safeString (transaction, 'transactionId');
+        // withdraw
+        //
+        //     {
+        //         "instrumentId": 1,
+        //         "userId": 23750,
+        //         "symbol": "USDC",
+        //         "timestamp": "20200201-05:37:16.584",
+        //         "status": 1,
+        //         "userUuid": "b9e33713-c28f-468f-99bd-f6deab0dd854",
+        //         "currencyCode": "USDC",
+        //         "address": "2MvW97yT6E2Kq8bWc1aj1DqfbgMzjRNk2LE",
+        //         "quantity": 20,
+        //         "requestUuid": "56782b34-8a78-4f5f-b164-4b8f7d583b7f",
+        //         "transactionUuid": "1004eb0f-41e1-41e9-9d48-8eefcc6c09f2",
+        //         "transactionId": "WS23436",
+        //         "destinationWalletAlias": "Test",
+        //         "quantity_scale": 0
+        //     }
+        //
+        const id = this.safeString (transaction, 'id', 'transactionId');
+        const txid = this.safeString (transaction, 'transactionUuid');
         const timestamp = this.safeInteger (transaction, 'timestamp');
         let address = this.safeString (transaction, 'address');
         if (address === 'null') {
             address = undefined;
         }
         const type = this.safeString (transaction, 'type');
-        const amount = this.safeFloat (transaction, 'balance_change');
+        let amount = this.safeFloat (transaction, 'balance_change');
+        if (amount === undefined) {
+            amount = this.safeInteger (transaction, 'quantity');
+            const amountScale = this.safeInteger (transaction, 'quantity_scale');
+            amount = this.convertFromScale (amount, amountScale);
+        }
         const currencyId = this.safeString (transaction, 'symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
@@ -1138,21 +1162,33 @@ module.exports = class equos extends Exchange {
         const currency = this.currency (code);
         const scale = this.getScale (amount);
         const quantity = this.convertToScale (amount, scale);
-        const instrumentId = parseInt (currency['id']);
-        const symbol = currency['code'];
         const request = {
-            'instrumentId': instrumentId,
-            'symbol': symbol,
+            'instrumentId': parseInt (currency['id']),
+            'symbol': currency['uppercaseId'],
             'quantity': quantity,
             'quantity_scale': scale,
             'address': address,
         };
-        // sendWithdrawRequest
         const response = await this.privatePostSendWithdrawRequest (this.extend (request, params));
-        return {
-            'info': response,
-            'id': undefined,
-        };
+        //
+        //     {
+        //         "instrumentId": 1,
+        //         "userId": 23750,
+        //         "symbol": "USDC",
+        //         "timestamp": "20200201-05:37:16.584",
+        //         "status": 1,
+        //         "userUuid": "b9e33713-c28f-468f-99bd-f6deab0dd854",
+        //         "currencyCode": "USDC",
+        //         "address": "2MvW97yT6E2Kq8bWc1aj1DqfbgMzjRNk2LE",
+        //         "quantity": 20,
+        //         "requestUuid": "56782b34-8a78-4f5f-b164-4b8f7d583b7f",
+        //         "transactionUuid": "1004eb0f-41e1-41e9-9d48-8eefcc6c09f2",
+        //         "transactionId": "WS23436",
+        //         "destinationWalletAlias": "Test",
+        //         "quantity_scale": 0
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     async fetchTradingFees (params = {}) {
