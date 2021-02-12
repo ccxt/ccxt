@@ -203,8 +203,8 @@ module.exports = class equos extends Exchange {
         //         "issueDate":1598608087000
         //     }
         //
-        const id = this.safeString (market, 'symbol');
-        const numericId = this.safeInteger (market, 'instrumentId');
+        const id = this.safeString (market, 'instrumentId');
+        const uppercaseId = this.safeInteger (market, 'symbol');
         const assetType = this.safeString (market, 'assetType');
         const spot = (assetType === 'PAIR');
         const swap = (assetType === 'PERPETUAL_SWAP');
@@ -222,7 +222,7 @@ module.exports = class equos extends Exchange {
         };
         return {
             'id': id,
-            'numericId': numericId,
+            'uppercaseId': uppercaseId,
             'symbol': symbol,
             'base': base,
             'quote': quote,
@@ -292,9 +292,9 @@ module.exports = class equos extends Exchange {
         //         true,  // 7 withdrawal_pct
         //     ],
         //
-        const numericId = this.safeInteger (currency, 0);
-        const id = this.safeString (currency, 1);
-        const code = this.safeCurrencyCode (id);
+        const id = this.safeString (currency, 0);
+        const uppercaseId = this.safeString (currency, 1);
+        const code = this.safeCurrencyCode (uppercaseId);
         const priceScale = this.safeInteger (currency, 2);
         const amountScale = this.safeInteger (currency, 3);
         const precision = Math.max (priceScale, amountScale);
@@ -305,7 +305,7 @@ module.exports = class equos extends Exchange {
         return {
             'id': id,
             'info': currency,
-            'numericId': numericId,
+            'uppercaseId': uppercaseId,
             'code': code,
             'name': name,
             'precision': precision,
@@ -336,7 +336,7 @@ module.exports = class equos extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pairId': market['numericId'],
+            'pairId': parseInt (market['id']),
             'timespan': this.timeframes[timeframe],
         };
         if (limit !== undefined) {
@@ -426,12 +426,8 @@ module.exports = class equos extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pairId': market['numericId'],
+            'pairId': parseInt (market['id']),
         };
-        // // apply limit though does not work with API
-        // if (limit !== undefined) {
-        //     request = this.extend ({ 'limit': limit }, request);
-        // }
         const response = await this.publicGetGetOrderBook (this.extend (request, params));
         //
         //     {
@@ -460,7 +456,7 @@ module.exports = class equos extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pairId': market['numericId'],
+            'pairId': parseInt (market['id']),
         };
         const response = await this.publicGetGetTradeHistory (this.extend (request, params));
         //
@@ -615,8 +611,8 @@ module.exports = class equos extends Exchange {
         const request = {
             // 'id': 0,
             // 'account': 0, // required for institutional users
-            'instrumentId': market['numericId'],
-            'symbol': market['id'],
+            'instrumentId': parseInt (market['id']),
+            'symbol': market['uppercaseId'],
             // 'clOrdId': '',
             'side': orderSide, // 1 = buy, 2 = sell
             // 'ordType': 1, // 1 = market, 2 = limit, 3 = stop market, 4 = stop limit
@@ -703,7 +699,7 @@ module.exports = class equos extends Exchange {
             'id': 0,
             'origOrderId': this.safeValue (orgOrder, 'info'),
             'clOrdId': this.safeValue (orgOrder, 'clOrdId'),
-            'instrumentId': market['id'],
+            'instrumentId': parseInt (market['id']),
             'symbol': market['symbol'],
             'side': requestSide,
             'ordType': ordType,
@@ -727,7 +723,7 @@ module.exports = class equos extends Exchange {
         const market = this.market (symbol);
         const request = {
             'origOrderId': parseInt (id),
-            'instrumentId': market['numericId'],
+            'instrumentId': parseInt (market['id']),
         };
         const response = await this.privatePostCancelOrder (this.extend (request, params));
         //
@@ -762,15 +758,11 @@ module.exports = class equos extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
-        const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        request['orderId'] = id;
+        const request = {
+            'orderId': parseInt (id),
+        };
         const response = await this.privatePostGetOrderStatus (this.extend (request, params));
-        const order = this.parseOrder (response, market);
-        return order;
+        return this.parseOrder (response);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -800,7 +792,7 @@ module.exports = class equos extends Exchange {
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['instrumentId'] = market['numericId'];
+            request['instrumentId'] = parseInt (market['id']);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -874,7 +866,7 @@ module.exports = class equos extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'instrumentId': currency['numericId'],
+            'instrumentId': parseInt (currency['id']),
         };
         const response = await this.privatePostGetDepositAddresses (this.extend (request, params));
         //
@@ -900,8 +892,7 @@ module.exports = class equos extends Exchange {
         //     }
         //
         const currencyId = this.safeString (depositAddress, 'symbol');
-        currency = this.safeCurrency (currencyId, currency);
-        const code = currency['code'];
+        const code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
         return {
@@ -918,7 +909,7 @@ module.exports = class equos extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['instrumentId'] = currency['numericId'];
+            request['instrumentId'] = parseInt (currency['id']);
         }
         const response = await this.privatePostGetDepositHistory (this.extend (request, params));
         //
@@ -950,7 +941,7 @@ module.exports = class equos extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['instrumentId'] = currency['numericId'];
+            request['instrumentId'] = parseInt (currency['id']);
         }
         const response = await this.privatePostGetWithdrawRequests (this.extend (request, params));
         //
@@ -1004,8 +995,7 @@ module.exports = class equos extends Exchange {
         const type = this.safeString (transaction, 'type');
         const amount = this.safeFloat (transaction, 'balance_change');
         const currencyId = this.safeString (transaction, 'symbol');
-        currency = this.safeCurrency (currencyId, currency);
-        const code = currency['code'];
+        const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         return {
             'info': transaction,
@@ -1043,7 +1033,7 @@ module.exports = class equos extends Exchange {
         const currency = this.currency (code);
         const scale = this.getScale (amount);
         const quantity = this.convertToScale (amount, scale);
-        const instrumentId = currency['id'];
+        const instrumentId = parseInt (currency['id']);
         const symbol = currency['code'];
         const request = {
             'instrumentId': instrumentId,
@@ -1123,7 +1113,7 @@ module.exports = class equos extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['instrumentId'] = currency['id'];
+            request['instrumentId'] = parseInt (currency['id']);
         }
         const _format = {};
         _format['format'] = 'json';
@@ -1154,7 +1144,7 @@ module.exports = class equos extends Exchange {
         //         "ordType":2
         //     }
         //
-        // fetchOrders
+        // fetchOrders, fetchOrder
         //
         //     {
         //         "orderId":385613629,
@@ -1240,11 +1230,11 @@ module.exports = class equos extends Exchange {
             'cost': feeTotal,
             'rate': undefined,
         };
-        const id = this.safeString2 (order, 'origOrderId', 'id');
+        let id = this.safeString2 (order, 'origOrderId', 'id');
+        id = this.safeString (order, 'orderId', id);
         const clientOrderId = this.safeString (order, 'clOrdId');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
         const side = this.parseOrderSide (this.safeString (order, 'side'));
-        const trades = this.parseTrades (this.safeValue (order, 'trades', []));
         let timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         if (timeInForce === '0') {
             timeInForce = undefined;
@@ -1272,7 +1262,7 @@ module.exports = class equos extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
-            'trades': trades,
+            'trades': undefined,
         };
     }
 
