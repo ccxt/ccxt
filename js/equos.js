@@ -1334,7 +1334,7 @@ module.exports = class equos extends Exchange {
             'C': 'expired',
             'D': 'open', // 'accepted for bidding',
             'E': 'canceling', // 'pending replace',
-            'F': 'open', // (partial fill or fill)
+            'F': 'open', // 'partial fill or fill',
         };
         return this.safeString (statuses, status, status);
     }
