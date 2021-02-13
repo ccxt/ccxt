@@ -99,6 +99,8 @@ class coinex(Exchange):
                         'order/status',
                         'order/status/batch',
                         'order/user/deals',
+                        'sub_account/balance',
+                        'sub_account/transfer/history',
                     ],
                     'post': [
                         'balance/coin/withdraw',
