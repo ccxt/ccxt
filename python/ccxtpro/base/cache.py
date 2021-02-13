@@ -53,10 +53,11 @@ class ArrayCacheByTimestamp(ArrayCache):
         self.hashmap = {}
 
     def __getattribute__(self, item):
-        methods = ArrayCacheByTimestamp.__dict__
+        cls = type(self)
+        methods = cls.__dict__
         if item in methods and hasattr(methods[item], '__get__'):
             # method calls
-            return methods[item].__get__(self, ArrayCacheByTimestamp)
+            return methods[item].__get__(self, cls)
         variables = object.__getattribute__(self, '__dict__')
         if item in variables:
             return variables[item]
@@ -67,7 +68,7 @@ class ArrayCacheByTimestamp(ArrayCache):
             reference = self.hashmap[item[0]]
             if reference != item:
                 reference.clear()
-                reference.update(item)
+                reference.extend(item)
         else:
             self.hashmap[item[0]] = item
             if len(self._deque) == self._deque.maxlen:
@@ -79,7 +80,7 @@ class ArrayCacheByTimestamp(ArrayCache):
 class ArrayCacheBySymbolById(ArrayCacheByTimestamp):
 
     def append(self, item):
-        by_id = self._index.setdefault(item['symbol'], {})
+        by_id = self.hashmap.setdefault(item['symbol'], {})
         if item['id'] in by_id:
             reference = by_id[item['id']]
             if reference != item:
