@@ -1056,7 +1056,7 @@ module.exports = class wavesexchange extends Exchange {
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

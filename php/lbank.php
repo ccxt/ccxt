@@ -360,10 +360,10 @@ class lbank extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($since === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a `$since` argument');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a `$since` argument');
         }
         if ($limit === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a `$limit` argument');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a `$limit` argument');
         }
         $request = array(
             'symbol' => $market['id'],

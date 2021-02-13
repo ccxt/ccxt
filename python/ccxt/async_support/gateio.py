@@ -703,7 +703,7 @@ class gateio(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires symbol argument')
         await self.load_markets()
         request = {
             'orderNumber': id,
@@ -723,12 +723,12 @@ class gateio(Exchange):
         tag = None
         if (address is not None) and (address.find('address') >= 0):
             raise InvalidAddress(self.id + ' queryDepositAddress ' + address)
-        if code == 'XRP':
+        if (code == 'XRP') or (code == 'HBAR') or (code == 'STEEM') or (code == 'XLM'):
             parts = address.split(' ')
             address = parts[0]
             tag = parts[1]
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
@@ -750,7 +750,7 @@ class gateio(Exchange):
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -762,7 +762,7 @@ class gateio(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {

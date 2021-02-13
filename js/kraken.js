@@ -996,7 +996,7 @@ module.exports = class kraken extends Exchange {
                 request['price'] = this.priceToPrecision (symbol, stopPrice);
                 request['price2'] = this.priceToPrecision (symbol, limitPrice);
             } else if ((price === undefined) || (!(stopPriceDefined || limitPriceDefined))) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order');
             } else {
                 if (stopPriceDefined) {
                     request['price'] = this.priceToPrecision (symbol, stopPrice);
@@ -1250,7 +1250,7 @@ module.exports = class kraken extends Exchange {
         const orderTrades = this.safeValue (params, 'trades');
         const tradeIds = [];
         if (orderTrades === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrderTrades requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)");
+            throw new ArgumentsRequired (this.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)");
         } else {
             for (let i = 0; i < orderTrades.length; i++) {
                 const orderTrade = orderTrades[i];
@@ -1570,7 +1570,7 @@ module.exports = class kraken extends Exchange {
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         // https://www.kraken.com/en-us/help/api#deposit-status
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1613,7 +1613,7 @@ module.exports = class kraken extends Exchange {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         // https://www.kraken.com/en-us/help/api#withdraw-status
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1704,7 +1704,7 @@ module.exports = class kraken extends Exchange {
                 'id': response['result'],
             };
         }
-        throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
+        throw new ExchangeError (this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
     async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {

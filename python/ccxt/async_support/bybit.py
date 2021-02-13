@@ -299,7 +299,7 @@ class bybit(Exchange):
                 },
                 'code': 'BTC',
                 'cancelAllOrders': {
-                    'method': 'v2PrivatePostOrderCancelAll',  # v2PrivatePostStopOrderCancelAll
+                    # 'method': 'v2PrivatePostOrderCancelAll',  # v2PrivatePostStopOrderCancelAll
                 },
                 'recvWindow': 5 * 1000,  # 5 sec default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
@@ -662,7 +662,7 @@ class bybit(Exchange):
         now = self.seconds()
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument or a limit argument')
+                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
             else:
                 request['from'] = now - limit * duration
         else:
@@ -1141,7 +1141,7 @@ class bybit(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1270,7 +1270,7 @@ class bybit(Exchange):
             if price is not None:
                 request['price'] = float(self.price_to_precision(symbol, price))
             else:
-                raise ArgumentsRequired(self.id + ' createOrder requires a price argument for a ' + type + ' order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
         clientOrderId = self.safe_string_2(params, 'order_link_id', 'clientOrderId')
         if clientOrderId is not None:
             request['order_link_id'] = clientOrderId
@@ -1286,14 +1286,14 @@ class bybit(Exchange):
             request['close_on_trigger'] = False
         if stopPx is not None:
             if basePrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order')
             else:
                 method = 'privateLinearPostStopOrderCreate' if (marketType == 'linear') else 'v2PrivatePostStopOrderCreate'
                 request['stop_px'] = float(self.price_to_precision(symbol, stopPx))
                 request['base_price'] = float(self.price_to_precision(symbol, basePrice))
                 params = self.omit(params, ['stop_px', 'stopPrice', 'base_price'])
         elif basePrice is not None:
-            raise ArgumentsRequired(self.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order')
+            raise ArgumentsRequired(self.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order')
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1377,7 +1377,7 @@ class bybit(Exchange):
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires an symbol argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires an symbol argument')
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
         marketType = self.safe_string(marketTypes, symbol)
         await self.load_markets()
@@ -1446,7 +1446,7 @@ class bybit(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1473,13 +1473,13 @@ class bybit(Exchange):
 
     async def cancel_all_orders(self, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        options = self.safe_value(self.options, 'cancelAllOrders')
+        options = self.safe_value(self.options, 'cancelAllOrders', {})
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
         marketType = self.safe_string(marketTypes, symbol)
         defaultMethod = 'privateLinearPostOrderCancelAll' if (marketType == 'linear') else 'v2PrivatePostOrderCancelAll'
@@ -1677,7 +1677,7 @@ class bybit(Exchange):
         if symbol is None:
             orderId = self.safe_string(params, 'order_id')
             if orderId is None:
-                raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument or an order_id param')
+                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument or an order_id param')
             else:
                 request['order_id'] = orderId
                 params = self.omit(params, 'order_id')

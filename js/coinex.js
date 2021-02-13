@@ -92,6 +92,8 @@ module.exports = class coinex extends Exchange {
                         'order/status',
                         'order/status/batch',
                         'order/user/deals',
+                        'sub_account/balance',
+                        'sub_account/transfer/history',
                     ],
                     'post': [
                         'balance/coin/withdraw',
@@ -563,7 +565,7 @@ module.exports = class coinex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -792,7 +794,7 @@ module.exports = class coinex extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -850,7 +852,7 @@ module.exports = class coinex extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);

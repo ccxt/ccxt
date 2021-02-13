@@ -289,7 +289,7 @@ module.exports = class bybit extends Exchange {
                 },
                 'code': 'BTC',
                 'cancelAllOrders': {
-                    'method': 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
+                    // 'method': 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
                 },
                 'recvWindow': 5 * 1000, // 5 sec default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -668,7 +668,7 @@ module.exports = class bybit extends Exchange {
         const now = this.seconds ();
         if (since === undefined) {
             if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument or a limit argument');
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
             } else {
                 request['from'] = now - limit * duration;
             }
@@ -1181,7 +1181,7 @@ module.exports = class bybit extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1316,7 +1316,7 @@ module.exports = class bybit extends Exchange {
             if (price !== undefined) {
                 request['price'] = parseFloat (this.priceToPrecision (symbol, price));
             } else {
-                throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a ' + type + ' order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
         }
         const clientOrderId = this.safeString2 (params, 'order_link_id', 'clientOrderId');
@@ -1336,7 +1336,7 @@ module.exports = class bybit extends Exchange {
         }
         if (stopPx !== undefined) {
             if (basePrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
             } else {
                 method = (marketType === 'linear') ? 'privateLinearPostStopOrderCreate' : 'v2PrivatePostStopOrderCreate';
                 request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
@@ -1344,7 +1344,7 @@ module.exports = class bybit extends Exchange {
                 params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price' ]);
             }
         } else if (basePrice !== undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires both the stop_px and base_price params for a conditional ' + type + ' order');
+            throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1430,7 +1430,7 @@ module.exports = class bybit extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder requires an symbol argument');
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an symbol argument');
         }
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol);
@@ -1505,7 +1505,7 @@ module.exports = class bybit extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1536,14 +1536,14 @@ module.exports = class bybit extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const options = this.safeValue (this.options, 'cancelAllOrders');
+        const options = this.safeValue (this.options, 'cancelAllOrders', {});
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol);
         const defaultMethod = (marketType === 'linear') ? 'privateLinearPostOrderCancelAll' : 'v2PrivatePostOrderCancelAll';
@@ -1755,7 +1755,7 @@ module.exports = class bybit extends Exchange {
         if (symbol === undefined) {
             const orderId = this.safeString (params, 'order_id');
             if (orderId === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument or an order_id param');
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument or an order_id param');
             } else {
                 request['order_id'] = orderId;
                 params = this.omit (params, 'order_id');

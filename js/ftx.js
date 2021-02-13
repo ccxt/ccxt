@@ -14,7 +14,7 @@ module.exports = class ftx extends Exchange {
             'id': 'ftx',
             'name': 'FTX',
             'countries': [ 'HK' ],
-            'rateLimit': 100,
+            'rateLimit': 50,
             'certified': true,
             'pro': true,
             'hostname': 'ftx.com', // or ftx.us
@@ -219,6 +219,7 @@ module.exports = class ftx extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'Please slow down': RateLimitExceeded, // {"error":"Please slow down","success":false}
                     'Size too small for provide': InvalidOrder, // {"error":"Size too small for provide","success":false}
                     'Not logged in': AuthenticationError, // {"error":"Not logged in","success":false}
                     'Not enough balances': InsufficientFunds, // {"error":"Not enough balances","success":false}
@@ -1193,12 +1194,12 @@ module.exports = class ftx extends Exchange {
             }
         } else {
             if (clientOrderId === undefined) {
+                method = 'privatePostOrdersOrderIdModify';
+                request['order_id'] = id;
+            } else {
                 method = 'privatePostOrdersByClientIdClientOrderIdModify';
                 request['client_order_id'] = clientOrderId;
                 // request['clientId'] = clientOrderId;
-            } else {
-                method = 'privatePostOrdersOrderIdModify';
-                request['order_id'] = id;
             }
             if (price !== undefined) {
                 request['price'] = parseFloat (this.priceToPrecision (symbol, price));
@@ -1264,9 +1265,7 @@ module.exports = class ftx extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'order_id': parseInt (id),
-        };
+        const request = {};
         // support for canceling conditional orders
         // https://github.com/ccxt/ccxt/issues/6669
         const options = this.safeValue (this.options, 'cancelOrder', {});
@@ -1666,12 +1665,12 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         //     {
-        //         'coin': 'USD',
-        //         'id': '503722',
-        //         'notes': 'Transfer',
-        //         'size': '3.35',
-        //         'status': 'complete',
-        //         'time': '2020-10-06T03:20:34.201556+00:00',
+        //         "coin": 'BTC',
+        //         "id": 1969806,
+        //         "notes": 'Transfer to Dd6gi7m2Eg4zzBbPAxuwfEaHs6tYvyUX5hbPpsTcNPXo',
+        //         "size": 0.003,
+        //         "status": 'complete',
+        //         "time": '2021-02-03T20:28:54.918146+00:00'
         //     }
         //
         const code = this.safeCurrencyCode (this.safeString (transaction, 'coin'));
@@ -1685,6 +1684,13 @@ module.exports = class ftx extends Exchange {
         if (typeof address !== 'string') {
             tag = this.safeString (address, 'tag');
             address = this.safeString (address, 'address');
+        }
+        if (address === undefined) {
+            // parse address from internal transfer
+            const notes = this.safeString (transaction, 'notes');
+            if (notes !== undefined) {
+                address = notes.slice (12);
+            }
         }
         const fee = this.safeFloat (transaction, 'fee');
         return {

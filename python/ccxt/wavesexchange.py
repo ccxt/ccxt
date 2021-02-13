@@ -1003,7 +1003,7 @@ class wavesexchange(Exchange):
         self.check_required_dependencies()
         self.check_required_keys()
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires symbol argument')
         self.load_markets()
         market = self.market(symbol)
         timestamp = self.milliseconds()

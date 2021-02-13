@@ -67,6 +67,7 @@ const coins = [
     'USD',
     'USDC',
     'USDT',
+    'BUSD',
     'XRP',
 ]
 

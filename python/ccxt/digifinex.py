@@ -504,7 +504,7 @@ class digifinex(Exchange):
     def fetch_tickers(self, symbols=None, params={}):
         apiKey = self.safe_value(params, 'apiKey', self.apiKey)
         if not apiKey:
-            raise ArgumentsRequired(self.id + ' fetchTicker is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter')
+            raise ArgumentsRequired(self.id + ' fetchTickers() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter')
         self.load_markets()
         request = {
             'apiKey': apiKey,
@@ -547,7 +547,7 @@ class digifinex(Exchange):
     def fetch_ticker(self, symbol, params={}):
         apiKey = self.safe_value(params, 'apiKey', self.apiKey)
         if not apiKey:
-            raise ArgumentsRequired(self.id + ' fetchTicker is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter')
+            raise ArgumentsRequired(self.id + ' fetchTicker() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter')
         self.load_markets()
         market = self.market(symbol)
         # reversed base/quote in v2

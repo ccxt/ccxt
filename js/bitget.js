@@ -1704,7 +1704,7 @@ module.exports = class bitget extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " requires an 'accountId' parameter");
+            throw new ArgumentsRequired (this.id + " getAccountId() requires an 'accountId' parameter");
         }
         const account = await this.findAccountByType (type);
         return account['id'];
@@ -1716,7 +1716,7 @@ module.exports = class bitget extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchBalance requires a 'type' parameter, one of 'spot', 'swap'");
+            throw new ArgumentsRequired (this.id + " fetchBalance() requires a 'type' parameter, one of 'spot', 'swap'");
         }
         let method = undefined;
         const query = this.omit (params, 'type');
@@ -2043,7 +2043,7 @@ module.exports = class bitget extends Exchange {
             request['client_oid'] = clientOrderId;
             const orderType = this.safeString (params, 'type');
             if (orderType === undefined) {
-                throw new ArgumentsRequired (this.id + " createOrder requires a type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " + market['type'] + ' orders');
+                throw new ArgumentsRequired (this.id + " createOrder() requires a type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " + market['type'] + ' orders');
             }
             request['size'] = this.amountToPrecision (symbol, amount);
             request['type'] = orderType;
@@ -2085,7 +2085,7 @@ module.exports = class bitget extends Exchange {
             const type = this.safeString (params, 'type', defaultType);
             if (type === 'spot') {
                 if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument for spot orders');
+                    throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for spot orders');
                 }
             }
         } else {
@@ -2126,14 +2126,15 @@ module.exports = class bitget extends Exchange {
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = this.safeString (params, 'type', market['type']);
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " cancelOrders requires a type parameter (one of 'spot', 'swap').");
+            throw new ArgumentsRequired (this.id + " cancelOrders() requires a type parameter (one of 'spot', 'swap').");
         }
+        params = this.omit (params, 'type');
         const request = {};
         let method = undefined;
         if (type === 'spot') {
@@ -2190,13 +2191,13 @@ module.exports = class bitget extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = this.safeString (params, 'type', market['type']);
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrder requires a type parameter (one of 'spot', 'swap').");
+            throw new ArgumentsRequired (this.id + " fetchOrder() requires a type parameter (one of 'spot', 'swap').");
         }
         let method = undefined;
         const request = {};
@@ -2267,7 +2268,7 @@ module.exports = class bitget extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2352,7 +2353,7 @@ module.exports = class bitget extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2444,7 +2445,7 @@ module.exports = class bitget extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2481,7 +2482,7 @@ module.exports = class bitget extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2604,14 +2605,14 @@ module.exports = class bitget extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = this.safeString (params, 'type', market['type']);
         const query = this.omit (params, 'type');
         if (type === 'swap') {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades is not supported for ' + type + ' type');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() is not supported for ' + type + ' type');
         }
         //
         // spot
@@ -2668,12 +2669,12 @@ module.exports = class bitget extends Exchange {
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = this.safeString (params, 'type', market['type']);
-        const query = this.omit (params, 'type');
+        params = this.omit (params, 'type');
         let method = undefined;
         const request = {};
         if (type === 'spot') {
@@ -2685,7 +2686,7 @@ module.exports = class bitget extends Exchange {
             request['symbol'] = market['id'];
             method = 'swapGetOrderFills';
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //

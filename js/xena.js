@@ -1018,14 +1018,14 @@ module.exports = class xena extends Exchange {
         };
         if ((type === 'limit') || (type === 'stop-limit')) {
             if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder requires a price argument for order type ' + type);
+                throw new InvalidOrder (this.id + ' createOrder() requires a price argument for order type ' + type);
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if ((type === 'stop') || (type === 'stop-limit')) {
             const stopPx = this.safeFloat (params, 'stopPx');
             if (stopPx === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder requires a stopPx param for order type ' + type);
+                throw new InvalidOrder (this.id + ' createOrder() requires a stopPx param for order type ' + type);
             }
             request['stopPx'] = this.priceToPrecision (symbol, stopPx);
             params = this.omit (params, 'stopPx');
@@ -1063,7 +1063,7 @@ module.exports = class xena extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1118,7 +1118,7 @@ module.exports = class xena extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();

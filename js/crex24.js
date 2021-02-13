@@ -759,14 +759,14 @@ module.exports = class crex24 extends Exchange {
         }
         if (priceIsRequired) {
             if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
+                throw new InvalidOrder (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (stopPriceIsRequired) {
             const stopPrice = this.safeFloat (params, 'stopPrice');
             if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order');
+                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             } else {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }

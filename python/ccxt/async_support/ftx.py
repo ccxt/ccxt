@@ -31,7 +31,7 @@ class ftx(Exchange):
             'id': 'ftx',
             'name': 'FTX',
             'countries': ['HK'],
-            'rateLimit': 100,
+            'rateLimit': 50,
             'certified': True,
             'pro': True,
             'hostname': 'ftx.com',  # or ftx.us
@@ -236,6 +236,7 @@ class ftx(Exchange):
             },
             'exceptions': {
                 'exact': {
+                    'Please slow down': RateLimitExceeded,  # {"error":"Please slow down","success":false}
                     'Size too small for provide': InvalidOrder,  # {"error":"Size too small for provide","success":false}
                     'Not logged in': AuthenticationError,  # {"error":"Not logged in","success":false}
                     'Not enough balances': InsufficientFunds,  # {"error":"Not enough balances","success":false}
@@ -1161,12 +1162,12 @@ class ftx(Exchange):
                 request['trailValue'] = float(self.price_to_precision(symbol, trailValue))
         else:
             if clientOrderId is None:
+                method = 'privatePostOrdersOrderIdModify'
+                request['order_id'] = id
+            else:
                 method = 'privatePostOrdersByClientIdClientOrderIdModify'
                 request['client_order_id'] = clientOrderId
                 # request['clientId'] = clientOrderId
-            else:
-                method = 'privatePostOrdersOrderIdModify'
-                request['order_id'] = id
             if price is not None:
                 request['price'] = float(self.price_to_precision(symbol, price))
         if amount is not None:
@@ -1227,9 +1228,7 @@ class ftx(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {
-            'order_id': int(id),
-        }
+        request = {}
         # support for canceling conditional orders
         # https://github.com/ccxt/ccxt/issues/6669
         options = self.safe_value(self.options, 'cancelOrder', {})
@@ -1603,12 +1602,12 @@ class ftx(Exchange):
         #     }
         #
         #     {
-        #         'coin': 'USD',
-        #         'id': '503722',
-        #         'notes': 'Transfer',
-        #         'size': '3.35',
-        #         'status': 'complete',
-        #         'time': '2020-10-06T03:20:34.201556+00:00',
+        #         "coin": 'BTC',
+        #         "id": 1969806,
+        #         "notes": 'Transfer to Dd6gi7m2Eg4zzBbPAxuwfEaHs6tYvyUX5hbPpsTcNPXo',
+        #         "size": 0.003,
+        #         "status": 'complete',
+        #         "time": '2021-02-03T20:28:54.918146+00:00'
         #     }
         #
         code = self.safe_currency_code(self.safe_string(transaction, 'coin'))
@@ -1622,6 +1621,11 @@ class ftx(Exchange):
         if not isinstance(address, basestring):
             tag = self.safe_string(address, 'tag')
             address = self.safe_string(address, 'address')
+        if address is None:
+            # parse address from internal transfer
+            notes = self.safe_string(transaction, 'notes')
+            if notes is not None:
+                address = notes[12:]
         fee = self.safe_float(transaction, 'fee')
         return {
             'info': transaction,

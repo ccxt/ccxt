@@ -78,6 +78,7 @@ module.exports = class bigone extends Exchange {
                 'private': {
                     'get': [
                         'accounts',
+                        'fund/accounts',
                         'assets/{asset_symbol}/address',
                         'orders',
                         'orders/{id}',
@@ -91,6 +92,7 @@ module.exports = class bigone extends Exchange {
                         'orders/{id}/cancel',
                         'orders/cancel',
                         'withdrawals',
+                        'transfer',
                     ],
                 },
             },
@@ -645,7 +647,10 @@ module.exports = class bigone extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccounts (params);
+        const type = this.safeString (params, 'type', '');
+        params = this.omit (params, 'type');
+        const method = 'privateGet' + this.capitalize (type) + 'Accounts';
+        const response = await this[method] (params);
         //
         //     {
         //         "code":0,
@@ -759,7 +764,7 @@ module.exports = class bigone extends Exchange {
             if (isStopLimit || isStopMarket) {
                 const stopPrice = this.safeFloat2 (params, 'stop_price', 'stopPrice');
                 if (stopPrice === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder requires a stop_price parameter');
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a stop_price parameter');
                 }
                 request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
                 params = this.omit (params, [ 'stop_price', 'stopPrice' ]);

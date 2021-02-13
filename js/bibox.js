@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AccountSuspended, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds, BadSymbol } = require ('./base/errors');
+const { ExchangeError, AccountSuspended, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds, BadSymbol, RateLimitExceeded, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -109,9 +109,16 @@ module.exports = class bibox extends Exchange {
                 '2021': InsufficientFunds, // Insufficient balance available for withdrawal
                 '2027': InsufficientFunds, // Insufficient balance available (for trade)
                 '2033': OrderNotFound, // operation failed! Orders have been completed or revoked
+                '2065': InvalidOrder, // Precatory price is exorbitant, please reset
+                '2066': InvalidOrder, // Precatory price is low, please reset
                 '2067': InvalidOrder, // Does not support market orders
                 '2068': InvalidOrder, // The number of orders can not be less than
+                '2078': InvalidOrder, // unvalid order price
                 '2085': InvalidOrder, // Order quantity is too small
+                '2091': RateLimitExceeded, // request is too frequency, please try again later
+                '2092': InvalidOrder, // Minimum amount not met
+                '3000': BadRequest, // Requested parameter incorrect
+                '3002': BadRequest, // Parameter cannot be null
                 '3012': AuthenticationError, // invalid apiKey
                 '3016': BadSymbol, // Trading pair error
                 '3024': PermissionDenied, // wrong apikey permissions
@@ -925,7 +932,7 @@ module.exports = class bibox extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 200, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a `symbol` argument');
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a `symbol` argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -945,7 +952,7 @@ module.exports = class bibox extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

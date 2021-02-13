@@ -732,7 +732,7 @@ module.exports = class gateio extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires symbol argument');
         }
         await this.loadMarkets ();
         const request = {
@@ -755,13 +755,13 @@ module.exports = class gateio extends Exchange {
         if ((address !== undefined) && (address.indexOf ('address') >= 0)) {
             throw new InvalidAddress (this.id + ' queryDepositAddress ' + address);
         }
-        if (code === 'XRP') {
+        if ((code === 'XRP') || (code === 'HBAR') || (code === 'STEEM') || (code === 'XLM')) {
             const parts = address.split (' ');
             address = parts[0];
             tag = parts[1];
         }
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
@@ -788,7 +788,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -802,7 +802,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

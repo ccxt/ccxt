@@ -106,6 +106,7 @@ class phemex extends Exchange {
                         'exchange/spot/order/trades', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         // swap
                         'accounts/accountPositions', // ?currency=<currency>
+                        'accounts/positions', // ?currency=<currency>
                         'orders/activeList', // ?symbol=<symbol>
                         'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
@@ -732,7 +733,7 @@ class phemex extends Exchange {
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
         if ($market === null) {
-            throw new ArgumentsRequired($this->id . ' parseBidAsk requires a $market argument');
+            throw new ArgumentsRequired($this->id . ' parseBidAsk() requires a $market argument');
         }
         $amount = $this->safe_float($bidask, $amountKey);
         if ($market['spot']) {
@@ -910,7 +911,7 @@ class phemex extends Exchange {
             $request['from'] = $now - $duration * $this->sum($limit, 1);
             $request['to'] = $now;
         } else {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument, or a $limit argument, or both');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument, or a $limit argument, or both');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1415,7 +1416,7 @@ class phemex extends Exchange {
             } else {
                 $currency = $this->safe_string($params, 'currency');
                 if ($currency === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchBalance requires a $code parameter or a $currency parameter for ' . $type . ' type');
+                    throw new ArgumentsRequired($this->id . ' fetchBalance() requires a $code parameter or a $currency parameter for ' . $type . ' type');
                 }
             }
             $method = 'privateGetAccountsAccountPositions';
@@ -1816,7 +1817,7 @@ class phemex extends Exchange {
                     if ($price !== null) {
                         $cost = $amount * $price;
                     } else if ($cost === null) {
-                        throw new ArgumentsRequired($this->id . ' createOrder ' . $qtyType . ' requires a $price argument or a $cost parameter');
+                        throw new ArgumentsRequired($this->id . ' createOrder() ' . $qtyType . ' requires a $price argument or a $cost parameter');
                     }
                 }
                 $cost = ($cost === null) ? $amount : $cost;
@@ -1919,7 +1920,7 @@ class phemex extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1959,7 +1960,7 @@ class phemex extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1993,7 +1994,7 @@ class phemex extends Exchange {
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2015,7 +2016,7 @@ class phemex extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2039,7 +2040,7 @@ class phemex extends Exchange {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2101,7 +2102,7 @@ class phemex extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

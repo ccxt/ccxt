@@ -956,7 +956,7 @@ class kraken(Exchange):
                 request['price'] = self.price_to_precision(symbol, stopPrice)
                 request['price2'] = self.price_to_precision(symbol, limitPrice)
             elif (price is None) or (not(stopPriceDefined or limitPriceDefined)):
-                raise ArgumentsRequired(self.id + ' createOrder requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order')
             else:
                 if stopPriceDefined:
                     request['price'] = self.price_to_precision(symbol, stopPrice)
@@ -1185,7 +1185,7 @@ class kraken(Exchange):
         orderTrades = self.safe_value(params, 'trades')
         tradeIds = []
         if orderTrades is None:
-            raise ArgumentsRequired(self.id + " fetchOrderTrades requires a unified order structure in the params argument or a 'trades' param(an array of trade id strings)")
+            raise ArgumentsRequired(self.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param(an array of trade id strings)")
         else:
             for i in range(0, len(orderTrades)):
                 orderTrade = orderTrades[i]
@@ -1474,7 +1474,7 @@ class kraken(Exchange):
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         # https://www.kraken.com/en-us/help/api#deposit-status
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1514,7 +1514,7 @@ class kraken(Exchange):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         # https://www.kraken.com/en-us/help/api#withdraw-status
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1596,7 +1596,7 @@ class kraken(Exchange):
                 'info': response,
                 'id': response['result'],
             }
-        raise ExchangeError(self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)")
+        raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, as set up on your account)")
 
     async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
         await self.load_markets()

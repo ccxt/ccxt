@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.41.2';
+$version = '1.41.83';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,13 +55,14 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.41.2';
+    const VERSION = '1.41.83';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
     private static $base58_decoder = null;
 
     public static $exchanges = array(
+        'aax',
         'acx',
         'aofex',
         'bequant',
@@ -289,6 +290,10 @@ class Exchange {
             return $integer . $decimal;
         }
         return sprintf('%d', floatval($number));
+    }
+
+    public static function uuid22($length = 22) {
+        return bin2hex(random_bytes(intval($length / 2)));
     }
 
     public static function uuid() {
@@ -842,7 +847,6 @@ class Exchange {
         // rate limiter params
         $this->rateLimit = 2000;
         $this->tokenBucket = array(
-            'refillRate' => 1.0 / $this->rateLimit,
             'delay' => 1.0,
             'capacity' => 1.0,
             'defaultCost' => 1.0,
@@ -1213,11 +1217,12 @@ class Exchange {
         return static::binary_to_base58(static::base16_to_binary($signature->toHex()));
     }
 
-    public function throttle() {
+    public function throttle($rate_limit, $cost = null) {
+        // TODO: use a token bucket here
         $now = $this->milliseconds();
         $elapsed = $now - $this->lastRestRequestTimestamp;
-        if ($elapsed < $this->rateLimit) {
-            $delay = $this->rateLimit - $elapsed;
+        if ($elapsed < $rate_limit) {
+            $delay = $rate_limit - $elapsed;
             usleep((int) ($delay * 1000.0));
         }
     }
@@ -1228,7 +1233,7 @@ class Exchange {
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
         if ($this->enableRateLimit) {
-            $this->throttle();
+            $this->throttle($this->rateLimit);
         }
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
         return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);

@@ -1247,7 +1247,7 @@ class bitmart extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1328,7 +1328,7 @@ class bitmart extends Exchange {
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1712,7 +1712,7 @@ class bitmart extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1771,12 +1771,12 @@ class bitmart extends Exchange {
         if ($succeeded !== null) {
             $id = $this->safe_string($succeeded, 0);
             if ($id === null) {
-                throw new InvalidOrder($this->id . ' cancelOrder failed to cancel ' . $symbol . ' $order $id ' . $id);
+                throw new InvalidOrder($this->id . ' cancelOrder() failed to cancel ' . $symbol . ' $order $id ' . $id);
             }
         } else {
             $result = $this->safe_value($data, 'result');
             if (!$result) {
-                throw new InvalidOrder($this->id . ' cancelOrder ' . $symbol . ' $order $id ' . $id . ' is filled or canceled');
+                throw new InvalidOrder($this->id . ' cancelOrder() ' . $symbol . ' $order $id ' . $id . ' is filled or canceled');
             }
         }
         $order = $this->parse_order($id, $market);
@@ -1785,16 +1785,16 @@ class bitmart extends Exchange {
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
         }
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . " cancelAllOrders requires a `$side` parameter ('buy' or 'sell')");
+            throw new ArgumentsRequired($this->id . " cancelAllOrders() requires a `$side` parameter ('buy' or 'sell')");
         }
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['spot']) {
-            throw new NotSupported($this->id . ' cancelAllOrders does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+            throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1814,12 +1814,12 @@ class bitmart extends Exchange {
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' canelOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' canelOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['spot']) {
-            throw new NotSupported($this->id . ' cancelOrders does not support ' . $market['type'] . ' $orders, only contract $orders are accepted');
+            throw new NotSupported($this->id . ' cancelOrders() does not support ' . $market['type'] . ' $orders, only contract $orders are accepted');
         }
         $orders = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -1860,7 +1860,7 @@ class bitmart extends Exchange {
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1982,7 +1982,7 @@ class bitmart extends Exchange {
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1994,7 +1994,7 @@ class bitmart extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $request = array();
@@ -2072,7 +2072,7 @@ class bitmart extends Exchange {
             $orders = $this->safe_value($data, 'orders', array());
             $firstOrder = $this->safe_value($orders, 0);
             if ($firstOrder === null) {
-                throw new OrderNotFound($this->id . ' fetchOrder could not find ' . $symbol . ' order $id ' . $id);
+                throw new OrderNotFound($this->id . ' fetchOrder() could not find ' . $symbol . ' order $id ' . $id);
             }
             return $this->parse_order($firstOrder, $market);
         } else {

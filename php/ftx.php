@@ -16,7 +16,7 @@ class ftx extends Exchange {
             'id' => 'ftx',
             'name' => 'FTX',
             'countries' => array( 'HK' ),
-            'rateLimit' => 100,
+            'rateLimit' => 50,
             'certified' => true,
             'pro' => true,
             'hostname' => 'ftx.com', // or ftx.us
@@ -221,6 +221,7 @@ class ftx extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    'Please slow down' => '\\ccxt\\RateLimitExceeded', // array("error":"Please slow down","success":false)
                     'Size too small for provide' => '\\ccxt\\InvalidOrder', // array("error":"Size too small for provide","success":false)
                     'Not logged in' => '\\ccxt\\AuthenticationError', // array("error":"Not logged in","success":false)
                     'Not enough balances' => '\\ccxt\\InsufficientFunds', // array("error":"Not enough balances","success":false)
@@ -1195,12 +1196,12 @@ class ftx extends Exchange {
             }
         } else {
             if ($clientOrderId === null) {
+                $method = 'privatePostOrdersOrderIdModify';
+                $request['order_id'] = $id;
+            } else {
                 $method = 'privatePostOrdersByClientIdClientOrderIdModify';
                 $request['client_order_id'] = $clientOrderId;
                 // $request['clientId'] = $clientOrderId;
-            } else {
-                $method = 'privatePostOrdersOrderIdModify';
-                $request['order_id'] = $id;
             }
             if ($price !== null) {
                 $request['price'] = floatval($this->price_to_precision($symbol, $price));
@@ -1266,9 +1267,7 @@ class ftx extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array(
-            'order_id' => intval($id),
-        );
+        $request = array();
         // support for canceling conditional orders
         // https://github.com/ccxt/ccxt/issues/6669
         $options = $this->safe_value($this->options, 'cancelOrder', array());
@@ -1668,12 +1667,12 @@ class ftx extends Exchange {
         //     }
         //
         //     {
-        //         'coin' => 'USD',
-        //         'id' => '503722',
-        //         'notes' => 'Transfer',
-        //         'size' => '3.35',
-        //         'status' => 'complete',
-        //         'time' => '2020-10-06T03:20:34.201556+00:00',
+        //         "coin" => 'BTC',
+        //         "$id" => 1969806,
+        //         "$notes" => 'Transfer to Dd6gi7m2Eg4zzBbPAxuwfEaHs6tYvyUX5hbPpsTcNPXo',
+        //         "size" => 0.003,
+        //         "$status" => 'complete',
+        //         "time" => '2021-02-03T20:28:54.918146+00:00'
         //     }
         //
         $code = $this->safe_currency_code($this->safe_string($transaction, 'coin'));
@@ -1687,6 +1686,13 @@ class ftx extends Exchange {
         if (gettype($address) !== 'string') {
             $tag = $this->safe_string($address, 'tag');
             $address = $this->safe_string($address, 'address');
+        }
+        if ($address === null) {
+            // parse $address from internal transfer
+            $notes = $this->safe_string($transaction, 'notes');
+            if ($notes !== null) {
+                $address = mb_substr($notes, 12);
+            }
         }
         $fee = $this->safe_float($transaction, 'fee');
         return array(

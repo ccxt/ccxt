@@ -419,7 +419,7 @@ class indodax extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a symbol');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -466,7 +466,7 @@ class indodax extends Exchange {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $request = array();
@@ -510,11 +510,11 @@ class indodax extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $side = $this->safe_value($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires an extra "$side" param');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an extra "$side" param');
         }
         $this->load_markets();
         $market = $this->market($symbol);

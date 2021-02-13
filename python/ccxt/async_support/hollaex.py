@@ -508,7 +508,7 @@ class hollaex(Exchange):
         duration = self.parse_timeframe(timeframe)
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + " fetchOHLCV requires a 'since' or a 'limit' argument")
+                raise ArgumentsRequired(self.id + " fetchOHLCV() requires a 'since' or a 'limit' argument")
             else:
                 end = self.seconds()
                 start = end - duration * limit

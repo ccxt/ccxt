@@ -502,7 +502,7 @@ module.exports = class digifinex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         const apiKey = this.safeValue (params, 'apiKey', this.apiKey);
         if (!apiKey) {
-            throw new ArgumentsRequired (this.id + ' fetchTicker is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter');
+            throw new ArgumentsRequired (this.id + ' fetchTickers() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter');
         }
         await this.loadMarkets ();
         const request = {
@@ -548,7 +548,7 @@ module.exports = class digifinex extends Exchange {
     async fetchTicker (symbol, params = {}) {
         const apiKey = this.safeValue (params, 'apiKey', this.apiKey);
         if (!apiKey) {
-            throw new ArgumentsRequired (this.id + ' fetchTicker is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter');
+            throw new ArgumentsRequired (this.id + ' fetchTicker() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

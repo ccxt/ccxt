@@ -92,7 +92,7 @@ class coinfloor(Exchange):
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         if market is None:
-            raise ArgumentsRequired(self.id + ' fetchBalance requires a symbol param')
+            raise ArgumentsRequired(self.id + ' fetchBalance() requires a symbol param')
         request = {
             'id': market['id'],
         }
@@ -213,7 +213,7 @@ class coinfloor(Exchange):
         if code is not None:
             market = self.market(code)
             if market is None:
-                raise ArgumentsRequired(self.id + ' fetchTransactions requires a code argument(a market symbol)')
+                raise ArgumentsRequired(self.id + ' fetchTransactions() requires a code argument(a market symbol)')
         request = {
             'id': market['id'],
             'limit': limit,
@@ -406,7 +406,7 @@ class coinfloor(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -463,7 +463,7 @@ class coinfloor(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol param')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol param')
         self.load_markets()
         market = self.market(symbol)
         request = {

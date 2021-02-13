@@ -678,7 +678,7 @@ class bitz extends Exchange {
             }
         } else {
             if ($since !== null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $limit argument if the $since argument is specified');
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $limit argument if the $since argument is specified');
             }
         }
         $response = $this->marketGetKline (array_merge($request, $params));
@@ -952,7 +952,7 @@ class bitz extends Exchange {
 
     public function fetch_orders_with_method($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

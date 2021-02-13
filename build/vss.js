@@ -52,6 +52,8 @@ function vssEverything () {
 
     vss ('./ccxt.js',                                    "const version = '{version}'", version)
     vss ('./php/base/Exchange.php',                      "$version = '{version}'",      version)
+    vss ('./php/async/base/Exchange.php',                "VERSION = '{version}'",       version)
+    vss ('./php/async/base/Exchange.php',                "$version = '{version}'",      version)
     vss ('./php/base/Exchange.php',                      "VERSION = '{version}'",       version)
     vss ('./python/ccxt/__init__.py',                    "__version__ = '{version}'",   version)
     vss ('./python/ccxt/base/exchange.py',               "__version__ = '{version}'",   version)

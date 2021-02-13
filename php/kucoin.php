@@ -240,10 +240,10 @@ class kucoin extends Exchange {
                     'public' => array(
                         'GET' => array(
                             'status' => 'v1',
-                            'market/orderbook/level{level}' => 'v1',
+                            'market/orderbook/level{level}' => 'v2',
                             'market/orderbook/level2' => 'v2',
-                            'market/orderbook/level2_20' => 'v1',
-                            'market/orderbook/level2_100' => 'v1',
+                            'market/orderbook/level2_20' => 'v2',
+                            'market/orderbook/level2_100' => 'v2',
                         ),
                     ),
                     'private' => array(
@@ -686,7 +686,10 @@ class kucoin extends Exchange {
             $address = str_replace('bitcoincash:', '', $address);
         }
         $tag = $this->safe_string($data, 'memo');
-        $this->check_address($address);
+        if ($code !== 'NIM') {
+            // contains spaces
+            $this->check_address($address);
+        }
         return array(
             'info' => $response,
             'currency' => $code,
@@ -704,12 +707,11 @@ class kucoin extends Exchange {
         // BTC array("$code":"200000","$data":array("$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
         $data = $this->safe_value($response, 'data', array());
         $address = $this->safe_string($data, 'address');
-        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the $address
-        if ($address !== null) {
-            $address = str_replace('bitcoincash:', '', $address);
-        }
         $tag = $this->safe_string($data, 'memo');
-        $this->check_address($address);
+        if ($code !== 'NIM') {
+            // contains spaces
+            $this->check_address($address);
+        }
         return array(
             'info' => $response,
             'currency' => $code,
@@ -934,7 +936,7 @@ class kucoin extends Exchange {
         // otherwise a wrong endpoint for all orders will be triggered
         // https://github.com/ccxt/ccxt/issues/7234
         if ($id === null) {
-            throw new InvalidOrder($this->id . ' fetchOrder requires an order id');
+            throw new InvalidOrder($this->id . ' fetchOrder() requires an order id');
         }
         $request = array(
             'orderId' => $id,
@@ -1612,7 +1614,7 @@ class kucoin extends Exchange {
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLedger requires a $code param');
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code param');
         }
         $this->load_markets();
         $this->load_accounts();

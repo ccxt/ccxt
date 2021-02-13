@@ -1223,7 +1223,7 @@ class bittrex extends Exchange {
         $request = array(
             'currencySymbol' => $currency['id'],
         );
-        $response = $this->privatePostAddressesCurrencySymbol (array_merge($request, $params));
+        $response = $this->privatePostAddresses (array_merge($request, $params));
         //
         //     {
         //         "status":"PROVISIONED",

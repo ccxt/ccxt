@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.41.2'
+__version__ = '1.41.83'
 
 # -----------------------------------------------------------------------------
 
@@ -67,6 +67,7 @@ import hmac
 import io
 import json
 import math
+import random
 from numbers import Number
 import re
 from requests import Session
@@ -772,6 +773,10 @@ class Exchange(object):
             decimal_digits = decimal_digits if len(decimal_digits) else '0'
             return parts[0] + '.' + decimal_digits
         return ('%d' % num)
+
+    @staticmethod
+    def uuid22(length=22):
+        return format(random.getrandbits(length * 4), 'x')
 
     @staticmethod
     def uuid():
@@ -1850,17 +1855,17 @@ class Exchange(object):
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
 
-    def create_limit_order(self, symbol, *args) -> dict:
-        return self.create_order(symbol, 'limit', *args)
+    def create_limit_order(self, symbol, side, amount, price=None, params={}) -> dict:
+        return self.create_order(symbol, 'limit', side, amount, price, params)
 
-    def create_market_order(self, symbol, *args) -> dict:
-        return self.create_order(symbol, 'market', *args)
+    def create_market_order(self, symbol, side, amount, price=None, params={}) -> dict:
+        return self.create_order(symbol, 'market', side, amount, price, params)
 
-    def create_limit_buy_order(self, symbol, *args) -> dict:
-        return self.create_order(symbol, 'limit', 'buy', *args)
+    def create_limit_buy_order(self, symbol, amount, price=None, params={}) -> dict:
+        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
 
-    def create_limit_sell_order(self, symbol, *args) -> dict:
-        return self.create_order(symbol, 'limit', 'sell', *args)
+    def create_limit_sell_order(self, symbol, amount, price=None, params={}) -> dict:
+        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
 
     def create_market_buy_order(self, symbol, amount, params={}) -> dict:
         return self.create_order(symbol, 'market', 'buy', amount, None, params)

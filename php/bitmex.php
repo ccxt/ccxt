@@ -1377,7 +1377,7 @@ class bitmex extends Exchange {
         if (($orderType === 'Stop') || ($orderType === 'StopLimit') || ($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched')) {
             $stopPrice = $this->safe_float_2($params, 'stopPx', 'stopPrice');
             if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder requires a stopPx or $stopPrice parameter for the ' . $orderType . ' order type');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $stopPrice parameter for the ' . $orderType . ' order type');
             } else {
                 $request['stopPx'] = floatval($this->price_to_precision($symbol, $stopPrice));
                 $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));

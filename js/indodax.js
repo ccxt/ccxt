@@ -416,7 +416,7 @@ module.exports = class indodax extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -463,7 +463,7 @@ module.exports = class indodax extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const request = {};
@@ -507,11 +507,11 @@ module.exports = class indodax extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         const side = this.safeValue (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires an extra "side" param');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an extra "side" param');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

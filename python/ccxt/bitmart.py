@@ -1223,7 +1223,7 @@ class bitmart(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         method = None
@@ -1299,7 +1299,7 @@ class bitmart(Exchange):
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         method = None
@@ -1654,7 +1654,7 @@ class bitmart(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {}
@@ -1710,24 +1710,24 @@ class bitmart(Exchange):
         if succeeded is not None:
             id = self.safe_string(succeeded, 0)
             if id is None:
-                raise InvalidOrder(self.id + ' cancelOrder failed to cancel ' + symbol + ' order id ' + id)
+                raise InvalidOrder(self.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id)
         else:
             result = self.safe_value(data, 'result')
             if not result:
-                raise InvalidOrder(self.id + ' cancelOrder ' + symbol + ' order id ' + id + ' is filled or canceled')
+                raise InvalidOrder(self.id + ' cancelOrder() ' + symbol + ' order id ' + id + ' is filled or canceled')
         order = self.parse_order(id, market)
         return self.extend(order, {'id': id})
 
     def cancel_all_orders(self, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         side = self.safe_string(params, 'side')
         if side is None:
-            raise ArgumentsRequired(self.id + " cancelAllOrders requires a `side` parameter('buy' or 'sell')")
+            raise ArgumentsRequired(self.id + " cancelAllOrders() requires a `side` parameter('buy' or 'sell')")
         self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
-            raise NotSupported(self.id + ' cancelAllOrders does not support ' + market['type'] + ' orders, only spot orders are accepted')
+            raise NotSupported(self.id + ' cancelAllOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted')
         request = {
             'symbol': market['id'],
             'side': side,  # 'buy' or 'sell'
@@ -1745,11 +1745,11 @@ class bitmart(Exchange):
 
     def cancel_orders(self, ids, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' canelOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' canelOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
-            raise NotSupported(self.id + ' cancelOrders does not support ' + market['type'] + ' orders, only contract orders are accepted')
+            raise NotSupported(self.id + ' cancelOrders() does not support ' + market['type'] + ' orders, only contract orders are accepted')
         orders = []
         for i in range(0, len(ids)):
             orders.append(int(ids[i]))
@@ -1787,7 +1787,7 @@ class bitmart(Exchange):
 
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {}
@@ -1901,7 +1901,7 @@ class bitmart(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if not (market['swap'] or market['future']):
@@ -1910,7 +1910,7 @@ class bitmart(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         request = {}
         market = self.market(symbol)
@@ -1985,7 +1985,7 @@ class bitmart(Exchange):
             orders = self.safe_value(data, 'orders', [])
             firstOrder = self.safe_value(orders, 0)
             if firstOrder is None:
-                raise OrderNotFound(self.id + ' fetchOrder could not find ' + symbol + ' order id ' + id)
+                raise OrderNotFound(self.id + ' fetchOrder() could not find ' + symbol + ' order id ' + id)
             return self.parse_order(firstOrder, market)
         else:
             return self.parse_order(data, market)

@@ -185,6 +185,7 @@ module.exports = class stex extends Exchange {
                 'BITS': 'Bitcoinus',
                 'BITSW': 'BITS',
                 'BHD': 'Bithold',
+                'BTH': 'Bithereum',
                 'SBTC': 'SBTCT', // SiamBitcoin
             },
             'options': {
@@ -1224,7 +1225,7 @@ module.exports = class stex extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

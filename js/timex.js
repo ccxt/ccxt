@@ -479,7 +479,7 @@ module.exports = class timex extends Exchange {
             } else if (expireIn !== undefined) {
                 request['expireIn'] = expireIn;
             } else {
-                throw new InvalidOrder (this.id + ' createOrder method requires a expireTime or expireIn param for a ' + type + ' order, you can also set the expireIn exchange-wide option');
+                throw new InvalidOrder (this.id + ' createOrder() method requires a expireTime or expireIn param for a ' + type + ' order, you can also set the expireIn exchange-wide option');
             }
             query = this.omit (params, [ 'expireTime', 'expireIn' ]);
         } else {

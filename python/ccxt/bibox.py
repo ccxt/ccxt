@@ -19,11 +19,13 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -130,9 +132,16 @@ class bibox(Exchange):
                 '2021': InsufficientFunds,  # Insufficient balance available for withdrawal
                 '2027': InsufficientFunds,  # Insufficient balance available(for trade)
                 '2033': OrderNotFound,  # operation failednot  Orders have been completed or revoked
+                '2065': InvalidOrder,  # Precatory price is exorbitant, please reset
+                '2066': InvalidOrder,  # Precatory price is low, please reset
                 '2067': InvalidOrder,  # Does not support market orders
                 '2068': InvalidOrder,  # The number of orders can not be less than
+                '2078': InvalidOrder,  # unvalid order price
                 '2085': InvalidOrder,  # Order quantity is too small
+                '2091': RateLimitExceeded,  # request is too frequency, please try again later
+                '2092': InvalidOrder,  # Minimum amount not met
+                '3000': BadRequest,  # Requested parameter incorrect
+                '3002': BadRequest,  # Parameter cannot be null
                 '3012': AuthenticationError,  # invalid apiKey
                 '3016': BadSymbol,  # Trading pair error
                 '3024': PermissionDenied,  # wrong apikey permissions
@@ -879,7 +888,7 @@ class bibox(Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=200, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -897,7 +906,7 @@ class bibox(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         size = limit if limit else 200

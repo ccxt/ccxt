@@ -608,7 +608,7 @@ class eterbase extends Exchange {
             $request['start'] = $now - $duration * $limit * 1000;
             $request['end'] = $now;
         } else {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument, or a $limit argument, or both');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument, or a $limit argument, or both');
         }
         $this->load_markets();
         $market = $this->market($symbol);

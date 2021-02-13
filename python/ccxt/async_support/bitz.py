@@ -661,7 +661,7 @@ class bitz(Exchange):
                 request['to'] = self.sum(since, limit * duration * 1000)
         else:
             if since is not None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a limit argument if the since argument is specified')
+                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a limit argument if the since argument is specified')
         response = await self.marketGetKline(self.extend(request, params))
         #
         #     {
@@ -916,7 +916,7 @@ class bitz(Exchange):
 
     async def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {

@@ -705,7 +705,7 @@ module.exports = class bitstamp extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         if (limit === undefined) {
             if (since === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument or a limit argument');
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
             } else {
                 limit = 1000;
                 const start = parseInt (since / 1000);

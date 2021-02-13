@@ -1242,7 +1242,7 @@ module.exports = class bitmart extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1323,7 +1323,7 @@ module.exports = class bitmart extends Exchange {
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1707,7 +1707,7 @@ module.exports = class bitmart extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1766,12 +1766,12 @@ module.exports = class bitmart extends Exchange {
         if (succeeded !== undefined) {
             id = this.safeString (succeeded, 0);
             if (id === undefined) {
-                throw new InvalidOrder (this.id + ' cancelOrder failed to cancel ' + symbol + ' order id ' + id);
+                throw new InvalidOrder (this.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id);
             }
         } else {
             const result = this.safeValue (data, 'result');
             if (!result) {
-                throw new InvalidOrder (this.id + ' cancelOrder ' + symbol + ' order id ' + id + ' is filled or canceled');
+                throw new InvalidOrder (this.id + ' cancelOrder() ' + symbol + ' order id ' + id + ' is filled or canceled');
             }
         }
         const order = this.parseOrder (id, market);
@@ -1780,16 +1780,16 @@ module.exports = class bitmart extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + " cancelAllOrders requires a `side` parameter ('buy' or 'sell')");
+            throw new ArgumentsRequired (this.id + " cancelAllOrders() requires a `side` parameter ('buy' or 'sell')");
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
-            throw new NotSupported (this.id + ' cancelAllOrders does not support ' + market['type'] + ' orders, only spot orders are accepted');
+            throw new NotSupported (this.id + ' cancelAllOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
         const request = {
             'symbol': market['id'],
@@ -1809,12 +1809,12 @@ module.exports = class bitmart extends Exchange {
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' canelOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' canelOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
-            throw new NotSupported (this.id + ' cancelOrders does not support ' + market['type'] + ' orders, only contract orders are accepted');
+            throw new NotSupported (this.id + ' cancelOrders() does not support ' + market['type'] + ' orders, only contract orders are accepted');
         }
         const orders = [];
         for (let i = 0; i < ids.length; i++) {
@@ -1855,7 +1855,7 @@ module.exports = class bitmart extends Exchange {
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1977,7 +1977,7 @@ module.exports = class bitmart extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1989,7 +1989,7 @@ module.exports = class bitmart extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const request = {};
@@ -2067,7 +2067,7 @@ module.exports = class bitmart extends Exchange {
             const orders = this.safeValue (data, 'orders', []);
             const firstOrder = this.safeValue (orders, 0);
             if (firstOrder === undefined) {
-                throw new OrderNotFound (this.id + ' fetchOrder could not find ' + symbol + ' order id ' + id);
+                throw new OrderNotFound (this.id + ' fetchOrder() could not find ' + symbol + ' order id ' + id);
             }
             return this.parseOrder (firstOrder, market);
         } else {

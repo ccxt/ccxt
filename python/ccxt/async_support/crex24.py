@@ -732,12 +732,12 @@ class crex24(Exchange):
             stopPriceIsRequired = True
         if priceIsRequired:
             if price is None:
-                raise InvalidOrder(self.id + ' createOrder method requires a price argument for a ' + type + ' order')
+                raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
         if stopPriceIsRequired:
             stopPrice = self.safe_float(params, 'stopPrice')
             if stopPrice is None:
-                raise InvalidOrder(self.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order')
+                raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
             params = self.omit(params, 'stopPrice')

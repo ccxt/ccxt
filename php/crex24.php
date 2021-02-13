@@ -768,14 +768,14 @@ class crex24 extends Exchange {
         }
         if ($priceIsRequired) {
             if ($price === null) {
-                throw new InvalidOrder($this->id . ' createOrder method requires a $price argument for a ' . $type . ' order');
+                throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         if ($stopPriceIsRequired) {
             $stopPrice = $this->safe_float($params, 'stopPrice');
             if ($stopPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder method requires a $stopPrice extra param for a ' . $type . ' order');
+                throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice extra param for a ' . $type . ' order');
             } else {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }

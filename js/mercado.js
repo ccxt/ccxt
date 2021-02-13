@@ -485,17 +485,17 @@ module.exports = class mercado extends Exchange {
         if (code === 'BRL') {
             const account_ref = ('account_ref' in params);
             if (!account_ref) {
-                throw new ArgumentsRequired (this.id + ' requires account_ref parameter to withdraw ' + code);
+                throw new ArgumentsRequired (this.id + ' withdraw() requires account_ref parameter to withdraw ' + code);
             }
         } else if (code !== 'LTC') {
             const tx_fee = ('tx_fee' in params);
             if (!tx_fee) {
-                throw new ArgumentsRequired (this.id + ' requires tx_fee parameter to withdraw ' + code);
+                throw new ArgumentsRequired (this.id + ' withdraw() requires tx_fee parameter to withdraw ' + code);
             }
             if (code === 'XRP') {
                 if (tag === undefined) {
                     if (!('destination_tag' in params)) {
-                        throw new ArgumentsRequired (this.id + ' requires a tag argument or destination_tag parameter to withdraw ' + code);
+                        throw new ArgumentsRequired (this.id + ' withdraw() requires a tag argument or destination_tag parameter to withdraw ' + code);
                     }
                 } else {
                     request['destination_tag'] = tag;

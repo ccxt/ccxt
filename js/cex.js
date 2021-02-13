@@ -918,7 +918,7 @@ module.exports = class cex extends Exchange {
         await this.loadMarkets ();
         const method = 'privatePostArchivedOrdersPair';
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         const market = this.market (symbol);
         const request = { 'pair': market['id'] };
@@ -1252,10 +1252,10 @@ module.exports = class cex extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder requires a amount argument');
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a amount argument');
         }
         if (price === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder requires a price argument');
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

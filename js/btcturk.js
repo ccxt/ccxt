@@ -275,7 +275,7 @@ module.exports = class btcturk extends Exchange {
         };
         if (type === 'market') {
             if (!('Total' in params)) {
-                throw new ExchangeError (this.id + ' createOrder requires the "Total" extra parameter for market orders (amount and price are both ignored)');
+                throw new ExchangeError (this.id + ' createOrder() requires the "Total" extra parameter for market orders (amount and price are both ignored)');
             }
         } else {
             request['Price'] = price;

@@ -291,7 +291,7 @@ class bybit extends Exchange {
                 ),
                 'code' => 'BTC',
                 'cancelAllOrders' => array(
-                    'method' => 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
+                    // 'method' => 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
                 ),
                 'recvWindow' => 5 * 1000, // 5 sec default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
@@ -670,7 +670,7 @@ class bybit extends Exchange {
         $now = $this->seconds();
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument or a $limit argument');
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
             } else {
                 $request['from'] = $now - $limit * $duration;
             }
@@ -1183,7 +1183,7 @@ class bybit extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1318,7 +1318,7 @@ class bybit extends Exchange {
             if ($price !== null) {
                 $request['price'] = floatval($this->price_to_precision($symbol, $price));
             } else {
-                throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for a ' . $type . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
             }
         }
         $clientOrderId = $this->safe_string_2($params, 'order_link_id', 'clientOrderId');
@@ -1338,7 +1338,7 @@ class bybit extends Exchange {
         }
         if ($stopPx !== null) {
             if ($basePrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder requires both the stop_px and base_price $params for a conditional ' . $type . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires both the stop_px and base_price $params for a conditional ' . $type . ' order');
             } else {
                 $method = ($marketType === 'linear') ? 'privateLinearPostStopOrderCreate' : 'v2PrivatePostStopOrderCreate';
                 $request['stop_px'] = floatval($this->price_to_precision($symbol, $stopPx));
@@ -1346,7 +1346,7 @@ class bybit extends Exchange {
                 $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'base_price' ));
             }
         } else if ($basePrice !== null) {
-            throw new ArgumentsRequired($this->id . ' createOrder requires both the stop_px and base_price $params for a conditional ' . $type . ' order');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires both the stop_px and base_price $params for a conditional ' . $type . ' order');
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -1432,7 +1432,7 @@ class bybit extends Exchange {
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder requires an $symbol argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an $symbol argument');
         }
         $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
         $marketType = $this->safe_string($marketTypes, $symbol);
@@ -1507,7 +1507,7 @@ class bybit extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1538,14 +1538,14 @@ class bybit extends Exchange {
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $options = $this->safe_value($this->options, 'cancelAllOrders');
+        $options = $this->safe_value($this->options, 'cancelAllOrders', array());
         $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
         $marketType = $this->safe_string($marketTypes, $symbol);
         $defaultMethod = ($marketType === 'linear') ? 'privateLinearPostOrderCancelAll' : 'v2PrivatePostOrderCancelAll';
@@ -1757,7 +1757,7 @@ class bybit extends Exchange {
         if ($symbol === null) {
             $orderId = $this->safe_string($params, 'order_id');
             if ($orderId === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument or an order_id param');
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument or an order_id param');
             } else {
                 $request['order_id'] = $orderId;
                 $params = $this->omit($params, 'order_id');

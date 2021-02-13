@@ -1302,7 +1302,7 @@ class bitmex(Exchange):
         if (orderType == 'Stop') or (orderType == 'StopLimit') or (orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'):
             stopPrice = self.safe_float_2(params, 'stopPx', 'stopPrice')
             if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder requires a stopPx or stopPrice parameter for the ' + orderType + ' order type')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPx or stopPrice parameter for the ' + orderType + ' order type')
             else:
                 request['stopPx'] = float(self.price_to_precision(symbol, stopPrice))
                 params = self.omit(params, ['stopPx', 'stopPrice'])

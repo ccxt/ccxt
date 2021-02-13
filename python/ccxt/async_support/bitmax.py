@@ -1055,7 +1055,7 @@ class bitmax(Exchange):
         if (type == 'stop_limit') or (type == 'stop_market'):
             stopPrice = self.safe_float(params, 'stopPrice')
             if stopPrice is None:
-                raise InvalidOrder(self.id + ' createOrder requires a stopPrice parameter for ' + type + ' orders')
+                raise InvalidOrder(self.id + ' createOrder() requires a stopPrice parameter for ' + type + ' orders')
             else:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
                 params = self.omit(params, 'stopPrice')
@@ -1294,7 +1294,7 @@ class bitmax(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         await self.load_accounts()
         market = self.market(symbol)

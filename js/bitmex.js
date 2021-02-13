@@ -1372,7 +1372,7 @@ module.exports = class bitmex extends Exchange {
         if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
             const stopPrice = this.safeFloat2 (params, 'stopPx', 'stopPrice');
             if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires a stopPx or stopPrice parameter for the ' + orderType + ' order type');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPx or stopPrice parameter for the ' + orderType + ' order type');
             } else {
                 request['stopPx'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
                 params = this.omit (params, [ 'stopPx', 'stopPrice' ]);

@@ -57,6 +57,8 @@ class bithumb(Exchange):
                     'get': [
                         'ticker/{currency}',
                         'ticker/all',
+                        'ticker/ALL_BTC',
+                        'ticker/ALL_KRW',
                         'orderbook/{currency}',
                         'orderbook/all',
                         'transaction_history/{currency}',
@@ -116,57 +118,73 @@ class bithumb(Exchange):
                 '12h': '12h',
                 '1d': '24h',
             },
+            'options': {
+                'quoteCurrencies': {
+                    'BTC': {
+                        'precision': {
+                            'price': 8,
+                        },
+                    },
+                    'KRW': {},
+                },
+            },
         })
 
     def amount_to_precision(self, symbol, amount):
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def fetch_markets(self, params={}):
-        response = self.publicGetTickerAll(params)
-        data = self.safe_value(response, 'data')
-        currencyIds = list(data.keys())
         result = []
-        quote = self.safe_currency_code('KRW')
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            if currencyId == 'date':
-                continue
-            market = data[currencyId]
-            base = self.safe_currency_code(currencyId)
-            symbol = currencyId + '/' + quote
-            active = True
-            if isinstance(market, list):
-                numElements = len(market)
-                if numElements == 0:
-                    active = False
-            result.append({
-                'id': currencyId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
-                'active': active,
-                'precision': {
-                    'amount': 4,
-                    'price': 4,
-                },
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+        quoteCurrencies = self.safe_value(self.options, 'quoteCurrencies', {})
+        quotes = list(quoteCurrencies.keys())
+        for i in range(0, len(quotes)):
+            quote = quotes[i]
+            extension = self.safe_value(quoteCurrencies, quote, {})
+            method = 'publicGetTickerALL' + quote
+            response = getattr(self, method)(params)
+            data = self.safe_value(response, 'data')
+            currencyIds = list(data.keys())
+            for j in range(0, len(currencyIds)):
+                currencyId = currencyIds[j]
+                if currencyId == 'date':
+                    continue
+                market = data[currencyId]
+                base = self.safe_currency_code(currencyId)
+                symbol = currencyId + '/' + quote
+                active = True
+                if isinstance(market, list):
+                    numElements = len(market)
+                    if numElements == 0:
+                        active = False
+                entry = self.deep_extend({
+                    'id': currencyId,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'info': market,
+                    'active': active,
+                    'precision': {
+                        'amount': 4,
+                        'price': 4,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'price': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': 500,
+                            'max': 5000000000,
+                        },
                     },
-                    'cost': {
-                        'min': 500,
-                        'max': 5000000000,
-                    },
-                },
-                'baseId': None,
-                'quoteId': None,
-            })
+                    'baseId': None,
+                    'quoteId': None,
+                }, extension)
+                result.append(entry)
         return result
 
     def fetch_balance(self, params={}):
@@ -528,7 +546,7 @@ class bithumb(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
         if id is None:
-            raise InvalidOrder(self.id + ' createOrder did not return an order id')
+            raise InvalidOrder(self.id + ' createOrder() did not return an order id')
         return {
             'info': response,
             'symbol': symbol,
@@ -539,7 +557,7 @@ class bithumb(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -755,7 +773,7 @@ class bithumb(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -791,9 +809,9 @@ class bithumb(Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         side_in_params = ('side' in params)
         if not side_in_params:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a `symbol` argument and a `side` parameter(sell or buy)')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `symbol` argument and a `side` parameter(sell or buy)')
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a `symbol` argument and a `side` parameter(sell or buy)')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `symbol` argument and a `side` parameter(sell or buy)')
         market = self.market(symbol)
         side = 'bid' if (params['side'] == 'buy') else 'ask'
         params = self.omit(params, ['side', 'currency'])

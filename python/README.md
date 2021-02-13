@@ -1,11 +1,11 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-[![Build Status](https://travis-ci.com/ccxt/ccxt.svg?branch=master)](https://travis-ci.com/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dy/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU) [![Supported Exchanges](https://img.shields.io/badge/exchanges-123-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Open Collective](https://opencollective.com/ccxt/backers/badge.svg)](https://opencollective.com/ccxt)
+[![Build Status](https://travis-ci.com/ccxt/ccxt.svg?branch=master)](https://travis-ci.com/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dy/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU) [![Supported Exchanges](https://img.shields.io/badge/exchanges-124-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Open Collective](https://opencollective.com/ccxt/backers/badge.svg)](https://opencollective.com/ccxt)
 [![Twitter Follow](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://twitter.com/ccxt_official)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social)
+### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Social](#social) · [CCXT Pro](https://ccxt.pro)
 
 The **CCXT** library is used to connect and trade with cryptocurrency exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, and related software engineering.
 
@@ -21,12 +21,18 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/93346896-22dfb080-f83d-11ea-957f-6b8ae008f62a.png)](https://ccxt.pro) **[A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://ccxt.pro)**
+[![AAX – The world's first crypto exchange powered by LSEG Technology](https://user-images.githubusercontent.com/1294454/106508373-5fa30000-64dd-11eb-9e25-e7ed141938e3.png)](https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=banner&utm_campaign=futures)
+
+[![Pionex – The biggest Binance Broker that provides 12 free crypto trading bots](https://user-images.githubusercontent.com/1294454/106110516-e2cdfa00-615b-11eb-9c70-9a9639f28673.png)](https://www.pionex.com/en-US/sign?r=8wSFCbNk&utm_source=ad&utm_medium=banner&utm_campaign=ccxt-1)
+
+[![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png)](https://ccxt.pro)
 
 ## See Also
 
 - <sub>[![Quadency](https://user-images.githubusercontent.com/1294454/69334382-a0618100-0c6b-11ea-9ba9-40aa97440cfa.png)](https://quadency.com?utm_source=ccxt)</sub>&nbsp; **[Quadency](https://quadency.com?utm_source=ccxt)**&nbsp;&mdash;&nbsp;trading automation terminal for leading exchanges with streaming APIs + Python IDE.
 - <sub>[![TabTrader](https://user-images.githubusercontent.com/1294454/66755907-9c3e8880-eea1-11e9-846e-0bff349ceb87.png)](https://tab-trader.com/?utm_source=ccxt)</sub>&nbsp; **[TabTrader](https://tab-trader.com/?utm_source=ccxt)**&nbsp;&mdash;&nbsp;trading on all exchanges in one app. Avaliable on [Android](https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt) and [iOS](https://itunes.apple.com/app/apple-store/id1095716562?mt=8).
+- <sub>[![Pionex](https://user-images.githubusercontent.com/1294454/106112806-c2ec0580-615e-11eb-870c-0b7aef021db2.png)](https://www.pionex.com/en-US/sign?r=8wSFCbNk&utm_source=ad&utm_medium=banner&utm_campaign=ccxt-2)</sub>&nbsp; **[Pionex](https://www.pionex.com/en-US/sign?r=8wSFCbNk&utm_source=ad&utm_medium=banner&utm_campaign=ccxt-2)**&nbsp;&mdash;&nbsp;6 grid bots, spot-futures arb bot, smart trade and DCA bots. Free for [Android](https://play.google.com/store/apps/details?id=com.pionex.client&referrer=utm_source%3Dccxt) and [iOS](https://apps.apple.com/us/app/pionex/id1485348891?pt=ccxt&ct=inline)!
+- <sub>[![AAX](https://user-images.githubusercontent.com/1294454/106509642-ef957980-64de-11eb-92e0-8323cda7874e.png)](https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=one-liner&utm_campaign=futures)</sub>&nbsp; **[AAX](https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=one-liner&utm_campaign=futures)**&nbsp;&mdash;&nbsp;trade bitcoin futures with fees as low as 0.02% and up to 100x leverage!
 
 
 ## Certified Cryptocurrency Exchanges
@@ -34,6 +40,7 @@ Current feature list:
 
 | logo                                                                                                                                                                               | id            | name                                                                        | ver | doc                                                                | certified                                                                                                                   | pro                                                                          |
 |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|-----------------------------------------------------------------------------|:---:|:------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [![aax](https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg)](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)      | aax           | [AAX](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)        | 2   | [API](https://www.aaxpro.com/apidoc/index.html)                    | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
 | [![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)](https://www.binance.com/?ref=10205187)                           | binance       | [Binance](https://www.binance.com/?ref=10205187)                            | *   | [API](https://binance-docs.github.io/apidocs/spot/en)              | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitfinex](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)](https://www.bitfinex.com/?refcode=P61eYxFL)                     | bitfinex      | [Bitfinex](https://www.bitfinex.com/?refcode=P61eYxFL)                      | 1   | [API](https://docs.bitfinex.com/v1/docs)                           | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bittrex](https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg)](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)  | bittrex       | [Bittrex](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)    | 3   | [API](https://bittrex.github.io/api/v3)                            | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -50,10 +57,11 @@ Current feature list:
 
 ## Supported Cryptocurrency Exchange Markets
 
-The CCXT library currently supports the following 123 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 124 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                             | id                 | name                                                                                    | ver | doc                                                                                         | certified                                                                                                                   | pro                                                                          |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [![aax](https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg)](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)                    | aax                | [AAX](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)                    | 2   | [API](https://www.aaxpro.com/apidoc/index.html)                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
 | [![acx](https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg)](https://acx.io)                                                                    | acx                | [ACX](https://acx.io)                                                                   | 2   | [API](https://acx.io/documents/api_v2)                                                      |                                                                                                                             |                                                                              |
 | [![aofex](https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg)](https://aofex.com/#/register?key=9763840)                                       | aofex              | [AOFEX](https://aofex.com/#/register?key=9763840)                                       | *   | [API](https://aofex.zendesk.com/hc/en-us/sections/360005576574-API)                         |                                                                                                                             |                                                                              |
 | [![bequant](https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg)](https://bequant.io)                                                            | bequant            | [Bequant](https://bequant.io)                                                           | 2   | [API](https://api.bequant.io/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -224,13 +232,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.41.2/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.41.2/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.41.83/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.41.83/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.41.2/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.41.83/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -274,6 +282,8 @@ It requires common PHP modules:
 include "ccxt.php";
 var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
+
+The library supports concurrent asynchronous mode using tools from [RecoilPHP](https://github.com/recoilphp/recoil) and [ReactPHP](https://reactphp.org/) in PHP 7.1+. Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
 
 ### Docker
 
@@ -528,15 +538,6 @@ Support this project by becoming a supporter. Your avatar will show up here with
 Thank you to all our backers! [[Become a backer](https://opencollective.com/ccxt#backer)]
 
 <a href="https://opencollective.com/ccxt#backers" target="_blank"><img src="https://opencollective.com/ccxt/tiers/backer.svg?width=890"></a>
-
-### Crypto
-
-```
-ETH 0x26a3CB49578F07000575405a57888681249c35Fd (ETH only)
-BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva
-BCH 1GN9p233TvNcNQFthCgfiHUnj5JRKEc2Ze
-LTC LgM5hkvPzytEFfQGGDFGKYkE743jwUA7qv
-```
 
 Thank you!
 
