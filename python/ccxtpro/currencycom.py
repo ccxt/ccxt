@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache
+from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
 
 
 class currencycom(Exchange, ccxt.currencycom):
@@ -264,13 +264,9 @@ class currencycom(Exchange, ccxt.currencycom):
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            stored = ArrayCache(limit)
+            stored = ArrayCacheByTimestamp(limit)
             self.ohlcvs[symbol][timeframe] = stored
-        length = len(stored)
-        if length and result[0] == stored[length - 1][0]:
-            stored[length - 1] = result
-        else:
-            stored.append(result)
+        stored.append(result)
         client.resolve(stored, messageHash)
 
     def request_id(self):

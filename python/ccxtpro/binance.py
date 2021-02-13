@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.errors import ExchangeError
 
 
@@ -579,13 +579,9 @@ class binance(Exchange, ccxt.binance):
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            stored = ArrayCache(limit)
+            stored = ArrayCacheByTimestamp(limit)
             self.ohlcvs[symbol][timeframe] = stored
-        length = len(stored)
-        if length and (parsed[0] == stored[length - 1][0]):
-            stored[length - 1] = parsed
-        else:
-            stored.append(parsed)
+        stored.append(parsed)
         client.resolve(stored, messageHash)
 
     async def watch_ticker(self, symbol, params={}):

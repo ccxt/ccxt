@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -310,19 +310,15 @@ class gateio(Exchange, ccxt.gateio):
         # self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
         # stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
         # --------------------------------------------------------------------
-        stored = self.safe_value(self.ohlcvs, symbol, [])
-        length = len(stored)
-        if length and parsed[0] == stored[length - 1][0]:
-            stored[length - 1] = parsed
-        else:
-            stored.append(parsed)
+        stored = self.safe_value(self.ohlcvs, symbol)
+        if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            if length == limit:
-                stored.pop(0)
+            stored = ArrayCacheByTimestamp(limit)
+            self.ohlcvs[symbol] = stored
+        stored.append(parsed)
         # --------------------------------------------------------------------
         # self.ohlcvs[symbol][timeframe] = stored
         # --------------------------------------------------------------------
-        self.ohlcvs[symbol] = stored
         methodType = message['method']
         messageHash = methodType + ':' + marketId
         client.resolve(stored, messageHash)

@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache
+from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
 
 
 class hitbtc(Exchange, ccxt.hitbtc):
@@ -285,20 +285,16 @@ class hitbtc(Exchange, ccxt.hitbtc):
         period = self.safe_string(params, 'period')
         timeframe = self.find_timeframe(period)
         messageHash = 'ohlcv:' + marketId + ':' + period
-        limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
         for i in range(0, len(data)):
             candle = data[i]
             parsed = self.parse_ohlcv(candle, market)
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
             stored = self.safe_value(self.ohlcvs[symbol], timeframe)
             if stored is None:
-                stored = ArrayCache(limit)
+                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                stored = ArrayCacheByTimestamp(limit)
                 self.ohlcvs[symbol][timeframe] = stored
-            length = len(stored)
-            if length and parsed[0] == stored[length - 1][0]:
-                stored[length - 1] = parsed
-            else:
-                stored.append(parsed)
+            stored.append(parsed)
             client.resolve(stored, messageHash)
         return message
 

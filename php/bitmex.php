@@ -1020,15 +1020,10 @@ class bitmex extends \ccxt\async\bitmex {
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                $stored = new ArrayCache ($limit);
+                $stored = new ArrayCacheByTimestamp ($limit);
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
-            $length = is_array($stored) ? count($stored) : 0;
-            if ($length && $result[0] === $stored[$length - 1][0]) {
-                $stored[$length - 1] = $result;
-            } else {
-                $stored->append ($result);
-            }
+            $stored->append ($result);
             $results[$messageHash] = $stored;
         }
         $messageHashes = is_array($results) ? array_keys($results) : array();

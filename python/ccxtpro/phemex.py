@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache
+from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
 import math
 from ccxt.base.errors import NotSupported
 from ccxt.base.decimal_to_precision import ROUND
@@ -216,18 +216,11 @@ class phemex(Exchange, ccxt.phemex):
             stored = self.safe_value(self.ohlcvs[symbol], timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                stored = ArrayCache(limit)
+                stored = ArrayCacheByTimestamp(limit)
                 self.ohlcvs[symbol][timeframe] = stored
             for i in range(0, len(ohlcvs)):
                 candle = ohlcvs[i]
-                length = len(stored)
-                if length:
-                    if candle[0] == stored[length - 1][0]:
-                        stored[length - 1] = candle
-                    elif candle[0] > stored[length - 1][0]:
-                        stored.append(candle)
-                else:
-                    stored.append(candle)
+                stored.append(candle)
             client.resolve(stored, messageHash)
 
     async def watch_ticker(self, symbol, params={}):

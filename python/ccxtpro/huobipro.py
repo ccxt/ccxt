@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache
+from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
 from ccxt.base.errors import ExchangeError
 
 
@@ -217,15 +217,11 @@ class huobipro(Exchange, ccxt.huobipro):
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-            stored = ArrayCache(limit)
+            stored = ArrayCacheByTimestamp(limit)
             self.ohlcvs[symbol][timeframe] = stored
         tick = self.safe_value(message, 'tick')
         parsed = self.parse_ohlcv(tick, market)
-        length = len(stored)
-        if length and parsed[0] == stored[length - 1][0]:
-            stored[length - 1] = parsed
-        else:
-            stored.append(parsed)
+        stored.append(parsed)
         client.resolve(stored, ch)
 
     async def watch_order_book(self, symbol, limit=None, params={}):

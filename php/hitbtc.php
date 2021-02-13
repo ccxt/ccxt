@@ -305,22 +305,17 @@ class hitbtc extends \ccxt\async\hitbtc {
         $period = $this->safe_string($params, 'period');
         $timeframe = $this->find_timeframe($period);
         $messageHash = 'ohlcv:' . $marketId . ':' . $period;
-        $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
         for ($i = 0; $i < count($data); $i++) {
             $candle = $data[$i];
             $parsed = $this->parse_ohlcv($candle, $market);
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
-                $stored = new ArrayCache ($limit);
+                $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+                $stored = new ArrayCacheByTimestamp ($limit);
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
-            $length = is_array($stored) ? count($stored) : 0;
-            if ($length && $parsed[0] === $stored[$length - 1][0]) {
-                $stored[$length - 1] = $parsed;
-            } else {
-                $stored->append ($parsed);
-            }
+            $stored->append ($parsed);
             $client->resolve ($stored, $messageHash);
         }
         return $message;

@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache
+from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 
@@ -172,19 +172,15 @@ class bitvavo(Exchange, ccxt.bitvavo):
         messageHash = name + '@' + marketId + '_' + interval
         candles = self.safe_value(message, 'candle')
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
+        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            stored = ArrayCacheByTimestamp(limit)
+            self.ohlcvs[symbol][timeframe] = stored
         for i in range(0, len(candles)):
             candle = candles[i]
             parsed = self.parse_ohlcv(candle, market)
-            length = len(stored)
-            if length and (parsed[0] == stored[length - 1][0]):
-                stored[length - 1] = parsed
-            else:
-                stored.append(parsed)
-                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                if length >= limit:
-                    stored.pop(0)
-        self.ohlcvs[symbol][timeframe] = stored
+            stored.append(parsed)
         client.resolve(stored, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):

@@ -226,21 +226,12 @@ class phemex extends \ccxt\async\phemex {
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                $stored = new ArrayCache ($limit);
+                $stored = new ArrayCacheByTimestamp ($limit);
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
             for ($i = 0; $i < count($ohlcvs); $i++) {
                 $candle = $ohlcvs[$i];
-                $length = is_array($stored) ? count($stored) : 0;
-                if ($length) {
-                    if ($candle[0] === $stored[$length - 1][0]) {
-                        $stored[$length - 1] = $candle;
-                    } else if ($candle[0] > $stored[$length - 1][0]) {
-                        $stored->append ($candle);
-                    }
-                } else {
-                    $stored->append ($candle);
-                }
+                $stored->append ($candle);
             }
             $client->resolve ($stored, $messageHash);
         }

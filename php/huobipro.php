@@ -227,17 +227,12 @@ class huobipro extends \ccxt\async\huobipro {
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCacheByTimestamp ($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
         $tick = $this->safe_value($message, 'tick');
         $parsed = $this->parse_ohlcv($tick, $market);
-        $length = is_array($stored) ? count($stored) : 0;
-        if ($length && $parsed[0] === $stored[$length - 1][0]) {
-            $stored[$length - 1] = $parsed;
-        } else {
-            $stored->append ($parsed);
-        }
+        $stored->append ($parsed);
         $client->resolve ($stored, $ch);
     }
 
