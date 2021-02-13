@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError, ArgumentsRequired } = require ('ccxt/js/base/errors');
-const { ArrayCache } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -178,22 +178,17 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         const messageHash = name + '@' + marketId + '_' + interval;
         const candles = this.safeValue (message, 'candle');
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
             const parsed = this.parseOHLCV (candle, market);
-            const length = stored.length;
-            if (length && (parsed[0] === stored[length - 1][0])) {
-                stored[length - 1] = parsed;
-            } else {
-                stored.push (parsed);
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                if (length >= limit) {
-                    stored.shift ();
-                }
-            }
+            stored.append (parsed);
         }
-        this.ohlcvs[symbol][timeframe] = stored;
         client.resolve (stored, messageHash);
     }
 

@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError } = require ('ccxt/js/base/errors');
-const { ArrayCache } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -224,17 +224,12 @@ module.exports = class huobipro extends ccxt.huobipro {
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCache (limit);
+            stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
         const tick = this.safeValue (message, 'tick');
         const parsed = this.parseOHLCV (tick, market);
-        const length = stored.length;
-        if (length && parsed[0] === stored[length - 1][0]) {
-            stored[length - 1] = parsed;
-        } else {
-            stored.append (parsed);
-        }
+        stored.append (parsed);
         client.resolve (stored, ch);
     }
 

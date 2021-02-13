@@ -24,7 +24,7 @@ class ArrayCache extends Array {
     }
 }
 
-class ArrayCacheById extends ArrayCache {
+class ArrayCacheByTimestamp extends ArrayCache {
 
     constructor (maxSize = undefined) {
         super (maxSize)
@@ -36,8 +36,8 @@ class ArrayCacheById extends ArrayCache {
     }
 
     append (item) {
-        if (item.id in this.hashmap) {
-            const reference = this.hashmap[item.id]
+        if (item[0] in this.hashmap) {
+            const reference = this.hashmap[item[0]]
             if (reference !== item) {
                 for (const prop in reference) {
                     delete reference[prop]
@@ -47,17 +47,17 @@ class ArrayCacheById extends ArrayCache {
                 }
             }
         } else {
-            this.hashmap[item.id] = item
+            this.hashmap[item[0]] = item
             if (this.maxSize && (this.length === this.maxSize)) {
                 const deleteReference = this.shift ()
-                delete this.hashmap[deleteReference.id]
+                delete this.hashmap[deleteReference[0]]
             }
             this.push (item)
         }
     }
 }
 
-class ArrayCacheBySymbolById extends ArrayCacheById {
+class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
 
     append (item) {
         const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
@@ -84,6 +84,6 @@ class ArrayCacheBySymbolById extends ArrayCacheById {
 
 module.exports = {
     ArrayCache,
-    ArrayCacheById,
+    ArrayCacheByTimestamp,
     ArrayCacheBySymbolById,
 }
