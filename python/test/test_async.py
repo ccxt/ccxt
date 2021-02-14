@@ -436,6 +436,12 @@ async def test_exchange(exchange, symbol=None):
 
     if symbol.find('.d') < 0:
         await test_symbol(exchange, symbol, code)
+        exchange.options['numbersAsDecimals'] = 1
+        await test_symbol(exchange, symbol, code)
+        del exchange.options['numbersAsDecimals']
+        exchange.options['numbersAsStrings'] = 1
+        await test_symbol(exchange, symbol, code)
+        del exchange.options['numbersAsStrings']
 
     # ..........................................................................
     # private API
