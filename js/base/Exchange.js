@@ -576,10 +576,8 @@ module.exports = class Exchange {
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
 
         return response.text ().then ((responseBody) => {
-
-            responseBody = responseBody.trim ()
-
-            const json = this.parseJson (responseBody.replace (/:(\d{15,}),/g, ':"$1",'))
+            const bodyText = this.preProcessResponseBodyText (responseBody);
+            const json = this.parseJson (bodyText)
 
             const responseHeaders = this.getResponseHeaders (response)
 
@@ -604,6 +602,10 @@ module.exports = class Exchange {
 
             return json || responseBody
         })
+    }
+
+    preProcessResponseBodyText (responseBody) {
+        return responseBody.trim ().replace (/:(\d{15,}),/g, ':"$1",');
     }
 
     setMarkets (markets, currencies = undefined) {
