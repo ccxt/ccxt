@@ -224,7 +224,7 @@ class upbit extends Exchange {
         $walletLocked = $this->safe_value($memberInfo, 'wallet_locked');
         $locked = $this->safe_value($memberInfo, 'locked');
         $active = true;
-        if (($canWithdraw !== null) && $canWithdraw) {
+        if (($canWithdraw !== null) && !$canWithdraw) {
             $active = false;
         } else if ($walletState !== 'working') {
             $active = false;
