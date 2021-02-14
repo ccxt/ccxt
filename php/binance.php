@@ -1356,6 +1356,23 @@ class binance extends Exchange {
         //       "$symbol" => "BTCUSDT",
         //       "time" => 1569514978020
         //     }
+        //     {
+        //       "$symbol" => "BTCUSDT",
+        //       "$id" => 477128891,
+        //       "$orderId" => 13809777875,
+        //       "$side" => "SELL",
+        //       "$price" => "38479.55",
+        //       "qty" => "0.001",
+        //       "realizedPnl" => "-0.00009534",
+        //       "marginAsset" => "USDT",
+        //       "quoteQty" => "38.47955",
+        //       "commission" => "-0.00076959",
+        //       "commissionAsset" => "USDT",
+        //       "time" => 1612733566708,
+        //       "positionSide" => "BOTH",
+        //       "maker" => true,
+        //       "buyer" => false
+        //     }
         //
         $timestamp = $this->safe_integer_2($trade, 'T', 'time');
         $price = $this->safe_float_2($trade, 'p', 'price');
@@ -1384,6 +1401,9 @@ class binance extends Exchange {
         $takerOrMaker = null;
         if (is_array($trade) && array_key_exists('isMaker', $trade)) {
             $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
+        }
+        if (is_array($trade) && array_key_exists('maker', $trade)) {
+            $takerOrMaker = $trade['maker'] ? 'maker' : 'taker';
         }
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
