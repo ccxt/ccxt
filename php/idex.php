@@ -143,7 +143,7 @@ class idex extends \ccxt\async\idex {
         );
         $messageHash = $name . ':' . $market['id'];
         $trades = yield $this->subscribe($subscribeObject, $messageHash);
-        return $this->filter_by_since_limit($trades, $since, $limit);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_trade($client, $message) {
@@ -228,7 +228,7 @@ class idex extends \ccxt\async\idex {
         );
         $messageHash = $name . ':' . $market['id'];
         $ohlcv = yield $this->subscribe($subscribeObject, $messageHash);
-        return $this->filter_by_since_limit($ohlcv, $since, $limit);
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv($client, $message) {
@@ -479,7 +479,7 @@ class idex extends \ccxt\async\idex {
             $messageHash = $name . ':' . $marketId;
         }
         $orders = yield $this->subscribe_private($subscribeObject, $messageHash);
-        return $this->filter_by_since_limit($orders, $since, $limit);
+        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
     public function handle_order($client, $message) {
@@ -602,7 +602,7 @@ class idex extends \ccxt\async\idex {
             $messageHash = $name . ':' . $code;
         }
         $transactions = yield $this->subscribe_private($subscribeObject, $messageHash);
-        return $this->filter_by_since_limit($transactions, $since, $limit);
+        return $this->filter_by_since_limit($transactions, $since, $limit, 'timestamp', true);
     }
 
     public function handle_transaction($client, $message) {

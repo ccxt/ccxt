@@ -136,7 +136,7 @@ class idex(Exchange, ccxt.idex):
         }
         messageHash = name + ':' + market['id']
         trades = await self.subscribe(subscribeObject, messageHash)
-        return self.filter_by_since_limit(trades, since, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trade(self, client, message):
         type = self.safe_string(message, 'type')
@@ -217,7 +217,7 @@ class idex(Exchange, ccxt.idex):
         }
         messageHash = name + ':' + market['id']
         ohlcv = await self.subscribe(subscribeObject, messageHash)
-        return self.filter_by_since_limit(ohlcv, since, limit)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         # {type: 'candles',
@@ -442,7 +442,7 @@ class idex(Exchange, ccxt.idex):
             subscribeObject['markets'] = [marketId]
             messageHash = name + ':' + marketId
         orders = await self.subscribe_private(subscribeObject, messageHash)
-        return self.filter_by_since_limit(orders, since, limit)
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     def handle_order(self, client, message):
         # {
@@ -557,7 +557,7 @@ class idex(Exchange, ccxt.idex):
         if code is not None:
             messageHash = name + ':' + code
         transactions = await self.subscribe_private(subscribeObject, messageHash)
-        return self.filter_by_since_limit(transactions, since, limit)
+        return self.filter_by_since_limit(transactions, since, limit, 'timestamp', True)
 
     def handle_transaction(self, client, message):
         # Update Speed: Real time, updates on any deposit or withdrawal of the wallet

@@ -52,7 +52,7 @@ class upbit(Exchange, ccxt.upbit):
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         trades = await self.watch_public(symbol, 'trade')
-        return self.filter_by_since_limit(trades, since, limit, True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.watch_public(symbol, 'orderbook')
