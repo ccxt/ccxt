@@ -118,7 +118,7 @@ class ftx extends \ccxt\async\ftx {
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $trades = yield $this->watch_public($symbol, 'trades');
-        return $this->filter_by_since_limit($trades, $since, $limit);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
