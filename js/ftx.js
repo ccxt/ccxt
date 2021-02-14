@@ -1265,9 +1265,7 @@ module.exports = class ftx extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'order_id': parseInt (id),
-        };
+        const request = {};
         // support for canceling conditional orders
         // https://github.com/ccxt/ccxt/issues/6669
         const options = this.safeValue (this.options, 'cancelOrder', {});

@@ -1267,9 +1267,7 @@ class ftx extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array(
-            'order_id' => intval($id),
-        );
+        $request = array();
         // support for canceling conditional orders
         // https://github.com/ccxt/ccxt/issues/6669
         $options = $this->safe_value($this->options, 'cancelOrder', array());

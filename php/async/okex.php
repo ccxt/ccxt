@@ -3227,13 +3227,25 @@ class okex extends Exchange {
             $request['limit'] = $limit;
         }
         $currency = null;
-        if (($type === 'spot') || ($type === 'futures')) {
+        if ($type === 'spot') {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . " fetchLedger() requires a $currency $code $argument for '" . $type . "' markets");
             }
             $argument = 'Currency';
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
+        } else if ($type === 'futures') {
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . " fetchLedger() requires an underlying symbol for '" . $type . "' markets");
+            }
+            $argument = 'Underlying';
+            $market = $this->market($code); // we intentionally put a $market inside here for the margin and swap ledgers
+            $marketInfo = $this->safe_value($market, 'info', array());
+            $settlementCurrencyId = $this->safe_string($marketInfo, 'settlement_currency');
+            $settlementCurrencyСode = $this->safe_currency_code($settlementCurrencyId);
+            $currency = $this->currency($settlementCurrencyСode);
+            $underlyingId = $this->safe_string($marketInfo, 'underlying');
+            $request['underlying'] = $underlyingId;
         } else if (($type === 'margin') || ($type === 'swap')) {
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . " fetchLedger() requires a $code $argument (a $market symbol) for '" . $type . "' markets");

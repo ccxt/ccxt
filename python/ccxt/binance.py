@@ -1325,6 +1325,23 @@ class binance(Exchange):
         #       "symbol": "BTCUSDT",
         #       "time": 1569514978020
         #     }
+        #     {
+        #       "symbol": "BTCUSDT",
+        #       "id": 477128891,
+        #       "orderId": 13809777875,
+        #       "side": "SELL",
+        #       "price": "38479.55",
+        #       "qty": "0.001",
+        #       "realizedPnl": "-0.00009534",
+        #       "marginAsset": "USDT",
+        #       "quoteQty": "38.47955",
+        #       "commission": "-0.00076959",
+        #       "commissionAsset": "USDT",
+        #       "time": 1612733566708,
+        #       "positionSide": "BOTH",
+        #       "maker": True,
+        #       "buyer": False
+        #     }
         #
         timestamp = self.safe_integer_2(trade, 'T', 'time')
         price = self.safe_float_2(trade, 'p', 'price')
@@ -1350,6 +1367,8 @@ class binance(Exchange):
         takerOrMaker = None
         if 'isMaker' in trade:
             takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
+        if 'maker' in trade:
+            takerOrMaker = 'maker' if trade['maker'] else 'taker'
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         cost = None

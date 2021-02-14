@@ -222,7 +222,9 @@ function test_ohlcvs($exchange, $symbol) {
 //-----------------------------------------------------------------------------
 
 function test_symbol($exchange, $symbol, $code) {
-    test_ticker($exchange, $symbol);
+    if ($exchange->has['fetchTicker']) {
+        test_ticker($exchange, $symbol);
+    }
     if ($exchange->id === 'coinmarketcap') {
         dump(var_export(yield $exchange->fetchGlobal()));
     } else {

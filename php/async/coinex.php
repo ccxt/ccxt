@@ -95,6 +95,8 @@ class coinex extends Exchange {
                         'order/status',
                         'order/status/batch',
                         'order/user/deals',
+                        'sub_account/balance',
+                        'sub_account/transfer/history',
                     ),
                     'post' => array(
                         'balance/coin/withdraw',

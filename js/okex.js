@@ -3221,13 +3221,25 @@ module.exports = class okex extends Exchange {
             request['limit'] = limit;
         }
         let currency = undefined;
-        if ((type === 'spot') || (type === 'futures')) {
+        if (type === 'spot') {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + " fetchLedger() requires a currency code argument for '" + type + "' markets");
             }
             argument = 'Currency';
             currency = this.currency (code);
             request['currency'] = currency['id'];
+        } else if (type === 'futures') {
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + " fetchLedger() requires an underlying symbol for '" + type + "' markets");
+            }
+            argument = 'Underlying';
+            const market = this.market (code); // we intentionally put a market inside here for the margin and swap ledgers
+            const marketInfo = this.safeValue (market, 'info', {});
+            const settlementCurrencyId = this.safeString (marketInfo, 'settlement_currency');
+            const settlementCurrencyСode = this.safeCurrencyCode (settlementCurrencyId);
+            currency = this.currency (settlementCurrencyСode);
+            const underlyingId = this.safeString (marketInfo, 'underlying');
+            request['underlying'] = underlyingId;
         } else if ((type === 'margin') || (type === 'swap')) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + " fetchLedger() requires a code argument (a market symbol) for '" + type + "' markets");

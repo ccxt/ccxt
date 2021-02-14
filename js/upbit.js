@@ -220,7 +220,7 @@ module.exports = class upbit extends Exchange {
         const walletLocked = this.safeValue (memberInfo, 'wallet_locked');
         const locked = this.safeValue (memberInfo, 'locked');
         let active = true;
-        if ((canWithdraw !== undefined) && canWithdraw) {
+        if ((canWithdraw !== undefined) && !canWithdraw) {
             active = false;
         } else if (walletState !== 'working') {
             active = false;

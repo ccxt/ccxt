@@ -693,9 +693,6 @@ class kucoin(Exchange):
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
-        # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        if address is not None:
-            address = address.replace('bitcoincash:', '')
         tag = self.safe_string(data, 'memo')
         if code != 'NIM':
             # contains spaces
