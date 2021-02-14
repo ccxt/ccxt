@@ -1393,6 +1393,9 @@ module.exports = class binance extends Exchange {
             };
         }
         let takerOrMaker = undefined;
+        f ('isMaker' in trade) {
+            takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
+        }
         if ('maker' in trade) {
             takerOrMaker = trade['maker'] ? 'maker' : 'taker';
         }
