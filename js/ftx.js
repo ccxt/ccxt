@@ -114,7 +114,7 @@ module.exports = class ftx extends ccxt.ftx {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchPublic (symbol, 'trades');
-        return this.filterBySinceLimit (trades, since, limit);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
