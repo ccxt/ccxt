@@ -638,7 +638,12 @@ class Exchange(object):
     def parse_json(self, http_response):
         try:
             if Exchange.is_json_encoded_object(http_response):
-                return json.loads(http_response)
+                if 'numbersAsDecimals' in list(self.options.keys()):
+                    return json.loads(http_response, parse_float=Decimal, parse_int=Decimal)
+                elif 'numbersAsStrings' in list(self.options.keys()):
+                    return json.loads(http_response, parse_float=str, parse_int=str)
+                else:
+                    return json.loads(http_response)
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
 
