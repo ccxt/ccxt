@@ -449,7 +449,7 @@ module.exports = class gateio extends ccxt.gateio {
             'id': requestId,
         };
         const orders = await this.watch (url, messageHash, subscribeMessage, method, subscription);
-        return this.filterBySinceLimit (orders, since, limit);
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
     handleOrder (client, message) {

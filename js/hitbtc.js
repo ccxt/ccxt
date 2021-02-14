@@ -193,7 +193,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchPublic (symbol, 'trades', undefined, params);
-        return this.filterBySinceLimit (trades, since, limit, true);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrades (client, message) {

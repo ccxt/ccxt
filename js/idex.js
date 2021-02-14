@@ -140,7 +140,7 @@ module.exports = class idex extends ccxt.idex {
         };
         const messageHash = name + ':' + market['id'];
         const trades = await this.subscribe (subscribeObject, messageHash);
-        return this.filterBySinceLimit (trades, since, limit);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrade (client, message) {
@@ -225,7 +225,7 @@ module.exports = class idex extends ccxt.idex {
         };
         const messageHash = name + ':' + market['id'];
         const ohlcv = await this.subscribe (subscribeObject, messageHash);
-        return this.filterBySinceLimit (ohlcv, since, limit);
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -476,7 +476,7 @@ module.exports = class idex extends ccxt.idex {
             messageHash = name + ':' + marketId;
         }
         const orders = await this.subscribePrivate (subscribeObject, messageHash);
-        return this.filterBySinceLimit (orders, since, limit);
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
     handleOrder (client, message) {
@@ -599,7 +599,7 @@ module.exports = class idex extends ccxt.idex {
             messageHash = name + ':' + code;
         }
         const transactions = await this.subscribePrivate (subscribeObject, messageHash);
-        return this.filterBySinceLimit (transactions, since, limit);
+        return this.filterBySinceLimit (transactions, since, limit, 'timestamp', true);
     }
 
     handleTransaction (client, message) {
