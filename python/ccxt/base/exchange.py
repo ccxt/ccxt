@@ -540,8 +540,8 @@ class Exchange(object):
     def handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body):
         pass
 
-    def on_rest_response(self, code, reason, url, method, headers, body, response, request_headers, request_body):
-        return response.strip()
+    def on_rest_response(self, code, reason, url, method, response_headers, response_body, request_headers, request_body):
+        return response_body.strip()
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
