@@ -576,35 +576,28 @@ module.exports = class Exchange {
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
 
         return response.text ().then ((responseBody) => {
-            const bodyText = this.preProcessResponseBodyText (responseBody);
-            const json = this.parseJson (bodyText)
-
             const responseHeaders = this.getResponseHeaders (response)
-
+            const bodyText = this.onRestResponse (response.status, response.statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody);
+            const json = this.parseJson (bodyText)
             if (this.enableLastResponseHeaders) {
                 this.last_response_headers = responseHeaders
             }
-
             if (this.enableLastHttpResponse) {
                 this.last_http_response = responseBody
             }
-
             if (this.enableLastJsonResponse) {
                 this.last_json_response = json
             }
-
             if (this.verbose) {
                 this.print ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
             }
-
             this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
             this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
-
             return json || responseBody
         })
     }
 
-    preProcessResponseBodyText (responseBody) {
+    onRestResponse (statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
         return responseBody.trim ().replace (/:(\d{15,}),/g, ':"$1",');
     }
 
