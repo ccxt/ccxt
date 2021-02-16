@@ -55,24 +55,6 @@ module.exports = class Exchange extends ccxt.Exchange {
         return this.clients[url]
     }
 
-    async afterAsync (future, method, ... args) {
-        const result = await future
-        // call it as an instance method on this
-        return await method.call (this, result, ... args)
-    }
-
-    async after (future, method, ... args) {
-        const result = await future
-        // call it as an instance method on this
-        return method.call (this, result, ... args)
-    }
-
-    async afterDropped (future, method, ... args) {
-        // same as above, drop the result
-        await future
-        return await method.apply (this, args)
-    }
-
     spawn (method, ... args) {
         (method.apply (this, args)).catch ((e) => {
             // todo: handle spawned errors

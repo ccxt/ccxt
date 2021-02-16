@@ -138,6 +138,11 @@ module.exports = class bittrex extends ccxt.bittrex {
         client.resolve (subscription, 'authenticate');
     }
 
+    async handleAuthenticationExpiringHelper () {
+        const negotiation = await this.negotiate ();
+        return await this.sendRequestToAuthenticate (negotiation, true);
+    }
+
     handleAuthenticationExpiring (client, message) {
         //
         //     {
@@ -147,8 +152,8 @@ module.exports = class bittrex extends ccxt.bittrex {
         //
         // resend the authentication request and refresh the subscription
         //
-        const future = this.negotiate ();
-        this.spawn (this.afterAsync, future, this.sendRequestToAuthenticate, true);
+        const future = this.handleAuthenticationExpiringHelper ();
+        this.spawn (future);
     }
 
     createSignalRQuery (params = {}) {
