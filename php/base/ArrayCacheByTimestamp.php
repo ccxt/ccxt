@@ -4,14 +4,13 @@ namespace ccxtpro;
 
 class ArrayCacheByTimestamp extends ArrayCache {
     public $hashmap;
+    public $new_updates;
+    public $new_updates_hashmap;
 
     public function __construct($max_size = null) {
         parent::__construct($max_size);
         $this->hashmap = array();
-    }
-
-    public function parent_append($item) {
-        parent::append($item);
+        $this->new_updates_hashmap = array();
     }
 
     public function append($item) {
@@ -29,10 +28,14 @@ class ArrayCacheByTimestamp extends ArrayCache {
             $this->parent_append(null);
             $this->deque[$this->deque->count() - 1] = &$item;
         }
+        if (!array_key_exists($item[0], $this->new_updates_hashmap)) {
+            $this->new_updates_hashmap[$item[0]] = true;
+            $this->new_updates[] = $item;
+        }
     }
 
-    public function clear() {
-        $this->deque->clear();
-        $this->hashmap = array();
+    public function clear_new_updates() {
+        $this->new_updates = array();
+        $this->new_updates_hashmap = array();
     }
 }

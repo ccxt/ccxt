@@ -9,22 +9,24 @@ class ArrayCache extends Array {
             value: maxSize,
             writable: true,
         })
+        Object.defineProperty (this, 'newUpdates', {
+            __proto__: null, // make it invisible
+            value: [],
+            writable: true,
+        })
     }
 
     append (item) {
         this.push (item)
+        this.newUpdates.push (item)
         // maxSize may be 0 when initialized by a .filter() copy-construction
         if (this.maxSize && (this.length > this.maxSize)) {
             this.shift ()
         }
     }
 
-    clear () {
-        this.length = 0
-    }
-
-    copy () {
-        return Array.from (this)
+    clearNewUpdates () {
+        this.newUpdates = []
     }
 }
 
@@ -35,6 +37,11 @@ class ArrayCacheByTimestamp extends ArrayCache {
         Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
             value: {},
+            writable: true,
+        })
+        Object.defineProperty (this, 'newUpdatesHashmap', {
+            __proto__: null, // make it invisible
+            value: new Set (),
             writable: true,
         })
     }
@@ -58,11 +65,15 @@ class ArrayCacheByTimestamp extends ArrayCache {
             }
             this.push (item)
         }
+        if (!this.newUpdatesHashmap.has (item[0])) {
+            this.newUpdatesHashmap.add (item[0])
+            this.newUpdates.push (item)
+        }
     }
 
-    clear () {
-        this.length = 0
-        this.hashmap = {}
+    clearNewUpdates () {
+        this.newUpdates = []
+        this.newUpdatesHashmap.clear ()
     }
 }
 
@@ -87,6 +98,10 @@ class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
                 delete byId[deleteReference.id]
             }
             this.push (item)
+        }
+        if (!this.newUpdatesHashmap.has (item[item.id])) {
+            this.newUpdatesHashmap.add (item[item.id])
+            this.newUpdates.push (item)
         }
     }
 }

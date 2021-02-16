@@ -162,11 +162,11 @@ trait ClientTrait {
     }
 
     public function drop_stale($cache) {
-        $copy = $cache;
+        $result = $cache;
         if ($this->newUpdates) {
-            $copy = $cache->copy();
-            $cache->clear();
+            $result = $cache->new_updates;
         }
-        return $copy;
+        $cache->clear_new_updates();
+        return $result;
     }
 }

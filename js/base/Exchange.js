@@ -202,11 +202,11 @@ module.exports = class Exchange extends ccxt.Exchange {
     }
 
     dropStale (cache) {
-        let copy = cache
+        let result = cache
         if (this.newUpdates) {
-            copy = cache.copy ()
-            cache.clear ()
+            result = cache.newUpdates
         }
-        return copy
+        cache.clearNewUpdates ()
+        return result
     }
 }

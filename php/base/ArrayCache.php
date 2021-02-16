@@ -7,6 +7,7 @@ use \Ds\Deque;
 class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \Countable {
     public $max_size;
     public $deque;
+    public $new_updates;
 
     public function __construct($max_size = null) {
         $this->max_size = $max_size;
@@ -14,6 +15,7 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
         // https://www.php.net/manual/en/class.ds-deque.php
         // would inherit directly but it is marked as final
         $this->deque = new Deque();
+        $this->new_updates = array();
     }
 
     public function getIterator() {
@@ -26,6 +28,14 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
 
     public function append($item) {
         $this->deque->push($item);
+        $this->new_updates[] = $item;
+        if ($this->max_size && ($this->deque->count() > $this->max_size)) {
+            $this->deque->shift();
+        }
+    }
+
+    public function parent_append($item) {
+        $this->deque->push($item);
         if ($this->max_size && ($this->deque->count() > $this->max_size)) {
             $this->deque->shift();
         }
@@ -35,8 +45,8 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
         return $this->deque->count();
     }
 
-    public function clear() {
-        $this->deque->clear();
+    public function clear_new_updates() {
+        $this->new_updates = array();
     }
 
     public function offsetGet($index) {
@@ -55,7 +65,11 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
         unset($this->deque[$index]);
     }
 
-    public function copy() {
+    public function getArrayCopy() {
         return $this->deque->toArray();
+    }
+
+    public function __toString() {
+        return print_r($this->deque->toArray(), true);
     }
 }

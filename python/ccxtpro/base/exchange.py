@@ -187,8 +187,8 @@ class Exchange(BaseExchange):
         return None
 
     def drop_stale(self, cache):
-        copy = cache
+        result = cache
         if self.newUpdates:
-            copy = cache.copy()
-            cache.clear()
-        return copy
+            result = cache.new_updates
+        cache.clear_new_updates()
+        return result

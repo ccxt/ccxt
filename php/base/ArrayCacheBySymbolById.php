@@ -25,5 +25,9 @@ class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
             $this->deque[$this->deque->count() - 1] = &$item;
         }
         $this->hashmap[$item['symbol']] = $by_id;
+        if (!array_key_exists($item['id'], $this->new_updates_hashmap)) {
+            $this->new_updates_hashmap[$item['id']] = true;
+            $this->new_updates[] = $item;
+        }
     }
 }
