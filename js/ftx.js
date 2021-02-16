@@ -119,7 +119,7 @@ module.exports = class ftx extends ccxt.ftx {
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         const orderbook = await this.watchPublic (symbol, 'orderbook');
-        return this.limitOrderBook (orderbook, symbol, limit, params);
+        return orderbook.limit ();
     }
 
     handlePartial (client, message) {

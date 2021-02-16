@@ -240,7 +240,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const negotiation = await this.negotiate ();
         const topic = '/market/level2';
         const orderbook = await this.subscribe (negotiation, topic, this.handleOrderBookSubscription, symbol, params);
-        return this.limitOrderBook (orderbook, symbol, limit, params);
+        return orderbook.limit ();
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {

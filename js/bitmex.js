@@ -907,7 +907,7 @@ module.exports = class bitmex extends ccxt.bitmex {
             ],
         };
         const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        return this.limitOrderBook (orderbook, symbol, limit, params);
+        return orderbook.limit ();
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
