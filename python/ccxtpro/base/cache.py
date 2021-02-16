@@ -55,7 +55,7 @@ class ArrayCache(list):
 
     def clear(self):
         self.clear_new_updates()
-        self.clear()
+        super(ArrayCache, self).clear()
 
 
 class ArrayCacheByTimestamp(ArrayCache):
