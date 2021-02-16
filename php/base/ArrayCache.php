@@ -36,7 +36,7 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
     }
 
     public function clear() {
-        return $this->deque->clear();
+        $this->deque->clear();
     }
 
     public function offsetGet($index) {
@@ -55,7 +55,7 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
         unset($this->deque[$index]);
     }
 
-    public function getArrayCopy() {
+    public function copy() {
         return $this->deque->toArray();
     }
 }

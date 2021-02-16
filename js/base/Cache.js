@@ -22,6 +22,10 @@ class ArrayCache extends Array {
     clear () {
         this.length = 0
     }
+
+    copy () {
+        return Array.from (this)
+    }
 }
 
 class ArrayCacheByTimestamp extends ArrayCache {
@@ -54,6 +58,11 @@ class ArrayCacheByTimestamp extends ArrayCache {
             }
             this.push (item)
         }
+    }
+
+    clear () {
+        this.length = 0
+        this.hashmap = {}
     }
 }
 

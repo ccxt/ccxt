@@ -30,4 +30,9 @@ class ArrayCacheByTimestamp extends ArrayCache {
             $this->deque[$this->deque->count() - 1] = &$item;
         }
     }
+
+    public function clear() {
+        $this->deque->clear();
+        $this->hashmap = array();
+    }
 }

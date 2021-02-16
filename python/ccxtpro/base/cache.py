@@ -46,6 +46,12 @@ class ArrayCache(list):
         else:
             return deque[item]
 
+    def clear(self):
+        self.clear()
+
+    def copy(self):
+        return list(self)
+
 
 class ArrayCacheByTimestamp(ArrayCache):
     def __init__(self, max_size=None):
@@ -75,6 +81,10 @@ class ArrayCacheByTimestamp(ArrayCache):
                 delete_reference = self._deque.popleft()
                 del self.hashmap[delete_reference[0]]
             self._deque.append(item)
+
+    def clear(self):
+        self.clear()
+        self.hashmap = {}
 
 
 class ArrayCacheBySymbolById(ArrayCacheByTimestamp):

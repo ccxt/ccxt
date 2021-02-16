@@ -10,6 +10,10 @@ const ccxt = require ('ccxt')
     , functions = require ('./functions')
 
 module.exports = class Exchange extends ccxt.Exchange {
+    constructor (options = {}) {
+        super (options)
+        this.newUpdates = options.newUpdates || false
+    }
 
     inflate (data) {
         return functions.inflate (data)
@@ -195,5 +199,14 @@ module.exports = class Exchange extends ccxt.Exchange {
             }
         }
         return undefined;
+    }
+
+    dropStale (cache) {
+        let copy = cache
+        if (this.newUpdates) {
+            copy = cache.copy ()
+            cache.clear ()
+        }
+        return copy
     }
 }

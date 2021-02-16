@@ -14,6 +14,8 @@ trait ClientTrait {
         'maxPingPongMisses' => 2.0,
     );
 
+    public $newUpdates = false;
+
     public function inflate($data) {
         return \ccxtpro\inflate($data); // zlib_decode($data);
     }
@@ -157,5 +159,14 @@ trait ClientTrait {
             }
         }
         return null;
+    }
+
+    public function drop_stale($cache) {
+        $copy = $cache;
+        if ($this->newUpdates) {
+            $copy = $cache->copy();
+            $cache->clear();
+        }
+        return $copy;
     }
 }

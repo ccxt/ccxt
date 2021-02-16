@@ -35,6 +35,8 @@ class Exchange(BaseExchange):
         'maxPingPongMisses': 2.0,
     }
 
+    newUpdates = False
+
     @staticmethod
     def inflate(data):
         return inflate(data)
@@ -183,3 +185,10 @@ class Exchange(BaseExchange):
             if value == timeframe:
                 return key
         return None
+
+    def drop_stale(self, cache):
+        copy = cache
+        if self.newUpdates:
+            copy = cache.copy()
+            cache.clear()
+        return copy

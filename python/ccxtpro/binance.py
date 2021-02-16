@@ -330,7 +330,8 @@ class binance(Exchange, ccxt.binance):
             'id': requestId,
         }
         trades = await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        dropped = self.drop_stale(trades)
+        return self.filter_by_since_limit(dropped, since, limit, 'timestamp', True)
 
     def parse_trade(self, trade, market=None):
         #
@@ -529,7 +530,8 @@ class binance(Exchange, ccxt.binance):
             'id': requestId,
         }
         ohlcv = await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        dropped = self.drop_stale(ohlcv)
+        return self.filter_by_since_limit(dropped, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         #
