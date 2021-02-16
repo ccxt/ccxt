@@ -22,9 +22,11 @@ class ArrayCache(list):
     __len__ = Delegate('__len__', '_deque')
     __contains__ = Delegate('__contains__', '_deque')
     __reversed__ = Delegate('__reversed__', '_deque')
+    clear = Delegate('clear', '_deque')
 
     def __init__(self, max_size=None):
         super(list, self).__init__()
+        self.max_size = max_size
         self._deque = collections.deque([], max_size)
         self.new_updates = []
 
@@ -34,6 +36,8 @@ class ArrayCache(list):
     def append(self, item):
         self._deque.append(item)
         self.new_updates.append(item)
+        if len(self.new_updates) > self.max_size:
+            self.new_updates.pop(0)
 
     def __repr__(self):
         return str(list(self))
@@ -53,27 +57,12 @@ class ArrayCache(list):
     def clear_new_updates(self):
         self.new_updates = []
 
-    def clear(self):
-        self.clear_new_updates()
-        super(ArrayCache, self).clear()
-
 
 class ArrayCacheByTimestamp(ArrayCache):
     def __init__(self, max_size=None):
         super(ArrayCacheByTimestamp, self).__init__(max_size)
         self.hashmap = {}
         self._new_updates_hashmap = set()
-
-    def __getattribute__(self, item):
-        cls = type(self)
-        methods = cls.__dict__
-        if item in methods and hasattr(methods[item], '__get__'):
-            # method calls
-            return methods[item].__get__(self, cls)
-        variables = object.__getattribute__(self, '__dict__')
-        if item in variables:
-            return variables[item]
-        return super(ArrayCacheByTimestamp, self).__getattribute__(item)
 
     def append(self, item):
         if item[0] in self.hashmap:

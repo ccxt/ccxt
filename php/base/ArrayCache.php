@@ -32,6 +32,9 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
         if ($this->max_size && ($this->deque->count() > $this->max_size)) {
             $this->deque->shift();
         }
+        if ($this->max_size && (count($this->new_updates) > $this->max_size)) {
+            array_shift($this->new_updates);
+        }
     }
 
     public function parent_append($item) {
@@ -50,7 +53,6 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
     }
 
     public function clear() {
-        $this->clear_new_updates();
         $this->deque->clear();
     }
 

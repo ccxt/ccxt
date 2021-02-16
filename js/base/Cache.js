@@ -23,6 +23,9 @@ class ArrayCache extends Array {
         if (this.maxSize && (this.length > this.maxSize)) {
             this.shift ()
         }
+        if (this.maxSize && (this.length > this.newUpdates.length)) {
+            this.newUpdates.shift ()
+        }
     }
 
     clearNewUpdates () {
@@ -30,7 +33,6 @@ class ArrayCache extends Array {
     }
 
     clear () {
-        this.clearNewUpdates ()
         this.length = 0
     }
 }
