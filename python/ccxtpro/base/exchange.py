@@ -170,9 +170,6 @@ class Exchange(BaseExchange):
             if client.url in self.clients:
                 del self.clients[client.url]
 
-    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
-
     async def close(self):
         if self.clients:
             await asyncio.wait([client.close() for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
