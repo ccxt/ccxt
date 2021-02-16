@@ -28,6 +28,11 @@ class ArrayCache extends Array {
     clearNewUpdates () {
         this.newUpdates = []
     }
+
+    clear () {
+        this.clearNewUpdates ()
+        this.length = 0
+    }
 }
 
 class ArrayCacheByTimestamp extends ArrayCache {

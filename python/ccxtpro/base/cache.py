@@ -53,6 +53,10 @@ class ArrayCache(list):
     def clear_new_updates(self):
         self.new_updates = []
 
+    def clear(self):
+        self.clear_new_updates()
+        self.clear()
+
 
 class ArrayCacheByTimestamp(ArrayCache):
     def __init__(self, max_size=None):

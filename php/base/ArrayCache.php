@@ -49,6 +49,11 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
         $this->new_updates = array();
     }
 
+    public function clear() {
+        $this->clear_new_updates();
+        $this->deque->clear();
+    }
+
     public function offsetGet($index) {
         return $this->deque[$index];
     }
