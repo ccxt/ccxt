@@ -152,8 +152,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         //
         // resend the authentication request and refresh the subscription
         //
-        const future = this.handleAuthenticationExpiringHelper ();
-        this.spawn (future);
+        this.spawn (this.handleAuthenticationExpiringHelper);
     }
 
     createSignalRQuery (params = {}) {
@@ -653,10 +652,14 @@ module.exports = class bittrex extends ccxt.bittrex {
         return orderbook;
     }
 
+    async handleSystemStatusHelper () {
+        const negotiation = await this.negotiate ();
+        await this.start (negotiation);
+    }
+
     handleSystemStatus (client, message) {
         // send signalR protocol start() call
-        const negotiate = this.negotiate ();
-        this.spawn (this.afterAsync, negotiate, this.start);
+        this.spawn (this.handleSystemStatusHelper);
         return message;
     }
 
