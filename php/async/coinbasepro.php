@@ -684,6 +684,13 @@ class coinbasepro extends Exchange {
         //         "epoch":1589270451.504
         //     }
         //
+        // coinbase can send a float epoch value with
+        // a decimal a dot followed by no decimal digits like 1589270451.
+        // in that case the underlying json parser will return a string
+        //
+        if (gettype($response) === 'string') {
+            $response = json_decode($response, $as_associative_array = true);
+        }
         return $this->safe_timestamp($response, 'epoch');
     }
 
