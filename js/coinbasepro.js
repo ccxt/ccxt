@@ -673,13 +673,20 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetTime (params);
+        let response = await this.publicGetTime (params);
         //
         //     {
         //         "iso":"2020-05-12T08:00:51.504Z",
         //         "epoch":1589270451.504
         //     }
         //
+        // coinbase can send a float epoch value with
+        // a decimal a dot followed by no decimal digits like 1589270451.
+        // in that case the underlying json parser will return a string
+        //
+        if (typeof response === 'string') {
+            response = JSON.parse (response);
+        }
         return this.safeTimestamp (response, 'epoch');
     }
 
