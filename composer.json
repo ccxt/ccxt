@@ -22,7 +22,7 @@
         "files": [ "ccxtpro.php", "php/base/functions.php" ]
     },
     "require": {
-        "php": ">=5.4.0",
+        "php": ">=5.5",
         "ccxt/ccxt": ">=1.41.86",
         "ratchet/pawl": "^0.3.4",
         "ext-ds": "*",

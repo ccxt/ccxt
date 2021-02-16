@@ -96,7 +96,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchPublic ('trades', symbol, params);
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const dropped = this.dropStale (trades);
+        return this.filterBySinceLimit (dropped, since, limit, 'timestamp', true);
     }
 
     handleTrade (client, message) {
@@ -147,7 +148,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         };
         const message = this.extend (request, params);
         const ohlcv = await this.watch (url, messageHash, message, messageHash);
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const dropped = this.dropStale (ohlcv);
+        return this.filterBySinceLimit (dropped, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -411,6 +413,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             ],
         };
         const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        const dropped = this.staleDropped (orders);
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
@@ -436,6 +439,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             ],
         };
         const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        const dropped = this.staleDropped (trades);
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 

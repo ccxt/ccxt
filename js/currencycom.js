@@ -359,6 +359,7 @@ module.exports = class currencycom extends ccxt.currencycom {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchPublic ('trades.subscribe', symbol, params);
+        const dropped = this.dropStale (trades);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -380,6 +381,7 @@ module.exports = class currencycom extends ccxt.currencycom {
             },
         };
         const ohlcv = await this.watchPublic (messageHash, symbol, this.extend (request, params));
+        const dropped = this.dropStale (ohlcv);
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 

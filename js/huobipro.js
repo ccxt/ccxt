@@ -127,7 +127,8 @@ module.exports = class huobipro extends ccxt.huobipro {
             'params': params,
         };
         const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const dropped = this.dropStale (trades);
+        return this.filterBySinceLimit (dropped, since, limit, 'timestamp', true);
     }
 
     handleTrades (client, message) {
@@ -193,7 +194,8 @@ module.exports = class huobipro extends ccxt.huobipro {
             'params': params,
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const dropped = this.dropStale (ohlcv);
+        return this.filterBySinceLimit (dropped, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {

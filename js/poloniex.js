@@ -180,7 +180,8 @@ module.exports = class poloniex extends ccxt.poloniex {
             'channel': numericId,
         };
         const trades = await this.watch (url, messageHash, subscribe, numericId);
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const dropped = this.dropStale (trades);
+        return this.filterBySinceLimit (dropped, since, limit, 'timestamp', true);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {

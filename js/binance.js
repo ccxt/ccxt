@@ -361,7 +361,8 @@ module.exports = class binance extends ccxt.binance {
             'id': requestId,
         };
         const trades = await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const dropped = this.dropStale (trades);
+        return this.filterBySinceLimit (dropped, since, limit, 'timestamp', true);
     }
 
     parseTrade (trade, market = undefined) {
@@ -571,7 +572,8 @@ module.exports = class binance extends ccxt.binance {
             'id': requestId,
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const dropped = this.dropStale (ohlcv);
+        return this.filterBySinceLimit (dropped, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -832,7 +834,8 @@ module.exports = class binance extends ccxt.binance {
         }
         const message = undefined;
         const orders = await this.watch (url, messageHash, message, subscriptionHash);
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        const dropped = this.dropStale (orders);
+        return this.filterBySymbolSinceLimit (dropped, symbol, since, limit);
     }
 
     parseWsOrder (order, market = undefined) {
@@ -1092,7 +1095,8 @@ module.exports = class binance extends ccxt.binance {
         }
         const message = undefined;
         const trades = await this.watch (url, messageHash, message, subscriptionHash);
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        const dropped = this.dropStale (trades);
+        return this.filterBySymbolSinceLimit (dropped, symbol, since, limit);
     }
 
     handleMyTrade (client, message) {

@@ -217,7 +217,8 @@ module.exports = class gopax extends ccxt.gopax {
         };
         const message = this.extend (request, params);
         const orders = await this.watch (url, messageHash, message, subscriptionHash, subscription);
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        const dropped = this.dropStale (orders);
+        return this.filterBySymbolSinceLimit (dropped, symbol, since, limit);
     }
 
     parseWsOrderStatus (status) {
@@ -461,7 +462,8 @@ module.exports = class gopax extends ccxt.gopax {
         };
         const message = this.extend (request, params);
         const trades = await this.watch (url, messageHash, message, subscriptionHash, subscription);
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const dropped = this.dropStale (trades);
+        return this.filterBySinceLimit (dropped, since, limit, 'timestamp', true);
     }
 
     handleMyTrades (client, message) {

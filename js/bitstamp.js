@@ -199,7 +199,8 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         };
         const message = this.extend (request, params);
         const trades = await this.watch (url, messageHash, message, messageHash, subscription);
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const dropped = this.dropStale (trades);
+        return this.filterBySinceLimit (dropped, since, limit, 'timestamp', true);
     }
 
     parseTrade (trade, market = undefined) {
