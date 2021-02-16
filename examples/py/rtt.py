@@ -25,7 +25,6 @@ async def main(loop):
 
     # the exchange instance has to be reused
     # do not recreate the exchange before each call!
-    # # 'uid': 'YOUR_UID',  # some exchanges require this
 
     exchange = ccxt.binance({
 
