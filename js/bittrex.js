@@ -211,7 +211,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const authentication = await this.authenticate ();
         const orders = await this.subscribeToOrders (authentication, params);
         const dropped = this.dropStale (orders);
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (dropped, symbol, since, limit);
     }
 
     async subscribeToOrders (authentication, params = {}) {
@@ -367,7 +367,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const negotiation = await this.negotiate ();
         const ohlcv = await this.subscribeToOHLCV (negotiation, symbol, timeframe, params);
         const dropped = this.dropStale (ohlcv);
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (dropped, since, limit, 0, true);
     }
 
     async subscribeToOHLCV (negotiation, symbol, timeframe = '1m', params = {}) {

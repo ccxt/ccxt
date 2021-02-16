@@ -262,7 +262,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
         const requestParams = this.deepExtend (request, params);
         const ohlcv = await this.watchPublic (symbol, 'ohlcv', period, requestParams);
         const dropped = this.dropStale (ohlcv);
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (dropped, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
