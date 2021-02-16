@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.41.91';
+$version = '1.41.92';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.41.91';
+    const VERSION = '1.41.92';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1279,10 +1279,6 @@ class Exchange {
         return null;
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $request_headers, $request_body) {
-        // it's a stub function, does nothing in base code
-    }
-
     public function parse_json($json_string, $as_associative_array = true) {
         return json_decode($json_string, $as_associative_array);
     }
@@ -1304,6 +1300,14 @@ class Exchange {
 
     public function setHeaders($headers) {
         return $this->set_headers($headers);
+    }
+
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $request_headers, $request_body) {
+        // it's a stub function, does nothing in base code
+    }
+
+    public function on_rest_response($code, $reason, $url, $method, $response_headers, $response_body, $request_headers, $request_body) {
+        return is_string($response_body) ? trim($response_body) : $response_body;
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
@@ -1450,7 +1454,13 @@ class Exchange {
             curl_setopt_array($this->curl, $this->curl_options);
         }
 
-        $result = trim(curl_exec($this->curl));
+        $result = curl_exec($this->curl);
+
+        $curl_errno = curl_errno($this->curl);
+        $curl_error = curl_error($this->curl);
+        $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
+
+        $result = $this->on_rest_response($http_status_code, $http_status_text, $url, $method, $response_headers, $result, $headers, $body);
 
         $this->lastRestRequestTimestamp = $this->milliseconds();
 
@@ -1471,10 +1481,6 @@ class Exchange {
                 $this->last_json_response = $json_response;
             }
         }
-
-        $curl_errno = curl_errno($this->curl);
-        $curl_error = curl_error($this->curl);
-        $http_status_code = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
 
         if ($this->verbose) {
             print_r(array('Response:', $method, $url, $http_status_code, $curl_error, $response_headers, $result));
