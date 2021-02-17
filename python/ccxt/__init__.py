@@ -331,4 +331,11 @@ base = [
     'decimal_to_precision',
 ]
 
-__all__ = base + errors.__all__ + exchanges
+tests = [
+    'test_order',
+    'test_ohlcv',
+    'test_trade',
+    'test_transaction',
+]
+
+__all__ = base + errors.__all__ + exchanges + tests
