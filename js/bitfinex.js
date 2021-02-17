@@ -54,6 +54,7 @@ module.exports = class bitfinex extends Exchange {
                 '30m': '30m',
                 '1h': '1h',
                 '3h': '3h',
+                '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '1D',

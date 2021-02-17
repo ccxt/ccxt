@@ -355,6 +355,7 @@ class binance extends Exchange {
                         'historicalTrades',
                         'aggTrades',
                         'klines',
+                        'continuousKlines',
                         'fundingRate',
                         'premiumIndex',
                         'ticker/24hr',

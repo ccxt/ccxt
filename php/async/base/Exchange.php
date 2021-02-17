@@ -28,11 +28,11 @@ use Exception;
 
 include 'throttle.php';
 
-$version = '1.41.87';
+$version = '1.41.97';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.41.87';
+    const VERSION = '1.41.97';
 
     public static $loop;
     public static $kernel;
@@ -137,7 +137,6 @@ class Exchange extends \ccxt\Exchange {
             }
         }
 
-        $response_body = trim(strval($result->getBody()));
         $raw_response_headers = $result->getHeaders();
         $raw_header_keys = array_keys($raw_response_headers);
         $response_headers = array();
@@ -146,6 +145,9 @@ class Exchange extends \ccxt\Exchange {
         }
         $http_status_code = $result->getStatusCode();
         $http_status_text = $result->getReasonPhrase();
+        $response_body = strval($result->getBody());
+
+        $response_body = $this->on_rest_response($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $headers, $body);
 
         if ($this->enableLastHttpResponse) {
             $this->last_http_response = $response_body;

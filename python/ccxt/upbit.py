@@ -227,7 +227,7 @@ class upbit(Exchange):
         walletLocked = self.safe_value(memberInfo, 'wallet_locked')
         locked = self.safe_value(memberInfo, 'locked')
         active = True
-        if (canWithdraw is not None) and canWithdraw:
+        if (canWithdraw is not None) and not canWithdraw:
             active = False
         elif walletState != 'working':
             active = False
