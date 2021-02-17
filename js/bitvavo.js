@@ -312,7 +312,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             'market': marketId,
         };
         const orderbook = await this.watch (url, messageHash, request, messageHash, subscription);
-        return this.limitOrderBook (orderbook, symbol, limit, params);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {
