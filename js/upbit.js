@@ -58,7 +58,7 @@ module.exports = class upbit extends ccxt.upbit {
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         const orderbook = await this.watchPublic (symbol, 'orderbook');
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     handleTicker (client, message) {

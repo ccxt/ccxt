@@ -160,7 +160,7 @@ module.exports = class ripio extends ccxt.ripio {
             this.delay (delay, this.fetchOrderBookSnapshot, client, subscription);
         }
         const orderbook = await this.watch (url, messageHash, undefined, messageHash, subscription);
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     async fetchOrderBookSnapshot (client, subscription) {

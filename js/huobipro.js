@@ -259,7 +259,7 @@ module.exports = class huobipro extends ccxt.huobipro {
             'method': this.handleOrderBookSubscription,
         };
         const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     handleOrderBookSnapshot (client, message, subscription) {
@@ -324,7 +324,7 @@ module.exports = class huobipro extends ccxt.huobipro {
             'method': this.handleOrderBookSnapshot,
         };
         const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     handleDelta (bookside, delta) {

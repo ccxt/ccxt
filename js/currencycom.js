@@ -364,7 +364,7 @@ module.exports = class currencycom extends ccxt.currencycom {
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         const orderbook = await this.watchPublic ('depthMarketData.subscribe', symbol, params);
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

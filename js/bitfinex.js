@@ -252,7 +252,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
             'len': limit, // string, number of price points, '25', '100', default = '25'
         };
         const orderbook = await this.subscribe ('book', symbol, this.deepExtend (request, params));
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     handleOrderBook (client, message, subscription) {

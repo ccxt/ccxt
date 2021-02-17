@@ -142,7 +142,7 @@ module.exports = class binance extends ccxt.binance {
         const message = this.extend (request, query);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {

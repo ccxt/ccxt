@@ -81,7 +81,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         };
         const orderbook = await this.watch (url, messageHash, request, messageHash, subscription);
         // this.subscribe (name, symbol, params);
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     handleTrade (client, message) {

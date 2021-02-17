@@ -72,7 +72,7 @@ module.exports = class gateio extends ccxt.gateio {
             'id': requestId,
         };
         const orderbook = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     handleDelta (bookside, delta) {

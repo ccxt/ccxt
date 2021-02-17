@@ -74,7 +74,7 @@ module.exports = class gopax extends ccxt.gopax {
         };
         const message = this.extend (request, params);
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     handleDelta (orderbook, bookside, delta) {

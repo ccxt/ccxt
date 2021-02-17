@@ -220,7 +220,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         };
         const message = this.extend (request, params);
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     handleDelta (bookside, delta) {
@@ -300,7 +300,6 @@ module.exports = class bitvavo extends ccxt.bitvavo {
     }
 
     async watchOrderBookSnapshot (client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         const params = this.safeValue (subscription, 'params');
         const marketId = this.safeString (subscription, 'marketId');
@@ -311,8 +310,8 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             'action': name,
             'market': marketId,
         };
-        const orderbook = await this.watch (url, messageHash, request, messageHash, subscription);
-        return orderbook.limit ();
+        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return orderbook.limit (limit);
     }
 
     handleOrderBookSnapshot (client, message) {

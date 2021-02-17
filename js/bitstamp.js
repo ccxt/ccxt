@@ -56,7 +56,7 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         };
         const message = this.extend (request, params);
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {

@@ -289,7 +289,7 @@ module.exports = class phemex extends ccxt.phemex {
         };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return orderbook.limit ();
+        return orderbook.limit (limit);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
