@@ -193,10 +193,7 @@ from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
 
-from test.test_order import test_order                      # noqa: F401
-from test.test_ohlcv import test_ohlcv                      # noqa: F401
-from test.test_trade import test_trade                      # noqa: F401
-from test.test_transaction import test_transaction          # noqa: F401
+import test                                                 # noqa: F401
 
 exchanges = [
     'aax',
@@ -331,11 +328,4 @@ base = [
     'decimal_to_precision',
 ]
 
-tests = [
-    'test_order',
-    'test_ohlcv',
-    'test_trade',
-    'test_transaction',
-]
-
-__all__ = base + errors.__all__ + exchanges + tests
+__all__ = base + errors.__all__ + exchanges
