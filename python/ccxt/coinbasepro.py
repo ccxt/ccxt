@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -674,12 +673,6 @@ class coinbasepro(Exchange):
         #         "epoch":1589270451.504
         #     }
         #
-        # coinbase can send a float epoch value with
-        # a decimal a dot followed by no decimal digits like 1589270451.
-        # in that case the underlying json parser will return a string
-        #
-        if isinstance(response, basestring):
-            response = json.loads(response)
         return self.safe_timestamp(response, 'epoch')
 
     def parse_order_status(self, status):
