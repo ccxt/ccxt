@@ -827,7 +827,7 @@ class Transpiler {
     transpilePhpAsyncToSync () {
 
         const async = './php/test/test_async.php'
-        const sync = './php/test/test.php'
+        const sync = './php/test/test_sync.php'
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
         const syncBody = this.transpileAsyncPHPToSyncPHP (fileContents)
