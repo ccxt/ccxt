@@ -1443,7 +1443,6 @@ class Transpiler {
         ])
 
         const pythonHeader = [
-            '',
             'import numbers  # noqa: E402',
             'try:',
             '    basestring  # basestring was removed in Python 3',
@@ -1454,7 +1453,7 @@ class Transpiler {
         ].join('\n')
 
         let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-        const python = this.getPythonPreamble () + pythonHeader + python3Body;
+        const python = pythonHeader + python3Body;
         const php = this.getPHPPreamble (false) + phpBody;
 
         log.magenta ('→', test.pyFile.yellow)
