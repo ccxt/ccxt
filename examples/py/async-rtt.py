@@ -2,12 +2,15 @@
 
 import os
 import sys
+from asyncio import get_event_loop
 from pprint import pprint
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
 
-import ccxt  # noqa: E402
+import ccxt.async_support as ccxt  # noqa: E402
+# or
+# import ccxtpro as ccxt  # if you're using ccxtpro
 
 
 # WARNING!
@@ -18,12 +21,14 @@ import ccxt  # noqa: E402
 # In a live production system always use either the built-in rate limiter or make your own
 
 
-def main(loop):
+async def main(loop):
 
     # the exchange instance has to be reused
     # do not recreate the exchange before each call!
 
     exchange = ccxt.binance({
+
+        'asyncio_loop': loop,
 
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_API_SECRET',
@@ -36,13 +41,13 @@ def main(loop):
 
     })
 
-    exchange.load_markets()  # https://github.com/ccxt/ccxt/wiki/Manual#loading-markets
+    await exchange.load_markets()  # https://github.com/ccxt/ccxt/wiki/Manual#loading-markets
 
     # exchange.verbose = True  # uncomment for debugging purposes if needed
 
     symbol = 'BTC/USDC'
     market = exchange.market(symbol)
-    ticker = exchange.fetch_ticker(symbol)
+    ticker = await exchange.fetch_ticker(symbol)
 
     amount = market['limits']['amount']['min']
 
@@ -55,11 +60,11 @@ def main(loop):
 
     for i in range(0, 10):
         started = exchange.milliseconds()
-        order = exchange.create_order(symbol, 'limit', 'buy', amount, price)
+        order = await exchange.create_order(symbol, 'limit', 'buy', amount, price)
         ended = exchange.milliseconds()
         elapsed = ended - started
         results.append(elapsed)
-        exchange.cancel_order(order['id'], order['symbol'])
+        await exchange.cancel_order(order['id'], order['symbol'])
         pprint(order)
         pprint(results)
 
@@ -67,5 +72,9 @@ def main(loop):
     rtt = int(sum(results) / len(results))
     print('Successfully tested 10 orders, the average round-trip time per order is', rtt, 'milliseconds')
 
+    await exchange.close()
 
-main()
+
+loop = get_event_loop()
+loop.run_until_complete(main(loop))
+
