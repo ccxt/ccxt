@@ -1775,11 +1775,11 @@ class Exchange(object):
             array = array[-limit:] if tail and (since is None) else array[:limit]
         return array
 
-    def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None):
-        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit)
+    def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None, tail=False):
+        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
 
-    def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None):
-        return self.filter_by_value_since_limit(array, 'currency', code, since, limit)
+    def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None, tail=False):
+        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
     def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)

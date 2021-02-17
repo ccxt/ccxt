@@ -1057,12 +1057,12 @@ module.exports = class Exchange {
         return array
     }
 
-    filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined) {
-        return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit)
+    filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail)
     }
 
-    filterByCurrencySinceLimit (array, code = undefined, since = undefined, limit = undefined) {
-        return this.filterByValueSinceLimit (array, 'currency', code, since, limit)
+    filterByCurrencySinceLimit (array, code = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail)
     }
 
     filterByArray (objects, key, values = undefined, indexed = true) {
