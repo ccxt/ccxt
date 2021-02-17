@@ -786,7 +786,7 @@ class Transpiler {
     transpilePythonAsyncToSync () {
 
         const async = './python/test/test_async.py'
-        const sync = './python/test/test.py'
+        const sync = './python/test/test_sync.py'
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
         let lines = fileContents.split ("\n")
