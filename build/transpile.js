@@ -786,7 +786,7 @@ class Transpiler {
     transpilePythonAsyncToSync () {
 
         const async = './python/test/test_async.py'
-        const sync = './python/test/test.py'
+        const sync = './python/test/test_sync.py'
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
         let lines = fileContents.split ("\n")
@@ -827,7 +827,7 @@ class Transpiler {
     transpilePhpAsyncToSync () {
 
         const async = './php/test/test_async.php'
-        const sync = './php/test/test.php'
+        const sync = './php/test/test_sync.php'
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
         const syncBody = this.transpileAsyncPHPToSyncPHP (fileContents)
@@ -1443,7 +1443,6 @@ class Transpiler {
         ])
 
         const pythonHeader = [
-            '',
             'import numbers  # noqa: E402',
             'try:',
             '    basestring  # basestring was removed in Python 3',
@@ -1454,7 +1453,7 @@ class Transpiler {
         ].join('\n')
 
         let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-        const python = this.getPythonPreamble () + pythonHeader + python3Body;
+        const python = pythonHeader + python3Body;
         const php = this.getPHPPreamble (false) + phpBody;
 
         log.magenta ('→', test.pyFile.yellow)

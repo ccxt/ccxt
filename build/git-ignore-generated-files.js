@@ -40,7 +40,7 @@ let files = [
     'python/test/test_exchange_datetime_functions.py',
     'php/test/test_exchange_datetime_functions.php',
 
-    'python/test/test.py',
+    'python/test/test_sync.py',
 
     'wiki/Exchange-Markets-By-Country.md',
     'wiki/Exchange-Markets.md',
