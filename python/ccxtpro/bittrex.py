@@ -130,6 +130,10 @@ class bittrex(Exchange, ccxt.bittrex):
             del client.subscriptions[requestId]
         client.resolve(subscription, 'authenticate')
 
+    async def handle_authentication_expiring_helper(self):
+        negotiation = await self.negotiate()
+        return await self.send_request_to_authenticate(negotiation, True)
+
     def handle_authentication_expiring(self, client, message):
         #
         #     {
@@ -139,8 +143,7 @@ class bittrex(Exchange, ccxt.bittrex):
         #
         # resend the authentication request and refresh the subscription
         #
-        future = self.negotiate()
-        self.spawn(self.after_async, future, self.send_request_to_authenticate, True)
+        self.spawn(self.handle_authentication_expiring_helper)
 
     def create_signal_r_query(self, params={}):
         hub = self.safe_string(self.options, 'hub', 'c3')
@@ -595,10 +598,13 @@ class bittrex(Exchange, ccxt.bittrex):
             client.resolve(orderbook, messageHash)
         return orderbook
 
+    async def handle_system_status_helper(self):
+        negotiation = await self.negotiate()
+        await self.start(negotiation)
+
     def handle_system_status(self, client, message):
         # send signalR protocol start() call
-        negotiate = self.negotiate()
-        self.spawn(self.after_async, negotiate, self.start)
+        self.spawn(self.handle_system_status_helper)
         return message
 
     def handle_subscription_status(self, client, message):
