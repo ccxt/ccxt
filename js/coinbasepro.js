@@ -673,7 +673,7 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        let response = await this.publicGetTime (params);
+        const response = await this.publicGetTime (params);
         //
         //     {
         //         "iso":"2020-05-12T08:00:51.504Z",
