@@ -45,6 +45,7 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
             $this->clear_updates = false;
             $this->new_updates = 0;
         }
+        $this->new_updates++;
     }
 
     public function count() {

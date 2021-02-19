@@ -113,7 +113,7 @@ class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
                     reference[prop] = item[prop]
                 }
             }
-            const index = this.indexCounter - this.indexTracker[item.id]
+            const index = this.findIndex (x => x.id === item.id)
             // move the order to the end of the array
             this.splice (index, 1)
         } else {
@@ -131,7 +131,6 @@ class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
             this.newUpdates = 0
         }
         this.newUpdates++
-        this.indexCounter++
     }
 }
 

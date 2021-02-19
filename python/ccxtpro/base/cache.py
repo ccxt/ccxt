@@ -90,8 +90,7 @@ class ArrayCacheByTimestamp(ArrayCache):
 class ArrayCacheBySymbolById(ArrayCacheByTimestamp):
     def __init__(self, max_size=None):
         super(ArrayCacheBySymbolById, self).__init__(max_size)
-        self._index_counter = 0
-        self._index_tracker = {}
+        self._index = collections.deque([], max_size)
 
     def append(self, item):
         by_id = self.hashmap.setdefault(item['symbol'], {})
@@ -99,20 +98,22 @@ class ArrayCacheBySymbolById(ArrayCacheByTimestamp):
             reference = by_id[item['id']]
             if reference != item:
                 reference.update(item)
-            index = self._index_counter - self._index_tracker[item['id']]
+            index = self._index.index(item['id'])
             self._deque.rotate(-index)
             self._deque.popleft()
             self._deque.rotate(index)
+            self._index.rotate(-index)
+            self._index.popleft()
+            self._index.rotate(index)
         else:
             by_id[item['id']] = item
-            self._index_tracker[item['id']] = self._index_counter
         if len(self._deque) == self._deque.maxlen:
-            delete_reference = self._deque.popleft()
-            del by_id[delete_reference['id']]
-            del self._index_tracker[delete_reference['id']]
+            self._deque.popleft()
+            delete_reference = self._index.popleft()
+            del by_id[delete_reference]
         self._deque.append(item)
+        self._index.append(item['id'])
         if self._clear_updates:
             self._clear_updates = False
             self._new_updates = 0
         self._new_updates += 1
-        self._index_counter += 1

@@ -15,7 +15,6 @@ class ArrayCacheByTimestamp extends ArrayCache {
     }
 
     public function append($item) {
-        print_r($item);
         if (array_key_exists($item[0], $this->hashmap)) {
             $prev_ref = &$this->hashmap[$item[0]];
             # updates the reference
