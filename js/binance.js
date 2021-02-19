@@ -732,6 +732,8 @@ module.exports = class binance extends ccxt.binance {
             let method = 'publicPostUserDataStream';
             if (type === 'future') {
                 method = 'fapiPrivatePostListenKey';
+            } else if (type === 'delivery') {
+                method = 'dapiPrivatePostListenKey';
             } else if (type === 'margin') {
                 method = 'sapiPostUserDataStream';
             }
