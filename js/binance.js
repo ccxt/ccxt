@@ -591,6 +591,13 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        // this endpoint requires authentication
+        // while fetchCurrencies is a public API method by design
+        // therefore we check the keys here
+        // and fallback to generating the currencies from the markets
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
         const response = await this.sapiGetCapitalConfigGetall (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
