@@ -133,8 +133,8 @@ const testExchange = async (exchange) => {
     const args = [exchange, ... (symbol === 'all') ? [] : [ symbol ]]
         , allTests = [
             { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/test/test.js',           ...args] },
-            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/test/test.py',       ...args] },
-            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/test/test.py',       ...args] },
+            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/test/test_async.py',       ...args] },
+            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/test/test_async.py',       ...args] },
             { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test.php',         ...args] }
         ]
         , selectedTests  = allTests.filter (t => keys[t.key])
