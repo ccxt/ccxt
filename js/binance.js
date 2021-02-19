@@ -361,8 +361,10 @@ module.exports = class binance extends ccxt.binance {
             'id': requestId,
         };
         const trades = await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
-        const dropped = this.dropStale (trades);
-        return this.filterBySinceLimit (dropped, since, limit, 'timestamp', true);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     parseTrade (trade, market = undefined) {
@@ -572,8 +574,10 @@ module.exports = class binance extends ccxt.binance {
             'id': requestId,
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
-        const dropped = this.dropStale (ohlcv);
-        return this.filterBySinceLimit (dropped, since, limit, 0, true);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -834,8 +838,10 @@ module.exports = class binance extends ccxt.binance {
         }
         const message = undefined;
         const orders = await this.watch (url, messageHash, message, subscriptionHash);
-        const dropped = this.dropStale (orders);
-        return this.filterBySymbolSinceLimit (dropped, symbol, since, limit);
+        if (this.newUpdates) {
+            limit = orders.getLimit (limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     parseWsOrder (order, market = undefined) {
@@ -920,7 +926,7 @@ module.exports = class binance extends ccxt.binance {
         const marketId = this.safeString (order, 's');
         const symbol = this.safeSymbol (marketId);
         let timestamp = this.safeInteger (order, 'O');
-        const T = this.safeString (order, 'T');
+        const T = this.safeInteger (order, 'T');
         let lastTradeTimestamp = undefined;
         if (executionType === 'NEW') {
             if (timestamp === undefined) {
@@ -1095,8 +1101,8 @@ module.exports = class binance extends ccxt.binance {
         }
         const message = undefined;
         const trades = await this.watch (url, messageHash, message, subscriptionHash);
-        const dropped = this.dropStale (trades);
-        return this.filterBySymbolSinceLimit (dropped, symbol, since, limit);
+        limit = trades.getLimit (limit);
+        return this.filterBySymbolSinceLimit (limit, symbol, since, limit);
     }
 
     handleMyTrade (client, message) {
