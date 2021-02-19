@@ -196,7 +196,7 @@ module.exports = class huobipro extends Exchange {
                 },
             },
             'exceptions': {
-                'broad: {
+                'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
                     'maintain': OnMaintenance,
                 },
