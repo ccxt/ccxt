@@ -567,6 +567,10 @@ module.exports = class binance extends Exchange {
         });
     }
 
+    currencyToPrecision (currency, fee) {
+        return this.numberToString (fee);
+    }
+
     nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
