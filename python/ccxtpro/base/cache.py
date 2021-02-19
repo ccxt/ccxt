@@ -28,16 +28,24 @@ class ArrayCache(list):
         super(list, self).__init__()
         self.max_size = max_size
         self._deque = collections.deque([], max_size)
-        self.new_updates = []
+        self._new_updates = 0
+        self._clear_updates = False
 
     def __eq__(self, other):
         return list(self) == other
 
+    def getLimit(self, limit):
+        self._clear_updates = True
+        if limit is None:
+            return self._new_updates
+        return min(self._new_updates, limit)
+
     def append(self, item):
         self._deque.append(item)
-        self.new_updates.append(item)
-        if len(self.new_updates) > self.max_size:
-            self.new_updates.pop(0)
+        if self._clear_updates:
+            self._clear_updates = True
+            self._new_updates = 0
+        self._new_updates += 1
 
     def __repr__(self):
         return str(list(self))
@@ -54,52 +62,57 @@ class ArrayCache(list):
         else:
             return deque[item]
 
-    def clear_new_updates(self):
-        self.new_updates = []
-
 
 class ArrayCacheByTimestamp(ArrayCache):
     def __init__(self, max_size=None):
         super(ArrayCacheByTimestamp, self).__init__(max_size)
         self.hashmap = {}
-        self._new_updates_hashmap = set()
+        self._size_tracker = set()
 
     def append(self, item):
         if item[0] in self.hashmap:
             reference = self.hashmap[item[0]]
             if reference != item:
-                reference.clear()
-                reference.extend(item)
+                reference[0:len(item)] = item
         else:
             self.hashmap[item[0]] = item
             if len(self._deque) == self._deque.maxlen:
                 delete_reference = self._deque.popleft()
                 del self.hashmap[delete_reference[0]]
             self._deque.append(item)
-        if item[0] not in self._new_updates_hashmap:
-            self._new_updates_hashmap.add(item[0])
-            self.new_updates.append(item)
-
-    def clear_new_updates(self):
-        self.new_updates = []
-        self._new_updates_hashmap.clear()
+        if self._clear_updates:
+            self._clear_updates = False
+            self._size_tracker.clear()
+        self._size_tracker.add(item[0])
+        self._new_updates = len(self._size_tracker)
 
 
 class ArrayCacheBySymbolById(ArrayCacheByTimestamp):
+    def __init__(self, max_size=None):
+        super(ArrayCacheBySymbolById, self).__init__(max_size)
+        self._index_counter = 0
+        self._index_tracker = {}
 
     def append(self, item):
         by_id = self.hashmap.setdefault(item['symbol'], {})
         if item['id'] in by_id:
             reference = by_id[item['id']]
             if reference != item:
-                reference.clear()
                 reference.update(item)
+            index = self._index_counter - self._index_tracker[item['id']]
+            self._deque.rotate(-index)
+            self._deque.popleft()
+            self._deque.rotate(index)
         else:
             by_id[item['id']] = item
-            if len(self._deque) == self._deque.maxlen:
-                delete_reference = self._deque.popleft()
-                del by_id[delete_reference['id']]
-            self._deque.append(item)
-        if item['id'] not in self._new_updates_hashmap:
-            self._new_updates_hashmap.add(item['id'])
-            self.new_updates.append(item)
+            self._index_tracker[item['id']] = self._index_counter
+        if len(self._deque) == self._deque.maxlen:
+            delete_reference = self._deque.popleft()
+            del by_id[delete_reference['id']]
+            del self._index_tracker[delete_reference['id']]
+        self._deque.append(item)
+        if self._clear_updates:
+            self._clear_updates = False
+            self._new_updates = 0
+        self._new_updates += 1
+        self._index_counter += 1

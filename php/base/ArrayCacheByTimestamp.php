@@ -2,18 +2,20 @@
 
 namespace ccxtpro;
 
+use \Ds\Set;
+
 class ArrayCacheByTimestamp extends ArrayCache {
     public $hashmap;
-    public $new_updates;
-    public $new_updates_hashmap;
+    private $size_tracker;
 
     public function __construct($max_size = null) {
         parent::__construct($max_size);
         $this->hashmap = array();
-        $this->new_updates_hashmap = array();
+        $this->size_tracker = new Set();
     }
 
     public function append($item) {
+        print_r($item);
         if (array_key_exists($item[0], $this->hashmap)) {
             $prev_ref = &$this->hashmap[$item[0]];
             # updates the reference
@@ -25,17 +27,14 @@ class ArrayCacheByTimestamp extends ArrayCache {
                 unset($this->hashmap[$delete_reference[0]]);
             }
             # this allows us to effectively pass by reference
-            $this->parent_append(null);
+            $this->deque->push(null);
             $this->deque[$this->deque->count() - 1] = &$item;
         }
-        if (!array_key_exists($item[0], $this->new_updates_hashmap)) {
-            $this->new_updates_hashmap[$item[0]] = true;
-            $this->new_updates[] = $item;
+        if ($this->clear_updates) {
+            $this->clear_updates = false;
+            $this->size_tracker->clear();
         }
-    }
-
-    public function clear_new_updates() {
-        $this->new_updates = array();
-        $this->new_updates_hashmap = array();
+        $this->size_tracker->add($item[0]);
+        $this->new_updates = count($this->size_tracker);
     }
 }
