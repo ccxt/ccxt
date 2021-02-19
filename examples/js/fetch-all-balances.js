@@ -69,6 +69,8 @@ const coins = [
     'USDT',
     'BUSD',
     'XRP',
+    'DOGE',
+    'YFI',
 ]
 
 function initializeAllExchanges () {
