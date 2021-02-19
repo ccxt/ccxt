@@ -201,6 +201,10 @@ class huobipro extends Exchange {
                 ),
             ),
             'exceptions' => array(
+                'broad' => array(
+                    'contract is restricted of closing positions on API.  Please contact customer service' => '\\ccxt\\OnMaintenance',
+                    'maintain' => '\\ccxt\\OnMaintenance',
+                ),
                 'exact' => array(
                     // err-code
                     'bad-request' => '\\ccxt\\BadRequest',
@@ -1496,6 +1500,7 @@ class huobipro extends Exchange {
             if ($status === 'error') {
                 $code = $this->safe_string($response, 'err-code');
                 $feedback = $this->id . ' ' . $body;
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
                 $message = $this->safe_string($response, 'err-msg');
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
