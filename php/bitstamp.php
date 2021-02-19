@@ -228,6 +228,7 @@ class bitstamp extends Exchange {
                     'Order not found' => '\\ccxt\\OrderNotFound',
                     'Price is more than 20% below market price.' => '\\ccxt\\InvalidOrder',
                     'Bitstamp.net is under scheduled maintenance.' => '\\ccxt\\OnMaintenance', // array( "error" => "Bitstamp.net is under scheduled maintenance. We'll be back soon." )
+                    'Order could not be placed.' => '\\ccxt\\ExchangeNotAvailable', // Order could not be placed (perhaps due to internal error or trade halt). Please retry placing order.
                 ),
                 'broad' => array(
                     'Minimum order size is' => '\\ccxt\\InvalidOrder', // Minimum order size is 5.0 EUR.
