@@ -920,7 +920,7 @@ class binance extends \ccxt\async\binance {
         $marketId = $this->safe_string($order, 's');
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($order, 'O');
-        $T = $this->safe_string($order, 'T');
+        $T = $this->safe_integer($order, 'T');
         $lastTradeTimestamp = null;
         if ($executionType === 'NEW') {
             if ($timestamp === null) {
