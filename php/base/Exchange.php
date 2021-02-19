@@ -1794,9 +1794,22 @@ class Exchange {
             $result = $array;
         }
         if (isset($limit)) {
-            $result = ($tail && !$since_is_set) ?
-                array_slice($result, -$limit) :
-                array_slice($result, 0, $limit);
+            if (is_array($result)) {
+                $result = ($tail && !$since_is_set) ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
+            } else {
+                $length = count($result);
+                if ($tail && !$since_is_set) {
+                    $start = max($length - $limit, 0);
+                } else {
+                    $start = 0;
+                }
+                $end = min($start + $limit, $length);
+                $result_copy = array();
+                for ($i = $start; $i < $end; $i++) {
+                    $result_copy[] = $result[$i];
+                }
+                $result = $result_copy;
+            }
         }
         return $result;
     }
