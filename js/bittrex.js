@@ -217,7 +217,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         if (this.newUpdates) {
             limit = orders.getLimit (limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async subscribeToOrders (authentication, params = {}) {

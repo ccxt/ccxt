@@ -214,7 +214,7 @@ module.exports = class gateio extends ccxt.gateio {
         const trades = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
         if (this.newUpdates) {
             limit = trades.getLimit (limit);
-       }
+        }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
