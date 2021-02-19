@@ -250,11 +250,7 @@ class coingi(Exchange):
         timestamp = self.safe_integer(trade, 'timestamp')
         id = self.safe_string(trade, 'id')
         marketId = self.safe_string(trade, 'currencyPair')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         return {
             'id': id,
             'info': trade,

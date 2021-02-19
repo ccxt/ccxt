@@ -154,6 +154,7 @@ module.exports = class coinegg extends Exchange {
             },
             'commonCurrencies': {
                 'JBC': 'JubaoCoin',
+                'SBTC': 'Super Bitcoin',
             },
         });
     }
@@ -366,8 +367,11 @@ module.exports = class coinegg extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': filled,

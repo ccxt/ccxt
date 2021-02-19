@@ -224,12 +224,17 @@ class bitforex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'CREDIT' => 'TerraCredit',
+                'HBC' => 'Hybrid Bank Cash',
+                'IQ' => 'IQ.Cash',
                 'UOS' => 'UOS Network',
             ),
             'exceptions' => array(
                 '4004' => '\\ccxt\\OrderNotFound',
                 '1013' => '\\ccxt\\AuthenticationError',
                 '1016' => '\\ccxt\\AuthenticationError',
+                '1017' => '\\ccxt\\PermissionDenied', // array("code":"1017","success":false,"time":1602670594367,"message":"IP not allow")
+                '1019' => '\\ccxt\\BadSymbol', // array("code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid")
                 '3002' => '\\ccxt\\InsufficientFunds',
                 '10204' => '\\ccxt\\DDoSProtection',
             ),
@@ -497,8 +502,11 @@ class bitforex extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'average' => $average,
             'amount' => $amount,

@@ -405,14 +405,7 @@ class xena(Exchange):
         #
         timestamp = self.milliseconds()
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                symbol = marketId
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         last = self.safe_float(ticker, 'lastPx')
         open = self.safe_float(ticker, 'firstPx')
         percentage = None
@@ -648,19 +641,8 @@ class xena(Exchange):
         elif side == '2':
             side = 'sell'
         orderId = self.safe_string(trade, 'orderId')
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['id']
-            else:
-                baseId, quoteId = marketId.split('/')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         price = self.safe_float_2(trade, 'lastPx', 'mdEntryPx')
         amount = self.safe_float_2(trade, 'lastQty', 'mdEntrySize')
         cost = None
@@ -903,15 +885,8 @@ class xena(Exchange):
         transactTime = self.safe_integer(order, 'transactTime')
         timestamp = int(transactTime / 1000000)
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
-        symbol = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                symbol = marketId
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'orderQty')
         filled = self.safe_float(order, 'cumQty')
@@ -943,8 +918,11 @@ class xena(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -998,12 +976,12 @@ class xena(Exchange):
         }
         if (type == 'limit') or (type == 'stop-limit'):
             if price is None:
-                raise InvalidOrder(self.id + ' createOrder requires a price argument for order type ' + type)
+                raise InvalidOrder(self.id + ' createOrder() requires a price argument for order type ' + type)
             request['price'] = self.price_to_precision(symbol, price)
         if (type == 'stop') or (type == 'stop-limit'):
             stopPx = self.safe_float(params, 'stopPx')
             if stopPx is None:
-                raise InvalidOrder(self.id + ' createOrder requires a stopPx param for order type ' + type)
+                raise InvalidOrder(self.id + ' createOrder() requires a stopPx param for order type ' + type)
             request['stopPx'] = self.price_to_precision(symbol, stopPx)
             params = self.omit(params, 'stopPx')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdId', self.uuid())
@@ -1037,7 +1015,7 @@ class xena(Exchange):
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         await self.load_accounts()
         accountId = await self.get_account_id(params)
@@ -1085,7 +1063,7 @@ class xena(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         await self.load_accounts()
         accountId = await self.get_account_id(params)

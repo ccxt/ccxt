@@ -5,6 +5,14 @@ import ccxtpro as ccxt
 from pprint import pprint
 
 
+# This example will run silent and will return your balance only when the balance is updated.
+
+# 1. launch the example with your keys and keep it running
+# 2. go to the margin trading on the website
+# 3. place a margin order on a spot market
+# 4. see your balance updated in the example
+
+
 async def main(asyncio_loop):
     exchange = ccxt.binance({
         'asyncio_loop': asyncio_loop,

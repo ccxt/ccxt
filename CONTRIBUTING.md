@@ -199,7 +199,7 @@ The contents of the repository are structured as follows:
 /php/                      # PHP ccxt module/package folder
 /python/                   # Python ccxt module/package folder for PyPI
 /python/__init__.py        # entry point for the Python version of the ccxt.library
-/python/async/__init__.py  # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
+/python/async_support/     # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
 /python/base/              # base code for the Python version of the ccxt library
 /python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
 /python/README.md          # a copy of README.md for PyPI
@@ -246,7 +246,7 @@ These files containing derived exchange classes are transpiled from JS into Pyth
 
 - `js/[_a-z].js` → `python/ccxt/async/[_a-z].py`
 - `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python 2 sync transpilation stage)
-- `python/test/test_async.py` → `python/test/test.py` (the sync test is generated from the async test)
+- `python/test/test_async.py` → `python/test/test_sync.py` (the sync test is generated from the async test)
 
 These Python base classes and files are not transpiled:
 
@@ -424,27 +424,14 @@ In order to handle the market-`id` properly it has to be looked-up in the info c
 
 ```JavaScript
 parseTrade (trade, market = undefined) {
-   let symbol = undefined;
-   const marketId = this.safeString (trade, 'pair');
-   if (marketId !== undefined) {
-      if (marketId in this.markets_by_id) {
-         // look up by an exchange-specific id in the preloaded markets first
-         market = this.markets_by_id[market];
-         symbol = market['symbol'];
-      } else {
-         // try to parse it somehow, if the format is known
-         const [ baseId, quoteId ] = marketId.split ('/');
-         const base = this.safeCurrencyCode (baseId); // unified
-         const quote = this.safeCurrencyCode (quoteId);
-         symbol = base + '/' + quote;
-      }
-   }
-   // parsing code...
-   return {
-      'info': trade,
-      'symbol': symbol, // very good, a unified symbol here now
-      // other fields...
-   };
+    const marketId = this.safeString (trade, 'pair');
+    // safeSymbol is used to parse the market id to a unified symbol
+    const symbol = this.safeSymbol (marketId, market);
+    return {
+       'info': trade,
+       'symbol': symbol, // very good, a unified symbol here now
+       // other fields...
+    };
 }
 ```
 
@@ -881,14 +868,6 @@ npm run git-unignore-generated-files
 ## Financial Contributions
 
 We also welcome financial contributions in full transparency on our [open collective](https://opencollective.com/ccxt).
-Anyone can file an expense. If the expense makes sense for the development of the community, it will be "merged" in the ledger of our open collective by the core contributors and the person who filed the expense will be reimbursed.
-
-```
-ETH 0x26a3CB49578F07000575405a57888681249c35Fd (ETH only!)
-BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva
-BCH 1GN9p233TvNcNQFthCgfiHUnj5JRKEc2Ze
-LTC LbT8mkAqQBphc4yxLXEDgYDfEax74et3bP
-```
 
 ## Credits
 

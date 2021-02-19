@@ -303,8 +303,11 @@ class btctradeua(Exchange):
             'status': 'open',
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
+            'postOnly': None,
             'side': self.safe_string(order, 'type'),
             'price': self.safe_float(order, 'price'),
+            'stopPrice': None,
             'amount': self.safe_float(order, 'amnt_trade'),
             'filled': 0,
             'remaining': self.safe_float(order, 'amnt_trade'),
@@ -317,7 +320,7 @@ class btctradeua(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {

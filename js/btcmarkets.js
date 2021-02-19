@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -14,6 +14,7 @@ module.exports = class btcmarkets extends Exchange {
             'name': 'BTC Markets',
             'countries': [ 'AU' ], // Australia
             'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
+            'version': 'v3',
             'has': {
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -40,58 +41,27 @@ module.exports = class btcmarkets extends Exchange {
                 'api': {
                     'public': 'https://api.btcmarkets.net',
                     'private': 'https://api.btcmarkets.net',
-                    'privateV3': 'https://api.btcmarkets.net/v3',
-                    'web': 'https://btcmarkets.net/data',
                 },
                 'www': 'https://btcmarkets.net',
                 'doc': [
-                    'https://api.btcmarkets.net/doc/v3#section/API-client-libraries',
+                    'https://api.btcmarkets.net/doc/v3',
                     'https://github.com/BTCMarkets/API',
                 ],
             },
             'api': {
                 'public': {
                     'get': [
-                        'market/{id}/tick',
-                        'market/{id}/orderbook',
-                        'market/{id}/trades',
-                        'v2/market/{id}/tickByTime/{timeframe}',
-                        'v2/market/{id}/trades',
-                        'v2/market/active',
-                        'v3/markets',
-                        'v3/markets/{marketId}/ticker',
-                        'v3/markets/{marketId}/trades',
-                        'v3/markets/{marketId}/orderbook',
-                        'v3/markets/{marketId}/candles',
-                        'v3/markets/tickers',
-                        'v3/markets/orderbooks',
-                        'v3/time',
+                        'markets',
+                        'markets/{marketId}/ticker',
+                        'markets/{marketId}/trades',
+                        'markets/{marketId}/orderbook',
+                        'markets/{marketId}/candles',
+                        'markets/tickers',
+                        'markets/orderbooks',
+                        'time',
                     ],
                 },
                 'private': {
-                    'get': [
-                        'account/balance',
-                        'account/{id}/tradingfee',
-                        'fundtransfer/history',
-                        'v2/order/open',
-                        'v2/order/open/{id}',
-                        'v2/order/history/{instrument}/{currency}/',
-                        'v2/order/trade/history/{id}',
-                        'v2/transaction/history/{currency}',
-                    ],
-                    'post': [
-                        'fundtransfer/withdrawCrypto',
-                        'fundtransfer/withdrawEFT',
-                        'order/create',
-                        'order/cancel',
-                        'order/history',
-                        'order/open',
-                        'order/trade/history',
-                        'order/createBatch', // they promise it's coming soon...
-                        'order/detail',
-                    ],
-                },
-                'privateV3': {
                     'get': [
                         'orders',
                         'orders/{id}',
@@ -128,16 +98,11 @@ module.exports = class btcmarkets extends Exchange {
                         'orders/{id}',
                     ],
                 },
-                'web': {
-                    'get': [
-                        'market/BTCMarkets/{id}/tickByTime',
-                    ],
-                },
             },
             'timeframes': {
-                '1m': 'minute',
-                '1h': 'hour',
-                '1d': 'day',
+                '1m': '1m',
+                '1h': '1h',
+                '1d': '1d',
             },
             'exceptions': {
                 '3': InvalidOrder,
@@ -149,6 +114,7 @@ module.exports = class btcmarkets extends Exchange {
                 'OrderAlreadyCancelled': InvalidOrder,
                 'OrderNotFound': OrderNotFound,
                 'OrderStatusIsFinal': InvalidOrder,
+                'InvalidPaginationParameter': BadRequest,
             },
             'fees': {
                 'percentage': true,
@@ -185,15 +151,15 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsWithMethod ('privateV3GetTransfers', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod ('privateGetTransfers', code, since, limit, params);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsWithMethod ('privateV3GetDeposits', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod ('privateGetDeposits', code, since, limit, params);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsWithMethod ('privateV3GetWithdrawals', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod ('privateGetWithdrawals', code, since, limit, params);
     }
 
     parseTransactionStatus (status) {
@@ -284,7 +250,10 @@ module.exports = class btcmarkets extends Exchange {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const currencyId = this.safeString (transaction, 'assetName');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeFloat (transaction, 'amount');
+        if (fee) {
+            amount -= fee;
+        }
         return {
             'id': this.safeString (transaction, 'id'),
             'txid': txid,
@@ -310,7 +279,20 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetV3Markets (params);
+        const response = await this.publicGetMarkets (params);
+        //
+        //     [
+        //         {
+        //             "marketId":"COMP-AUD",
+        //             "baseAssetName":"COMP",
+        //             "quoteAssetName":"AUD",
+        //             "minOrderAmount":"0.00007",
+        //             "maxOrderAmount":"1000000",
+        //             "amountDecimals":"8",
+        //             "priceDecimals":"2"
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -366,7 +348,7 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetV3Time (params);
+        const response = await this.publicGetTime (params);
         //
         //     {
         //         "timestamp": "2019-09-01T18:34:27.045000Z"
@@ -377,7 +359,7 @@ module.exports = class btcmarkets extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateV3GetAccountsMeBalances (params);
+        const response = await this.privateGetAccountsMeBalances (params);
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -395,112 +377,173 @@ module.exports = class btcmarkets extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         //
-        //     {
-        //         "timestamp":1572307200000,
-        //         "open":1962218,
-        //         "high":1974850,
-        //         "low":1962208,
-        //         "close":1974850,
-        //         "volume":305211315,
-        //     }
+        //     [
+        //         "2020-09-12T18:30:00.000000Z",
+        //         "14409.45", // open
+        //         "14409.45", // high
+        //         "14403.91", // low
+        //         "14403.91", // close
+        //         "0.01571701" // volume
+        //     ]
         //
-        const multiplier = 100000000; // for price and volume
-        const keys = [ 'open', 'high', 'low', 'close', 'volume' ];
-        const result = [
-            this.safeInteger (ohlcv, 'timestamp'),
+        return [
+            this.parse8601 (this.safeString (ohlcv, 0)),
+            this.safeFloat (ohlcv, 1), // open
+            this.safeFloat (ohlcv, 2), // high
+            this.safeFloat (ohlcv, 3), // low
+            this.safeFloat (ohlcv, 4), // close
+            this.safeFloat (ohlcv, 5), // volume
         ];
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            let value = this.safeFloat (ohlcv, key);
-            if (value !== undefined) {
-                value = value / multiplier;
-            }
-            result.push (value);
-        }
-        return result;
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.load_markets ();
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'id': market['id'],
-            'timeframe': this.timeframes[timeframe],
-            // set to true to see candles more recent than the timestamp in the
-            // since parameter, if a since parameter is used, default is false
-            'indexForward': true,
-            // set to true to see the earliest candles first in the list of
-            // returned candles in chronological order, default is false
-            'sortForward': true,
+            'marketId': market['id'],
+            'timeWindow': this.timeframes[timeframe],
+            // 'from': this.iso8601 (since),
+            // 'to': this.iso8601 (this.milliseconds ()),
+            // 'before': 1234567890123,
+            // 'after': 1234567890123,
+            // 'limit': limit, // default 10, max 200
         };
         if (since !== undefined) {
-            request['since'] = since;
+            request['from'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default is 3000
+            request['limit'] = limit; // default is 10, max 200
         }
-        const response = await this.publicGetV2MarketIdTickByTimeTimeframe (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketIdCandles (this.extend (request, params));
         //
-        //     {
-        //         "success":true,
-        //         "paging":{
-        //             "newer":"/v2/market/ETH/BTC/tickByTime/day?indexForward=true&since=1572307200000",
-        //             "older":"/v2/market/ETH/BTC/tickByTime/day?since=1457827200000"
-        //         },
-        //         "ticks":[
-        //             {"timestamp":1572307200000,"open":1962218,"high":1974850,"low":1962208,"close":1974850,"volume":305211315},
-        //             {"timestamp":1572220800000,"open":1924700,"high":1951276,"low":1909328,"close":1951276,"volume":1086067595},
-        //             {"timestamp":1572134400000,"open":1962155,"high":1962734,"low":1900905,"close":1930243,"volume":790141098},
-        //         ],
-        //     }
+        //     [
+        //         ["2020-09-12T18:30:00.000000Z","14409.45","14409.45","14403.91","14403.91","0.01571701"],
+        //         ["2020-09-12T18:21:00.000000Z","14409.45","14409.45","14409.45","14409.45","0.0035"],
+        //         ["2020-09-12T18:03:00.000000Z","14361.37","14361.37","14361.37","14361.37","0.00345221"],
+        //     ]
         //
-        const ticks = this.safeValue (response, 'ticks', []);
-        return this.parseOHLCVs (ticks, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'id': market['id'],
+            'marketId': market['id'],
         };
-        const response = await this.publicGetMarketIdOrderbook (this.extend (request, params));
-        const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        const response = await this.publicGetMarketsMarketIdOrderbook (this.extend (request, params));
+        //
+        //     {
+        //         "marketId":"BTC-AUD",
+        //         "snapshotId":1599936148941000,
+        //         "asks":[
+        //             ["14459.45","0.00456475"],
+        //             ["14463.56","2"],
+        //             ["14470.91","0.98"],
+        //         ],
+        //         "bids":[
+        //             ["14421.01","0.52"],
+        //             ["14421","0.75"],
+        //             ["14418","0.3521"],
+        //         ]
+        //     }
+        //
+        const timestamp = this.safeIntegerProduct (response, 'snapshotId', 0.001);
+        const orderbook = this.parseOrderBook (response, timestamp);
+        orderbook['nonce'] = this.safeInteger (response, 'snapshotId');
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.safeTimestamp (ticker, 'timestamp');
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "marketId":"BAT-AUD",
+        //         "bestBid":"0.3751",
+        //         "bestAsk":"0.377",
+        //         "lastPrice":"0.3769",
+        //         "volume24h":"56192.97613335",
+        //         "volumeQte24h":"21179.13270465",
+        //         "price24h":"0.0119",
+        //         "pricePct24h":"3.26",
+        //         "low24h":"0.3611",
+        //         "high24h":"0.3799",
+        //         "timestamp":"2020-08-09T18:28:23.280000Z"
+        //     }
+        //
         let symbol = undefined;
-        if (market !== undefined) {
+        const marketId = this.safeString (ticker, 'marketId');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
+        const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const last = this.safeFloat (ticker, 'lastPrice');
+        const baseVolume = this.safeFloat (ticker, 'volume24h');
+        const quoteVolume = this.safeFloat (ticker, 'volumeQte24h');
+        const vwap = this.vwap (baseVolume, quoteVolume);
+        const change = this.safeFloat (ticker, 'price24h');
+        const percentage = this.safeFloat (ticker, 'pricePct24h');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
+            'high': this.safeFloat (ticker, 'high24h'),
+            'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bestBid'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'bestAsk'),
             'askVolume': undefined,
-            'vwap': undefined,
+            'vwap': vwap,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume24h'),
-            'quoteVolume': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+        };
+        const response = await this.publicGetMarketsMarketIdTicker (this.extend (request, params));
+        //
+        //     {
+        //         "marketId":"BAT-AUD",
+        //         "bestBid":"0.3751",
+        //         "bestAsk":"0.377",
+        //         "lastPrice":"0.3769",
+        //         "volume24h":"56192.97613335",
+        //         "volumeQte24h":"21179.13270465",
+        //         "price24h":"0.0119",
+        //         "pricePct24h":"3.26",
+        //         "low24h":"0.3611",
+        //         "high24h":"0.3799",
+        //         "timestamp":"2020-08-09T18:28:23.280000Z"
+        //     }
+        //
+        return this.parseTicker (response, market);
+    }
+
+    async fetchTicker2 (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -612,7 +655,7 @@ module.exports = class btcmarkets extends Exchange {
             // 'since': 59868345231,
             'marketId': market['id'],
         };
-        const response = await this.publicGetV3MarketsMarketIdTrades (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketIdTrades (this.extend (request, params));
         //
         //     [
         //         {"id":"6191646611","price":"539.98","amount":"0.5","timestamp":"2020-08-09T15:21:05.016000Z","side":"Ask"},
@@ -684,7 +727,7 @@ module.exports = class btcmarkets extends Exchange {
             request['clientOrderId'] = clientOrderId;
         }
         params = this.omit (params, 'clientOrderId');
-        const response = await this.privateV3PostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
         //         "orderId": "7524",
@@ -715,7 +758,7 @@ module.exports = class btcmarkets extends Exchange {
         const request = {
             'ids': ids,
         };
-        return await this.privateV3DeleteBatchordersIds (this.extend (request, params));
+        return await this.privateDeleteBatchordersIds (this.extend (request, params));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -723,7 +766,7 @@ module.exports = class btcmarkets extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privateV3DeleteOrdersId (this.extend (request, params));
+        return await this.privateDeleteOrdersId (this.extend (request, params));
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -820,6 +863,9 @@ module.exports = class btcmarkets extends Exchange {
         }
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const stopPrice = this.safeFloat (order, 'triggerPrice');
+        const postOnly = this.safeValue (order, 'postOnly');
         return {
             'info': order,
             'id': id,
@@ -829,8 +875,11 @@ module.exports = class btcmarkets extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -847,7 +896,7 @@ module.exports = class btcmarkets extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateV3GetOrdersId (this.extend (request, params));
+        const response = await this.privateGetOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -867,7 +916,7 @@ module.exports = class btcmarkets extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateV3GetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -895,7 +944,7 @@ module.exports = class btcmarkets extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateV3GetTrades (this.extend (request, params));
+        const response = await this.privateGetTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -950,54 +999,20 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const uri = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + uri;
+        let request = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.keysort (this.omit (params, this.extractParams (path)));
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            let auth = undefined;
-            headers = {
-                'apikey': this.apiKey,
-                'timestamp': nonce,
-            };
-            if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                auth = uri + "\n" + nonce + "\n"; // eslint-disable-line quotes
-                body = this.json (params);
-                auth += body;
-            } else {
-                let queryString = '';
+            const secret = this.base64ToBinary (this.encode (this.secret));
+            let auth = method + request + nonce;
+            if ((method === 'GET') || (method === 'DELETE')) {
                 if (Object.keys (query).length) {
-                    queryString = this.urlencode (query);
-                    url += '?' + queryString;
-                    queryString += "\n"; // eslint-disable-line quotes
+                    request += '?' + this.urlencode (query);
                 }
-                auth = uri + "\n" + queryString + nonce + "\n"; // eslint-disable-line quotes
-            }
-            const secret = this.base64ToBinary (this.secret);
-            const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
-            headers['signature'] = this.decode (signature);
-        } else if (api === 'privateV3') {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            const secret = this.base64ToBinary (this.secret); // or stringToBase64
-            const pathWithLeadingSlash = '/v3' + uri;
-            const query = this.keysort (this.omit (params, this.extractParams (path)));
-            if (method !== 'GET') {
+            } else {
                 body = this.json (query);
-            } else {
-                let queryString = '';
-                if (Object.keys (query).length) {
-                    queryString = this.urlencode (query);
-                    url += '?' + queryString;
-                }
-            }
-            let auth = undefined;
-            if (body) {
-                auth = method + pathWithLeadingSlash + nonce + body;
-            } else {
-                auth = method + pathWithLeadingSlash + nonce;
+                auth += body;
             }
             const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
@@ -1008,11 +1023,12 @@ module.exports = class btcmarkets extends Exchange {
                 'BM-AUTH-TIMESTAMP': nonce,
                 'BM-AUTH-SIGNATURE': signature,
             };
-        } else {
+        } else if (api === 'public') {
             if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+                request += '?' + this.urlencode (query);
             }
         }
+        const url = this.urls['api'][api] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

@@ -98,10 +98,12 @@ class coinmarketcap(Exchange):
             'ACChain': 'ACChain',
             'AdCoin': 'AdCoin',
             'BatCoin': 'BatCoin',
+            'BigONE Token': 'BigONE Token',  # conflict with Harmony(ONE)
             'Bitgem': 'Bitgem',
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
             'Blocktrade Token': 'Blocktrade Token',
+            'BOX Token': 'BOX Token',  # conflict with BOX(ContentBox)
             'Catcoin': 'Catcoin',
             'CanYaCoin': 'CanYaCoin',  # conflict with CAN(Content and AD Network)
             'CryptoBossCoin': 'CryptoBossCoin',  # conflict with CBC(CashBet Coin)
@@ -111,12 +113,14 @@ class coinmarketcap(Exchange):
             'Cryptaur': 'Cryptaur',  # conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
             'Cubits': 'Cubits',  # conflict with QBT(Qbao)
             'DAO.Casino': 'DAO.Casino',  # conflict with BET(BetaCoin)
+            'DefiBox': 'DefiBox',  # conflict with BOX(ContentBox)
             'E-Dinar Coin': 'E-Dinar Coin',  # conflict with EDR Endor Protocol and EDRCoin
             'EDRcoin': 'EDRcoin',  # conflict with EDR Endor Protocol and E-Dinar Coin
             'ENTCash': 'ENTCash',  # conflict with ENT(Eternity)
             'FairCoin': 'FairCoin',  # conflict with FAIR(FairGame) https://github.com/ccxt/ccxt/pull/5865
             'Fabric Token': 'Fabric Token',
             # 'GET Protocol': 'GET Protocol',
+            'GHOSTPRISM': 'GHOSTPRISM',  # conflict with GHOST
             'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
             'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)
             'HarmonyCoin': 'HarmonyCoin',  # conflict with HMC(Hi Mutual Society)
@@ -126,14 +130,18 @@ class coinmarketcap(Exchange):
             'Huncoin': 'Huncoin',  # conflict with HNC(Helleniccoin)
             'iCoin': 'iCoin',
             'Infinity Economics': 'Infinity Economics',  # conflict with XIN(Mixin)
+            'IQ.cash': 'IQ.cash',  # conflict with IQ(Everipedia)
             'KingN Coin': 'KingN Coin',  # conflict with KNC(Kyber Network)
             'LiteBitcoin': 'LiteBitcoin',  # conflict with LBTC(LightningBitcoin)
             'Maggie': 'Maggie',
+            'Menlo One': 'Menlo One',  # conflict with Harmony(ONE)
+            'Mobilian Coin': 'Mobilian Coin',  # conflict with Membrana(MBN)
             'Monarch': 'Monarch',  # conflict with MyToken(MT)
             'MTC Mesh Network': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
             'IOTA': 'IOTA',  # a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
             'PCHAIN': 'PCHAIN',  # conflict with PAI(Project Pai)
+            'Penta': 'Penta',  # conflict with PNT(pNetwork)
             'Plair': 'Plair',  # conflict with PLA(PLANET)
             'PlayChip': 'PlayChip',  # conflict with PLA(PLANET)
             'Polcoin': 'Polcoin',
@@ -142,9 +150,13 @@ class coinmarketcap(Exchange):
             # https://github.com/ccxt/ccxt/issues/6081
             # https://github.com/ccxt/ccxt/issues/3365
             # https://github.com/ccxt/ccxt/issues/2873
+            'SBTCT': 'SiamBitcoin',  # conflict with sBTC
+            'Super Bitcoin': 'Super Bitcoin',  # conflict with sBTC
+            'TerraCredit': 'TerraCredit',  # conflict with CREDIT(PROXI)
             'Themis': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
-            'Menlo One': 'Menlo One',  # conflict with Harmony(ONE)
-            'BigONE Token': 'BigONE Token',  # conflict with Harmony(ONE)
+            'UNI COIN': 'UNI COIN',  # conflict with UNI(Uniswap)
+            'UNICORN Token': 'UNICORN Token',  # conflict with UNI(Uniswap)
+            'Universe': 'Universe',  # conflict with UNI(Uniswap)
         }
         return self.safe_value(currencies, name, base)
 

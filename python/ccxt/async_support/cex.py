@@ -152,7 +152,7 @@ class cex(Exchange):
                     'Nonce must be incremented': InvalidNonce,
                     'Invalid Order': InvalidOrder,
                     'Order not found': OrderNotFound,
-                    'Rate limit exceeded': RateLimitExceeded,
+                    'limit exceeded': RateLimitExceeded,  # {"error":"rate limit exceeded"}
                     'Invalid API key': AuthenticationError,
                     'There was an error while placing your order': InvalidOrder,
                     'Sorry, too many clients already': DDoSProtection,
@@ -165,7 +165,7 @@ class cex(Exchange):
                     'status': {
                         'c': 'canceled',
                         'd': 'closed',
-                        'cd': 'closed',
+                        'cd': 'canceled',
                         'a': 'open',
                     },
                 },
@@ -655,9 +655,9 @@ class cex(Exchange):
         cost = None
         if market is not None:
             symbol = market['symbol']
-            cost = self.safe_float(order, 'ta:' + market['quote'])
-            if cost is None:
-                cost = self.safe_float(order, 'tta:' + market['quote'])
+            taCost = self.safe_float(order, 'ta:' + market['quote'])
+            ttaCost = self.safe_float(order, 'tta:' + market['quote'])
+            cost = self.sum(taCost, ttaCost)
             baseFee = 'fa:' + market['base']
             baseTakerFee = 'tfa:' + market['base']
             quoteFee = 'fa:' + market['quote']
@@ -849,8 +849,11 @@ class cex(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'market' if (price is None) else 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -879,7 +882,7 @@ class cex(Exchange):
         await self.load_markets()
         method = 'privatePostArchivedOrdersPair'
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         market = self.market(symbol)
         request = {'pair': market['id']}
         response = await getattr(self, method)(self.extend(request, params))
@@ -891,7 +894,108 @@ class cex(Exchange):
             'id': str(id),
         }
         response = await self.privatePostGetOrderTx(self.extend(request, params))
-        return self.parse_order(response['data'])
+        data = self.safe_value(response, 'data', {})
+        #
+        #     {
+        #         "id": "5442731603",
+        #         "type": "sell",
+        #         "time": 1516132358071,
+        #         "lastTxTime": 1516132378452,
+        #         "lastTx": "5442734452",
+        #         "pos": null,
+        #         "user": "up106404164",
+        #         "status": "d",
+        #         "symbol1": "ETH",
+        #         "symbol2": "EUR",
+        #         "amount": "0.50000000",
+        #         "kind": "api",
+        #         "price": "923.3386",
+        #         "tfacf": "1",
+        #         "fa:EUR": "0.55",
+        #         "ta:EUR": "369.77",
+        #         "remains": "0.00000000",
+        #         "tfa:EUR": "0.22",
+        #         "tta:EUR": "91.95",
+        #         "a:ETH:cds": "0.50000000",
+        #         "a:EUR:cds": "461.72",
+        #         "f:EUR:cds": "0.77",
+        #         "tradingFeeMaker": "0.15",
+        #         "tradingFeeTaker": "0.23",
+        #         "tradingFeeStrategy": "userVolumeAmount",
+        #         "tradingFeeUserVolumeAmount": "2896912572",
+        #         "orderId": "5442731603",
+        #         "next": False,
+        #         "vtx": [
+        #             {
+        #                 "id": "5442734452",
+        #                 "type": "sell",
+        #                 "time": "2018-01-16T19:52:58.452Z",
+        #                 "user": "up106404164",
+        #                 "c": "user:up106404164:a:EUR",
+        #                 "d": "order:5442731603:a:EUR",
+        #                 "a": "104.53000000",
+        #                 "amount": "104.53000000",
+        #                 "balance": "932.71000000",
+        #                 "symbol": "EUR",
+        #                 "order": "5442731603",
+        #                 "buy": "5442734443",
+        #                 "sell": "5442731603",
+        #                 "pair": null,
+        #                 "pos": null,
+        #                 "office": null,
+        #                 "cs": "932.71",
+        #                 "ds": 0,
+        #                 "price": 923.3386,
+        #                 "symbol2": "ETH",
+        #                 "fee_amount": "0.16"
+        #             },
+        #             {
+        #                 "id": "5442731609",
+        #                 "type": "sell",
+        #                 "time": "2018-01-16T19:52:38.071Z",
+        #                 "user": "up106404164",
+        #                 "c": "user:up106404164:a:EUR",
+        #                 "d": "order:5442731603:a:EUR",
+        #                 "a": "91.73000000",
+        #                 "amount": "91.73000000",
+        #                 "balance": "563.49000000",
+        #                 "symbol": "EUR",
+        #                 "order": "5442731603",
+        #                 "buy": "5442618127",
+        #                 "sell": "5442731603",
+        #                 "pair": null,
+        #                 "pos": null,
+        #                 "office": null,
+        #                 "cs": "563.49",
+        #                 "ds": 0,
+        #                 "price": 924.0092,
+        #                 "symbol2": "ETH",
+        #                 "fee_amount": "0.22"
+        #             },
+        #             {
+        #                 "id": "5442731604",
+        #                 "type": "sell",
+        #                 "time": "2018-01-16T19:52:38.071Z",
+        #                 "user": "up106404164",
+        #                 "c": "order:5442731603:a:ETH",
+        #                 "d": "user:up106404164:a:ETH",
+        #                 "a": "0.50000000",
+        #                 "amount": "-0.50000000",
+        #                 "balance": "15.80995000",
+        #                 "symbol": "ETH",
+        #                 "order": "5442731603",
+        #                 "buy": null,
+        #                 "sell": null,
+        #                 "pair": null,
+        #                 "pos": null,
+        #                 "office": null,
+        #                 "cs": "0.50000000",
+        #                 "ds": "15.80995000"
+        #             }
+        #         ]
+        #     }
+        #
+        return self.parse_order(data)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1104,9 +1208,9 @@ class cex(Exchange):
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if amount is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires a amount argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires a amount argument')
         if price is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires a price argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires a price argument')
         await self.load_markets()
         market = self.market(symbol)
         # see: https://cex.io/rest-api#/definitions/CancelReplaceOrderRequest

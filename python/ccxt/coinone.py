@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -355,7 +354,7 @@ class coinone(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -486,8 +485,11 @@ class coinone(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': None,
             'amount': amount,
@@ -531,7 +533,7 @@ class coinone(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -564,13 +566,13 @@ class coinone(Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
             # eslint-disable-next-line quotes
-            raise ArgumentsRequired(self.id + " cancelOrder requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
+            raise ArgumentsRequired(self.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
         price = self.safe_float(params, 'price')
         qty = self.safe_float(params, 'qty')
         isAsk = self.safe_integer(params, 'is_ask')
         if (price is None) or (qty is None) or (isAsk is None):
             # eslint-disable-next-line quotes
-            raise ArgumentsRequired(self.id + " cancelOrder requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")
+            raise ArgumentsRequired(self.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")
         self.load_markets()
         request = {
             'order_id': id,
@@ -604,7 +606,7 @@ class coinone(Exchange):
                 'access_token': self.apiKey,
                 'nonce': nonce,
             }, params))
-            payload = base64.b64encode(self.encode(json))
+            payload = self.string_to_base64(json)
             body = self.decode(payload)
             secret = self.secret.upper()
             signature = self.hmac(payload, self.encode(secret), hashlib.sha512)

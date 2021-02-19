@@ -185,7 +185,12 @@ class stex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'BC' => 'Bitcoin Confidential',
+                'BITS' => 'Bitcoinus',
+                'BITSW' => 'BITS',
                 'BHD' => 'Bithold',
+                'BTH' => 'Bithereum',
+                'SBTC' => 'SBTCT', // SiamBitcoin
             ),
             'options' => array(
                 'parseOrderToPrecision' => false,
@@ -515,22 +520,8 @@ class stex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $symbol = null;
-        $marketId = $this->safe_string($ticker, 'id');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        } else {
-            $marketId = $this->safe_string($ticker, 'symbol');
-            if ($marketId !== null) {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string_2($ticker, 'id', 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $last = $this->safe_float($ticker, 'last');
         $open = $this->safe_float($ticker, 'open');
         $change = null;
@@ -895,22 +886,8 @@ class stex extends Exchange {
         //
         $id = $this->safe_string($order, 'id');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = null;
-        $marketId = $this->safe_string($order, 'currency_pair_id');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        } else {
-            $marketId = $this->safe_string($order, 'currency_pair_name');
-            if ($marketId !== null) {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string_2($order, 'currency_pair_id', 'currency_pair_name');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_timestamp($order, 'timestamp');
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'initial_amount');
@@ -944,6 +921,7 @@ class stex extends Exchange {
                 'order' => $id,
             ));
         }
+        $stopPrice = $this->safe_float($order, 'trigger_price');
         $result = array(
             'info' => $order,
             'id' => $id,
@@ -953,8 +931,11 @@ class stex extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,
@@ -1248,7 +1229,7 @@ class stex extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

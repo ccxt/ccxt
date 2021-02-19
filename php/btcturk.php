@@ -277,7 +277,7 @@ class btcturk extends Exchange {
         );
         if ($type === 'market') {
             if (!(is_array($params) && array_key_exists('Total', $params))) {
-                throw new ExchangeError($this->id . ' createOrder requires the "Total" extra parameter for market orders ($amount and $price are both ignored)');
+                throw new ExchangeError($this->id . ' createOrder() requires the "Total" extra parameter for market orders ($amount and $price are both ignored)');
             }
         } else {
             $request['Price'] = $price;
@@ -320,7 +320,7 @@ class btcturk extends Exchange {
             $headers = array(
                 'X-PCK' => $this->apiKey,
                 'X-Stamp' => $nonce,
-                'X-Signature' => base64_encode($this->hmac($this->encode($auth), $secret, 'sha256', 'binary')),
+                'X-Signature' => $this->hmac($this->encode($auth), $secret, 'sha256', 'base64'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }

@@ -90,7 +90,7 @@ module.exports = class coinfloor extends Exchange {
             market = this.markets_by_id[marketId];
         }
         if (market === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBalance requires a symbol param');
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a symbol param');
         }
         const request = {
             'id': market['id'],
@@ -223,7 +223,7 @@ module.exports = class coinfloor extends Exchange {
         if (code !== undefined) {
             market = this.market (code);
             if (market === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTransactions requires a code argument (a market symbol)');
+                throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a code argument (a market symbol)');
             }
         }
         const request = {
@@ -431,7 +431,7 @@ module.exports = class coinfloor extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -479,8 +479,11 @@ module.exports = class coinfloor extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': undefined,
             'filled': undefined,
             'remaining': amount,
@@ -493,7 +496,7 @@ module.exports = class coinfloor extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol param');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol param');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -537,7 +540,7 @@ module.exports = class coinfloor extends Exchange {
             const nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             const auth = this.uid + '/' + this.apiKey + ':' + this.password;
-            const signature = this.decode (this.stringToBase64 (this.encode (auth)));
+            const signature = this.decode (this.stringToBase64 (auth));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': 'Basic ' + signature,

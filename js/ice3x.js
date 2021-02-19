@@ -225,7 +225,7 @@ module.exports = class ice3x extends Exchange {
             const type = this.safeString (params, 'type');
             if ((type !== 'ask') && (type !== 'bid')) {
                 // eslint-disable-next-line quotes
-                throw new ArgumentsRequired (this.id + " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a limit");
+                throw new ArgumentsRequired (this.id + " fetchOrderBook() requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a limit");
             } else {
                 request['items_per_page'] = limit;
             }
@@ -344,8 +344,11 @@ module.exports = class ice3x extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': 'limit',
-            'side': this.safeStrin (order, 'type'),
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': this.safeString (order, 'type'),
             'price': price,
+            'stopPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': filled,

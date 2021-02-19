@@ -124,7 +124,7 @@ module.exports = class kucoin extends Exchange {
                         'margin/lend/trade/settled',
                         'margin/lend/assets',
                         'margin/market',
-                        'margin/margin/trade/last',
+                        'margin/trade/last',
                     ],
                     'post': [
                         'accounts',
@@ -178,8 +178,9 @@ module.exports = class kucoin extends Exchange {
                     '404': NotSupported,
                     '405': NotSupported,
                     '429': RateLimitExceeded,
-                    '500': ExchangeError,
+                    '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable,
+                    '101030': PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
                     '200004': InsufficientFunds,
                     '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
                     '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
@@ -235,10 +236,10 @@ module.exports = class kucoin extends Exchange {
                     'public': {
                         'GET': {
                             'status': 'v1',
-                            'market/orderbook/level{level}': 'v1',
+                            'market/orderbook/level{level}': 'v2',
                             'market/orderbook/level2': 'v2',
-                            'market/orderbook/level2_20': 'v1',
-                            'market/orderbook/level2_100': 'v1',
+                            'market/orderbook/level2_20': 'v2',
+                            'market/orderbook/level2_100': 'v2',
                         },
                     },
                     'private': {
@@ -370,28 +371,39 @@ module.exports = class kucoin extends Exchange {
         const response = await this.publicGetCurrencies (params);
         //
         //     {
-        //         precision: 10,
-        //         name: 'KCS',
-        //         fullName: 'KCS shares',
-        //         currency: 'KCS'
+        //         "currency": "OMG",
+        //         "name": "OMG",
+        //         "fullName": "OmiseGO",
+        //         "precision": 8,
+        //         "confirms": 12,
+        //         "withdrawalMinSize": "4",
+        //         "withdrawalMinFee": "1.25",
+        //         "isWithdrawEnabled": false,
+        //         "isDepositEnabled": false,
+        //         "isMarginEnabled": false,
+        //         "isDebitEnabled": false
         //     }
         //
-        const responseData = response['data'];
+        const data = this.safeValue (response, 'data', []);
         const result = {};
-        for (let i = 0; i < responseData.length; i++) {
-            const entry = responseData[i];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
             const id = this.safeString (entry, 'currency');
             const name = this.safeString (entry, 'fullName');
             const code = this.safeCurrencyCode (id);
             const precision = this.safeInteger (entry, 'precision');
+            const isWithdrawEnabled = this.safeValue (entry, 'isWithdrawEnabled', false);
+            const isDepositEnabled = this.safeValue (entry, 'isDepositEnabled', false);
+            const fee = this.safeFloat (entry, 'withdrawalMinFee');
+            const active = (isWithdrawEnabled && isDepositEnabled);
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
                 'precision': precision,
                 'info': entry,
-                'active': undefined,
-                'fee': undefined,
+                'active': active,
+                'fee': fee,
                 'limits': this.limits,
             };
         }
@@ -501,24 +513,8 @@ module.exports = class kucoin extends Exchange {
             percentage = percentage * 100;
         }
         const last = this.safeFloat2 (ticker, 'last', 'lastTradedPrice');
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const baseVolume = this.safeFloat (ticker, 'vol');
         const quoteVolume = this.safeFloat (ticker, 'volValue');
         const vwap = this.vwap (baseVolume, quoteVolume);
@@ -686,7 +682,10 @@ module.exports = class kucoin extends Exchange {
             address = address.replace ('bitcoincash:', '');
         }
         const tag = this.safeString (data, 'memo');
-        this.checkAddress (address);
+        if (code !== 'NIM') {
+            // contains spaces
+            this.checkAddress (address);
+        }
         return {
             'info': response,
             'currency': code,
@@ -703,13 +702,12 @@ module.exports = class kucoin extends Exchange {
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
-        let address = this.safeString (data, 'address');
-        // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        if (address !== undefined) {
-            address = address.replace ('bitcoincash:', '');
-        }
+        const address = this.safeString (data, 'address');
         const tag = this.safeString (data, 'memo');
-        this.checkAddress (address);
+        if (code !== 'NIM') {
+            // contains spaces
+            this.checkAddress (address);
+        }
         return {
             'info': response,
             'currency': code,
@@ -934,7 +932,7 @@ module.exports = class kucoin extends Exchange {
         // otherwise a wrong endpoint for all orders will be triggered
         // https://github.com/ccxt/ccxt/issues/7234
         if (id === undefined) {
-            throw new InvalidOrder (this.id + ' fetchOrder requires an order id');
+            throw new InvalidOrder (this.id + ' fetchOrder() requires an order id');
         }
         const request = {
             'orderId': id,
@@ -984,25 +982,8 @@ module.exports = class kucoin extends Exchange {
         //         "createdAt": 1547026471000  // time
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const orderId = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'createdAt');
@@ -1035,14 +1016,20 @@ module.exports = class kucoin extends Exchange {
             }
         }
         const clientOrderId = this.safeString (order, 'clientOid');
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const stopPrice = this.safeFloat (order, 'stopPrice');
+        const postOnly = this.safeValue (order, 'postOnly');
         return {
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'amount': amount,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,
@@ -1250,24 +1237,8 @@ module.exports = class kucoin extends Exchange {
         //         "id":"5c4d389e4c8c60413f78e2e5",
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const id = this.safeString2 (trade, 'tradeId', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeString (trade, 'liquidity');
@@ -1639,7 +1610,7 @@ module.exports = class kucoin extends Exchange {
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchLedger requires a code param');
+            throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code param');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1805,20 +1776,27 @@ module.exports = class kucoin extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             headers = this.extend ({
+                'KC-API-KEY-VERSION': '2',
                 'KC-API-KEY': this.apiKey,
                 'KC-API-TIMESTAMP': timestamp,
-                'KC-API-PASSPHRASE': this.password,
             }, headers);
+            const apiKeyVersion = this.safeString (headers, 'KC-API-KEY-VERSION');
+            if (apiKeyVersion === '2') {
+                const passphrase = this.hmac (this.encode (this.password), this.encode (this.secret), 'sha256', 'base64');
+                headers['KC-API-PASSPHRASE'] = passphrase;
+            } else {
+                headers['KC-API-PASSPHRASE'] = this.password;
+            }
             const payload = timestamp + method + endpoint + endpart;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
-            headers['KC-API-SIGN'] = this.decode (signature);
+            headers['KC-API-SIGN'] = signature;
             const partner = this.safeValue (this.options, 'partner', {});
             const partnerId = this.safeString (partner, 'id');
             const partnerSecret = this.safeString (partner, 'secret');
             if ((partnerId !== undefined) && (partnerSecret !== undefined)) {
                 const partnerPayload = timestamp + partnerId + this.apiKey;
                 const partnerSignature = this.hmac (this.encode (partnerPayload), this.encode (partnerSecret), 'sha256', 'base64');
-                headers['KC-API-PARTNER-SIGN'] = this.decode (partnerSignature);
+                headers['KC-API-PARTNER-SIGN'] = partnerSignature;
                 headers['KC-API-PARTNER'] = partnerId;
             }
         }

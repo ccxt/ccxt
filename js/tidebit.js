@@ -243,13 +243,10 @@ module.exports = class tidebit extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                const symbol = market['symbol'];
-                const ticker = tickers[id];
-                result[symbol] = this.parseTicker (ticker, market);
-            }
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
+            const ticker = tickers[id];
+            result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -397,13 +394,8 @@ module.exports = class tidebit extends Exchange {
         //         ]
         //     }
         //
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            const marketId = order['market'];
-            symbol = this.markets_by_id[marketId]['symbol'];
-        }
+        const marketId = this.safeString (order, 'market');
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const id = this.safeString (order, 'id');
@@ -419,6 +411,7 @@ module.exports = class tidebit extends Exchange {
                 cost = price * filled;
             }
         }
+        const average = this.safeFloat (order, 'avg_price');
         return {
             'id': id,
             'clientOrderId': undefined,
@@ -428,8 +421,11 @@ module.exports = class tidebit extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -437,7 +433,7 @@ module.exports = class tidebit extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
-            'average': undefined,
+            'average': average,
         };
     }
 
@@ -453,8 +449,7 @@ module.exports = class tidebit extends Exchange {
             request['price'] = price.toString ();
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        const market = this.markets_by_id[response['market']];
-        return this.parseOrder (response, market);
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

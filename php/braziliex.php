@@ -349,7 +349,7 @@ class braziliex extends Exchange {
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $marketId = $ids[$i];
-            $market = $this->markets_by_id[$marketId];
+            $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($response[$marketId], $market);
         }
@@ -435,16 +435,8 @@ class braziliex extends Exchange {
         //         "date":"2017-03-12 15:13:33"
         //     }
         //
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'market');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'market');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_integer($order, 'timestamp');
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($order, 'date'));
@@ -462,6 +454,7 @@ class braziliex extends Exchange {
         $id = $this->safe_string($order, 'order_number');
         $fee = $this->safe_value($order, 'fee'); // propagated from createOrder
         $status = ($filledPercentage === 1.0) ? 'closed' : 'open';
+        $side = $this->safe_string($order, 'type');
         return array(
             'id' => $id,
             'clientOrderId' => null,
@@ -471,8 +464,11 @@ class braziliex extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
-            'side' => $order['type'],
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,

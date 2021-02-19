@@ -537,37 +537,65 @@ module.exports = class buda extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         'id': 63679183,
+        //         'uuid': 'f9697bee-627e-4175-983f-0d5a41963fec',
+        //         'market_id': 'ETH-CLP',
+        //         'account_id': 51590,
+        //         'type': 'Ask',
+        //         'state': 'received',
+        //         'created_at': '2021-01-04T08:29:52.730Z',
+        //         'fee_currency': 'CLP',
+        //         'price_type': 'limit',
+        //         'source': None,
+        //         'limit': ['741000.0', 'CLP'],
+        //         'amount': ['0.001', 'ETH'],
+        //         'original_amount': ['0.001', 'ETH'],
+        //         'traded_amount': ['0.0', 'ETH'],
+        //         'total_exchanged': ['0.0', 'CLP'],
+        //         'paid_fee': ['0.0', 'CLP']
+        //     }
+        //
         const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = order['market_id'];
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'market_id');
+        const symbol = this.safeSymbol (marketId, market, '-');
         const type = this.safeString (order, 'price_type');
         const side = this.safeStringLower (order, 'type');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        const amount = parseFloat (order['original_amount'][0]);
-        const remaining = parseFloat (order['amount'][0]);
-        const filled = parseFloat (order['traded_amount'][0]);
-        const cost = parseFloat (order['total_exchanged'][0]);
-        let price = this.safeFloat (order, 'limit');
-        if (price !== undefined) {
-            price = parseFloat (price[0]);
+        const originalAmount = this.safeValue (order, 'original_amount', []);
+        const amount = this.safeFloat (originalAmount, 0);
+        const remainingAmount = this.safeValue (order, 'amount', []);
+        const remaining = this.safeFloat (remainingAmount, 0);
+        const tradedAmount = this.safeValue (order, 'traded_amount', []);
+        const filled = this.safeFloat (tradedAmount, 0);
+        const totalExchanged = this.safeValue (order, 'totalExchanged', []);
+        const cost = this.safeFloat (totalExchanged, 0);
+        const limitPrice = this.safeValue (order, 'limit', []);
+        let price = this.safeFloat (limitPrice, 0);
+        if (price === undefined) {
+            if (limitPrice !== undefined) {
+                price = limitPrice;
+            }
         }
-        if (cost > 0 && filled > 0) {
-            price = this.priceToPrecision (symbol, cost / filled);
+        let average = undefined;
+        if ((cost !== undefined) && (filled !== undefined) && (filled > 0)) {
+            average = this.priceToPrecision (symbol, cost / filled);
         }
-        const fee = {
-            'cost': parseFloat (order['paid_fee'][0]),
-            'currency': order['paid_fee'][1],
-        };
+        const paidFee = this.safeValue (order, 'paid_fee', []);
+        const feeCost = this.safeFloat (paidFee, 0);
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (paidFee, 1);
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'code': feeCurrencyCode,
+            };
+        }
         return {
+            'info': order,
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -576,16 +604,18 @@ module.exports = class buda extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
+            'average': average,
             'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'trades': undefined,
             'fee': fee,
-            'info': order,
-            'average': undefined,
         };
     }
 
@@ -761,7 +791,7 @@ module.exports = class buda extends Exchange {
             const nonce = this.nonce ().toString ();
             const components = [ method, '/api/' + this.version + '/' + request ];
             if (body) {
-                const base64Body = this.stringToBase64 (this.encode (body));
+                const base64Body = this.stringToBase64 (body);
                 components.push (this.decode (base64Body));
             }
             components.push (nonce);

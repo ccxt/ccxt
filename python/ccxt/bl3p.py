@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 import hashlib
 
 
@@ -207,13 +206,13 @@ class bl3p(Exchange):
             self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
-            secret = base64.b64decode(self.secret)
+            secret = self.base64_to_binary(self.secret)
             # eslint-disable-next-line quotes
             auth = request + "\0" + body
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': self.apiKey,
-                'Rest-Sign': self.decode(signature),
+                'Rest-Sign': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

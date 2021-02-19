@@ -26,6 +26,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
@@ -84,6 +85,10 @@ class okex(Exchange):
                 '12h': '43200',
                 '1d': '86400',
                 '1w': '604800',
+                '1M': '2678400',
+                '3M': '8035200',
+                '6M': '16070400',
+                '1y': '31536000',
             },
             'hostname': 'okex.com',
             'urls': {
@@ -273,11 +278,16 @@ class okex(Exchange):
                         'cancel_batch_orders/{instrument_id}',
                         'order_algo',
                         'cancel_algos',
+                        'close_position',
+                        'cancel_all',
+                        'order_algo',
+                        'cancel_algos',
                     ],
                 },
                 'option': {
                     'get': [
                         'accounts',
+                        'position',
                         '{underlying}/position',
                         'accounts/{underlying}',
                         'orders/{underlying}',
@@ -341,11 +351,15 @@ class okex(Exchange):
                 # 401 Unauthorized — Invalid API Key
                 # 403 Forbidden — You do not have access to the requested resource
                 # 404 Not Found
+                # 429 Client Error: Too Many Requests for url
                 # 500 Internal Server Error — We had a problem with our server
                 'exact': {
                     '1': ExchangeError,  # {"code": 1, "message": "System error"}
                     # undocumented
                     'failure to get a peer from the ring-balancer': ExchangeNotAvailable,  # {"message": "failure to get a peer from the ring-balancer"}
+                    'Server is busy, please try again.': ExchangeNotAvailable,  # {"message": "Server is busy, please try again."}
+                    'An unexpected error occurred': ExchangeError,  # {"message": "An unexpected error occurred"}
+                    'System error': ExchangeError,  # {"error_message":"System error","message":"System error"}
                     '4010': PermissionDenied,  # {"code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings "}
                     # common
                     # '0': ExchangeError,  # 200 successful,when the order placement / cancellation / operation is successful
@@ -381,7 +395,7 @@ class okex(Exchange):
                     '30027': AuthenticationError,  # {"code": 30027, "message": "login failure"}
                     '30028': PermissionDenied,  # {"code": 30028, "message": "unauthorized execution"}
                     '30029': AccountSuspended,  # {"code": 30029, "message": "account suspended"}
-                    '30030': ExchangeError,  # {"code": 30030, "message": "endpoint request failed. Please try again"}
+                    '30030': ExchangeNotAvailable,  # {"code": 30030, "message": "endpoint request failed. Please try again"}
                     '30031': BadRequest,  # {"code": 30031, "message": "token does not exist"}
                     '30032': BadSymbol,  # {"code": 30032, "message": "pair does not exist"}
                     '30033': BadRequest,  # {"code": 30033, "message": "exchange domain does not exist"}
@@ -518,6 +532,7 @@ class okex(Exchange):
                     '33063': ExchangeError,  # Leverage multiple is too low, there is insufficient margin in the account, please readjust the leverage ratio
                     '33064': ExchangeError,  # The setting of the leverage ratio cannot be less than 2, please readjust the leverage ratio
                     '33065': ExchangeError,  # Leverage ratio exceeds maximum leverage ratio, please readjust leverage ratio
+                    '33085': InvalidOrder,  # The value of the position and buying order has reached the position limit, and no further buying is allowed.
                     # account
                     '21009': ExchangeError,  # Funds cannot be transferred out within 30 minutes after swap settlement(Funds cannot be transferred out within 30 minutes after swap settlement)
                     '34001': PermissionDenied,  # {"code": 34001, "message": "withdrawal suspended"}
@@ -543,7 +558,7 @@ class okex(Exchange):
                     '34021': InvalidAddress,  # {"code": 34021, "message": "Not verified address"}
                     '34022': ExchangeError,  # {"code": 34022, "message": "Withdrawals are not available for sub accounts"}
                     '34023': PermissionDenied,  # {"code": 34023, "message": "Please enable futures trading before transferring your funds"}
-                    '34026': ExchangeError,  # transfer too frequently(transfer too frequently)
+                    '34026': RateLimitExceeded,  # transfer too frequently(transfer too frequently)
                     '34036': ExchangeError,  # Parameter is incorrect, please refer to API documentation
                     '34037': ExchangeError,  # Get the sub-account balance interface, account type is not supported
                     '34038': ExchangeError,  # Since your C2C transaction is unusual, you are restricted from fund transfer. Please contact our customer support to cancel the restriction
@@ -563,16 +578,16 @@ class okex(Exchange):
                     '35019': InvalidOrder,  # {"code": 35019, "message": "Order size too large"}
                     '35020': InvalidOrder,  # {"code": 35020, "message": "Order price too high"}
                     '35021': InvalidOrder,  # {"code": 35021, "message": "Order size exceeded current tier limit"}
-                    '35022': ExchangeError,  # {"code": 35022, "message": "Contract status error"}
-                    '35024': ExchangeError,  # {"code": 35024, "message": "Contract not initialized"}
+                    '35022': BadRequest,  # {"code": 35022, "message": "Contract status error"}
+                    '35024': BadRequest,  # {"code": 35024, "message": "Contract not initialized"}
                     '35025': InsufficientFunds,  # {"code": 35025, "message": "No account balance"}
-                    '35026': ExchangeError,  # {"code": 35026, "message": "Contract settings not initialized"}
+                    '35026': BadRequest,  # {"code": 35026, "message": "Contract settings not initialized"}
                     '35029': OrderNotFound,  # {"code": 35029, "message": "Order does not exist"}
                     '35030': InvalidOrder,  # {"code": 35030, "message": "Order size too large"}
                     '35031': InvalidOrder,  # {"code": 35031, "message": "Cancel order size too large"}
                     '35032': ExchangeError,  # {"code": 35032, "message": "Invalid user status"}
                     '35037': ExchangeError,  # No last traded price in cache
-                    '35039': ExchangeError,  # {"code": 35039, "message": "Open order quantity exceeds limit"}
+                    '35039': InsufficientFunds,  # {"code": 35039, "message": "Open order quantity exceeds limit"}
                     '35040': InvalidOrder,  # {"error_message":"Invalid order type","result":"true","error_code":"35040","order_id":"-1"}
                     '35044': ExchangeError,  # {"code": 35044, "message": "Invalid order status"}
                     '35046': InsufficientFunds,  # {"code": 35046, "message": "Negative account balance"}
@@ -625,6 +640,7 @@ class okex(Exchange):
                     '35097': ExchangeError,  # Order status and order ID cannot exist at the same time
                     '35098': ExchangeError,  # An order status or order ID must exist
                     '35099': ExchangeError,  # Algo order ID error
+                    '35102': RateLimitExceeded,  # {"error_message":"The operation that close all at market price is too frequent","result":"true","error_code":"35102","order_id":"-1"}
                     # option
                     '36001': BadRequest,  # Invalid underlying index.
                     '36002': BadRequest,  # Instrument does not exist.
@@ -673,6 +689,9 @@ class okex(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'fetchOHLCV': {
+                    'type': 'Candles',  # Candles or HistoryCandles
+                },
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': ['spot', 'futures', 'swap', 'option'],
                 'defaultType': 'spot',  # 'account', 'spot', 'margin', 'futures', 'swap', 'option'
@@ -687,9 +706,11 @@ class okex(Exchange):
             'commonCurrencies': {
                 # OKEX refers to ERC20 version of Aeternity(AEToken)
                 'AE': 'AET',  # https://github.com/ccxt/ccxt/issues/4981
+                'BOX': 'DefiBox',
                 'HOT': 'Hydro Protocol',
                 'HSR': 'HC',
                 'MAG': 'Maggie',
+                'SBTC': 'Super Bitcoin',
                 'YOYO': 'YOYOW',
                 'WIN': 'WinToken',  # https://github.com/ccxt/ccxt/issues/5701
             },
@@ -976,11 +997,11 @@ class okex(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(id)
-            precision = 8  # default precision, todo: fix "magic constants"
+            precision = 0.00000001  # default precision, todo: fix "magic constants"
             name = self.safe_string(currency, 'name')
             canDeposit = self.safe_integer(currency, 'can_deposit')
             canWithdraw = self.safe_integer(currency, 'can_withdraw')
-            active = canDeposit and canWithdraw
+            active = True if (canDeposit and canWithdraw) else False
             result[code] = {
                 'id': id,
                 'code': code,
@@ -1351,14 +1372,17 @@ class okex(Exchange):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        method = None
         duration = self.parse_timeframe(timeframe)
         request = {
             'instrument_id': market['id'],
             'granularity': self.timeframes[timeframe],
         }
-        if market['option'] or market['spot']:
-            method = market['type'] + 'GetInstrumentsInstrumentIdCandles'
+        options = self.safe_value(self.options, 'fetchOHLCV', {})
+        defaultType = self.safe_string(options, 'type', 'Candles')  # Candles or HistoryCandles
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        method = market['type'] + 'GetInstrumentsInstrumentId' + type
+        if type == 'Candles':
             if since is not None:
                 if limit is not None:
                     request['end'] = self.iso8601(self.sum(since, limit * duration * 1000))
@@ -1368,8 +1392,9 @@ class okex(Exchange):
                     now = self.milliseconds()
                     request['start'] = self.iso8601(now - limit * duration * 1000)
                     request['end'] = self.iso8601(now)
-        else:
-            method = market['type'] + 'GetInstrumentsInstrumentIdHistoryCandles'
+        elif type == 'HistoryCandles':
+            if market['option']:
+                raise NotSupported(self.id + ' fetchOHLCV does not have ' + type + ' for ' + market['type'] + ' markets')
             if since is not None:
                 if limit is None:
                     limit = 300  # default
@@ -1660,7 +1685,7 @@ class okex(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchBalance requires a type parameter(one of 'account', 'spot', 'margin', 'futures', 'swap')")
+            raise ArgumentsRequired(self.id + " fetchBalance() requires a type parameter(one of 'account', 'spot', 'margin', 'futures', 'swap')")
         self.load_markets()
         suffix = 'Wallet' if (type == 'account') else 'Accounts'
         method = type + 'Get' + suffix
@@ -1828,7 +1853,7 @@ class okex(Exchange):
             # order_type == '4' means a market order
             isMarketOrder = (type == 'market') or (orderType == '4')
             if isMarketOrder:
-                request['match_price'] = '1'
+                request['order_type'] = '4'
             else:
                 request['price'] = self.price_to_precision(symbol, price)
             if market['futures']:
@@ -1890,7 +1915,7 @@ class okex(Exchange):
             defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType', market['type'])
             type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " cancelOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
+            raise ArgumentsRequired(self.id + " cancelOrder() requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         method = type + 'PostCancelOrder'
         request = {
             'instrument_id': market['id'],
@@ -2066,8 +2091,9 @@ class okex(Exchange):
                 'currency': feeCurrency,
             }
         clientOrderId = self.safe_string(order, 'client_oid')
-        if len(clientOrderId) < 1:
+        if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
+        stopPrice = self.safe_float(order, 'trigger_price')
         return {
             'info': order,
             'id': id,
@@ -2077,8 +2103,11 @@ class okex(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -2091,13 +2120,13 @@ class okex(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
+            raise ArgumentsRequired(self.id + " fetchOrder() requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         instrumentId = 'InstrumentId' if (market['futures'] or market['swap']) else ''
         method = type + 'GetOrders' + instrumentId
         request = {
@@ -2162,7 +2191,7 @@ class okex(Exchange):
 
     def fetch_orders_by_state(self, state, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrdersByState requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrdersByState() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         type = None
@@ -2172,7 +2201,7 @@ class okex(Exchange):
             defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
             type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
+            raise ArgumentsRequired(self.id + " fetchOrdersByState() requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         request = {
             'instrument_id': market['id'],
             # '-2': failed,
@@ -2478,6 +2507,7 @@ class okex(Exchange):
         #         "currency": "XMR",
         #         "from": "",
         #         "to": "48PjH3ksv1fiXniKvKvyH5UtFs5WhfS2Vf7U3TwzdRJtCc7HJWvCQe56dRahyhQyTAViXZ8Nzk4gQg6o4BJBMUoxNy8y8g7",
+        #         "tag": "1234567",
         #         "deposit_id": 11571659, <-- we can use self
         #         "timestamp": "2019-10-01T14:54:19.000Z",
         #         "status": "2"
@@ -2489,6 +2519,7 @@ class okex(Exchange):
         withdrawalId = self.safe_string(transaction, 'withdrawal_id')
         addressFrom = self.safe_string(transaction, 'from')
         addressTo = self.safe_string(transaction, 'to')
+        tagTo = self.safe_string(transaction, 'tag')
         if withdrawalId is not None:
             type = 'withdrawal'
             id = withdrawalId
@@ -2525,8 +2556,8 @@ class okex(Exchange):
             'addressTo': addressTo,
             'address': address,
             'tagFrom': None,
-            'tagTo': None,
-            'tag': None,
+            'tagTo': tagTo,
+            'tag': tagTo,
             'status': status,
             'type': type,
             'updated': None,
@@ -2541,46 +2572,70 @@ class okex(Exchange):
 
     def parse_my_trade(self, pair, market=None):
         # check that trading symbols match in both entries
-        first = pair[0]
-        second = pair[1]
-        firstMarketId = self.safe_string(first, 'instrument_id')
-        secondMarketId = self.safe_string(second, 'instrument_id')
+        userTrade = self.safe_value(pair, 1)
+        otherTrade = self.safe_value(pair, 0)
+        firstMarketId = self.safe_string(otherTrade, 'instrument_id')
+        secondMarketId = self.safe_string(userTrade, 'instrument_id')
         if firstMarketId != secondMarketId:
             raise NotSupported(self.id + ' parseMyTrade() received unrecognized response format, differing instrument_ids in one fill, the exchange API might have changed, paste your verbose output: https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help')
         marketId = firstMarketId
-        # determine the base and quote
-        quoteId = None
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            quoteId = market['quoteId']
-            symbol = market['symbol']
-        else:
-            parts = marketId.split('-')
-            quoteId = self.safe_string(parts, 1)
-            symbol = marketId
-        id = self.safe_string(first, 'trade_id')
-        price = self.safe_float(first, 'price')
-        # determine buy/sell side and amounts
-        # get the side from either the first trade or the second trade
-        feeCost = self.safe_float(first, 'fee')
-        index = 0 if (feeCost != 0) else 1
-        userTrade = self.safe_value(pair, index)
-        otherTrade = self.safe_value(pair, 1 - index)
-        receivedCurrencyId = self.safe_string(userTrade, 'currency')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        quoteId = market['quoteId']
         side = None
         amount = None
         cost = None
+        receivedCurrencyId = self.safe_string(userTrade, 'currency')
+        feeCurrencyId = None
         if receivedCurrencyId == quoteId:
-            side = 'sell'
+            side = self.safe_string(otherTrade, 'side')
             amount = self.safe_float(otherTrade, 'size')
             cost = self.safe_float(userTrade, 'size')
+            feeCurrencyId = self.safe_string(otherTrade, 'currency')
         else:
-            side = 'buy'
+            side = self.safe_string(userTrade, 'side')
             amount = self.safe_float(userTrade, 'size')
             cost = self.safe_float(otherTrade, 'size')
-        feeCost = feeCost if (feeCost != 0) else self.safe_float(second, 'fee')
-        trade = self.safe_value(pair, index)
+            feeCurrencyId = self.safe_string(userTrade, 'currency')
+        id = self.safe_string(userTrade, 'trade_id')
+        price = self.safe_float(userTrade, 'price')
+        feeCostFirst = self.safe_float(otherTrade, 'fee')
+        feeCostSecond = self.safe_float(userTrade, 'fee')
+        feeCurrencyCodeFirst = self.safe_currency_code(self.safe_string(otherTrade, 'currency'))
+        feeCurrencyCodeSecond = self.safe_currency_code(self.safe_string(userTrade, 'currency'))
+        fee = None
+        fees = None
+        # fee is either a positive number(invitation rebate)
+        # or a negative number(transaction fee deduction)
+        # therefore we need to invert the fee
+        # more about it https://github.com/ccxt/ccxt/issues/5909
+        if (feeCostFirst is not None) and (feeCostFirst != 0):
+            if (feeCostSecond is not None) and (feeCostSecond != 0):
+                fees = [
+                    {
+                        'cost': -feeCostFirst,
+                        'currency': feeCurrencyCodeFirst,
+                    },
+                    {
+                        'cost': -feeCostSecond,
+                        'currency': feeCurrencyCodeSecond,
+                    },
+                ]
+            else:
+                fee = {
+                    'cost': -feeCostFirst,
+                    'currency': feeCurrencyCodeFirst,
+                }
+        elif (feeCostSecond is not None) and (feeCostSecond != 0):
+            fee = {
+                'cost': -feeCostSecond,
+                'currency': feeCurrencyCodeSecond,
+            }
+        else:
+            fee = {
+                'cost': 0,
+                'currency': self.safe_currency_code(feeCurrencyId),
+            }
         #
         # simplified structures to show the underlying semantics
         #
@@ -2614,26 +2669,14 @@ class okex(Exchange):
         #         "size":"31.03998952",  # ←-- cost
         #     }
         #
-        timestamp = self.parse8601(self.safe_string_2(trade, 'timestamp', 'created_at'))
-        takerOrMaker = self.safe_string_2(trade, 'exec_type', 'liquidity')
+        timestamp = self.parse8601(self.safe_string_2(userTrade, 'timestamp', 'created_at'))
+        takerOrMaker = self.safe_string_2(userTrade, 'exec_type', 'liquidity')
         if takerOrMaker == 'M':
             takerOrMaker = 'maker'
         elif takerOrMaker == 'T':
             takerOrMaker = 'taker'
-        fee = None
-        if feeCost is not None:
-            feeCurrencyId = self.safe_string(userTrade, 'currency')
-            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            fee = {
-                # fee is either a positive number(invitation rebate)
-                # or a negative number(transaction fee deduction)
-                # therefore we need to invert the fee
-                # more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost': -feeCost,
-                'currency': feeCurrencyCode,
-            }
-        orderId = self.safe_string(trade, 'order_id')
-        return {
+        orderId = self.safe_string(userTrade, 'order_id')
+        result = {
             'info': pair,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -2648,6 +2691,9 @@ class okex(Exchange):
             'cost': cost,
             'fee': fee,
         }
+        if fees is not None:
+            result['fees'] = fees
+        return result
 
     def parse_my_trades(self, trades, market=None, since=None, limit=None, params={}):
         grouped = self.group_by(trades, 'trade_id')
@@ -2672,7 +2718,7 @@ class okex(Exchange):
         # self aspect renders the 'fills' endpoint unusable for fetchOrderTrades
         # until either OKEX fixes the API or we workaround self on our side somehow
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if (limit is not None) and (limit > 100):
@@ -2771,6 +2817,271 @@ class okex(Exchange):
         }
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
+    def fetch_position(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        method = None
+        request = {
+            'instrument_id': market['id'],
+            # 'order_id': id,  # string
+            # 'after': '1',  # pagination of data to return records earlier than the requested ledger_id
+            # 'before': '1',  # P=pagination of data to return records newer than the requested ledger_id
+            # 'limit': limit,  # optional, number of results per request, default = maximum = 100
+        }
+        type = market['type']
+        if (type == 'futures') or (type == 'swap'):
+            method = type + 'GetInstrumentIdPosition'
+        elif type == 'option':
+            underlying = self.safe_string(params, 'underlying')
+            if underlying is None:
+                raise ArgumentsRequired(self.id + ' fetchPosition() requires an underlying parameter for ' + type + ' market ' + symbol)
+            method = type + 'GetUnderlyingPosition'
+        else:
+            raise NotSupported(self.id + ' fetchPosition() does not support ' + type + ' market ' + symbol + ', supported market types are futures, swap or option')
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # futures
+        #
+        #     crossed margin mode
+        #
+        #     {
+        #         "result": True,
+        #         "holding": [
+        #             {
+        #                 "long_qty": "2",
+        #                 "long_avail_qty": "2",
+        #                 "long_avg_cost": "8260",
+        #                 "long_settlement_price": "8260",
+        #                 "realised_pnl": "0.00020928",
+        #                 "short_qty": "2",
+        #                 "short_avail_qty": "2",
+        #                 "short_avg_cost": "8259.99",
+        #                 "short_settlement_price": "8259.99",
+        #                 "liquidation_price": "113.81",
+        #                 "instrument_id": "BTC-USD-191227",
+        #                 "leverage": "10",
+        #                 "created_at": "2019-09-25T07:58:42.129Z",
+        #                 "updated_at": "2019-10-08T14:02:51.029Z",
+        #                 "margin_mode": "crossed",
+        #                 "short_margin": "0.00242197",
+        #                 "short_pnl": "6.63E-6",
+        #                 "short_pnl_ratio": "0.002477997",
+        #                 "short_unrealised_pnl": "6.63E-6",
+        #                 "long_margin": "0.00242197",
+        #                 "long_pnl": "-6.65E-6",
+        #                 "long_pnl_ratio": "-0.002478",
+        #                 "long_unrealised_pnl": "-6.65E-6",
+        #                 "long_settled_pnl": "0",
+        #                 "short_settled_pnl": "0",
+        #                 "last": "8257.57"
+        #             }
+        #         ],
+        #         "margin_mode": "crossed"
+        #     }
+        #
+        #     fixed margin mode
+        #
+        #     {
+        #         "result": True,
+        #         "holding": [
+        #             {
+        #                 "long_qty": "4",
+        #                 "long_avail_qty": "4",
+        #                 "long_margin": "0.00323844",
+        #                 "long_liqui_price": "7762.09",
+        #                 "long_pnl_ratio": "0.06052306",
+        #                 "long_avg_cost": "8234.43",
+        #                 "long_settlement_price": "8234.43",
+        #                 "realised_pnl": "-0.00000296",
+        #                 "short_qty": "2",
+        #                 "short_avail_qty": "2",
+        #                 "short_margin": "0.00241105",
+        #                 "short_liqui_price": "9166.74",
+        #                 "short_pnl_ratio": "0.03318052",
+        #                 "short_avg_cost": "8295.13",
+        #                 "short_settlement_price": "8295.13",
+        #                 "instrument_id": "BTC-USD-191227",
+        #                 "long_leverage": "15",
+        #                 "short_leverage": "10",
+        #                 "created_at": "2019-09-25T07:58:42.129Z",
+        #                 "updated_at": "2019-10-08T13:12:09.438Z",
+        #                 "margin_mode": "fixed",
+        #                 "short_margin_ratio": "0.10292507",
+        #                 "short_maint_margin_ratio": "0.005",
+        #                 "short_pnl": "7.853E-5",
+        #                 "short_unrealised_pnl": "7.853E-5",
+        #                 "long_margin_ratio": "0.07103743",
+        #                 "long_maint_margin_ratio": "0.005",
+        #                 "long_pnl": "1.9841E-4",
+        #                 "long_unrealised_pnl": "1.9841E-4",
+        #                 "long_settled_pnl": "0",
+        #                 "short_settled_pnl": "0",
+        #                 "last": "8266.99"
+        #             }
+        #         ],
+        #         "margin_mode": "fixed"
+        #     }
+        #
+        # swap
+        #
+        #     crossed margin mode
+        #
+        #     {
+        #         "margin_mode": "crossed",
+        #         "timestamp": "2019-09-27T03:49:02.018Z",
+        #         "holding": [
+        #             {
+        #                 "avail_position": "3",
+        #                 "avg_cost": "59.49",
+        #                 "instrument_id": "LTC-USD-SWAP",
+        #                 "last": "55.98",
+        #                 "leverage": "10.00",
+        #                 "liquidation_price": "4.37",
+        #                 "maint_margin_ratio": "0.0100",
+        #                 "margin": "0.0536",
+        #                 "position": "3",
+        #                 "realized_pnl": "0.0000",
+        #                 "unrealized_pnl": "0",
+        #                 "settled_pnl": "-0.0330",
+        #                 "settlement_price": "55.84",
+        #                 "side": "long",
+        #                 "timestamp": "2019-09-27T03:49:02.018Z"
+        #             },
+        #         ]
+        #     }
+        #
+        #     fixed margin mode
+        #
+        #     {
+        #         "margin_mode": "fixed",
+        #         "timestamp": "2019-09-27T03:47:37.230Z",
+        #         "holding": [
+        #             {
+        #                 "avail_position": "20",
+        #                 "avg_cost": "8025.0",
+        #                 "instrument_id": "BTC-USD-SWAP",
+        #                 "last": "8113.1",
+        #                 "leverage": "15.00",
+        #                 "liquidation_price": "7002.6",
+        #                 "maint_margin_ratio": "0.0050",
+        #                 "margin": "0.0454",
+        #                 "position": "20",
+        #                 "realized_pnl": "-0.0001",
+        #                 "unrealized_pnl": "0",
+        #                 "settled_pnl": "0.0076",
+        #                 "settlement_price": "8279.2",
+        #                 "side": "long",
+        #                 "timestamp": "2019-09-27T03:47:37.230Z"
+        #             }
+        #         ]
+        #     }
+        #
+        # option
+        #
+        #     {
+        #         "holding":[
+        #             {
+        #                 "instrument_id":"BTC-USD-190927-12500-C",
+        #                 "position":"20",
+        #                 "avg_cost":"3.26",
+        #                 "avail_position":"20",
+        #                 "settlement_price":"0.017",
+        #                 "total_pnl":"50",
+        #                 "pnl_ratio":"0.3",
+        #                 "realized_pnl":"40",
+        #                 "unrealized_pnl":"10",
+        #                 "pos_margin":"100",
+        #                 "option_value":"70",
+        #                 "created_at":"2019-08-30T03:09:20.315Z",
+        #                 "updated_at":"2019-08-30T03:40:18.318Z"
+        #             },
+        #             {
+        #                 "instrument_id":"BTC-USD-190927-12500-P",
+        #                 "position":"20",
+        #                 "avg_cost":"3.26",
+        #                 "avail_position":"20",
+        #                 "settlement_price":"0.019",
+        #                 "total_pnl":"50",
+        #                 "pnl_ratio":"0.3",
+        #                 "realized_pnl":"40",
+        #                 "unrealized_pnl":"10",
+        #                 "pos_margin":"100",
+        #                 "option_value":"70",
+        #                 "created_at":"2019-08-30T03:09:20.315Z",
+        #                 "updated_at":"2019-08-30T03:40:18.318Z"
+        #             }
+        #         ]
+        #     }
+        #
+        # todo unify parsePosition/parsePositions
+        return response
+
+    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        self.load_markets()
+        method = None
+        defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType')
+        type = self.safe_string(params, 'type', defaultType)
+        if (type == 'futures') or (type == 'swap'):
+            method = type + 'GetPosition'
+        elif type == 'option':
+            underlying = self.safe_string(params, 'underlying')
+            if underlying is None:
+                raise ArgumentsRequired(self.id + ' fetchPositions() requires an underlying parameter for ' + type + ' markets')
+            method = type + 'GetUnderlyingPosition'
+        else:
+            raise NotSupported(self.id + ' fetchPositions() does not support ' + type + ' markets, supported market types are futures, swap or option')
+        params = self.omit(params, 'type')
+        response = getattr(self, method)(params)
+        #
+        # futures
+        #
+        #     ...
+        #
+        #
+        # swap
+        #
+        #     ...
+        #
+        # option
+        #
+        #     {
+        #         "holding":[
+        #             {
+        #                 "instrument_id":"BTC-USD-190927-12500-C",
+        #                 "position":"20",
+        #                 "avg_cost":"3.26",
+        #                 "avail_position":"20",
+        #                 "settlement_price":"0.017",
+        #                 "total_pnl":"50",
+        #                 "pnl_ratio":"0.3",
+        #                 "realized_pnl":"40",
+        #                 "unrealized_pnl":"10",
+        #                 "pos_margin":"100",
+        #                 "option_value":"70",
+        #                 "created_at":"2019-08-30T03:09:20.315Z",
+        #                 "updated_at":"2019-08-30T03:40:18.318Z"
+        #             },
+        #             {
+        #                 "instrument_id":"BTC-USD-190927-12500-P",
+        #                 "position":"20",
+        #                 "avg_cost":"3.26",
+        #                 "avail_position":"20",
+        #                 "settlement_price":"0.019",
+        #                 "total_pnl":"50",
+        #                 "pnl_ratio":"0.3",
+        #                 "realized_pnl":"40",
+        #                 "unrealized_pnl":"10",
+        #                 "pos_margin":"100",
+        #                 "option_value":"70",
+        #                 "created_at":"2019-08-30T03:09:20.315Z",
+        #                 "updated_at":"2019-08-30T03:40:18.318Z"
+        #             }
+        #         ]
+        #     }
+        #
+        # todo unify parsePosition/parsePositions
+        return response
+
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchLedger', 'defaultType')
@@ -2785,15 +3096,26 @@ class okex(Exchange):
         if limit is not None:
             request['limit'] = limit
         currency = None
-        if (type == 'spot') or (type == 'futures'):
+        if type == 'spot':
             if code is None:
-                raise ArgumentsRequired(self.id + " fetchLedger requires a currency code argument for '" + type + "' markets")
+                raise ArgumentsRequired(self.id + " fetchLedger() requires a currency code argument for '" + type + "' markets")
             argument = 'Currency'
             currency = self.currency(code)
             request['currency'] = currency['id']
+        elif type == 'futures':
+            if code is None:
+                raise ArgumentsRequired(self.id + " fetchLedger() requires an underlying symbol for '" + type + "' markets")
+            argument = 'Underlying'
+            market = self.market(code)  # we intentionally put a market inside here for the margin and swap ledgers
+            marketInfo = self.safe_value(market, 'info', {})
+            settlementCurrencyId = self.safe_string(marketInfo, 'settlement_currency')
+            settlementCurrencyСode = self.safe_currency_code(settlementCurrencyId)
+            currency = self.currency(settlementCurrencyСode)
+            underlyingId = self.safe_string(marketInfo, 'underlying')
+            request['underlying'] = underlyingId
         elif (type == 'margin') or (type == 'swap'):
             if code is None:
-                raise ArgumentsRequired(self.id + " fetchLedger requires a code argument(a market symbol) for '" + type + "' markets")
+                raise ArgumentsRequired(self.id + " fetchLedger() requires a code argument(a market symbol) for '" + type + "' markets")
             argument = 'InstrumentId'
             market = self.market(code)  # we intentionally put a market inside here for the margin and swap ledgers
             currency = self.currency(market['base'])
@@ -3128,7 +3450,7 @@ class okex(Exchange):
                     auth += body
                 headers['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
-            headers['OK-ACCESS-SIGN'] = self.decode(signature)
+            headers['OK-ACCESS-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def get_path_authentication_type(self, path):

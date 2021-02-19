@@ -43,7 +43,7 @@ module.exports = class liquid extends Exchange {
                     'https://developers.liquid.com',
                 ],
                 'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
-                'referral': 'https://www.liquid.com?affiliate=SbzC62lt30976',
+                'referral': 'https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976',
             },
             'api': {
                 'public': {
@@ -186,6 +186,7 @@ module.exports = class liquid extends Exchange {
                 'must_be_positive': InvalidOrder,
                 'less_than_order_size': InvalidOrder,
                 'price_too_high': InvalidOrder,
+                'price_too_small': InvalidOrder, // {"errors":{"order":["price_too_small"]}}
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
@@ -228,6 +229,7 @@ module.exports = class liquid extends Exchange {
             const amountPrecision = this.safeInteger (currency, 'display_precision');
             const pricePrecision = this.safeInteger (currency, 'quoting_precision');
             const precision = Math.max (amountPrecision, pricePrecision);
+            const decimalPrecision = 1 / Math.pow (10, precision);
             result[code] = {
                 'id': id,
                 'code': code,
@@ -235,7 +237,7 @@ module.exports = class liquid extends Exchange {
                 'name': code,
                 'active': active,
                 'fee': this.safeFloat (currency, 'withdrawal_fee'),
-                'precision': precision,
+                'precision': decimalPrecision,
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -amountPrecision),
@@ -722,7 +724,7 @@ module.exports = class liquid extends Exchange {
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (price === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder requires the price argument');
+            throw new ArgumentsRequired (this.id + ' editOrder() requires the price argument');
         }
         const request = {
             'order': {
@@ -862,10 +864,13 @@ module.exports = class liquid extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'status': status,
             'symbol': symbol,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
             'cost': cost,

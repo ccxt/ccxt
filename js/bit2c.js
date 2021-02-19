@@ -86,7 +86,7 @@ module.exports = class bit2c extends Exchange {
                 },
             },
             'options': {
-                'fetchTradesMethod': 'public_get_exchanges_pair_lasttrades',
+                'fetchTradesMethod': 'public_get_exchanges_pair_trades',
             },
             'exceptions': {
                 'exact': {
@@ -217,6 +217,12 @@ module.exports = class bit2c extends Exchange {
         const request = {
             'pair': market['id'],
         };
+        if (since !== undefined) {
+            request['date'] = parseInt (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // max 100000
+        }
         const response = await this[method] (this.extend (request, params));
         if (typeof response === 'string') {
             throw new ExchangeError (response);
@@ -299,8 +305,11 @@ module.exports = class bit2c extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': undefined,
             'remaining': undefined,
@@ -424,7 +433,7 @@ module.exports = class bit2c extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
-                'sign': this.decode (signature),
+                'sign': signature,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

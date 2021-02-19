@@ -57,10 +57,10 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: JavaScript',
         'Programming Language :: PHP',
         'Operating System :: OS Independent',
@@ -79,8 +79,8 @@ setup(
 
     extras_require={
         ':python_version>="3.5.2"': [
-            'aiohttp==3.6.2',
-            'aiodns==1.1.1',
+            'aiohttp>=3.7.2,<3.8',
+            'aiodns>=1.1.1,<2.1',
             'yarl==1.1.0',
         ],
         'qa': [

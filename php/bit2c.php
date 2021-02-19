@@ -89,7 +89,7 @@ class bit2c extends Exchange {
                 ),
             ),
             'options' => array(
-                'fetchTradesMethod' => 'public_get_exchanges_pair_lasttrades',
+                'fetchTradesMethod' => 'public_get_exchanges_pair_trades',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -220,6 +220,12 @@ class bit2c extends Exchange {
         $request = array(
             'pair' => $market['id'],
         );
+        if ($since !== null) {
+            $request['date'] = intval($since);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // max 100000
+        }
         $response = $this->$method (array_merge($request, $params));
         if (gettype($response) === 'string') {
             throw new ExchangeError($response);
@@ -302,8 +308,11 @@ class bit2c extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => null,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'filled' => null,
             'remaining' => null,
@@ -427,7 +436,7 @@ class bit2c extends Exchange {
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
-                'sign' => $this->decode($signature),
+                'sign' => $signature,
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

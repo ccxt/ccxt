@@ -268,7 +268,7 @@ module.exports = class itbit extends Exchange {
         await this.loadMarkets ();
         const walletId = this.safeString (params, 'walletId');
         if (walletId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a walletId parameter');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletId parameter');
         }
         const request = {
             'walletId': walletId,
@@ -337,7 +337,7 @@ module.exports = class itbit extends Exchange {
         await this.loadMarkets ();
         const walletId = this.safeString (params, 'walletId');
         if (walletId === undefined) {
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a walletId parameter');
+            throw new ExchangeError (this.id + ' fetchMyTrades() requires a walletId parameter');
         }
         const request = {
             'walletId': walletId,
@@ -427,7 +427,7 @@ module.exports = class itbit extends Exchange {
     async fetchWallets (params = {}) {
         await this.loadMarkets ();
         if (!this.uid) {
-            throw new AuthenticationError (this.id + ' fetchWallets requires uid API credential');
+            throw new AuthenticationError (this.id + ' fetchWallets() requires uid API credential');
         }
         const request = {
             'userId': this.uid,
@@ -465,7 +465,7 @@ module.exports = class itbit extends Exchange {
         }
         const walletIdInParams = ('walletId' in params);
         if (!walletIdInParams) {
-            throw new ExchangeError (this.id + ' fetchOrders requires a walletId parameter');
+            throw new ExchangeError (this.id + ' fetchOrders() requires a walletId parameter');
         }
         const walletId = params['walletId'];
         const request = {
@@ -529,6 +529,8 @@ module.exports = class itbit extends Exchange {
         }
         const clientOrderId = this.safeString (order, 'clientOrderIdentifier');
         const id = this.safeString (order, 'id');
+        const postOnlyString = this.safeString (order, 'postOnly');
+        const postOnly = (postOnlyString === 'True');
         return {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -539,8 +541,11 @@ module.exports = class itbit extends Exchange {
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,
@@ -563,7 +568,7 @@ module.exports = class itbit extends Exchange {
         }
         const walletIdInParams = ('walletId' in params);
         if (!walletIdInParams) {
-            throw new ExchangeError (this.id + ' createOrder requires a walletId parameter');
+            throw new ExchangeError (this.id + ' createOrder() requires a walletId parameter');
         }
         amount = amount.toString ();
         price = price.toString ();
@@ -588,7 +593,7 @@ module.exports = class itbit extends Exchange {
         await this.loadMarkets ();
         const walletIdInParams = ('walletId' in params);
         if (!walletIdInParams) {
-            throw new ExchangeError (this.id + ' fetchOrder requires a walletId parameter');
+            throw new ExchangeError (this.id + ' fetchOrder() requires a walletId parameter');
         }
         const request = {
             'id': id,
@@ -600,7 +605,7 @@ module.exports = class itbit extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         const walletIdInParams = ('walletId' in params);
         if (!walletIdInParams) {
-            throw new ExchangeError (this.id + ' cancelOrder requires a walletId parameter');
+            throw new ExchangeError (this.id + ' cancelOrder() requires a walletId parameter');
         }
         const request = {
             'id': id,
@@ -629,7 +634,7 @@ module.exports = class itbit extends Exchange {
             const binhash = this.binaryConcat (binaryUrl, hash);
             const signature = this.hmac (binhash, this.encode (this.secret), 'sha512', 'base64');
             headers = {
-                'Authorization': this.apiKey + ':' + this.decode (signature),
+                'Authorization': this.apiKey + ':' + signature,
                 'Content-Type': 'application/json',
                 'X-Auth-Timestamp': timestamp,
                 'X-Auth-Nonce': nonce,

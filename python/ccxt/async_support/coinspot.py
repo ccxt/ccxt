@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import NotSupported
+from ccxt.base.errors import ArgumentsRequired
 
 
 class coinspot(Exchange):
@@ -58,31 +58,84 @@ class coinspot(Exchange):
                         'my/sell',
                         'my/buy/cancel',
                         'my/sell/cancel',
+                        'ro/my/balances',
+                        'ro/my/balances/{cointype}',
+                        'ro/my/deposits',
+                        'ro/my/withdrawals',
+                        'ro/my/transactions',
+                        'ro/my/transactions/{cointype}',
+                        'ro/my/transactions/open',
+                        'ro/my/transactions/{cointype}/open',
+                        'ro/my/sendreceive',
+                        'ro/my/affiliatepayments',
+                        'ro/my/referralpayments',
                     ],
                 },
             },
             'markets': {
                 'BTC/AUD': {'id': 'btc', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'baseId': 'btc', 'quoteId': 'aud'},
+                'ETH/AUD': {'id': 'eth', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD', 'baseId': 'eth', 'quoteId': 'aud'},
+                'XRP/AUD': {'id': 'xrp', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD', 'baseId': 'xrp', 'quoteId': 'aud'},
                 'LTC/AUD': {'id': 'ltc', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'baseId': 'ltc', 'quoteId': 'aud'},
                 'DOGE/AUD': {'id': 'doge', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', 'baseId': 'doge', 'quoteId': 'aud'},
+                'RFOX/AUD': {'id': 'rfox', 'symbol': 'RFOX/AUD', 'base': 'RFOX', 'quote': 'AUD', 'baseId': 'rfox', 'quoteId': 'aud'},
+                'POWR/AUD': {'id': 'powr', 'symbol': 'POWR/AUD', 'base': 'POWR', 'quote': 'AUD', 'baseId': 'powr', 'quoteId': 'aud'},
+                'NEO/AUD': {'id': 'neo', 'symbol': 'NEO/AUD', 'base': 'NEO', 'quote': 'AUD', 'baseId': 'neo', 'quoteId': 'aud'},
+                'TRX/AUD': {'id': 'trx', 'symbol': 'TRX/AUD', 'base': 'TRX', 'quote': 'AUD', 'baseId': 'trx', 'quoteId': 'aud'},
+                'EOS/AUD': {'id': 'eos', 'symbol': 'EOS/AUD', 'base': 'EOS', 'quote': 'AUD', 'baseId': 'eos', 'quoteId': 'aud'},
+                'XLM/AUD': {'id': 'xlm', 'symbol': 'XLM/AUD', 'base': 'XLM', 'quote': 'AUD', 'baseId': 'xlm', 'quoteId': 'aud'},
+                'RHOC/AUD': {'id': 'rhoc', 'symbol': 'RHOC/AUD', 'base': 'RHOC', 'quote': 'AUD', 'baseId': 'rhoc', 'quoteId': 'aud'},
+                'GAS/AUD': {'id': 'gas', 'symbol': 'GAS/AUD', 'base': 'GAS', 'quote': 'AUD', 'baseId': 'gas', 'quoteId': 'aud'},
             },
             'commonCurrencies': {
                 'DRK': 'DASH',
+            },
+            'options': {
+                'fetchBalance': 'private_post_my_balances',
             },
         })
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostMyBalances(params)
+        method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
+        response = await getattr(self, method)(params)
+        #
+        # read-write api keys
+        #
+        #     ...
+        #
+        # read-only api keys
+        #
+        #     {
+        #         "status":"ok",
+        #         "balances":[
+        #             {
+        #                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
+        #             }
+        #         ]
+        #     }
+        #
         result = {'info': response}
-        balances = self.safe_value(response, 'balance', {})
-        currencyIds = list(balances.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_float(balances, currencyId)
-            result[code] = account
+        balances = self.safe_value_2(response, 'balance', 'balances')
+        if isinstance(balances, list):
+            for i in range(0, len(balances)):
+                currencies = balances[i]
+                currencyIds = list(currencies.keys())
+                for j in range(0, len(currencyIds)):
+                    currencyId = currencyIds[j]
+                    balance = currencies[currencyId]
+                    code = self.safe_currency_code(currencyId)
+                    account = self.account()
+                    account['total'] = self.safe_float(balance, 'balance')
+                    result[code] = account
+        else:
+            currencyIds = list(balances.keys())
+            for i in range(0, len(currencyIds)):
+                currencyId = currencyIds[i]
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['total'] = self.safe_float(balances, currencyId)
+                result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -132,8 +185,53 @@ class coinspot(Exchange):
             'cointype': market['id'],
         }
         response = await self.privatePostOrdersHistory(self.extend(request, params))
+        #
+        #     {
+        #         "status":"ok",
+        #         "orders":[
+        #             {"amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"market":"BTC/AUD"},
+        #         ],
+        #     }
+        #
         trades = self.safe_value(response, 'orders', [])
         return self.parse_trades(trades, market, since, limit)
+
+    def parse_trade(self, trade, market=None):
+        #
+        # public fetchTrades
+        #
+        #     {
+        #         "amount":0.00102091,
+        #         "rate":21549.09999991,
+        #         "total":21.99969168,
+        #         "coin":"BTC",
+        #         "solddate":1604890646143,
+        #         "market":"BTC/AUD"
+        #     }
+        #
+        price = self.safe_float(trade, 'rate')
+        amount = self.safe_float(trade, 'amount')
+        cost = self.safe_float(trade, 'total')
+        if (cost is None) and (price is not None) and (amount is not None):
+            cost = price * amount
+        timestamp = self.safe_integer(trade, 'solddate')
+        marketId = self.safe_string(trade, 'market')
+        symbol = self.safe_symbol(marketId, market, '/')
+        return {
+            'info': trade,
+            'id': None,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'order': None,
+            'type': None,
+            'side': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
+        }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -148,9 +246,15 @@ class coinspot(Exchange):
         return await getattr(self, method)(self.extend(request, params))
 
     async def cancel_order(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + ' cancelOrder() is not fully implemented yet')
-        # method = 'privatePostMyBuy'
-        # return await getattr(self, method)({'id': id})
+        side = self.safe_string(params, 'side')
+        if side != 'buy' and side != 'sell':
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a side parameter, "buy" or "sell"')
+        params = self.omit(params, 'side')
+        method = 'privatePostMy' + self.capitalize(side) + 'Cancel'
+        request = {
+            'id': id,
+        }
+        return await getattr(self, method)(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not self.apiKey:

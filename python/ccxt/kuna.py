@@ -116,7 +116,7 @@ class kuna(acx):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -172,7 +172,7 @@ class kuna(acx):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -181,10 +181,10 @@ class kuna(acx):
         response = self.privateGetTradesMy(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limits=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
-        trades = self.fetch_trades(symbol, since, limits, params)
-        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limits)
+        trades = self.fetch_trades(symbol, since, limit, params)
+        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
         result = []
         for i in range(0, len(ohlcvc)):
             ohlcv = ohlcvc[i]

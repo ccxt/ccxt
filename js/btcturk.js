@@ -275,7 +275,7 @@ module.exports = class btcturk extends Exchange {
         };
         if (type === 'market') {
             if (!('Total' in params)) {
-                throw new ExchangeError (this.id + ' createOrder requires the "Total" extra parameter for market orders (amount and price are both ignored)');
+                throw new ExchangeError (this.id + ' createOrder() requires the "Total" extra parameter for market orders (amount and price are both ignored)');
             }
         } else {
             request['Price'] = price;
@@ -318,7 +318,7 @@ module.exports = class btcturk extends Exchange {
             headers = {
                 'X-PCK': this.apiKey,
                 'X-Stamp': nonce,
-                'X-Signature': this.stringToBase64 (this.hmac (this.encode (auth), secret, 'sha256', 'binary')),
+                'X-Signature': this.hmac (this.encode (auth), secret, 'sha256', 'base64'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }

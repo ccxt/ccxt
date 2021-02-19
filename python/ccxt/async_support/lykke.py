@@ -180,12 +180,8 @@ class lykke(Exchange):
         #         Price: 9847.427,
         #         Fee: {Amount: null, Type: 'Unknown', FeeAssetId: null}
         #     },
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'AssetPairId')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'AssetPairId')
+        symbol = self.safe_symbol(marketId, market)
         id = self.safe_string_2(trade, 'id', 'Id')
         orderId = self.safe_string(trade, 'OrderId')
         timestamp = self.parse8601(self.safe_string_2(trade, 'dateTime', 'DateTime'))
@@ -350,8 +346,8 @@ class lykke(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': self.safe_integer(market, 'Accuracy'),
-                'price': self.safe_integer(market, 'InvertedAccuracy'),
+                'price': self.safe_integer(market, 'Accuracy'),
+                'amount': self.safe_integer(market, 'InvertedAccuracy'),
             }
             result.append({
                 'id': id,
@@ -451,12 +447,8 @@ class lykke(Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'Status'))
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'AssetPairId')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'AssetPairId')
+        symbol = self.safe_symbol(marketId, market)
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'LastMatchTime'))
         timestamp = None
         if ('Registered' in order) and (order['Registered']):
@@ -484,8 +476,11 @@ class lykke(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': None,
             'amount': amount,

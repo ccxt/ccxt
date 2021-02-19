@@ -24,8 +24,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -138,12 +136,13 @@ class bitget(Exchange):
                         'market/trades',
                         'market/candles',
                         'market/index',
+                        'market/open_count',
                         'market/open_interest',
                         'market/price_limit',
                         'market/funding_time',
-                        'market/historical_funding_rate',
                         'market/mark_price',
                         'market/open_count',
+                        'market/historyFundRate',
                     ],
                 },
                 'swap': {
@@ -157,8 +156,13 @@ class bitget(Exchange):
                         'order/detail',
                         'order/orders',
                         'order/fills',
-                        'order/currentPlan',
-                        'order/historyPlan',
+                        'order/current',
+                        'order/currentPlan',  # conditional
+                        'order/history',
+                        'order/historyPlan',  # conditional
+                        'trace/closeTrack',
+                        'trace/currentTrack',
+                        'trace/historyTrack',
                     ],
                     'post': [
                         'account/leverage',
@@ -170,6 +174,7 @@ class bitget(Exchange):
                         'order/cancel_batch_orders',
                         'order/plan_order',
                         'order/cancel_plan',
+                        'position/changeHoldModel',
                     ],
                 },
             },
@@ -811,12 +816,11 @@ class bitget(Exchange):
         symbol = id.upper()
         if spot:
             symbol = base + '/' + quote
-        lotSize = self.safe_float_2(market, 'lot_size', 'trade_increment')
-        tick_size = self.safe_float(market, 'tick_size')
-        newtick_size = float('1e-' + self.number_to_string(tick_size))
+        tickSize = self.safe_string(market, 'tick_size')
+        sizeIncrement = self.safe_string(market, 'size_increment')
         precision = {
-            'amount': self.safe_float(market, 'size_increment', lotSize),
-            'price': newtick_size,
+            'amount': float('1e-' + sizeIncrement),
+            'price': float('1e-' + tickSize),
         }
         minAmount = self.safe_float_2(market, 'min_size', 'base_min_size')
         status = self.safe_string(market, 'status')
@@ -852,9 +856,6 @@ class bitget(Exchange):
                 },
             },
         })
-
-    def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     async def fetch_markets_by_type(self, type, params={}):
         if type == 'spot':
@@ -1330,17 +1331,17 @@ class bitget(Exchange):
             takerOrMaker = 'maker'
         elif takerOrMaker == 'T':
             takerOrMaker = 'taker'
-        side = self.safe_string_2(trade, 'side', 'direction')
-        type = self.parse_order_type(side)
-        side = self.parse_order_side(side)
-        # if side is None:
-        #     orderType = self.safe_string(trade, 'type')
-        #     if orderType is not None:
-        #         parts = orderType.split('-')
-        #         side = self.safe_string_lower(parts, 0)
-        #         type = self.safe_string_lower(parts, 1)
-        #     }
-        # }
+        orderType = self.safe_string(trade, 'type')
+        side = None
+        type = None
+        if orderType is not None:
+            side = self.safe_string(trade, 'type')
+            type = self.parse_order_type(side)
+            side = self.parse_order_side(side)
+        else:
+            side = self.safe_string_2(trade, 'side', 'direction')
+            type = self.parse_order_type(side)
+            side = self.parse_order_side(side)
         cost = None
         if amount is not None:
             if price is not None:
@@ -1654,7 +1655,7 @@ class bitget(Exchange):
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         if type is None:
-            raise ArgumentsRequired(self.id + " requires an 'accountId' parameter")
+            raise ArgumentsRequired(self.id + " getAccountId() requires an 'accountId' parameter")
         account = await self.find_account_by_type(type)
         return account['id']
 
@@ -1664,7 +1665,7 @@ class bitget(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchBalance requires a 'type' parameter, one of 'spot', 'swap'")
+            raise ArgumentsRequired(self.id + " fetchBalance() requires a 'type' parameter, one of 'spot', 'swap'")
         method = None
         query = self.omit(params, 'type')
         if type == 'spot':
@@ -1891,8 +1892,11 @@ class bitget(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -1966,7 +1970,7 @@ class bitget(Exchange):
             request['client_oid'] = clientOrderId
             orderType = self.safe_string(params, 'type')
             if orderType is None:
-                raise ArgumentsRequired(self.id + " createOrder requires a type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " + market['type'] + ' orders')
+                raise ArgumentsRequired(self.id + " createOrder() requires a type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " + market['type'] + ' orders')
             request['size'] = self.amount_to_precision(symbol, amount)
             request['type'] = orderType
             # if match_price is set to '1', the price parameter will be ignored for market orders
@@ -2004,7 +2008,7 @@ class bitget(Exchange):
             type = self.safe_string(params, 'type', defaultType)
             if type == 'spot':
                 if symbol is None:
-                    raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument for spot orders')
+                    raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument for spot orders')
         else:
             market = self.market(symbol)
             type = market['type']
@@ -2040,12 +2044,13 @@ class bitget(Exchange):
 
     async def cancel_orders(self, ids, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
         if type is None:
-            raise ArgumentsRequired(self.id + " cancelOrders requires a type parameter(one of 'spot', 'swap').")
+            raise ArgumentsRequired(self.id + " cancelOrders() requires a type parameter(one of 'spot', 'swap').")
+        params = self.omit(params, 'type')
         request = {}
         method = None
         if type == 'spot':
@@ -2100,12 +2105,12 @@ class bitget(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchOrder requires a type parameter(one of 'spot', 'swap').")
+            raise ArgumentsRequired(self.id + " fetchOrder() requires a type parameter(one of 'spot', 'swap').")
         method = None
         request = {}
         if type == 'spot':
@@ -2172,7 +2177,7 @@ class bitget(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
@@ -2251,7 +2256,7 @@ class bitget(Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
@@ -2336,7 +2341,7 @@ class bitget(Exchange):
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2371,7 +2376,7 @@ class bitget(Exchange):
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2488,13 +2493,13 @@ class bitget(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
         query = self.omit(params, 'type')
         if type == 'swap':
-            raise ArgumentsRequired(self.id + ' fetchMyTrades is not supported for ' + type + ' type')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() is not supported for ' + type + ' type')
         #
         # spot
         #
@@ -2547,11 +2552,11 @@ class bitget(Exchange):
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
-        query = self.omit(params, 'type')
+        params = self.omit(params, 'type')
         method = None
         request = {}
         if type == 'spot':
@@ -2562,7 +2567,7 @@ class bitget(Exchange):
             request['orderId'] = id
             request['symbol'] = market['id']
             method = 'swapGetOrderFills'
-        response = await getattr(self, method)(self.extend(request, query))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         # spot
         #
@@ -2607,6 +2612,66 @@ class bitget(Exchange):
             data = self.safe_value(response, 'data', [])
         return await self.parse_trades(data, market, since, limit)
 
+    async def fetch_position(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.swapGetPositionSinglePosition(self.extend(request, params))
+        #
+        #     {
+        #         "margin_mode":"fixed",  # Margin mode: crossed / fixed
+        #         "holding":[
+        #             {
+        #                 "symbol":"cmt_btcusdt",  # Contract name
+        #                 "liquidation_price":"0.00",  # Estimated liquidation price
+        #                 "position":"0",  # Position Margin, the margin for holding current positions
+        #                 "avail_position":"0",  # Available position
+        #                 "avg_cost":"0.00",  # Transaction average price
+        #                 "leverage":"2",  # Leverage
+        #                 "realized_pnl":"0.00000000",  # Realized Profit and loss
+        #                 "keepMarginRate":"0.005",  # Maintenance margin rate
+        #                 "side":"1",  # Position Direction Long or short, Mark obsolete
+        #                 "holdSide":"1",  # Position Direction Long or short
+        #                 "timestamp":"1557571623963",  # System timestamp
+        #                 "margin":"0.0000000000000000",  # Used margin
+        #                 "unrealized_pnl":"0.00000000",  # Unrealized profit and loss
+        #             }
+        #         ]
+        #     }
+        return response
+
+    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        response = await self.swapGetPositionAllPosition(params)
+        #
+        #     [
+        #         {
+        #             "margin_mode":"fixed",
+        #             "holding":[
+        #                 {
+        #                     "liquidation_price":"0.00",
+        #                     "position":"0",
+        #                     "avail_position":"0",
+        #                     "avg_cost":"0.00",
+        #                     "symbol":"btcusd",
+        #                     "leverage":"20",
+        #                     "keepMarginRate":"0.005",
+        #                     "realized_pnl":"0.00000000",
+        #                     "unrealized_pnl":"0",
+        #                     "side":"long",
+        #                     "holdSide":"1",
+        #                     "timestamp":"1595698564915",
+        #                     "margin":"0.0000000000000000"
+        #                 },
+        #             ]
+        #         },
+        #     ]
+        #
+        # todo unify parsePosition/parsePositions
+        return response
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.implode_params(path, params)
         if (api == 'capi') or (api == 'swap'):
@@ -2633,7 +2698,7 @@ class bitget(Exchange):
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             headers = {
                 'ACCESS-KEY': self.apiKey,
-                'ACCESS-SIGN': self.decode(signature),
+                'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': self.password,
             }

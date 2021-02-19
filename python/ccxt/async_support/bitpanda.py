@@ -54,6 +54,7 @@ class bitpanda(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1/MINUTES',
@@ -158,12 +159,6 @@ class bitpanda(Exchange):
                 'apiKey': True,
                 'secret': False,
             },
-            # exchange-specific options
-            'options': {
-                'fetchTradingFees': {
-                    'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
-                },
-            },
             'exceptions': {
                 'exact': {
                     'INVALID_CLIENT_UUID': InvalidOrder,
@@ -249,6 +244,13 @@ class bitpanda(Exchange):
             },
             'commonCurrencies': {
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
+            },
+            # exchange-specific options
+            'options': {
+                'fetchTradingFees': {
+                    'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
+                },
+                'fiat': ['EUR', 'CHF'],
             },
         })
 
@@ -494,17 +496,7 @@ class bitpanda(Exchange):
         #
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
         marketId = self.safe_string(ticker, 'instrument_code')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            elif marketId is not None:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         last = self.safe_float(ticker, 'last_price')
         percentage = self.safe_float(ticker, 'price_change_percentage')
         change = self.safe_float(ticker, 'price_change')
@@ -758,7 +750,7 @@ class bitpanda(Exchange):
         #         "sequence":603047
         #     }
         #
-        # fetchOrder, fetchOpenOrders, fetchClosedOrders trades(private)
+        # fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders trades(private)
         #
         #     {
         #         "fee": {
@@ -784,7 +776,9 @@ class bitpanda(Exchange):
         #
         feeInfo = self.safe_value(trade, 'fee', {})
         trade = self.safe_value(trade, 'trade', trade)
-        timestamp = self.parse8601(self.safe_string(trade, 'time'))
+        timestamp = self.safe_integer(trade, 'trade_timestamp')
+        if timestamp is None:
+            timestamp = self.parse8601(self.safe_string(trade, 'time'))
         side = self.safe_string_lower_2(trade, 'side', 'taker_side')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
@@ -792,18 +786,7 @@ class bitpanda(Exchange):
         if (cost is None) and (amount is not None) and (price is not None):
             cost = amount * price
         marketId = self.safe_string(trade, 'instrument_code')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (market is not None) and (symbol is None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         feeCost = self.safe_float(feeInfo, 'fee_amount')
         takerOrMaker = None
         fee = None
@@ -957,7 +940,7 @@ class bitpanda(Exchange):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchDeposits requires a "to" iso8601 string param with the since argument is specified')
+                raise ArgumentsRequired(self.id + ' fetchDeposits() requires a "to" iso8601 string param with the since argument is specified')
             request['from'] = self.iso8601(since)
         response = await self.privateGetAccountDeposits(self.extend(request, params))
         #
@@ -1007,7 +990,7 @@ class bitpanda(Exchange):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a "to" iso8601 string param with the since argument is specified')
+                raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a "to" iso8601 string param with the since argument is specified')
             request['from'] = self.iso8601(since)
         response = await self.privateGetAccountWithdrawals(self.extend(request, params))
         #
@@ -1044,6 +1027,51 @@ class bitpanda(Exchange):
         withdrawalHistory = self.safe_value(response, 'withdrawal_history', [])
         return self.parse_transactions(withdrawalHistory, currency, since, limit, {'type': 'withdrawal'})
 
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': code,
+            'amount': self.currency_to_precision(code, amount),
+            # 'payout_account_id': '66756a10-3e86-48f4-9678-b634c4b135b2',  # fiat only
+            # 'recipient': { # crypto only
+            #     'address': address,
+            #     # 'destination_tag': '',
+            # },
+        }
+        options = self.safe_value(self.options, 'fiat', [])
+        isFiat = self.in_array(code, options)
+        method = 'privatePostAccountWithdrawFiat' if isFiat else 'privatePostAccountWithdrawCrypto'
+        if isFiat:
+            payoutAccountId = self.safe_string(params, 'payout_account_id')
+            if payoutAccountId is None:
+                raise ArgumentsRequired(self.id + ' withdraw() requires a payout_account_id param for fiat ' + code + ' withdrawals')
+        else:
+            recipient = {'address': address}
+            if tag is not None:
+                recipient['destination_tag'] = tag
+            request['recipient'] = recipient
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # crypto
+        #
+        #     {
+        #         "amount": "1234.5678",
+        #         "fee": "1234.5678",
+        #         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
+        #         "destination_tag": "",
+        #         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
+        #     }
+        #
+        # fiat
+        #
+        #     {
+        #         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
+
     def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits, fetchWithdrawals
@@ -1062,16 +1090,37 @@ class bitpanda(Exchange):
         #         "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157"
         #     }
         #
+        # withdraw
+        #
+        #
+        #     crypto
+        #
+        #     {
+        #         "amount": "1234.5678",
+        #         "fee": "1234.5678",
+        #         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
+        #         "destination_tag": "",
+        #         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
+        #     }
+        #
+        #     fiat
+        #
+        #     {
+        #         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
+        #     }
+        #
         id = self.safe_string(transaction, 'transaction_id')
         amount = self.safe_float(transaction, 'amount')
         timestamp = self.parse8601(self.safe_string(transaction, 'time'))
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safe_currency_code(currencyId, currency)
-        status = None
-        feeCost = self.safe_float(transaction, 'fee_amount')
+        currency = self.safe_currency(currencyId, currency)
+        status = 'ok'  # the exchange returns cleared transactions only
+        feeCost = self.safe_float_2(transaction, 'fee_amount', 'fee')
         fee = None
+        addressTo = self.safe_string(transaction, 'recipient')
+        tagTo = self.safe_string(transaction, 'destination_tag')
         if feeCost is not None:
-            feeCurrencyId = self.safe_string(transaction, 'fee_currency')
+            feeCurrencyId = self.safe_string(transaction, 'fee_currency', currencyId)
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
@@ -1080,14 +1129,14 @@ class bitpanda(Exchange):
         return {
             'info': transaction,
             'id': id,
-            'currency': code,
+            'currency': currency['code'],
             'amount': amount,
-            'address': None,
+            'address': addressTo,
             'addressFrom': None,
-            'addressTo': None,
-            'tag': None,
+            'addressTo': addressTo,
+            'tag': tagTo,
             'tagFrom': None,
-            'tagTo': None,
+            'tagTo': tagTo,
             'status': status,
             'type': None,
             'updated': None,
@@ -1184,18 +1233,8 @@ class bitpanda(Exchange):
         clientOrderId = self.safe_string(order, 'client_id')
         timestamp = self.parse8601(self.safe_string(order, 'time'))
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = None
         marketId = self.safe_string(order, 'instrument_code')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         cost = None
@@ -1234,6 +1273,9 @@ class bitpanda(Exchange):
         if cost is None:
             if (average is not None) and (filled is not None):
                 cost = average * filled
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
+        stopPrice = self.safe_float(order, 'trigger_price')
+        postOnly = self.safe_value(order, 'is_post_only')
         result = {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1243,8 +1285,11 @@ class bitpanda(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1278,13 +1323,22 @@ class bitpanda(Exchange):
             result['fee'] = None
         return result
 
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'GOOD_TILL_CANCELLED': 'GTC',
+            'GOOD_TILL_TIME': 'GTT',
+            'IMMEDIATE_OR_CANCELLED': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
+
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
         request = {
             'instrument_code': market['id'],
-            'type': type.upper(),  # LIMIT, MARKET, STOP
+            'type': uppercaseType,  # LIMIT, MARKET, STOP
             'side': side.upper(),  # or SELL
             'amount': self.amount_to_precision(symbol, amount),
             # "price": "1234.5678",  # required for LIMIT and STOP orders
@@ -1300,7 +1354,7 @@ class bitpanda(Exchange):
         if uppercaseType == 'STOP':
             triggerPrice = self.safe_float(params, 'trigger_price')
             if triggerPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder requires a trigger_price param for ' + type + ' orders')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a trigger_price param for ' + type + ' orders')
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
             params = self.omit(params, 'trigger_price')
         if priceIsRequired:
@@ -1439,7 +1493,7 @@ class bitpanda(Exchange):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchOrders requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
+                raise ArgumentsRequired(self.id + ' fetchOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['max_page_size'] = limit
@@ -1594,7 +1648,7 @@ class bitpanda(Exchange):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchMyTrades requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
+                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['max_page_size'] = limit
@@ -1660,9 +1714,9 @@ class bitpanda(Exchange):
         #     {"error":"MISSING_TO_PARAM"}
         #     {"error":"CANDLESTICKS_TIME_RANGE_TOO_BIG"}
         #
-        feedback = self.id + ' ' + body
         message = self.safe_string(response, 'error')
         if message is not None:
+            feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

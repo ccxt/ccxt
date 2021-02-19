@@ -139,7 +139,7 @@ class cex extends Exchange {
                     'Nonce must be incremented' => '\\ccxt\\InvalidNonce',
                     'Invalid Order' => '\\ccxt\\InvalidOrder',
                     'Order not found' => '\\ccxt\\OrderNotFound',
-                    'Rate limit exceeded' => '\\ccxt\\RateLimitExceeded',
+                    'limit exceeded' => '\\ccxt\\RateLimitExceeded', // array("error":"rate limit exceeded")
                     'Invalid API key' => '\\ccxt\\AuthenticationError',
                     'There was an error while placing your order' => '\\ccxt\\InvalidOrder',
                     'Sorry, too many clients already' => '\\ccxt\\DDoSProtection',
@@ -152,7 +152,7 @@ class cex extends Exchange {
                     'status' => array(
                         'c' => 'canceled',
                         'd' => 'closed',
-                        'cd' => 'closed',
+                        'cd' => 'canceled',
                         'a' => 'open',
                     ),
                 ),
@@ -682,10 +682,9 @@ class cex extends Exchange {
         $cost = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
-            $cost = $this->safe_float($order, 'ta:' . $market['quote']);
-            if ($cost === null) {
-                $cost = $this->safe_float($order, 'tta:' . $market['quote']);
-            }
+            $taCost = $this->safe_float($order, 'ta:' . $market['quote']);
+            $ttaCost = $this->safe_float($order, 'tta:' . $market['quote']);
+            $cost = $this->sum($taCost, $ttaCost);
             $baseFee = 'fa:' . $market['base'];
             $baseTakerFee = 'tfa:' . $market['base'];
             $quoteFee = 'fa:' . $market['quote'];
@@ -888,8 +887,11 @@ class cex extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => ($price === null) ? 'market' : 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -922,7 +924,7 @@ class cex extends Exchange {
         $this->load_markets();
         $method = 'privatePostArchivedOrdersPair';
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
         $market = $this->market($symbol);
         $request = array( 'pair' => $market['id'] );
@@ -936,7 +938,108 @@ class cex extends Exchange {
             'id' => (string) $id,
         );
         $response = $this->privatePostGetOrderTx (array_merge($request, $params));
-        return $this->parse_order($response['data']);
+        $data = $this->safe_value($response, 'data', array());
+        //
+        //     {
+        //         "$id" => "5442731603",
+        //         "type" => "sell",
+        //         "time" => 1516132358071,
+        //         "lastTxTime" => 1516132378452,
+        //         "lastTx" => "5442734452",
+        //         "pos" => null,
+        //         "user" => "up106404164",
+        //         "status" => "d",
+        //         "symbol1" => "ETH",
+        //         "symbol2" => "EUR",
+        //         "amount" => "0.50000000",
+        //         "kind" => "api",
+        //         "price" => "923.3386",
+        //         "tfacf" => "1",
+        //         "fa:EUR" => "0.55",
+        //         "ta:EUR" => "369.77",
+        //         "remains" => "0.00000000",
+        //         "tfa:EUR" => "0.22",
+        //         "tta:EUR" => "91.95",
+        //         "a:ETH:cds" => "0.50000000",
+        //         "a:EUR:cds" => "461.72",
+        //         "f:EUR:cds" => "0.77",
+        //         "tradingFeeMaker" => "0.15",
+        //         "tradingFeeTaker" => "0.23",
+        //         "tradingFeeStrategy" => "userVolumeAmount",
+        //         "tradingFeeUserVolumeAmount" => "2896912572",
+        //         "orderId" => "5442731603",
+        //         "next" => false,
+        //         "vtx" => array(
+        //             array(
+        //                 "$id" => "5442734452",
+        //                 "type" => "sell",
+        //                 "time" => "2018-01-16T19:52:58.452Z",
+        //                 "user" => "up106404164",
+        //                 "c" => "user:up106404164:a:EUR",
+        //                 "d" => "order:5442731603:a:EUR",
+        //                 "a" => "104.53000000",
+        //                 "amount" => "104.53000000",
+        //                 "balance" => "932.71000000",
+        //                 "$symbol" => "EUR",
+        //                 "order" => "5442731603",
+        //                 "buy" => "5442734443",
+        //                 "sell" => "5442731603",
+        //                 "pair" => null,
+        //                 "pos" => null,
+        //                 "office" => null,
+        //                 "cs" => "932.71",
+        //                 "ds" => 0,
+        //                 "price" => 923.3386,
+        //                 "symbol2" => "ETH",
+        //                 "fee_amount" => "0.16"
+        //             ),
+        //             array(
+        //                 "$id" => "5442731609",
+        //                 "type" => "sell",
+        //                 "time" => "2018-01-16T19:52:38.071Z",
+        //                 "user" => "up106404164",
+        //                 "c" => "user:up106404164:a:EUR",
+        //                 "d" => "order:5442731603:a:EUR",
+        //                 "a" => "91.73000000",
+        //                 "amount" => "91.73000000",
+        //                 "balance" => "563.49000000",
+        //                 "$symbol" => "EUR",
+        //                 "order" => "5442731603",
+        //                 "buy" => "5442618127",
+        //                 "sell" => "5442731603",
+        //                 "pair" => null,
+        //                 "pos" => null,
+        //                 "office" => null,
+        //                 "cs" => "563.49",
+        //                 "ds" => 0,
+        //                 "price" => 924.0092,
+        //                 "symbol2" => "ETH",
+        //                 "fee_amount" => "0.22"
+        //             ),
+        //             {
+        //                 "$id" => "5442731604",
+        //                 "type" => "sell",
+        //                 "time" => "2018-01-16T19:52:38.071Z",
+        //                 "user" => "up106404164",
+        //                 "c" => "order:5442731603:a:ETH",
+        //                 "d" => "user:up106404164:a:ETH",
+        //                 "a" => "0.50000000",
+        //                 "amount" => "-0.50000000",
+        //                 "balance" => "15.80995000",
+        //                 "$symbol" => "ETH",
+        //                 "order" => "5442731603",
+        //                 "buy" => null,
+        //                 "sell" => null,
+        //                 "pair" => null,
+        //                 "pos" => null,
+        //                 "office" => null,
+        //                 "cs" => "0.50000000",
+        //                 "ds" => "15.80995000"
+        //             }
+        //         )
+        //     }
+        //
+        return $this->parse_order($data);
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1155,10 +1258,10 @@ class cex extends Exchange {
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder requires a $amount argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $amount argument');
         }
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder requires a $price argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

@@ -53,7 +53,7 @@ class liquid(Exchange):
                     'https://developers.liquid.com',
                 ],
                 'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
-                'referral': 'https://www.liquid.com?affiliate=SbzC62lt30976',
+                'referral': 'https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976',
             },
             'api': {
                 'public': {
@@ -196,6 +196,7 @@ class liquid(Exchange):
                 'must_be_positive': InvalidOrder,
                 'less_than_order_size': InvalidOrder,
                 'price_too_high': InvalidOrder,
+                'price_too_small': InvalidOrder,  # {"errors":{"order":["price_too_small"]}}
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
@@ -237,6 +238,7 @@ class liquid(Exchange):
             amountPrecision = self.safe_integer(currency, 'display_precision')
             pricePrecision = self.safe_integer(currency, 'quoting_precision')
             precision = max(amountPrecision, pricePrecision)
+            decimalPrecision = 1 / math.pow(10, precision)
             result[code] = {
                 'id': id,
                 'code': code,
@@ -244,7 +246,7 @@ class liquid(Exchange):
                 'name': code,
                 'active': active,
                 'fee': self.safe_float(currency, 'withdrawal_fee'),
-                'precision': precision,
+                'precision': decimalPrecision,
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -amountPrecision),
@@ -690,7 +692,7 @@ class liquid(Exchange):
     def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if price is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires the price argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires the price argument')
         request = {
             'order': {
                 'quantity': self.amount_to_precision(symbol, amount),
@@ -820,10 +822,13 @@ class liquid(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'status': status,
             'symbol': symbol,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': filled,
             'cost': cost,

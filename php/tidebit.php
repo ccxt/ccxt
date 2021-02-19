@@ -247,13 +247,10 @@ class tidebit extends Exchange {
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-                $ticker = $tickers[$id];
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
-            }
+            $market = $this->safe_market($id);
+            $symbol = $market['symbol'];
+            $ticker = $tickers[$id];
+            $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -401,13 +398,8 @@ class tidebit extends Exchange {
         //         )
         //     }
         //
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } else {
-            $marketId = $order['market'];
-            $symbol = $this->markets_by_id[$marketId]['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'market');
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $id = $this->safe_string($order, 'id');
@@ -423,6 +415,7 @@ class tidebit extends Exchange {
                 $cost = $price * $filled;
             }
         }
+        $average = $this->safe_float($order, 'avg_price');
         return array(
             'id' => $id,
             'clientOrderId' => null,
@@ -432,8 +425,11 @@ class tidebit extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -441,7 +437,7 @@ class tidebit extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $order,
-            'average' => null,
+            'average' => $average,
         );
     }
 
@@ -457,8 +453,7 @@ class tidebit extends Exchange {
             $request['price'] = (string) $price;
         }
         $response = $this->privatePostOrders (array_merge($request, $params));
-        $market = $this->markets_by_id[$response['market']];
-        return $this->parse_order($response, $market);
+        return $this->parse_order($response);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

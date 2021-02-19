@@ -402,17 +402,7 @@ module.exports = class xena extends Exchange {
         //
         const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'symbol');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                symbol = marketId;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeFloat (ticker, 'lastPx');
         const open = this.safeFloat (ticker, 'firstPx');
         let percentage = undefined;
@@ -669,22 +659,8 @@ module.exports = class xena extends Exchange {
             side = 'sell';
         }
         const orderId = this.safeString (trade, 'orderId');
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['id'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('/');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const price = this.safeFloat2 (trade, 'lastPx', 'mdEntryPx');
         const amount = this.safeFloat2 (trade, 'lastQty', 'mdEntrySize');
         let cost = undefined;
@@ -944,18 +920,8 @@ module.exports = class xena extends Exchange {
         const transactTime = this.safeInteger (order, 'transactTime');
         const timestamp = parseInt (transactTime / 1000000);
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
-        let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                symbol = marketId;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'orderQty');
         const filled = this.safeFloat (order, 'cumQty');
@@ -991,8 +957,11 @@ module.exports = class xena extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': undefined,
@@ -1049,14 +1018,14 @@ module.exports = class xena extends Exchange {
         };
         if ((type === 'limit') || (type === 'stop-limit')) {
             if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder requires a price argument for order type ' + type);
+                throw new InvalidOrder (this.id + ' createOrder() requires a price argument for order type ' + type);
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if ((type === 'stop') || (type === 'stop-limit')) {
             const stopPx = this.safeFloat (params, 'stopPx');
             if (stopPx === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder requires a stopPx param for order type ' + type);
+                throw new InvalidOrder (this.id + ' createOrder() requires a stopPx param for order type ' + type);
             }
             request['stopPx'] = this.priceToPrecision (symbol, stopPx);
             params = this.omit (params, 'stopPx');
@@ -1094,7 +1063,7 @@ module.exports = class xena extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1149,7 +1118,7 @@ module.exports = class xena extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();

@@ -59,7 +59,7 @@ const keys = require (localKeysFile)
 log ('Looking up for:', argument.bright, strict ? '(strict search)' : '(non-strict search)')
 
 const checkAgainst = strict ?
-    (a, b) => ((a == b.toLowerCase ()) || (a == b.toUpperCase ())) :
+    (a, b) => (a ||'').toUpperCase ().includes ((b || '').toUpperCase ()) :
     (a, b) => (a || '').toLowerCase ().includes ((b || '').toLowerCase ())
 
 ;(async function test () {
@@ -110,13 +110,20 @@ const checkAgainst = strict ?
                     exchange.extend (market, {
                         exchange: exchange.id[(market.active !== false) ? 'green' : 'yellow'],
                     }))))
-            .filter (market =>
-                checkAgainst (market['base'],  argument) ||
-                checkAgainst (market['quote'], argument) ||
-                (market['baseId']  ? checkAgainst (market['baseId'],  argument) : false) ||
-                (market['quoteId'] ? checkAgainst (market['quoteId'], argument) : false) ||
-                checkAgainst (market['symbol'], argument) ||
-                checkAgainst (market['id'].toString (), argument))
+            .filter (market => {
+                try {
+                    return (
+                        checkAgainst (market['base'],  argument) ||
+                        checkAgainst (market['quote'], argument) ||
+                        (market['baseId']  ? checkAgainst (market['baseId'],  argument) : false) ||
+                        (market['quoteId'] ? checkAgainst (market['quoteId'], argument) : false) ||
+                        checkAgainst (market['symbol'], argument) ||
+                        checkAgainst (market['id'].toString (), argument)
+                    )
+                } catch (e) {
+                    return false
+                }
+            })
 
         log (asTable (markets.map (market => {
             market = ccxt.omit (market, [ 'info', 'limits', 'precision', 'tiers' ])

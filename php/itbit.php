@@ -272,7 +272,7 @@ class itbit extends Exchange {
         $this->load_markets();
         $walletId = $this->safe_string($params, 'walletId');
         if ($walletId === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $walletId parameter');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $walletId parameter');
         }
         $request = array(
             'walletId' => $walletId,
@@ -341,7 +341,7 @@ class itbit extends Exchange {
         $this->load_markets();
         $walletId = $this->safe_string($params, 'walletId');
         if ($walletId === null) {
-            throw new ExchangeError($this->id . ' fetchMyTrades requires a $walletId parameter');
+            throw new ExchangeError($this->id . ' fetchMyTrades() requires a $walletId parameter');
         }
         $request = array(
             'walletId' => $walletId,
@@ -431,7 +431,7 @@ class itbit extends Exchange {
     public function fetch_wallets($params = array ()) {
         $this->load_markets();
         if (!$this->uid) {
-            throw new AuthenticationError($this->id . ' fetchWallets requires uid API credential');
+            throw new AuthenticationError($this->id . ' fetchWallets() requires uid API credential');
         }
         $request = array(
             'userId' => $this->uid,
@@ -469,7 +469,7 @@ class itbit extends Exchange {
         }
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
         if (!$walletIdInParams) {
-            throw new ExchangeError($this->id . ' fetchOrders requires a $walletId parameter');
+            throw new ExchangeError($this->id . ' fetchOrders() requires a $walletId parameter');
         }
         $walletId = $params['walletId'];
         $request = array(
@@ -509,7 +509,7 @@ class itbit extends Exchange {
         //         "funds" => null,
         //         "metadata" => array(),
         //         "clientOrderIdentifier" => null,
-        //         "postOnly" => "False"
+        //         "$postOnly" => "False"
         //     }
         //
         $side = $this->safe_string($order, 'side');
@@ -533,6 +533,8 @@ class itbit extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'clientOrderIdentifier');
         $id = $this->safe_string($order, 'id');
+        $postOnlyString = $this->safe_string($order, 'postOnly');
+        $postOnly = ($postOnlyString === 'True');
         return array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -543,8 +545,11 @@ class itbit extends Exchange {
             'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'average' => $average,
             'amount' => $amount,
@@ -567,7 +572,7 @@ class itbit extends Exchange {
         }
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
         if (!$walletIdInParams) {
-            throw new ExchangeError($this->id . ' createOrder requires a walletId parameter');
+            throw new ExchangeError($this->id . ' createOrder() requires a walletId parameter');
         }
         $amount = (string) $amount;
         $price = (string) $price;
@@ -592,7 +597,7 @@ class itbit extends Exchange {
         $this->load_markets();
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
         if (!$walletIdInParams) {
-            throw new ExchangeError($this->id . ' fetchOrder requires a walletId parameter');
+            throw new ExchangeError($this->id . ' fetchOrder() requires a walletId parameter');
         }
         $request = array(
             'id' => $id,
@@ -604,7 +609,7 @@ class itbit extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
         if (!$walletIdInParams) {
-            throw new ExchangeError($this->id . ' cancelOrder requires a walletId parameter');
+            throw new ExchangeError($this->id . ' cancelOrder() requires a walletId parameter');
         }
         $request = array(
             'id' => $id,
@@ -633,7 +638,7 @@ class itbit extends Exchange {
             $binhash = $this->binary_concat($binaryUrl, $hash);
             $signature = $this->hmac($binhash, $this->encode($this->secret), 'sha512', 'base64');
             $headers = array(
-                'Authorization' => $this->apiKey . ':' . $this->decode($signature),
+                'Authorization' => $this->apiKey . ':' . $signature,
                 'Content-Type' => 'application/json',
                 'X-Auth-Timestamp' => $timestamp,
                 'X-Auth-Nonce' => $nonce,

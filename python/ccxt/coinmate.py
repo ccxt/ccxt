@@ -390,7 +390,7 @@ class coinmate(Exchange):
             'status': status,
             'fee': {
                 'cost': fee,
-                'currency': currency,
+                'currency': code,
             },
             'info': item,
         }
@@ -439,21 +439,8 @@ class coinmate(Exchange):
         #         "tradeType":"BUY"
         #     }
         #
-        symbol = None
         marketId = self.safe_string(trade, 'currencyPair')
-        quote = None
-        if marketId is not None:
-            if marketId in self.markets_by_id[marketId]:
-                market = self.markets_by_id[marketId]
-                quote = market['quote']
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+        market = self.safe_market(marketId, market, '_')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -470,7 +457,7 @@ class coinmate(Exchange):
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': quote,
+                'currency': market['quote'],
             }
         takerOrMaker = self.safe_string(trade, 'feeType')
         takerOrMaker = 'maker' if (takerOrMaker == 'MAKER') else 'taker'
@@ -479,7 +466,7 @@ class coinmate(Exchange):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'order': orderId,
@@ -524,7 +511,7 @@ class coinmate(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -614,19 +601,10 @@ class coinmate(Exchange):
             if price is not None:
                 cost = filled * price
         average = self.safe_float(order, 'avgPrice')
-        symbol = None
         marketId = self.safe_string(order, 'currencyPair')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '_')
         clientOrderId = self.safe_string(order, 'clientOrderId')
+        stopPrice = self.safe_float(order, 'stopPrice')
         return {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -635,8 +613,11 @@ class coinmate(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

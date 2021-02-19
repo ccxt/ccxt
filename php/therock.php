@@ -280,7 +280,7 @@ class therock extends Exchange {
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
+            $market = $this->safe_market($id);
             $symbol = $market['symbol'];
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -336,9 +336,8 @@ class therock extends Exchange {
         //                         currency => "EUR",
         //                         trade_id =>  440492                     }   ) }
         //
-        if (!$market) {
-            $market = $this->markets_by_id[$trade['fund_id']];
-        }
+        $marketId = $this->safe_string($trade, 'fund_id');
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string($trade, 'date'));
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -367,10 +366,6 @@ class therock extends Exchange {
                 'cost' => $feeCost,
                 'currency' => $market['quote'],
             );
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
         }
         return array(
             'info' => $trade,
@@ -920,12 +915,8 @@ class therock extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'id');
-        $symbol = null;
         $marketId = $this->safe_string($order, 'fund_id');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->parse8601($this->safe_string($order, 'date'));
         $type = $this->safe_string($order, 'type');
@@ -965,6 +956,7 @@ class therock extends Exchange {
                 $cost = 0;
             }
         }
+        $stopPrice = $this->safe_float($order, 'conditional_price');
         return array(
             'id' => $id,
             'clientOrderId' => null,
@@ -975,8 +967,11 @@ class therock extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -1003,7 +998,7 @@ class therock extends Exchange {
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1048,7 +1043,7 @@ class therock extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1087,7 +1082,7 @@ class therock extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

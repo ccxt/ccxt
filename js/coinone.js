@@ -373,7 +373,7 @@ module.exports = class coinone extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -517,8 +517,11 @@ module.exports = class coinone extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'average': undefined,
             'amount': amount,
@@ -565,7 +568,7 @@ module.exports = class coinone extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -600,14 +603,14 @@ module.exports = class coinone extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             // eslint-disable-next-line quotes
-            throw new ArgumentsRequired (this.id + " cancelOrder requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+            throw new ArgumentsRequired (this.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
         }
         const price = this.safeFloat (params, 'price');
         const qty = this.safeFloat (params, 'qty');
         const isAsk = this.safeInteger (params, 'is_ask');
         if ((price === undefined) || (qty === undefined) || (isAsk === undefined)) {
             // eslint-disable-next-line quotes
-            throw new ArgumentsRequired (this.id + " cancelOrder requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.");
+            throw new ArgumentsRequired (this.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.");
         }
         await this.loadMarkets ();
         const request = {
@@ -644,7 +647,7 @@ module.exports = class coinone extends Exchange {
                 'access_token': this.apiKey,
                 'nonce': nonce,
             }, params));
-            const payload = this.stringToBase64 (this.encode (json));
+            const payload = this.stringToBase64 (json);
             body = this.decode (payload);
             const secret = this.secret.toUpperCase ();
             const signature = this.hmac (payload, this.encode (secret), 'sha512');

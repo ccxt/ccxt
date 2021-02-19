@@ -246,7 +246,7 @@ module.exports = class flowbtc extends Exchange {
             };
             return await this.privatePostCancelOrder (this.extend (request, params));
         }
-        throw new ExchangeError (this.id + ' requires `ins` symbol parameter for cancelling an order');
+        throw new ExchangeError (this.id + ' cancelOrder() requires an `ins` symbol parameter for cancelling an order');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -362,7 +362,7 @@ module.exports = class xbtce extends Exchange {
                 auth += body;
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
-            const credentials = this.uid + ':' + this.apiKey + ':' + nonce + ':' + this.decode (signature);
+            const credentials = this.uid + ':' + this.apiKey + ':' + nonce + ':' + signature;
             headers['Authorization'] = 'HMAC ' + credentials;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

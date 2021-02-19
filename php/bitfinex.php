@@ -57,6 +57,7 @@ class bitfinex extends Exchange {
                 '30m' => '30m',
                 '1h' => '1h',
                 '3h' => '3h',
+                '4h' => '4h',
                 '6h' => '6h',
                 '12h' => '12h',
                 '1d' => '1D',
@@ -316,10 +317,12 @@ class bitfinex extends Exchange {
                 'POY' => 'POLY',
                 'QSH' => 'QASH',
                 'QTM' => 'QTUM',
+                'RBT' => 'RBTC',
                 'SEE' => 'SEER',
                 'SNG' => 'SNGLS',
                 'SPK' => 'SPANK',
                 'STJ' => 'STORJ',
+                'TRI' => 'TRIO',
                 'TSD' => 'TUSD',
                 'YYW' => 'YOYOW',
                 'UDC' => 'USDC',
@@ -344,6 +347,7 @@ class bitfinex extends Exchange {
                     'Nonce is too small.' => '\\ccxt\\InvalidNonce',
                     'No summary found.' => '\\ccxt\\ExchangeError', // fetchTradingFees (summary) endpoint can give this vague error message
                     'Cannot evaluate your available balance, please try again' => '\\ccxt\\ExchangeNotAvailable',
+                    'Unknown symbol' => '\\ccxt\\BadSymbol',
                 ),
                 'broad' => array(
                     'Invalid X-BFX-SIGNATURE' => '\\ccxt\\AuthenticationError',
@@ -368,9 +372,11 @@ class bitfinex extends Exchange {
                     // 'BCH' => 'bcash', // undocumented
                     'BCI' => 'bci',
                     'BFT' => 'bft',
+                    'BSV' => 'bsv',
                     'BTC' => 'bitcoin',
                     'BTG' => 'bgold',
                     'CFI' => 'cfi',
+                    'COMP' => 'comp',
                     'DAI' => 'dai',
                     'DADI' => 'dad',
                     'DASH' => 'dash',
@@ -389,6 +395,7 @@ class bitfinex extends Exchange {
                     // https://github.com/ccxt/ccxt/issues/5833
                     'LEO' => 'let', // ETH chain
                     // 'LEO' => 'les', // EOS chain
+                    'LINK' => 'link',
                     'LRC' => 'lrc',
                     'LTC' => 'litecoin',
                     'LYM' => 'lym',
@@ -414,6 +421,7 @@ class bitfinex extends Exchange {
                     'STORJ' => 'stj',
                     'TNB' => 'tnb',
                     'TRX' => 'trx',
+                    'TUSD' => 'tsd',
                     'USD' => 'wire',
                     'USDC' => 'udc', // https://github.com/ccxt/ccxt/issues/5833
                     'UTK' => 'utk',
@@ -596,13 +604,32 @@ class bitfinex extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
+        $types = array(
+            'exchange' => 'exchange',
+            'deposit' => 'funding',
+            'trading' => 'margin',
+        );
         $balanceType = $this->safe_string($params, 'type', 'exchange');
         $query = $this->omit($params, 'type');
         $response = $this->privatePostBalances ($query);
+        //    array( array( $type => 'deposit',
+        //        currency => 'btc',
+        //        amount => '0.00116721',
+        //        available => '0.00116721' ),
+        //      array( $type => 'exchange',
+        //        currency => 'ust',
+        //        amount => '0.0000002',
+        //        available => '0.0000002' ),
+        //      { $type => 'trading',
+        //        currency => 'btc',
+        //        amount => '0.0005',
+        //        available => '0.0005' } ),
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
-            if ($balance['type'] === $balanceType) {
+            $type = $this->safe_string($balance, 'type');
+            $parsedType = $this->safe_string($types, $type);
+            if (($parsedType === $balanceType) || ($type === $balanceType)) {
                 $currencyId = $this->safe_string($balance, 'currency');
                 $code = $this->safe_currency_code($currencyId);
                 // bitfinex had BCH previously, now it's BAB, but the old
@@ -765,7 +792,7 @@ class bitfinex extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a `$symbol` argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -882,8 +909,11 @@ class bitfinex extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $this->safe_float($order, 'price'),
+            'stopPrice' => null,
             'average' => $this->safe_float($order, 'avg_execution_price'),
             'amount' => $this->safe_float($order, 'original_amount'),
             'remaining' => $this->safe_float($order, 'remaining_amount'),
@@ -1178,6 +1208,27 @@ class bitfinex extends Exchange {
         );
     }
 
+    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostPositions ($params);
+        //
+        //     array(
+        //         {
+        //             "id":943715,
+        //             "symbol":"btcusd",
+        //             "status":"ACTIVE",
+        //             "base":"246.94",
+        //             "amount":"1.0",
+        //             "timestamp":"1444141857.0",
+        //             "swap":"0.0",
+        //             "pl":"-2.22042"
+        //         }
+        //     )
+        //
+        // todo unify parsePosition/parsePositions
+        return $response;
+    }
+
     public function nonce() {
         return $this->milliseconds();
     }
@@ -1206,7 +1257,7 @@ class bitfinex extends Exchange {
                 'request' => $request,
             ), $query);
             $body = $this->json($query);
-            $payload = base64_encode($this->encode($body));
+            $payload = base64_encode($body);
             $secret = $this->encode($this->secret);
             $signature = $this->hmac($payload, $secret, 'sha384');
             $headers = array(

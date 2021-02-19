@@ -254,7 +254,7 @@ class itbit(Exchange):
         self.load_markets()
         walletId = self.safe_string(params, 'walletId')
         if walletId is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a walletId parameter')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a walletId parameter')
         request = {
             'walletId': walletId,
         }
@@ -318,7 +318,7 @@ class itbit(Exchange):
         self.load_markets()
         walletId = self.safe_string(params, 'walletId')
         if walletId is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a walletId parameter')
+            raise ExchangeError(self.id + ' fetchMyTrades() requires a walletId parameter')
         request = {
             'walletId': walletId,
         }
@@ -400,7 +400,7 @@ class itbit(Exchange):
     def fetch_wallets(self, params={}):
         self.load_markets()
         if not self.uid:
-            raise AuthenticationError(self.id + ' fetchWallets requires uid API credential')
+            raise AuthenticationError(self.id + ' fetchWallets() requires uid API credential')
         request = {
             'userId': self.uid,
         }
@@ -432,7 +432,7 @@ class itbit(Exchange):
             market = self.market(symbol)
         walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
-            raise ExchangeError(self.id + ' fetchOrders requires a walletId parameter')
+            raise ExchangeError(self.id + ' fetchOrders() requires a walletId parameter')
         walletId = params['walletId']
         request = {
             'walletId': walletId,
@@ -490,6 +490,8 @@ class itbit(Exchange):
                 cost = filled * average
         clientOrderId = self.safe_string(order, 'clientOrderIdentifier')
         id = self.safe_string(order, 'id')
+        postOnlyString = self.safe_string(order, 'postOnly')
+        postOnly = (postOnlyString == 'True')
         return {
             'id': id,
             'clientOrderId': clientOrderId,
@@ -500,8 +502,11 @@ class itbit(Exchange):
             'status': self.parse_order_status(self.safe_string(order, 'status')),
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'average': average,
             'amount': amount,
@@ -521,7 +526,7 @@ class itbit(Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
-            raise ExchangeError(self.id + ' createOrder requires a walletId parameter')
+            raise ExchangeError(self.id + ' createOrder() requires a walletId parameter')
         amount = str(amount)
         price = str(price)
         market = self.market(symbol)
@@ -544,7 +549,7 @@ class itbit(Exchange):
         self.load_markets()
         walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
-            raise ExchangeError(self.id + ' fetchOrder requires a walletId parameter')
+            raise ExchangeError(self.id + ' fetchOrder() requires a walletId parameter')
         request = {
             'id': id,
         }
@@ -554,7 +559,7 @@ class itbit(Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
-            raise ExchangeError(self.id + ' cancelOrder requires a walletId parameter')
+            raise ExchangeError(self.id + ' cancelOrder() requires a walletId parameter')
         request = {
             'id': id,
         }
@@ -579,7 +584,7 @@ class itbit(Exchange):
             binhash = self.binary_concat(binaryUrl, hash)
             signature = self.hmac(binhash, self.encode(self.secret), hashlib.sha512, 'base64')
             headers = {
-                'Authorization': self.apiKey + ':' + self.decode(signature),
+                'Authorization': self.apiKey + ':' + signature,
                 'Content-Type': 'application/json',
                 'X-Auth-Timestamp': timestamp,
                 'X-Auth-Nonce': nonce,

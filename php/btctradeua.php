@@ -337,8 +337,11 @@ class btctradeua extends Exchange {
             'status' => 'open',
             'symbol' => $symbol,
             'type' => null,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $this->safe_string($order, 'type'),
             'price' => $this->safe_float($order, 'price'),
+            'stopPrice' => null,
             'amount' => $this->safe_float($order, 'amnt_trade'),
             'filled' => 0,
             'remaining' => $this->safe_float($order, 'amnt_trade'),
@@ -352,7 +355,7 @@ class btctradeua extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

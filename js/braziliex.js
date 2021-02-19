@@ -344,7 +344,7 @@ module.exports = class braziliex extends Exchange {
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const marketId = ids[i];
-            const market = this.markets_by_id[marketId];
+            const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (response[marketId], market);
         }
@@ -430,16 +430,8 @@ module.exports = class braziliex extends Exchange {
         //         "date":"2017-03-12 15:13:33"
         //     }
         //
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'market');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'market');
+        const symbol = this.safeSymbol (marketId, market, '_');
         let timestamp = this.safeInteger (order, 'timestamp');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'date'));
@@ -457,6 +449,7 @@ module.exports = class braziliex extends Exchange {
         const id = this.safeString (order, 'order_number');
         const fee = this.safeValue (order, 'fee'); // propagated from createOrder
         const status = (filledPercentage === 1.0) ? 'closed' : 'open';
+        const side = this.safeString (order, 'type');
         return {
             'id': id,
             'clientOrderId': undefined,
@@ -466,8 +459,11 @@ module.exports = class braziliex extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,

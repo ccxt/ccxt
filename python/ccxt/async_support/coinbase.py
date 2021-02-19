@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import InvalidNonce
 
 
 class coinbase(Exchange):
@@ -127,23 +128,31 @@ class coinbase(Exchange):
                 },
             },
             'exceptions': {
-                'two_factor_required': AuthenticationError,  # 402 When sending money over 2fa limit
-                'param_required': ExchangeError,  # 400 Missing parameter
-                'validation_error': ExchangeError,  # 400 Unable to validate POST/PUT
-                'invalid_request': ExchangeError,  # 400 Invalid request
-                'personal_details_required': AuthenticationError,  # 400 User’s personal detail required to complete self request
-                'identity_verification_required': AuthenticationError,  # 400 Identity verification is required to complete self request
-                'jumio_verification_required': AuthenticationError,  # 400 Document verification is required to complete self request
-                'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete self request
-                'unverified_email': AuthenticationError,  # 400 User has not verified their email
-                'authentication_error': AuthenticationError,  # 401 Invalid auth(generic)
-                'invalid_token': AuthenticationError,  # 401 Invalid Oauth token
-                'revoked_token': AuthenticationError,  # 401 Revoked Oauth token
-                'expired_token': AuthenticationError,  # 401 Expired Oauth token
-                'invalid_scope': AuthenticationError,  # 403 User hasn’t authenticated necessary scope
-                'not_found': ExchangeError,  # 404 Resource not found
-                'rate_limit_exceeded': RateLimitExceeded,  # 429 Rate limit exceeded
-                'internal_server_error': ExchangeError,  # 500 Internal server error
+                'exact': {
+                    'two_factor_required': AuthenticationError,  # 402 When sending money over 2fa limit
+                    'param_required': ExchangeError,  # 400 Missing parameter
+                    'validation_error': ExchangeError,  # 400 Unable to validate POST/PUT
+                    'invalid_request': ExchangeError,  # 400 Invalid request
+                    'personal_details_required': AuthenticationError,  # 400 User’s personal detail required to complete self request
+                    'identity_verification_required': AuthenticationError,  # 400 Identity verification is required to complete self request
+                    'jumio_verification_required': AuthenticationError,  # 400 Document verification is required to complete self request
+                    'jumio_face_match_verification_required': AuthenticationError,  # 400 Document verification including face match is required to complete self request
+                    'unverified_email': AuthenticationError,  # 400 User has not verified their email
+                    'authentication_error': AuthenticationError,  # 401 Invalid auth(generic)
+                    'invalid_token': AuthenticationError,  # 401 Invalid Oauth token
+                    'revoked_token': AuthenticationError,  # 401 Revoked Oauth token
+                    'expired_token': AuthenticationError,  # 401 Expired Oauth token
+                    'invalid_scope': AuthenticationError,  # 403 User hasn’t authenticated necessary scope
+                    'not_found': ExchangeError,  # 404 Resource not found
+                    'rate_limit_exceeded': RateLimitExceeded,  # 429 Rate limit exceeded
+                    'internal_server_error': ExchangeError,  # 500 Internal server error
+                },
+                'broad': {
+                    'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
+                },
+            },
+            'commonCurrencies': {
+                'CGLD': 'CELO',
             },
             'options': {
                 'fetchCurrencies': {
@@ -171,7 +180,11 @@ class coinbase(Exchange):
         return self.safe_timestamp(data, 'epoch')
 
     async def fetch_accounts(self, params={}):
-        response = await self.privateGetAccounts(params)
+        await self.load_markets()
+        request = {
+            'limit': 100,
+        }
+        response = await self.privateGetAccounts(self.extend(request, params))
         #
         #     {
         #         "id": "XLM",
@@ -673,7 +686,10 @@ class coinbase(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetAccounts(params)
+        request = {
+            'limit': 100,
+        }
+        response = await self.privateGetAccounts(self.extend(request, params))
         balances = self.safe_value(response, 'data')
         accounts = self.safe_value(params, 'type', self.options['accounts'])
         result = {'info': response}
@@ -1114,7 +1130,9 @@ class coinbase(Exchange):
         #
         errorCode = self.safe_string(response, 'error')
         if errorCode is not None:
-            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+            errorMessage = self.safe_string(response, 'error_description')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
             raise ExchangeError(feedback)
         errors = self.safe_value(response, 'errors')
         if errors is not None:
@@ -1122,8 +1140,10 @@ class coinbase(Exchange):
                 numErrors = len(errors)
                 if numErrors > 0:
                     errorCode = self.safe_string(errors[0], 'id')
+                    errorMessage = self.safe_string(errors[0], 'message')
                     if errorCode is not None:
-                        self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                        self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
                         raise ExchangeError(feedback)
         data = self.safe_value(response, 'data')
         if data is None:

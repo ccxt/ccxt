@@ -18,7 +18,13 @@ async def loop(exchange_id, symbol):
 
     exchange_class = getattr(ccxt, exchange_id)
     exchange = exchange_class({'enableRateLimit': True})
-    orderbook = await exchange.fetch_order_book(symbol)
+    orderbook = {}
+    try:
+        await exchange.load_markets()
+        # exchange.verbose = True  # uncomment for debugging purposes
+        orderbook = await exchange.fetch_order_book(symbol)
+    except Exception as e:
+        print(type(e).__name__, str(e))
     await exchange.close()
     return exchange.extend (orderbook, {
         'exchange_id': exchange_id,

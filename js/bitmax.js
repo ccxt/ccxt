@@ -133,8 +133,8 @@ module.exports = class bitmax extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.001,
-                    'maker': 0.001,
+                    'taker': 0.002,
+                    'maker': 0.002,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -988,20 +988,7 @@ module.exports = class bitmax extends Exchange {
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('/');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '/');
         let timestamp = this.safeInteger2 (order, 'timestamp', 'sendingTime');
         let lastTradeTimestamp = this.safeInteger (order, 'lastExecTime');
         const price = this.safeFloat (order, 'price');
@@ -1041,6 +1028,7 @@ module.exports = class bitmax extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
+        const stopPrice = this.safeFloat (order, 'stopPrice');
         return {
             'info': order,
             'id': id,
@@ -1050,8 +1038,11 @@ module.exports = class bitmax extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1099,7 +1090,7 @@ module.exports = class bitmax extends Exchange {
         if ((type === 'stop_limit') || (type === 'stop_market')) {
             const stopPrice = this.safeFloat (params, 'stopPrice');
             if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder requires a stopPrice parameter for ' + type + ' orders');
+                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice parameter for ' + type + ' orders');
             } else {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
                 params = this.omit (params, 'stopPrice');
@@ -1354,7 +1345,7 @@ module.exports = class bitmax extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1691,12 +1682,12 @@ module.exports = class bitmax extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
-            const auth = timestamp + '+' + request;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const payload = timestamp + '+' + request;
+            const hmac = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'x-auth-key': this.apiKey,
                 'x-auth-timestamp': timestamp,
-                'x-auth-signature': this.decode (signature),
+                'x-auth-signature': hmac,
             };
             if (method === 'GET') {
                 if (Object.keys (query).length) {

@@ -487,23 +487,10 @@ class aofex extends Exchange {
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $marketId = $this->safe_string($tickers[$i], 'symbol');
-            $market = null;
-            $symbol = $marketId;
-            if ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                    $symbol = $market['symbol'];
-                } else {
-                    list($baseId, $quoteId) = explode('-', $marketId);
-                    $base = $this->safe_currency_code($baseId);
-                    $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
-                }
-            }
+            $market = $this->safe_market($marketId, null, '-');
+            $symbol = $market['symbol'];
             $data = $this->safe_value($tickers[$i], 'data', array());
-            $ticker = $this->parse_ticker($data, $market);
-            $ticker['symbol'] = $symbol;
-            $result[$symbol] = $ticker;
+            $result[$symbol] = $this->parse_ticker($data, $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -665,7 +652,7 @@ class aofex extends Exchange {
         //
         //     {
         //         "order_sn" => "BL74426415849672087836G48N1",
-        //         "$symbol" => "ETH-USDT",
+        //         "symbol" => "ETH-USDT",
         //         "ctime" => "2020-03-23 20:40:08",
         //         "$type" => 2,
         //         "$side" => "buy",
@@ -681,7 +668,7 @@ class aofex extends Exchange {
         //
         //     {
         //         order_sn => 'BM7442641584965237751ZMAKJ5',
-        //         $symbol => 'ETH-USDT',
+        //         symbol => 'ETH-USDT',
         //         ctime => '2020-03-23 20:07:17',
         //         $type => 1,
         //         $side => 'buy',
@@ -707,25 +694,8 @@ class aofex extends Exchange {
         $id = $this->safe_string($order, 'order_sn');
         $orderStatus = $this->safe_string($order, 'status');
         $status = $this->parse_order_status($orderStatus);
-        $symbol = null;
         $marketId = $this->safe_string($order, 'symbol');
-        $base = null;
-        $quote = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-            $base = $market['base'];
-            $quote = $market['quote'];
-        }
+        $market = $this->safe_market($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'ctime'));
         if ($timestamp !== null) {
             $timestamp -= 28800000; // 8 hours, adjust to UTC
@@ -793,7 +763,7 @@ class aofex extends Exchange {
                     }
                 }
                 if ($feeCost !== null) {
-                    $feeCurrencyCode = ($side === 'buy') ? $base : $quote;
+                    $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
                     $fee = array(
                         'cost' => $feeCost,
                         'currency' => $feeCurrencyCode,
@@ -829,10 +799,13 @@ class aofex extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'average' => $average,
             'amount' => $amount,

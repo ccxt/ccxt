@@ -542,37 +542,65 @@ class buda extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         'id' => 63679183,
+        //         'uuid' => 'f9697bee-627e-4175-983f-0d5a41963fec',
+        //         'market_id' => 'ETH-CLP',
+        //         'account_id' => 51590,
+        //         'type' => 'Ask',
+        //         'state' => 'received',
+        //         'created_at' => '2021-01-04T08:29:52.730Z',
+        //         'fee_currency' => 'CLP',
+        //         'price_type' => 'limit',
+        //         'source' => None,
+        //         'limit' => ['741000.0', 'CLP'],
+        //         'amount' => ['0.001', 'ETH'],
+        //         'original_amount' => ['0.001', 'ETH'],
+        //         'traded_amount' => ['0.0', 'ETH'],
+        //         'total_exchanged' => ['0.0', 'CLP'],
+        //         'paid_fee' => ['0.0', 'CLP']
+        //     }
+        //
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $order['market_id'];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'market_id');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $type = $this->safe_string($order, 'price_type');
         $side = $this->safe_string_lower($order, 'type');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
-        $amount = floatval($order['original_amount'][0]);
-        $remaining = floatval($order['amount'][0]);
-        $filled = floatval($order['traded_amount'][0]);
-        $cost = floatval($order['total_exchanged'][0]);
-        $price = $this->safe_float($order, 'limit');
-        if ($price !== null) {
-            $price = floatval($price[0]);
+        $originalAmount = $this->safe_value($order, 'original_amount', array());
+        $amount = $this->safe_float($originalAmount, 0);
+        $remainingAmount = $this->safe_value($order, 'amount', array());
+        $remaining = $this->safe_float($remainingAmount, 0);
+        $tradedAmount = $this->safe_value($order, 'traded_amount', array());
+        $filled = $this->safe_float($tradedAmount, 0);
+        $totalExchanged = $this->safe_value($order, 'totalExchanged', array());
+        $cost = $this->safe_float($totalExchanged, 0);
+        $limitPrice = $this->safe_value($order, 'limit', array());
+        $price = $this->safe_float($limitPrice, 0);
+        if ($price === null) {
+            if ($limitPrice !== null) {
+                $price = $limitPrice;
+            }
         }
-        if ($cost > 0 && $filled > 0) {
-            $price = $this->price_to_precision($symbol, $cost / $filled);
+        $average = null;
+        if (($cost !== null) && ($filled !== null) && ($filled > 0)) {
+            $average = $this->price_to_precision($symbol, $cost / $filled);
         }
-        $fee = array(
-            'cost' => floatval($order['paid_fee'][0]),
-            'currency' => $order['paid_fee'][1],
-        );
+        $paidFee = $this->safe_value($order, 'paid_fee', array());
+        $feeCost = $this->safe_float($paidFee, 0);
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($paidFee, 1);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $fee = array(
+                'cost' => $feeCost,
+                'code' => $feeCurrencyCode,
+            );
+        }
         return array(
+            'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -581,16 +609,18 @@ class buda extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
+            'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'trades' => null,
             'fee' => $fee,
-            'info' => $order,
-            'average' => null,
         );
     }
 
@@ -766,7 +796,7 @@ class buda extends Exchange {
             $nonce = (string) $this->nonce();
             $components = array( $method, '/api/' . $this->version . '/' . $request );
             if ($body) {
-                $base64Body = base64_encode($this->encode($body));
+                $base64Body = base64_encode($body);
                 $components[] = $this->decode($base64Body);
             }
             $components[] = $nonce;
