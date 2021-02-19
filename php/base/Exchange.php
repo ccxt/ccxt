@@ -1799,7 +1799,7 @@ class Exchange {
             } else {
                 $length = count($result);
                 if ($tail && !$since_is_set) {
-                    $start = $length - $limit;
+                    $start = max($length - $limit, 0);
                 } else {
                     $start = 0;
                 }
