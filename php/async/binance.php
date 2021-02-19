@@ -29,6 +29,7 @@ class binance extends Exchange {
                 'cancelOrder' => true,
                 'CORS' => false,
                 'createOrder' => true,
+                'fetchCurrencies' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchClosedOrders' => 'emulated',
@@ -593,6 +594,136 @@ class binance extends Exchange {
         $after = $this->milliseconds();
         $this->options['timeDifference'] = $after - $serverTime;
         return $this->options['timeDifference'];
+    }
+
+    public function fetch_currencies($params = array ()) {
+        // this endpoint requires authentication
+        // while fetchCurrencies is a public API method by design
+        // therefore we check the keys here
+        // and fallback to generating the currencies from the markets
+        if (!$this->check_required_credentials(false)) {
+            return null;
+        }
+        $response = yield $this->sapiGetCapitalConfigGetall ($params);
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            //
+            //     {
+            //         coin => 'LINK',
+            //         depositAllEnable => true,
+            //         withdrawAllEnable => true,
+            //         $name => 'ChainLink',
+            //         free => '0.06168',
+            //         locked => '0',
+            //         freeze => '0',
+            //         withdrawing => '0',
+            //         ipoing => '0',
+            //         ipoable => '0',
+            //         storage => '0',
+            //         isLegalMoney => false,
+            //         $trading => true,
+            //         $networkList => [
+            //             array(
+            //                 network => 'BNB',
+            //                 coin => 'LINK',
+            //                 withdrawIntegerMultiple => '0',
+            //                 $isDefault => false,
+            //                 $depositEnable => true,
+            //                 $withdrawEnable => true,
+            //                 depositDesc => '',
+            //                 withdrawDesc => '',
+            //                 specialTips => 'Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.',
+            //                 $name => 'BEP2',
+            //                 resetAddressStatus => false,
+            //                 addressRegex => '^(bnb1)[0-9a-z]{38}$',
+            //                 memoRegex => '^[0-9A-Za-z\\-_]array(1,120)$',
+            //                 $withdrawFee => '0.002',
+            //                 withdrawMin => '0.01',
+            //                 withdrawMax => '9999999',
+            //                 minConfirm => 1,
+            //                 unLockConfirm => 0
+            //             ),
+            //             array(
+            //                 network => 'BSC',
+            //                 coin => 'LINK',
+            //                 withdrawIntegerMultiple => '0.00000001',
+            //                 $isDefault => false,
+            //                 $depositEnable => true,
+            //                 $withdrawEnable => true,
+            //                 depositDesc => '',
+            //                 withdrawDesc => '',
+            //                 specialTips => '',
+            //                 $name => 'BEP20 (BSC)',
+            //                 resetAddressStatus => false,
+            //                 addressRegex => '^(0x)[0-9A-Fa-f]{40}$',
+            //                 memoRegex => '',
+            //                 $withdrawFee => '0.005',
+            //                 withdrawMin => '0.01',
+            //                 withdrawMax => '9999999',
+            //                 minConfirm => 15,
+            //                 unLockConfirm => 0
+            //             ),
+            //             {
+            //                 network => 'ETH',
+            //                 coin => 'LINK',
+            //                 withdrawIntegerMultiple => '0.00000001',
+            //                 $isDefault => true,
+            //                 $depositEnable => true,
+            //                 $withdrawEnable => true,
+            //                 depositDesc => '',
+            //                 withdrawDesc => '',
+            //                 $name => 'ERC20',
+            //                 resetAddressStatus => false,
+            //                 addressRegex => '^(0x)[0-9A-Fa-f]{40}$',
+            //                 memoRegex => '',
+            //                 $withdrawFee => '0.34',
+            //                 withdrawMin => '0.68',
+            //                 withdrawMax => '0',
+            //                 minConfirm => 12,
+            //                 unLockConfirm => 0
+            //             }
+            //         ]
+            //     }
+            //
+            $entry = $response[$i];
+            $id = $this->safe_string($entry, 'coin');
+            $name = $this->safe_string($entry, 'name');
+            $code = $this->safe_currency_code($id);
+            $precision = null;
+            $isWithdrawEnabled = true;
+            $isDepositEnabled = true;
+            $networkList = $this->safe_value($entry, 'networkList', array());
+            $fees = array();
+            $fee = null;
+            for ($i = 0; $i < count($networkList); $i++) {
+                $networkItem = $networkList[$i];
+                $name = $this->safe_string($networkItem, 'name');
+                $withdrawFee = $this->safe_float($networkItem, 'withdrawFee');
+                $depositEnable = $this->safe_value($networkItem, 'depositEnable');
+                $withdrawEnable = $this->safe_value($networkItem, 'withdrawEnable');
+                $isDepositEnabled = $isDepositEnabled || $depositEnable;
+                $isWithdrawEnabled = $isWithdrawEnabled || $withdrawEnable;
+                $fees[$name] = $withdrawFee;
+                $isDefault = $this->safe_value($networkItem, 'isDefault');
+                if ($isDefault || $fee === null) {
+                    $fee = $withdrawFee;
+                }
+            }
+            $trading = $this->safe_value($entry, 'trading');
+            $active = ($isWithdrawEnabled && $isDepositEnabled && $trading);
+            $result[$code] = array(
+                'id' => $id,
+                'name' => $name,
+                'code' => $code,
+                'precision' => $precision,
+                'info' => $entry,
+                'active' => $active,
+                'fee' => $fee,
+                'fees' => $fees,
+                'limits' => $this->limits,
+            );
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()) {
