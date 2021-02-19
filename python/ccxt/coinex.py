@@ -863,7 +863,7 @@ class coinex(Exchange):
                 'tonce': str(nonce),
             }, query)
             query = self.keysort(query)
-            urlencoded = self.urlencode(query)
+            urlencoded = self.rawencode(query)
             signature = self.hash(self.encode(urlencoded + '&secret_key=' + self.secret))
             headers = {
                 'Authorization': signature.upper(),

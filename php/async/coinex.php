@@ -920,7 +920,7 @@ class coinex extends Exchange {
                 'tonce' => (string) $nonce,
             ), $query);
             $query = $this->keysort($query);
-            $urlencoded = $this->urlencode($query);
+            $urlencoded = $this->rawencode($query);
             $signature = $this->hash($this->encode($urlencoded . '&secret_key=' . $this->secret));
             $headers = array(
                 'Authorization' => strtoupper($signature),
