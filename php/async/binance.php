@@ -573,6 +573,10 @@ class binance extends Exchange {
         ));
     }
 
+    public function currency_to_precision($currency, $fee) {
+        return $this->number_to_string($fee);
+    }
+
     public function nonce() {
         return $this->milliseconds() - $this->options['timeDifference'];
     }

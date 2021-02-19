@@ -585,6 +585,9 @@ class binance(Exchange):
             },
         })
 
+    def currency_to_precision(self, currency, fee):
+        return self.number_to_string(fee)
+
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
