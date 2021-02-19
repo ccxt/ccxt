@@ -17,6 +17,7 @@ module.exports = class bitbns extends Exchange {
             'version': '1.0',
             'has': {
                 // 'CORS': false,
+                'createMarketOrder': false,
                 'fetchCurrencies': false,
                 'fetchTicker': true, // Can be emulated on fetchTickers if necessary
                 'fetchTickers': true,
@@ -26,6 +27,7 @@ module.exports = class bitbns extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': 'emulated',
                 'fetchMyTrades': true,
                 'fetchDepositAddress': false,
                 'fetchWithdrawals': false,
@@ -158,6 +160,7 @@ module.exports = class bitbns extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const excgSymbol = market['id'];
+        // To get all data, use 'offset' parameter along with 'limit' parameter
         const request = {
             'symbol': excgSymbol,
             'since': since,
@@ -180,13 +183,22 @@ module.exports = class bitbns extends Exchange {
 
     async fetchOrderBook (symbol = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (limit !== undefined && limit > 15) {
+            throw new BadRequest ('Orderbook limit can be 15 at max');
+        }
         const market = this.market (symbol);
         const excgSymbol = market['id'];
         const request = {
             'symbol': excgSymbol,
             'limit': limit,
         };
-        return await this.publicGetFetchOrderBook (this.extend (request, params));
+        if (limit === undefined) {
+            limit = 15;
+        }
+        const ob = await this.publicGetFetchOrderBook (this.extend (request, params));
+        ob.bids.splice (limit - 1);
+        ob.asks.splice (limit - 1);
+        return ob;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -267,7 +279,11 @@ module.exports = class bitbns extends Exchange {
         if (orderRemaining !== undefined) {
             remaining = orderBtc;
         }
-        const filled = this.safeFloat (order, 'filled');
+        let filled = this.safeFloat (order, 'filled');
+        const total = this.safeFloat (order, 'act_btc');
+        if (filled === undefined && remaining !== undefined) {
+            filled = total - remaining;
+        }
         const average = this.safeFloat (order, 'avg_cost');
         // Determine cost
         let cost = undefined;
