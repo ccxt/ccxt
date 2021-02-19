@@ -917,7 +917,7 @@ module.exports = class coinex extends Exchange {
                 'tonce': nonce.toString (),
             }, query);
             query = this.keysort (query);
-            const urlencoded = this.urlencode (query);
+            const urlencoded = this.rawencode (query);
             const signature = this.hash (this.encode (urlencoded + '&secret_key=' + this.secret));
             headers = {
                 'Authorization': signature.toUpperCase (),
