@@ -917,7 +917,7 @@ module.exports = class binance extends ccxt.binance {
         const marketId = this.safeString (order, 's');
         const symbol = this.safeSymbol (marketId);
         let timestamp = this.safeInteger (order, 'O');
-        const T = this.safeString (order, 'T');
+        const T = this.safeInteger (order, 'T');
         let lastTradeTimestamp = undefined;
         if (executionType === 'NEW') {
             if (timestamp === undefined) {
