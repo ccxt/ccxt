@@ -58,22 +58,6 @@ trait ClientTrait {
     }
 
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
-    public function after($future, callable $method, ... $args) {
-        $result = yield $future;
-        $method($result, ...$args);
-    }
-
-    public function after_async($future, callable $method, ... $args) {
-        $result = yield $future;
-        return yield $method($result, ...$args);
-    }
-
-    // the ellipsis packing/unpacking requires PHP 5.6+ :(
-    public function after_dropped($future, callable $method, ... $args) {
-        yield $future;
-        return $method(...$args);
-    }
-
     public function spawn($method, ... $args) {
         static::get_kernel()->execute($method(...$args));
     }
