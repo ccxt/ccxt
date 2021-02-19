@@ -453,7 +453,7 @@ class gateio extends \ccxt\async\gateio {
             'id' => $requestId,
         );
         $orders = yield $this->watch($url, $messageHash, $subscribeMessage, $method, $subscription);
-        return $this->filter_by_since_limit($orders, $since, $limit);
+        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
     public function handle_order($client, $message) {

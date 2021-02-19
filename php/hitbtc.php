@@ -196,7 +196,7 @@ class hitbtc extends \ccxt\async\hitbtc {
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $trades = yield $this->watch_public($symbol, 'trades', null, $params);
-        return $this->filter_by_since_limit($trades, $since, $limit, true);
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_trades($client, $message) {

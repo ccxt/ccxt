@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.5.65'
+__version__ = '0.5.71'
 
 # -----------------------------------------------------------------------------
 
@@ -76,17 +76,6 @@ class Exchange(BaseExchange):
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
         return self.clients[url]
-
-    async def after(self, future, method, *args):
-        # method is bound to self instance
-        return method(await future, *args)
-
-    async def after_async(self, future, method, *args):
-        return await method(await future, *args)
-
-    async def after_dropped(self, future, method, *args):
-        await future
-        return await method(*args)
 
     async def spawn_async(self, method, *args):
         try:

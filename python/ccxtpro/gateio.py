@@ -426,7 +426,7 @@ class gateio(Exchange, ccxt.gateio):
             'id': requestId,
         }
         orders = await self.watch(url, messageHash, subscribeMessage, method, subscription)
-        return self.filter_by_since_limit(orders, since, limit)
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     def handle_order(self, client, message):
         method = self.safe_string(message, 'method')

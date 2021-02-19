@@ -182,7 +182,7 @@ class hitbtc(Exchange, ccxt.hitbtc):
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         trades = await self.watch_public(symbol, 'trades', None, params)
-        return self.filter_by_since_limit(trades, since, limit, True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client, message):
         #

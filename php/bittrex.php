@@ -142,6 +142,11 @@ class bittrex extends \ccxt\async\bittrex {
         $client->resolve ($subscription, 'authenticate');
     }
 
+    public function handle_authentication_expiring_helper() {
+        $negotiation = yield $this->negotiate();
+        return yield $this->send_request_to_authenticate($negotiation, true);
+    }
+
     public function handle_authentication_expiring($client, $message) {
         //
         //     {
@@ -151,8 +156,7 @@ class bittrex extends \ccxt\async\bittrex {
         //
         // resend the authentication request and refresh the subscription
         //
-        $future = $this->negotiate();
-        $this->spawn(array($this, 'after_async'), $future, array($this, 'send_request_to_authenticate'), true);
+        $this->spawn(array($this, 'handle_authentication_expiring_helper'));
     }
 
     public function create_signal_r_query($params = array ()) {
@@ -652,10 +656,14 @@ class bittrex extends \ccxt\async\bittrex {
         return $orderbook;
     }
 
+    public function handle_system_status_helper() {
+        $negotiation = yield $this->negotiate();
+        yield $this->start($negotiation);
+    }
+
     public function handle_system_status($client, $message) {
         // send signalR protocol start() call
-        $negotiate = $this->negotiate();
-        $this->spawn(array($this, 'after_async'), $negotiate, array($this, 'start'));
+        $this->spawn(array($this, 'handle_system_status_helper'));
         return $message;
     }
 
