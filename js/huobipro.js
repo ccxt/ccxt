@@ -196,6 +196,10 @@ module.exports = class huobipro extends Exchange {
                 },
             },
             'exceptions': {
+                'broad': {
+                    'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
+                    'maintain': OnMaintenance,
+                },
                 'exact': {
                     // err-code
                     'bad-request': BadRequest,
@@ -1491,6 +1495,7 @@ module.exports = class huobipro extends Exchange {
             if (status === 'error') {
                 const code = this.safeString (response, 'err-code');
                 const feedback = this.id + ' ' + body;
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
                 this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
                 const message = this.safeString (response, 'err-msg');
                 this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
