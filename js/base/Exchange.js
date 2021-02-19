@@ -200,13 +200,4 @@ module.exports = class Exchange extends ccxt.Exchange {
         }
         return undefined;
     }
-
-    dropStale (cache) {
-        let result = cache
-        if (this.newUpdates) {
-            result = cache.newUpdates
-        }
-        cache.clearNewUpdates ()
-        return result
-    }
 }

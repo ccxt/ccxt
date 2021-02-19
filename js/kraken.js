@@ -233,8 +233,10 @@ module.exports = class kraken extends ccxt.kraken {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const name = 'trade';
         const trades = await this.watchPublic (name, symbol, params);
-        const dropped = this.dropStale (trades);
-        return this.filterBySinceLimit (dropped, since, limit, 'timestamp', true);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -479,8 +481,10 @@ module.exports = class kraken extends ccxt.kraken {
         };
         const request = this.deepExtend (subscribe, params);
         const result = await this.watch (url, messageHash, request, subscriptionHash);
-        const dropped = this.dropStale (result);
-        return this.filterBySymbolSinceLimit (dropped, symbol, since, limit);
+        if (this.newUpdates) {
+            limit = result.getLimit (limit);
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

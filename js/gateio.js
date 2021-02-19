@@ -212,8 +212,10 @@ module.exports = class gateio extends ccxt.gateio {
         };
         const messageHash = 'trades.update' + ':' + marketId;
         const trades = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
-        const dropped = this.dropStale (trades);
-        return this.filterBySinceLimit (dropped, since, limit, 'timestamp', true);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+       }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrades (client, message) {
@@ -280,8 +282,10 @@ module.exports = class gateio extends ccxt.gateio {
         // thus the exchange API is limited to one timeframe per symbol
         const messageHash = 'kline.update' + ':' + marketId;
         const ohlcv = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
-        const dropped = this.dropStale (ohlcv);
-        return this.filterBySinceLimit (dropped, since, limit, 0, true);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -451,8 +455,10 @@ module.exports = class gateio extends ccxt.gateio {
             'id': requestId,
         };
         const orders = await this.watch (url, messageHash, subscribeMessage, method, subscription);
-        const dropped = this.dropStale (orders);
-        return this.filterBySinceLimit (dropped, since, limit, 'timestamp', true);
+        if (this.newUpdates) {
+            limit = orders.getLimit (limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
     handleOrder (client, message) {

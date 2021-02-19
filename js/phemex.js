@@ -269,8 +269,10 @@ module.exports = class phemex extends ccxt.phemex {
         };
         const request = this.deepExtend (subscribe, params);
         const trades = await this.watch (url, messageHash, request, messageHash);
-        const dropped = this.dropStale (trades);
-        return this.filterBySinceLimit (dropped, since, limit, 'timestamp', true);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {

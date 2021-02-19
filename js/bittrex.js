@@ -210,8 +210,10 @@ module.exports = class bittrex extends ccxt.bittrex {
         await this.loadMarkets ();
         const authentication = await this.authenticate ();
         const orders = await this.subscribeToOrders (authentication, params);
-        const dropped = this.dropStale (orders);
-        return this.filterBySymbolSinceLimit (dropped, symbol, since, limit);
+        if (this.newUpdates) {
+            limit = orders.getLimit (limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
     async subscribeToOrders (authentication, params = {}) {
@@ -366,8 +368,10 @@ module.exports = class bittrex extends ccxt.bittrex {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const ohlcv = await this.subscribeToOHLCV (negotiation, symbol, timeframe, params);
-        const dropped = this.dropStale (ohlcv);
-        return this.filterBySinceLimit (dropped, since, limit, 0, true);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     async subscribeToOHLCV (negotiation, symbol, timeframe = '1m', params = {}) {
@@ -425,8 +429,10 @@ module.exports = class bittrex extends ccxt.bittrex {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const trades = await this.subscribeToTrades (negotiation, symbol, params);
-        const dropped = this.dropStale (trades);
-        return this.filterBySinceLimit (dropped, since, limit, 'timestamp', true);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     async subscribeToTrades (negotiation, symbol, params = {}) {

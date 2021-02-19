@@ -9,14 +9,37 @@ class ArrayCache extends Array {
             value: maxSize,
             writable: true,
         })
+        Object.defineProperty (this, 'newUpdates', {
+            __proto__: null, // make it invisible
+            value: 0,
+            writable: true,
+        })
+        Object.defineProperty (this, 'clearUpdates', {
+            __proto__: null, // make it invisible
+            value: false,
+            writable: true,
+        })
+    }
+
+    getLimit (limit) {
+        this.clearUpdates = true
+        if (limit === undefined) {
+            return this.newUpdates
+        }
+        return Math.min (this.newUpdates, limit)
     }
 
     append (item) {
-        this.push (item)
         // maxSize may be 0 when initialized by a .filter() copy-construction
-        if (this.maxSize && (this.length > this.maxSize)) {
+        if (this.maxSize && (this.length === this.maxSize)) {
             this.shift ()
         }
+        this.push (item)
+        if (this.clearUpdates) {
+            this.clearUpdates = false
+            this.newUpdates = 0
+        }
+        this.newUpdates++
     }
 
     clear () {
@@ -33,15 +56,17 @@ class ArrayCacheByTimestamp extends ArrayCache {
             value: {},
             writable: true,
         })
+        Object.defineProperty (this, 'sizeTracker', {
+            __proto__: null, // make it invisible
+            value: new Set (),
+            writable: true,
+        })
     }
 
     append (item) {
         if (item[0] in this.hashmap) {
             const reference = this.hashmap[item[0]]
             if (reference !== item) {
-                for (const prop in reference) {
-                    delete reference[prop]
-                }
                 for (const prop in item) {
                     reference[prop] = item[prop]
                 }
@@ -54,31 +79,59 @@ class ArrayCacheByTimestamp extends ArrayCache {
             }
             this.push (item)
         }
+        if (this.clearUpdates) {
+            this.clearUpdates = false
+            this.sizeTracker.clear ()
+        }
+        this.sizeTracker.add (item[0])
+        this.newUpdates = this.sizeTracker.size
     }
 }
 
 class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
+
+    constructor (maxSize = undefined) {
+        super (maxSize)
+        Object.defineProperty (this, 'indexTracker', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+        })
+        Object.defineProperty (this, 'indexCounter', {
+            __proto__: null, // make it invisible
+            value: 0,
+            writable: true,
+        })
+    }
 
     append (item) {
         const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
         if (item.id in byId) {
             const reference = byId[item.id]
             if (reference !== item) {
-                for (const prop in reference) {
-                    delete reference[prop]
-                }
                 for (const prop in item) {
                     reference[prop] = item[prop]
                 }
             }
+            const index = this.indexCounter - this.indexTracker[item.id]
+            // move the order to the end of the array
+            this.splice (index, 1)
         } else {
             byId[item.id] = item
-            if (this.maxSize && (this.length === this.maxSize)) {
-                const deleteReference = this.shift ()
-                delete byId[deleteReference.id]
-            }
-            this.push (item)
+            this.indexTracker[item.id] = this.indexCounter
         }
+        if (this.maxSize && (this.length === this.maxSize)) {
+            const deleteReference = this.shift ()
+            delete byId[deleteReference.id]
+            delete this.indexTracker[deleteReference.id]
+        }
+        this.push (item)
+        if (this.clearUpdates) {
+            this.clearUpdates = false
+            this.newUpdates = 0
+        }
+        this.newUpdates++
+        this.indexCounter++
     }
 }
 
