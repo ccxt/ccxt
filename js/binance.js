@@ -602,6 +602,11 @@ module.exports = class binance extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
+        // sandbox/testnet does not support sapi endpoints
+        const apiBackup = this.safeString (this.urls, 'apiBackup');
+        if (apiBackup !== undefined) {
+            return undefined;
+        }
         const response = await this.sapiGetCapitalConfigGetall (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {

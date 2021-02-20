@@ -411,20 +411,20 @@ module.exports = class Exchange {
         if (!!enabled) { // eslint-disable-line no-extra-boolean-cast
             if ('test' in this.urls) {
                 if (typeof this.urls['api'] === 'string') {
-                    this.urls['api_backup'] = this.urls['api']
+                    this.urls['apiBackup'] = this.urls['api']
                     this.urls['api'] = this.urls['test']
                 } else {
-                    this.urls['api_backup'] = clone (this.urls['api'])
+                    this.urls['apiBackup'] = clone (this.urls['api'])
                     this.urls['api'] = clone (this.urls['test'])
                 }
             } else {
                 throw new NotSupported (this.id + ' does not have a sandbox URL')
             }
-        } else if ('api_backup' in this.urls) {
+        } else if ('apiBackup' in this.urls) {
             if (typeof this.urls['api'] === 'string') {
-                this.urls['api'] = this.urls['api_backup']
+                this.urls['api'] = this.urls['apiBackup']
             } else {
-                this.urls['api'] = clone (this.urls['api_backup'])
+                this.urls['api'] = clone (this.urls['apiBackup'])
             }
         }
     }
