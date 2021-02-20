@@ -614,6 +614,10 @@ class binance(Exchange):
         # and fallback to generating the currencies from the markets
         if not self.check_required_credentials(False):
             return None
+        # sandbox/testnet does not support sapi endpoints
+        apiBackup = self.safe_string(self.urls, 'apiBackup')
+        if apiBackup is not None:
+            return None
         response = self.sapiGetCapitalConfigGetall(params)
         result = {}
         for i in range(0, len(response)):
