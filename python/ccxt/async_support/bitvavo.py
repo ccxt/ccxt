@@ -1053,6 +1053,7 @@ class bitvavo(Exchange):
             'partiallyFilled': 'open',
             'expired': 'canceled',
             'rejected': 'canceled',
+            'awaitingTrigger': 'open',  # https://github.com/ccxt/ccxt/issues/8489
         }
         return self.safe_string(statuses, status, status)
 
@@ -1147,6 +1148,8 @@ class bitvavo(Exchange):
                 lastTradeTimestamp = lastTrade['timestamp']
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
+        # https://github.com/ccxt/ccxt/issues/8489
+        stopPrice = self.safe_float(order, 'triggerPrice')
         return {
             'info': order,
             'id': id,
@@ -1160,7 +1163,7 @@ class bitvavo(Exchange):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
