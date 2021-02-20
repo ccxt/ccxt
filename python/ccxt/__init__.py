@@ -193,8 +193,6 @@ from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
 
-import test                                                 # noqa: F401
-
 exchanges = [
     'aax',
     'acx',

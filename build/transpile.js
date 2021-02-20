@@ -785,8 +785,8 @@ class Transpiler {
 
     transpilePythonAsyncToSync () {
 
-        const async = './python/test/test_async.py'
-        const sync = './python/test/test_sync.py'
+        const async = './python/ccxt/test/test_async.py'
+        const sync = './python/ccxt/test/test_sync.py'
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
         let lines = fileContents.split ("\n")
@@ -1211,7 +1211,7 @@ class Transpiler {
 
     transpileDateTimeTests () {
         const jsFile = './js/test/base/functions/test.datetime.js'
-        const pyFile = './python/test/test_exchange_datetime_functions.py'
+        const pyFile = './python/ccxt/test/test_exchange_datetime_functions.py'
         const phpFile = './php/test/test_exchange_datetime_functions.php'
 
         log.magenta ('Transpiling from', jsFile.yellow)
@@ -1252,7 +1252,7 @@ class Transpiler {
     transpilePrecisionTests () {
 
         const jsFile = './js/test/base/functions/test.number.js'
-        const pyFile = './python/test/test_decimal_to_precision.py'
+        const pyFile = './python/ccxt/test/test_decimal_to_precision.py'
         const phpFile = './php/test/decimal_to_precision.php'
 
         log.magenta ('Transpiling from', jsFile.yellow)
@@ -1337,7 +1337,7 @@ class Transpiler {
 
     transpileCryptoTests () {
         const jsFile = './js/test/base/functions/test.crypto.js'
-        const pyFile = './python/test/test_crypto.py'
+        const pyFile = './python/ccxt/test/test_crypto.py'
         const phpFile = './php/test/test_crypto.php'
 
         log.magenta ('Transpiling from', jsFile.yellow)
@@ -1406,22 +1406,22 @@ class Transpiler {
         const tests = [
             {
                 'jsFile': './js/test/Exchange/test.trade.js',
-                'pyFile': './python/test/test_trade.py',
+                'pyFile': './python/ccxt/test/test_trade.py',
                 'phpFile': './php/test/test_trade.php',
             },
             {
                 'jsFile': './js/test/Exchange/test.order.js',
-                'pyFile': './python/test/test_order.py',
+                'pyFile': './python/ccxt/test/test_order.py',
                 'phpFile': './php/test/test_order.php',
             },
             {
                 'jsFile': './js/test/Exchange/test.transaction.js',
-                'pyFile': './python/test/test_transaction.py',
+                'pyFile': './python/ccxt/test/test_transaction.py',
                 'phpFile': './php/test/test_transaction.php',
             },
             {
                 'jsFile': './js/test/Exchange/test.ohlcv.js',
-                'pyFile': './python/test/test_ohlcv.py',
+                'pyFile': './python/ccxt/test/test_ohlcv.py',
                 'phpFile': './php/test/test_ohlcv.php',
             },
         ]
