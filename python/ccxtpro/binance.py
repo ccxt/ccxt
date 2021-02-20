@@ -861,7 +861,7 @@ class binance(Exchange, ccxt.binance):
         marketId = self.safe_string(order, 's')
         symbol = self.safe_symbol(marketId)
         timestamp = self.safe_integer(order, 'O')
-        T = self.safe_string(order, 'T')
+        T = self.safe_integer(order, 'T')
         lastTradeTimestamp = None
         if executionType == 'NEW':
             if timestamp is None:
