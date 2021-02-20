@@ -735,6 +735,8 @@ class binance extends \ccxt\async\binance {
             $method = 'publicPostUserDataStream';
             if ($type === 'future') {
                 $method = 'fapiPrivatePostListenKey';
+            } else if ($type === 'delivery') {
+                $method = 'dapiPrivatePostListenKey';
             } else if ($type === 'margin') {
                 $method = 'sapiPostUserDataStream';
             }
