@@ -188,7 +188,7 @@ class okex(Exchange, ccxt.okex):
         options = self.safe_value(self.options, 'watchOrderBook', {})
         depth = self.safe_string(options, 'depth', 'depth_l2_tbt')
         orderbook = await self.subscribe(depth, symbol, params)
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)

@@ -244,7 +244,7 @@ class kucoin extends \ccxt\async\kucoin {
         $negotiation = yield $this->negotiate();
         $topic = '/market/level2';
         $orderbook = yield $this->subscribe($negotiation, $topic, array($this, 'handle_order_book_subscription'), $symbol, $params);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {

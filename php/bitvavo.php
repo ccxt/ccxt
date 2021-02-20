@@ -224,7 +224,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         );
         $message = array_merge($request, $params);
         $orderbook = yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -304,7 +304,6 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     public function watch_order_book_snapshot($client, $message, $subscription) {
-        $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         $params = $this->safe_value($subscription, 'params');
         $marketId = $this->safe_string($subscription, 'marketId');
@@ -315,8 +314,8 @@ class bitvavo extends \ccxt\async\bitvavo {
             'action' => $name,
             'market' => $marketId,
         );
-        $orderbook = yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        $orderbook = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        return $orderbook->limit ($limit);
     }
 
     public function handle_order_book_snapshot($client, $message) {
