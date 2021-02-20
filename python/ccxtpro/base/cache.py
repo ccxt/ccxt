@@ -99,12 +99,8 @@ class ArrayCacheBySymbolById(ArrayCacheByTimestamp):
             if reference != item:
                 reference.update(item)
             index = self._index.index(item['id'])
-            self._deque.rotate(-index)
-            self._deque.popleft()
-            self._deque.rotate(index)
-            self._index.rotate(-index)
-            self._index.popleft()
-            self._index.rotate(index)
+            del self._deque[index]
+            del self._index[index]
         else:
             by_id[item['id']] = item
         if len(self._deque) == self._deque.maxlen:
