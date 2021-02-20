@@ -344,7 +344,7 @@ class currencycom(Exchange, ccxt.currencycom):
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.watch_public('depthMarketData.subscribe', symbol, params)
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         destination = 'OHLCMarketData.subscribe'

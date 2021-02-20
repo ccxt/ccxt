@@ -123,7 +123,7 @@ class ftx extends \ccxt\async\ftx {
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $orderbook = yield $this->watch_public($symbol, 'orderbook');
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function handle_partial($client, $message) {

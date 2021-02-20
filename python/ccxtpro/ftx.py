@@ -114,7 +114,7 @@ class ftx(Exchange, ccxt.ftx):
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.watch_public(symbol, 'orderbook')
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     def handle_partial(self, client, message):
         methods = {

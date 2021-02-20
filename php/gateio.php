@@ -76,7 +76,7 @@ class gateio extends \ccxt\async\gateio {
             'id' => $requestId,
         );
         $orderbook = yield $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function handle_delta($bookside, $delta) {

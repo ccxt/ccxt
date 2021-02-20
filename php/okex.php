@@ -201,7 +201,7 @@ class okex extends \ccxt\async\okex {
         $options = $this->safe_value($this->options, 'watchOrderBook', array());
         $depth = $this->safe_string($options, 'depth', 'depth_l2_tbt');
         $orderbook = yield $this->subscribe($depth, $symbol, $params);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function handle_delta($bookside, $delta) {

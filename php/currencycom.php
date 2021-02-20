@@ -367,7 +367,7 @@ class currencycom extends \ccxt\async\currencycom {
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         $orderbook = yield $this->watch_public('depthMarketData.subscribe', $symbol, $params);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

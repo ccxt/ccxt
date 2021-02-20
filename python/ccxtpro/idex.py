@@ -362,7 +362,7 @@ class idex(Exchange, ccxt.idex):
         }
         # 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
         orderbook = await self.subscribe(subscribeObject, messageHash, subscription)
-        return self.limit_order_book(orderbook, symbol, limit)
+        return orderbook.limit(limit)
 
     def handle_order_book(self, client, message):
         data = self.safe_value(message, 'data')
