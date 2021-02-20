@@ -151,7 +151,7 @@ class CCXTProTranspiler extends Transpiler {
         const phpFile = './php/test/Cache.php'
         const pyImports = [
             '',
-            'from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById  # noqa: F402',
+            'from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402',
             '',
         ].join ('\n')
         this.transpileTest (jsFile, pyFile, phpFile, pyImports)
@@ -168,7 +168,7 @@ class CCXTProTranspiler extends Transpiler {
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
             [ /[^\n]+require[^\n]+\n/g, '' ],
-            [ /function equals \([\S\s]+?return true\n}\n/g, '' ],
+            [ /function equals \([\S\s]+?return true;\n}\n/g, '' ],
         ])
 
         const options = { js, removeEmptyLines: false }
