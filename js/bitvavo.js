@@ -1092,6 +1092,7 @@ module.exports = class bitvavo extends Exchange {
             'partiallyFilled': 'open',
             'expired': 'canceled',
             'rejected': 'canceled',
+            'awaitingTrigger': 'open', // https://github.com/ccxt/ccxt/issues/8489
         };
         return this.safeString (statuses, status, status);
     }
@@ -1194,6 +1195,8 @@ module.exports = class bitvavo extends Exchange {
         }
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = this.safeValue (order, 'postOnly');
+        // https://github.com/ccxt/ccxt/issues/8489
+        const stopPrice = this.safeFloat (order, 'triggerPrice');
         return {
             'info': order,
             'id': id,
@@ -1207,7 +1210,7 @@ module.exports = class bitvavo extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
