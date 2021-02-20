@@ -771,16 +771,18 @@ class bitvavo(Exchange):
         request = {
             'market': market['id'],
             'side': side,
-            'orderType': type,
+            'orderType': type,  # 'market', 'limit', 'stopLoss', 'stopLossLimit', 'takeProfit', 'takeProfitLimit'
             # 'amount': self.amount_to_precision(symbol, amount),
             # 'price': self.price_to_precision(symbol, price),
             # 'amountQuote': self.cost_to_precision(symbol, cost),
-            # 'timeInForce': 'GTC',  # "GTC" "IOC" "FOK"
-            # 'selfTradePrevention': "decrementAndCancel",  # "decrementAndCancel" "cancelOldest" "cancelNewest" "cancelBoth"
+            # 'timeInForce': 'GTC',  # 'GTC', 'IOC', 'FOK'
+            # 'selfTradePrevention': 'decrementAndCancel',  # 'decrementAndCancel', 'cancelOldest', 'cancelNewest', 'cancelBoth'
             # 'postOnly': False,
             # 'disableMarketProtection': False,  # don't cancel if the next fill price is 10% worse than the best fill price
             # 'responseRequired': True,  # False is faster
         }
+        isStopLimit = (type == 'stopLossLimit') or (type == 'takeProfitLimit')
+        isStopMarket = (type == 'stopLoss') or (type == 'takeProfit')
         if type == 'market':
             cost = None
             if price is not None:
@@ -795,6 +797,22 @@ class bitvavo(Exchange):
             params = self.omit(params, ['cost', 'amountQuote'])
         elif type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
+            request['amount'] = self.amount_to_precision(symbol, amount)
+        elif isStopMarket or isStopLimit:
+            stopPrice = self.safe_float_2(params, 'stopPrice', 'triggerAmount')
+            if stopPrice is None:
+                if isStopLimit:
+                    raise ArgumentsRequired(self.id + ' createOrder requires a stopPrice parameter for a ' + type + ' order')
+                elif isStopMarket:
+                    if price is None:
+                        raise ArgumentsRequired(self.id + ' createOrder requires a price argument or a stopPrice parameter for a ' + type + ' order')
+                    else:
+                        stopPrice = price
+            if isStopLimit:
+                request['price'] = self.price_to_precision(symbol, price)
+            params = self.omit(params, ['stopPrice', 'triggerAmount'])
+            request['triggerAmount'] = self.price_to_precision(symbol, stopPrice)
+            request['triggerType'] = 'price'
             request['amount'] = self.amount_to_precision(symbol, amount)
         response = self.privatePostOrder(self.extend(request, params))
         #

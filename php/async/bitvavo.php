@@ -791,16 +791,18 @@ class bitvavo extends Exchange {
         $request = array(
             'market' => $market['id'],
             'side' => $side,
-            'orderType' => $type,
+            'orderType' => $type, // 'market', 'limit', 'stopLoss', 'stopLossLimit', 'takeProfit', 'takeProfitLimit'
             // 'amount' => $this->amount_to_precision($symbol, $amount),
             // 'price' => $this->price_to_precision($symbol, $price),
             // 'amountQuote' => $this->cost_to_precision($symbol, $cost),
-            // 'timeInForce' => 'GTC', // "GTC" "IOC" "FOK"
-            // 'selfTradePrevention' => "decrementAndCancel", // "decrementAndCancel" "cancelOldest" "cancelNewest" "cancelBoth"
+            // 'timeInForce' => 'GTC', // 'GTC', 'IOC', 'FOK'
+            // 'selfTradePrevention' => 'decrementAndCancel', // 'decrementAndCancel', 'cancelOldest', 'cancelNewest', 'cancelBoth'
             // 'postOnly' => false,
             // 'disableMarketProtection' => false, // don't cancel if the next fill $price is 10% worse than the best fill $price
             // 'responseRequired' => true, // false is faster
         );
+        $isStopLimit = ($type === 'stopLossLimit') || ($type === 'takeProfitLimit');
+        $isStopMarket = ($type === 'stopLoss') || ($type === 'takeProfit');
         if ($type === 'market') {
             $cost = null;
             if ($price !== null) {
@@ -817,6 +819,26 @@ class bitvavo extends Exchange {
             $params = $this->omit($params, array( 'cost', 'amountQuote' ));
         } else if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['amount'] = $this->amount_to_precision($symbol, $amount);
+        } else if ($isStopMarket || $isStopLimit) {
+            $stopPrice = $this->safe_float_2($params, 'stopPrice', 'triggerAmount');
+            if ($stopPrice === null) {
+                if ($isStopLimit) {
+                    throw new ArgumentsRequired($this->id . ' createOrder requires a $stopPrice parameter for a ' . $type . ' order');
+                } else if ($isStopMarket) {
+                    if ($price === null) {
+                        throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument or a $stopPrice parameter for a ' . $type . ' order');
+                    } else {
+                        $stopPrice = $price;
+                    }
+                }
+            }
+            if ($isStopLimit) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            $params = $this->omit($params, array( 'stopPrice', 'triggerAmount' ));
+            $request['triggerAmount'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['triggerType'] = 'price';
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }
         $response = yield $this->privatePostOrder (array_merge($request, $params));
