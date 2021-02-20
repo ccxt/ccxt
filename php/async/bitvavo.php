@@ -1094,6 +1094,7 @@ class bitvavo extends Exchange {
             'partiallyFilled' => 'open',
             'expired' => 'canceled',
             'rejected' => 'canceled',
+            'awaitingTrigger' => 'open', // https://github.com/ccxt/ccxt/issues/8489
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1196,6 +1197,8 @@ class bitvavo extends Exchange {
         }
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = $this->safe_value($order, 'postOnly');
+        // https://github.com/ccxt/ccxt/issues/8489
+        $stopPrice = $this->safe_float($order, 'triggerPrice');
         return array(
             'info' => $order,
             'id' => $id,
@@ -1209,7 +1212,7 @@ class bitvavo extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
