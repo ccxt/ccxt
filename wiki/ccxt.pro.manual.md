@@ -557,18 +557,16 @@ if exchange.has['watchOrderBook']:
 ```PHP
 // PHP
 if ($exchange->has['watchOrderBook']) {
-    $main = function () use (&$exchange, &$main, $symbol, $limit, $params) {
-        $exchange->watch_order_book($symbol, $limit, $params)->then(function($orderbook) use (&$main, $symbol) {
-            echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
-            $main();
-        })->otherwise(function (\Exception $e) use (&$main) {
-            echo get_class ($e), ' ', $e->getMessage (), "\n";
-            $main();
-            // stop the loop on exception or leave it commented to retry
-            // throw $e;
-        });
-    };
-    $loop->futureTick($main);
+    $exchange::execute_and_run(function() use ($exchange, $symbol, $limit, $params) {
+        while (true) {
+            try {
+                $orderbook = yield $exchange->watch_order_book($symbol, $limit, $params);
+                echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
+            } catch (Exception $e) {
+                echo get_class($e), ' ', $e->getMessage(), "\n";
+            }
+        }
+    });
 }
 ```
 
@@ -606,18 +604,16 @@ if exchange.has['watchTicker']:
 ```PHP
 // PHP
 if ($exchange->has['watchTicker']) {
-    $main = function () use (&$exchange, &$main, $symbol, $params) {
-        $exchange->watch_ticker($symbol, $params)->then(function($ticker) use (&$main) {
-            echo date('c'), ' ', json_encode($ticker), "\n";
-            $main();
-        })->otherwise(function (\Exception $e) use (&$main) {
-            echo get_class ($e), ' ', $e->getMessage (), "\n";
-            $main();
-            // stop the loop on exception or leave it commented to retry
-            // throw $e;
-        });
-    };
-    $loop->futureTick($main);
+    $exchange::execute_and_run(function() use ($exchange, $symbol, $params) {
+        while (true) {
+            try {
+                $ticker = yield $exchange->watch_ticker($symbol, $params);
+                echo date('c'), ' ', json_encode($ticker), "\n";
+            } catch (Exception $e) {
+                echo get_class($e), ' ', $e->getMessage(), "\n";
+            }
+        }
+    });
 }
 ```
 
@@ -655,18 +651,16 @@ if exchange.has['watchTickers']:
 ```PHP
 // PHP
 if ($exchange->has['watchTickers']) {
-    $main = function () use (&$exchange, &$main, $symbols, $params) {
-        $exchange->watch_tickers($symbols, $params)->then(function($tickers) use (&$main) {
-            echo date('c'), ' ', json_encode($tickers), "\n";
-            $main();
-        })->otherwise(function (\Exception $e) use (&$main) {
-            echo get_class ($e), ' ', $e->getMessage (), "\n";
-            $main();
-            // stop the loop on exception or leave it commented to retry
-            // throw $e;
-        });
-    };
-    $loop->futureTick($main);
+    $exchange::execute_and_run(function() use ($exchange, $symbols, $params) {
+        while (true) {
+            try {
+                $tickers = yield $exchange->watch_tickers($symbols, $params);
+                echo date('c'), ' ', json_encode($tickers), "\n";
+            } catch (Exception $e) {
+                echo get_class($e), ' ', $e->getMessage(), "\n";
+            }
+        }
+    });
 }
 ```
 
@@ -704,20 +698,16 @@ if exchange.has['watchOHLCV']:
 ```PHP
 // PHP
 if ($exchange->has['watchOHLCV']) {
-    $main = function () use (&$exchange, &$main, $symbol, $timeframe, $since, $limit, $params) {
-        $exchange->watch_ohlcv($symbol, $timeframe, $since, $limit, $params)->then(
-            function($candles) use (&$main, $symbol, $timeframe) {
+    $exchange::execute_and_run(function() use ($exchange, $symbol, $timeframe, $since, $limit, $params) {
+        while (true) {
+            try {
+                $candles = yield $exchange->watch_ohlcv($symbol, $timeframe, $since, $limit, $params);
                 echo date('c'), ' ', $symbol, ' ', $timeframe, ' ', json_encode($candles), "\n";
-                $main();
+            } catch (Exception $e) {
+                echo get_class($e), ' ', $e->getMessage(), "\n";
             }
-        )->otherwise(function (\Exception $e) use (&$main) {
-            echo get_class ($e), ' ', $e->getMessage (), "\n";
-            $main();
-            // stop the loop on exception or leave it commented to retry
-            // throw $e;
-        });
-    };
-    $loop->futureTick($main);
+        }
+    });
 }
 ```
 
@@ -755,18 +745,16 @@ if exchange.has['watchTrades']:
 ```PHP
 // PHP
 if ($exchange->has['watchTrades']) {
-    $main = function () use (&$exchange, &$main, $symbol, $since, $limit, $params) {
-        $exchange->watch_trades($symbol, $since, $limit, $params)->then(function($trades) use (&$main) {
-            echo date('c'), ' ', json_encode($trades), "\n";
-            $main();
-        })->otherwise(function (\Exception $e) use (&$main) {
-            echo get_class ($e), ' ', $e->getMessage (), "\n";
-            $main();
-            // stop the loop on exception or leave it commented to retry
-            // throw $e;
-        });
-    };
-    $loop->futureTick($main);
+    $exchange::execute_and_run(function() use ($exchange, $symbol, $since, $limit, $params) {
+        while (true) {
+            try {
+                $trades = yield $exchange->watch_trades($symbol, $since, $limit, $params);
+                echo date('c'), ' ', json_encode($trades), "\n";
+            } catch (Exception $e) {
+                echo get_class($e), ' ', $e->getMessage(), "\n";
+            }
+        }
+    });
 }
 ```
 
@@ -816,18 +804,16 @@ if exchange.has['watchBalance']:
 ```PHP
 // PHP
 if ($exchange->has['watchBalance']) {
-    $main = function () use (&$exchange, &$main, $params) {
-        $exchange->watch_balance($params)->then(function($balance) use (&$main) {
-            echo date('c'), ' ', json_encode($balance), "\n";
-            $main();
-        })->otherwise(function (\Exception $e) use (&$main) {
-            echo get_class ($e), ' ', $e->getMessage (), "\n";
-            $main();
-            // stop the loop on exception or leave it commented to retry
-            // throw $e;
-        });
-    };
-    $loop->futureTick($main);
+    $exchange::execute_and_run(function() use ($exchange, $params) {
+        while (true) {
+            try {
+                $balance = yield $exchange->watch_balance($params);
+                echo date('c'), ' ', json_encode($balance), "\n";
+            } catch (Exception $e) {
+                echo get_class($e), ' ', $e->getMessage(), "\n";
+            }
+        }
+    });
 }
 ```
 
