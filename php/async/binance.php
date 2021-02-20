@@ -608,6 +608,11 @@ class binance extends Exchange {
         if (!$this->check_required_credentials(false)) {
             return null;
         }
+        // sandbox/testnet does not support sapi endpoints
+        $apiBackup = $this->safe_string($this->urls, 'apiBackup');
+        if ($apiBackup !== null) {
+            return null;
+        }
         $response = yield $this->sapiGetCapitalConfigGetall ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
