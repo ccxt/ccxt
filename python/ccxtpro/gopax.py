@@ -82,7 +82,7 @@ class gopax(Exchange, ccxt.gopax):
         }
         message = self.extend(request, params)
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     def handle_delta(self, orderbook, bookside, delta):
         #

@@ -197,7 +197,7 @@ class poloniex extends \ccxt\async\poloniex {
             'channel' => $numericId,
         );
         $orderbook = yield $this->watch($url, $messageHash, $subscribe, $numericId);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function watch_heartbeat($params = array ()) {

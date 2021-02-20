@@ -153,7 +153,7 @@ class ripio(Exchange, ccxt.ripio):
             # fetch the snapshot in a separate async call after a warmup delay
             self.delay(delay, self.fetch_order_book_snapshot, client, subscription)
         orderbook = await self.watch(url, messageHash, None, messageHash, subscription)
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     async def fetch_order_book_snapshot(self, client, subscription):
         symbol = self.safe_string(subscription, 'symbol')

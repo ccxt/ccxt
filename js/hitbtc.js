@@ -60,7 +60,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         const orderbook = await this.watchPublic (symbol, 'orderbook', undefined, params);
-        return this.limitOrderBook (orderbook, symbol, limit, params);
+        return orderbook.limit (limit);
     }
 
     handleOrderBookSnapshot (client, message) {

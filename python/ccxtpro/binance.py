@@ -140,7 +140,7 @@ class binance(Exchange, ccxt.binance):
         message = self.extend(request, query)
         # 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
@@ -684,6 +684,8 @@ class binance(Exchange, ccxt.binance):
             method = 'publicPostUserDataStream'
             if type == 'future':
                 method = 'fapiPrivatePostListenKey'
+            elif type == 'delivery':
+                method = 'dapiPrivatePostListenKey'
             elif type == 'margin':
                 method = 'sapiPostUserDataStream'
             response = await getattr(self, method)()

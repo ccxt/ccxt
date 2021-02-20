@@ -59,7 +59,7 @@ class hitbtc(Exchange, ccxt.hitbtc):
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.watch_public(symbol, 'orderbook', None, params)
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     def handle_order_book_snapshot(self, client, message):
         #

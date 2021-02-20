@@ -236,7 +236,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
             'len': limit,  # string, number of price points, '25', '100', default = '25'
         }
         orderbook = await self.subscribe('book', symbol, self.deep_extend(request, params))
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     def handle_order_book(self, client, message, subscription):
         #

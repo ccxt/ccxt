@@ -249,7 +249,7 @@ module.exports = class kraken extends ccxt.kraken {
             }
         }
         const orderbook = await this.watchPublic (name, symbol, this.extend (request, params));
-        return this.limitOrderBook (orderbook, symbol, limit, params);
+        return orderbook.limit (limit);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
