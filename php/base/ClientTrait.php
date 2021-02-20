@@ -144,13 +144,4 @@ trait ClientTrait {
         }
         return null;
     }
-
-    public function drop_stale($cache) {
-        $result = $cache;
-        if ($this->newUpdates) {
-            $result = $cache->new_updates;
-        }
-        $cache->clear_new_updates();
-        return $result;
-    }
 }

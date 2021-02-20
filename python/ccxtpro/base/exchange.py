@@ -174,10 +174,3 @@ class Exchange(BaseExchange):
             if value == timeframe:
                 return key
         return None
-
-    def drop_stale(self, cache):
-        result = cache
-        if self.newUpdates:
-            result = cache.new_updates
-        cache.clear_new_updates()
-        return result
