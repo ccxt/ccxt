@@ -44,12 +44,6 @@ module.exports = async (exchange, symbol) => {
             for (let i = 0; i < response.length; i++) {
                 const order = response[i]
                 testOrder (exchange, order, symbol, now)
-                if (i > 0) {
-                    const previousOrder = response[i - 1]
-                    if (order.timestamp && previousOrder.timestamp) {
-                        assert (order.timestamp >= previousOrder.timestamp)
-                    }
-                }
             }
         } catch (e) {
 

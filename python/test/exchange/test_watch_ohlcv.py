@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from exchange.test_ohlcv import test_ohlcv
-from ccxt import NetworkError
-# from exchange.table import table
+from ccxt import NetworkError, test
 
 
 async def test_watch_ohlcv(exchange, symbol):
@@ -36,7 +34,7 @@ async def test_watch_ohlcv(exchange, symbol):
                 now = exchange.milliseconds()
                 print(exchange.iso8601(now), symbol, timeframe, len(ohlcvs), 'ohlcvs')
                 for ohlcv in ohlcvs:
-                    test_ohlcv(exchange, ohlcv, method, symbol)
+                    test.test_ohlcv(exchange, ohlcv, symbol, now)
                 # print(table([[exchange.iso8601(o[0])] + o[1:] for o in ohlcvs]))
             except NetworkError:
                 now = exchange.milliseconds()
