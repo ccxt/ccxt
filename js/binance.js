@@ -1,12 +1,12 @@
 'use strict';
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
 const { ExchangeError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 module.exports = class binance extends ccxt.binance {
     describe () {
@@ -732,6 +732,8 @@ module.exports = class binance extends ccxt.binance {
             let method = 'publicPostUserDataStream';
             if (type === 'future') {
                 method = 'fapiPrivatePostListenKey';
+            } else if (type === 'delivery') {
+                method = 'dapiPrivatePostListenKey';
             } else if (type === 'margin') {
                 method = 'sapiPostUserDataStream';
             }
@@ -917,7 +919,7 @@ module.exports = class binance extends ccxt.binance {
         const marketId = this.safeString (order, 's');
         const symbol = this.safeSymbol (marketId);
         let timestamp = this.safeInteger (order, 'O');
-        const T = this.safeString (order, 'T');
+        const T = this.safeInteger (order, 'T');
         let lastTradeTimestamp = undefined;
         if (executionType === 'NEW') {
             if (timestamp === undefined) {
