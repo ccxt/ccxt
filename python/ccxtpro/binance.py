@@ -684,6 +684,8 @@ class binance(Exchange, ccxt.binance):
             method = 'publicPostUserDataStream'
             if type == 'future':
                 method = 'fapiPrivatePostListenKey'
+            elif type == 'delivery':
+                method = 'dapiPrivatePostListenKey'
             elif type == 'margin':
                 method = 'sapiPostUserDataStream'
             response = await getattr(self, method)()
