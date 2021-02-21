@@ -32,7 +32,6 @@ module.exports = class bitbns extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchWithdrawals': false,
                 'fetchDeposits': false,
-                'fetchClosedOrders': false,
                 'fetchL2OrderBook': false,
                 'fetchOHLCV': 'emulated',
                 'fetchOrder': true,
