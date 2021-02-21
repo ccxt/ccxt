@@ -709,8 +709,8 @@ class binance(Exchange):
             networkList = self.safe_value(entry, 'networkList', [])
             fees = {}
             fee = None
-            for i in range(0, len(networkList)):
-                networkItem = networkList[i]
+            for j in range(0, len(networkList)):
+                networkItem = networkList[j]
                 name = self.safe_string(networkItem, 'name')
                 withdrawFee = self.safe_float(networkItem, 'withdrawFee')
                 depositEnable = self.safe_value(networkItem, 'depositEnable')

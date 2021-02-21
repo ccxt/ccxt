@@ -704,8 +704,8 @@ class binance extends Exchange {
             $networkList = $this->safe_value($entry, 'networkList', array());
             $fees = array();
             $fee = null;
-            for ($i = 0; $i < count($networkList); $i++) {
-                $networkItem = $networkList[$i];
+            for ($j = 0; $j < count($networkList); $j++) {
+                $networkItem = $networkList[$j];
                 $name = $this->safe_string($networkItem, 'name');
                 $withdrawFee = $this->safe_float($networkItem, 'withdrawFee');
                 $depositEnable = $this->safe_value($networkItem, 'depositEnable');
