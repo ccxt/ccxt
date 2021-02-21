@@ -74,7 +74,7 @@ class gateio(Exchange, ccxt.gateio):
             'id': requestId,
         }
         orderbook = await self.watch(url, messageHash, subscribeMessage, messageHash, subscription)
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)

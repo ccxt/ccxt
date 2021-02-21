@@ -160,18 +160,14 @@ asyncio.get_event_loop().run_until_complete(main())
 ```PHP
 require_once 'vendor/autoload.php';
 
-$loop = \React\EventLoop\Factory::create();
-$exchange = new \ccxtpro\bitfinex(array('enableRateLimit' => true, 'loop' => $loop));
+$exchange = new \ccxtpro\binance(array('enableRateLimit' => true));
 
-$main = function () use (&$exchange, &$main) {
-  $exchange->watch_order_book('ETH/BTC')->then(function($ob) use (&$main) {
-    echo date('c '), json_encode(array($ob['asks'][0], $ob['bids'][0])), "\n";
-    $main();
-  });
-};
-
-$loop->futureTick($main);
-$loop->run ();
+$exchange::execute_and_run(function() use ($exchange) {
+    while (true) {
+        $orderbook = yield $exchange->watch_order_book('ETH/BTC');
+        echo date('c '), json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
+    }
+});
 ```
 
 ## Support

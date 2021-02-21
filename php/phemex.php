@@ -291,7 +291,7 @@ class phemex extends \ccxt\async\phemex {
         );
         $request = $this->deep_extend($subscribe, $params);
         $orderbook = yield $this->watch($url, $messageHash, $request, $messageHash);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

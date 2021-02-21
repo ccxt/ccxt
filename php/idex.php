@@ -389,7 +389,7 @@ class idex extends \ccxt\async\idex {
         );
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target $market->
         $orderbook = yield $this->subscribe($subscribeObject, $messageHash, $subscription);
-        return $this->limit_order_book($orderbook, $symbol, $limit);
+        return $orderbook->limit ($limit);
     }
 
     public function handle_order_book($client, $message) {

@@ -84,7 +84,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         );
         $orderbook = yield $this->watch($url, $messageHash, $request, $messageHash, $subscription);
         // $this->subscribe($name, $symbol, $params);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function handle_trade($client, $message) {

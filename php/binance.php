@@ -145,7 +145,7 @@ class binance extends \ccxt\async\binance {
         $message = array_merge($request, $query);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         $orderbook = yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {

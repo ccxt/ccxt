@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.5.73'
+__version__ = '0.5.74'
 
 # -----------------------------------------------------------------------------
 
@@ -160,9 +160,6 @@ class Exchange(BaseExchange):
             # server disconnected a working connection
             if client.url in self.clients:
                 del self.clients[client.url]
-
-    def limit_order_book(self, orderbook, symbol, limit=None, params={}):
-        return orderbook.limit(limit)
 
     async def close(self):
         if self.clients:

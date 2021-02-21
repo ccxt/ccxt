@@ -249,7 +249,7 @@ class huobipro(Exchange, ccxt.huobipro):
             'method': self.handle_order_book_subscription,
         }
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     def handle_order_book_snapshot(self, client, message, subscription):
         #
@@ -311,7 +311,7 @@ class huobipro(Exchange, ccxt.huobipro):
             'method': self.handle_order_book_snapshot,
         }
         orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)

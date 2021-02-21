@@ -505,7 +505,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         //     8. If a message is received that is not the next in order, return to step 2 in this process
         //
         const orderbook = await this.subscribeToOrderBook (negotiation, symbol, limit, params);
-        return this.limitOrderBook (orderbook, symbol, limit, params);
+        return orderbook.limit (limit);
     }
 
     async subscribeToOrderBook (negotiation, symbol, limit = undefined, params = {}) {

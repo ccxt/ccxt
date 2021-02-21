@@ -253,7 +253,7 @@ class kraken extends \ccxt\async\kraken {
             }
         }
         $orderbook = yield $this->watch_public($name, $symbol, array_merge($request, $params));
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

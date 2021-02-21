@@ -197,7 +197,7 @@ module.exports = class poloniex extends ccxt.poloniex {
             'channel': numericId,
         };
         const orderbook = await this.watch (url, messageHash, subscribe, numericId);
-        return this.limitOrderBook (orderbook, symbol, limit, params);
+        return orderbook.limit (limit);
     }
 
     async watchHeartbeat (params = {}) {
