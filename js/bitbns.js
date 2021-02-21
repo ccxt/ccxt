@@ -162,9 +162,13 @@ module.exports = class bitbns extends Exchange {
         // To get all data, use 'offset' parameter along with 'limit' parameter
         const request = {
             'symbol': excgSymbol,
-            'since': since,
-            'limit': limit,
         };
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const trades = await this.publicGetFetchTrades (this.extend (request, params));
         for (let i = 0; i < trades.length; i++) {
             trades[i]['symbol'] = symbol;
@@ -195,8 +199,8 @@ module.exports = class bitbns extends Exchange {
             limit = 15;
         }
         const ob = await this.publicGetFetchOrderBook (this.extend (request, params));
-        ob.bids.splice (limit - 1);
-        ob.asks.splice (limit - 1);
+        ob['bids'] = ob['bids'].slice (limit - 1);
+        ob['asks'] = ob['asks'].slice (limit - 1);
         return ob;
     }
 
