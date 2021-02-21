@@ -58,11 +58,6 @@ module.exports = async (exchange, symbol) => {
 
             for (let i = 0; i < response.length; i++) {
                 testTrade (exchange, response[i], symbol, now)
-                if (i > 0) {
-                    if (response[i].timestamp && response[i - 1].timestamp) {
-                        assert (response[i].timestamp >= response[i - 1].timestamp)
-                    }
-                }
             }
         } catch (e) {
 

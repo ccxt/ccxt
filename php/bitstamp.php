@@ -59,7 +59,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         );
         $message = array_merge($request, $params);
         $orderbook = yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {

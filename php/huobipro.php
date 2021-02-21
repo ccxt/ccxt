@@ -262,7 +262,7 @@ class huobipro extends \ccxt\async\huobipro {
             'method' => array($this, 'handle_order_book_subscription'),
         );
         $orderbook = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function handle_order_book_snapshot($client, $message, $subscription) {
@@ -327,7 +327,7 @@ class huobipro extends \ccxt\async\huobipro {
             'method' => array($this, 'handle_order_book_snapshot'),
         );
         $orderbook = yield $this->watch($url, $requestId, $request, $requestId, $snapshotSubscription);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function handle_delta($bookside, $delta) {

@@ -130,10 +130,6 @@ trait ClientTrait {
         // }
     }
 
-    public function limit_order_book($orderbook, $symbol, $limit = null, $params = array()) {
-        return $orderbook->limit($limit);
-    }
-
     public function find_timeframe($timeframe) {
         $keys = array_keys($this->timeframes);
         for ($i = 0; $i < count($keys); $i++) {

@@ -229,7 +229,7 @@ class kucoin(Exchange, ccxt.kucoin):
         negotiation = await self.negotiate()
         topic = '/market/level2'
         orderbook = await self.subscribe(negotiation, topic, self.handle_order_book_subscription, symbol, params)
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')

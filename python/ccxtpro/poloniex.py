@@ -184,7 +184,7 @@ class poloniex(Exchange, ccxt.poloniex):
             'channel': numericId,
         }
         orderbook = await self.watch(url, messageHash, subscribe, numericId)
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     async def watch_heartbeat(self, params={}):
         await self.load_markets()

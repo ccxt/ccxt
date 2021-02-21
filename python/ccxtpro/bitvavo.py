@@ -211,7 +211,7 @@ class bitvavo(Exchange, ccxt.bitvavo):
         }
         message = self.extend(request, params)
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        return orderbook.limit(limit)
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -281,7 +281,6 @@ class bitvavo(Exchange, ccxt.bitvavo):
             client.resolve(orderbook, messageHash)
 
     async def watch_order_book_snapshot(self, client, message, subscription):
-        symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         params = self.safe_value(subscription, 'params')
         marketId = self.safe_string(subscription, 'marketId')
@@ -292,8 +291,8 @@ class bitvavo(Exchange, ccxt.bitvavo):
             'action': name,
             'market': marketId,
         }
-        orderbook = await self.watch(url, messageHash, request, messageHash, subscription)
-        return self.limit_order_book(orderbook, symbol, limit, params)
+        orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+        return orderbook.limit(limit)
 
     def handle_order_book_snapshot(self, client, message):
         #

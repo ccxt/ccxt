@@ -500,7 +500,7 @@ class bittrex extends \ccxt\async\bittrex {
         //     8. If a message is received that is not the next in order, return to step 2 in this process
         //
         $orderbook = yield $this->subscribe_to_order_book($negotiation, $symbol, $limit, $params);
-        return $this->limit_order_book($orderbook, $symbol, $limit, $params);
+        return $orderbook->limit ($limit);
     }
 
     public function subscribe_to_order_book($negotiation, $symbol, $limit = null, $params = array ()) {
