@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+const { TICK_SIZE, ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -181,8 +181,8 @@ module.exports = class bitso extends Exchange {
             const taker = this.safeFloat (flatRate, 'taker');
             const feeTiers = this.safeValue (fees, 'structure', []);
             const fee = {
-                'maker': maker,
-                'taker': taker,
+                'taker': parseFloat (this.decimalToPrecision (taker / 100, ROUND, 0.00000001, TICK_SIZE)),
+                'maker': parseFloat (this.decimalToPrecision (maker / 100, ROUND, 0.00000001, TICK_SIZE)),
                 'percentage': true,
                 'tierBased': true,
             };
@@ -193,11 +193,13 @@ module.exports = class bitso extends Exchange {
                 const volume = this.safeFloat (tier, 'volume');
                 const takerFee = this.safeFloat (tier, 'taker');
                 const makerFee = this.safeFloat (tier, 'maker');
-                takerFees.push ([ volume, takerFee ]);
-                makerFees.push ([ volume, makerFee ]);
+                const takerFeeToPrecision = parseFloat (this.decimalToPrecision (takerFee / 100, ROUND, 0.00000001, TICK_SIZE));
+                const makerFeeToPrecision = parseFloat (this.decimalToPrecision (makerFee / 100, ROUND, 0.00000001, TICK_SIZE));
+                takerFees.push ([ volume, takerFeeToPrecision ]);
+                makerFees.push ([ volume, makerFeeToPrecision ]);
                 if (j === 0) {
-                    fee['taker'] = taker;
-                    fee['maker'] = maker;
+                    fee['taker'] = parseFloat (this.decimalToPrecision (taker / 100, ROUND, 0.00000001, TICK_SIZE));
+                    fee['maker'] = parseFloat (this.decimalToPrecision (maker / 100, ROUND, 0.00000001, TICK_SIZE));
                 }
             }
             const tiers = {

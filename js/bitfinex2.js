@@ -53,6 +53,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 '30m': '30m',
                 '1h': '1h',
                 '3h': '3h',
+                '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '1D',
@@ -172,6 +173,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'auth/r/positions/hist',
                         'auth/r/positions/audit',
                         'auth/w/deriv/collateral/set',
+                        'auth/w/deriv/collateral/limits',
                         'auth/r/funding/offers',
                         'auth/r/funding/offers/{symbol}',
                         'auth/w/funding/offer/submit',
@@ -942,16 +944,43 @@ module.exports = class bitfinex2 extends bitfinex {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderTypes = this.safeValue (this.options, 'orderTypes', {});
-        const orderType = this.safeString (orderTypes, type, type);
+        const orderType = this.safeStringUpper (orderTypes, type, type);
         amount = (side === 'sell') ? -amount : amount;
         const request = {
             'symbol': market['id'],
             'type': orderType,
             'amount': this.numberToString (amount),
         };
-        if (type !== 'market') {
+        if ((orderType === 'LIMIT') || (orderType === 'EXCHANGE LIMIT')) {
+            request['price'] = this.numberToString (price);
+        } else if ((orderType === 'STOP') || (orderType === 'EXCHANGE STOP')) {
+            const stopPrice = this.safeFloat (params, 'stopPrice', price);
+            request['price'] = this.numberToString (stopPrice);
+        } else if ((orderType === 'STOP LIMIT') || (orderType === 'EXCHANGE STOP LIMIT')) {
+            const priceAuxLimit = this.safeFloat (params, 'price_aux_limit');
+            let stopPrice = this.safeFloat (params, 'stopPrice');
+            if (priceAuxLimit === undefined) {
+                if (stopPrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter or a price_aux_limit parameter for a ' + orderType + ' order');
+                } else {
+                    request['price_aux_limit'] = this.numberToString (price);
+                }
+            } else {
+                request['price_aux_limit'] = this.numberToString (priceAuxLimit);
+                if (stopPrice === undefined) {
+                    stopPrice = price;
+                }
+            }
+            request['price'] = this.numberToString (stopPrice);
+        } else if ((orderType === 'TRAILING STOP') || (orderType === 'EXCHANGE TRAILING STOP')) {
+            const priceTrailing = this.safeFloat (params, 'price_trailing');
+            request['price_trailing'] = this.numberToString (priceTrailing);
+            const stopPrice = this.safeFloat (params, 'stopPrice', price);
+            request['price'] = this.numberToString (stopPrice);
+        } else if ((orderType === 'FOK') || (orderType === 'EXCHANGE FOK') || (orderType === 'IOC') || (orderType === 'EXCHANGE IOC')) {
             request['price'] = this.numberToString (price);
         }
+        params = this.omit (params, [ 'stopPrice', 'price_aux_limit', 'price_trailing' ]);
         const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['cid'] = clientOrderId;

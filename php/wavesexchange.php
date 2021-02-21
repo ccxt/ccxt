@@ -1062,7 +1062,7 @@ class wavesexchange extends Exchange {
         $this->check_required_dependencies();
         $this->check_required_keys();
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

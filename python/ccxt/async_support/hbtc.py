@@ -824,7 +824,7 @@ class hbtc(Exchange):
                 method = 'optionGetMyTrades'
             else:
                 if symbol is None:
-                    raise ArgumentsRequired(self.id + ' fetchMyTrades requires a `symbol` argument for ' + type + ' markets')
+                    raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument for ' + type + ' markets')
                 market = self.market(symbol)
                 request['symbol'] = market['id']
                 # spot only?
@@ -1847,6 +1847,7 @@ class hbtc(Exchange):
             'NEW': 'open',
             'CANCELED': 'canceled',
             'FILLED': 'closed',
+            'PARTIALLY_FILLED': 'open',
             'PENDING_CANCEL': 'canceled',
         }
         return self.safe_string(statuses, status, status)

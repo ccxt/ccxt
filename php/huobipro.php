@@ -201,6 +201,10 @@ class huobipro extends Exchange {
                 ),
             ),
             'exceptions' => array(
+                'broad' => array(
+                    'contract is restricted of closing positions on API.  Please contact customer service' => '\\ccxt\\OnMaintenance',
+                    'maintain' => '\\ccxt\\OnMaintenance',
+                ),
                 'exact' => array(
                     // err-code
                     'bad-request' => '\\ccxt\\BadRequest',
@@ -252,6 +256,7 @@ class huobipro extends Exchange {
                 // https://coinmarketcap.com/currencies/penta/markets/
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'PNT' => 'Penta',
+                'SBTC' => 'Super Bitcoin',
             ),
         ));
     }
@@ -953,7 +958,7 @@ class huobipro extends Exchange {
 
     public function fetch_open_orders_v1($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrdersV1 requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrdersV1() requires a $symbol argument');
         }
         return $this->fetch_orders_by_states('pre-submitted,submitted,partial-filled', $symbol, $since, $limit, $params);
     }
@@ -965,7 +970,7 @@ class huobipro extends Exchange {
     public function fetch_open_orders_v2($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $market = $this->market($symbol);
         $accountId = $this->safe_string($params, 'account-id');
@@ -1495,6 +1500,7 @@ class huobipro extends Exchange {
             if ($status === 'error') {
                 $code = $this->safe_string($response, 'err-code');
                 $feedback = $this->id . ' ' . $body;
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
                 $message = $this->safe_string($response, 'err-msg');
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);

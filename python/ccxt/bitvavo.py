@@ -771,16 +771,18 @@ class bitvavo(Exchange):
         request = {
             'market': market['id'],
             'side': side,
-            'orderType': type,
+            'orderType': type,  # 'market', 'limit', 'stopLoss', 'stopLossLimit', 'takeProfit', 'takeProfitLimit'
             # 'amount': self.amount_to_precision(symbol, amount),
             # 'price': self.price_to_precision(symbol, price),
             # 'amountQuote': self.cost_to_precision(symbol, cost),
-            # 'timeInForce': 'GTC',  # "GTC" "IOC" "FOK"
-            # 'selfTradePrevention': "decrementAndCancel",  # "decrementAndCancel" "cancelOldest" "cancelNewest" "cancelBoth"
+            # 'timeInForce': 'GTC',  # 'GTC', 'IOC', 'FOK'
+            # 'selfTradePrevention': 'decrementAndCancel',  # 'decrementAndCancel', 'cancelOldest', 'cancelNewest', 'cancelBoth'
             # 'postOnly': False,
             # 'disableMarketProtection': False,  # don't cancel if the next fill price is 10% worse than the best fill price
             # 'responseRequired': True,  # False is faster
         }
+        isStopLimit = (type == 'stopLossLimit') or (type == 'takeProfitLimit')
+        isStopMarket = (type == 'stopLoss') or (type == 'takeProfit')
         if type == 'market':
             cost = None
             if price is not None:
@@ -795,6 +797,22 @@ class bitvavo(Exchange):
             params = self.omit(params, ['cost', 'amountQuote'])
         elif type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
+            request['amount'] = self.amount_to_precision(symbol, amount)
+        elif isStopMarket or isStopLimit:
+            stopPrice = self.safe_float_2(params, 'stopPrice', 'triggerAmount')
+            if stopPrice is None:
+                if isStopLimit:
+                    raise ArgumentsRequired(self.id + ' createOrder requires a stopPrice parameter for a ' + type + ' order')
+                elif isStopMarket:
+                    if price is None:
+                        raise ArgumentsRequired(self.id + ' createOrder requires a price argument or a stopPrice parameter for a ' + type + ' order')
+                    else:
+                        stopPrice = price
+            if isStopLimit:
+                request['price'] = self.price_to_precision(symbol, price)
+            params = self.omit(params, ['stopPrice', 'triggerAmount'])
+            request['triggerAmount'] = self.price_to_precision(symbol, stopPrice)
+            request['triggerType'] = 'price'
             request['amount'] = self.amount_to_precision(symbol, amount)
         response = self.privatePostOrder(self.extend(request, params))
         #
@@ -852,11 +870,11 @@ class bitvavo(Exchange):
             response = self.privatePutOrder(self.extend(request, params))
             return self.parse_order(response, market)
         else:
-            raise ArgumentsRequired(self.id + ' editOrder requires an amount argument, or a price argument, or non-empty params')
+            raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params')
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -890,7 +908,7 @@ class bitvavo(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         self.load_markets()
         market = self.market(symbol)
@@ -937,7 +955,7 @@ class bitvavo(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1053,6 +1071,7 @@ class bitvavo(Exchange):
             'partiallyFilled': 'open',
             'expired': 'canceled',
             'rejected': 'canceled',
+            'awaitingTrigger': 'open',  # https://github.com/ccxt/ccxt/issues/8489
         }
         return self.safe_string(statuses, status, status)
 
@@ -1147,6 +1166,8 @@ class bitvavo(Exchange):
                 lastTradeTimestamp = lastTrade['timestamp']
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
+        # https://github.com/ccxt/ccxt/issues/8489
+        stopPrice = self.safe_float(order, 'triggerPrice')
         return {
             'info': order,
             'id': id,
@@ -1160,7 +1181,7 @@ class bitvavo(Exchange):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1173,7 +1194,7 @@ class bitvavo(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

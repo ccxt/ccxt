@@ -178,6 +178,7 @@ class gateio(Exchange):
                 'BOX': 'DefiBox',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
+                'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
             },
         })
@@ -702,7 +703,7 @@ class gateio(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires symbol argument')
         await self.load_markets()
         request = {
             'orderNumber': id,
@@ -722,12 +723,12 @@ class gateio(Exchange):
         tag = None
         if (address is not None) and (address.find('address') >= 0):
             raise InvalidAddress(self.id + ' queryDepositAddress ' + address)
-        if code == 'XRP':
+        if (code == 'XRP') or (code == 'HBAR') or (code == 'STEEM') or (code == 'XLM') or (code == 'EOS'):
             parts = address.split(' ')
             address = parts[0]
             tag = parts[1]
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
@@ -749,7 +750,7 @@ class gateio(Exchange):
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -761,7 +762,7 @@ class gateio(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -832,15 +833,15 @@ class gateio(Exchange):
         # withdrawal
         #
         #     {
-        #         'id': 'w5864259',
-        #         'currency': 'ETH',
-        #         'address': '0x72632f462....',
-        #         'amount': '0.4947',
-        #         'txid': '0x111167d120f736....',
-        #         'timestamp': '1553123688',
-        #         'status': 'DONE',
-        #         'type': 'withdrawal'
-        #     }
+        #         "id": "w6754336",
+        #         "fee": "0.1",
+        #         "txid": "zzyy",
+        #         "amount": "1",
+        #         "status": "DONE",
+        #         "address": "tz11234",
+        #         "currency": "XTZ",
+        #         "timestamp": "1561030206"
+        #    }
         #
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
@@ -853,6 +854,15 @@ class gateio(Exchange):
         timestamp = self.safe_timestamp(transaction, 'timestamp')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         type = self.parse_transaction_type(id[0])
+        feeCost = self.safe_float(transaction, 'fee')
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            }
+            if amount is not None:
+                amount = amount - feeCost
         return {
             'info': transaction,
             'id': id,
@@ -865,7 +875,7 @@ class gateio(Exchange):
             'type': type,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fee': None,
+            'fee': fee,
         }
 
     def parse_transaction_status(self, status):

@@ -57,6 +57,7 @@ class bitfinex extends Exchange {
                 '30m' => '30m',
                 '1h' => '1h',
                 '3h' => '3h',
+                '4h' => '4h',
                 '6h' => '6h',
                 '12h' => '12h',
                 '1d' => '1D',
@@ -603,13 +604,32 @@ class bitfinex extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
+        $types = array(
+            'exchange' => 'exchange',
+            'deposit' => 'funding',
+            'trading' => 'margin',
+        );
         $balanceType = $this->safe_string($params, 'type', 'exchange');
         $query = $this->omit($params, 'type');
         $response = $this->privatePostBalances ($query);
+        //    array( array( $type => 'deposit',
+        //        currency => 'btc',
+        //        amount => '0.00116721',
+        //        available => '0.00116721' ),
+        //      array( $type => 'exchange',
+        //        currency => 'ust',
+        //        amount => '0.0000002',
+        //        available => '0.0000002' ),
+        //      { $type => 'trading',
+        //        currency => 'btc',
+        //        amount => '0.0005',
+        //        available => '0.0005' } ),
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
-            if ($balance['type'] === $balanceType) {
+            $type = $this->safe_string($balance, 'type');
+            $parsedType = $this->safe_string($types, $type);
+            if (($parsedType === $balanceType) || ($type === $balanceType)) {
                 $currencyId = $this->safe_string($balance, 'currency');
                 $code = $this->safe_currency_code($currencyId);
                 // bitfinex had BCH previously, now it's BAB, but the old
@@ -772,7 +792,7 @@ class bitfinex extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a `$symbol` argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

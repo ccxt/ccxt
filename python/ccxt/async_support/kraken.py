@@ -956,7 +956,7 @@ class kraken(Exchange):
                 request['price'] = self.price_to_precision(symbol, stopPrice)
                 request['price2'] = self.price_to_precision(symbol, limitPrice)
             elif (price is None) or (not(stopPriceDefined or limitPriceDefined)):
-                raise ArgumentsRequired(self.id + ' createOrder requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order')
             else:
                 if stopPriceDefined:
                     request['price'] = self.price_to_precision(symbol, stopPrice)
@@ -1185,7 +1185,7 @@ class kraken(Exchange):
         orderTrades = self.safe_value(params, 'trades')
         tradeIds = []
         if orderTrades is None:
-            raise ArgumentsRequired(self.id + " fetchOrderTrades requires a unified order structure in the params argument or a 'trades' param(an array of trade id strings)")
+            raise ArgumentsRequired(self.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param(an array of trade id strings)")
         else:
             for i in range(0, len(orderTrades)):
                 orderTrade = orderTrades[i]
@@ -1474,7 +1474,7 @@ class kraken(Exchange):
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         # https://www.kraken.com/en-us/help/api#deposit-status
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1514,7 +1514,7 @@ class kraken(Exchange):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         # https://www.kraken.com/en-us/help/api#withdraw-status
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1596,7 +1596,64 @@ class kraken(Exchange):
                 'info': response,
                 'id': response['result'],
             }
-        raise ExchangeError(self.id + " withdraw requires a 'key' parameter(withdrawal key name, as set up on your account)")
+        raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, as set up on your account)")
+
+    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'txid': 'comma delimited list of transaction ids to restrict output to',
+            # 'docalcs': False,  # whether or not to include profit/loss calculations
+            # 'consolidation': 'market',  # what to consolidate the positions data around, market will consolidate positions based on market pair
+        }
+        response = await self.privatePostOpenPositions(self.extend(request, params))
+        #
+        # no consolidation
+        #
+        #     {
+        #         error: [],
+        #         result: {
+        #             'TGUFMY-FLESJ-VYIX3J': {
+        #                 ordertxid: "O3LRNU-ZKDG5-XNCDFR",
+        #                 posstatus: "open",
+        #                 pair: "ETHUSDT",
+        #                 time:  1611557231.4584,
+        #                 type: "buy",
+        #                 ordertype: "market",
+        #                 cost: "28.49800",
+        #                 fee: "0.07979",
+        #                 vol: "0.02000000",
+        #                 vol_closed: "0.00000000",
+        #                 margin: "14.24900",
+        #                 terms: "0.0200% per 4 hours",
+        #                 rollovertm: "1611571631",
+        #                 misc: "",
+        #                 oflags: ""
+        #             }
+        #         }
+        #     }
+        #
+        # consolidation by market
+        #
+        #     {
+        #         error: [],
+        #         result: [
+        #             {
+        #                 pair: "ETHUSDT",
+        #                 positions: "1",
+        #                 type: "buy",
+        #                 leverage: "2.00000",
+        #                 cost: "28.49800",
+        #                 fee: "0.07979",
+        #                 vol: "0.02000000",
+        #                 vol_closed: "0.00000000",
+        #                 margin: "14.24900"
+        #             }
+        #         ]
+        #     }
+        #
+        result = self.safe_value(response, 'result')
+        # todo unify parsePosition/parsePositions
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + api + '/' + path

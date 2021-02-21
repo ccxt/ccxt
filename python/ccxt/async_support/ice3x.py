@@ -219,7 +219,7 @@ class ice3x(Exchange):
             type = self.safe_string(params, 'type')
             if (type != 'ask') and (type != 'bid'):
                 # eslint-disable-next-line quotes
-                raise ArgumentsRequired(self.id + " fetchOrderBook requires an exchange-specific extra 'type' param('bid' or 'ask') when used with a limit")
+                raise ArgumentsRequired(self.id + " fetchOrderBook() requires an exchange-specific extra 'type' param('bid' or 'ask') when used with a limit")
             else:
                 request['items_per_page'] = limit
         response = await self.publicGetOrderbookInfo(self.extend(request, params))

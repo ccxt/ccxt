@@ -257,7 +257,7 @@ class btcturk(Exchange):
         }
         if type == 'market':
             if not ('Total' in params):
-                raise ExchangeError(self.id + ' createOrder requires the "Total" extra parameter for market orders(amount and price are both ignored)')
+                raise ExchangeError(self.id + ' createOrder() requires the "Total" extra parameter for market orders(amount and price are both ignored)')
         else:
             request['Price'] = price
             request['Amount'] = amount

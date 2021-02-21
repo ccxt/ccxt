@@ -15,6 +15,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -191,8 +192,8 @@ class bitso(Exchange):
             taker = self.safe_float(flatRate, 'taker')
             feeTiers = self.safe_value(fees, 'structure', [])
             fee = {
-                'maker': maker,
-                'taker': taker,
+                'taker': float(self.decimal_to_precision(taker / 100, ROUND, 0.00000001, TICK_SIZE)),
+                'maker': float(self.decimal_to_precision(maker / 100, ROUND, 0.00000001, TICK_SIZE)),
                 'percentage': True,
                 'tierBased': True,
             }
@@ -203,11 +204,13 @@ class bitso(Exchange):
                 volume = self.safe_float(tier, 'volume')
                 takerFee = self.safe_float(tier, 'taker')
                 makerFee = self.safe_float(tier, 'maker')
-                takerFees.append([volume, takerFee])
-                makerFees.append([volume, makerFee])
+                takerFeeToPrecision = float(self.decimal_to_precision(takerFee / 100, ROUND, 0.00000001, TICK_SIZE))
+                makerFeeToPrecision = float(self.decimal_to_precision(makerFee / 100, ROUND, 0.00000001, TICK_SIZE))
+                takerFees.append([volume, takerFeeToPrecision])
+                makerFees.append([volume, makerFeeToPrecision])
                 if j == 0:
-                    fee['taker'] = taker
-                    fee['maker'] = maker
+                    fee['taker'] = float(self.decimal_to_precision(taker / 100, ROUND, 0.00000001, TICK_SIZE))
+                    fee['maker'] = float(self.decimal_to_precision(maker / 100, ROUND, 0.00000001, TICK_SIZE))
             tiers = {
                 'taker': takerFees,
                 'maker': makerFees,

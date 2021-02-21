@@ -841,7 +841,7 @@ module.exports = class hbtc extends Exchange {
                 method = 'optionGetMyTrades';
             } else {
                 if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument for ' + type + ' markets');
+                    throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument for ' + type + ' markets');
                 }
                 const market = this.market (symbol);
                 request['symbol'] = market['id'];
@@ -1954,6 +1954,7 @@ module.exports = class hbtc extends Exchange {
             'NEW': 'open',
             'CANCELED': 'canceled',
             'FILLED': 'closed',
+            'PARTIALLY_FILLED': 'open',
             'PENDING_CANCEL': 'canceled',
         };
         return this.safeString (statuses, status, status);

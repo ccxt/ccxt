@@ -71,6 +71,7 @@ class bitfinex(Exchange):
                 '30m': '30m',
                 '1h': '1h',
                 '3h': '3h',
+                '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '1D',
@@ -603,13 +604,32 @@ class bitfinex(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
+        types = {
+            'exchange': 'exchange',
+            'deposit': 'funding',
+            'trading': 'margin',
+        }
         balanceType = self.safe_string(params, 'type', 'exchange')
         query = self.omit(params, 'type')
         response = self.privatePostBalances(query)
+        #    [{type: 'deposit',
+        #        currency: 'btc',
+        #        amount: '0.00116721',
+        #        available: '0.00116721'},
+        #      {type: 'exchange',
+        #        currency: 'ust',
+        #        amount: '0.0000002',
+        #        available: '0.0000002'},
+        #      {type: 'trading',
+        #        currency: 'btc',
+        #        amount: '0.0005',
+        #        available: '0.0005'}],
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
-            if balance['type'] == balanceType:
+            type = self.safe_string(balance, 'type')
+            parsedType = self.safe_string(types, type)
+            if (parsedType == balanceType) or (type == balanceType):
                 currencyId = self.safe_string(balance, 'currency')
                 code = self.safe_currency_code(currencyId)
                 # bitfinex had BCH previously, now it's BAB, but the old
@@ -751,7 +771,7 @@ class bitfinex(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

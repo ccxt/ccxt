@@ -66,6 +66,7 @@ class bitfinex2(bitfinex):
                 '30m': '30m',
                 '1h': '1h',
                 '3h': '3h',
+                '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '1D',
@@ -185,6 +186,7 @@ class bitfinex2(bitfinex):
                         'auth/r/positions/hist',
                         'auth/r/positions/audit',
                         'auth/w/deriv/collateral/set',
+                        'auth/w/deriv/collateral/limits',
                         'auth/r/funding/offers',
                         'auth/r/funding/offers/{symbol}',
                         'auth/w/funding/offer/submit',
@@ -903,15 +905,39 @@ class bitfinex2(bitfinex):
         await self.load_markets()
         market = self.market(symbol)
         orderTypes = self.safe_value(self.options, 'orderTypes', {})
-        orderType = self.safe_string(orderTypes, type, type)
+        orderType = self.safe_string_upper(orderTypes, type, type)
         amount = -amount if (side == 'sell') else amount
         request = {
             'symbol': market['id'],
             'type': orderType,
             'amount': self.number_to_string(amount),
         }
-        if type != 'market':
+        if (orderType == 'LIMIT') or (orderType == 'EXCHANGE LIMIT'):
             request['price'] = self.number_to_string(price)
+        elif (orderType == 'STOP') or (orderType == 'EXCHANGE STOP'):
+            stopPrice = self.safe_float(params, 'stopPrice', price)
+            request['price'] = self.number_to_string(stopPrice)
+        elif (orderType == 'STOP LIMIT') or (orderType == 'EXCHANGE STOP LIMIT'):
+            priceAuxLimit = self.safe_float(params, 'price_aux_limit')
+            stopPrice = self.safe_float(params, 'stopPrice')
+            if priceAuxLimit is None:
+                if stopPrice is None:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a price_aux_limit parameter for a ' + orderType + ' order')
+                else:
+                    request['price_aux_limit'] = self.number_to_string(price)
+            else:
+                request['price_aux_limit'] = self.number_to_string(priceAuxLimit)
+                if stopPrice is None:
+                    stopPrice = price
+            request['price'] = self.number_to_string(stopPrice)
+        elif (orderType == 'TRAILING STOP') or (orderType == 'EXCHANGE TRAILING STOP'):
+            priceTrailing = self.safe_float(params, 'price_trailing')
+            request['price_trailing'] = self.number_to_string(priceTrailing)
+            stopPrice = self.safe_float(params, 'stopPrice', price)
+            request['price'] = self.number_to_string(stopPrice)
+        elif (orderType == 'FOK') or (orderType == 'EXCHANGE FOK') or (orderType == 'IOC') or (orderType == 'EXCHANGE IOC'):
+            request['price'] = self.number_to_string(price)
+        params = self.omit(params, ['stopPrice', 'price_aux_limit', 'price_trailing'])
         clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
         if clientOrderId is not None:
             request['cid'] = clientOrderId

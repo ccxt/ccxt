@@ -65,9 +65,9 @@ The CCXT library currently supports the following 124 cryptocurrency exchange ma
 
 | logo                                                                                                                                                                                             | id                 | name                                                                                    | ver | doc                                                                                         | certified                                                                                                                   | pro                                                                          |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [![aax](https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg)](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)                    | aax                | [AAX](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)                    | 2   | [API](https://www.aaxpro.com/apidoc/index.html)                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
 | [![acx](https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg)](https://acx.io)                                                                    | acx                | [ACX](https://acx.io)                                                                   | 2   | [API](https://acx.io/documents/api_v2)                                                      |                                                                                                                             |                                                                              |
 | [![aofex](https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg)](https://aofex.com/#/register?key=9763840)                                       | aofex              | [AOFEX](https://aofex.com/#/register?key=9763840)                                       | *   | [API](https://aofex.zendesk.com/hc/en-us/sections/360005576574-API)                         |                                                                                                                             |                                                                              |
-| [![bcex](https://user-images.githubusercontent.com/51840849/77231516-851c6900-6bac-11ea-8fd6-ee5c23eddbd4.jpg)](https://www.bcex.top/register?invite_code=758978&lang=en)                        | bcex               | [BCEX](https://www.bcex.top/register?invite_code=758978&lang=en)                        | 1   | [API](https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface)                   |                                                                                                                             |                                                                              |
 | [![bequant](https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg)](https://bequant.io)                                                            | bequant            | [Bequant](https://bequant.io)                                                           | 2   | [API](https://api.bequant.io/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bibox](https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg)](https://w2.bibox365.com/login/register?invite_code=05Kj3I)                      | bibox              | [Bibox](https://w2.bibox365.com/login/register?invite_code=05Kj3I)                      | 1   | [API](https://biboxcom.github.io/en/)                                                       |                                                                                                                             |                                                                              |
 | [![bigone](https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg)](https://b1.run/users/new?code=D3LLBVFT)                                         | bigone             | [BigONE](https://b1.run/users/new?code=D3LLBVFT)                                        | 3   | [API](https://open.big.one/docs/api.html)                                                   |                                                                                                                             |                                                                              |
@@ -269,7 +269,7 @@ $bitfinex = new \ccxt\bitfinex(); // default id
 $bitfinex1 = new \ccxt\bitfinex(array('id' => 'bitfinex1'));
 $bitfinex2 = new \ccxt\bitfinex(array('id' => 'bitfinex2'));
 $id = 'kraken';
-$exchange = '\\ccxt\\' . $id
+$exchange = '\\ccxt\\' . $id;
 $kraken = new $exchange();
 
 // from variable id
@@ -881,7 +881,7 @@ function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = nu
 For examples of how to use the `decimalToPrecision` to format strings and floats, please, see the following files:
 
 - JavaScript: https://github.com/ccxt/ccxt/blob/master/js/test/base/functions/test.number.js
-- Python: https://github.com/ccxt/ccxt/blob/master/python/test/test_decimal_to_precision.py
+- Python: https://github.com/ccxt/ccxt/blob/master/python/ccxt/test/test_decimal_to_precision.py
 - PHP: https://github.com/ccxt/ccxt/blob/master/php/test/decimal_to_precision.php
 
 **Python WARNING! The `decimal_to_precision` method is susceptible to `getcontext().prec!`**
@@ -1211,6 +1211,8 @@ var_dump (new \ccxt\okcoinusd ()); // PHP
 
 ## Synchronous vs Asynchronous Calls
 
+### JavaScript
+
 In the JavaScript version of CCXT all methods are asynchronous and return [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that resolve with a decoded JSON object. In CCXT we use the modern *async/await* syntax to work with Promises. If you're not familiar with that syntax, you can read more about it [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function).
 
 ```JavaScript
@@ -1224,6 +1226,8 @@ In the JavaScript version of CCXT all methods are asynchronous and return [Promi
     console.log (kraken.id, marketId, ticker)
 }) ()
 ```
+
+### Python
 
 The ccxt library supports asynchronous concurrency mode in Python 3.5+ with async/await syntax. The asynchronous Python version uses pure [asyncio](https://docs.python.org/3/library/asyncio.html) with [aiohttp](http://aiohttp.readthedocs.io). In async mode you have all the same properties and methods, but most methods are decorated with an async keyword. If you want to use async mode, you should link against the `ccxt.async_support` subpackage, like in the following example:
 
@@ -1240,7 +1244,28 @@ async def print_poloniex_ethbtc_ticker():
 asyncio.get_event_loop().run_until_complete(print_poloniex_ethbtc_ticker())
 ```
 
-In PHP all API methods are synchronous.
+### PHP
+
+In the PHP 5-compatible version all API methods are synchronous, but with PHP 7.1+ the CCXT library optionally supports asynchronous concurrency mode using the 'yield' syntax (very similar to async/await in Python). The asynchronous PHP version uses the [RecoilPHP](https://github.com/recoilphp/recoil), [ReactPHP](https://reactphp.org/) and [clue/reactphp-buzz](https://github.com/clue/reactphp-buzz) libraries. In async mode you have all the same properties and methods, but any networking API method should be decorated with the `yield` keyword, your script should be in a ReactPHP/RecoilPHP wrapper, and all exchange constructors need to be passed the loop and kernel instances from the wrapper.
+
+To use the async version of the library, use the `ccxt_async` namespace, as in the following example:
+
+```PHP
+# PHP
+<?php
+include 'ccxt.php';
+
+$loop = \React\EventLoop\Factory::create();
+$kernel = \Recoil\React\ReactKernel::create($loop);
+$kernel->execute(function() use ($loop, $kernel) {
+    $poloniex = new \ccxt\async\poloniex(array('loop' => $loop, 'kernel' => $kernel, 'enableRateLimit' => true));
+    $result = yield $poloniex->fetch_ticker('ETH/BTC');
+    var_dump($result);
+}, $loop);
+$kernel->run();
+```
+
+See further examples in the `examples/php` directory; look for filenames that include the `async` word. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react`. Lastly, [this article](https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/) provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a `yield` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
 
 ### Returned JSON Objects
 
@@ -2663,7 +2688,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
     'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
     'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
     'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
-    'status':      'open',        // 'open', 'closed', 'canceled'
+    'status':      'open',        // 'open', 'closed', 'canceled', 'expired'
     'symbol':      'ETH/BTC',     // symbol
     'type':        'limit',       // 'market', 'limit'
     'timeInForce': 'GTC',         // 'GTC', 'IOC', 'FOK', 'PO'
@@ -2684,6 +2709,9 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 }
 ```
 
+- The `status` of an order is usually either `'open'` (not filled or partially filled), `'closed'` (fully filled), or `'canceled'` (unfilled and canceled, or partially filled then canceled).
+- Some exchanges allow the user to specify an expiration timestamp upon placing a new order. If the order is not filled by that time, its `status` becomes `'expired'`.
+- Use the `filled` value to determine if the order is filled, partially filled or fully filled, and by how much.
 - The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
 - The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
 - The `lastTradeTimestamp` timestamp may have no value and may be `undefined/None/null` where not supported by the exchange or in case of an open order (an order that has not been filled nor partially filled yet).

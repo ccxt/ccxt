@@ -521,7 +521,7 @@ class hollaex extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . " fetchOHLCV requires a 'since' or a 'limit' argument");
+                throw new ArgumentsRequired($this->id . " fetchOHLCV() requires a 'since' or a 'limit' argument");
             } else {
                 $end = $this->seconds();
                 $start = $end - $duration * $limit;

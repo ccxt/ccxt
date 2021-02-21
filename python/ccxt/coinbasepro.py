@@ -531,12 +531,20 @@ class coinbasepro(Exchange):
         #         trade_id: 82047307,
         #         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
         #         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
+        #         order_id: 'd50ec984-77a8-460a-b958-66f114b0de9b',
         #         side: 'sell',
         #         size: '0.00513192',
         #         price: '9314.78',
         #         product_id: 'BTC-USD',
+        #         profile_id: '6244401d-c078-40d9-b305-7ad3551bc3b0',
         #         sequence: 12038915443,
         #         time: '2020-01-31T20:03:41.158814Z'
+        #         created_at: '2014-11-07T22:19:28.578544Z',
+        #         liquidity: 'T',
+        #         fee: '0.00025',
+        #         settled: True,
+        #         usd_volume: '0.0924556000000000',
+        #         user_id: '595eb864313c2b02ddf2937d'
         #     }
         #
         timestamp = self.parse8601(self.safe_string_2(trade, 'time', 'created_at'))
@@ -545,10 +553,15 @@ class coinbasepro(Exchange):
         feeRate = None
         feeCurrency = None
         takerOrMaker = None
+        cost = None
         if market is not None:
+            feeCurrencyId = self.safe_string_lower(market, 'quoteId')
+            costField = feeCurrencyId + '_value'
+            cost = self.safe_float(trade, costField)
             feeCurrency = market['quote']
-            if 'liquidity' in trade:
-                takerOrMaker = 'taker' if (trade['liquidity'] == 'T') else 'maker'
+            liquidity = self.safe_string(trade, 'liquidity')
+            if liquidity is not None:
+                takerOrMaker = 'taker' if (liquidity == 'T') else 'maker'
                 feeRate = market[takerOrMaker]
         feeCost = self.safe_float_2(trade, 'fill_fees', 'fee')
         fee = {
@@ -565,6 +578,8 @@ class coinbasepro(Exchange):
             side = 'buy' if (trade['side'] == 'buy') else 'sell'
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'size')
+        if cost is None:
+            cost = amount * price
         return {
             'id': id,
             'order': orderId,
@@ -578,13 +593,13 @@ class coinbasepro(Exchange):
             'price': price,
             'amount': amount,
             'fee': fee,
-            'cost': price * amount,
+            'cost': cost,
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         # as of 2018-08-23
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -955,6 +970,8 @@ class coinbasepro(Exchange):
         else:
             method += 'Crypto'
             request['crypto_address'] = address
+            if tag is not None:
+                request['destination_tag'] = tag
         response = getattr(self, method)(self.extend(request, params))
         if not response:
             raise ExchangeError(self.id + ' withdraw() error: ' + self.json(response))
@@ -1034,6 +1051,8 @@ class coinbasepro(Exchange):
             address = self.safe_string(details, 'sent_to_address', address)
             feeCost = self.safe_float(details, 'fee')
             if feeCost is not None:
+                if amount is not None:
+                    amount -= feeCost
                 fee = {
                     'cost': feeCost,
                     'currency': code,

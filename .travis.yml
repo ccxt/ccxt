@@ -1,6 +1,7 @@
 language: python
+dist: focal
 python:
-  - "3.6"
+  - "3.7"
 cache:
  directories:
    # - $HOME/.cache/pip
@@ -17,18 +18,14 @@ before_install:
 - rm -rf node_modules
 - npm install
 - git checkout package.json package-lock.json
-- sudo apt-get install python3-pip
-- python3 --version
-- python2 --version
-- pip3 --version
 - sudo -H pip install --upgrade setuptools
 - sudo -H pip install --upgrade pip wheel requests pyopenssl
 - sudo -H pip install --ignore-installed six
 - sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
-- pip2 install requests[security]
 - git pull --tags
+- composer install
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - npm run force-build
@@ -36,7 +33,7 @@ script:
 - tox -e doc
 - cd ..
 - npm run test-base
-- bash -c 'node run-tests --js --python-async 5' 2>&1
+- bash -c 'node run-tests --js --python-async --php-async 5' 2>&1
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then cd python && env PYPI_PASSWORD=${PYPI_PASSWORD} ./deploy.sh && cd ..; fi
 after_failure:

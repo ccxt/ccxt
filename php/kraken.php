@@ -1006,7 +1006,7 @@ class kraken extends Exchange {
                 $request['price'] = $this->price_to_precision($symbol, $stopPrice);
                 $request['price2'] = $this->price_to_precision($symbol, $limitPrice);
             } else if (($price === null) || (!($stopPriceDefined || $limitPriceDefined))) {
-                throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument and/or price/stopPrice/price2 parameters for a ' . $type . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument and/or price/stopPrice/price2 parameters for a ' . $type . ' order');
             } else {
                 if ($stopPriceDefined) {
                     $request['price'] = $this->price_to_precision($symbol, $stopPrice);
@@ -1260,7 +1260,7 @@ class kraken extends Exchange {
         $orderTrades = $this->safe_value($params, 'trades');
         $tradeIds = array();
         if ($orderTrades === null) {
-            throw new ArgumentsRequired($this->id . " fetchOrderTrades requires a unified order structure in the $params argument or a 'trades' param (an array of trade $id strings)");
+            throw new ArgumentsRequired($this->id . " fetchOrderTrades() requires a unified order structure in the $params argument or a 'trades' param (an array of trade $id strings)");
         } else {
             for ($i = 0; $i < count($orderTrades); $i++) {
                 $orderTrade = $orderTrades[$i];
@@ -1580,7 +1580,7 @@ class kraken extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         // https://www.kraken.com/en-us/help/api#deposit-status
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1623,7 +1623,7 @@ class kraken extends Exchange {
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         // https://www.kraken.com/en-us/help/api#withdraw-status
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
         }
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1714,7 +1714,65 @@ class kraken extends Exchange {
                 'id' => $response['result'],
             );
         }
-        throw new ExchangeError($this->id . " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
+        throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
+    }
+
+    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'txid' => 'comma delimited list of transaction ids to restrict output to',
+            // 'docalcs' => false, // whether or not to include profit/loss calculations
+            // 'consolidation' => 'market', // what to consolidate the positions data around, market will consolidate positions based on market pair
+        );
+        $response = $this->privatePostOpenPositions (array_merge($request, $params));
+        //
+        // no consolidation
+        //
+        //     {
+        //         error => array(),
+        //         $result => {
+        //             'TGUFMY-FLESJ-VYIX3J' => {
+        //                 ordertxid => "O3LRNU-ZKDG5-XNCDFR",
+        //                 posstatus => "open",
+        //                 pair => "ETHUSDT",
+        //                 time =>  1611557231.4584,
+        //                 type => "buy",
+        //                 ordertype => "market",
+        //                 cost => "28.49800",
+        //                 fee => "0.07979",
+        //                 vol => "0.02000000",
+        //                 vol_closed => "0.00000000",
+        //                 margin => "14.24900",
+        //                 terms => "0.0200% per 4 hours",
+        //                 rollovertm => "1611571631",
+        //                 misc => "",
+        //                 oflags => ""
+        //             }
+        //         }
+        //     }
+        //
+        // consolidation by market
+        //
+        //     {
+        //         error => array(),
+        //         $result => array(
+        //             {
+        //                 pair => "ETHUSDT",
+        //                 positions => "1",
+        //                 type => "buy",
+        //                 leverage => "2.00000",
+        //                 cost => "28.49800",
+        //                 fee => "0.07979",
+        //                 vol => "0.02000000",
+        //                 vol_closed => "0.00000000",
+        //                 margin => "14.24900"
+        //             }
+        //         )
+        //     }
+        //
+        $result = $this->safe_value($response, 'result');
+        // todo unify parsePosition/parsePositions
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

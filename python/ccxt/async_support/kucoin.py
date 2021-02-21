@@ -252,10 +252,10 @@ class kucoin(Exchange):
                     'public': {
                         'GET': {
                             'status': 'v1',
-                            'market/orderbook/level{level}': 'v1',
+                            'market/orderbook/level{level}': 'v2',
                             'market/orderbook/level2': 'v2',
-                            'market/orderbook/level2_20': 'v1',
-                            'market/orderbook/level2_100': 'v1',
+                            'market/orderbook/level2_20': 'v2',
+                            'market/orderbook/level2_100': 'v2',
                         },
                     },
                     'private': {
@@ -674,7 +674,9 @@ class kucoin(Exchange):
         if address is not None:
             address = address.replace('bitcoincash:', '')
         tag = self.safe_string(data, 'memo')
-        self.check_address(address)
+        if code != 'NIM':
+            # contains spaces
+            self.check_address(address)
         return {
             'info': response,
             'currency': code,
@@ -691,11 +693,10 @@ class kucoin(Exchange):
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
-        # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        if address is not None:
-            address = address.replace('bitcoincash:', '')
         tag = self.safe_string(data, 'memo')
-        self.check_address(address)
+        if code != 'NIM':
+            # contains spaces
+            self.check_address(address)
         return {
             'info': response,
             'currency': code,
@@ -903,7 +904,7 @@ class kucoin(Exchange):
         # otherwise a wrong endpoint for all orders will be triggered
         # https://github.com/ccxt/ccxt/issues/7234
         if id is None:
-            raise InvalidOrder(self.id + ' fetchOrder requires an order id')
+            raise InvalidOrder(self.id + ' fetchOrder() requires an order id')
         request = {
             'orderId': id,
         }
@@ -1525,7 +1526,7 @@ class kucoin(Exchange):
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchLedger requires a code param')
+            raise ArgumentsRequired(self.id + ' fetchLedger() requires a code param')
         await self.load_markets()
         await self.load_accounts()
         currency = self.currency(code)

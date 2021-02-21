@@ -59,6 +59,7 @@ class bitfinex2 extends bitfinex {
                 '30m' => '30m',
                 '1h' => '1h',
                 '3h' => '3h',
+                '4h' => '4h',
                 '6h' => '6h',
                 '12h' => '12h',
                 '1d' => '1D',
@@ -178,6 +179,7 @@ class bitfinex2 extends bitfinex {
                         'auth/r/positions/hist',
                         'auth/r/positions/audit',
                         'auth/w/deriv/collateral/set',
+                        'auth/w/deriv/collateral/limits',
                         'auth/r/funding/offers',
                         'auth/r/funding/offers/{symbol}',
                         'auth/w/funding/offer/submit',
@@ -948,16 +950,43 @@ class bitfinex2 extends bitfinex {
         $this->load_markets();
         $market = $this->market($symbol);
         $orderTypes = $this->safe_value($this->options, 'orderTypes', array());
-        $orderType = $this->safe_string($orderTypes, $type, $type);
+        $orderType = $this->safe_string_upper($orderTypes, $type, $type);
         $amount = ($side === 'sell') ? -$amount : $amount;
         $request = array(
             'symbol' => $market['id'],
             'type' => $orderType,
             'amount' => $this->number_to_string($amount),
         );
-        if ($type !== 'market') {
+        if (($orderType === 'LIMIT') || ($orderType === 'EXCHANGE LIMIT')) {
+            $request['price'] = $this->number_to_string($price);
+        } else if (($orderType === 'STOP') || ($orderType === 'EXCHANGE STOP')) {
+            $stopPrice = $this->safe_float($params, 'stopPrice', $price);
+            $request['price'] = $this->number_to_string($stopPrice);
+        } else if (($orderType === 'STOP LIMIT') || ($orderType === 'EXCHANGE STOP LIMIT')) {
+            $priceAuxLimit = $this->safe_float($params, 'price_aux_limit');
+            $stopPrice = $this->safe_float($params, 'stopPrice');
+            if ($priceAuxLimit === null) {
+                if ($stopPrice === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter or a price_aux_limit parameter for a ' . $orderType . ' order');
+                } else {
+                    $request['price_aux_limit'] = $this->number_to_string($price);
+                }
+            } else {
+                $request['price_aux_limit'] = $this->number_to_string($priceAuxLimit);
+                if ($stopPrice === null) {
+                    $stopPrice = $price;
+                }
+            }
+            $request['price'] = $this->number_to_string($stopPrice);
+        } else if (($orderType === 'TRAILING STOP') || ($orderType === 'EXCHANGE TRAILING STOP')) {
+            $priceTrailing = $this->safe_float($params, 'price_trailing');
+            $request['price_trailing'] = $this->number_to_string($priceTrailing);
+            $stopPrice = $this->safe_float($params, 'stopPrice', $price);
+            $request['price'] = $this->number_to_string($stopPrice);
+        } else if (($orderType === 'FOK') || ($orderType === 'EXCHANGE FOK') || ($orderType === 'IOC') || ($orderType === 'EXCHANGE IOC')) {
             $request['price'] = $this->number_to_string($price);
         }
+        $params = $this->omit($params, array( 'stopPrice', 'price_aux_limit', 'price_trailing' ));
         $clientOrderId = $this->safe_value_2($params, 'cid', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['cid'] = $clientOrderId;

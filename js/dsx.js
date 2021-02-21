@@ -653,7 +653,7 @@ module.exports = class dsx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (type === 'market' && price === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires a price argument even for market orders, that is the worst price that you agree to fill your order for');
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument even for market orders, that is the worst price that you agree to fill your order for');
         }
         const request = {
             'pair': market['id'],

@@ -146,10 +146,10 @@ class bittrex extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => false,
+                    'tierBased' => true,
                     'percentage' => true,
-                    'maker' => 0.0025,
-                    'taker' => 0.0025,
+                    'maker' => 0.0035,
+                    'taker' => 0.0035,
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -1223,7 +1223,7 @@ class bittrex extends Exchange {
         $request = array(
             'currencySymbol' => $currency['id'],
         );
-        $response = $this->privatePostAddressesCurrencySymbol (array_merge($request, $params));
+        $response = $this->privatePostAddresses (array_merge($request, $params));
         //
         //     {
         //         "status":"PROVISIONED",

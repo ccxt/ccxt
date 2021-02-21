@@ -199,8 +199,8 @@ class gopax extends Exchange {
         //                 "$marketAsk":array("amount":0.001,"unit":"ETH"),
         //                 "$marketBid":array("amount":10000,"unit":"KRW"),
         //             ),
-        //             "makerFeePercent":0.2,
-        //             "takerFeePercent":0.2,
+        //             "$makerFeePercent":0.2,
+        //             "$takerFeePercent":0.2,
         //         ),
         //     )
         //
@@ -221,6 +221,10 @@ class gopax extends Exchange {
             $minimums = $this->safe_value($market, 'restApiOrderAmountMin', array());
             $marketAsk = $this->safe_value($minimums, 'marketAsk', array());
             $marketBid = $this->safe_value($minimums, 'marketBid', array());
+            $takerFeePercent = $this->safe_float($market, 'takerFeePercent');
+            $makerFeePercent = $this->safe_float($market, 'makerFeePercent');
+            $taker = floatval($this->decimal_to_precision($takerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE));
+            $maker = floatval($this->decimal_to_precision($makerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE));
             $result[] = array(
                 'id' => $id,
                 'info' => $market,
@@ -231,8 +235,8 @@ class gopax extends Exchange {
                 'baseId' => $this->safe_string($market, 'baseAsset'),
                 'quoteId' => $this->safe_string($market, 'quoteAsset'),
                 'active' => true,
-                'taker' => $this->safe_float($market, 'takerFeePercent'),
-                'maker' => $this->safe_float($market, 'makerFeePercent'),
+                'taker' => $taker,
+                'maker' => $maker,
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(

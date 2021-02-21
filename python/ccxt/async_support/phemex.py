@@ -119,6 +119,7 @@ class phemex(Exchange):
                         'exchange/spot/order/trades',  # ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         # swap
                         'accounts/accountPositions',  # ?currency=<currency>
+                        'accounts/positions',  # ?currency=<currency>
                         'orders/activeList',  # ?symbol=<symbol>
                         'exchange/order/list',  # ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order',  # ?symbol=<symbol>&orderID=<orderID1,orderID2>
@@ -729,7 +730,7 @@ class phemex(Exchange):
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market=None):
         if market is None:
-            raise ArgumentsRequired(self.id + ' parseBidAsk requires a market argument')
+            raise ArgumentsRequired(self.id + ' parseBidAsk() requires a market argument')
         amount = self.safe_float(bidask, amountKey)
         if market['spot']:
             amount = self.from_ev(amount, market)
@@ -883,7 +884,7 @@ class phemex(Exchange):
             request['from'] = now - duration * self.sum(limit, 1)
             request['to'] = now
         else:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument, or a limit argument, or both')
+            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument, or a limit argument, or both')
         await self.load_markets()
         market = self.market(symbol)
         request['symbol'] = market['id']
@@ -1366,7 +1367,7 @@ class phemex(Exchange):
             else:
                 currency = self.safe_string(params, 'currency')
                 if currency is None:
-                    raise ArgumentsRequired(self.id + ' fetchBalance requires a code parameter or a currency parameter for ' + type + ' type')
+                    raise ArgumentsRequired(self.id + ' fetchBalance() requires a code parameter or a currency parameter for ' + type + ' type')
             method = 'privateGetAccountsAccountPositions'
         params = self.omit(params, 'type')
         response = await getattr(self, method)(self.extend(request, params))
@@ -1747,7 +1748,7 @@ class phemex(Exchange):
                     if price is not None:
                         cost = amount * price
                     elif cost is None:
-                        raise ArgumentsRequired(self.id + ' createOrder ' + qtyType + ' requires a price argument or a cost parameter')
+                        raise ArgumentsRequired(self.id + ' createOrder() ' + qtyType + ' requires a price argument or a cost parameter')
                 cost = amount if (cost is None) else cost
                 request['quoteQtyEv'] = self.to_ep(cost, market)
             else:
@@ -1843,7 +1844,7 @@ class phemex(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1877,7 +1878,7 @@ class phemex(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         method = 'privateGetSpotOrdersActive' if market['spot'] else 'privateGetExchangeOrder'
@@ -1905,7 +1906,7 @@ class phemex(Exchange):
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         method = 'privateGetSpotOrders' if market['spot'] else 'privateGetExchangeOrderList'
@@ -1923,7 +1924,7 @@ class phemex(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         method = 'privateGetSpotOrders' if market['spot'] else 'privateGetOrdersActiveList'
@@ -1943,7 +1944,7 @@ class phemex(Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         method = 'privateGetExchangeSpotOrder' if market['spot'] else 'privateGetExchangeOrderList'
@@ -2000,7 +2001,7 @@ class phemex(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         method = 'privateGetExchangeSpotOrderTrades' if market['spot'] else 'privateGetExchangeOrderTrade'

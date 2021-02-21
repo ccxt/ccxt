@@ -429,7 +429,7 @@ class bitflyer extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a `$symbol` argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -445,7 +445,7 @@ class bitflyer extends Exchange {
 
     public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
         if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' fetchPositions requires a `$symbols` argument, exactly one symbol in an array');
+            throw new ArgumentsRequired($this->id . ' fetchPositions() requires a `$symbols` argument, exactly one symbol in an array');
         }
         $this->load_markets();
         $request = array(

@@ -778,7 +778,7 @@ module.exports = class deribit extends Exchange {
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument or a limit argument');
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
             } else {
                 request['start_timestamp'] = now - (limit - 1) * duration * 1000;
                 request['end_timestamp'] = now;
@@ -1193,13 +1193,13 @@ module.exports = class deribit extends Exchange {
             if (price !== undefined) {
                 request['price'] = this.priceToPrecision (symbol, price);
             } else {
-                throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for a ' + type + ' order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
         }
         if (stopPriceIsRequired) {
             const stopPrice = this.safeFloat2 (params, 'stop_price', 'stopPrice');
             if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires a stop_price or stopPrice param for a ' + type + ' order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a stop_price or stopPrice param for a ' + type + ' order');
             } else {
                 request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
             }
@@ -1268,10 +1268,10 @@ module.exports = class deribit extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder requires an amount argument');
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
         }
         if (price === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder requires a price argument');
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument');
         }
         await this.loadMarkets ();
         const request = {

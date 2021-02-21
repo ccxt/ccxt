@@ -520,7 +520,7 @@ module.exports = class hollaex extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         if (since === undefined) {
             if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + " fetchOHLCV requires a 'since' or a 'limit' argument");
+                throw new ArgumentsRequired (this.id + " fetchOHLCV() requires a 'since' or a 'limit' argument");
             } else {
                 const end = this.seconds ();
                 const start = end - duration * limit;

@@ -94,7 +94,7 @@ class coinfloor extends Exchange {
             $market = $this->markets_by_id[$marketId];
         }
         if ($market === null) {
-            throw new ArgumentsRequired($this->id . ' fetchBalance requires a $symbol param');
+            throw new ArgumentsRequired($this->id . ' fetchBalance() requires a $symbol param');
         }
         $request = array(
             'id' => $market['id'],
@@ -227,7 +227,7 @@ class coinfloor extends Exchange {
         if ($code !== null) {
             $market = $this->market($code);
             if ($market === null) {
-                throw new ArgumentsRequired($this->id . ' fetchTransactions requires a $code argument (a $market symbol)');
+                throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $code argument (a $market symbol)');
             }
         }
         $request = array(
@@ -435,7 +435,7 @@ class coinfloor extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -500,7 +500,7 @@ class coinfloor extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol param');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol param');
         }
         $this->load_markets();
         $market = $this->market($symbol);

@@ -996,7 +996,7 @@ module.exports = class kraken extends Exchange {
                 request['price'] = this.priceToPrecision (symbol, stopPrice);
                 request['price2'] = this.priceToPrecision (symbol, limitPrice);
             } else if ((price === undefined) || (!(stopPriceDefined || limitPriceDefined))) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order');
             } else {
                 if (stopPriceDefined) {
                     request['price'] = this.priceToPrecision (symbol, stopPrice);
@@ -1250,7 +1250,7 @@ module.exports = class kraken extends Exchange {
         const orderTrades = this.safeValue (params, 'trades');
         const tradeIds = [];
         if (orderTrades === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrderTrades requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)");
+            throw new ArgumentsRequired (this.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)");
         } else {
             for (let i = 0; i < orderTrades.length; i++) {
                 const orderTrade = orderTrades[i];
@@ -1570,7 +1570,7 @@ module.exports = class kraken extends Exchange {
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         // https://www.kraken.com/en-us/help/api#deposit-status
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1613,7 +1613,7 @@ module.exports = class kraken extends Exchange {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         // https://www.kraken.com/en-us/help/api#withdraw-status
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1704,7 +1704,65 @@ module.exports = class kraken extends Exchange {
                 'id': response['result'],
             };
         }
-        throw new ExchangeError (this.id + " withdraw requires a 'key' parameter (withdrawal key name, as set up on your account)");
+        throw new ExchangeError (this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
+    }
+
+    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'txid': 'comma delimited list of transaction ids to restrict output to',
+            // 'docalcs': false, // whether or not to include profit/loss calculations
+            // 'consolidation': 'market', // what to consolidate the positions data around, market will consolidate positions based on market pair
+        };
+        const response = await this.privatePostOpenPositions (this.extend (request, params));
+        //
+        // no consolidation
+        //
+        //     {
+        //         error: [],
+        //         result: {
+        //             'TGUFMY-FLESJ-VYIX3J': {
+        //                 ordertxid: "O3LRNU-ZKDG5-XNCDFR",
+        //                 posstatus: "open",
+        //                 pair: "ETHUSDT",
+        //                 time:  1611557231.4584,
+        //                 type: "buy",
+        //                 ordertype: "market",
+        //                 cost: "28.49800",
+        //                 fee: "0.07979",
+        //                 vol: "0.02000000",
+        //                 vol_closed: "0.00000000",
+        //                 margin: "14.24900",
+        //                 terms: "0.0200% per 4 hours",
+        //                 rollovertm: "1611571631",
+        //                 misc: "",
+        //                 oflags: ""
+        //             }
+        //         }
+        //     }
+        //
+        // consolidation by market
+        //
+        //     {
+        //         error: [],
+        //         result: [
+        //             {
+        //                 pair: "ETHUSDT",
+        //                 positions: "1",
+        //                 type: "buy",
+        //                 leverage: "2.00000",
+        //                 cost: "28.49800",
+        //                 fee: "0.07979",
+        //                 vol: "0.02000000",
+        //                 vol_closed: "0.00000000",
+        //                 margin: "14.24900"
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result');
+        // todo unify parsePosition/parsePositions
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

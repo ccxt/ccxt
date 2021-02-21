@@ -234,7 +234,7 @@ class flowbtc(Exchange):
                 'serverOrderId': id,
             }
             return self.privatePostCancelOrder(self.extend(request, params))
-        raise ExchangeError(self.id + ' requires `ins` symbol parameter for cancelling an order')
+        raise ExchangeError(self.id + ' cancelOrder() requires an `ins` symbol parameter for cancelling an order')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path

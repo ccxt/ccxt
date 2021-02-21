@@ -1655,7 +1655,7 @@ class bitget(Exchange):
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         if type is None:
-            raise ArgumentsRequired(self.id + " requires an 'accountId' parameter")
+            raise ArgumentsRequired(self.id + " getAccountId() requires an 'accountId' parameter")
         account = await self.find_account_by_type(type)
         return account['id']
 
@@ -1665,7 +1665,7 @@ class bitget(Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchBalance requires a 'type' parameter, one of 'spot', 'swap'")
+            raise ArgumentsRequired(self.id + " fetchBalance() requires a 'type' parameter, one of 'spot', 'swap'")
         method = None
         query = self.omit(params, 'type')
         if type == 'spot':
@@ -1970,7 +1970,7 @@ class bitget(Exchange):
             request['client_oid'] = clientOrderId
             orderType = self.safe_string(params, 'type')
             if orderType is None:
-                raise ArgumentsRequired(self.id + " createOrder requires a type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " + market['type'] + ' orders')
+                raise ArgumentsRequired(self.id + " createOrder() requires a type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " + market['type'] + ' orders')
             request['size'] = self.amount_to_precision(symbol, amount)
             request['type'] = orderType
             # if match_price is set to '1', the price parameter will be ignored for market orders
@@ -2008,7 +2008,7 @@ class bitget(Exchange):
             type = self.safe_string(params, 'type', defaultType)
             if type == 'spot':
                 if symbol is None:
-                    raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument for spot orders')
+                    raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument for spot orders')
         else:
             market = self.market(symbol)
             type = market['type']
@@ -2044,12 +2044,13 @@ class bitget(Exchange):
 
     async def cancel_orders(self, ids, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
         if type is None:
-            raise ArgumentsRequired(self.id + " cancelOrders requires a type parameter(one of 'spot', 'swap').")
+            raise ArgumentsRequired(self.id + " cancelOrders() requires a type parameter(one of 'spot', 'swap').")
+        params = self.omit(params, 'type')
         request = {}
         method = None
         if type == 'spot':
@@ -2104,12 +2105,12 @@ class bitget(Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchOrder requires a type parameter(one of 'spot', 'swap').")
+            raise ArgumentsRequired(self.id + " fetchOrder() requires a type parameter(one of 'spot', 'swap').")
         method = None
         request = {}
         if type == 'spot':
@@ -2176,7 +2177,7 @@ class bitget(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
@@ -2255,7 +2256,7 @@ class bitget(Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
@@ -2340,7 +2341,7 @@ class bitget(Exchange):
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2375,7 +2376,7 @@ class bitget(Exchange):
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2492,13 +2493,13 @@ class bitget(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
         query = self.omit(params, 'type')
         if type == 'swap':
-            raise ArgumentsRequired(self.id + ' fetchMyTrades is not supported for ' + type + ' type')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() is not supported for ' + type + ' type')
         #
         # spot
         #
@@ -2551,11 +2552,11 @@ class bitget(Exchange):
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
-        query = self.omit(params, 'type')
+        params = self.omit(params, 'type')
         method = None
         request = {}
         if type == 'spot':
@@ -2566,7 +2567,7 @@ class bitget(Exchange):
             request['orderId'] = id
             request['symbol'] = market['id']
             method = 'swapGetOrderFills'
-        response = await getattr(self, method)(self.extend(request, query))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         # spot
         #

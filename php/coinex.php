@@ -95,6 +95,8 @@ class coinex extends Exchange {
                         'order/status',
                         'order/status/batch',
                         'order/user/deals',
+                        'sub_account/balance',
+                        'sub_account/transfer/history',
                     ),
                     'post' => array(
                         'balance/coin/withdraw',
@@ -566,7 +568,7 @@ class coinex extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -772,6 +774,10 @@ class coinex extends Exchange {
             'cost' => $feeCost,
             'currency' => $code,
         );
+        // https://github.com/ccxt/ccxt/issues/8321
+        if ($amount !== null) {
+            $amount = $amount - $feeCost;
+        }
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -791,7 +797,7 @@ class coinex extends Exchange {
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
         }
         $this->load_markets();
         $currency = $this->currency($code);
@@ -849,7 +855,7 @@ class coinex extends Exchange {
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $this->load_markets();
         $currency = $this->currency($code);
@@ -914,7 +920,7 @@ class coinex extends Exchange {
                 'tonce' => (string) $nonce,
             ), $query);
             $query = $this->keysort($query);
-            $urlencoded = $this->urlencode($query);
+            $urlencoded = $this->rawencode($query);
             $signature = $this->hash($this->encode($urlencoded . '&secret_key=' . $this->secret));
             $headers = array(
                 'Authorization' => strtoupper($signature),

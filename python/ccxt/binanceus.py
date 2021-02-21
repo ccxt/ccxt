@@ -42,3 +42,6 @@ class binanceus(binance):
                 'quoteOrderQty': False,
             },
         })
+
+    def fetch_currencies(self, params={}):
+        return None

@@ -778,7 +778,7 @@ class deribit(Exchange):
         now = self.milliseconds()
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument or a limit argument')
+                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
             else:
                 request['start_timestamp'] = now - (limit - 1) * duration * 1000
                 request['end_timestamp'] = now
@@ -1167,11 +1167,11 @@ class deribit(Exchange):
             if price is not None:
                 request['price'] = self.price_to_precision(symbol, price)
             else:
-                raise ArgumentsRequired(self.id + ' createOrder requires a price argument for a ' + type + ' order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
         if stopPriceIsRequired:
             stopPrice = self.safe_float_2(params, 'stop_price', 'stopPrice')
             if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder requires a stop_price or stopPrice param for a ' + type + ' order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stop_price or stopPrice param for a ' + type + ' order')
             else:
                 request['stop_price'] = self.price_to_precision(symbol, stopPrice)
             params = self.omit(params, ['stop_price', 'stopPrice'])
@@ -1237,9 +1237,9 @@ class deribit(Exchange):
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if amount is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires an amount argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
         if price is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires a price argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires a price argument')
         await self.load_markets()
         request = {
             'order_id': id,

@@ -99,6 +99,8 @@ class coinex(Exchange):
                         'order/status',
                         'order/status/batch',
                         'order/user/deals',
+                        'sub_account/balance',
+                        'sub_account/transfer/history',
                     ],
                     'post': [
                         'balance/coin/withdraw',
@@ -539,7 +541,7 @@ class coinex(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -727,6 +729,9 @@ class coinex(Exchange):
             'cost': feeCost,
             'currency': code,
         }
+        # https://github.com/ccxt/ccxt/issues/8321
+        if amount is not None:
+            amount = amount - feeCost
         return {
             'info': transaction,
             'id': id,
@@ -745,7 +750,7 @@ class coinex(Exchange):
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -799,7 +804,7 @@ class coinex(Exchange):
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -858,7 +863,7 @@ class coinex(Exchange):
                 'tonce': str(nonce),
             }, query)
             query = self.keysort(query)
-            urlencoded = self.urlencode(query)
+            urlencoded = self.rawencode(query)
             signature = self.hash(self.encode(urlencoded + '&secret_key=' + self.secret))
             headers = {
                 'Authorization': signature.upper(),

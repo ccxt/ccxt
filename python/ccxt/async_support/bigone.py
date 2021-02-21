@@ -88,6 +88,7 @@ class bigone(Exchange):
                 'private': {
                     'get': [
                         'accounts',
+                        'fund/accounts',
                         'assets/{asset_symbol}/address',
                         'orders',
                         'orders/{id}',
@@ -101,6 +102,7 @@ class bigone(Exchange):
                         'orders/{id}/cancel',
                         'orders/cancel',
                         'withdrawals',
+                        'transfer',
                     ],
                 },
             },
@@ -621,7 +623,10 @@ class bigone(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetAccounts(params)
+        type = self.safe_string(params, 'type', '')
+        params = self.omit(params, 'type')
+        method = 'privateGet' + self.capitalize(type) + 'Accounts'
+        response = await getattr(self, method)(params)
         #
         #     {
         #         "code":0,
@@ -728,7 +733,7 @@ class bigone(Exchange):
             if isStopLimit or isStopMarket:
                 stopPrice = self.safe_float_2(params, 'stop_price', 'stopPrice')
                 if stopPrice is None:
-                    raise ArgumentsRequired(self.id + ' createOrder requires a stop_price parameter')
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a stop_price parameter')
                 request['stop_price'] = self.price_to_precision(symbol, stopPrice)
                 params = self.omit(params, ['stop_price', 'stopPrice'])
             if isStopLimit:

@@ -411,20 +411,20 @@ module.exports = class Exchange {
         if (!!enabled) { // eslint-disable-line no-extra-boolean-cast
             if ('test' in this.urls) {
                 if (typeof this.urls['api'] === 'string') {
-                    this.urls['api_backup'] = this.urls['api']
+                    this.urls['apiBackup'] = this.urls['api']
                     this.urls['api'] = this.urls['test']
                 } else {
-                    this.urls['api_backup'] = clone (this.urls['api'])
+                    this.urls['apiBackup'] = clone (this.urls['api'])
                     this.urls['api'] = clone (this.urls['test'])
                 }
             } else {
                 throw new NotSupported (this.id + ' does not have a sandbox URL')
             }
-        } else if ('api_backup' in this.urls) {
+        } else if ('apiBackup' in this.urls) {
             if (typeof this.urls['api'] === 'string') {
-                this.urls['api'] = this.urls['api_backup']
+                this.urls['api'] = this.urls['apiBackup']
             } else {
-                this.urls['api'] = clone (this.urls['api_backup'])
+                this.urls['api'] = clone (this.urls['apiBackup'])
             }
         }
     }
@@ -576,34 +576,29 @@ module.exports = class Exchange {
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
 
         return response.text ().then ((responseBody) => {
-
-            responseBody = responseBody.trim ()
-
-            const json = this.parseJson (responseBody.replace (/:(\d{15,}),/g, ':"$1",'))
-
             const responseHeaders = this.getResponseHeaders (response)
-
+            const bodyText = this.onRestResponse (response.status, response.statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody);
+            const json = this.parseJson (bodyText)
             if (this.enableLastResponseHeaders) {
                 this.last_response_headers = responseHeaders
             }
-
             if (this.enableLastHttpResponse) {
                 this.last_http_response = responseBody
             }
-
             if (this.enableLastJsonResponse) {
                 this.last_json_response = json
             }
-
             if (this.verbose) {
                 this.print ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
             }
-
             this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
             this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
-
             return json || responseBody
         })
+    }
+
+    onRestResponse (statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
+        return responseBody.trim ().replace (/:(\d{15,}),/g, ':"$1",');
     }
 
     setMarkets (markets, currencies = undefined) {
@@ -1062,12 +1057,12 @@ module.exports = class Exchange {
         return array
     }
 
-    filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined) {
-        return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit)
+    filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail)
     }
 
-    filterByCurrencySinceLimit (array, code = undefined, since = undefined, limit = undefined) {
-        return this.filterByValueSinceLimit (array, 'currency', code, since, limit)
+    filterByCurrencySinceLimit (array, code = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail)
     }
 
     filterByArray (objects, key, values = undefined, indexed = true) {
@@ -1262,20 +1257,20 @@ module.exports = class Exchange {
         return this.createOrder (symbol, ...args)
     }
 
-    createLimitOrder (symbol, ...args) {
-        return this.createOrder (symbol, 'limit', ...args)
+    createLimitOrder (symbol, side, amount, price = undefined, params = {}) {
+        return this.createOrder (symbol, 'limit', side, amount, price, params)
     }
 
-    createMarketOrder (symbol, ...args) {
-        return this.createOrder (symbol, 'market', ...args)
+    createMarketOrder (symbol, side, amount, price = undefined, params = {}) {
+        return this.createOrder (symbol, 'market', side, amount, price, params)
     }
 
-    createLimitBuyOrder (symbol, ...args) {
-        return this.createOrder  (symbol, 'limit', 'buy', ...args)
+    createLimitBuyOrder (symbol, amount, price = undefined, params = {}) {
+        return this.createOrder  (symbol, 'limit', 'buy', amount, price, params)
     }
 
-    createLimitSellOrder (symbol, ...args) {
-        return this.createOrder (symbol, 'limit', 'sell', ...args)
+    createLimitSellOrder (symbol, amount, price = undefined, params = {}) {
+        return this.createOrder (symbol, 'limit', 'sell', amount, price, params)
     }
 
     createMarketBuyOrder (symbol, amount, params = {}) {

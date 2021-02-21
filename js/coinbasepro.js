@@ -524,12 +524,20 @@ module.exports = class coinbasepro extends Exchange {
         //         trade_id: 82047307,
         //         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
         //         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
+        //         order_id: 'd50ec984-77a8-460a-b958-66f114b0de9b',
         //         side: 'sell',
         //         size: '0.00513192',
         //         price: '9314.78',
         //         product_id: 'BTC-USD',
+        //         profile_id: '6244401d-c078-40d9-b305-7ad3551bc3b0',
         //         sequence: 12038915443,
         //         time: '2020-01-31T20:03:41.158814Z'
+        //         created_at: '2014-11-07T22:19:28.578544Z',
+        //         liquidity: 'T',
+        //         fee: '0.00025',
+        //         settled: true,
+        //         usd_volume: '0.0924556000000000',
+        //         user_id: '595eb864313c2b02ddf2937d'
         //     }
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'created_at'));
@@ -538,10 +546,15 @@ module.exports = class coinbasepro extends Exchange {
         let feeRate = undefined;
         let feeCurrency = undefined;
         let takerOrMaker = undefined;
+        let cost = undefined;
         if (market !== undefined) {
+            const feeCurrencyId = this.safeStringLower (market, 'quoteId');
+            const costField = feeCurrencyId + '_value';
+            cost = this.safeFloat (trade, costField);
             feeCurrency = market['quote'];
-            if ('liquidity' in trade) {
-                takerOrMaker = (trade['liquidity'] === 'T') ? 'taker' : 'maker';
+            const liquidity = this.safeString (trade, 'liquidity');
+            if (liquidity !== undefined) {
+                takerOrMaker = (liquidity === 'T') ? 'taker' : 'maker';
                 feeRate = market[takerOrMaker];
             }
         }
@@ -561,6 +574,9 @@ module.exports = class coinbasepro extends Exchange {
         }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'size');
+        if (cost === undefined) {
+            cost = amount * price;
+        }
         return {
             'id': id,
             'order': orderId,
@@ -574,14 +590,14 @@ module.exports = class coinbasepro extends Exchange {
             'price': price,
             'amount': amount,
             'fee': fee,
-            'cost': price * amount,
+            'cost': cost,
         };
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // as of 2018-08-23
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -995,6 +1011,9 @@ module.exports = class coinbasepro extends Exchange {
         } else {
             method += 'Crypto';
             request['crypto_address'] = address;
+            if (tag !== undefined) {
+                request['destination_tag'] = tag;
+            }
         }
         const response = await this[method] (this.extend (request, params));
         if (!response) {
@@ -1080,7 +1099,7 @@ module.exports = class coinbasepro extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (transaction);
-        const amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeFloat (transaction, 'amount');
         let type = this.safeString (transaction, 'type');
         let address = this.safeString (details, 'crypto_address');
         const tag = this.safeString (details, 'destination_tag');
@@ -1091,6 +1110,9 @@ module.exports = class coinbasepro extends Exchange {
             address = this.safeString (details, 'sent_to_address', address);
             const feeCost = this.safeFloat (details, 'fee');
             if (feeCost !== undefined) {
+                if (amount !== undefined) {
+                    amount -= feeCost;
+                }
                 fee = {
                     'cost': feeCost,
                     'currency': code,
