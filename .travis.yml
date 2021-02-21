@@ -16,7 +16,6 @@ before_install:
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - pip install ccxt
-- python3 -c 'import ccxt; print(ccxt.test)'
 - pip install requests[security]
 - git pull --tags
 - pecl install ds
