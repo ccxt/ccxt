@@ -15,7 +15,7 @@ class ArrayCache(list):
     # implicitly called magic methods don't invoke __getattribute__
     # https://docs.python.org/3/reference/datamodel.html#special-method-lookup
     # all method lookups obey the descriptor protocol
-    # this is how the implicit api is defined in ccxt under the hood
+    # this is how the implicit api is defined in ccxt
     __iter__ = Delegate('__iter__', '_deque')
     __setitem__ = Delegate('__setitem__', '_deque')
     __delitem__ = Delegate('__delitem__', '_deque')
