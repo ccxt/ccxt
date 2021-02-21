@@ -16,6 +16,14 @@ def throttle(config, loop):
     #    defaultCost: 1,
     #    maxCapacity: 1000,
     # }
+    default = {
+        'delay': 1,
+        'capacity': 1,
+        'defaultCost': 1,
+        'maxCapacity': 1000,
+    }
+    default.update(config)
+    config = default
     last_timestamp = int(time() * 1000)
     running = False
     queue = collections.deque()
@@ -27,8 +35,7 @@ def throttle(config, loop):
         nonlocal last_timestamp
         if queue and not running:
             running = True
-            cost = queue[0][0]
-            if tokens >= min(cost, config['capacity']):
+            if tokens > 0:
                 cost, resolve = queue.popleft()
                 tokens -= cost
                 resolve()
@@ -36,7 +43,6 @@ def throttle(config, loop):
             elapsed = now - last_timestamp
             last_timestamp = now
             tokens = min(config['capacity'], tokens + elapsed / rate_limit)
-
             loop.call_later(config['delay'], callback, rate_limit)
 
     def callback(rate_limit):
@@ -50,7 +56,7 @@ def throttle(config, loop):
 
         future = Future()
         cost = cost if cost else config['defaultCost']
-        queue.append([cost, lambda: future.set_result(True)])
+        queue.append([cost, lambda: future.set_result(None)])
         resolver(rate_limit)
         return future
 
