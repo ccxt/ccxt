@@ -11,6 +11,13 @@ function throttle($config, $loop) {
     // }
 
     // ported from js implementation for reference
+    $default = array(
+        'capacity' => 1,
+        'delay' => 1,
+        'defaultCost' => 1,
+        'maxCapacity' => 1000,
+    );
+    $config = array_merge($default, $config);
     $last_timestamp = microtime(true) * 1000;
     $running = false;
     $queue = new SplQueue();
@@ -30,8 +37,7 @@ function throttle($config, $loop) {
             // crab approves this code
             if (count($queue) && !$running) {
                 $running = true;
-                $cost = $queue->bottom()[0];
-                if ($tokens >= min($cost, $config['capacity'])) {
+                if ($tokens > 0) {
                     $first = $queue->dequeue();
                     list($cost, $resolve) = $first;
                     // allow tokens to become  negative
@@ -42,7 +48,7 @@ function throttle($config, $loop) {
                 $elapsed = $now - $last_timestamp;
                 $last_timestamp = $now;
                 $tokens = min($config['capacity'], $tokens + $elapsed / $rate_limit);
-                Promise\Timer\resolve($config['delay'] / 1000, $loop)->then(function ($elapsed) use($resolver, &$running) {
+                Promise\Timer\resolve($config['delay'] / 1000, $loop)->then(function ($elapsed) use ($resolver, &$running) {
                     $running = false;
                     $resolver();
                 });
