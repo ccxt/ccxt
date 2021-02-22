@@ -763,22 +763,44 @@ class hitbtc(Exchange):
         #
         # createMarketOrder
         #
-        #   {clientOrderId:   "fe36aa5e190149bf9985fb673bbb2ea0",
-        #         createdAt:   "2018-10-25T16:41:44.780Z",
-        #       cumQuantity:   "1",
-        #                id:   "66799540063",
-        #          quantity:   "1",
-        #              side:   "sell",
-        #            status:   "filled",
-        #            symbol:   "XRPUSDT",
-        #       timeInForce:   "FOK",
-        #      tradesReport: [{      fee: "0.0004644",
-        #                               id:  386394956,
-        #                            price: "0.4644",
-        #                         quantity: "1",
-        #                        timestamp: "2018-10-25T16:41:44.780Z"}],
-        #              type:   "market",
-        #         updatedAt:   "2018-10-25T16:41:44.780Z"                   }
+        #     {
+        #         clientOrderId: "fe36aa5e190149bf9985fb673bbb2ea0",
+        #         createdAt: "2018-10-25T16:41:44.780Z",
+        #         cumQuantity: "1",
+        #         id: "66799540063",
+        #         quantity: "1",
+        #         side: "sell",
+        #         status: "filled",
+        #         symbol: "XRPUSDT",
+        #         timeInForce: "FOK",
+        #         tradesReport: [
+        #             {
+        #                 fee: "0.0004644",
+        #                 id:  386394956,
+        #                 price: "0.4644",
+        #                 quantity: "1",
+        #                 timestamp: "2018-10-25T16:41:44.780Z"
+        #             }
+        #         ],
+        #         type: "market",
+        #         updatedAt: "2018-10-25T16:41:44.780Z"
+        #     }
+        #
+        #     {
+        #         "id": 119499457455,
+        #         "clientOrderId": "87baab109d58401b9202fa0749cb8288",
+        #         "symbol": "ETHUSD",
+        #         "side": "buy",
+        #         "status": "filled",
+        #         "type": "market",
+        #         "timeInForce": "FOK",
+        #         "quantity": "0.0007",
+        #         "price": "181.487",
+        #         "avgPrice": "164.989",
+        #         "cumQuantity": "0.0007",
+        #         "createdAt": "2019-04-17T13:27:38.062Z",
+        #         "updatedAt": "2019-04-17T13:27:38.062Z"
+        #     }
         #
         created = self.parse8601(self.safe_string(order, 'createdAt'))
         updated = self.parse8601(self.safe_string(order, 'updatedAt'))
@@ -805,7 +827,7 @@ class hitbtc(Exchange):
         side = self.safe_string(order, 'side')
         trades = self.safe_value(order, 'tradesReport')
         fee = None
-        average = None
+        average = self.safe_value(order, 'avgPrice')
         if trades is not None:
             trades = self.parse_trades(trades, market)
             feeCost = None
@@ -821,7 +843,8 @@ class hitbtc(Exchange):
                     feeCost = self.sum(feeCost, tradeFeeCost)
             cost = tradesCost
             if (filled is not None) and (filled > 0):
-                average = cost / filled
+                if average is None:
+                    average = cost / filled
                 if type == 'market':
                     if price is None:
                         price = average
