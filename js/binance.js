@@ -486,6 +486,7 @@ module.exports = class binance extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'fetchCurrencies': false, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
@@ -595,6 +596,10 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        const fetchCurrenciesEnabled = this.safeValue (this.options, 'fetchCurrencies');
+        if (!fetchCurrenciesEnabled) {
+            return undefined;
+        }
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
