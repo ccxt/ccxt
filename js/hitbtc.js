@@ -798,22 +798,44 @@ module.exports = class hitbtc extends Exchange {
         //
         // createMarketOrder
         //
-        //   { clientOrderId:   "fe36aa5e190149bf9985fb673bbb2ea0",
-        //         createdAt:   "2018-10-25T16:41:44.780Z",
-        //       cumQuantity:   "1",
-        //                id:   "66799540063",
-        //          quantity:   "1",
-        //              side:   "sell",
-        //            status:   "filled",
-        //            symbol:   "XRPUSDT",
-        //       timeInForce:   "FOK",
-        //      tradesReport: [ {       fee: "0.0004644",
-        //                               id:  386394956,
-        //                            price: "0.4644",
-        //                         quantity: "1",
-        //                        timestamp: "2018-10-25T16:41:44.780Z" } ],
-        //              type:   "market",
-        //         updatedAt:   "2018-10-25T16:41:44.780Z"                   }
+        //     {
+        //         clientOrderId: "fe36aa5e190149bf9985fb673bbb2ea0",
+        //         createdAt: "2018-10-25T16:41:44.780Z",
+        //         cumQuantity: "1",
+        //         id: "66799540063",
+        //         quantity: "1",
+        //         side: "sell",
+        //         status: "filled",
+        //         symbol: "XRPUSDT",
+        //         timeInForce: "FOK",
+        //         tradesReport: [
+        //             {
+        //                 fee: "0.0004644",
+        //                 id:  386394956,
+        //                 price: "0.4644",
+        //                 quantity: "1",
+        //                 timestamp: "2018-10-25T16:41:44.780Z"
+        //             }
+        //         ],
+        //         type: "market",
+        //         updatedAt: "2018-10-25T16:41:44.780Z"
+        //     }
+        //
+        //     {
+        //         "id": 119499457455,
+        //         "clientOrderId": "87baab109d58401b9202fa0749cb8288",
+        //         "symbol": "ETHUSD",
+        //         "side": "buy",
+        //         "status": "filled",
+        //         "type": "market",
+        //         "timeInForce": "FOK",
+        //         "quantity": "0.0007",
+        //         "price": "181.487",
+        //         "avgPrice": "164.989",
+        //         "cumQuantity": "0.0007",
+        //         "createdAt": "2019-04-17T13:27:38.062Z",
+        //         "updatedAt": "2019-04-17T13:27:38.062Z"
+        //     }
         //
         const created = this.parse8601 (this.safeString (order, 'createdAt'));
         const updated = this.parse8601 (this.safeString (order, 'updatedAt'));
@@ -843,7 +865,7 @@ module.exports = class hitbtc extends Exchange {
         const side = this.safeString (order, 'side');
         let trades = this.safeValue (order, 'tradesReport');
         let fee = undefined;
-        let average = undefined;
+        let average = this.safeValue (order, 'avgPrice');
         if (trades !== undefined) {
             trades = this.parseTrades (trades, market);
             let feeCost = undefined;
@@ -862,7 +884,9 @@ module.exports = class hitbtc extends Exchange {
             }
             cost = tradesCost;
             if ((filled !== undefined) && (filled > 0)) {
-                average = cost / filled;
+                if (average === undefined) {
+                    average = cost / filled;
+                }
                 if (type === 'market') {
                     if (price === undefined) {
                         price = average;
