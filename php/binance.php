@@ -492,6 +492,7 @@ class binance extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
+                'fetchCurrencies' => false, // this is a private call and it requires API keys
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
@@ -601,6 +602,10 @@ class binance extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        $fetchCurrenciesEnabled = $this->safe_value($this->options, 'fetchCurrencies');
+        if (!$fetchCurrenciesEnabled) {
+            return null;
+        }
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
