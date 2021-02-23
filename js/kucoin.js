@@ -74,6 +74,7 @@ module.exports = class kucoin extends Exchange {
                         'symbols',
                         'markets',
                         'market/allTickers',
+                        'market/orderbook/level{level}_{limit}',
                         'market/orderbook/level{level}',
                         'market/orderbook/level2',
                         'market/orderbook/level2_20',
@@ -236,10 +237,12 @@ module.exports = class kucoin extends Exchange {
                     'public': {
                         'GET': {
                             'status': 'v1',
-                            'market/orderbook/level{level}': 'v2',
                             'market/orderbook/level2': 'v2',
-                            'market/orderbook/level2_20': 'v2',
-                            'market/orderbook/level2_100': 'v2',
+                            'market/orderbook/level3': 'v2',
+                            'market/orderbook/level2_20': 'v1',
+                            'market/orderbook/level2_100': 'v1',
+                            'market/orderbook/level{level}': 'v2',
+                            'market/orderbook/level{level}_{limit}': 'v1',
                         },
                     },
                     'private': {
@@ -721,20 +724,22 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        const level = this.safeInteger (params, 'level', 2);
-        let levelLimit = level.toString ();
-        if (levelLimit === '2') {
-            if (limit !== undefined) {
-                if ((limit !== 20) && (limit !== 100)) {
-                    throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be undefined, 20 or 100');
-                }
-                levelLimit += '_' + limit.toString ();
-            }
-        }
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
-        const request = { 'symbol': marketId, 'level': levelLimit };
-        const response = await this.publicGetMarketOrderbookLevelLevel (this.extend (request, params));
+        const level = this.safeInteger (params, 'level', 2);
+        const request = { 'symbol': marketId, 'level': level };
+        let method = 'publicGetMarketOrderbookLevelLevel';
+        if (level === 2) {
+            if (limit !== undefined) {
+                if ((limit === 20) || (limit === 100)) {
+                    request['limit'] = limit;
+                    method = 'publicGetMarketOrderbookLevelLevelLimit';
+                } else {
+                    throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be undefined, 20 or 100');
+                }
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         // 'market/orderbook/level2'
         // 'market/orderbook/level2_20'
@@ -1753,7 +1758,7 @@ module.exports = class kucoin extends Exchange {
         //                                †                 ↑
         //
         const versions = this.safeValue (this.options, 'versions', {});
-        const apiVersions = this.safeValue (versions, api);
+        const apiVersions = this.safeValue (versions, api, {});
         const methodVersions = this.safeValue (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
         const version = this.safeString (params, 'version', defaultVersion);
