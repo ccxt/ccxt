@@ -89,7 +89,7 @@ class tprexchange(Exchange):
                     ],
                     'post': [
                         'uc/api-login',
-                        'uc/balance',
+                        'uc/member/balance',
                         'exchange/order/add',
                         'exchange/order/find',
                         'exchange/order/all',
@@ -414,14 +414,13 @@ class tprexchange(Exchange):
         # }
         return self.parse_orders(response['content'])
 
-    def parse_balance(self, balance):
-        return {
-            'info': balance,
-        }
-
     def fetch_balance(self, params={}):
-        response = self.privatePostUcBalance(params)
-        return self.parse_balance(response)
+        params = {
+            'key': self.key,
+            'token': self.token,
+        }
+        response = self.privatePostUcMemberBalance(params)
+        return response
 
     def parse_trade(self, trade, market=None):
         timestamp = 0
