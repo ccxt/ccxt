@@ -423,9 +423,8 @@ module.exports = class bitrue extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const states = this.safeValue (params, 'states', []); // 'NEW', 'PARTIALLY_FILLED', 'CANCELED', 'FILLED'
         const query = this.omit (params, 'states');
-        let request = {
+        const request = {
             'symbol': market['id'],
         };
         if (orderId !== undefined) {
