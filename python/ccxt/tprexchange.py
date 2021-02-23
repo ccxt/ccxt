@@ -65,6 +65,7 @@ class tprexchange(Exchange):
                 'publicAPI': False,
                 'signIn': True,
                 'withdraw': False,
+                'getMarketPrice': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -90,6 +91,7 @@ class tprexchange(Exchange):
                     'post': [
                         'uc/api-login',
                         'uc/member/balance',
+                        'market/symbol-thumb',
                         'exchange/order/add',
                         'exchange/order/find',
                         'exchange/order/all',
@@ -305,6 +307,14 @@ class tprexchange(Exchange):
             params['pageNo'] = self.safe_string(params, 'page')
         else:
             params['pageNo'] = 1
+
+        if symbol is None:
+            symbol = ''
+        if since is None:
+            since = 0
+        if limit is None:
+            limit = 1
+
         request = {
             'symbol': symbol,
             'since': since,
@@ -421,6 +431,19 @@ class tprexchange(Exchange):
         }
         response = self.privatePostUcMemberBalance(params)
         return response
+
+    # Returns int or None
+    def get_market_price(self, symbol, params={}):
+        params = {
+            'key': self.key,
+            'token': self.token,
+        }
+
+        response = self.privatePostMarketSymbolThumb(params)
+
+        for i in response:
+            if i.get('symbol') == symbol:
+                return i.get('close')
 
     def parse_trade(self, trade, market=None):
         timestamp = 0
