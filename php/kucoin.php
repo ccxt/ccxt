@@ -78,6 +78,7 @@ class kucoin extends Exchange {
                         'symbols',
                         'markets',
                         'market/allTickers',
+                        'market/orderbook/level{level}_{limit}',
                         'market/orderbook/level{level}',
                         'market/orderbook/level2',
                         'market/orderbook/level2_20',
@@ -240,10 +241,12 @@ class kucoin extends Exchange {
                     'public' => array(
                         'GET' => array(
                             'status' => 'v1',
-                            'market/orderbook/level{level}' => 'v2',
                             'market/orderbook/level2' => 'v2',
-                            'market/orderbook/level2_20' => 'v2',
-                            'market/orderbook/level2_100' => 'v2',
+                            'market/orderbook/level3' => 'v2',
+                            'market/orderbook/level2_20' => 'v1',
+                            'market/orderbook/level2_100' => 'v1',
+                            'market/orderbook/level{level}' => 'v2',
+                            'market/orderbook/level{level}_{limit}' => 'v1',
                         ),
                     ),
                     'private' => array(
@@ -725,20 +728,22 @@ class kucoin extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        $level = $this->safe_integer($params, 'level', 2);
-        $levelLimit = (string) $level;
-        if ($levelLimit === '2') {
-            if ($limit !== null) {
-                if (($limit !== 20) && ($limit !== 100)) {
-                    throw new ExchangeError($this->id . ' fetchOrderBook $limit argument must be null, 20 or 100');
-                }
-                $levelLimit .= '_' . (string) $limit;
-            }
-        }
         $this->load_markets();
         $marketId = $this->market_id($symbol);
-        $request = array( 'symbol' => $marketId, 'level' => $levelLimit );
-        $response = $this->publicGetMarketOrderbookLevelLevel (array_merge($request, $params));
+        $level = $this->safe_integer($params, 'level', 2);
+        $request = array( 'symbol' => $marketId, 'level' => $level );
+        $method = 'publicGetMarketOrderbookLevelLevel';
+        if ($level === 2) {
+            if ($limit !== null) {
+                if (($limit === 20) || ($limit === 100)) {
+                    $request['limit'] = $limit;
+                    $method = 'publicGetMarketOrderbookLevelLevelLimit';
+                } else {
+                    throw new ExchangeError($this->id . ' fetchOrderBook $limit argument must be null, 20 or 100');
+                }
+            }
+        }
+        $response = $this->$method (array_merge($request, $params));
         //
         // 'market/orderbook/level2'
         // 'market/orderbook/level2_20'
@@ -1757,7 +1762,7 @@ class kucoin extends Exchange {
         //                                †                 ↑
         //
         $versions = $this->safe_value($this->options, 'versions', array());
-        $apiVersions = $this->safe_value($versions, $api);
+        $apiVersions = $this->safe_value($versions, $api, array());
         $methodVersions = $this->safe_value($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->options['version']);
         $version = $this->safe_string($params, 'version', $defaultVersion);

@@ -90,6 +90,7 @@ class kucoin(Exchange):
                         'symbols',
                         'markets',
                         'market/allTickers',
+                        'market/orderbook/level{level}_{limit}',
                         'market/orderbook/level{level}',
                         'market/orderbook/level2',
                         'market/orderbook/level2_20',
@@ -252,10 +253,12 @@ class kucoin(Exchange):
                     'public': {
                         'GET': {
                             'status': 'v1',
-                            'market/orderbook/level{level}': 'v2',
                             'market/orderbook/level2': 'v2',
-                            'market/orderbook/level2_20': 'v2',
-                            'market/orderbook/level2_100': 'v2',
+                            'market/orderbook/level3': 'v2',
+                            'market/orderbook/level2_20': 'v1',
+                            'market/orderbook/level2_100': 'v1',
+                            'market/orderbook/level{level}': 'v2',
+                            'market/orderbook/level{level}_{limit}': 'v1',
                         },
                     },
                     'private': {
@@ -708,17 +711,19 @@ class kucoin(Exchange):
         return await self.fetch_order_book(symbol, limit, {'level': 3})
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
-        level = self.safe_integer(params, 'level', 2)
-        levelLimit = str(level)
-        if levelLimit == '2':
-            if limit is not None:
-                if (limit != 20) and (limit != 100):
-                    raise ExchangeError(self.id + ' fetchOrderBook limit argument must be None, 20 or 100')
-                levelLimit += '_' + str(limit)
         await self.load_markets()
         marketId = self.market_id(symbol)
-        request = {'symbol': marketId, 'level': levelLimit}
-        response = await self.publicGetMarketOrderbookLevelLevel(self.extend(request, params))
+        level = self.safe_integer(params, 'level', 2)
+        request = {'symbol': marketId, 'level': level}
+        method = 'publicGetMarketOrderbookLevelLevel'
+        if level == 2:
+            if limit is not None:
+                if (limit == 20) or (limit == 100):
+                    request['limit'] = limit
+                    method = 'publicGetMarketOrderbookLevelLevelLimit'
+                else:
+                    raise ExchangeError(self.id + ' fetchOrderBook limit argument must be None, 20 or 100')
+        response = await getattr(self, method)(self.extend(request, params))
         #
         # 'market/orderbook/level2'
         # 'market/orderbook/level2_20'
@@ -1657,7 +1662,7 @@ class kucoin(Exchange):
         #                                †                 ↑
         #
         versions = self.safe_value(self.options, 'versions', {})
-        apiVersions = self.safe_value(versions, api)
+        apiVersions = self.safe_value(versions, api, {})
         methodVersions = self.safe_value(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.options['version'])
         version = self.safe_string(params, 'version', defaultVersion)
