@@ -78,10 +78,14 @@ module.exports = class gooplex extends Exchange {
                         'orders/detail',
                         'orders/trades',
                         'account/spot',
+                        'deposits',
+                        'deposits/address',
+                        'withdraws',
                     ],
                     'post': [
                         'orders',
                         'orders/cancel',
+                        'withdraws',
                     ],
                 },
                 'api': {
@@ -566,7 +570,7 @@ module.exports = class gooplex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
-        return response;                // map
+        return response['data']['list'];                // map
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -611,19 +615,116 @@ module.exports = class gooplex extends Exchange {
         return this.filterBy (orders, 'status', 'closed');
     }
 
+    parseTransactionStatusByType (status, type = undefined) {
+        const statusesByType = {
+            'deposit': {
+                '0': 'pending',
+                '1': 'ok',
+            },
+            'withdrawal': {
+                '0': 'pending', // Email Sent
+                '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
+                '2': 'pending', // Awaiting Approval
+                '3': 'failed', // Rejected
+                '4': 'pending', // Processing
+                '5': 'failed', // Failure
+                '6': 'ok', // Completed
+            },
+        };
+        const statuses = this.safeValue (statusesByType, type, {});
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         insertTime:  1517425007000,
+        //         amount:  0.3,
+        //         address: "0x0123456789abcdef",
+        //         addressTag: "",
+        //         txId: "0x0123456789abcdef",
+        //         asset: "ETH",
+        //         status:  1
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         amount:  14,
+        //         address: "0x0123456789abcdef...",
+        //         successTime:  1514489710000,
+        //         transactionFee:  0.01,
+        //         addressTag: "",
+        //         txId: "0x0123456789abcdef...",
+        //         id: "0123456789abcdef...",
+        //         asset: "ETH",
+        //         applyTime:  1514488724000,
+        //         status:  6
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const address = this.safeString (transaction, 'address');
+        let tag = this.safeString (transaction, 'addressTag'); // set but unused
+        if (tag !== undefined) {
+            if (tag.length < 1) {
+                tag = undefined;
+            }
+        }
+        const txid = this.safeString (transaction, 'txId');
+        const currencyId = this.safeString (transaction, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        let timestamp = undefined;
+        const insertTime = this.safeInteger (transaction, 'insertTime');
+        const applyTime = this.safeInteger (transaction, 'applyTime');
+        let type = this.safeString (transaction, 'type');
+        if (type === undefined) {
+            if ((insertTime !== undefined) && (applyTime === undefined)) {
+                type = 'deposit';
+                timestamp = insertTime;
+            } else if ((insertTime === undefined) && (applyTime !== undefined)) {
+                type = 'withdrawal';
+                timestamp = applyTime;
+            }
+        }
+        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        const amount = this.safeFloat (transaction, 'amount');
+        const feeCost = this.safeFloat (transaction, 'transactionFee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = { 'currency': code, 'cost': feeCost };
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'tag': tag,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'fee': fee,
+        };
+    }
+
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
         };
-        const response = await this.wapiGetDepositAddress (this.extend (request, params));
-        const success = this.safeValue (response, 'success');
-        if ((success === undefined) || !success) {
+        const response = await this.signedGetDepositsAddress (this.extend (request, params));
+        const success = this.safeValue (response, 'msg');
+        if (success !== 'Success') {
             throw new InvalidAddress (this.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.');
         }
-        const address = this.safeString (response, 'address');
-        const tag = this.safeString (response, 'addressTag');
+        const address = this.safeString (response['data'], 'address');
+        const tag = this.safeString (response['data'], 'addressTag');
         this.checkAddress (address);
         return {
             'currency': code,
@@ -646,7 +747,7 @@ module.exports = class gooplex extends Exchange {
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
             request['endTime'] = this.sum (since, 7776000000);
         }
-        const response = await this.wapiGetDepositHistory (this.extend (request, params));
+        const response = await this.signedGetDeposits (this.extend (request, params));
         //
         //     {     success:    true,
         //       depositList: [ { insertTime:  1517425007000,
@@ -657,7 +758,7 @@ module.exports = class gooplex extends Exchange {
         //                             asset: "ETH",
         //                            status:  1                                                                    } ] }
         //
-        return this.parseTransactions (response['depositList'], currency, since, limit);
+        return this.parseTransactions (response['data']['list'], currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -673,7 +774,7 @@ module.exports = class gooplex extends Exchange {
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
             request['endTime'] = this.sum (since, 7776000000);
         }
-        const response = await this.wapiGetWithdrawHistory (this.extend (request, params));
+        const response = await this.signedGetWithdraws (this.extend (request, params));
         //
         //     { withdrawList: [ {      amount:  14,
         //                             address: "0x0123456789abcdef...",
@@ -697,7 +798,7 @@ module.exports = class gooplex extends Exchange {
         //                              status:  6                       }  ],
         //            success:    true                                         }
         //
-        return this.parseTransactions (response['withdrawList'], currency, since, limit);
+        return this.parseTransactions (response['data']['list'], currency, since, limit);
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
