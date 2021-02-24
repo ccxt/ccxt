@@ -3,7 +3,6 @@ import sys
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root)
-print(sys.path)
 
 # ----------------------------------------------------------------------------
 
