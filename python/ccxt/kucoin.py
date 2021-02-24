@@ -36,30 +36,31 @@ class kucoin(Exchange):
             'comment': 'Platform 2.0',
             'has': {
                 'CORS': False,
-                'fetchStatus': True,
-                'fetchTime': True,
-                'fetchMarkets': True,
+                'cancelAllOrders': True,
+                'cancelOrder': True,
+                'createDepositAddress': True,
+                'createOrder': True,
+                'fetchAccounts': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchFundingFee': True,
+                'fetchLedger': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
-                'fetchOrderBook': True,
-                'fetchOrder': True,
-                'fetchClosedOrders': True,
-                'fetchOpenOrders': True,
-                'fetchDepositAddress': True,
-                'createDepositAddress': True,
-                'withdraw': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
-                'fetchBalance': True,
+                'fetchTime': True,
                 'fetchTrades': True,
-                'fetchMyTrades': True,
-                'createOrder': True,
-                'cancelOrder': True,
-                'fetchAccounts': True,
-                'fetchFundingFee': True,
-                'fetchOHLCV': True,
-                'fetchLedger': True,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
@@ -835,6 +836,17 @@ class kucoin(Exchange):
         request = {'orderId': id}
         response = self.privateDeleteOrdersOrderId(self.extend(request, params))
         return response
+
+    def cancel_all_orders(self, id, symbol=None, params={}):
+        self.load_markets()
+        request = {
+            # 'symbol': market['id'],
+            # 'tradeType': 'TRADE',  # default is to cancel the spot trading order
+        }
+        market = self.market(symbol)
+        if symbol is not None:
+            request['symbol'] = market['id']
+        return self.privateDeleteOrders(self.extend(request, params))
 
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
