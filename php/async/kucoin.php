@@ -24,30 +24,31 @@ class kucoin extends Exchange {
             'comment' => 'Platform 2.0',
             'has' => array(
                 'CORS' => false,
-                'fetchStatus' => true,
-                'fetchTime' => true,
-                'fetchMarkets' => true,
+                'cancelAllOrders' => true,
+                'cancelOrder' => true,
+                'createDepositAddress' => true,
+                'createOrder' => true,
+                'fetchAccounts' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchFundingFee' => true,
+                'fetchLedger' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
-                'fetchOrderBook' => true,
-                'fetchOrder' => true,
-                'fetchClosedOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchDepositAddress' => true,
-                'createDepositAddress' => true,
-                'withdraw' => true,
-                'fetchDeposits' => true,
-                'fetchWithdrawals' => true,
-                'fetchBalance' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchMyTrades' => true,
-                'createOrder' => true,
-                'cancelOrder' => true,
-                'fetchAccounts' => true,
-                'fetchFundingFee' => true,
-                'fetchOHLCV' => true,
-                'fetchLedger' => true,
+                'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
@@ -860,6 +861,19 @@ class kucoin extends Exchange {
         $request = array( 'orderId' => $id );
         $response = yield $this->privateDeleteOrdersOrderId (array_merge($request, $params));
         return $response;
+    }
+
+    public function cancel_all_orders($id, $symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            // 'symbol' => $market['id'],
+            // 'tradeType' => 'TRADE', // default is to cancel the spot trading order
+        );
+        $market = $this->market($symbol);
+        if ($symbol !== null) {
+            $request['symbol'] = $market['id'];
+        }
+        return yield $this->privateDeleteOrders (array_merge($request, $params));
     }
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
