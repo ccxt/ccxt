@@ -15,7 +15,7 @@ from exchange.test_watch_ticker import test_watch_ticker
 from exchange.test_watch_trades import test_watch_trades
 from exchange.test_watch_ohlcv import test_watch_ohlcv
 
-root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root)
 
 import ccxtpro  # noqa: F401
