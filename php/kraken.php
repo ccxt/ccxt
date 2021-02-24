@@ -29,6 +29,7 @@ class kraken extends Exchange {
             'certified' => true,
             'pro' => true,
             'has' => array(
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => false,
                 'createDepositAddress' => true,
@@ -189,6 +190,7 @@ class kraken extends Exchange {
                         'AddOrder',
                         'AddExport',
                         'Balance',
+                        'CancelAll',
                         'CancelOrder',
                         'ClosedOrders',
                         'DepositAddresses',
@@ -1407,6 +1409,11 @@ class kraken extends Exchange {
             throw $e;
         }
         return $response;
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        $this->load_markets();
+        return $this->privatePostCancelAll ($params);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -43,6 +43,7 @@ class kraken(Exchange):
             'certified': True,
             'pro': True,
             'has': {
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': False,
                 'createDepositAddress': True,
@@ -203,6 +204,7 @@ class kraken(Exchange):
                         'AddOrder',
                         'AddExport',
                         'Balance',
+                        'CancelAll',
                         'CancelOrder',
                         'ClosedOrders',
                         'DepositAddresses',
@@ -1315,6 +1317,10 @@ class kraken(Exchange):
                     raise OrderNotFound(self.id + ' cancelOrder() error ' + self.last_http_response)
             raise e
         return response
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        self.load_markets()
+        return self.privatePostCancelAll(params)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
