@@ -146,6 +146,7 @@ module.exports = class kucoin extends Exchange {
                     'delete': [
                         'withdrawals/{withdrawalId}',
                         'orders',
+                        'orders/client-order/{clientOid}',
                         'orders/{orderId}',
                         'margin/lend/{orderId}',
                     ],
@@ -854,8 +855,18 @@ module.exports = class kucoin extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const request = { 'orderId': id };
-        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        await this.loadMarkets ();
+        const request = {};
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        let method = 'privateDeleteOrdersOrderId';
+        if (clientOrderId !== undefined) {
+            request['clientOid'] = clientOrderId;
+            method = 'privateDeleteOrdersClientOrderClientOid';
+        } else {
+            request['orderId'] = id;
+        }
+        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+        const response = await this[method] (this.extend (request, params));
         return response;
     }
 
