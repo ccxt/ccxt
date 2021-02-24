@@ -1296,17 +1296,11 @@ module.exports = class ftx extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const conditionalOrdersOnly = this.safeValue (params, 'conditionalOrdersOnly');
         const request = {
             // 'market': market['id'], // optional
             // 'conditionalOrdersOnly': false, // cancel conditional orders only
             // 'limitOrdersOnly': false, // cancel existing limit orders (non-conditional orders) only
         };
-        if (conditionalOrdersOnly) {
-            request['conditionalOrdersOnly'] = conditionalOrdersOnly;
-        } else {
-            request['limitOrdersOnly'] = true;
-        }
         const marketId = this.getMarketId (symbol, 'market', params);
         if (marketId !== undefined) {
             request['market'] = marketId;
