@@ -306,14 +306,14 @@ class tprexchange(Exchange):
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
         else:
-            params['pageNo'] = 1
+            params['pageNo'] = 0
 
         if symbol is None:
             symbol = ''
         if since is None:
             since = 0
         if limit is None:
-            limit = 1
+            limit = 100
 
         request = {
             'symbol': symbol,
@@ -376,7 +376,15 @@ class tprexchange(Exchange):
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
         else:
-            params['pageNo'] = 1
+            params['pageNo'] = 0
+
+        if symbol is None:
+            symbol = ''
+        if since is None:
+            since = 0
+        if limit is None:
+            limit = 100
+        
         request = {
             'symbol': symbol,
             'since': since,
@@ -438,9 +446,7 @@ class tprexchange(Exchange):
             'key': self.key,
             'token': self.token,
         }
-
         response = self.privatePostMarketSymbolThumb(params)
-
         for i in response:
             if i.get('symbol') == symbol:
                 return i.get('close')
