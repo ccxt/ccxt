@@ -112,6 +112,7 @@ module.exports = class kucoin extends Exchange {
                         'withdrawals',
                         'withdrawals/quotas',
                         'orders',
+                        'order/client-order/{clientOid}',
                         'orders/{orderId}',
                         'limit/orders',
                         'fills',
@@ -866,11 +867,10 @@ module.exports = class kucoin extends Exchange {
             request['orderId'] = id;
         }
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
-        const response = await this[method] (this.extend (request, params));
-        return response;
+        return await this[method] (this.extend (request, params));
     }
 
-    async cancelAllOrders (id, symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
@@ -958,20 +958,27 @@ module.exports = class kucoin extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        // a special case for undefined ids
-        // otherwise a wrong endpoint for all orders will be triggered
-        // https://github.com/ccxt/ccxt/issues/7234
-        if (id === undefined) {
-            throw new InvalidOrder (this.id + ' fetchOrder() requires an order id');
+        const request = {};
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        let method = 'privateGetOrdersOrderId';
+        if (clientOrderId !== undefined) {
+            request['clientOid'] = clientOrderId;
+            method = 'privateGetOrdersClientOrderClientOid';
+        } else {
+            // a special case for undefined ids
+            // otherwise a wrong endpoint for all orders will be triggered
+            // https://github.com/ccxt/ccxt/issues/7234
+            if (id === undefined) {
+                throw new InvalidOrder (this.id + ' fetchOrder() requires an order id');
+            }
+            request['orderId'] = id;
         }
-        const request = {
-            'orderId': id,
-        };
+        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+        const response = await this[method] (this.extend (request, params));
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
         const responseData = this.safeValue (response, 'data');
         return this.parseOrder (responseData, market);
     }
