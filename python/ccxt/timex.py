@@ -457,16 +457,19 @@ class timex(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
+        uppercaseSide = side.upper()
+        uppercaseType = type.upper()
         request = {
             'symbol': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
-            'side': side.upper(),
+            'side': uppercaseSide,
+            'type': uppercaseType,
             # 'clientOrderId': '123',
             # 'expireIn': 1575523308,  # in seconds
             # 'expireTime': 1575523308,  # unix timestamp
         }
         query = params
-        if type == 'limit':
+        if uppercaseType == 'LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
             defaultExpireIn = self.safe_integer(self.options, 'expireIn')
             expireTime = self.safe_value(params, 'expireTime')

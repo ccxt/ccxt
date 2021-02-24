@@ -467,16 +467,19 @@ class timex extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $uppercaseSide = strtoupper($side);
+        $uppercaseType = strtoupper($type);
         $request = array(
             'symbol' => $market['id'],
             'quantity' => $this->amount_to_precision($symbol, $amount),
-            'side' => strtoupper($side),
+            'side' => $uppercaseSide,
+            'type' => $uppercaseType,
             // 'clientOrderId' => '123',
             // 'expireIn' => 1575523308, // in seconds
             // 'expireTime' => 1575523308, // unix timestamp
         );
         $query = $params;
-        if ($type === 'limit') {
+        if ($uppercaseType === 'LIMIT') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $defaultExpireIn = $this->safe_integer($this->options, 'expireIn');
             $expireTime = $this->safe_value($params, 'expireTime');
