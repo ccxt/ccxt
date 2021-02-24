@@ -128,6 +128,7 @@ class kucoin(Exchange):
                         'withdrawals',
                         'withdrawals/quotas',
                         'orders',
+                        'order/client-order/{clientOid}',
                         'orders/{orderId}',
                         'limit/orders',
                         'fills',
@@ -162,6 +163,7 @@ class kucoin(Exchange):
                     'delete': [
                         'withdrawals/{withdrawalId}',
                         'orders',
+                        'orders/client-order/{clientOid}',
                         'orders/{orderId}',
                         'margin/lend/{orderId}',
                     ],
@@ -833,11 +835,19 @@ class kucoin(Exchange):
         return order
 
     def cancel_order(self, id, symbol=None, params={}):
-        request = {'orderId': id}
-        response = self.privateDeleteOrdersOrderId(self.extend(request, params))
-        return response
+        self.load_markets()
+        request = {}
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
+        method = 'privateDeleteOrdersOrderId'
+        if clientOrderId is not None:
+            request['clientOid'] = clientOrderId
+            method = 'privateDeleteOrdersClientOrderClientOid'
+        else:
+            request['orderId'] = id
+        params = self.omit(params, ['clientOid', 'clientOrderId'])
+        return getattr(self, method)(self.extend(request, params))
 
-    def cancel_all_orders(self, id, symbol=None, params={}):
+    def cancel_all_orders(self, symbol=None, params={}):
         self.load_markets()
         request = {
             # 'symbol': market['id'],
@@ -917,18 +927,24 @@ class kucoin(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        # a special case for None ids
-        # otherwise a wrong endpoint for all orders will be triggered
-        # https://github.com/ccxt/ccxt/issues/7234
-        if id is None:
-            raise InvalidOrder(self.id + ' fetchOrder() requires an order id')
-        request = {
-            'orderId': id,
-        }
+        request = {}
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
+        method = 'privateGetOrdersOrderId'
+        if clientOrderId is not None:
+            request['clientOid'] = clientOrderId
+            method = 'privateGetOrdersClientOrderClientOid'
+        else:
+            # a special case for None ids
+            # otherwise a wrong endpoint for all orders will be triggered
+            # https://github.com/ccxt/ccxt/issues/7234
+            if id is None:
+                raise InvalidOrder(self.id + ' fetchOrder() requires an order id')
+            request['orderId'] = id
+        params = self.omit(params, ['clientOid', 'clientOrderId'])
+        response = getattr(self, method)(self.extend(request, params))
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = self.privateGetOrdersOrderId(self.extend(request, params))
         responseData = self.safe_value(response, 'data')
         return self.parse_order(responseData, market)
 

@@ -116,6 +116,7 @@ class kucoin extends Exchange {
                         'withdrawals',
                         'withdrawals/quotas',
                         'orders',
+                        'order/client-order/{clientOid}',
                         'orders/{orderId}',
                         'limit/orders',
                         'fills',
@@ -150,6 +151,7 @@ class kucoin extends Exchange {
                     'delete' => array(
                         'withdrawals/{withdrawalId}',
                         'orders',
+                        'orders/client-order/{clientOid}',
                         'orders/{orderId}',
                         'margin/lend/{orderId}',
                     ),
@@ -858,12 +860,21 @@ class kucoin extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        $request = array( 'orderId' => $id );
-        $response = yield $this->privateDeleteOrdersOrderId (array_merge($request, $params));
-        return $response;
+        yield $this->load_markets();
+        $request = array();
+        $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
+        $method = 'privateDeleteOrdersOrderId';
+        if ($clientOrderId !== null) {
+            $request['clientOid'] = $clientOrderId;
+            $method = 'privateDeleteOrdersClientOrderClientOid';
+        } else {
+            $request['orderId'] = $id;
+        }
+        $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
+        return yield $this->$method (array_merge($request, $params));
     }
 
-    public function cancel_all_orders($id, $symbol = null, $params = array ()) {
+    public function cancel_all_orders($symbol = null, $params = array ()) {
         yield $this->load_markets();
         $request = array(
             // 'symbol' => $market['id'],
@@ -951,20 +962,27 @@ class kucoin extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         yield $this->load_markets();
-        // a special case for null ids
-        // otherwise a wrong endpoint for all orders will be triggered
-        // https://github.com/ccxt/ccxt/issues/7234
-        if ($id === null) {
-            throw new InvalidOrder($this->id . ' fetchOrder() requires an order id');
+        $request = array();
+        $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
+        $method = 'privateGetOrdersOrderId';
+        if ($clientOrderId !== null) {
+            $request['clientOid'] = $clientOrderId;
+            $method = 'privateGetOrdersClientOrderClientOid';
+        } else {
+            // a special case for null ids
+            // otherwise a wrong endpoint for all orders will be triggered
+            // https://github.com/ccxt/ccxt/issues/7234
+            if ($id === null) {
+                throw new InvalidOrder($this->id . ' fetchOrder() requires an order id');
+            }
+            $request['orderId'] = $id;
         }
-        $request = array(
-            'orderId' => $id,
-        );
+        $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
+        $response = yield $this->$method (array_merge($request, $params));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = yield $this->privateGetOrdersOrderId (array_merge($request, $params));
         $responseData = $this->safe_value($response, 'data');
         return $this->parse_order($responseData, $market);
     }
