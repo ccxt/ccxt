@@ -460,16 +460,19 @@ module.exports = class timex extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const uppercaseSide = side.toUpperCase ();
+        const uppercaseType = type.toUpperCase ();
         const request = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
-            'side': side.toUpperCase (),
+            'side': uppercaseSide,
+            'type': uppercaseType,
             // 'clientOrderId': '123',
             // 'expireIn': 1575523308, // in seconds
             // 'expireTime': 1575523308, // unix timestamp
         };
         let query = params;
-        if (type === 'limit') {
+        if (uppercaseType === 'LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
             const defaultExpireIn = this.safeInteger (this.options, 'expireIn');
             const expireTime = this.safeValue (params, 'expireTime');
