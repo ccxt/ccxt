@@ -20,30 +20,31 @@ module.exports = class kucoin extends Exchange {
             'comment': 'Platform 2.0',
             'has': {
                 'CORS': false,
-                'fetchStatus': true,
-                'fetchTime': true,
-                'fetchMarkets': true,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'createDepositAddress': true,
+                'createOrder': true,
+                'fetchAccounts': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchFundingFee': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchOrderBook': true,
-                'fetchOrder': true,
-                'fetchClosedOrders': true,
-                'fetchOpenOrders': true,
-                'fetchDepositAddress': true,
-                'createDepositAddress': true,
-                'withdraw': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
-                'fetchBalance': true,
+                'fetchTime': true,
                 'fetchTrades': true,
-                'fetchMyTrades': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'fetchAccounts': true,
-                'fetchFundingFee': true,
-                'fetchOHLCV': true,
-                'fetchLedger': true,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
@@ -856,6 +857,19 @@ module.exports = class kucoin extends Exchange {
         const request = { 'orderId': id };
         const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
         return response;
+    }
+
+    async cancelAllOrders (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'symbol': market['id'],
+            // 'tradeType': 'TRADE', // default is to cancel the spot trading order
+        };
+        const market = this.market (symbol);
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        return await this.privateDeleteOrders (this.extend (request, params));
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
