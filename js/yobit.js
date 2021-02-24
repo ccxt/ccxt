@@ -133,6 +133,7 @@ module.exports = class yobit extends Exchange {
                 'LOCX': 'LOC',
                 'LUNYR': 'LUN',
                 'LUN': 'LunarCoin',  // they just change the ticker if it is already taken
+                'MASK': 'Yobit MASK',
                 'MDT': 'Midnight',
                 'NAV': 'NavajoCoin',
                 'NBT': 'NiceBytes',
