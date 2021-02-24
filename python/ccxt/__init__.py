@@ -291,6 +291,7 @@ exchanges = [
     'lykke',
     'mercado',
     'mixcoins',
+    'mexo',
     'novadax',
     'oceanex',
     'okcoin',
