@@ -1298,17 +1298,11 @@ class ftx extends Exchange {
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
         $this->load_markets();
-        $conditionalOrdersOnly = $this->safe_value($params, 'conditionalOrdersOnly');
         $request = array(
             // 'market' => market['id'], // optional
             // 'conditionalOrdersOnly' => false, // cancel conditional orders only
             // 'limitOrdersOnly' => false, // cancel existing limit orders (non-conditional orders) only
         );
-        if ($conditionalOrdersOnly) {
-            $request['conditionalOrdersOnly'] = $conditionalOrdersOnly;
-        } else {
-            $request['limitOrdersOnly'] = true;
-        }
         $marketId = $this->get_market_id($symbol, 'market', $params);
         if ($marketId !== null) {
             $request['market'] = $marketId;

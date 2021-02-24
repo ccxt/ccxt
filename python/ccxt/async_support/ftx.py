@@ -1256,16 +1256,11 @@ class ftx(Exchange):
 
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
-        conditionalOrdersOnly = self.safe_value(params, 'conditionalOrdersOnly')
         request = {
             # 'market': market['id'],  # optional
             # 'conditionalOrdersOnly': False,  # cancel conditional orders only
             # 'limitOrdersOnly': False,  # cancel existing limit orders(non-conditional orders) only
         }
-        if conditionalOrdersOnly:
-            request['conditionalOrdersOnly'] = conditionalOrdersOnly
-        else:
-            request['limitOrdersOnly'] = True
         marketId = self.get_market_id(symbol, 'market', params)
         if marketId is not None:
             request['market'] = marketId
