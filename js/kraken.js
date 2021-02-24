@@ -19,6 +19,7 @@ module.exports = class kraken extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': false,
                 'createDepositAddress': true,
@@ -179,6 +180,7 @@ module.exports = class kraken extends Exchange {
                         'AddOrder',
                         'AddExport',
                         'Balance',
+                        'CancelAll',
                         'CancelOrder',
                         'ClosedOrders',
                         'DepositAddresses',
@@ -1397,6 +1399,11 @@ module.exports = class kraken extends Exchange {
             throw e;
         }
         return response;
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        return await this.privatePostCancelAll (params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
