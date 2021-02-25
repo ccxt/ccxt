@@ -21,6 +21,7 @@ class ndax(Exchange):
             'name': 'NDAX',
             'countries': ['US'],  # United States
             'rateLimit': 1000,
+            'pro': True,
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,

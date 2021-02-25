@@ -17,6 +17,7 @@ class ndax extends Exchange {
             'name' => 'NDAX',
             'countries' => array( 'US' ), // United States
             'rateLimit' => 1000,
+            'pro' => true,
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
