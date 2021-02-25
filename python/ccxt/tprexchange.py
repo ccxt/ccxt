@@ -432,21 +432,18 @@ class tprexchange(Exchange):
         # }
         return self.parse_orders(response['content'])
 
-    def fetch_balance(self, params={}):
+    # If call without params the function returns balance of current user
+    def fetch_balance(self, uid='-1', params={}):
         params = {
-            'key': self.key,
-            'token': self.token,
+            'uid': uid
         }
         response = self.privatePostUcMemberBalance(params)
         return response
 
     # Returns int or None
-    def get_market_price(self, symbol, params={}):
-        params = {
-            'key': self.key,
-            'token': self.token,
-        }
-        response = self.privatePostMarketSymbolThumb(params)
+    def get_market_price(self, symbol):
+
+        response = self.privatePostMarketSymbolThumb()
         for i in response:
             if i.get('symbol') == symbol:
                 return i.get('close')
