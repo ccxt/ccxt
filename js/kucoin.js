@@ -128,6 +128,10 @@ module.exports = class kucoin extends Exchange {
                         'margin/lend/assets',
                         'margin/market',
                         'margin/trade/last',
+                        'stop-order/{orderId}',
+                        'stop-order',
+                        'stop-order/queryOrderByClientOid',
+
                     ],
                     'post': [
                         'accounts',
@@ -143,6 +147,7 @@ module.exports = class kucoin extends Exchange {
                         'margin/lend',
                         'margin/toggle-auto-lend',
                         'bullet-private',
+                        'stop-order',
                     ],
                     'delete': [
                         'withdrawals/{withdrawalId}',
@@ -150,6 +155,9 @@ module.exports = class kucoin extends Exchange {
                         'orders/client-order/{clientOid}',
                         'orders/{orderId}',
                         'margin/lend/{orderId}',
+                        'stop-order/cancelOrderByClientOid',
+                        'stop-order/{orderId}',
+                        'stop-order/cancel',
                     ],
                 },
             },
