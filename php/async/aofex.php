@@ -136,6 +136,9 @@ class aofex extends Exchange {
                     'show_all' => '0', // '1' to show zero balances
                 ),
             ),
+            'commonCurrencies' => array(
+                'CPC' => 'Consensus Planet Coin',
+            ),
         ));
     }
 

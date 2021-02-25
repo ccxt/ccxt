@@ -143,6 +143,9 @@ class aofex(Exchange):
                     'show_all': '0',  # '1' to show zero balances
                 },
             },
+            'commonCurrencies': {
+                'CPC': 'Consensus Planet Coin',
+            },
         })
 
     async def fetch_markets(self, params={}):
