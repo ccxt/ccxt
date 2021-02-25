@@ -65,6 +65,7 @@ class tprexchange(Exchange):
                 'publicAPI': False,
                 'signIn': True,
                 'withdraw': False,
+                'getMarketPrice': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -90,6 +91,7 @@ class tprexchange(Exchange):
                     'post': [
                         'uc/api-login',
                         'uc/member/balance',
+                        'market/symbol-thumb',
                         'exchange/order/add',
                         'exchange/order/find',
                         'exchange/order/all',
@@ -304,7 +306,15 @@ class tprexchange(Exchange):
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
         else:
-            params['pageNo'] = 1
+            params['pageNo'] = 0
+
+        if symbol is None:
+            symbol = ''
+        if since is None:
+            since = 0
+        if limit is None:
+            limit = 100
+
         request = {
             'symbol': symbol,
             'since': since,
@@ -366,7 +376,15 @@ class tprexchange(Exchange):
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
         else:
-            params['pageNo'] = 1
+            params['pageNo'] = 0
+
+        if symbol is None:
+            symbol = ''
+        if since is None:
+            since = 0
+        if limit is None:
+            limit = 100
+        
         request = {
             'symbol': symbol,
             'since': since,
@@ -414,13 +432,21 @@ class tprexchange(Exchange):
         # }
         return self.parse_orders(response['content'])
 
-    def fetch_balance(self, params={}):
+    # If call without params the function returns balance of current user
+    def fetch_balance(self, uid='-1', params={}):
         params = {
-            'key': self.key,
-            'token': self.token,
+            'uid': uid
         }
         response = self.privatePostUcMemberBalance(params)
         return response
+
+    # Returns int or None
+    def get_market_price(self, symbol):
+
+        response = self.privatePostMarketSymbolThumb()
+        for i in response:
+            if i.get('symbol') == symbol:
+                return i.get('close')
 
     def parse_trade(self, trade, market=None):
         timestamp = 0
