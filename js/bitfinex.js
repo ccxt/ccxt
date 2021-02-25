@@ -16,7 +16,6 @@ module.exports = class bitfinex extends Exchange {
             'countries': [ 'VG' ],
             'version': 'v1',
             'rateLimit': 1500,
-            'certified': true,
             'pro': true,
             // new metainfo interface
             'has': {
