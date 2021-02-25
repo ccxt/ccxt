@@ -570,6 +570,7 @@ class binance extends Exchange {
                 '-3010' => '\\ccxt\\ExchangeError', // array("code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount.")
                 '-3022' => '\\ccxt\\AccountSuspended', // You account's trading is banned.
                 '-4028' => '\\ccxt\\BadRequest', // array("code":-4028,"msg":"Leverage 100 is not valid")
+                '-5013' => '\\ccxt\\InsufficientFunds', // Asset transfer failed => insufficient balance"
             ),
         ));
     }
