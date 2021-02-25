@@ -10,6 +10,8 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
+import json
+
 
 class tprexchange(Exchange):
 
@@ -437,8 +439,22 @@ class tprexchange(Exchange):
         params = {
             'uid': uid
         }
-        response = self.privatePostUcMemberBalance(params)
-        return response
+        try:
+            response = self.privatePostUcMemberBalance(params)
+        except Exception as e:
+            return e
+        return self.parse_balance(response)
+
+    def parse_balance(self, response):
+        data = json.loads(json.dumps(response))
+        if data['message'] == 'SUCCESS':
+            result = { "free":{}, "used":{}, "total":{}}
+            for row in data['data']['balances']:
+                result['free'].update({row['coinName']:row['free']})
+                result['used'].update({row['coinName']:row['used']})
+                result['total'].update({row['coinName']:row['total']})
+                result.update({row['coinName']:{'free':row['free'], 'used':row['used'], 'total':row['total']}})
+            return result
 
     # Returns int or None
     def get_market_price(self, symbol):
