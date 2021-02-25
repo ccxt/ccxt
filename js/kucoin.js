@@ -131,7 +131,6 @@ module.exports = class kucoin extends Exchange {
                         'stop-order/{orderId}',
                         'stop-order',
                         'stop-order/queryOrderByClientOid',
-
                     ],
                     'post': [
                         'accounts',
