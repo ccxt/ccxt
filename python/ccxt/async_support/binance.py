@@ -583,6 +583,7 @@ class binance(Exchange):
                 '-3010': ExchangeError,  # {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
                 '-3022': AccountSuspended,  # You account's trading is banned.
                 '-4028': BadRequest,  # {"code":-4028,"msg":"Leverage 100 is not valid"}
+                '-5013': InsufficientFunds,  # Asset transfer failed: insufficient balance"
             },
         })
 
