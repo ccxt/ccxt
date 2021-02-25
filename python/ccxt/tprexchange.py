@@ -37,8 +37,8 @@ class tprexchange(Exchange):
                 'editOrder': 'emulated',
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
-                'fetchClosedOrders': False,
-                'fetchCurrencies': False,
+                'fetchClosedOrders': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDeposits': False,
                 'fetchFundingFees': False,
@@ -53,7 +53,7 @@ class tprexchange(Exchange):
                 'fetchOrderBooks': False,
                 'fetchOrders': True,
                 'fetchOrderTrades': False,
-                'fetchStatus': 'emulated',
+                'fetchStatus': True,
                 'fetchTicker': False,
                 'fetchTickers': False,
                 'fetchTime': False,
@@ -94,10 +94,12 @@ class tprexchange(Exchange):
                         'uc/api-login',
                         'uc/member/balance',
                         'market/symbol-thumb',
+                        'market/coins-info',
                         'exchange/order/add',
                         'exchange/order/find',
                         'exchange/order/all',
                         'exchange/order/apicancel',
+                        'exchange/exchange-coin/base-symbol',
                     ],
                     'delete': [
                     ],
@@ -208,6 +210,75 @@ class tprexchange(Exchange):
         self.options['token'] = self.safe_string(loginData, 'token')
         memberId = self.safe_string(loginData, 'id')
         return memberId
+
+    def fetch_status(self):
+        # Responce examples:
+        # {'status': 'ok'}
+        # or
+        # {'status': 'shutdown', 'reason': 'ExchangeNotAvailable'}
+        # or
+        # {'status': 'shutdown', 'reason': 'Unknown reason'}
+        result = False
+        try:
+            response = self.privatePostExchangeExchangeCoinBaseSymbol()
+            for field in response.items():
+                if field[0] == 'message':
+                    if field[1] == 'SUCCESS':
+                        result = True
+            if result is True:
+                return json.loads("""{"status": "ok"}""")
+            else:
+                return json.loads("""{"status": "shutdown", "reason": "ExchangeNotAvailable"}""")
+        except:
+            reason = str(sys.exc_info()[0])
+            if reason.find('ExchangeNotAvailable') != -1:
+                return json.loads("""{"status": "shutdown", "reason": "ExchangeNotAvailable"}""")
+            else:
+                return json.loads("""{"status": "shutdown", "reason": "Unknown reason"}""")
+
+    def fetch_currencies(self):
+        # [
+        #    {
+        #        "name": "TPR",
+        #        "unit": "TPR",
+        #        "status": 1,
+        #        "minTxFee": 0.0,
+        #        "maxTxFee": 0.0,
+        #        "usdRate": 1.0,
+        #        "enableRpc": 1,
+        #        "sort": 1,
+        #        "canWithdraw": 1,
+        #        "canRecharge": 1,
+        #        "canTransfer": 1,
+        #        "canAutoWithdraw": 1,
+        #        "withdrawThreshold": 0.10000000,
+        #        "minWithdrawAmount": 1.00000000,
+        #        "maxWithdrawAmount": 5000.00000000,
+        #        "minRechargeAmount": null,
+        #        "isPlatformCoin": 1,
+        #        "hasLegal": false,
+        #        "allBalance": null,
+        #        "coldWalletAddress": null,
+        #        "hotAllBalance": null,
+        #        "blockHeight": null,
+        #        "minerFee": null,
+        #        "withdrawScale": 4,
+        #        "infolink": null,
+        #        "information": null,
+        #        "accountType": 0,
+        #        "depositAddress": null
+        #    },
+        #        ...
+        # ]
+        try:
+            response = self.privatePostMarketCoinsInfo()
+            return response
+        except:
+            reason = str(sys.exc_info()[0])
+            if reason.find('ExchangeNotAvailable') != -1:
+                return json.loads("""{"Error": "ExchangeNotAvailable"}""")
+            else:
+                return json.loads("""{"Error": Unknown reason"}""")
 
     def fetch_order(self, id, symbol=None, params={}):
         request = {
@@ -375,6 +446,76 @@ class tprexchange(Exchange):
         #   'page': for pagination. In self case limit is size of every page. May be set in params
         # }
         params['status'] = 'TRADING'
+        if 'page' in params:
+            params['pageNo'] = self.safe_string(params, 'page')
+        else:
+            params['pageNo'] = 0
+
+        if symbol is None:
+            symbol = ''
+        if since is None:
+            since = 0
+        if limit is None:
+            limit = 100
+        
+        request = {
+            'symbol': symbol,
+            'since': since,
+            'pageSize': limit,
+        }
+        fullRequest = self.extend(request, params)
+        response = self.privatePostExchangeOrderAll(fullRequest)
+        # {
+        #     'content': [
+        #         {
+        #             'orderId':'E161183624377614',
+        #             'memberId':2,
+        #             'type':'LIMIT_PRICE',
+        #             'amount':1000.0,
+        #             'symbol':'BCH/USDT',
+        #             'tradedAmount':1000.0,
+        #             'turnover':1080.0,
+        #             'coinSymbol':'BCH',
+        #             'baseSymbol':'USDT',
+        #             'status':'COMPLETED',
+        #             'direction':'SELL',
+        #             'price':1.0,
+        #             'time':1611836243776,
+        #             'completedTime':1611836256242,
+        #         },
+        #         ...
+        #     ],
+        #     'totalElements':41,
+        #     'totalPages':3,
+        #     'last':False,
+        #     'size':20,
+        #     'number':1,
+        #     'first':False,
+        #     'numberOfElements':20,
+        #     'sort': [
+        #         {
+        #             'direction':'DESC',
+        #             'property':'time',
+        #             'ignoreCase':False,
+        #             'nullHandling':'NATIVE',
+        #             'ascending':False,
+        #             'descending':True,
+        #         }
+        #     ]
+        # }
+        return self.parse_orders(response['content'])
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        # Request structure
+        # {
+        #   'symbol': Parameter from method arguments
+        #   'since': Timestamp of first order in list in Unix epoch format
+        #   'limit': Response list size
+        #   'memberId': May be set in params. May be not set
+        #   'status': one of TRADING COMPLETED CANCELED OVERTIMED. May be set in params
+        #   'page': for pagination. In self case limit is size of every page. May be set in params
+        # }
+        params['status'] = 'CANCELED'
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
         else:
