@@ -1797,10 +1797,10 @@ class Exchange {
         }
         if (isset($limit)) {
             if (is_array($result)) {
-                $result = ($tail && !$since_is_set) ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
+                $result = $tail ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
             } else {
                 $length = count($result);
-                if ($tail && !$since_is_set) {
+                if ($tail) {
                     $start = max($length - $limit, 0);
                 } else {
                     $start = 0;
@@ -1986,7 +1986,7 @@ class Exchange {
             }
         }
         if (isset($limit)) {
-            return ($tail && !$sinceIsSet) ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
+            return $tail ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
         }
         return $result;
     }
