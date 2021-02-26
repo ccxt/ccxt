@@ -1772,7 +1772,7 @@ class Exchange(object):
         if since is not None:
             array = [entry for entry in array if entry[key] >= since]
         if limit is not None:
-            array = array[-limit:] if tail and (since is None) else array[:limit]
+            array = array[-limit:] if tail else array[:limit]
         return array
 
     def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None, tail=False):
@@ -1786,7 +1786,7 @@ class Exchange(object):
         if since is not None:
             array = [entry for entry in array if entry[key] >= since]
         if limit is not None:
-            array = array[-limit:] if tail and (since is None) else array[:limit]
+            array = array[-limit:] if tail else array[:limit]
         return array
 
     def filter_by_symbol(self, array, symbol=None):

@@ -1033,7 +1033,7 @@ module.exports = class Exchange {
             array = array.filter ((entry) => entry[key] >= since)
         }
         if (limit !== undefined && limit !== null) {
-            array = (tail && !sinceIsDefined) ? array.slice (-limit) : array.slice (0, limit)
+            array = tail ? array.slice (-limit) : array.slice (0, limit)
         }
         return array
     }
@@ -1051,7 +1051,7 @@ module.exports = class Exchange {
         }
 
         if (limit !== undefined && limit !== null) {
-            array = (tail && !sinceIsDefined) ? array.slice (-limit) : array.slice (0, limit)
+            array = tail ? array.slice (-limit) : array.slice (0, limit)
         }
 
         return array
