@@ -827,10 +827,10 @@ module.exports = class binance extends ccxt.binance {
         const defaultType = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
-        const messageHash = 'orders';
-        let subscriptionHash = messageHash;
+        let messageHash = 'orders';
+        const subscriptionHash = messageHash;
         if (symbol !== undefined) {
-            subscriptionHash += ':' + symbol;
+            messageHash += ':' + symbol;
         }
         const message = undefined;
         const orders = await this.watch (url, messageHash, message, subscriptionHash);
@@ -1087,10 +1087,10 @@ module.exports = class binance extends ccxt.binance {
         const defaultType = this.safeString2 (this.options, 'watchMyTrades', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
-        const messageHash = 'myTrades';
-        let subscriptionHash = messageHash;
+        let messageHash = 'myTrades';
+        const subscriptionHash = messageHash;
         if (symbol !== undefined) {
-            subscriptionHash += ':' + symbol;
+            messageHash += ':' + symbol;
         }
         const message = undefined;
         const trades = await this.watch (url, messageHash, message, subscriptionHash);
