@@ -803,6 +803,7 @@ module.exports = class binance extends ccxt.binance {
         //         }
         //     }
         //
+        this.balance['info'] = message;
         const wallet = this.safeValue (this.options, 'wallet', 'wb');
         message = this.safeValue (message, 'a', message);
         const balances = this.safeValue (message, 'B', []);
