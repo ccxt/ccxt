@@ -25,7 +25,7 @@ module.exports = class gooplex extends Exchange {
                 'fetchClosedOrders': 'emulated',
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': true,
+                'fetchFundingFees': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -33,7 +33,7 @@ module.exports = class gooplex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOrderBook': true,
-                'fetchStatus': true,
+                'fetchStatus': 'emulated',
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -43,6 +43,23 @@ module.exports = class gooplex extends Exchange {
                 'fetchTransactions': false,
                 'fetchWithdrawals': true,
                 'withdraw': true,
+            },
+            'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'urls': {
                 'doc': 'https://www.gooplex.com.br/apidocs/#api-document-description',
@@ -70,6 +87,7 @@ module.exports = class gooplex extends Exchange {
                     'get': [
                         'common/time',
                         'common/symbols',
+                        'market/depth',
                     ],
                 },
                 'signed': {             // private
@@ -391,17 +409,17 @@ module.exports = class gooplex extends Exchange {
                 500,
             ],
             'sides': {
-                'BUY': 0,
-                'SELL': 1,
+                'buy': 0,
+                'sell': 1,
             },
             'types': {
-                'LIMIT': 1,
-                'MARKET': 2,
-                'STOP_LOSS': 3,
-                'STOP_LOSS_LIMIT': 4,
-                'TAKE_PROFIT': 5,
-                'TAKE_PROFIT_LIMIT': 6,
-                'LIMIT_MAKER': 7,
+                'limit': 1,
+                'market': 2,
+                'stop_loss': 3,
+                'stop_loss_limit': 4,
+                'take_profit': 5,
+                'take_profit_limit': 6,
+                'limit_maker': 7,
             },
             'fees': {
                 'trading': {
@@ -498,6 +516,7 @@ module.exports = class gooplex extends Exchange {
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeTimestamp (trade, 'time') / 1000;
         const datetime = this.iso8601 (timestamp);
+        const fee = null;
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'qty');
         const order = '';
@@ -510,11 +529,22 @@ module.exports = class gooplex extends Exchange {
         } else {
             takerOrMaker = 'taker';
         }
+        const info = {
+            'M': trade['isBestMatch'],
+            't': trade['time'],
+            'a': trade['id'],
+            'f': undefined,
+            'l': undefined,
+            'm': trade['isBuyerMaker'],
+            'p': trade['price'],
+            'q': trade['qty'],
+        };
         const entry = {
-            'info': trade,
+            'info': info,
             'id': id,
             'timestamp': timestamp,
             'datetime': datetime,
+            'fee': fee,
             'symbol': symbol,
             'order': order,
             'type': type,
@@ -532,20 +562,101 @@ module.exports = class gooplex extends Exchange {
         const response = await this[method] (params);
         const data = this.safeValue (response, 'data');
         const markets = this.safeValue (data, 'list');
+        let marketType = 'spot';
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const entry = this.convertSymbol (market);
+            let future = false;
+            let delivery = false;
+            const tierBased = false;
+            const spot = !(future || delivery);
+            const conversion = this.convertSymbol (market);
+            const id = conversion['symbol2'];
+            const lowercaseId = this.safeStringLower (conversion, 'symbol2');
+            const baseId = this.safeString (market, 'baseAsset');
+            const quoteId = this.safeString (market, 'quoteAsset');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = delivery ? id : (base + '/' + quote);
+            const precision = {
+                'base': this.safeInteger (market, 'basePrecision'),
+                'quote': this.safeInteger (market, 'quotePrecision'),
+                'amount': this.safeInteger (market, 'basePrecision'),
+                'price': this.safeInteger (market, 'quotePrecision'),
+            };
+            if ('maintMarginPercent' in market) {
+                delivery = ('marginAsset' in market);
+                future = !delivery;
+                marketType = delivery ? 'delivery' : 'future';
+            }
+            const status = this.safeString2 (market, 'status', 'contractStatus');
+            const active = (status === 'TRADING');
+            const margin = this.safeValue (market, 'isMarginTradingAllowed', future || delivery);
+            const info = {
+                'baseAsset': baseId,
+                'baseAssetPrecision': precision['base'],
+                'baseComissionPrecision': precision['base'],
+                'filters': market['filters'],
+                'icebergAllowed': true,
+                'isMarginTradingAllowed': false,
+                'isSpotTradingAllowed': true,
+                'ocoAllowed': true,
+                'orderTypes': ['LIMIT', 'LIMIT_MAKER', 'MARKET', 'STOP_LOSS_LIMIT', 'TAKE_PROFIT_LIMIT'],
+                'permissions': ['SPOT'],
+                'quoteAsset': quoteId,
+                'quoteAssetPrecision': precision['base'],
+                'quoteComissionPrecision': precision['base'],
+                'quoteOrderQtyMarketAlloed': true,
+                'quotePrecision': precision['base'],
+                'status': status,
+                'symbol': id,
+            };
+            const entry = {
+                'id': id,
+                'lowercaseId': lowercaseId,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'info': info,
+                'type': marketType,
+                'spot': spot,
+                'margin': margin,
+                'future': future,
+                'delivery': delivery,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'market': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'tierBased': tierBased,
+            };
             result.push (entry);
         }
         return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        const method = 'apiGetV3Depth';
+        const method = 'openGetMarketDepth';
         await this.loadMarkets ();
         const request = {
-            'symbol': this.markets[symbol]['symbol2'],
+            'symbol': this.markets[symbol]['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -692,11 +803,21 @@ module.exports = class gooplex extends Exchange {
         const amount = this.safeFloat (transaction, 'amount');
         const feeCost = this.safeFloat (transaction, 'transactionFee');
         let fee = undefined;
+        const transactions = {
+            'address': address,
+            'addressTag': tag,
+            'amount': amount,
+            'asset': currencyId,
+            'creator': id,
+            'insertTime': insertTime,
+            'status': transaction['status'],
+            'txId': txid,
+        };
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
         return {
-            'info': transaction,
+            'info': transactions,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
@@ -725,12 +846,26 @@ module.exports = class gooplex extends Exchange {
         }
         const address = this.safeString (response['data'], 'address');
         const tag = this.safeString (response['data'], 'addressTag');
+        const status = parseInt (response['data']['status']);
+        let response_status = false;
+        if (status === 1) {
+            response_status = true;
+        } else {
+            response_status = false;
+        }
+        const info = {
+            'address': response['data']['address'],
+            'addressTag': response['data']['addressTag'],
+            'asset': response['data']['asset'],
+            'success': response_status,
+            'url': 'https://blockchair.com/bitcoin/address/' + address,
+        };
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'info': response,
+            'info': info,
         };
     }
 
@@ -801,43 +936,6 @@ module.exports = class gooplex extends Exchange {
         return this.parseTransactions (response['data']['list'], currency, since, limit);
     }
 
-    async fetchFundingFees (codes = undefined, params = {}) {
-        const response = await this.wapiGetAssetDetail (params);
-        //
-        //     {
-        //         "success": true,
-        //         "assetDetail": {
-        //             "CTR": {
-        //                 "minWithdrawAmount": "70.00000000", //min withdraw amount
-        //                 "depositStatus": false,//deposit status
-        //                 "withdrawFee": 35, // withdraw fee
-        //                 "withdrawStatus": true, //withdraw status
-        //                 "depositTip": "Delisted, Deposit Suspended" //reason
-        //             },
-        //             "SKY": {
-        //                 "minWithdrawAmount": "0.02000000",
-        //                 "depositStatus": true,
-        //                 "withdrawFee": 0.01,
-        //                 "withdrawStatus": true
-        //             }
-        //         }
-        //     }
-        //
-        const detail = this.safeValue (response, 'assetDetail', {});
-        const ids = Object.keys (detail);
-        const withdrawFees = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const code = this.safeCurrencyCode (id);
-            withdrawFees[code] = this.safeFloat (detail[id], 'withdrawFee');
-        }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': {},
-            'info': response,
-        };
-    }
-
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -856,7 +954,7 @@ module.exports = class gooplex extends Exchange {
         if (tag !== undefined) {
             request['addressTag'] = tag;
         }
-        const response = await this.wapiPostWithdraw (this.extend (request, params));
+        const response = await this.signedPostWithdraws (this.extend (request, params));
         return {
             'info': response,
             'id': this.safeString (response, 'id'),
@@ -884,10 +982,7 @@ module.exports = class gooplex extends Exchange {
     async fetchTradingFee (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.wapiGetTradeFee (this.extend (request, params));
+        const conversion = this.convertSymbol (market);
         //
         //     {
         //         "tradeFee": [
@@ -900,14 +995,26 @@ module.exports = class gooplex extends Exchange {
         //         "success": true
         //     }
         //
-        const tradeFee = this.safeValue (response, 'tradeFee', []);
-        const first = this.safeValue (tradeFee, 0, {});
-        return this.parseTradingFee (first);
+        const fees = this.getFees ();
+        const response = this.convertTradingFees (conversion['symbol2'], fees['maker'], fees['taker']);
+        return response;
+    }
+
+    convertTradingFees (symbol, maker, taker) {
+        return {
+            'info': {
+                'maker': maker,
+                'symbol': symbol,
+                'taker': taker,
+            },
+            'maker': maker,
+            'symbol': symbol,
+            'taker': taker,
+        };
     }
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.wapiGetTradeFee (params);
         //
         //     {
         //         "tradeFee": [
@@ -920,14 +1027,14 @@ module.exports = class gooplex extends Exchange {
         //         "success": true
         //     }
         //
-        const tradeFee = this.safeValue (response, 'tradeFee', []);
-        const result = {};
-        for (let i = 0; i < tradeFee.length; i++) {
-            const fee = this.parseTradingFee (tradeFee[i]);
-            const symbol = fee['symbol'];
-            result[symbol] = fee;
+        const markets = this.fetchMarkets ();
+        const fees = this.getFees ();
+        const response = {};
+        for (let index = 0; index < markets.length; index++) {
+            const symbol = markets[index]['symbol'];
+            response[symbol] = (this.convertTradingFees (symbol, fees['maker'], fees['taker']));
         }
-        return result;
+        return response;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -943,32 +1050,87 @@ module.exports = class gooplex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
         }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const defaultType = this.safeString2 (this.options, 'cancelAllOrders', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        let method = 'privateDeleteOpenOrders';
-        if (type === 'future') {
-            method = 'fapiPrivateDeleteAllOpenOrders';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateDeleteAllOpenOrders';
+        const orders = this.fetchOrders (symbol);
+        const method = 'signedPostOrdersCancel';
+        const response = [];
+        for (let index = 0; index < orders.length; index++) {
+            const order = orders[index];
+            const request = {
+                'orderId': order['id'],
+                'timestamp': this.nonce (),
+            };
+            const data = await this[method] (this.extend (request));
+            response.push (data);
         }
-        const response = await this[method] (this.extend (request, query));
-        if (Array.isArray (response)) {
-            return this.parseOrders (response, market);
-        } else {
-            return response;
-        }
+        return response;
     }
 
     async fetchBalance (params = {}) {
         const method = 'signedGetAccountSpot';
         const response = await this[method] (params);
-        return response;
+        const balance = response['data']['accountAssets'];
+        const exp_info = [];
+        let data_response = {};
+        try {
+            const exp_free = [];
+            const exp_used = [];
+            const exp_total = [];
+            const pre_permitidos = [];
+            pre_permitidos.push ('SPOT');
+            const exp_balances = [];
+            const timestamp = response['timestamp'];
+            const buyerCommission = parseFloat (response['data']['buyerCommission']);
+            const makerCommission = parseFloat (response['data']['makerCommission']);
+            const takerCommission = parseFloat (response['data']['takerCommission']);
+            const sellerCommission = parseFloat (response['data']['sellerCommission']);
+            const canDeposit = response['data']['canDeposit'];
+            const canTrade = response['data']['canTrade'];
+            const canWithdraw = response['data']['canWithdraw'];
+            const dict_free = { 'free': { }};
+            const dict_total = { 'total': { }};
+            const dict_used = { 'used': { }};
+            for (let i = 0; i < balance.length; i++) {
+                const ativo = balance[i]['asset'];
+                const free = parseFloat (balance[i]['free']);
+                const locked = parseFloat (balance[i]['locked']);
+                const total = free + locked;
+                exp_free.push ([ativo, free]);
+                dict_free['free'][ativo] = free;
+                dict_total['total'][ativo] = total;
+                dict_used['used'][ativo] = locked;
+                exp_total.push ([ativo, total]);
+                exp_used.push ([ativo, locked]);
+                const pre_balance = [];
+                pre_balance.push (['asset', ativo]);
+                pre_balance.push (['free', free]);
+                pre_balance.push (['locked', locked]);
+                exp_balances.push (pre_balance);
+            }
+            exp_info.push (dict_free);
+            const info = {
+                'info': {
+                    'accountType': 'SPOT',
+                    'balances': exp_balances,
+                    'permissions': pre_permitidos,
+                    'buyerCommission': buyerCommission,
+                    'canDeposit': canDeposit,
+                    'canTrade': canTrade === 1 ? true : false,
+                    'canWithdraw': canWithdraw === 1 ? true : false,
+                    'makerCommission': makerCommission,
+                    'sellerCommission': sellerCommission,
+                    'takerCommission': takerCommission,
+                    'updateTime': timestamp,
+                },
+            };
+            exp_info.push (info);
+            exp_info.push (dict_total);
+            exp_info.push (dict_used);
+            data_response = { dict_free, info, dict_total, dict_used };
+            console.log (data_response);
+        } catch (e) {
+            console.log (e);
+        }
+        return exp_info;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1026,15 +1188,11 @@ module.exports = class gooplex extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.wapiGetSystemStatus (params);
-        let status = this.safeValue (response, 'status');
-        if (status !== undefined) {
-            status = (status === 0) ? 'ok' : 'maintenance';
-            this.status = this.extend (this.status, {
-                'status': status,
-                'updated': this.milliseconds (),
-            });
-        }
+        const status = 'ok';
+        this.status = this.extend (this.status, {
+            'status': status,
+            'updated': this.milliseconds (),
+        });
         return this.status;
     }
 
@@ -1042,7 +1200,7 @@ module.exports = class gooplex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': this.markets[symbol]['symbol2'],
+            'symbol': this.markets[symbol]['id'],
         };
         const method = 'publicGetTicker24hr';
         const response = await this[method] (this.extend (request, params));
@@ -1136,12 +1294,7 @@ module.exports = class gooplex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
         }
-        let method = 'publicGetKlines';
-        if (market['future']) {
-            method = 'fapiPublicGetKlines';
-        } else if (market['delivery']) {
-            method = 'dapiPublicGetKlines';
-        }
+        const method = 'publicGetKlines';
         const response = await this[method] (this.extend (request, params));
         //
         //     [
@@ -1191,7 +1344,7 @@ module.exports = class gooplex extends Exchange {
         const method = 'apiGetV3Trades';
         await this.loadMarkets ();
         const request = {
-            'symbol': this.markets[symbol]['symbol2'],
+            'symbol': this.markets[symbol]['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1219,7 +1372,8 @@ module.exports = class gooplex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = await this[method] (this.extend (request, params));
+        response = response['data']['list'];
         return response;
     }
 
@@ -1243,7 +1397,7 @@ module.exports = class gooplex extends Exchange {
         const method = 'apiGetV3AggTrades';
         await this.loadMarkets ();
         const request = {
-            'symbol': this.markets[symbol]['symbol2'],
+            'symbol': this.markets[symbol]['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;

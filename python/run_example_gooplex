@@ -1,0 +1,148 @@
+# coding=utf-8
+
+import ccxt
+import pprint
+
+gooplex = ccxt.gooplex({
+    'apiKey': 'e8cC56c4B54DBBa84884C9d9f609F54azU5uCWDIVKbtCGfiuhn9XXQluksiNxAP',
+    'secret': 'bB67Ff86F08D996BB264D8404e55768A4SAahyr3xQD6CO3zXYKK22dlAT5BrEPg',
+})
+
+exchange_id = 'binance'
+exchange_class = getattr(ccxt, exchange_id)
+exchange = exchange_class({
+    'apiKey': 'Mi79QVjYgYeF9BDbNPokfzeWlScnxnlzHaMCP4hrMSlwanyynZLXjP2UVYTX1aHq',
+    'secret': 'mlMa6jZRrUYm3Nr0sCnY3csqF4MWTpss6Lrbc9ZV7YDF1pw61Br0MEjxHJGXsSJp',
+    'timeout': 30000,
+    'enableRateLimit': True,
+})
+exchange.load_markets()
+gooplex.load_markets()
+
+#print('market')
+#print(exchange.id)
+#pprint.pprint(exchange.market('BTC/BRL'))
+#print(gooplex.id)
+#pprint.pprint(gooplex.market('BTC/BRL'))
+
+# print('\n')
+
+#print('fetch trades')
+#print(exchange_id)
+#pprint.pprint(exchange.fetch_trades('BTC/BRL'))
+#print(gooplex.id)
+#pprint.pprint(gooplex.fetch_trades('BTC/BRL'))
+
+# print('\n')
+
+#print('trading_fee')
+#print(exchange.id)
+#pprint.pprint(exchange.fetch_trading_fee('BTC/BRL'))
+#print(gooplex.id)
+#pprint.pprint(gooplex.fetch_trading_fee('BTC/BRL'))
+
+
+# print('\n')
+
+# print('trading_fees')
+# print(exchange.id)
+#pprint.pprint(exchange.fetch_trading_fees())
+#pprint.pprint(gooplex.fetch_trading_fees())
+# print('\n')
+
+#print('fetch_ticker')
+#print(exchange.id)
+#pprint.pprint(exchange.fetch_ticker('BTC/BRL'))
+#print(gooplex.id)
+#pprint.pprint(gooplex.fetch_ticker('BTC/BRL'))
+
+# print('\n')
+
+#print('fetch_tickers')
+#print(exchange.id)
+#pprint.pprint(exchange.fetch_tickers())
+#print(gooplex.id)
+#pprint.pprint(gooplex.fetch_tickers())
+
+# print('\n')
+
+#print('fetch_orders')
+#print(exchange.id)
+#pprint.pprint(exchange.fetch_orders('BTC/BRL'))
+#print(gooplex.id)
+#pprint.pprint(gooplex.fetch_orders('BTC/BRL'))
+
+# print('\n')
+
+#print('order_book')
+#print(exchange.id)
+#pprint.pprint(exchange.fetch_order_book('BTC/BRL'))
+#print(gooplex.id)
+#pprint.pprint(gooplex.fetch_order_book('BTC/BRL'))
+
+# print('\n')
+
+print('fetch_balance')
+print(exchange.id)
+pprint.pprint(exchange.fetch_balance())
+print(gooplex.id)
+pprint.pprint(gooplex.fetch_balance())
+
+# print('\n')
+
+#print('fetch_deposits')
+#print(exchange.id)
+#pprint.pprint(exchange.fetch_deposits('BTC'))
+#print(gooplex.id)
+#pprint.pprint(gooplex.fetch_deposits('BTC'))
+
+# print('\n')
+
+#print('fetch_deposit_address')
+#print(exchange.id)
+#pprint.pprint(exchange.fetch_deposit_address('BTC'))
+#print(gooplex.id)
+#pprint.pprint(gooplex.fetch_deposit_address('BTC'))
+
+# print('\n')
+
+#print('fetch_withdrawals')
+#print(exchange.id)
+#pprint.pprint(exchange.fetch_withdrawals())
+#print(gooplex.id)
+#pprint.pprint(gooplex.fetch_withdrawals())
+
+
+# sell one ฿ for market price and receive $ right now
+#print(gooplex.id, gooplex.create_market_sell_order('BTC/BRL', 1, {'amount' : '0.01000000'}))
+#print(exchange.id, exchange.create_market_sell_order('BTC/BRL', 1, {'amount' : '0.01000000'}))
+
+# limit buy BTC/EUR, you pay €2500 and receive ฿1  when the order is closed
+#print(gooplex.id, gooplex.create_limit_buy_order('BTC/BRL', 1, 2500.00))
+#print(exchange.id, exchange.create_limit_buy_order('BTC/BRL', 1, 2500.00))
+
+# pass/redefine custom exchange-specific order params: type, amount, price, flags, etc...
+#print(gooplex.create_market_buy_order('BTC/BRL', 1))
+#print(exchange.create_market_buy_order('BTC/BRL', 1))
+
+#print(exchange.fetch_currencies())
+
+#print('trading_fees')
+#pprint.pprint(exchange.fetch_trading_fees())
+#print('\n')
+#print('trading_fee')
+#print(exchange.fetch_trading_fee('BTC/BRL'))
+#print('\n')
+#print('funding_fees')
+#print(exchange.fetch_funding_fees())
+
+#print(exchange.fetch_time())
+#print(gooplex.fetch_time())
+
+#print(exchange.fetch_status())
+#print(gooplex.fetch_status())
+
+#print(exchange.fetch_my_trades('BTC/BRL'))
+#print(gooplex.fetch_my_trades('BTC/BRL'))
+
+#print(gooplex.fetch_ohlcv('BTC/BRL'))
