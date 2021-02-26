@@ -753,6 +753,7 @@ class binance(Exchange, ccxt.binance):
         #         }
         #     }
         #
+        self.balance['info'] = message
         wallet = self.safe_value(self.options, 'wallet', 'wb')
         message = self.safe_value(message, 'a', message)
         balances = self.safe_value(message, 'B', [])

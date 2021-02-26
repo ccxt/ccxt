@@ -808,6 +808,7 @@ class binance extends \ccxt\async\binance {
         //         }
         //     }
         //
+        $this->balance['info'] = $message;
         $wallet = $this->safe_value($this->options, 'wallet', 'wb');
         $message = $this->safe_value($message, 'a', $message);
         $balances = $this->safe_value($message, 'B', array());
