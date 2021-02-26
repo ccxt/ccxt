@@ -701,7 +701,9 @@ class binance(Exchange, ccxt.binance):
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'outboundAccountPosition'
-        return await self.watch(url, messageHash)
+        message = None
+        subscriptionHash = 'private'
+        return await self.watch(url, messageHash, message, subscriptionHash)
 
     def handle_balance(self, client, message):
         #
@@ -774,9 +776,9 @@ class binance(Exchange, ccxt.binance):
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'orders'
-        subscriptionHash = messageHash
+        subscriptionHash = 'private'
         if symbol is not None:
-            subscriptionHash += ':' + symbol
+            messageHash += ':' + symbol
         message = None
         orders = await self.watch(url, messageHash, message, subscriptionHash)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
@@ -1021,9 +1023,9 @@ class binance(Exchange, ccxt.binance):
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'myTrades'
-        subscriptionHash = messageHash
+        subscriptionHash = 'private'
         if symbol is not None:
-            subscriptionHash += ':' + symbol
+            messageHash += ':' + symbol
         message = None
         trades = await self.watch(url, messageHash, message, subscriptionHash)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
