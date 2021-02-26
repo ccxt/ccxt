@@ -157,6 +157,7 @@ class kucoin(Exchange):
                         'orders',
                         'orders/multi',
                         'margin/borrow',
+                        'margin/order',
                         'margin/repay/all',
                         'margin/repay/single',
                         'margin/lend',
@@ -794,7 +795,29 @@ class kucoin(Exchange):
             'clientOid': clientOrderId,
             'side': side,
             'symbol': marketId,
-            'type': type,
+            'type': type,  # limit or market
+            # 'remark': '',  # optional remark for the order, length cannot exceed 100 utf8 characters
+            # 'stp': '',  # self trade prevention, CN, CO, CB or DC
+            # To improve the system performance and to accelerate order placing and processing, KuCoin has added a new interface for margin orders
+            # The current one will no longer accept margin orders by May 1st, 2021(UTC)
+            # At the time, KuCoin will notify users via the announcement, please pay attention to it
+            # 'tradeType': 'TRADE',  # TRADE, MARGIN_TRADE  # not used with margin orders
+            # limit orders ---------------------------------------------------
+            # 'timeInForce': 'GTC',  # GTC, GTT, IOC, or FOK(default is GTC), limit orders only
+            # 'cancelAfter': long,  # cancel after n seconds, requires timeInForce to be GTT
+            # 'postOnly': False,  # Post only flag, invalid when timeInForce is IOC or FOK
+            # 'hidden': False,  # Order will not be displayed in the order book
+            # 'iceberg': False,  # Only a portion of the order is displayed in the order book
+            # 'visibleSize': self.amount_to_precision(symbol, visibleSize),  # The maximum visible size of an iceberg order
+            # market orders --------------------------------------------------
+            # 'size': self.amount_to_precision(symbol, amount),  # Amount in base currency
+            # 'funds': self.cost_to_precision(symbol, cost),  # Amount of quote currency to use
+            # stop orders ----------------------------------------------------
+            # 'stop': 'loss',  # loss or entry, the default is loss, requires stopPrice
+            # 'stopPrice': self.price_to_precision(symbol, amount),  # need to be defined if stop is specified
+            # margin orders --------------------------------------------------
+            # 'marginMode': 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+            # 'autoBorrow': False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
         }
         if type != 'market':
             request['price'] = self.price_to_precision(symbol, price)
