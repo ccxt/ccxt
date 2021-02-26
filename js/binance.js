@@ -752,7 +752,9 @@ module.exports = class binance extends ccxt.binance {
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const messageHash = 'outboundAccountPosition';
-        return await this.watch (url, messageHash);
+        const message = undefined;
+        const subscriptionHash = 'private';
+        return await this.watch (url, messageHash, message, subscriptionHash);
     }
 
     handleBalance (client, message) {
@@ -828,7 +830,7 @@ module.exports = class binance extends ccxt.binance {
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         let messageHash = 'orders';
-        const subscriptionHash = messageHash;
+        const subscriptionHash = 'private';
         if (symbol !== undefined) {
             messageHash += ':' + symbol;
         }
@@ -1088,7 +1090,7 @@ module.exports = class binance extends ccxt.binance {
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         let messageHash = 'myTrades';
-        const subscriptionHash = messageHash;
+        const subscriptionHash = 'private';
         if (symbol !== undefined) {
             messageHash += ':' + symbol;
         }
