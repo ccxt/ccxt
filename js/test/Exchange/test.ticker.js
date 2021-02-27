@@ -86,6 +86,7 @@ module.exports = (exchange, ticker, method, symbol) => {
         'gateio', // some ticker bids are greaters than asks
         'timex',
         'poloniex',
+        'qtrade',
         'bigone',
 
     ].includes (exchange.id)) {
