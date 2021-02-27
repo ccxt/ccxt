@@ -167,6 +167,7 @@ module.exports = class bitmex extends Exchange {
                     'Account has insufficient Available Balance': InsufficientFunds,
                     'Service unavailable': ExchangeNotAvailable, // {"error":{"message":"Service unavailable","name":"HTTPError"}}
                     'Server Error': ExchangeError, // {"error":{"message":"Server Error","name":"HTTPError"}}
+                    'Unable to cancel order due to existing state': InvalidOrder,
                 },
             },
             'precisionMode': TICK_SIZE,
