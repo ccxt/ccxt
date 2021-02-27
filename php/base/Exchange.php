@@ -4,7 +4,7 @@
 
 MIT License
 
-Copyright (c) 2017 Igor Kroitor & Carlo Revelli
+Copyright (c) 2017 CCXT
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
