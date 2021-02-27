@@ -1,7 +1,8 @@
 {
     "bcex":          { "skip": true },
     "bibox":         { "has": { "fetchCurrencies": false }},
-    "bitforex"  :    { "skip": true },
+    "bitforex":      { "skip": true },
+    "bitmax":        { "skip": true },
     "btcmarkets":    { "skip": true },
     "btctradeua":    { "skip": true },
     "btcturk":       { "skip": true },
