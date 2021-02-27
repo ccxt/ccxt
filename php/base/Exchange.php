@@ -190,7 +190,7 @@ class Exchange {
         'zb',
     );
 
-    public static $methods = array(
+    public static $camelcase_methods = array(
         'defaultFetch' => 'default_fetch',
         'arrayConcat' => 'array_concat',
         'inArray' => 'in_array',
@@ -2352,8 +2352,8 @@ class Exchange {
             $entry = $partial[3];
             $partial[3] = $params ? $params[0] : $params;
             return call_user_func_array(array($this, $entry), $partial);
-        } else if (array_key_exists($function, static::$methods)) {
-            $underscore = static::$methods[$function];
+        } else if (array_key_exists($function, static::$camelcase_methods)) {
+            $underscore = static::$camelcase_methods[$function];
             return call_user_func_array(array($this, $underscore), $params);
         } else {
             /* handle errors */
