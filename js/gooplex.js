@@ -1069,7 +1069,6 @@ module.exports = class gooplex extends Exchange {
         const method = 'signedGetAccountSpot';
         const response = await this[method] (params);
         const balance = response['data']['accountAssets'];
-        // const exp_info = [];
         const data = {};
         try {
             const exp_free = [];
@@ -1111,7 +1110,6 @@ module.exports = class gooplex extends Exchange {
                 pre_data_dict['used'] = locked;
                 data[ativo] = pre_data_dict;
             }
-            // exp_info.push (dict_free);
             const info = {
                 'accountType': 'SPOT',
                 'balances': exp_balances,
@@ -1125,9 +1123,6 @@ module.exports = class gooplex extends Exchange {
                 'takerCommission': takerCommission,
                 'updateTime': timestamp,
             };
-            // exp_info.push (info);
-            // exp_info.push (dict_total);
-            // exp_info.push (dict_used);
             data['free'] = dict_free;
             data['info'] = info;
             data['total'] = dict_total;
