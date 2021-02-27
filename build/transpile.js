@@ -1476,6 +1476,35 @@ class Transpiler {
 
     // ============================================================================
 
+    transpilePhpBaseClassMethods () {
+        const baseMethods = this.getPHPBaseMethods ()
+        const indent = 8
+        const space = ' '.repeat (indent)
+        const result = [
+            'public static $methods = array(',
+        ]
+        for (const method of baseMethods) {
+            const underscoreCase = unCamelCase (method)
+            if (underscoreCase !== method) {
+                result.push (space + '\'' + method + '\' => ' + '\'' + underscoreCase + '\',')
+            }
+        }
+        result.push ('    );')
+        const string = result.join ('\n')
+
+        const phpBaseClass = './php/base/Exchange.php';
+        const phpBody = fs.readFileSync (phpBaseClass, 'utf8')
+        const regex = /public static \$methods = array\([\s\S]+?\);/g
+        const bodyArray = phpBody.split (regex)
+
+        const newBody = bodyArray[0] + string + bodyArray[1]
+
+        log.magenta ('Transpiling from ', phpBaseClass.yellow, '→', phpBaseClass.yellow)
+        overwriteFile (phpBaseClass, newBody)
+    }
+
+    // ============================================================================
+
     transpileEverything (force = false) {
 
         // default pattern is '.js'
@@ -1513,6 +1542,8 @@ class Transpiler {
         this.transpilePythonAsyncToSync ()
 
         this.transpilePhpAsyncToSync ()
+
+        this.transpilePhpBaseClassMethods ()
 
         log.bright.green ('Transpiled successfully.')
     }
