@@ -1069,8 +1069,8 @@ module.exports = class gooplex extends Exchange {
         const method = 'signedGetAccountSpot';
         const response = await this[method] (params);
         const balance = response['data']['accountAssets'];
-        const exp_info = [];
-        let data_response = {};
+        // const exp_info = [];
+        const data = {};
         try {
             const exp_free = [];
             const exp_used = [];
@@ -1095,42 +1095,47 @@ module.exports = class gooplex extends Exchange {
                 const locked = parseFloat (balance[i]['locked']);
                 const total = free + locked;
                 exp_free.push ([ativo, free]);
-                dict_free['free'][ativo] = free;
-                dict_total['total'][ativo] = total;
-                dict_used['used'][ativo] = locked;
+                dict_free[ativo] = free;
+                dict_total[ativo] = total;
+                dict_used[ativo] = locked;
                 exp_total.push ([ativo, total]);
                 exp_used.push ([ativo, locked]);
-                const pre_balance = [];
-                pre_balance.push (['asset', ativo]);
-                pre_balance.push (['free', free]);
-                pre_balance.push (['locked', locked]);
+                const pre_balance = {};
+                pre_balance['asset'] = ativo;
+                pre_balance['free'] = free.toString ();
+                pre_balance['locked'] = locked.toString ();
                 exp_balances.push (pre_balance);
+                const pre_data_dict = {};
+                pre_data_dict['free'] = free;
+                pre_data_dict['total'] = free;
+                pre_data_dict['used'] = locked;
+                data[ativo] = pre_data_dict;
             }
-            exp_info.push (dict_free);
+            // exp_info.push (dict_free);
             const info = {
-                'info': {
-                    'accountType': 'SPOT',
-                    'balances': exp_balances,
-                    'permissions': pre_permitidos,
-                    'buyerCommission': buyerCommission,
-                    'canDeposit': canDeposit,
-                    'canTrade': canTrade === 1 ? true : false,
-                    'canWithdraw': canWithdraw === 1 ? true : false,
-                    'makerCommission': makerCommission,
-                    'sellerCommission': sellerCommission,
-                    'takerCommission': takerCommission,
-                    'updateTime': timestamp,
-                },
+                'accountType': 'SPOT',
+                'balances': exp_balances,
+                'permissions': pre_permitidos,
+                'buyerCommission': buyerCommission,
+                'canDeposit': canDeposit,
+                'canTrade': canTrade === 1 ? true : false,
+                'canWithdraw': canWithdraw === 1 ? true : false,
+                'makerCommission': makerCommission,
+                'sellerCommission': sellerCommission,
+                'takerCommission': takerCommission,
+                'updateTime': timestamp,
             };
-            exp_info.push (info);
-            exp_info.push (dict_total);
-            exp_info.push (dict_used);
-            data_response = { dict_free, info, dict_total, dict_used };
-            console.log (data_response);
+            // exp_info.push (info);
+            // exp_info.push (dict_total);
+            // exp_info.push (dict_used);
+            data['free'] = dict_free;
+            data['info'] = info;
+            data['total'] = dict_total;
+            data['used'] = dict_used;
         } catch (e) {
             console.log (e);
         }
-        return exp_info;
+        return data;
     }
 
     parseTicker (ticker, market = undefined) {
