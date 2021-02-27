@@ -156,7 +156,7 @@ module.exports = class zb extends Exchange {
                         'transferOutCross',
                         'doCrossLoan',
                         'doCrossRepay',
-                        'getCrossRepayRecords',                        
+                        'getCrossRepayRecords',
                     ],
                 },
             },
