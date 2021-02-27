@@ -34,9 +34,9 @@ class btcturk(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg',
-                'api': 'https://www.btcturk.com/api',
+                'api': 'https://api.btcturk.com/api/v2/',
                 'www': 'https://www.btcturk.com',
-                'doc': 'https://github.com/BTCTrader/broker-api-docs',
+                'doc': 'https://docs.btcturk.com/',
             },
             'api': {
                 'public': {
