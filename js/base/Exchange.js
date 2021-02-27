@@ -900,6 +900,10 @@ module.exports = class Exchange {
         return symbols.map ((symbol) => this.marketId (symbol))
     }
 
+    currencyIds (codes) {
+        return codes.map ((code) => this.currencyId (code))
+    }
+
     symbol (symbol) {
         return this.market (symbol).symbol || symbol
     }

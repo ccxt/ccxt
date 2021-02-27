@@ -2486,6 +2486,14 @@ class Exchange {
         throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
     }
 
+    public function currency_ids($codes) {
+        return array_map(array($this, 'currency_id'), $codes);
+    }
+
+    public function currencyIds($codes) {
+        return $this->currency_ids($codes);
+    }
+
     public function market_ids($symbols) {
         return array_map(array($this, 'market_id'), $symbols);
     }

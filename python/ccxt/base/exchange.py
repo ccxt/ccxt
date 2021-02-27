@@ -1825,6 +1825,9 @@ class Exchange(object):
             return self.markets[symbol]
         raise BadSymbol('{} does not have market symbol {}'.format(self.id, symbol))
 
+    def currency_ids(self, codes):
+        return [self.currency_id(code) for code in codes]
+
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
 
