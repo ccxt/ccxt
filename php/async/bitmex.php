@@ -172,6 +172,7 @@ class bitmex extends Exchange {
                     'Account has insufficient Available Balance' => '\\ccxt\\InsufficientFunds',
                     'Service unavailable' => '\\ccxt\\ExchangeNotAvailable', // array("error":array("message":"Service unavailable","name":"HTTPError"))
                     'Server Error' => '\\ccxt\\ExchangeError', // array("error":array("message":"Server Error","name":"HTTPError"))
+                    'Unable to cancel order due to existing state' => '\\ccxt\\InvalidOrder',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
