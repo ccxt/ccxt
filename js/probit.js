@@ -121,6 +121,7 @@ module.exports = class probit extends Exchange {
                     'RATE_LIMIT_EXCEEDED': RateLimitExceeded, // You are sending requests too frequently. Please try it later.
                     'MARKET_UNAVAILABLE': ExchangeNotAvailable, // Market is closed today
                     'INVALID_MARKET': BadSymbol, // Requested market is not exist
+                    'MARKET_CLOSED': BadSymbol, // {"errorCode":"MARKET_CLOSED"}
                     'INVALID_CURRENCY': BadRequest, // Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS': DDoSProtection, // Too many open orders
                     'DUPLICATE_ADDRESS': InvalidAddress, // Address already exists in withdrawal address list
