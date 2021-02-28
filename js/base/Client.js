@@ -71,16 +71,11 @@ module.exports = class Client {
     }
 
     resolve (result, messageHash = undefined) {
-        if (messageHash) {
+        if (messageHash !== undefined) {
             if (this.futures[messageHash]) {
                 const promise = this.futures[messageHash]
                 promise.resolve (result)
                 delete this.futures[messageHash]
-            }
-        } else {
-            const messageHashes = Object.keys (this.futures)
-            for (let i = 0; i < messageHashes.length; i++) {
-                this.resolve (result, messageHashes[i])
             }
         }
         return result
