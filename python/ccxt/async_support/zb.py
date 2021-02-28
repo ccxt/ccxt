@@ -42,6 +42,7 @@ class zb(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchClosedOrders': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -581,6 +582,19 @@ class zb(Exchange):
             raise e
         return self.parse_orders(response, market, since, limit)
 
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + 'fetchClosedOrders() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency': market['id'],
+            'pageIndex': 1,  # default pageIndex is 1
+            'pageSize': 10,  # default pageSize is 10, doesn't work with other values now
+        }
+        response = await self.privateGetGetFinishedAndPartialOrders(self.extend(request, params))
+        return self.parse_orders(response, market, since, limit)
+
     async def fetch_open_orders(self, symbol=None, since=None, limit=10, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + 'fetchOpenOrders() requires a symbol argument')
@@ -606,19 +620,20 @@ class zb(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # fetchOrder
-        #
         #     {
-        #         'total_amount': 0.01,
-        #         'id': '20180910244276459',
-        #         'price': 180.0,
-        #         'trade_date': 1536576744960,
-        #         'status': 2,
-        #         'trade_money': '1.96742',
-        #         'trade_amount': 0.01,
-        #         'type': 0,
-        #         'currency': 'eth_usdt'
-        #     }
+        #         acctType: 0,
+        #         currency: 'btc_usdt',
+        #         fees: 3.6e-7,
+        #         id: '202102282829772463',
+        #         price: 45177.5,
+        #         status: 2,
+        #         total_amount: 0.0002,
+        #         trade_amount: 0.0002,
+        #         trade_date: 1614515104998,
+        #         trade_money: 8.983712,
+        #         type: 1,
+        #         useZbFee: False
+        #     },
         #
         side = self.safe_integer(order, 'type')
         side = 'buy' if (side == 1) else 'sell'
@@ -639,6 +654,19 @@ class zb(Exchange):
         if (cost is not None) and (filled is not None) and (filled > 0):
             average = cost / filled
         id = self.safe_string(order, 'id')
+        feeCost = self.safe_float(order, 'fees')
+        fee = None
+        if feeCost is not None:
+            feeCurrency = None
+            zbFees = self.safe_value(order, 'useZbFee')
+            if zbFees is True:
+                feeCurrency = 'ZB'
+            elif market is not None:
+                feeCurrency = market['quote'] if (side == 'sell') else market['base']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
         return {
             'info': order,
             'id': id,
@@ -659,7 +687,7 @@ class zb(Exchange):
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': None,
+            'fee': fee,
             'trades': None,
         }
 

@@ -36,6 +36,7 @@ class zb extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchClosedOrders' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -613,6 +614,21 @@ class zb extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . 'fetchClosedOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'currency' => $market['id'],
+            'pageIndex' => 1, // default pageIndex is 1
+            'pageSize' => 10, // default pageSize is 10, doesn't work with other values now
+        );
+        $response = $this->privateGetGetFinishedAndPartialOrders (array_merge($request, $params));
+        return $this->parse_orders($response, $market, $since, $limit);
+    }
+
     public function fetch_open_orders($symbol = null, $since = null, $limit = 10, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . 'fetchOpenOrders() requires a $symbol argument');
@@ -643,19 +659,20 @@ class zb extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        // fetchOrder
-        //
-        //     {
-        //         'total_amount' => 0.01,
-        //         'id' => '20180910244276459',
-        //         'price' => 180.0,
-        //         'trade_date' => 1536576744960,
-        //         'status' => 2,
-        //         'trade_money' => '1.96742',
-        //         'trade_amount' => 0.01,
-        //         'type' => 0,
-        //         'currency' => 'eth_usdt'
-        //     }
+        //     array(
+        //         acctType => 0,
+        //         currency => 'btc_usdt',
+        //         fees => 3.6e-7,
+        //         $id => '202102282829772463',
+        //         $price => 45177.5,
+        //         $status => 2,
+        //         total_amount => 0.0002,
+        //         trade_amount => 0.0002,
+        //         trade_date => 1614515104998,
+        //         trade_money => 8.983712,
+        //         $type => 1,
+        //         useZbFee => false
+        //     ),
         //
         $side = $this->safe_integer($order, 'type');
         $side = ($side === 1) ? 'buy' : 'sell';
@@ -679,6 +696,21 @@ class zb extends Exchange {
             $average = $cost / $filled;
         }
         $id = $this->safe_string($order, 'id');
+        $feeCost = $this->safe_float($order, 'fees');
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrency = null;
+            $zbFees = $this->safe_value($order, 'useZbFee');
+            if ($zbFees === true) {
+                $feeCurrency = 'ZB';
+            } else if ($market !== null) {
+                $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
+            }
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
+        }
         return array(
             'info' => $order,
             'id' => $id,
@@ -699,7 +731,7 @@ class zb extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
-            'fee' => null,
+            'fee' => $fee,
             'trades' => null,
         );
     }
