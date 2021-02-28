@@ -619,7 +619,7 @@ module.exports = class zb extends Exchange {
             'pageIndex': 1, // default pageIndex is 1
             'pageSize': limit, // default pageSize is 10, doesn't work with other values now
         };
-        let response = await this.privateGetGetFinishedAndPartialOrders (this.extend (request, params));
+        const response = await this.privateGetGetFinishedAndPartialOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
