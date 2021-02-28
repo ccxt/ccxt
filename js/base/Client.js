@@ -70,13 +70,11 @@ module.exports = class Client {
         }
     }
 
-    resolve (result, messageHash = undefined) {
-        if (messageHash !== undefined) {
-            if (this.futures[messageHash]) {
-                const promise = this.futures[messageHash]
-                promise.resolve (result)
-                delete this.futures[messageHash]
-            }
+    resolve (result, messageHash) {
+        if (this.futures[messageHash]) {
+            const promise = this.futures[messageHash]
+            promise.resolve (result)
+            delete this.futures[messageHash]
         }
         return result
     }

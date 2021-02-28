@@ -77,13 +77,11 @@ class Client {
         }
     }
 
-    public function resolve($result, $message_hash = null) {
-        if ($message_hash !== null) {
-            if (array_key_exists($message_hash, $this->futures)) {
-                $promise = $this->futures[$message_hash];
-                unset($this->futures[$message_hash]);
-                $promise->resolve($result);
-            }
+    public function resolve($result, $message_hash) {
+        if (array_key_exists($message_hash, $this->futures)) {
+            $promise = $this->futures[$message_hash];
+            unset($this->futures[$message_hash]);
+            $promise->resolve($result);
         }
         return $result;
     }

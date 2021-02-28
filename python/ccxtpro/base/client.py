@@ -72,12 +72,11 @@ class Client(object):
                 self.futures[message_hash] = Future()
             return self.futures[message_hash]
 
-    def resolve(self, result, message_hash=None):
-        if message_hash is not None:
-            if message_hash in self.futures:
-                future = self.futures[message_hash]
-                future.resolve(result)
-                del self.futures[message_hash]
+    def resolve(self, result, message_hash):
+        if message_hash in self.futures:
+            future = self.futures[message_hash]
+            future.resolve(result)
+            del self.futures[message_hash]
         return result
 
     def reject(self, result, message_hash=None):
