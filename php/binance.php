@@ -755,7 +755,9 @@ class binance extends \ccxt\async\binance {
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
         $messageHash = 'outboundAccountPosition';
-        return yield $this->watch($url, $messageHash);
+        $message = null;
+        $subscriptionHash = 'private';
+        return yield $this->watch($url, $messageHash, $message, $subscriptionHash);
     }
 
     public function handle_balance($client, $message) {
@@ -806,6 +808,7 @@ class binance extends \ccxt\async\binance {
         //         }
         //     }
         //
+        $this->balance['info'] = $message;
         $wallet = $this->safe_value($this->options, 'wallet', 'wb');
         $message = $this->safe_value($message, 'a', $message);
         $balances = $this->safe_value($message, 'B', array());
@@ -831,9 +834,9 @@ class binance extends \ccxt\async\binance {
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
         $messageHash = 'orders';
-        $subscriptionHash = $messageHash;
+        $subscriptionHash = 'private';
         if ($symbol !== null) {
-            $subscriptionHash .= ':' . $symbol;
+            $messageHash .= ':' . $symbol;
         }
         $message = null;
         $orders = yield $this->watch($url, $messageHash, $message, $subscriptionHash);
@@ -1091,9 +1094,9 @@ class binance extends \ccxt\async\binance {
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
         $messageHash = 'myTrades';
-        $subscriptionHash = $messageHash;
+        $subscriptionHash = 'private';
         if ($symbol !== null) {
-            $subscriptionHash .= ':' . $symbol;
+            $messageHash .= ':' . $symbol;
         }
         $message = null;
         $trades = yield $this->watch($url, $messageHash, $message, $subscriptionHash);
