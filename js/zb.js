@@ -608,7 +608,7 @@ module.exports = class zb extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + 'fetchClosedOrders() requires a symbol argument');
         }
@@ -617,7 +617,7 @@ module.exports = class zb extends Exchange {
         const request = {
             'currency': market['id'],
             'pageIndex': 1, // default pageIndex is 1
-            'pageSize': limit, // default pageSize is 10, doesn't work with other values now
+            'pageSize': 10, // default pageSize is 10, doesn't work with other values now
         };
         const response = await this.privateGetGetFinishedAndPartialOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
