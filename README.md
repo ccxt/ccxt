@@ -23,8 +23,6 @@ Current feature list:
 
 [![AAX – The world's first crypto exchange powered by LSEG Technology](https://user-images.githubusercontent.com/1294454/106508373-5fa30000-64dd-11eb-9e25-e7ed141938e3.png)](https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=banner&utm_campaign=futures)
 
-[![Pionex – The biggest Binance Broker that provides 12 free crypto trading bots](https://user-images.githubusercontent.com/1294454/106110516-e2cdfa00-615b-11eb-9c70-9a9639f28673.png)](https://www.pionex.com/en-US/sign?r=8wSFCbNk&utm_source=ad&utm_medium=banner&utm_campaign=ccxt-1)
-
 [![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png)](https://ccxt.pro)
 
 ## See Also
