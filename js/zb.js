@@ -30,6 +30,7 @@ module.exports = class zb extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchClosedOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -607,6 +608,21 @@ module.exports = class zb extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + 'fetchClosedOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['id'],
+            'pageIndex': 1, // default pageIndex is 1
+            'pageSize': limit, // default pageSize is 10, doesn't work with other values now
+        };
+        let response = await this.privateGetGetFinishedAndPartialOrders (this.extend (request, params));
+        return this.parseOrders (response, market, since, limit);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + 'fetchOpenOrders() requires a symbol argument');
@@ -637,19 +653,20 @@ module.exports = class zb extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // fetchOrder
-        //
         //     {
-        //         'total_amount': 0.01,
-        //         'id': '20180910244276459',
-        //         'price': 180.0,
-        //         'trade_date': 1536576744960,
-        //         'status': 2,
-        //         'trade_money': '1.96742',
-        //         'trade_amount': 0.01,
-        //         'type': 0,
-        //         'currency': 'eth_usdt'
-        //     }
+        //         acctType: 0,
+        //         currency: 'btc_usdt',
+        //         fees: 3.6e-7,
+        //         id: '202102282829772463',
+        //         price: 45177.5,
+        //         status: 2,
+        //         total_amount: 0.0002,
+        //         trade_amount: 0.0002,
+        //         trade_date: 1614515104998,
+        //         trade_money: 8.983712,
+        //         type: 1,
+        //         useZbFee: false
+        //     },
         //
         let side = this.safeInteger (order, 'type');
         side = (side === 1) ? 'buy' : 'sell';
@@ -673,6 +690,21 @@ module.exports = class zb extends Exchange {
             average = cost / filled;
         }
         const id = this.safeString (order, 'id');
+        const feeCost = this.safeFloat (order, 'fees');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            let feeCurrency = undefined;
+            const zbFees = this.safeValue (order, 'useZbFee');
+            if (zbFees === true) {
+                feeCurrency = 'ZB';
+            } else if (market !== undefined) {
+                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         return {
             'info': order,
             'id': id,
@@ -693,7 +725,7 @@ module.exports = class zb extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
+            'fee': fee,
             'trades': undefined,
         };
     }
