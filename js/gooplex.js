@@ -471,10 +471,12 @@ module.exports = class gooplex extends Exchange {
         const symbol = this.safeString (market, 'symbol');
         const id = symbol.replace ('_', '/');
         const id2 = symbol.replace ('_', '');
+        const id3 = symbol.replace ('/', '');
         const entry = {
             'id': symbol,
             'symbol': id,
             'symbol2': id2,
+            'symbol3': id3,
             'base': this.safeCurrencyCode (this.safeValue (market, 'baseAsset')),
             'quote': this.safeCurrencyCode (this.safeValue (market, 'quoteAsset')),
             'active': true,
@@ -1019,10 +1021,12 @@ module.exports = class gooplex extends Exchange {
     }
 
     convertTradingFees (symbol, maker, taker) {
+        // const market = this.market (symbol);
+        const conversion = this.convertSymbol (this.market (symbol));
         return {
             'info': {
                 'maker': maker,
-                'symbol': symbol,
+                'symbol': conversion['symbol3'],
                 'taker': taker,
             },
             'maker': maker,
