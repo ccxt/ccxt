@@ -99,6 +99,8 @@ class tprexchange(Exchange):
                         'exchange/order/find',
                         'exchange/order/all',
                         'exchange/order/apicancel',
+                        'exchange/order/trades',
+                        'exchange/order/my-trades',
                         'exchange/exchange-coin/base-symbol',
                     ],
                     'delete': [
@@ -627,15 +629,41 @@ class tprexchange(Exchange):
             'fee': fee,
         }
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        market = None
-        trades = self.privatePostExchangeTrades(params)
-        return self.parse_trades(trades, market, since, limit, params)
+    # def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    #     market = None
+    #     trades = self.privatePostExchangeTrades(params)
+    #     return self.parse_trades(trades, market, since, limit, params)
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------
+    def fetch_trades(self, orderId=None, since=None, limit=None, params={}):
+        if 'page' in params:
+            params['pageNo'] = self.safe_string(params, 'page')
+        else:
+            params['pageNo'] = 0
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        market = None
-        trades = self.privatePostExchangeTrades(params)
-        return self.parse_trades(trades, market, since, limit, params)
+        if orderId is None:
+            orderId = ''
+        if since is None:
+            since = 0
+        if limit is None:
+            limit = 100
+        
+        request = {
+            'orderId': orderId,
+            'since': since,
+            'pageSize': limit,
+        }
+        fullRequest = self.extend(request, params)
+
+        return self.privatePostExchangeOrderTrades(request)
+
+    def fetch_my_trades(self):
+        # Responce example:
+        # [
+        #     {'orderId': 'E161459906662631', 'price': 1.0, 'amount': 1.0, 'turnover': 1.0, 'fee': 0.001, 'time': 1614599093948}, 
+        #     {'orderId': 'E161459923045646', 'price': 2.0, 'amount': 1.0, 'turnover': 2.0, 'fee': 0.002, 'time': 1614599230549},
+        #     ...
+        # ]
+        return self.privatePostExchangeOrderMyTrades()
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
