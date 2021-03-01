@@ -527,7 +527,7 @@ module.exports = class gooplex extends Exchange {
         }
         const info = {
             'M': trade['isBestMatch'],
-            't': trade['time'],
+            'T': trade['time'],
             'a': trade['id'],
             'f': undefined,
             'l': undefined,
