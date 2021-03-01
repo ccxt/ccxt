@@ -629,11 +629,6 @@ class tprexchange(Exchange):
             'fee': fee,
         }
 
-    # def fetch_trades(self, symbol, since=None, limit=None, params={}):
-    #     market = None
-    #     trades = self.privatePostExchangeTrades(params)
-    #     return self.parse_trades(trades, market, since, limit, params)
-    #------------------------------------------------------------------------------------------------------------------------------------------------------------
     def fetch_trades(self, orderId=None, since=None, limit=None, params={}):
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
