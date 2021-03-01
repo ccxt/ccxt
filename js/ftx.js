@@ -102,6 +102,7 @@ module.exports = class ftx extends Exchange {
                         'wallet/deposit_address/{coin}', // ?method={method}
                         'wallet/deposits',
                         'wallet/withdrawals',
+                        'wallet/withdrawal_fee',
                         'wallet/airdrops',
                         'wallet/saved_addresses',
                         'orders', // ?market={market}
