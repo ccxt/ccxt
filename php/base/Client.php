@@ -77,18 +77,14 @@ class Client {
         }
     }
 
-    public function resolve($result, $message_hash = null) {
-        if ($message_hash) {
-            if (array_key_exists($message_hash, $this->futures)) {
-                $promise = $this->futures[$message_hash];
-                unset($this->futures[$message_hash]);
-                $promise->resolve($result);
-            }
-        } else {
-            $message_hashes = array_keys($this->futures);
-            foreach ($message_hashes as $message_hash) {
-                $this->resolve($result, $message_hash);
-            }
+    public function resolve($result, $message_hash) {
+        if ($this->verbose && ($message_hash === null)) {
+            $this->print(date('c'), 'resolve received null messageHash');
+        }
+        if (array_key_exists($message_hash, $this->futures)) {
+            $promise = $this->futures[$message_hash];
+            unset($this->futures[$message_hash]);
+            $promise->resolve($result);
         }
         return $result;
     }
