@@ -73,6 +73,8 @@ class Client(object):
             return self.futures[message_hash]
 
     def resolve(self, result, message_hash):
+        if self.verbose and message_hash is None:
+            self.print(Exchange.iso8601(Exchange.milliseconds()), 'resolve received None messageHash')
         if message_hash in self.futures:
             future = self.futures[message_hash]
             future.resolve(result)

@@ -71,6 +71,9 @@ module.exports = class Client {
     }
 
     resolve (result, messageHash) {
+        if (this.verbose && (messageHash === undefined)) {
+            this.print (new Date (), 'resolve received undefined messageHash');
+        }
         if (this.futures[messageHash]) {
             const promise = this.futures[messageHash]
             promise.resolve (result)

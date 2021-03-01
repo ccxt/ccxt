@@ -78,6 +78,9 @@ class Client {
     }
 
     public function resolve($result, $message_hash) {
+        if ($this->verbose && ($message_hash === null)) {
+            $this->print(date('c'), 'resolve received null messageHash');
+        }
         if (array_key_exists($message_hash, $this->futures)) {
             $promise = $this->futures[$message_hash];
             unset($this->futures[$message_hash]);
