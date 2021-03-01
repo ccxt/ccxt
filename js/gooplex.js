@@ -1142,7 +1142,7 @@ module.exports = class gooplex extends Exchange {
             'balances': exp_balances,
             'permissions': pre_permitidos,
             'buyerCommission': buyerCommission,
-            'canDeposit': canDeposit,
+            'canDeposit': canDeposit === 1 ? true : false,
             'canTrade': canTrade === 1 ? true : false,
             'canWithdraw': canWithdraw === 1 ? true : false,
             'makerCommission': makerCommission,
