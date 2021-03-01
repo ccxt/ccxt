@@ -44,9 +44,11 @@ gooplex.load_markets()
 
 # print('\n')
 
-# print('trading_fees')
-# print(exchange.id)
+#print('trading_fees')
+#print(exchange.id)
 #pprint.pprint(exchange.fetch_trading_fees())
+#print('\n')
+#print(gooplex.id)
 #pprint.pprint(gooplex.fetch_trading_fees())
 # print('\n')
 
@@ -82,11 +84,11 @@ gooplex.load_markets()
 
 # print('\n')
 
-print('fetch_balance')
-print(exchange.id)
-pprint.pprint(exchange.fetch_balance())
-print(gooplex.id)
-pprint.pprint(gooplex.fetch_balance())
+#print('fetch_balance')
+#print(exchange.id)
+#pprint.pprint(exchange.fetch_balance())
+#print(gooplex.id)
+#pprint.pprint(gooplex.fetch_balance())
 
 # print('\n')
 
@@ -142,7 +144,15 @@ pprint.pprint(gooplex.fetch_balance())
 #print(exchange.fetch_status())
 #print(gooplex.fetch_status())
 
+#print('binance')
 #print(exchange.fetch_my_trades('BTC/BRL'))
+#print('\n')
+#print('gooplex')
 #print(gooplex.fetch_my_trades('BTC/BRL'))
 
-#print(gooplex.fetch_ohlcv('BTC/BRL'))
+
+#print('binance')
+#print(exchange.fetch_ohlcv('BTC/BRL')[1])
+#print('\n')
+#print('gooplex')
+#print(gooplex.fetch_ohlcv('BTC/BRL')[1])
