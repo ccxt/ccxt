@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, InvalidAddress, ExchangeError, NotSupported } = require ('./base/errors');
+const { ArgumentsRequired, BadRequest, InvalidAddress, ExchangeError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -460,12 +460,6 @@ module.exports = class gooplex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchTime (params = {}) {
-        const method = 'openGetCommonTime';
-        const response = await this[method] (params);
-        return this.safeInteger (response, 'timestamp');
-    }
-
     getFees () {
         const feesKey = 'fees';
         const fees = this[feesKey];
@@ -555,6 +549,21 @@ module.exports = class gooplex extends Exchange {
             'cost': cost,
         };
         return entry;
+    }
+
+    async fetchTime (params = {}) {
+        const method = 'openGetCommonTime';
+        const response = await this[method] (params);
+        return this.safeInteger (response, 'timestamp');
+    }
+
+    async fetchStatus (params = {}) {
+        const status = 'ok';
+        this.status = this.extend (this.status, {
+            'status': status,
+            'updated': this.milliseconds (),
+        });
+        return this.status;
     }
 
     async fetchMarkets (params = {}) {
@@ -653,6 +662,9 @@ module.exports = class gooplex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired ('fetchOrderBook requires a symbol argument');
+        }
         const method = 'openGetMarketDepth';
         await this.loadMarkets ();
         const request = {
@@ -687,6 +699,9 @@ module.exports = class gooplex extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let requestSide = undefined;
         let requestType = undefined;
+        if (symbol === undefined) {
+            throw new ArgumentsRequired ('createOrder requires a symbol argument');
+        }
         if (side in this.sides) {
             requestSide = this.sides[side];
         } else {
@@ -980,6 +995,9 @@ module.exports = class gooplex extends Exchange {
     }
 
     async fetchTradingFee (symbol, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired ('fetchTradingFee requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const conversion = this.convertSymbol (market);
@@ -1038,6 +1056,9 @@ module.exports = class gooplex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired ('cancelOrder requires a id argument');
+        }
         const method = 'signedPostOrdersCancel';
         const request = {
             'orderId': id,
@@ -1048,7 +1069,7 @@ module.exports = class gooplex extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+            throw new ArgumentsRequired ('cancelAllOrders requires a symbol argument');
         }
         const orders = this.fetchOrders (symbol);
         const method = 'signedPostOrdersCancel';
@@ -1069,67 +1090,66 @@ module.exports = class gooplex extends Exchange {
         const method = 'signedGetAccountSpot';
         const response = await this[method] (params);
         const balance = response['data']['accountAssets'];
-        const data = {};
-        try {
-            const exp_free = [];
-            const exp_used = [];
-            const exp_total = [];
-            const pre_permitidos = [];
-            pre_permitidos.push ('SPOT');
-            const exp_balances = [];
-            const timestamp = response['timestamp'];
-            const buyerCommission = parseFloat (response['data']['buyerCommission']);
-            const makerCommission = parseFloat (response['data']['makerCommission']);
-            const takerCommission = parseFloat (response['data']['takerCommission']);
-            const sellerCommission = parseFloat (response['data']['sellerCommission']);
-            const canDeposit = response['data']['canDeposit'];
-            const canTrade = response['data']['canTrade'];
-            const canWithdraw = response['data']['canWithdraw'];
-            const dict_free = { 'free': { }};
-            const dict_total = { 'total': { }};
-            const dict_used = { 'used': { }};
-            for (let i = 0; i < balance.length; i++) {
-                const ativo = balance[i]['asset'];
-                const free = parseFloat (balance[i]['free']);
-                const locked = parseFloat (balance[i]['locked']);
-                const total = free + locked;
-                exp_free.push ([ativo, free]);
-                dict_free[ativo] = free;
-                dict_total[ativo] = total;
-                dict_used[ativo] = locked;
-                exp_total.push ([ativo, total]);
-                exp_used.push ([ativo, locked]);
-                const pre_balance = {};
-                pre_balance['asset'] = ativo;
-                pre_balance['free'] = free.toString ();
-                pre_balance['locked'] = locked.toString ();
-                exp_balances.push (pre_balance);
-                const pre_data_dict = {};
-                pre_data_dict['free'] = free;
-                pre_data_dict['total'] = free;
-                pre_data_dict['used'] = locked;
-                data[ativo] = pre_data_dict;
-            }
-            const info = {
-                'accountType': 'SPOT',
-                'balances': exp_balances,
-                'permissions': pre_permitidos,
-                'buyerCommission': buyerCommission,
-                'canDeposit': canDeposit,
-                'canTrade': canTrade === 1 ? true : false,
-                'canWithdraw': canWithdraw === 1 ? true : false,
-                'makerCommission': makerCommission,
-                'sellerCommission': sellerCommission,
-                'takerCommission': takerCommission,
-                'updateTime': timestamp,
-            };
-            data['free'] = dict_free;
-            data['info'] = info;
-            data['total'] = dict_total;
-            data['used'] = dict_used;
-        } catch (e) {
-            console.log (e);
+        if (balance === undefined) {
+            throw new BadRequest ('This operation is not supported');
         }
+        const data = {};
+        const exp_free = [];
+        const exp_used = [];
+        const exp_total = [];
+        const pre_permitidos = [];
+        pre_permitidos.push ('SPOT');
+        const exp_balances = [];
+        const timestamp = response['timestamp'];
+        const buyerCommission = parseFloat (response['data']['buyerCommission']);
+        const makerCommission = parseFloat (response['data']['makerCommission']);
+        const takerCommission = parseFloat (response['data']['takerCommission']);
+        const sellerCommission = parseFloat (response['data']['sellerCommission']);
+        const canDeposit = response['data']['canDeposit'];
+        const canTrade = response['data']['canTrade'];
+        const canWithdraw = response['data']['canWithdraw'];
+        const dict_free = { 'free': { }};
+        const dict_total = { 'total': { }};
+        const dict_used = { 'used': { }};
+        for (let i = 0; i < balance.length; i++) {
+            const ativo = balance[i]['asset'];
+            const free = parseFloat (balance[i]['free']);
+            const locked = parseFloat (balance[i]['locked']);
+            const total = free + locked;
+            exp_free.push ([ativo, free]);
+            dict_free[ativo] = free;
+            dict_total[ativo] = total;
+            dict_used[ativo] = locked;
+            exp_total.push ([ativo, total]);
+            exp_used.push ([ativo, locked]);
+            const pre_balance = {};
+            pre_balance['asset'] = ativo;
+            pre_balance['free'] = free.toString ();
+            pre_balance['locked'] = locked.toString ();
+            exp_balances.push (pre_balance);
+            const pre_data_dict = {};
+            pre_data_dict['free'] = free;
+            pre_data_dict['total'] = free;
+            pre_data_dict['used'] = locked;
+            data[ativo] = pre_data_dict;
+        }
+        const info = {
+            'accountType': 'SPOT',
+            'balances': exp_balances,
+            'permissions': pre_permitidos,
+            'buyerCommission': buyerCommission,
+            'canDeposit': canDeposit,
+            'canTrade': canTrade === 1 ? true : false,
+            'canWithdraw': canWithdraw === 1 ? true : false,
+            'makerCommission': makerCommission,
+            'sellerCommission': sellerCommission,
+            'takerCommission': takerCommission,
+            'updateTime': timestamp,
+        };
+        data['free'] = dict_free;
+        data['info'] = info;
+        data['total'] = dict_total;
+        data['used'] = dict_used;
         return data;
     }
 
@@ -1187,15 +1207,6 @@ module.exports = class gooplex extends Exchange {
         };
     }
 
-    async fetchStatus (params = {}) {
-        const status = 'ok';
-        this.status = this.extend (this.status, {
-            'status': status,
-            'updated': this.milliseconds (),
-        });
-        return this.status;
-    }
-
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1209,14 +1220,6 @@ module.exports = class gooplex extends Exchange {
             return this.parseTicker (firstTicker, market);
         }
         return this.parseTicker (response, market);
-    }
-
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
@@ -1234,6 +1237,14 @@ module.exports = class gooplex extends Exchange {
         }
         const response = await this[method] (query);
         return this.parseTickers (response, symbols);
+    }
+
+    parseTickers (rawTickers, symbols = undefined) {
+        const tickers = [];
+        for (let i = 0; i < rawTickers.length; i++) {
+            tickers.push (this.parseTicker (rawTickers[i]));
+        }
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
