@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, BadRequest, InvalidAddress, NotSupported } = require ('./base/errors');
+const { ArgumentsRequired, BadRequest, PermissionDenied, InvalidAddress, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -695,7 +695,7 @@ module.exports = class gooplex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
-        return response['data']['list'];                // map
+        return response;                // map
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -739,7 +739,14 @@ module.exports = class gooplex extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
+        }
         const orders = await this.fetchOrders (symbol, since, limit, params);
+        const code = orders['code'].toString ();
+        if (code === '3701') {
+            throw new PermissionDenied ('fetchClosedOrders Invalid API-key, IP, or permissions for action.');
+        }
         return this.filterBy (orders, 'status', 'closed');
     }
 
@@ -1308,6 +1315,10 @@ module.exports = class gooplex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
         }
         const orders = await this.fetchOrders (symbol, since, limit, params);
+        const code = orders['code'].toString ();
+        if (code === '3701') {
+            throw new PermissionDenied ('fetchOpenOrders Invalid API-key, IP, or permissions for action.');
+        }
         return this.filterBy (orders, 'status', 'open');
     }
 
