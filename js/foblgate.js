@@ -64,6 +64,13 @@ module.exports = class foblgate extends Exchange {
             'exceptions': {
                 'invalid_apikey': AuthenticationError, // {"status":"6004","message":"This API key does not have permission to access the URL"}
                 'method_not_allowed_access_ip': PermissionDenied, // {"status":"6007","message":"IP Address is not granted access"}
+                'order_bid_limit_price': InvalidOrder, // {"status":"6119","message":"The price is higher than the available price"}
+                'order_ask_limit_price': InvalidOrder, // {"status":"6120","message":"The price is lower than the available for sale price"}
+                'order_not_enough': InvalidOrder, // {"status":"6106",message":"Check the minimum order request price"}
+                'order_limitorder_price_max_error': InvalidOrder, // {"stauts":"6113","message":"The amount exceeds the upper limit"}
+                'order_limitorder_price_min_error': InvalidOrder, // {"stauts":"6114","message":"The amount exceeds the lower limit"}
+                'not_enough_balance' : InvalidOrder, // {"stauts":"5002","message":"There is not enough balance"}
+                'check_order_price_tickUnit' : InvalidOrder, // {"stauts":"5003","message":"Check order price, tickUnit"}
                 '400': BadRequest,
                 '401': AuthenticationError,
                 '403': AuthenticationError,
@@ -272,7 +279,7 @@ module.exports = class foblgate extends Exchange {
             'type': type,
             'action': action,
             'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
+            'price': price,
         };
         const response = await this.privatePostCcxtCreateOrder (this.extend (request, params));
         // {
