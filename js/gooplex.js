@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, BadRequest, InvalidAddress, ExchangeError, NotSupported } = require ('./base/errors');
+const { ArgumentsRequired, BadRequest, InvalidAddress, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -1304,37 +1304,17 @@ module.exports = class gooplex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let query = undefined;
-        let type = undefined;
-        const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', market['type']);
-            type = this.safeString (params, 'type', defaultType);
-            query = this.omit (params, 'type');
-        } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
-            const symbols = this.symbols;
-            const numSymbols = symbols.length;
-            const fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
-            throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
-        } else {
-            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            type = this.safeString (params, 'type', defaultType);
-            query = this.omit (params, 'type');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
         }
-        let method = 'privateGetOpenOrders';
-        if (type === 'future') {
-            method = 'fapiPrivateGetOpenOrders';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateGetOpenOrders';
-        } else if (type === 'margin') {
-            method = 'sapiGetMarginOpenOrders';
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a since argument');
         }
-        const response = await this[method] (this.extend (request, query));
-        return this.parseOrders (response, market, since, limit);
+        if (limit === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a limit argument');
+        }
+        const orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'open');
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
