@@ -1307,12 +1307,6 @@ module.exports = class gooplex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
         }
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a since argument');
-        }
-        if (limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a limit argument');
-        }
         const orders = await this.fetchOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'open');
     }
