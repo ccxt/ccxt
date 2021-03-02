@@ -20,22 +20,29 @@ class gemini extends Exchange {
             'rateLimit' => 1500, // 200 for private API
             'version' => 'v1',
             'has' => array(
-                'fetchDepositAddress' => false,
-                'createDepositAddress' => true,
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchBidsAsks' => false,
-                'fetchTickers' => false,
-                'fetchMyTrades' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => false,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => false,
+                'createDepositAddress' => true,
                 'createMarketOrder' => false,
-                'withdraw' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchBidsAsks' => false,
+                'fetchClosedOrders' => false,
+                'fetchDepositAddress' => false,
+                'fetchDeposits' => false,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => false,
+                'fetchTrades' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => false,
-                'fetchDeposits' => false,
-                'fetchOHLCV' => true,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -52,7 +59,11 @@ class gemini extends Exchange {
                 'test' => array(
                     'public' => 'https://api.sandbox.gemini.com',
                     'private' => 'https://api.sandbox.gemini.com',
-                    'web' => 'https://docs.sandbox.gemini.com',
+                    // use the true doc instead of the sandbox doc
+                    // since they differ in parsing
+                    // https://github.com/ccxt/ccxt/issues/7874
+                    // https://github.com/ccxt/ccxt/issues/7894
+                    'web' => 'https://docs.gemini.com',
                 ),
                 'fees' => array(
                     'https://gemini.com/api-fee-schedule',
@@ -98,6 +109,7 @@ class gemini extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'fees' => array(
                 'trading' => array(
                     'taker' => 0.0035,
@@ -111,7 +123,7 @@ class gemini extends Exchange {
                 '406' => '\\ccxt\\InsufficientFunds', // Insufficient Funds
                 '429' => '\\ccxt\\RateLimitExceeded', // Rate Limiting was applied
                 '500' => '\\ccxt\\ExchangeError', // The server encountered an error
-                '502' => '\\ccxt\\ExchangeError', // Technical issues are preventing the request from being satisfied
+                '502' => '\\ccxt\\ExchangeNotAvailable', // Technical issues are preventing the request from being satisfied
                 '503' => '\\ccxt\\OnMaintenance', // The exchange is down for maintenance
             ),
             'timeframes' => array(
@@ -158,6 +170,7 @@ class gemini extends Exchange {
                 ),
                 'broad' => array(
                     'The Gemini Exchange is currently undergoing maintenance.' => '\\ccxt\\OnMaintenance', // The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
+                    'We are investigating technical issues with the Gemini Exchange.' => '\\ccxt\\ExchangeNotAvailable', // We are investigating technical issues with the Gemini Exchange. Please check https://status.gemini.com/ for more information.
                 ),
             ),
             'options' => array(
@@ -173,7 +186,7 @@ class gemini extends Exchange {
 
     public function fetch_markets_from_web ($params = array ()) {
         $response = $this->webGetRestApi ($params);
-        $sections = explode('<h1 $id="symbols-and-minimums">Symbols and minimums</h1>', $response);
+        $sections = explode('<h1 id="symbols-and-minimums">Symbols and minimums</h1>', $response);
         $numSections = is_array($sections) ? count($sections) : 0;
         $error = $this->id . ' the ' . $this->name . ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' . $this->name . ' markets.';
         if ($numSections !== 2) {
@@ -205,26 +218,26 @@ class gemini extends Exchange {
             //         '<td>0.01 USD', // $quote currency price increment
             //         '</tr>'
             //     )
-            $id = str_replace('<td>', '', $cells[0]);
+            $marketId = str_replace('<td>', '', $cells[0]);
             // $base = $this->safe_currency_code($baseId);
             $minAmountString = str_replace('<td>', '', $cells[1]);
             $minAmountParts = explode(' ', $minAmountString);
             $minAmount = $this->safe_float($minAmountParts, 0);
             $amountPrecisionString = str_replace('<td>', '', $cells[2]);
             $amountPrecisionParts = explode(' ', $amountPrecisionString);
-            $amountPrecision = $this->precision_from_string($amountPrecisionParts[0]);
-            $idLength = strlen($id) - 0;
-            $quoteId = mb_substr($id, $idLength - 3, $idLength - $idLength - 3);
+            $amountPrecision = $this->safe_float($amountPrecisionParts, 0);
+            $idLength = strlen($marketId) - 0;
+            $quoteId = mb_substr($marketId, $idLength - 3, $idLength - $idLength - 3);
             $quote = $this->safe_currency_code($quoteId);
             $pricePrecisionString = str_replace('<td>', '', $cells[3]);
             $pricePrecisionParts = explode(' ', $pricePrecisionString);
-            $pricePrecision = $this->precision_from_string($pricePrecisionParts[0]);
-            $baseId = str_replace($quoteId, '', $id);
+            $pricePrecision = $this->safe_float($pricePrecisionParts, 0);
+            $baseId = str_replace($quoteId, '', $marketId);
             $base = $this->safe_currency_code($baseId);
             $symbol = $base . '/' . $quote;
             $active = null;
             $result[] = array(
-                'id' => $id,
+                'id' => $marketId,
                 'info' => $row,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -259,10 +272,11 @@ class gemini extends Exchange {
         $response = $this->publicGetV1Symbols ($params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $id = $response[$i];
-            $market = $id;
-            $baseId = mb_substr($id, 0, 3 - 0);
-            $quoteId = mb_substr($id, 3, 6 - 3);
+            $marketId = $response[$i];
+            $market = $marketId;
+            $idLength = strlen($marketId) - 0;
+            $baseId = mb_substr($marketId, 0, $idLength - 3 - 0);
+            $quoteId = mb_substr($marketId, $idLength - 3, $idLength - $idLength - 3);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -271,7 +285,7 @@ class gemini extends Exchange {
                 'price' => null,
             );
             $result[] = array(
-                'id' => $id,
+                'id' => $marketId,
                 'info' => $market,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -395,6 +409,19 @@ class gemini extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->publicGetV1TradesSymbol (array_merge($request, $params));
+        //
+        //     array(
+        //         array(
+        //             "timestamp":1601617445,
+        //             "timestampms":1601617445144,
+        //             "tid":14122489752,
+        //             "price":"0.46476",
+        //             "amount":"28.407209",
+        //             "exchange":"gemini",
+        //             "type":"buy"
+        //         ),
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -466,8 +493,11 @@ class gemini extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
@@ -529,7 +559,7 @@ class gemini extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -695,6 +725,13 @@ class gemini extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->publicGetV2CandlesSymbolTimeframe (array_merge($request, $params));
+        //
+        //     [
+        //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
+        //         [1591514700000,0.02503,0.02509,0.02503,0.02509,44.6405],
+        //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
+        //     ]
+        //
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 }

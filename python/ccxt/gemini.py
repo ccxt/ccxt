@@ -23,8 +23,10 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class gemini(Exchange):
@@ -37,22 +39,29 @@ class gemini(Exchange):
             'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
             'has': {
-                'fetchDepositAddress': False,
-                'createDepositAddress': True,
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchBidsAsks': False,
-                'fetchTickers': False,
-                'fetchMyTrades': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': False,
+                'createDepositAddress': True,
                 'createMarketOrder': False,
-                'withdraw': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchBidsAsks': False,
+                'fetchClosedOrders': False,
+                'fetchDepositAddress': False,
+                'fetchDeposits': False,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchTicker': True,
+                'fetchTickers': False,
+                'fetchTrades': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': False,
-                'fetchDeposits': False,
-                'fetchOHLCV': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -69,7 +78,11 @@ class gemini(Exchange):
                 'test': {
                     'public': 'https://api.sandbox.gemini.com',
                     'private': 'https://api.sandbox.gemini.com',
-                    'web': 'https://docs.sandbox.gemini.com',
+                    # use the True doc instead of the sandbox doc
+                    # since they differ in parsing
+                    # https://github.com/ccxt/ccxt/issues/7874
+                    # https://github.com/ccxt/ccxt/issues/7894
+                    'web': 'https://docs.gemini.com',
                 },
                 'fees': [
                     'https://gemini.com/api-fee-schedule',
@@ -115,6 +128,7 @@ class gemini(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'taker': 0.0035,
@@ -128,7 +142,7 @@ class gemini(Exchange):
                 '406': InsufficientFunds,  # Insufficient Funds
                 '429': RateLimitExceeded,  # Rate Limiting was applied
                 '500': ExchangeError,  # The server encountered an error
-                '502': ExchangeError,  # Technical issues are preventing the request from being satisfied
+                '502': ExchangeNotAvailable,  # Technical issues are preventing the request from being satisfied
                 '503': OnMaintenance,  # The exchange is down for maintenance
             },
             'timeframes': {
@@ -175,6 +189,7 @@ class gemini(Exchange):
                 },
                 'broad': {
                     'The Gemini Exchange is currently undergoing maintenance.': OnMaintenance,  # The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
+                    'We are investigating technical issues with the Gemini Exchange.': ExchangeNotAvailable,  # We are investigating technical issues with the Gemini Exchange. Please check https://status.gemini.com/ for more information.
                 },
             },
             'options': {
@@ -216,26 +231,26 @@ class gemini(Exchange):
             #         '<td>0.01 USD',  # quote currency price increment
             #         '</tr>'
             #     ]
-            id = cells[0].replace('<td>', '')
+            marketId = cells[0].replace('<td>', '')
             # base = self.safe_currency_code(baseId)
             minAmountString = cells[1].replace('<td>', '')
             minAmountParts = minAmountString.split(' ')
             minAmount = self.safe_float(minAmountParts, 0)
             amountPrecisionString = cells[2].replace('<td>', '')
             amountPrecisionParts = amountPrecisionString.split(' ')
-            amountPrecision = self.precision_from_string(amountPrecisionParts[0])
-            idLength = len(id) - 0
-            quoteId = id[idLength - 3:idLength]
+            amountPrecision = self.safe_float(amountPrecisionParts, 0)
+            idLength = len(marketId) - 0
+            quoteId = marketId[idLength - 3:idLength]
             quote = self.safe_currency_code(quoteId)
             pricePrecisionString = cells[3].replace('<td>', '')
             pricePrecisionParts = pricePrecisionString.split(' ')
-            pricePrecision = self.precision_from_string(pricePrecisionParts[0])
-            baseId = id.replace(quoteId, '')
+            pricePrecision = self.safe_float(pricePrecisionParts, 0)
+            baseId = marketId.replace(quoteId, '')
             base = self.safe_currency_code(baseId)
             symbol = base + '/' + quote
             active = None
             result.append({
-                'id': id,
+                'id': marketId,
                 'info': row,
                 'symbol': symbol,
                 'base': base,
@@ -268,10 +283,11 @@ class gemini(Exchange):
         response = self.publicGetV1Symbols(params)
         result = []
         for i in range(0, len(response)):
-            id = response[i]
-            market = id
-            baseId = id[0:3]
-            quoteId = id[3:6]
+            marketId = response[i]
+            market = marketId
+            idLength = len(marketId) - 0
+            baseId = marketId[0:idLength - 3]
+            quoteId = marketId[idLength - 3:idLength]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -280,7 +296,7 @@ class gemini(Exchange):
                 'price': None,
             }
             result.append({
-                'id': id,
+                'id': marketId,
                 'info': market,
                 'symbol': symbol,
                 'base': base,
@@ -395,6 +411,19 @@ class gemini(Exchange):
             'symbol': market['id'],
         }
         response = self.publicGetV1TradesSymbol(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "timestamp":1601617445,
+        #             "timestampms":1601617445144,
+        #             "tid":14122489752,
+        #             "price":"0.46476",
+        #             "amount":"28.407209",
+        #             "exchange":"gemini",
+        #             "type":"buy"
+        #         },
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
@@ -455,8 +484,11 @@ class gemini(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -511,7 +543,7 @@ class gemini(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -657,4 +689,11 @@ class gemini(Exchange):
             'symbol': market['id'],
         }
         response = self.publicGetV2CandlesSymbolTimeframe(self.extend(request, params))
+        #
+        #     [
+        #         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
+        #         [1591514700000,0.02503,0.02509,0.02503,0.02509,44.6405],
+        #         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
+        #     ]
+        #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
