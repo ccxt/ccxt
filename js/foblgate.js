@@ -69,8 +69,8 @@ module.exports = class foblgate extends Exchange {
                 'order_not_enough': InvalidOrder, // {"status":"6106",message":"Check the minimum order request price"}
                 'order_limitorder_price_max_error': InvalidOrder, // {"stauts":"6113","message":"The amount exceeds the upper limit"}
                 'order_limitorder_price_min_error': InvalidOrder, // {"stauts":"6114","message":"The amount exceeds the lower limit"}
-                'not_enough_balance' : InvalidOrder, // {"stauts":"5002","message":"There is not enough balance"}
-                'check_order_price_tickUnit' : InvalidOrder, // {"stauts":"5003","message":"Check order price, tickUnit"}
+                'not_enough_balance': InvalidOrder, // {"stauts":"5002","message":"There is not enough balance"}
+                'check_order_price_tickUnit': InvalidOrder, // {"stauts":"5003","message":"Check order price, tickUnit"}
                 '400': BadRequest,
                 '401': AuthenticationError,
                 '403': AuthenticationError,
