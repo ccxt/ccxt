@@ -16,7 +16,7 @@ module.exports = class gooplex extends Exchange {
             'certified': false,
             'pro': false,
             'has': {
-                'cancelAllOrders': true,
+                'cancelAllOrders': 'emulated',
                 'cancelOrder': true,
                 'CORS': false,
                 'createOrder': true,
@@ -38,8 +38,8 @@ module.exports = class gooplex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': true,
-                'fetchTradingFees': true,
+                'fetchTradingFee': 'emulated',
+                'fetchTradingFees': 'emulated',
                 'fetchTransactions': false,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -1157,6 +1157,14 @@ module.exports = class gooplex extends Exchange {
         return data;
     }
 
+    async fetchBidsAsks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const query = this.omit (params, 'type');
+        const method = 'publicGetTickerBookTicker';
+        const response = await this[method] (query);
+        return this.parseTickers (response, symbols);
+    }
+
     parseTicker (ticker, market = undefined) {
         //
         //     {
@@ -1226,23 +1234,6 @@ module.exports = class gooplex extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchBidsAsks (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        let method = undefined;
-        if (type === 'future') {
-            method = 'fapiPublicGetTickerBookTicker';
-        } else if (type === 'delivery') {
-            method = 'dapiPublicGetTickerBookTicker';
-        } else {
-            method = 'publicGetTickerBookTicker';
-        }
-        const response = await this[method] (query);
-        return this.parseTickers (response, symbols);
-    }
-
     parseTickers (rawTickers, symbols = undefined) {
         const tickers = [];
         for (let i = 0; i < rawTickers.length; i++) {
@@ -1253,17 +1244,8 @@ module.exports = class gooplex extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        let defaultMethod = undefined;
-        if (type === 'future') {
-            defaultMethod = 'fapiPublicGetTicker24hr';
-        } else if (type === 'delivery') {
-            defaultMethod = 'dapiPublicGetTicker24hr';
-        } else {
-            defaultMethod = 'publicGetTicker24hr';
-        }
+        const defaultMethod = 'publicGetTicker24hr';
         const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
         const response = await this[method] (query);
         return this.parseTickers (response, symbols);
@@ -1378,6 +1360,7 @@ module.exports = class gooplex extends Exchange {
         }
         const method = 'signedGetOrdersTrades';
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'symbol': this.markets[symbol]['id'],
         };
@@ -1389,7 +1372,7 @@ module.exports = class gooplex extends Exchange {
         }
         let response = await this[method] (this.extend (request, params));
         response = response['data']['list'];
-        return response;
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseL2 (entry) {
