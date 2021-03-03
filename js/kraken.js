@@ -754,7 +754,7 @@ module.exports = class kraken extends ccxt.kraken {
                         newOrder['id'] = id;
                     }
                     const length = stored.length;
-                    if (length === limit) {
+                    if (length === limit && (previousOrder === undefined)) {
                         const first = stored[0];
                         if (first['id'] in symbolsByOrderId) {
                             delete symbolsByOrderId[first['id']];
