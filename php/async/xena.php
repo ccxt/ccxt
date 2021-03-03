@@ -47,6 +47,10 @@ class xena extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87489843-bb469280-c64c-11ea-91aa-69c6326506af.jpg',
+                'test' => array(
+                    'public' => 'https://trading.demo.xena.io/api',
+                    'private' => 'https://api.demo.xena.io/trading',
+                ),
                 'api' => array(
                     'public' => 'https://trading.xena.exchange/api',
                     'private' => 'https://api.xena.exchange',
