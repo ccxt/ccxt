@@ -44,6 +44,8 @@ class kraken(Exchange, ccxt.kraken):
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'ordersLimit': 1000,
+                'symbolsByOrderId': {},
             },
             'exceptions': {
                 'ws': {
@@ -674,8 +676,8 @@ class kraken(Exchange, ccxt.kraken):
         allOrders = self.safe_value(message, 0, [])
         allOrdersLength = len(allOrders)
         if allOrdersLength > 0:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             if self.orders is None:
-                limit = self.safe_integer(self.options, 'ordersLimit', 1000)
                 self.orders = ArrayCacheBySymbolById(limit)
             stored = self.orders
             symbols = {}
@@ -685,12 +687,29 @@ class kraken(Exchange, ccxt.kraken):
                 for j in range(0, len(ids)):
                     id = ids[j]
                     order = orders[id]
-                    previousOrder = self.safe_value(stored.hashmap, id)
+                    parsed = self.parse_ws_order(order)
+                    parsed['id'] = id
+                    symbol = None
+                    symbolsByOrderId = self.safe_value(self.options, 'symbolsByOrderId', {})
+                    if parsed['symbol'] is not None:
+                        symbol = parsed['symbol']
+                        symbolsByOrderId[id] = symbol
+                        self.options['symbolsByOrderId'] = symbolsByOrderId
+                    else:
+                        symbol = self.safe_string(symbolsByOrderId, id)
+                    previousOrders = self.safe_value(stored.hashmap, symbol)
+                    previousOrder = self.safe_value(previousOrders, id)
+                    newOrder = parsed
                     if previousOrder is not None:
-                        order = self.extend(previousOrder['info'], order)
-                    parsed = self.parse_ws_order(self.extend({'id': id}, order))
-                    stored.append(parsed)
-                    symbol = parsed['symbol']
+                        newRawOrder = self.extend(previousOrder['info'], newOrder['info'])
+                        newOrder = self.parse_ws_order(newRawOrder)
+                        newOrder['id'] = id
+                    length = len(stored)
+                    if length == limit and (previousOrder is None):
+                        first = stored[0]
+                        if first['id'] in symbolsByOrderId:
+                            del symbolsByOrderId[first['id']]
+                    stored.append(newOrder)
                     symbols[symbol] = True
             name = 'openOrders'
             client.resolve(self.orders, name)

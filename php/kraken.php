@@ -43,6 +43,8 @@ class kraken extends \ccxt\async\kraken {
             'options' => array(
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
+                'ordersLimit' => 1000,
+                'symbolsByOrderId' => array(),
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -724,8 +726,8 @@ class kraken extends \ccxt\async\kraken {
         $allOrders = $this->safe_value($message, 0, array());
         $allOrdersLength = is_array($allOrders) ? count($allOrders) : 0;
         if ($allOrdersLength > 0) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             if ($this->orders === null) {
-                $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
                 $this->orders = new ArrayCacheBySymbolById ($limit);
             }
             $stored = $this->orders;
@@ -736,13 +738,33 @@ class kraken extends \ccxt\async\kraken {
                 for ($j = 0; $j < count($ids); $j++) {
                     $id = $ids[$j];
                     $order = $orders[$id];
-                    $previousOrder = $this->safe_value($stored->hashmap, $id);
-                    if ($previousOrder !== null) {
-                        $order = array_merge($previousOrder['info'], $order);
+                    $parsed = $this->parse_ws_order($order);
+                    $parsed['id'] = $id;
+                    $symbol = null;
+                    $symbolsByOrderId = $this->safe_value($this->options, 'symbolsByOrderId', array());
+                    if ($parsed['symbol'] !== null) {
+                        $symbol = $parsed['symbol'];
+                        $symbolsByOrderId[$id] = $symbol;
+                        $this->options['symbolsByOrderId'] = $symbolsByOrderId;
+                    } else {
+                        $symbol = $this->safe_string($symbolsByOrderId, $id);
                     }
-                    $parsed = $this->parse_ws_order(array_merge(array( 'id' => $id ), $order));
-                    $stored->append ($parsed);
-                    $symbol = $parsed['symbol'];
+                    $previousOrders = $this->safe_value($stored->hashmap, $symbol);
+                    $previousOrder = $this->safe_value($previousOrders, $id);
+                    $newOrder = $parsed;
+                    if ($previousOrder !== null) {
+                        $newRawOrder = array_merge($previousOrder['info'], $newOrder['info']);
+                        $newOrder = $this->parse_ws_order($newRawOrder);
+                        $newOrder['id'] = $id;
+                    }
+                    $length = is_array($stored) ? count($stored) : 0;
+                    if ($length === $limit && ($previousOrder === null)) {
+                        $first = $stored[0];
+                        if (is_array($symbolsByOrderId) && array_key_exists($first['id'], $symbolsByOrderId)) {
+                            unset($symbolsByOrderId[$first['id']]);
+                        }
+                    }
+                    $stored->append ($newOrder);
                     $symbols[$symbol] = true;
                 }
             }
