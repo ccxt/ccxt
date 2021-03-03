@@ -741,7 +741,7 @@ module.exports = class kraken extends ccxt.kraken {
                     if (parsed['symbol'] !== undefined) {
                         symbol = parsed['symbol'];
                         symbolsByOrderId[id] = symbol;
-                        this.options['symbolById'] = symbolsByOrderId;
+                        this.options['symbolsByOrderId'] = symbolsByOrderId;
                     } else {
                         symbol = this.safeString (symbolsByOrderId, id);
                     }
