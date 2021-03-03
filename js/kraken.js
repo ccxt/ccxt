@@ -39,6 +39,8 @@ module.exports = class kraken extends ccxt.kraken {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'ordersLimit': 1000,
+                'symbolsByOrderId': {},
             },
             'exceptions': {
                 'ws': {
@@ -720,8 +722,8 @@ module.exports = class kraken extends ccxt.kraken {
         const allOrders = this.safeValue (message, 0, []);
         const allOrdersLength = allOrders.length;
         if (allOrdersLength > 0) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             if (this.orders === undefined) {
-                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
@@ -731,14 +733,34 @@ module.exports = class kraken extends ccxt.kraken {
                 const ids = Object.keys (orders);
                 for (let j = 0; j < ids.length; j++) {
                     const id = ids[j];
-                    let order = orders[id];
-                    const previousOrder = this.safeValue (stored.hashmap, id);
-                    if (previousOrder !== undefined) {
-                        order = this.extend (previousOrder['info'], order);
+                    const order = orders[id];
+                    const parsed = this.parseWsOrder (order);
+                    parsed['id'] = id;
+                    let symbol = undefined;
+                    const symbolsByOrderId = this.safeValue (this.options, 'symbolsByOrderId', {});
+                    if (parsed['symbol'] !== undefined) {
+                        symbol = parsed['symbol'];
+                        symbolsByOrderId[id] = symbol;
+                        this.options['symbolById'] = symbolsByOrderId;
+                    } else {
+                        symbol = this.safeString (symbolsByOrderId, id);
                     }
-                    const parsed = this.parseWsOrder (this.extend ({ 'id': id }, order));
-                    stored.append (parsed);
-                    const symbol = parsed['symbol'];
+                    const previousOrders = this.safeValue (stored.hashmap, symbol);
+                    const previousOrder = this.safeValue (previousOrders, id);
+                    let newOrder = parsed;
+                    if (previousOrder !== undefined) {
+                        const newRawOrder = this.extend (previousOrder['info'], newOrder['info']);
+                        newOrder = this.parseWsOrder (newRawOrder);
+                        newOrder['id'] = id;
+                    }
+                    const length = stored.length;
+                    if (length === limit) {
+                        const first = stored[0];
+                        if (first['id'] in symbolsByOrderId) {
+                            delete symbolsByOrderId[first['id']];
+                        }
+                    }
+                    stored.append (newOrder);
                     symbols[symbol] = true;
                 }
             }
