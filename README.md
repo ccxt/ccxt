@@ -21,8 +21,6 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![AAX – The world's first crypto exchange powered by LSEG Technology](https://user-images.githubusercontent.com/1294454/106508373-5fa30000-64dd-11eb-9e25-e7ed141938e3.png)](https://www.aaxpro.com/en-US/ad-sign-up/?utm_source=ccxt&utm_medium=banner&utm_campaign=futures)
-
 [![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png)](https://ccxt.pro)
 
 ## See Also
