@@ -751,7 +751,7 @@ module.exports = class binance extends ccxt.binance {
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
-        const messageHash = 'outboundAccountPosition';
+        const messageHash = 'balance';
         const message = undefined;
         const subscriptionHash = 'private';
         return await this.watch (url, messageHash, message, subscriptionHash);
@@ -807,6 +807,7 @@ module.exports = class binance extends ccxt.binance {
         //
         this.balance['info'] = message;
         const wallet = this.safeValue (this.options, 'wallet', 'wb');
+        const messageHash = 'balance';
         message = this.safeValue (message, 'a', message);
         const balances = this.safeValue (message, 'B', []);
         for (let i = 0; i < balances.length; i++) {
@@ -820,7 +821,6 @@ module.exports = class binance extends ccxt.binance {
             this.balance[code] = account;
         }
         this.balance = this.parseBalance (this.balance);
-        const messageHash = this.safeString (message, 'e');
         client.resolve (this.balance, messageHash);
     }
 

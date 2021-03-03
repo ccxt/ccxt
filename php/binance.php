@@ -754,7 +754,7 @@ class binance extends \ccxt\async\binance {
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
-        $messageHash = 'outboundAccountPosition';
+        $messageHash = 'balance';
         $message = null;
         $subscriptionHash = 'private';
         return yield $this->watch($url, $messageHash, $message, $subscriptionHash);
@@ -810,6 +810,7 @@ class binance extends \ccxt\async\binance {
         //
         $this->balance['info'] = $message;
         $wallet = $this->safe_value($this->options, 'wallet', 'wb');
+        $messageHash = 'balance';
         $message = $this->safe_value($message, 'a', $message);
         $balances = $this->safe_value($message, 'B', array());
         for ($i = 0; $i < count($balances); $i++) {
@@ -823,7 +824,6 @@ class binance extends \ccxt\async\binance {
             $this->balance[$code] = $account;
         }
         $this->balance = $this->parse_balance($this->balance);
-        $messageHash = $this->safe_string($message, 'e');
         $client->resolve ($this->balance, $messageHash);
     }
 
