@@ -700,7 +700,7 @@ class binance(Exchange, ccxt.binance):
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
-        messageHash = 'outboundAccountPosition'
+        messageHash = 'balance'
         message = None
         subscriptionHash = 'private'
         return await self.watch(url, messageHash, message, subscriptionHash)
@@ -755,6 +755,7 @@ class binance(Exchange, ccxt.binance):
         #
         self.balance['info'] = message
         wallet = self.safe_value(self.options, 'wallet', 'wb')
+        messageHash = 'balance'
         message = self.safe_value(message, 'a', message)
         balances = self.safe_value(message, 'B', [])
         for i in range(0, len(balances)):
@@ -767,7 +768,6 @@ class binance(Exchange, ccxt.binance):
             account['total'] = self.safe_float(balance, wallet)
             self.balance[code] = account
         self.balance = self.parse_balance(self.balance)
-        messageHash = self.safe_string(message, 'e')
         client.resolve(self.balance, messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
