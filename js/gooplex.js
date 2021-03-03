@@ -472,11 +472,13 @@ module.exports = class gooplex extends Exchange {
         const id = symbol.replace ('_', '/');
         const id2 = symbol.replace ('_', '');
         const id3 = symbol.replace ('/', '');
+        const id4 = symbol.replace ('/', '_');
         const entry = {
             'id': symbol,
             'symbol': id,
             'symbol2': id2,
             'symbol3': id3,
+            'symbol4': id4,
             'base': this.safeCurrencyCode (this.safeValue (market, 'baseAsset')),
             'quote': this.safeCurrencyCode (this.safeValue (market, 'quoteAsset')),
             'active': true,
@@ -716,8 +718,10 @@ module.exports = class gooplex extends Exchange {
         }
         const method = 'signedPostOrders';
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const conversion = this.convertSymbol (market);
         const request = {
-            'symbol': this.markets[symbol]['id'],
+            'symbol': conversion['symbol4'],
             'side': requestSide,
             'type': requestType,
             'quantity': amount,
