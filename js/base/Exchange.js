@@ -1096,7 +1096,8 @@ module.exports = class Exchange {
         let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
         result = sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit)
+        const tail = since === undefined
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
     }
 
     parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
