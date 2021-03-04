@@ -1712,14 +1712,14 @@ class Exchange(object):
         return self.filter_by_currency_since_limit(array, code, since, limit)
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
-        array = []
         if isinstance(orders, list):
             array = [self.extend(self.parse_order(order, market), params) for order in orders]
         else:
             array = [self.extend(self.parse_order(self.extend({'id': id}, order), market), params) for id, order in orders.items()]
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
-        return self.filter_by_symbol_since_limit(array, symbol, since, limit)
+        tail = since is None
+        return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
 
     def safe_market(self, marketId, market=None, delimiter=None):
         if marketId is not None:

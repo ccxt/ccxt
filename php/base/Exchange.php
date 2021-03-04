@@ -1936,7 +1936,8 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $symbol = isset($market) ? $market['symbol'] : null;
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        $tail = $since === null;
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
     }
 
     public function safe_market($marketId, $market = null, $delimiter = null) {

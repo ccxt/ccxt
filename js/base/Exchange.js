@@ -1155,7 +1155,8 @@ module.exports = class Exchange {
             Object.entries (orders).map (([ id, order ]) => this.extend (this.parseOrder (this.extend ({ 'id': id }, order), market), params))
         result = sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit)
+        const tail = since === undefined
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
     }
 
     safeCurrency (currencyId, currency = undefined) {
