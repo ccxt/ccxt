@@ -207,7 +207,6 @@ class tprexchange(Exchange):
         currencies = None
         if self.has['fetchCurrencies']:
             currencies = self.fetch_currencies()
-            print(currencies)
         markets = self.fetch_markets(symbol)
         return self.set_markets(markets, currencies)
 
