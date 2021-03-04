@@ -1227,8 +1227,9 @@ module.exports = class Exchange {
         //     throw new ExchangeError (this.id + ' parseOHLCVs expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
         // }
         const parsed = ohlcvs.map (ohlcv => this.parseOHLCV (ohlcv, market))
+        const sorted = this.sortBy (parsed, 0)
         const tail = since === undefined
-        return this.filterBySinceLimit (parsed, since, limit, 0, tail)
+        return this.filterBySinceLimit (sorted, since, limit, 0, tail)
     }
 
     editLimitBuyOrder (id, symbol, ...args) {

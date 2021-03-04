@@ -1728,8 +1728,9 @@ class Exchange {
         foreach ($ohlcvs as $ohlcv) {
             $parsed[] = $this->parse_ohlcv($ohlcv, $market);
         }
+        $sorted = $this->sort_by($parsed, 0);
         $tail = $since === null;
-        return $this->filter_by_since_limit($parsed, $since, $limit, 0, $tail);
+        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
     public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
