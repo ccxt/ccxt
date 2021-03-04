@@ -12,6 +12,7 @@
     "coingi":        { "skip": true },
     "coinmarketcap": { "skip": true },
     "coinmate":      { "skip": true },
+    "coinone":       { "skip": true },
     "coss":          { "skip": true },
     "digifinex":     { "skip": true },
     "dsx":           { "skip": true },
