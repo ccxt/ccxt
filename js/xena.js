@@ -40,7 +40,7 @@ module.exports = class xena extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87489843-bb469280-c64c-11ea-91aa-69c6326506af.jpg',
                 'test': {
                     'public': 'https://trading.demo.xena.io/api',
-                    'private': 'https://api.demo.xena.io/trading',
+                    'private': 'https://api.demo.xena.io',
                 },
                 'api': {
                     'public': 'https://trading.xena.exchange/api',
