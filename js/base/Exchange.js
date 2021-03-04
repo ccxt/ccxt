@@ -1126,7 +1126,8 @@ module.exports = class Exchange {
         }
         result = this.sortBy (result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
+        const tail = since === undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {

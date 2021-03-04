@@ -1910,7 +1910,8 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = isset($currency) ? $currency['code'] : null;
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
+        $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
     public function parse_transactions($transactions, $currency = null, $since = null, $limit = null, $params = array()) {
