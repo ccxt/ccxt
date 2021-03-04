@@ -11,6 +11,8 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 import json
+import sys
+from datetime import datetime
 
 
 class tprexchange(Exchange):
@@ -24,7 +26,7 @@ class tprexchange(Exchange):
             'version': 'v1',
             'certified': False,
             'has': {
-                'loadMarkets': False,
+                'loadMarkets': True,
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
@@ -95,6 +97,7 @@ class tprexchange(Exchange):
                         'uc/member/balance',
                         'market/symbol-thumb',
                         'market/coins-info',
+                        'market/symbol-info',
                         'exchange/order/add',
                         'exchange/order/find',
                         'exchange/order/all',
@@ -136,31 +139,77 @@ class tprexchange(Exchange):
             },
         })
 
-    def fetch_markets(self, params={}):
-        return [
-            {
-                'id': 'TPR',
-                'symbol': 'TPR/USD',
-                'base': 'TPR',
-                'quote': 'USD',
-                'baseId': 'TPR',
-                'quoteId': 'USD',
-                'type': 'spot',
-                'active': True,
-                'precision': {
-                    'amount': None,
-                    'price': None,
+    def parse_markets(self, response):
+        listData = []
+        for value in response:
+            tmp = {
+            "id": value.get("coinSymbol"),
+            "symbol": value.get("symbol"),
+            "base": value.get("coinSymbol"),
+            "quote": value.get("baseSymbol"),
+            "baseId": value.get("coinSymbol"),
+            "quoteId": value.get("baseSymbol"),
+            "type": value.get("publishType"),
+            "active": value.get("enable"),
+            "precision": {
+                "amount": value.get("coinScale"),
+                "price": value.get("baseCoinScale"),
                 },
-                'limits': {
-                    'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
+            "limits": {
+                "amount": {"min": value.get("minVolume"), "max": value.get("maxVolume")},
+                "price": {"min": value.get("minSellPrice"), "max": value.get("maxBuyPrice")},
+                "cost": {"min": value.get("minVolume") * value.get("minSellPrice"), "max": value.get("maxVolume") * value.get("maxBuyPrice")},
                 },
-                'taker': '0.005',
-                'maker': '0.0025',
-                'info': 'TPR Market',
-            },
-        ]
+            "taker": value.get("fee"),
+            "maker": value.get("fee"),
+            "info": value,
+            }
+            listData.append(tmp)
+        return listData
+        
+    def fetch_markets(self, symbol=''):
+        request = {
+            'symbol': symbol,
+        }
+        response = self.privatePostMarketSymbolInfo(request)
+        return self.parse_markets(response)
+        # RETURN EXAMPLE:
+        # [
+        #     {
+        #         'id': 'BTC', 
+        #         'symbol': 'BTC/USDT', 
+        #         'base': 'BTC', 
+        #         'quote': 'USDT', 
+        #         'baseId': 'BTC', 
+        #         'quoteId': 'USDT', 
+        #         'type': 'NONE', 
+        #         'active': 1, 
+        #         'precision': { 'amount': 2, 'price': 2 }, 
+        #         'limits': 
+        #         {
+        #             'amount': { 'min': 0.0, 'max': 0.0 }, 
+        #             'price': { 'min': 0.0, 'max': 0.0 }, 
+        #             'cost': { 'min': 0.0, 'max': 0.0 }
+        #         }, 
+        #         'taker': 0.001, 
+        #         'maker': 0.001, 
+        #         'info': {backend response}
+        #     },
+        #     ...
+        # ]
+
+    def load_markets(self, reload=False, symbol=''):
+        if not reload:
+            if self.markets:
+                if not self.markets_by_id:
+                    return self.set_markets(self.markets)
+                return self.markets
+        currencies = None
+        if self.has['fetchCurrencies']:
+            currencies = self.fetch_currencies()
+            print(currencies)
+        markets = self.fetch_markets(symbol)
+        return self.set_markets(markets, currencies)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
         return []
@@ -228,59 +277,100 @@ class tprexchange(Exchange):
                     if field[1] == 'SUCCESS':
                         result = True
             if result is True:
-                return json.loads("""{"status": "ok"}""")
+                return {"status": "ok"}
             else:
-                return json.loads("""{"status": "shutdown", "reason": "ExchangeNotAvailable"}""")
+                return {"status": "shutdown", "reason": "ExchangeNotAvailable"}
         except:
             reason = str(sys.exc_info()[0])
             if reason.find('ExchangeNotAvailable') != -1:
-                return json.loads("""{"status": "shutdown", "reason": "ExchangeNotAvailable"}""")
+                return {"status": "shutdown", "reason": "ExchangeNotAvailable"}
             else:
-                return json.loads("""{"status": "shutdown", "reason": "Unknown reason"}""")
+                return {"status": "shutdown", "reason": "Unknown reason"}
+
+    def parse_currencies(self, response):
+        listData = []
+        for value in response:
+            tmp = {
+            'id': value.get('name'),
+            'code': value.get('name').upper(),
+            'name': value.get('name'),
+            'active': bool(value.get('status')),
+            'fee': 0,
+            'precision': 0,
+            'limits':
+            {
+                'amount':
+                {
+                    'min': 'None',
+                    'max': 'None',
+                },
+                'price':    
+                {
+                    'min': 'None',
+                    'max': 'None',
+                }, 
+                'cost':     
+                {
+                    'min': 'None',
+                    'max': 'None',
+                },
+                'withdraw':
+                {
+                    'min': value.get('minWithdrawAmount'),
+                    'max': value.get('maxWithdrawAmount'),
+                },
+            },
+            'info': value
+            }
+            listData.append(tmp)
+        return listData
 
     def fetch_currencies(self):
-        # [
+        # Responce example
+        #[
         #    {
-        #        "name": "TPR",
-        #        "unit": "TPR",
-        #        "status": 1,
-        #        "minTxFee": 0.0,
-        #        "maxTxFee": 0.0,
-        #        "usdRate": 1.0,
-        #        "enableRpc": 1,
-        #        "sort": 1,
-        #        "canWithdraw": 1,
-        #        "canRecharge": 1,
-        #        "canTransfer": 1,
-        #        "canAutoWithdraw": 1,
-        #        "withdrawThreshold": 0.10000000,
-        #        "minWithdrawAmount": 1.00000000,
-        #        "maxWithdrawAmount": 5000.00000000,
-        #        "minRechargeAmount": null,
-        #        "isPlatformCoin": 1,
-        #        "hasLegal": false,
-        #        "allBalance": null,
-        #        "coldWalletAddress": null,
-        #        "hotAllBalance": null,
-        #        "blockHeight": null,
-        #        "minerFee": null,
-        #        "withdrawScale": 4,
-        #        "infolink": null,
-        #        "information": null,
-        #        "accountType": 0,
-        #        "depositAddress": null
+        #        'id': 'BTC', 
+        #        'code': 'BTC', 
+        #        'name': 'BTC', 
+        #        'active': True, 
+        #        'fee': '?', 
+        #        'precision': '?', 
+        #        'limits': // TPR exchange has no restrictions
+        #        {
+        #            'amount': 
+        #            {
+        #                'min': 'None', 
+        #                'max': 'None'
+        #            }, 
+        #            'price': 
+        #            {
+        #                'min': 'None', 
+        #                'max': 'None'
+        #            }, 
+        #            'cost': 
+        #            {
+        #                'min': 'None', 
+        #                'max': 'None'
+        #            }, 
+        #            'withdraw': 
+        #            {
+        #                'min': 1.0, 
+        #                'max': 5000.0
+        #            }
+        #        }, 
+        #        'info': { }, 
         #    },
-        #        ...
-        # ]
+        #    ...
+        #]
         try:
             response = self.privatePostMarketCoinsInfo()
-            return response
+            return self.parse_currencies(response)
         except:
             reason = str(sys.exc_info()[0])
             if reason.find('ExchangeNotAvailable') != -1:
-                return json.loads("""{"Error": "ExchangeNotAvailable"}""")
+                return {"Error": "ExchangeNotAvailable"}
             else:
-                return json.loads("""{"Error": Unknown reason"}""")
+                return {"Error": "Unknown reason"}
 
     def fetch_order(self, id, symbol=None, params={}):
         request = {
@@ -378,6 +468,7 @@ class tprexchange(Exchange):
         #   'status': one of TRADING COMPLETED CANCELED OVERTIMED. May be set in params
         #   'page': for pagination. In self case limit is size of every page. May be set in params
         # }
+        limit_const = 20
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
         else:
@@ -388,7 +479,7 @@ class tprexchange(Exchange):
         if since is None:
             since = 0
         if limit is None:
-            limit = 100
+            limit = limit_const
 
         request = {
             'symbol': symbol,
@@ -447,6 +538,7 @@ class tprexchange(Exchange):
         #   'status': one of TRADING COMPLETED CANCELED OVERTIMED. May be set in params
         #   'page': for pagination. In self case limit is size of every page. May be set in params
         # }
+        limit_const = 20
         params['status'] = 'TRADING'
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
@@ -458,7 +550,7 @@ class tprexchange(Exchange):
         if since is None:
             since = 0
         if limit is None:
-            limit = 100
+            limit = limit_const
         
         request = {
             'symbol': symbol,
@@ -517,6 +609,7 @@ class tprexchange(Exchange):
         #   'status': one of TRADING COMPLETED CANCELED OVERTIMED. May be set in params
         #   'page': for pagination. In self case limit is size of every page. May be set in params
         # }
+        limit_const = 20
         params['status'] = 'CANCELED'
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
@@ -528,7 +621,7 @@ class tprexchange(Exchange):
         if since is None:
             since = 0
         if limit is None:
-            limit = 100
+            limit = limit_const
         
         request = {
             'symbol': symbol,
@@ -607,58 +700,94 @@ class tprexchange(Exchange):
             if i.get('symbol') == symbol:
                 return i.get('close')
 
-    def parse_trade(self, trade, market=None):
-        timestamp = 0
-        fee = {
-            'cost': None,
-            'currency': None,
-        }
-        return {
-            'info': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': None,
-            'id': None,
-            'order': None,
-            'type': None,
-            'side': None,
-            'takerOrMaker': None,
-            'price': None,
-            'amount': None,
-            'cost': None,
-            'fee': fee,
-        }
+    def fetch_trades(self, orderId):
+        # Responce example:
+        # [
+        #    {
+        #       'info': { backend response }, 
+        #       'id': 'E161460499516968', 
+        #       'timestamp': 1614605187661, 
+        #       'datetime': '2021-03-01 15:26:27.661000', 
+        #       'symbol': 'BTC/USDT', 
+        #       'order': 'E161460499516968', 
+        #       'type': 'LIMIT_PRICE', 
+        #       'side': 'SELL', 
+        #       'takerOrMaker': 'None', (Have no this information inside TPR exchange)
+        #       'price': 1.0, 
+        #       'amount': 1.0, 
+        #       'cost': 1.0, 
+        #       'fee': 
+        #       {
+        #           'cost': 0.001, 
+        #           'currency': 'BTC', 
+        #           'rate': 'None' (Have no this information inside TPR exchange)
+        #       }
+        #    }
+        # ]
+        request = { 'orderId': orderId }
+        return self.parse_trade(self.privatePostExchangeOrderMyTrades(request))
 
-    def fetch_trades(self, orderId=None, since=None, limit=None, params={}):
-        if 'page' in params:
-            params['pageNo'] = self.safe_string(params, 'page')
-        else:
-            params['pageNo'] = 0
+    def parse_trade(self, response):
+        listData = []
+        for value in response:
+            ExchangeOrder = response.get(value)
+            id_ = ExchangeOrder.get('orderId')
+            timestamp = ExchangeOrder.get('completedTime')
+            datetime_ = str(datetime.fromtimestamp(int(timestamp) * 0.001))
+            price = ExchangeOrder.get('price')
+            amount = ExchangeOrder.get('amount')
+            cost = price * amount
 
-        if orderId is None:
-            orderId = ''
-        if since is None:
-            since = 0
-        if limit is None:
-            limit = 100
-        
-        request = {
-            'orderId': orderId,
-            'since': since,
-            'pageSize': limit,
-        }
-        fullRequest = self.extend(request, params)
-
-        return self.privatePostExchangeOrderTrades(request)
+            tmp = {
+                'info': response.get(value),
+                'id': id_,
+                'timestamp': timestamp,
+                'datetime': datetime_,
+                'symbol': ExchangeOrder.get('symbol'),
+                'order': id_,
+                'type': ExchangeOrder.get('type'),
+                'side': ExchangeOrder.get('direction'),
+                'takerOrMaker': 'None',
+                'price': price,
+                'amount': amount,
+                'cost': cost,
+                'fee':
+                {
+                    'cost': 0.001,
+                    'currency': ExchangeOrder.get('coinSymbol'),
+                    'rate': 'None',
+                }
+                }
+            listData.append(tmp)
+        return listData
 
     def fetch_my_trades(self):
         # Responce example:
         # [
-        #     {'orderId': 'E161459906662631', 'price': 1.0, 'amount': 1.0, 'turnover': 1.0, 'fee': 0.001, 'time': 1614599093948}, 
-        #     {'orderId': 'E161459923045646', 'price': 2.0, 'amount': 1.0, 'turnover': 2.0, 'fee': 0.002, 'time': 1614599230549},
-        #     ...
+        #    {
+        #       'info': { backend response }, 
+        #       'id': 'E161460499516968', 
+        #       'timestamp': 1614605187661, 
+        #       'datetime': '2021-03-01 15:26:27.661000', 
+        #       'symbol': 'BTC/USDT', 
+        #       'order': 'E161460499516968', 
+        #       'type': 'LIMIT_PRICE', 
+        #       'side': 'SELL', 
+        #       'takerOrMaker': 'None', (Have no this information inside TPR exchange)
+        #       'price': 1.0, 
+        #       'amount': 1.0, 
+        #       'cost': 1.0, 
+        #       'fee': 
+        #       {
+        #           'cost': 0.001, 
+        #           'currency': 'BTC', 
+        #           'rate': 'None'  (Have no this information inside TPR exchange)
+        #       }
+        #    }, 
+        #    { ... },
         # ]
-        return self.privatePostExchangeOrderMyTrades()
+        request = { 'orderId': '' }
+        return self.parse_trade(self.privatePostExchangeOrderMyTrades(request))
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
