@@ -1226,19 +1226,9 @@ module.exports = class Exchange {
         // if (!this.isArray (ohlcvs)) {
         //     throw new ExchangeError (this.id + ' parseOHLCVs expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
         // }
-        ohlcvs = Object.values (ohlcvs || [])
-        const result = []
-        for (let i = 0; i < ohlcvs.length; i++) {
-            if (limit && (result.length >= limit)) {
-                break;
-            }
-            const ohlcv = this.parseOHLCV (ohlcvs[i], market)
-            if (since && (ohlcv[0] < since)) {
-                continue
-            }
-            result.push (ohlcv)
-        }
-        return this.sortBy (result, 0)
+        const parsed = ohlcvs.map (ohlcv => this.parseOHLCV (ohlcv, market))
+        const tail = since === undefined
+        return this.filterBySinceLimit (parsed, since, limit, 0, tail)
     }
 
     editLimitBuyOrder (id, symbol, ...args) {

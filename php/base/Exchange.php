@@ -1724,19 +1724,12 @@ class Exchange {
 
     public function parse_ohlcvs($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
         $ohlcvs = is_array($ohlcvs) ? array_values($ohlcvs) : array();
-        $result = array();
-        $num_ohlcvs = count($ohlcvs);
-        for ($i = 0; $i < $num_ohlcvs; $i++) {
-            if ($limit && (count($result) >= $limit)) {
-                break;
-            }
-            $ohlcv = $this->parse_ohlcv($ohlcvs[$i], $market);
-            if ($since && ($ohlcv[0] < $since)) {
-                continue;
-            }
-            $result[] = $ohlcv;
+        $parsed = array();
+        foreach ($ohlcvs as $ohlcv) {
+            $parsed[] = $this->parse_ohlcv($ohlcv, $market);
         }
-        return $this->sort_by($result, 0);
+        $tail = $since === null;
+        return $this->filter_by_since_limit($parsed, $since, $limit, 0, $tail);
     }
 
     public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
