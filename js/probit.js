@@ -304,8 +304,8 @@ module.exports = class probit extends Exchange {
             const fees = [];
             // sometimes the withdrawal fee is an empty object
             // [ { 'amount': '0.015', 'priority': 1, 'currency_id': 'ETH' }, {} ]
-            for (let i = 0; i < withdrawalFees.length; i++) {
-                const withdrawalFee = withdrawalFees[i];
+            for (let j = 0; j < withdrawalFees.length; j++) {
+                const withdrawalFee = withdrawalFees[j];
                 const amount = this.safeFloat (withdrawalFee, 'amount');
                 const priority = this.safeInteger (withdrawalFee, 'priority');
                 if ((amount !== undefined) && (priority !== undefined)) {
