@@ -312,7 +312,16 @@ class probit(Exchange):
             withdrawalSuspended = self.safe_value(platform, 'withdrawal_suspended')
             active = not (depositSuspended and withdrawalSuspended)
             withdrawalFees = self.safe_value(platform, 'withdrawal_fee', {})
-            withdrawalFeesByPriority = self.sort_by(withdrawalFees, 'priority')
+            fees = []
+            # sometimes the withdrawal fee is an empty object
+            # [{'amount': '0.015', 'priority': 1, 'currency_id': 'ETH'}, {}]
+            for j in range(0, len(withdrawalFees)):
+                withdrawalFee = withdrawalFees[j]
+                amount = self.safe_float(withdrawalFee, 'amount')
+                priority = self.safe_integer(withdrawalFee, 'priority')
+                if (amount is not None) and (priority is not None):
+                    fees.append(withdrawalFee)
+            withdrawalFeesByPriority = self.sort_by(fees, 'priority')
             withdrawalFee = self.safe_value(withdrawalFeesByPriority, 0, {})
             fee = self.safe_float(withdrawalFee, 'amount')
             result[code] = {
