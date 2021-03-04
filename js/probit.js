@@ -301,7 +301,18 @@ module.exports = class probit extends Exchange {
             const withdrawalSuspended = this.safeValue (platform, 'withdrawal_suspended');
             const active = !(depositSuspended && withdrawalSuspended);
             const withdrawalFees = this.safeValue (platform, 'withdrawal_fee', {});
-            const withdrawalFeesByPriority = this.sortBy (withdrawalFees, 'priority');
+            const fees = [];
+            // sometimes the withdrawal fee is an empty object
+            // [ { 'amount': '0.015', 'priority': 1, 'currency_id': 'ETH' }, {} ]
+            for (let i = 0; i < withdrawalFees.length; i++) {
+                const withdrawalFee = withdrawalFees[i];
+                const amount = this.safeFloat (withdrawalFee, 'amount');
+                const priority = this.safeInteger (withdrawalFee, 'priority');
+                if ((amount !== undefined) && (priority !== undefined)) {
+                    fees.push (withdrawalFee);
+                }
+            }
+            const withdrawalFeesByPriority = this.sortBy (fees, 'priority');
             const withdrawalFee = this.safeValue (withdrawalFeesByPriority, 0, {});
             const fee = this.safeFloat (withdrawalFee, 'amount');
             result[code] = {
