@@ -245,7 +245,7 @@ class probit extends Exchange {
         //                 "$platform":[
         //                     array(
         //                         "$id":"ETH",
-        //                         "priority":1,
+        //                         "$priority":1,
         //                         "deposit":true,
         //                         "withdrawal":true,
         //                         "currency_id":"USDT",
@@ -256,8 +256,8 @@ class probit extends Exchange {
         //                         "min_deposit_amount":"0",
         //                         "min_withdrawal_amount":"1",
         //                         "withdrawal_fee":[
-        //                             array("amount":"0.01","priority":2,"currency_id":"ETH"),
-        //                             array("amount":"1.5","priority":1,"currency_id":"USDT"),
+        //                             array("$amount":"0.01","$priority":2,"currency_id":"ETH"),
+        //                             array("$amount":"1.5","$priority":1,"currency_id":"USDT"),
         //                         ),
         //                         "deposit_fee":array(),
         //                         "suspended_reason":"",
@@ -266,7 +266,7 @@ class probit extends Exchange {
         //                     ),
         //                     {
         //                         "$id":"OMNI",
-        //                         "priority":2,
+        //                         "$priority":2,
         //                         "deposit":true,
         //                         "withdrawal":true,
         //                         "currency_id":"USDT",
@@ -276,7 +276,7 @@ class probit extends Exchange {
         //                         "display_name":array("$name":array("ko-kr":"OMNI","en-us":"OMNI")),
         //                         "min_deposit_amount":"0",
         //                         "min_withdrawal_amount":"5",
-        //                         "withdrawal_fee":[array("amount":"5","priority":1,"currency_id":"USDT")],
+        //                         "withdrawal_fee":[array("$amount":"5","$priority":1,"currency_id":"USDT")],
         //                         "deposit_fee":array(),
         //                         "suspended_reason":"wallet_maintenance",
         //                         "deposit_suspended":false,
@@ -307,7 +307,18 @@ class probit extends Exchange {
             $withdrawalSuspended = $this->safe_value($platform, 'withdrawal_suspended');
             $active = !($depositSuspended && $withdrawalSuspended);
             $withdrawalFees = $this->safe_value($platform, 'withdrawal_fee', array());
-            $withdrawalFeesByPriority = $this->sort_by($withdrawalFees, 'priority');
+            $fees = array();
+            // sometimes the withdrawal $fee is an empty object
+            // array( array( 'amount' => '0.015', 'priority' => 1, 'currency_id' => 'ETH' ), array() )
+            for ($j = 0; $j < count($withdrawalFees); $j++) {
+                $withdrawalFee = $withdrawalFees[$j];
+                $amount = $this->safe_float($withdrawalFee, 'amount');
+                $priority = $this->safe_integer($withdrawalFee, 'priority');
+                if (($amount !== null) && ($priority !== null)) {
+                    $fees[] = $withdrawalFee;
+                }
+            }
+            $withdrawalFeesByPriority = $this->sort_by($fees, 'priority');
             $withdrawalFee = $this->safe_value($withdrawalFeesByPriority, 0, array());
             $fee = $this->safe_float($withdrawalFee, 'amount');
             $result[$code] = array(
