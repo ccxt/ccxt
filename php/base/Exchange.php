@@ -1922,6 +1922,7 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = isset($currency) ? $currency['code'] : null;
+        $tail = $since === null;
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 

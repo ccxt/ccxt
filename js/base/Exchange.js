@@ -1108,7 +1108,8 @@ module.exports = class Exchange {
         let result = Object.values (transactions || []).map ((transaction) => this.extend (this.parseTransaction (transaction, currency), params))
         result = this.sortBy (result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
+        const tail = since === undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
     parseLedger (data, currency = undefined, since = undefined, limit = undefined, params = {}) {
