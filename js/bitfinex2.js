@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance } = require ('./base/errors');
+const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -584,6 +584,10 @@ module.exports = class bitfinex2 extends bitfinex {
             }
         }
         return this.parseBalance (result);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchOrder is not implemented yet');
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
