@@ -1923,7 +1923,7 @@ class Exchange {
         $result = $this->sort_by($result, 'timestamp');
         $code = isset($currency) ? $currency['code'] : null;
         $tail = $since === null;
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array()) {
