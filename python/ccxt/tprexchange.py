@@ -172,6 +172,7 @@ class tprexchange(Exchange):
             'symbol': symbol,
         }
         response = self.privatePostMarketSymbolInfo(request)
+        print(response)
         return self.parse_markets(response)
         # RETURN EXAMPLE:
         # [
@@ -467,7 +468,7 @@ class tprexchange(Exchange):
         #   'status': one of TRADING COMPLETED CANCELED OVERTIMED. May be set in params
         #   'page': for pagination. In self case limit is size of every page. May be set in params
         # }
-        limit_const = 20
+        default_order_amount_limit = 20
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
         else:
@@ -478,13 +479,14 @@ class tprexchange(Exchange):
         if since is None:
             since = 0
         if limit is None:
-            limit = limit_const
+            limit = default_order_amount_limit
 
         request = {
             'symbol': symbol,
             'since': since,
             'pageSize': limit,
         }
+        
         fullRequest = self.extend(request, params)
         response = self.privatePostExchangeOrderAll(fullRequest)
         # {
@@ -537,7 +539,7 @@ class tprexchange(Exchange):
         #   'status': one of TRADING COMPLETED CANCELED OVERTIMED. May be set in params
         #   'page': for pagination. In self case limit is size of every page. May be set in params
         # }
-        limit_const = 20
+        default_order_amount_limit = 20
         params['status'] = 'TRADING'
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
@@ -549,7 +551,7 @@ class tprexchange(Exchange):
         if since is None:
             since = 0
         if limit is None:
-            limit = limit_const
+            limit = default_order_amount_limit
         
         request = {
             'symbol': symbol,
@@ -608,7 +610,7 @@ class tprexchange(Exchange):
         #   'status': one of TRADING COMPLETED CANCELED OVERTIMED. May be set in params
         #   'page': for pagination. In self case limit is size of every page. May be set in params
         # }
-        limit_const = 20
+        default_order_amount_limit = 20
         params['status'] = 'CANCELED'
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
@@ -620,7 +622,7 @@ class tprexchange(Exchange):
         if since is None:
             since = 0
         if limit is None:
-            limit = limit_const
+            limit = default_order_amount_limit
         
         request = {
             'symbol': symbol,
@@ -699,7 +701,7 @@ class tprexchange(Exchange):
             if i.get('symbol') == symbol:
                 return i.get('close')
 
-    def fetch_trades(self, orderId):
+    def fetch_trades(self, orderId, pageNo=None, pageSize=None):
         # Responce example:
         # [
         #    {
@@ -723,7 +725,16 @@ class tprexchange(Exchange):
         #       }
         #    }
         # ]
-        request = { 'orderId': orderId }
+
+        if pageNo is None:
+            pageNo = 0
+        
+        if pageSize is None:
+            pageSize = 100
+
+        request = { 'orderId': '',
+                    'pageNo': pageNo,
+                    'pageSize': pageSize }
         return self.parse_trade(self.privatePostExchangeOrderMyTrades(request))
 
     def parse_trade(self, response):
@@ -731,7 +742,7 @@ class tprexchange(Exchange):
         for value in response:
             ExchangeOrder = response.get(value)
             id_ = ExchangeOrder.get('orderId')
-            timestamp = ExchangeOrder.get('completedTime')
+            timestamp = ExchangeOrder.get('time')
             datetime_ = str(datetime.fromtimestamp(int(timestamp) * 0.001))
             price = ExchangeOrder.get('price')
             amount = ExchangeOrder.get('amount')
@@ -760,7 +771,7 @@ class tprexchange(Exchange):
             listData.append(tmp)
         return listData
 
-    def fetch_my_trades(self):
+    def fetch_my_trades(self, pageNo=None, pageSize=None):
         # Responce example:
         # [
         #    {
@@ -785,7 +796,16 @@ class tprexchange(Exchange):
         #    }, 
         #    { ... },
         # ]
-        request = { 'orderId': '' }
+
+        if pageNo is None:
+            pageNo = 0
+        
+        if pageSize is None:
+            pageSize = 100
+
+        request = { 'orderId': '',
+                    'pageNo': pageNo,
+                    'pageSize': pageSize }
         return self.parse_trade(self.privatePostExchangeOrderMyTrades(request))
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
