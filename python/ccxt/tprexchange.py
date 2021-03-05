@@ -172,7 +172,6 @@ class tprexchange(Exchange):
             'symbol': symbol,
         }
         response = self.privatePostMarketSymbolInfo(request)
-        print(response)
         return self.parse_markets(response)
         # RETURN EXAMPLE:
         # [
