@@ -294,7 +294,7 @@ class tprexchange(Exchange):
             'code': value.get('name').upper(),
             'name': value.get('name'),
             'active': bool(value.get('status')),
-            'fee': 0,
+            'fee': 0.001,
             'precision': 0,
             'limits':
             {
@@ -332,8 +332,8 @@ class tprexchange(Exchange):
         #        'code': 'BTC', 
         #        'name': 'BTC', 
         #        'active': True, 
-        #        'fee': '?', 
-        #        'precision': '?', 
+        #        'fee': 0.001, 
+        #        'precision': 0, 
         #        'limits': // TPR exchange has no restrictions
         #        {
         #            'amount': 
