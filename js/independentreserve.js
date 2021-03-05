@@ -397,7 +397,11 @@ module.exports = class independentreserve extends Exchange {
         }
         const baseId = this.safeString (trade, 'PrimaryCurrencyCode');
         const quoteId = this.safeString (trade, 'SecondaryCurrencyCode');
-        const symbol = this.safeCurrencyCode (baseId) + '/' + this.safeCurrencyCode (quoteId);
+        let marketId = undefined;
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            marketId = baseId + '/' + quoteId;
+        }
+        const symbol = this.safeSymbol (marketId, market, '/');
         let side = this.safeString (trade, 'OrderType');
         if (side !== undefined) {
             if (side.indexOf ('Bid') >= 0) {
