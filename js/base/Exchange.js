@@ -1096,7 +1096,8 @@ module.exports = class Exchange {
         let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
         result = sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit)
+        const tail = since === undefined
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
     }
 
     parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1107,7 +1108,8 @@ module.exports = class Exchange {
         let result = Object.values (transactions || []).map ((transaction) => this.extend (this.parseTransaction (transaction, currency), params))
         result = this.sortBy (result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
+        const tail = since === undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
     parseLedger (data, currency = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1125,7 +1127,8 @@ module.exports = class Exchange {
         }
         result = this.sortBy (result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
+        const tail = since === undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1155,7 +1158,8 @@ module.exports = class Exchange {
             Object.entries (orders).map (([ id, order ]) => this.extend (this.parseOrder (this.extend ({ 'id': id }, order), market), params))
         result = sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit)
+        const tail = since === undefined
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
     }
 
     safeCurrency (currencyId, currency = undefined) {
