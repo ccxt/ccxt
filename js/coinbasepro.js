@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ArrayCache } = require ('./base/Cache');
+const { InvalidSymbol } = require ('ccxt/js/base/errors');
+const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -25,14 +26,37 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
                     'ws': 'wss://ws-feed.pro.coinbase.com',
                 },
             },
+            'options': {
+                'tradesLimit': 1000,
+                'ordersLimit': 1000,
+                'myTradesLimit': 1000,
+            },
         });
     }
 
-    async subscribe (name, symbol, params = {}) {
+    authenticate () {
+        this.checkRequiredCredentials ();
+        const path = '/users/self/verify';
+        const nonce = this.nonce ();
+        const payload = nonce.toString () + 'GET' + path;
+        const signature = this.hmac (payload, this.base64ToBinary (this.secret), 'sha256', 'base64');
+        return {
+            'timestamp': nonce,
+            'key': this.apiKey,
+            'signature': signature,
+            'passphrase': this.password,
+        };
+    }
+
+    async subscribe (name, symbol, messageHashStart, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = name + ':' + market['id'];
-        const url = this.urls['api']['ws'];
+        const messageHash = messageHashStart + ':' + market['id'];
+        let url = this.urls['api']['ws'];
+        if ('signature' in params) {
+            // need to distinguish between public trades and user trades
+            url = url + '?';
+        }
         const subscribe = {
             'type': 'subscribe',
             'product_ids': [
@@ -48,12 +72,23 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
 
     async watchTicker (symbol, params = {}) {
         const name = 'ticker';
-        return await this.subscribe (name, symbol, params);
+        return await this.subscribe (name, symbol, name, params);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const name = 'matches';
-        const trades = await this.subscribe (name, symbol, params);
+        const trades = await this.subscribe (name, symbol, name, params);
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new InvalidSymbol (this.id + ' watchMyTrades requires a symbol');
+        }
+        const name = 'user';
+        const messageHash = 'myTrades';
+        const authentication = this.authenticate ();
+        const trades = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -80,7 +115,6 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             'limit': limit,
         };
         const orderbook = await this.watch (url, messageHash, request, messageHash, subscription);
-        // this.subscribe (name, symbol, params);
         return orderbook.limit (limit);
     }
 
@@ -114,6 +148,38 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
                 const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 array = new ArrayCache (tradesLimit);
                 this.trades[symbol] = array;
+            }
+            array.append (trade);
+            client.resolve (array, messageHash);
+        }
+        return message;
+    }
+
+    handleMyTrade (client, message) {
+        //
+        //     {
+        //         type: 'match',
+        //         trade_id: 82047307,
+        //         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
+        //         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
+        //         side: 'sell',
+        //         size: '0.00513192',
+        //         price: '9314.78',
+        //         product_id: 'BTC-USD',
+        //         sequence: 12038915443,
+        //         time: '2020-01-31T20:03:41.158814Z'
+        //     }
+        //
+        const marketId = this.safeString (message, 'product_id');
+        if (marketId !== undefined) {
+            const trade = this.parseTrade (message);
+            const type = 'myTrades';
+            const messageHash = type + ':' + marketId;
+            let array = this.myTrades;
+            if (array === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                array = new ArrayCacheBySymbolById (limit);
+                this.myTrades = array;
             }
             array.append (trade);
             client.resolve (array, messageHash);
@@ -303,12 +369,19 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             'snapshot': this.handleOrderBook,
             'l2update': this.handleOrderBook,
             'subscribe': this.handleSubscriptionStatus,
-            'match': this.handleTrade,
             'ticker': this.handleTicker,
         };
+        const length = client.url.length;
+        const authenticated = client.url[length - 1] === '?';
         const method = this.safeValue (methods, type);
         if (method === undefined) {
-            return message;
+            if (type === 'match') {
+                if (authenticated) {
+                    this.handleMyTrade (client, message);
+                } else {
+                    this.handleTrade (client, message);
+                }
+            }
         } else {
             return method.call (this, client, message);
         }
