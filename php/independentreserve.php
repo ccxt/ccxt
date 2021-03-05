@@ -397,10 +397,13 @@ class independentreserve extends Exchange {
                 $cost = $price * $amount;
             }
         }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
+        $baseId = $this->safe_string($trade, 'PrimaryCurrencyCode');
+        $quoteId = $this->safe_string($trade, 'SecondaryCurrencyCode');
+        $marketId = null;
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $marketId = $baseId . '/' . $quoteId;
         }
+        $symbol = $this->safe_symbol($marketId, $market, '/');
         $side = $this->safe_string($trade, 'OrderType');
         if ($side !== null) {
             if (mb_strpos($side, 'Bid') !== false) {

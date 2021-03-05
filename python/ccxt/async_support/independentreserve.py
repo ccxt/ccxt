@@ -363,9 +363,12 @@ class independentreserve(Exchange):
         if price is not None:
             if amount is not None:
                 cost = price * amount
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        baseId = self.safe_string(trade, 'PrimaryCurrencyCode')
+        quoteId = self.safe_string(trade, 'SecondaryCurrencyCode')
+        marketId = None
+        if (baseId is not None) and (quoteId is not None):
+            marketId = baseId + '/' + quoteId
+        symbol = self.safe_symbol(marketId, market, '/')
         side = self.safe_string(trade, 'OrderType')
         if side is not None:
             if side.find('Bid') >= 0:
