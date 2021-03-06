@@ -1425,6 +1425,7 @@ class kucoin extends Exchange {
         //         "$status" => "SUCCESS",
         //         "createdAt" => 1544178843000,
         //         "updatedAt" => 1544178891000
+        //         "remark":"foobar"
         //     }
         //
         // fetchWithdrawals
@@ -1441,6 +1442,7 @@ class kucoin extends Exchange {
         //         "$status" => "FAILURE",
         //         "createdAt" => 1546503758000,
         //         "updatedAt" => 1546504603000
+        //         "remark":"foobar"
         //     }
         //
         $currencyId = $this->safe_string($transaction, 'currency');
@@ -1491,20 +1493,26 @@ class kucoin extends Exchange {
                 $updated = $updated * 1000;
             }
         }
+        $comment = $this->safe_string($transaction, 'remark');
         return array(
             'id' => $id,
+            'info' => $transaction,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'address' => $address,
+            'addressTo' => $address,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => $tag,
+            'tagFrom' => null,
             'currency' => $code,
             'amount' => $amount,
             'txid' => $txid,
             'type' => $type,
             'status' => $status,
+            'comment' => $comment,
             'fee' => $fee,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
             'updated' => $updated,
-            'info' => $transaction,
         );
     }
 
@@ -1552,6 +1560,7 @@ class kucoin extends Exchange {
         //                     "status" => "SUCCESS",
         //                     "createdAt" => 1544178843000,
         //                     "updatedAt" => 1544178891000
+        //                     "remark":"foobar"
         //                 ),
         //                 //--------------------------------------------------
         //                 // version 1 (historical) deposit $response structure
