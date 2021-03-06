@@ -92,6 +92,17 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new InvalidSymbol (this.id + ' watchMyTrades requires a symbol');
+        }
+        const name = 'user';
+        const messageHash = 'orders';
+        const authentication = this.authenticate ();
+        const trades = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         const name = 'level2';
         await this.loadMarkets ();
@@ -135,7 +146,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         //
         const marketId = this.safeString (message, 'product_id');
         if (marketId !== undefined) {
-            const trade = this.parseTrade (message);
+            const trade = this.parseWsTrade (message);
             const symbol = trade['symbol'];
             // the exchange sends type = 'match'
             // but requires 'matches' upon subscribing
@@ -156,28 +167,14 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
     }
 
     handleMyTrade (client, message) {
-        //
-        //     {
-        //         type: 'match',
-        //         trade_id: 82047307,
-        //         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
-        //         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
-        //         side: 'sell',
-        //         size: '0.00513192',
-        //         price: '9314.78',
-        //         product_id: 'BTC-USD',
-        //         sequence: 12038915443,
-        //         time: '2020-01-31T20:03:41.158814Z'
-        //     }
-        //
         const marketId = this.safeString (message, 'product_id');
         if (marketId !== undefined) {
-            const trade = this.parseTrade (message);
+            const trade = this.parseWsTrade (message);
             const type = 'myTrades';
             const messageHash = type + ':' + marketId;
             let array = this.myTrades;
             if (array === undefined) {
-                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                const limit = this.safeInteger (this.options, 'myTradesLimit', 1000);
                 array = new ArrayCacheBySymbolById (limit);
                 this.myTrades = array;
             }
@@ -185,6 +182,286 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             client.resolve (array, messageHash);
         }
         return message;
+    }
+
+    parseWsTrade (trade) {
+        //
+        // private trades
+        // {
+        //     "type": "match",
+        //     "trade_id": 10,
+        //     "sequence": 50,
+        //     "maker_order_id": "ac928c66-ca53-498f-9c13-a110027a60e8",
+        //     "taker_order_id": "132fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //     "time": "2014-11-07T08:19:27.028459Z",
+        //     "product_id": "BTC-USD",
+        //     "size": "5.23512",
+        //     "price": "400.23",
+        //     "side": "sell",
+        //     "taker_user_id: "5844eceecf7e803e259d0365",
+        //     "user_id": "5844eceecf7e803e259d0365",
+        //     "taker_profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
+        //     "profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
+        //     "taker_fee_rate": "0.005"
+        // }
+        //
+        // {
+        //     "type": "match",
+        //     "trade_id": 10,
+        //     "sequence": 50,
+        //     "maker_order_id": "ac928c66-ca53-498f-9c13-a110027a60e8",
+        //     "taker_order_id": "132fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //     "time": "2014-11-07T08:19:27.028459Z",
+        //     "product_id": "BTC-USD",
+        //     "size": "5.23512",
+        //     "price": "400.23",
+        //     "side": "sell",
+        //     "maker_user_id: "5844eceecf7e803e259d0365",
+        //     "maker_id": "5844eceecf7e803e259d0365",
+        //     "maker_profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
+        //     "profile_id": "765d1549-9660-4be2-97d4-fa2d65fa3352",
+        //     "maker_fee_rate": "0.001"
+        // }
+        //
+        // public trades
+        // {
+        //     "type": "received",
+        //     "time": "2014-11-07T08:19:27.028459Z",
+        //     "product_id": "BTC-USD",
+        //     "sequence": 10,
+        //     "order_id": "d50ec984-77a8-460a-b958-66f114b0de9b",
+        //     "size": "1.34",
+        //     "price": "502.1",
+        //     "side": "buy",
+        //     "order_type": "limit"
+        // }
+        const parsed = super.parseTrade (trade);
+        let feeRate = undefined;
+        if ('maker_fee_rate' in trade) {
+            parsed['takerOrMaker'] = 'maker';
+            feeRate = this.safeFloat (trade, 'maker_fee_rate');
+        } else {
+            parsed['takerOrMaker'] = 'taker';
+            feeRate = this.safeFloat (trade, 'taker_fee_rate');
+        }
+        const market = this.market (parsed['symbol']);
+        const feeCurrency = market['quote'];
+        let feeCost = undefined;
+        if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
+            feeCost = parsed['cost'] * feeRate;
+        }
+        parsed['fee'] = {
+            'rate': feeRate,
+            'cost': feeCost,
+            'currency': feeCurrency,
+        };
+        return parsed;
+    }
+
+    parseWsOrderStatus (status) {
+        const statuses = {
+            'filled': 'closed',
+            'canceled': 'canceled',
+        };
+        return this.safeString (statuses, status, 'open');
+    }
+
+    handleOrder (client, message) {
+        //
+        // Order is created
+        // {
+        //   type: 'received',
+        //   side: 'sell',
+        //   product_id: 'BTC-USDC',
+        //   time: '2021-03-05T16:42:21.878177Z',
+        //   sequence: 5641953814,
+        //   profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
+        //   user_id: '54fc141576dcf32596000133',
+        //   order_id: '11838707-bf9c-4d65-8cec-b57c9a7cab42',
+        //   order_type: 'limit',
+        //   size: '0.0001',
+        //   price: '50000',
+        //   client_oid: 'a317abb9-2b30-4370-ebfe-0deecb300180'
+        // }
+        //
+        // {
+        //     "type": "received",
+        //     "time": "2014-11-09T08:19:27.028459Z",
+        //     "product_id": "BTC-USD",
+        //     "sequence": 12,
+        //     "order_id": "dddec984-77a8-460a-b958-66f114b0de9b",
+        //     "funds": "3000.234",
+        //     "side": "buy",
+        //     "order_type": "market"
+        // }
+        //
+        // Order is on the order book
+        // {
+        //   type: 'open',
+        //   side: 'sell',
+        //   product_id: 'BTC-USDC',
+        //   time: '2021-03-05T16:42:21.878177Z',
+        //   sequence: 5641953815,
+        //   profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
+        //   user_id: '54fc141576dcf32596000133',
+        //   price: '50000',
+        //   order_id: '11838707-bf9c-4d65-8cec-b57c9a7cab42',
+        //   remaining_size: '0.0001'
+        // }
+        //
+        // Order is partially or completely filled
+        // {
+        //   type: 'match',
+        //   side: 'sell',
+        //   product_id: 'BTC-USDC',
+        //   time: '2021-03-05T16:37:13.396107Z',
+        //   sequence: 5641897876,
+        //   profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
+        //   user_id: '54fc141576dcf32596000133',
+        //   trade_id: 5455505,
+        //   maker_order_id: 'e5f5754d-70a3-4346-95a6-209bcb503629',
+        //   taker_order_id: '88bf7086-7b15-40ff-8b19-ab4e08516d69',
+        //   size: '0.00021019',
+        //   price: '47338.46',
+        //   taker_profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
+        //   taker_user_id: '54fc141576dcf32596000133',
+        //   taker_fee_rate: '0.005'
+        // }
+        //
+        //  Order is canceled / closed
+        // {
+        //   type: 'done',
+        //   side: 'buy',
+        //   product_id: 'BTC-USDC',
+        //   time: '2021-03-05T16:37:13.396107Z',
+        //   sequence: 5641897877,
+        //   profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
+        //   user_id: '54fc141576dcf32596000133',
+        //   order_id: '88bf7086-7b15-40ff-8b19-ab4e08516d69',
+        //   reason: 'filled'
+        // }
+        let orders = this.orders;
+        if (orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            orders = new ArrayCacheBySymbolById (limit);
+            this.orders = orders;
+        }
+        const type = this.safeString (message, 'type');
+        const marketId = this.safeString (message, 'product_id');
+        if (marketId !== undefined) {
+            const messageHash = 'orders:' + marketId;
+            const symbol = this.safeSymbol (marketId);
+            const orderId = this.safeString (message, 'order_id');
+            const makerOrderId = this.safeString (message, 'maker_order_id');
+            const takerOrderId = this.safeString (message, 'taker_order_id');
+            const orders = this.orders;
+            const previousOrders = this.safeValue (orders.hashmap, symbol, {});
+            let previousOrder = this.safeValue (previousOrders, orderId);
+            if (previousOrder === undefined) {
+                previousOrder = this.safeValue2 (previousOrders, makerOrderId, takerOrderId);
+            }
+            if (previousOrder === undefined) {
+                const parsed = this.parseWsOrder (message);
+                orders.append (parsed);
+            } else {
+                if (type === 'match') {
+                    const trade = this.parseWsTrade (message);
+                    if (previousOrder.trades === undefined) {
+                        previousOrder.trades = [];
+                    }
+                    previousOrder.trades.push (trade);
+                    previousOrder.lastTradeTimestamp = trade['timestamp'];
+                    let totalCost = 0;
+                    let totalAmount = 0;
+                    const trades = previousOrder.trades;
+                    for (let i = 0; i < trades.length; i++) {
+                        const trade = trades[i];
+                        totalCost = this.sum (totalCost, trade['cost']);
+                        totalAmount = this.sum (totalAmount, trade['amount']);
+                    }
+                    if (totalAmount > 0) {
+                        previousOrder.average = totalCost / totalAmount;
+                    }
+                    previousOrder.cost = totalCost;
+                    if (previousOrder.filled !== undefined) {
+                        previousOrder.filled += trade['amount'];
+                        if (previousOrder.amount !== undefined) {
+                            previousOrder.remaining = previousOrder.amount - previousOrder.filled;
+                        }
+                    }
+                    if (previousOrder.fee === undefined) {
+                        previousOrder.fee = {
+                            'cost': 0,
+                            'currency': trade['fee']['currency'],
+                        };
+                    }
+                    if ((previousOrder.fee['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
+                        previousOrder.fee['cost'] = this.sum (previousOrder.fee['cost'], trade['fee']['cost']);
+                    }
+                } else {
+                    const info = this.extend (previousOrder['info'], message);
+                    const order = this.parseWsOrder (info);
+                    const keys = Object.keys (order);
+                    // update the reference
+                    for (let i = 0; i < keys.length; i++) {
+                        const key = keys[i];
+                        if (order[key] !== undefined) {
+                            previousOrder[key] = order[key];
+                        }
+                    }
+                }
+            }
+            client.resolve (orders, messageHash);
+        }
+    }
+
+    parseWsOrder (order) {
+        const id = this.safeString (order, 'order_id');
+        const marketId = this.safeString (order, 'product_id');
+        const symbol = this.safeSymbol (marketId);
+        const side = this.safeString (order, 'side');
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat2 (order, 'size', 'funds');
+        const time = this.safeString (order, 'time');
+        const timestamp = this.parse8601 (time);
+        const reason = this.safeString (order, 'reason');
+        const status = this.parseWsOrderStatus (reason);
+        const orderType = this.safeString (order, 'order_type');
+        const remaining = this.safeFloat (order, 'remaining_size');
+        const type = this.safeString (order, 'type');
+        let filled = undefined;
+        if ((amount !== undefined) && (remaining !== undefined)) {
+            filled = amount - remaining;
+        } else if (type === 'received') {
+            filled = 0;
+        }
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        return {
+            'info': order,
+            'symbol': symbol,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'type': orderType,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'amount': amount,
+            'cost': cost,
+            'average': undefined,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        };
     }
 
     handleTicker (client, message) {
@@ -370,6 +647,10 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             'l2update': this.handleOrderBook,
             'subscribe': this.handleSubscriptionStatus,
             'ticker': this.handleTicker,
+            'received': this.handleOrder,
+            'open': this.handleOrder,
+            'change': this.handleOrder,
+            'done': this.handleOrder,
         };
         const length = client.url.length;
         const authenticated = client.url[length - 1] === '?';
@@ -378,6 +659,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             if (type === 'match') {
                 if (authenticated) {
                     this.handleMyTrade (client, message);
+                    this.handleOrder (client, message);
                 } else {
                     this.handleTrade (client, message);
                 }
