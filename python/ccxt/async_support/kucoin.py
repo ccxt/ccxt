@@ -1358,6 +1358,7 @@ class kucoin(Exchange):
         #         "status": "SUCCESS",
         #         "createdAt": 1544178843000,
         #         "updatedAt": 1544178891000
+        #         "remark":"foobar"
         #     }
         #
         # fetchWithdrawals
@@ -1374,6 +1375,7 @@ class kucoin(Exchange):
         #         "status": "FAILURE",
         #         "createdAt": 1546503758000,
         #         "updatedAt": 1546504603000
+        #         "remark":"foobar"
         #     }
         #
         currencyId = self.safe_string(transaction, 'currency')
@@ -1415,20 +1417,26 @@ class kucoin(Exchange):
                 timestamp = timestamp * 1000
             if updated is not None:
                 updated = updated * 1000
+        comment = self.safe_string(transaction, 'remark')
         return {
             'id': id,
+            'info': transaction,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'address': address,
+            'addressTo': address,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': tag,
+            'tagFrom': None,
             'currency': code,
             'amount': amount,
             'txid': txid,
             'type': type,
             'status': status,
+            'comment': comment,
             'fee': fee,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
             'updated': updated,
-            'info': transaction,
         }
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
@@ -1471,6 +1479,7 @@ class kucoin(Exchange):
         #                     "status": "SUCCESS",
         #                     "createdAt": 1544178843000,
         #                     "updatedAt": 1544178891000
+        #                     "remark":"foobar"
         #                 },
         #                 #--------------------------------------------------
         #                 # version 1(historical) deposit response structure
