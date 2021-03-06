@@ -365,7 +365,7 @@ module.exports = class delta extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             let type = this.safeString (market, 'contract_type');
-            // const settlingAsset = this.safeValue (market, 'settling_asset', {});
+            const settlingAsset = this.safeValue (market, 'settling_asset', {});
             const quotingAsset = this.safeValue (market, 'quoting_asset', {});
             const underlyingAsset = this.safeValue (market, 'underlying_asset', {});
             const baseId = this.safeString (underlyingAsset, 'symbol');
@@ -383,7 +383,9 @@ module.exports = class delta extends Exchange {
                 swap = true;
                 future = false;
                 option = false;
-                symbol = base + '/' + quote;
+                if (id.indexOf ('_') < 0) {
+                    symbol = base + '/' + quote;
+                }
             } else if ((type === 'call_options') || (type === 'put_options') || (type === 'move_options')) {
                 type = 'option';
                 swap = false;
