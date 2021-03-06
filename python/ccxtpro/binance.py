@@ -700,8 +700,10 @@ class binance(Exchange, ccxt.binance):
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
-        messageHash = 'outboundAccountPosition'
-        return await self.watch(url, messageHash)
+        messageHash = 'balance'
+        message = None
+        subscriptionHash = 'private'
+        return await self.watch(url, messageHash, message, subscriptionHash)
 
     def handle_balance(self, client, message):
         #
@@ -751,7 +753,9 @@ class binance(Exchange, ccxt.binance):
         #         }
         #     }
         #
+        self.balance['info'] = message
         wallet = self.safe_value(self.options, 'wallet', 'wb')
+        messageHash = 'balance'
         message = self.safe_value(message, 'a', message)
         balances = self.safe_value(message, 'B', [])
         for i in range(0, len(balances)):
@@ -764,7 +768,6 @@ class binance(Exchange, ccxt.binance):
             account['total'] = self.safe_float(balance, wallet)
             self.balance[code] = account
         self.balance = self.parse_balance(self.balance)
-        messageHash = self.safe_string(message, 'e')
         client.resolve(self.balance, messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -774,9 +777,9 @@ class binance(Exchange, ccxt.binance):
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'orders'
-        subscriptionHash = messageHash
+        subscriptionHash = 'private'
         if symbol is not None:
-            subscriptionHash += ':' + symbol
+            messageHash += ':' + symbol
         message = None
         orders = await self.watch(url, messageHash, message, subscriptionHash)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
@@ -1021,9 +1024,9 @@ class binance(Exchange, ccxt.binance):
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'myTrades'
-        subscriptionHash = messageHash
+        subscriptionHash = 'private'
         if symbol is not None:
-            subscriptionHash += ':' + symbol
+            messageHash += ':' + symbol
         message = None
         trades = await self.watch(url, messageHash, message, subscriptionHash)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit)

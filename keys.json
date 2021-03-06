@@ -3,6 +3,7 @@
     "dsx": {"skip": true},
     "gateio": {"skip": true},
     "idex": {"skip": true},
+    "ndax": {"skip": true},
     "ripio": {"skip": true},
     "upbit": {"skip": true}
 }
