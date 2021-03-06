@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.42.54'
+__version__ = '1.42.59'
 
 # -----------------------------------------------------------------------------
 
@@ -1461,19 +1461,10 @@ class Exchange(object):
         return ohlcv[0:6] if isinstance(ohlcv, list) else ohlcv
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        ohlcvs = self.to_array(ohlcvs)
-        num_ohlcvs = len(ohlcvs)
-        result = []
-        i = 0
-        while i < num_ohlcvs:
-            if limit and (len(result) >= limit):
-                break
-            ohlcv = self.parse_ohlcv(ohlcvs[i], market)
-            i = i + 1
-            if since and (ohlcv[0] < since):
-                continue
-            result.append(ohlcv)
-        return self.sort_by(result, 0)
+        parsed = [self.parse_ohlcv(ohlcv, market) for ohlcv in ohlcvs]
+        sorted = self.sort_by(parsed, 0)
+        tail = since is None
+        return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
     def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
         return [float(bidask[price_key]), float(bidask[amount_key])]
@@ -1689,7 +1680,8 @@ class Exchange(object):
         array = [self.extend(self.parse_trade(trade, market), params) for trade in array]
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
-        return self.filter_by_symbol_since_limit(array, symbol, since, limit)
+        tail = since is None
+        return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
 
     def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
         array = self.to_array(data)
@@ -1702,24 +1694,26 @@ class Exchange(object):
                 result.append(self.extend(entry, params))
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if currency else None
-        return self.filter_by_currency_since_limit(result, code, since, limit)
+        tail = since is None
+        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
     def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
         array = self.to_array(transactions)
         array = [self.extend(self.parse_transaction(transaction, currency), params) for transaction in array]
         array = self.sort_by(array, 'timestamp')
         code = currency['code'] if currency else None
-        return self.filter_by_currency_since_limit(array, code, since, limit)
+        tail = since is None
+        return self.filter_by_currency_since_limit(array, code, since, limit, tail)
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
-        array = []
         if isinstance(orders, list):
             array = [self.extend(self.parse_order(order, market), params) for order in orders]
         else:
             array = [self.extend(self.parse_order(self.extend({'id': id}, order), market), params) for id, order in orders.items()]
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
-        return self.filter_by_symbol_since_limit(array, symbol, since, limit)
+        tail = since is None
+        return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
 
     def safe_market(self, marketId, market=None, delimiter=None):
         if marketId is not None:

@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.42.54';
+$version = '1.42.59';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.42.54';
+    const VERSION = '1.42.59';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1724,19 +1724,13 @@ class Exchange {
 
     public function parse_ohlcvs($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
         $ohlcvs = is_array($ohlcvs) ? array_values($ohlcvs) : array();
-        $result = array();
-        $num_ohlcvs = count($ohlcvs);
-        for ($i = 0; $i < $num_ohlcvs; $i++) {
-            if ($limit && (count($result) >= $limit)) {
-                break;
-            }
-            $ohlcv = $this->parse_ohlcv($ohlcvs[$i], $market);
-            if ($since && ($ohlcv[0] < $since)) {
-                continue;
-            }
-            $result[] = $ohlcv;
+        $parsed = array();
+        foreach ($ohlcvs as $ohlcv) {
+            $parsed[] = $this->parse_ohlcv($ohlcv, $market);
         }
-        return $this->sort_by($result, 0);
+        $sorted = $this->sort_by($parsed, 0);
+        $tail = $since === null;
+        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
     public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
@@ -1891,7 +1885,8 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $symbol = isset($market) ? $market['symbol'] : null;
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        $tail = $since === null;
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
     }
 
     public function parse_ledger($items, $currency = null, $since = null, $limit = null, $params = array()) {
@@ -1909,7 +1904,8 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = isset($currency) ? $currency['code'] : null;
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
+        $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
     public function parse_transactions($transactions, $currency = null, $since = null, $limit = null, $params = array()) {
@@ -1920,7 +1916,8 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = isset($currency) ? $currency['code'] : null;
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
+        $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array()) {
@@ -1936,7 +1933,8 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $symbol = isset($market) ? $market['symbol'] : null;
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        $tail = $since === null;
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
     }
 
     public function safe_market($marketId, $market = null, $delimiter = null) {

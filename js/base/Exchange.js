@@ -1096,7 +1096,8 @@ module.exports = class Exchange {
         let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
         result = sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit)
+        const tail = since === undefined
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
     }
 
     parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1107,7 +1108,8 @@ module.exports = class Exchange {
         let result = Object.values (transactions || []).map ((transaction) => this.extend (this.parseTransaction (transaction, currency), params))
         result = this.sortBy (result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
+        const tail = since === undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
     parseLedger (data, currency = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1125,7 +1127,8 @@ module.exports = class Exchange {
         }
         result = this.sortBy (result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
+        const tail = since === undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1155,7 +1158,8 @@ module.exports = class Exchange {
             Object.entries (orders).map (([ id, order ]) => this.extend (this.parseOrder (this.extend ({ 'id': id }, order), market), params))
         result = sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit)
+        const tail = since === undefined
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
     }
 
     safeCurrency (currencyId, currency = undefined) {
@@ -1226,19 +1230,10 @@ module.exports = class Exchange {
         // if (!this.isArray (ohlcvs)) {
         //     throw new ExchangeError (this.id + ' parseOHLCVs expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
         // }
-        ohlcvs = Object.values (ohlcvs || [])
-        const result = []
-        for (let i = 0; i < ohlcvs.length; i++) {
-            if (limit && (result.length >= limit)) {
-                break;
-            }
-            const ohlcv = this.parseOHLCV (ohlcvs[i], market)
-            if (since && (ohlcv[0] < since)) {
-                continue
-            }
-            result.push (ohlcv)
-        }
-        return this.sortBy (result, 0)
+        const parsed = ohlcvs.map ((ohlcv) => this.parseOHLCV (ohlcv, market))
+        const sorted = this.sortBy (parsed, 0)
+        const tail = since === undefined
+        return this.filterBySinceLimit (sorted, since, limit, 0, tail)
     }
 
     editLimitBuyOrder (id, symbol, ...args) {
@@ -1373,7 +1368,7 @@ module.exports = class Exchange {
         // still takes the input as a hex string
         // same as above but returns a string instead of an object
         const signature = this.signMessage (message, privateKey)
-        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']));
+        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']))
     }
 
     oath () {
