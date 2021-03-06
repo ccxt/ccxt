@@ -1572,34 +1572,6 @@ module.exports = class kucoin extends Exchange {
         //         }
         //     }
         //
-
-
-        {
-            "code":"200000",
-            "data":{
-                "currentPage":1,
-                "pageSize":50,
-                "totalNum":2,
-                "totalPage":1,
-                "items":[
-                    {
-                        "currency":"LTC",
-                        "status":"SUCCESS",
-                        "address":"MLcnMTQK7VBYTa5FR2EVfxoNCipmFvJWxk",
-                        "memo":"",
-                        "isInner":true,
-                        "amount":"0.15642956",
-                        "fee":"0.00000000",
-                        "walletTxId":"600cd75c94d9440006a7ae6a",
-                        "createdAt":1611454306000,
-                        "updatedAt":1611454306000,
-                        "remark":"foobar"
-                    }
-                ]
-            }
-        }
-
-
         const responseData = response['data']['items'];
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
     }
