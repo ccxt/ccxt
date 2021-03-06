@@ -151,7 +151,6 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             // the exchange sends type = 'match'
             // but requires 'matches' upon subscribing
             // therefore we resolve 'matches' here instead of 'match'
-            // const type = this.safeString (message, 'type');
             const type = 'matches';
             const messageHash = type + ':' + marketId;
             let array = this.safeValue (this.trades, symbol);
