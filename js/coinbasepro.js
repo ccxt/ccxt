@@ -20,6 +20,8 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
                 'watchTrades': true,
                 'watchBalance': false,
                 'watchStatus': false, // for now
+                'watchOrders': true,
+                'watchMyTrades': true,
             },
             'urls': {
                 'api': {
