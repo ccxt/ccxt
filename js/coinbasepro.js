@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { InvalidSymbol } = require ('ccxt/js/base/errors');
+const { BadSymbol } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -83,7 +83,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new InvalidSymbol (this.id + ' watchMyTrades requires a symbol');
+            throw new BadSymbol (this.id + ' watchMyTrades requires a symbol');
         }
         const name = 'user';
         const messageHash = 'myTrades';
@@ -94,7 +94,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new InvalidSymbol (this.id + ' watchMyTrades requires a symbol');
+            throw new BadSymbol (this.id + ' watchMyTrades requires a symbol');
         }
         const name = 'user';
         const messageHash = 'orders';
