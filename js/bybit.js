@@ -292,7 +292,7 @@ module.exports = class bybit extends Exchange {
                     // 'method': 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
                 },
                 'recvWindow': 5 * 1000, // 5 sec default
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'timeDifference': 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
             },
             'fees': {
