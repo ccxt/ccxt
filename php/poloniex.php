@@ -183,6 +183,9 @@ class poloniex extends \ccxt\async\poloniex {
             'channel' => $numericId,
         );
         $trades = yield $this->watch($url, $messageHash, $subscribe, $numericId);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 

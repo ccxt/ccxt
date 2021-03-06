@@ -239,6 +239,9 @@ class kraken extends \ccxt\async\kraken {
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'trade';
         $trades = yield $this->watch_public($name, $symbol, $params);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
@@ -484,6 +487,9 @@ class kraken extends \ccxt\async\kraken {
         );
         $request = $this->deep_extend($subscribe, $params);
         $result = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
+        if ($this->newUpdates) {
+            $limit = $result->getLimit ($limit);
+        }
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 

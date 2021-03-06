@@ -217,6 +217,8 @@ class idex(Exchange, ccxt.idex):
         }
         messageHash = name + ':' + market['id']
         ohlcv = await self.subscribe(subscribeObject, messageHash)
+        if self.newUpdates:
+            limit = ohlcv.getLimit(limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
@@ -442,6 +444,8 @@ class idex(Exchange, ccxt.idex):
             subscribeObject['markets'] = [marketId]
             messageHash = name + ':' + marketId
         orders = await self.subscribe_private(subscribeObject, messageHash)
+        if self.newUpdates:
+            limit = orders.getLimit(limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     def handle_order(self, client, message):
@@ -557,6 +561,8 @@ class idex(Exchange, ccxt.idex):
         if code is not None:
             messageHash = name + ':' + code
         transactions = await self.subscribe_private(subscribeObject, messageHash)
+        if self.newUpdates:
+            limit = transactions.getLimit(limit)
         return self.filter_by_since_limit(transactions, since, limit, 'timestamp', True)
 
     def handle_transaction(self, client, message):

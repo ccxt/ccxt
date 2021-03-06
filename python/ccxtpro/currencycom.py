@@ -340,6 +340,8 @@ class currencycom(Exchange, ccxt.currencycom):
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         trades = await self.watch_public('trades.subscribe', symbol, params)
+        if self.newUpdates:
+            limit = trades.getLimit(limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
@@ -359,6 +361,8 @@ class currencycom(Exchange, ccxt.currencycom):
             },
         }
         ohlcv = await self.watch_public(messageHash, symbol, self.extend(request, params))
+        if self.newUpdates:
+            limit = ohlcv.getLimit(limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_deltas(self, bookside, deltas):

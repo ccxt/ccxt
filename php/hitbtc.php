@@ -196,6 +196,9 @@ class hitbtc extends \ccxt\async\hitbtc {
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $trades = yield $this->watch_public($symbol, 'trades', null, $params);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
@@ -263,6 +266,9 @@ class hitbtc extends \ccxt\async\hitbtc {
         );
         $requestParams = $this->deep_extend($request, $params);
         $ohlcv = yield $this->watch_public($symbol, 'ohlcv', $period, $requestParams);
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 

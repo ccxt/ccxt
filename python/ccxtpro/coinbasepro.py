@@ -87,6 +87,8 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
         messageHash = 'myTrades'
         authentication = self.authenticate()
         trades = await self.subscribe(name, symbol, messageHash, self.extend(params, authentication))
+        if self.newUpdates:
+            limit = trades.getLimit(limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -95,8 +97,10 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
         name = 'user'
         messageHash = 'orders'
         authentication = self.authenticate()
-        trades = await self.subscribe(name, symbol, messageHash, self.extend(params, authentication))
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        orders = await self.subscribe(name, symbol, messageHash, self.extend(params, authentication))
+        if self.newUpdates:
+            limit = orders.getLimit(limit)
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         name = 'level2'

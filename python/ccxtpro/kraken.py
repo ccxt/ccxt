@@ -228,6 +228,8 @@ class kraken(Exchange, ccxt.kraken):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         name = 'trade'
         trades = await self.watch_public(name, symbol, params)
+        if self.newUpdates:
+            limit = trades.getLimit(limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
@@ -449,6 +451,8 @@ class kraken(Exchange, ccxt.kraken):
         }
         request = self.deep_extend(subscribe, params)
         result = await self.watch(url, messageHash, request, subscriptionHash)
+        if self.newUpdates:
+            limit = result.getLimit(limit)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):

@@ -94,6 +94,9 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $messageHash = 'myTrades';
         $authentication = $this->authenticate();
         $trades = yield $this->subscribe($name, $symbol, $messageHash, array_merge($params, $authentication));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
@@ -104,8 +107,11 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $name = 'user';
         $messageHash = 'orders';
         $authentication = $this->authenticate();
-        $trades = yield $this->subscribe($name, $symbol, $messageHash, array_merge($params, $authentication));
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        $orders = yield $this->subscribe($name, $symbol, $messageHash, array_merge($params, $authentication));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit ($limit);
+        }
+        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {

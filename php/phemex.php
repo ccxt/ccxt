@@ -271,6 +271,9 @@ class phemex extends \ccxt\async\phemex {
         );
         $request = $this->deep_extend($subscribe, $params);
         $trades = yield $this->watch($url, $messageHash, $request, $messageHash);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 

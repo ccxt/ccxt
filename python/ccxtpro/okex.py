@@ -64,6 +64,8 @@ class okex(Exchange, ccxt.okex):
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         trades = await self.subscribe('trade', symbol, params)
+        if self.newUpdates:
+            limit = trades.getLimit(limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_ticker(self, symbol, params={}):
@@ -139,6 +141,8 @@ class okex(Exchange, ccxt.okex):
         interval = self.timeframes[timeframe]
         name = 'candle' + interval + 's'
         ohlcv = await self.subscribe(name, symbol, params)
+        if self.newUpdates:
+            limit = ohlcv.getLimit(limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):

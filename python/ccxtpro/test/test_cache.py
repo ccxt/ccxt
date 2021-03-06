@@ -11,7 +11,7 @@ sys.path.append(root)
 
 # ----------------------------------------------------------------------------
 
-from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById  # noqa: F402
+from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402
 
 
 def equals(a, b):
@@ -55,21 +55,34 @@ assert equals(cache, [2])
 
 # ----------------------------------------------------------------------------
 
+cache = ArrayCacheByTimestamp()
+
+ohlcv1 = [100, 1, 2, 3]
+ohlcv2 = [200, 5, 6, 7]
+cache.append(ohlcv1)
+cache.append(ohlcv2)
+
+assert equals(cache, [ohlcv1, ohlcv2])
+
+modify2 = [200, 10, 11, 12]
+cache.append(modify2)
+
+assert equals(cache, [ohlcv1, modify2])
+
+# ----------------------------------------------------------------------------
+
 cache = ArrayCacheBySymbolById()
 
 object1 = {'symbol': 'BTC/USDT', 'id': 'abcdef', 'i': 1}
 object2 = {'symbol': 'ETH/USDT', 'id': 'qwerty', 'i': 2}
 object3 = {'symbol': 'BTC/USDT', 'id': 'abcdef', 'i': 3}
-
 cache.append(object1)
 cache.append(object2)
 cache.append(object3)  # should update index 0
 
-assert equals(cache, [object3, object2])
+assert equals(cache, [object2, object3])
 
-maxLength = 5
-
-cache = ArrayCacheBySymbolById(maxLength)
+cache = ArrayCacheBySymbolById(5)
 
 for i in range(1, 11):
     cache.append({
@@ -99,4 +112,62 @@ assert(equals(cache, [
     {'symbol': 'BTC/USDT', 'id': '8', 'i': 18},
     {'symbol': 'BTC/USDT', 'id': '9', 'i': 19},
     {'symbol': 'BTC/USDT', 'id': '10', 'i': 20},
+]))
+
+middle = {'symbol': 'BTC/USDT', 'id': '8', 'i': 28}
+cache.append(middle)
+
+assert(equals(cache, [
+    {'symbol': 'BTC/USDT', 'id': '6', 'i': 16},
+    {'symbol': 'BTC/USDT', 'id': '7', 'i': 17},
+    {'symbol': 'BTC/USDT', 'id': '9', 'i': 19},
+    {'symbol': 'BTC/USDT', 'id': '10', 'i': 20},
+    {'symbol': 'BTC/USDT', 'id': '8', 'i': 28},
+]))
+
+otherMiddle = {'symbol': 'BTC/USDT', 'id': '7', 'i': 27}
+cache.append(otherMiddle)
+
+assert(equals(cache, [
+    {'symbol': 'BTC/USDT', 'id': '6', 'i': 16},
+    {'symbol': 'BTC/USDT', 'id': '9', 'i': 19},
+    {'symbol': 'BTC/USDT', 'id': '10', 'i': 20},
+    {'symbol': 'BTC/USDT', 'id': '8', 'i': 28},
+    {'symbol': 'BTC/USDT', 'id': '7', 'i': 27},
+]))
+
+for i in range(30, 33):
+    cache.append({
+        'symbol': 'BTC/USDT',
+        'id': str(i),
+        'i': i + 10,
+    })
+
+assert(equals(cache, [
+    {'symbol': 'BTC/USDT', 'id': '8', 'i': 28},
+    {'symbol': 'BTC/USDT', 'id': '7', 'i': 27},
+    {'symbol': 'BTC/USDT', 'id': '30', 'i': 40},
+    {'symbol': 'BTC/USDT', 'id': '31', 'i': 41},
+    {'symbol': 'BTC/USDT', 'id': '32', 'i': 42}]))
+
+first = {'symbol': 'BTC/USDT', 'id': '8', 'i': 38}
+cache.append(first)
+
+assert(equals(cache, [
+    {'symbol': 'BTC/USDT', 'id': '7', 'i': 27},
+    {'symbol': 'BTC/USDT', 'id': '30', 'i': 40},
+    {'symbol': 'BTC/USDT', 'id': '31', 'i': 41},
+    {'symbol': 'BTC/USDT', 'id': '32', 'i': 42},
+    {'symbol': 'BTC/USDT', 'id': '8', 'i': 38},
+]))
+
+another = {'symbol': 'BTC/USDT', 'id': '30', 'i': 50}
+cache.append(another)
+
+assert(equals(cache, [
+    {'symbol': 'BTC/USDT', 'id': '7', 'i': 27},
+    {'symbol': 'BTC/USDT', 'id': '31', 'i': 41},
+    {'symbol': 'BTC/USDT', 'id': '32', 'i': 42},
+    {'symbol': 'BTC/USDT', 'id': '8', 'i': 38},
+    {'symbol': 'BTC/USDT', 'id': '30', 'i': 50},
 ]))

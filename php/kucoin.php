@@ -181,6 +181,9 @@ class kucoin extends \ccxt\async\kucoin {
         $negotiation = yield $this->negotiate();
         $topic = '/market/match';
         $trades = yield $this->subscribe($negotiation, $topic, null, $symbol, $params);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 

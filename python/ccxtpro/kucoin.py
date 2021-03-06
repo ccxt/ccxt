@@ -171,6 +171,8 @@ class kucoin(Exchange, ccxt.kucoin):
         negotiation = await self.negotiate()
         topic = '/market/match'
         trades = await self.subscribe(negotiation, topic, None, symbol, params)
+        if self.newUpdates:
+            limit = trades.getLimit(limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trade(self, client, message):

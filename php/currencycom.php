@@ -362,6 +362,9 @@ class currencycom extends \ccxt\async\currencycom {
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $trades = yield $this->watch_public('trades.subscribe', $symbol, $params);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
@@ -383,6 +386,9 @@ class currencycom extends \ccxt\async\currencycom {
             ),
         );
         $ohlcv = yield $this->watch_public($messageHash, $symbol, array_merge($request, $params));
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 

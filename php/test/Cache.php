@@ -49,21 +49,34 @@ assert (equals ($cache, [2]));
 
 // ----------------------------------------------------------------------------
 
+$cache = new ArrayCacheByTimestamp ();
+
+$ohlcv1 = [100, 1, 2, 3];
+$ohlcv2 = [200, 5, 6, 7];
+$cache->append ($ohlcv1);
+$cache->append ($ohlcv2);
+
+assert (equals ($cache, [$ohlcv1, $ohlcv2]));
+
+$modify2 = [200, 10, 11, 12];
+$cache->append ($modify2);
+
+assert (equals ($cache, [$ohlcv1, $modify2]));
+
+// ----------------------------------------------------------------------------
+
 $cache = new ArrayCacheBySymbolById ();
 
 $object1 = array( 'symbol' => 'BTC/USDT', 'id' => 'abcdef', 'i' => 1 );
 $object2 = array( 'symbol' => 'ETH/USDT', 'id' => 'qwerty', 'i' => 2 );
 $object3 = array( 'symbol' => 'BTC/USDT', 'id' => 'abcdef', 'i' => 3 );
-
 $cache->append ($object1);
 $cache->append ($object2);
 $cache->append ($object3); // should update index 0
 
-assert (equals ($cache, array( $object3, $object2 )));
+assert (equals ($cache, array( $object2, $object3 )));
 
-$maxLength = 5;
-
-$cache = new ArrayCacheBySymbolById ($maxLength);
+$cache = new ArrayCacheBySymbolById (5);
 
 for ($i = 1; $i < 11; $i++) {
     $cache->append (array(
@@ -95,4 +108,63 @@ assert (equals ($cache, array(
     array( 'symbol' => 'BTC/USDT', 'id' => '8', 'i' => 18 ),
     array( 'symbol' => 'BTC/USDT', 'id' => '9', 'i' => 19 ),
     array( 'symbol' => 'BTC/USDT', 'id' => '10', 'i' => 20 ),
+)));
+
+$middle = array( 'symbol' => 'BTC/USDT', 'id' => '8', 'i' => 28 );
+$cache->append ($middle);
+
+assert (equals ($cache, array(
+    array( 'symbol' => 'BTC/USDT', 'id' => '6', 'i' => 16 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '7', 'i' => 17 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '9', 'i' => 19 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '10', 'i' => 20 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '8', 'i' => 28 ),
+)));
+
+$otherMiddle = array( 'symbol' => 'BTC/USDT', 'id' => '7', 'i' => 27 );
+$cache->append ($otherMiddle);
+
+assert (equals ($cache, array(
+    array( 'symbol' => 'BTC/USDT', 'id' => '6', 'i' => 16 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '9', 'i' => 19 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '10', 'i' => 20 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '8', 'i' => 28 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '7', 'i' => 27 ),
+)));
+
+for ($i = 30; $i < 33; $i++) {
+    $cache->append (array(
+        'symbol' => 'BTC/USDT',
+        'id' => (string) $i,
+        'i' => $i + 10,
+    ));
+}
+
+assert (equals ($cache, array(
+    array( 'symbol' => 'BTC/USDT', 'id' => '8', 'i' => 28 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '7', 'i' => 27 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '30', 'i' => 40 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '31', 'i' => 41 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '32', 'i' => 42 ) )));
+
+$first = array( 'symbol' => 'BTC/USDT', 'id' => '8', 'i' => 38 );
+$cache->append ($first);
+
+assert (equals ($cache, array(
+    array( 'symbol' => 'BTC/USDT', 'id' => '7', 'i' => 27 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '30', 'i' => 40 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '31', 'i' => 41 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '32', 'i' => 42 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '8', 'i' => 38 ),
+)));
+
+$another = array( 'symbol' => 'BTC/USDT', 'id' => '30', 'i' => 50 );
+$cache->append ($another);
+
+assert (equals ($cache, array(
+    array( 'symbol' => 'BTC/USDT', 'id' => '7', 'i' => 27 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '31', 'i' => 41 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '32', 'i' => 42 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '8', 'i' => 38 ),
+    array( 'symbol' => 'BTC/USDT', 'id' => '30', 'i' => 50 ),
 )));

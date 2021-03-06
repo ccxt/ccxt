@@ -66,6 +66,9 @@ class okex extends \ccxt\async\okex {
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $trades = yield $this->subscribe('trade', $symbol, $params);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
@@ -148,6 +151,9 @@ class okex extends \ccxt\async\okex {
         $interval = $this->timeframes[$timeframe];
         $name = 'candle' . $interval . 's';
         $ohlcv = yield $this->subscribe($name, $symbol, $params);
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 

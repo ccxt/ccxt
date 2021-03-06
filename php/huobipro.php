@@ -130,6 +130,9 @@ class huobipro extends \ccxt\async\huobipro {
             'params' => $params,
         );
         $trades = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
@@ -196,6 +199,9 @@ class huobipro extends \ccxt\async\huobipro {
             'params' => $params,
         );
         $ohlcv = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 

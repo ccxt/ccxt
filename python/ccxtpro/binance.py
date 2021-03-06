@@ -330,6 +330,8 @@ class binance(Exchange, ccxt.binance):
             'id': requestId,
         }
         trades = await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
+        if self.newUpdates:
+            limit = trades.getLimit(limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def parse_trade(self, trade, market=None):
@@ -529,6 +531,8 @@ class binance(Exchange, ccxt.binance):
             'id': requestId,
         }
         ohlcv = await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
+        if self.newUpdates:
+            limit = ohlcv.getLimit(limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
@@ -782,7 +786,9 @@ class binance(Exchange, ccxt.binance):
             messageHash += ':' + symbol
         message = None
         orders = await self.watch(url, messageHash, message, subscriptionHash)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        if self.newUpdates:
+            limit = orders.getLimit(limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def parse_ws_order(self, order, market=None):
         #
@@ -1029,7 +1035,9 @@ class binance(Exchange, ccxt.binance):
             messageHash += ':' + symbol
         message = None
         trades = await self.watch(url, messageHash, message, subscriptionHash)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        if self.newUpdates:
+            limit = trades.getLimit(limit)
+        return self.filter_by_symbol_since_limit(limit, symbol, since, limit)
 
     def handle_my_trade(self, client, message):
         messageHash = 'myTrades'

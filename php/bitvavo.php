@@ -100,6 +100,9 @@ class bitvavo extends \ccxt\async\bitvavo {
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $trades = yield $this->watch_public('trades', $symbol, $params);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
@@ -151,6 +154,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         );
         $message = array_merge($request, $params);
         $ohlcv = yield $this->watch($url, $messageHash, $message, $messageHash);
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
@@ -414,6 +420,9 @@ class bitvavo extends \ccxt\async\bitvavo {
             ),
         );
         $orders = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit ($limit);
+        }
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
@@ -439,6 +448,9 @@ class bitvavo extends \ccxt\async\bitvavo {
             ),
         );
         $trades = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($limit);
+        }
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
     }
 
