@@ -7,6 +7,8 @@ use \Ds\Deque;
 class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \Countable {
     public $max_size;
     public $deque;
+    public $new_updates;
+    public $clear_updates;
 
     public function __construct($max_size = null) {
         $this->max_size = $max_size;
@@ -14,6 +16,8 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
         // https://www.php.net/manual/en/class.ds-deque.php
         // would inherit directly but it is marked as final
         $this->deque = new Deque();
+        $this->new_updates = 0;
+        $this->clear_updates = false;
     }
 
     public function getIterator() {
@@ -24,19 +28,36 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
         return $this->deque;
     }
 
+    public function getLimit($limit) {
+        $this->clear_updates = true;
+        if ($limit === null) {
+            return $this->new_updates;
+        }
+        return min($this->new_updates, $limit);
+    }
+
     public function append($item) {
-        $this->deque->push($item);
-        if ($this->max_size && ($this->deque->count() > $this->max_size)) {
+        if ($this->max_size && ($this->deque->count() === $this->max_size)) {
             $this->deque->shift();
         }
+        $this->deque->push($item);
+        if ($this->clear_updates) {
+            $this->clear_updates = false;
+            $this->new_updates = 0;
+        }
+        $this->new_updates++;
     }
 
     public function count() {
         return $this->deque->count();
     }
 
+    public function clear_new_updates() {
+        $this->new_updates = array();
+    }
+
     public function clear() {
-        return $this->deque->clear();
+        $this->deque->clear();
     }
 
     public function offsetGet($index) {
@@ -57,5 +78,9 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
 
     public function getArrayCopy() {
         return $this->deque->toArray();
+    }
+
+    public function __toString() {
+        return print_r($this->deque->toArray(), true);
     }
 }

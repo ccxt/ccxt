@@ -41,6 +41,9 @@ module.exports = class ripio extends ccxt.ripio {
             'method': this.handleTrade,
         };
         const trades = await this.watch (url, messageHash, undefined, messageHash, subscription);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 

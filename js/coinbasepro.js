@@ -91,6 +91,9 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         const messageHash = 'myTrades';
         const authentication = this.authenticate ();
         const trades = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -101,8 +104,11 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         const name = 'user';
         const messageHash = 'orders';
         const authentication = this.authenticate ();
-        const trades = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        const orders = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
+        if (this.newUpdates) {
+            limit = orders.getLimit (limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {

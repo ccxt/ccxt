@@ -96,6 +96,9 @@ module.exports = class bitvavo extends ccxt.bitvavo {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchPublic ('trades', symbol, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -147,6 +150,9 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         };
         const message = this.extend (request, params);
         const ohlcv = await this.watch (url, messageHash, message, messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
@@ -410,6 +416,9 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             ],
         };
         const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        if (this.newUpdates) {
+            limit = orders.getLimit (limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
@@ -435,6 +444,9 @@ module.exports = class bitvavo extends ccxt.bitvavo {
             ],
         };
         const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 

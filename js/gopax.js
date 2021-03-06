@@ -217,6 +217,9 @@ module.exports = class gopax extends ccxt.gopax {
         };
         const message = this.extend (request, params);
         const orders = await this.watch (url, messageHash, message, subscriptionHash, subscription);
+        if (this.newUpdates) {
+            limit = orders.getLimit (limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
@@ -461,6 +464,9 @@ module.exports = class gopax extends ccxt.gopax {
         };
         const message = this.extend (request, params);
         const trades = await this.watch (url, messageHash, message, subscriptionHash, subscription);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 

@@ -180,6 +180,9 @@ module.exports = class poloniex extends ccxt.poloniex {
             'channel': numericId,
         };
         const trades = await this.watch (url, messageHash, subscribe, numericId);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 

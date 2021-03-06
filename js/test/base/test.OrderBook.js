@@ -5,19 +5,19 @@ const assert = require ('assert');
 
 function equals (a, b) {
     if (a.length !== b.length) {
-        return false
+        return false;
     }
     for (const prop in a) {
         if (Array.isArray (a[prop])) {
             if (!equals (a[prop], b[prop])) {
-                return false
+                return false;
             }
         }
         else if (a[prop] !== b[prop]) {
-            return false
+            return false;
         }
     }
-    return true
+    return true;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
