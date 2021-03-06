@@ -1705,6 +1705,8 @@ class kraken(Exchange):
             raise InvalidOrder(self.id + ' ' + body)
         if body.find('Rate limit exceeded') >= 0:
             raise RateLimitExceeded(self.id + ' ' + body)
+        if response is None:
+            return
         if body[0] == '{':
             if not isinstance(response, basestring):
                 if 'error' in response:
