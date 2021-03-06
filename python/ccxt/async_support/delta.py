@@ -385,7 +385,8 @@ class delta(Exchange):
                 swap = True
                 future = False
                 option = False
-                symbol = base + '/' + quote
+                if id.find('_') < 0:
+                    symbol = base + '/' + quote
             elif (type == 'call_options') or (type == 'put_options') or (type == 'move_options'):
                 type = 'option'
                 swap = False

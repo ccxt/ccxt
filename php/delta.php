@@ -385,7 +385,9 @@ class delta extends Exchange {
                 $swap = true;
                 $future = false;
                 $option = false;
-                $symbol = $base . '/' . $quote;
+                if (mb_strpos($id, '_') < 0) {
+                    $symbol = $base . '/' . $quote;
+                }
             } else if (($type === 'call_options') || ($type === 'put_options') || ($type === 'move_options')) {
                 $type = 'option';
                 $swap = false;
