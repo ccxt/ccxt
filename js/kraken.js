@@ -1827,6 +1827,9 @@ module.exports = class kraken extends Exchange {
         if (body.indexOf ('Rate limit exceeded') >= 0) {
             throw new RateLimitExceeded (this.id + ' ' + body);
         }
+        if (response === undefined) {
+            return;
+        }
         if (body[0] === '{') {
             if (typeof response !== 'string') {
                 if ('error' in response) {
