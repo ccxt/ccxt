@@ -98,6 +98,7 @@ class ArrayCacheBySymbolById(ArrayCacheByTimestamp):
             reference = by_id[item['id']]
             if reference != item:
                 reference.update(item)
+            item = reference
             index = self._index.index(item['id'])
             del self._deque[index]
             del self._index[index]

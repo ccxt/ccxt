@@ -1106,7 +1106,9 @@ module.exports = class binance extends ccxt.binance {
         }
         const message = undefined;
         const trades = await this.watch (url, messageHash, message, subscriptionHash);
-        limit = trades.getLimit (limit);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
         return this.filterBySymbolSinceLimit (limit, symbol, since, limit);
     }
 

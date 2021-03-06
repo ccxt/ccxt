@@ -24,6 +24,7 @@ class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
             $prev_ref = &$by_id[$item['id']];
             # updates the reference
             $prev_ref = $item;
+            $item = &$prev_ref;
             $index = $this->index->find($item['id']);
             unset($this->index[$index]);
             unset($this->deque[$index]);

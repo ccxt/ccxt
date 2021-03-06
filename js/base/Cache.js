@@ -113,6 +113,7 @@ class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
                     reference[prop] = item[prop]
                 }
             }
+            item = reference
             const index = this.findIndex (x => x.id === item.id)
             // move the order to the end of the array
             this.splice (index, 1)
