@@ -1487,20 +1487,26 @@ module.exports = class kucoin extends Exchange {
                 updated = updated * 1000;
             }
         }
+        const comment = this.safeString (transaction, 'remark');
         return {
             'id': id,
+            'info': transaction,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
             'currency': code,
             'amount': amount,
             'txid': txid,
             'type': type,
             'status': status,
+            'comment': comment,
             'fee': fee,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
             'updated': updated,
-            'info': transaction,
         };
     }
 
