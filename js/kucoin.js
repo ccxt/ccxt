@@ -906,8 +906,9 @@ module.exports = class kucoin extends Exchange {
             // 'symbol': market['id'],
             // 'tradeType': 'TRADE', // default is to cancel the spot trading order
         };
-        const market = this.market (symbol);
+        let market = undefined;
         if (symbol !== undefined) {
+            market = this.market (symbol);
             request['symbol'] = market['id'];
         }
         return await this.privateDeleteOrders (this.extend (request, params));
