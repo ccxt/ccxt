@@ -204,7 +204,6 @@ module.exports = class poloniex extends Exchange {
                     'Error pulling ': ExchangeError, // {"error":"Error pulling order book"}
                 },
             },
-            'orders': {}, // orders cache / emulation
         });
     }
 
