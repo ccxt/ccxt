@@ -220,7 +220,6 @@ class poloniex(Exchange):
                     'Error pulling ': ExchangeError,  # {"error":"Error pulling order book"}
                 },
             },
-            'orders': {},  # orders cache / emulation
         })
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):

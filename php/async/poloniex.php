@@ -207,7 +207,6 @@ class poloniex extends Exchange {
                     'Error pulling ' => '\\ccxt\\ExchangeError', // array("error":"Error pulling order book")
                 ),
             ),
-            'orders' => array(), // orders cache / emulation
         ));
     }
 
