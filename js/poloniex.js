@@ -107,23 +107,48 @@ module.exports = class poloniex extends ccxt.poloniex {
         const channelId = '1000';
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        const messageHash = channelId + ':b:e';
-        if (!(channelId in client.subscriptions)) {
-            this.balance = await this.fetchBalance (params);
-            const nonce = this.nonce ();
-            const payload = this.urlencode ({ 'nonce': nonce });
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
-            const subscribe = {
-                'command': 'subscribe',
-                'channel': channelId,
-                'key': this.apiKey,
-                'payload': payload,
-                'sign': signature,
-            };
-            return await this.watch (url, messageHash, subscribe, channelId);
-        } else {
-            return await this.watch (url, messageHash, {}, channelId);
+        const messageHash = 'balance';
+        const subscriptionHash = 'private';
+        const nonce = this.nonce ();
+        const payload = this.urlencode ({ 'nonce': nonce });
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
+        const subscribe = {
+            'command': 'subscribe',
+            'channel': channelId,
+            'key': this.apiKey,
+            'payload': payload,
+            'sign': signature,
+        };
+        const existingSubscription = this.safeValue (client.subscriptions, subscriptionHash, {});
+        const balanceSnapshot = this.safeValue (existingSubscription, 'balanceSnapshot', false);
+        if (balanceSnapshot === false) {
+            this.balance = await this.fetchBalance ();
+            existingSubscription['balanceSnapshot'] = true;
         }
+        return await this.watch (url, messageHash, subscribe, subscriptionHash, existingSubscription);
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        let messageHash = 'orders';
+        if (symbol) {
+            const marketId = this.marketId (symbol);
+            messageHash = messageHash + ':' + marketId;
+        }
+        const channelId = '1000';
+        const url = this.urls['api']['ws'];
+        const nonce = this.nonce ();
+        const payload = this.urlencode ({ 'nonce': nonce });
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha512');
+        const subscribe = {
+            'command': 'subscribe',
+            'channel': channelId,
+            'key': this.apiKey,
+            'payload': payload,
+            'sign': signature,
+        };
+        return await this.watch (url, messageHash, subscribe, channelId);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -353,11 +378,219 @@ module.exports = class poloniex extends ccxt.poloniex {
     }
 
     handleAccountNotifications (client, message) {
-        // not implemented yet
-        return message;
+        // [
+        //   1000,
+        //   '',
+        //   [
+        //     [
+        //       'p',
+        //       898860801559,
+        //       121,
+        //       '48402.31639500',
+        //       '0.00004133',
+        //       '0',
+        //       null
+        //     ],
+        //     [ 'b', 28, 'e', '-0.00004133' ],
+        //     [ 'b', 214, 'e', '1.99915833' ],
+        //     [
+        //       't',
+        //       42365437,
+        //       '48431.17368463',
+        //       '0.00004133',
+        //       '0.00125000',
+        //       0,
+        //       898860801559,
+        //       '0.00242155',
+        //       '2021-03-06 20:01:23',
+        //       null,
+        //       '0.00004133'
+        //     ]
+        //   ]
+        // ]
+        const data = this.safeValue (message, 2, []);
+        const methods = {
+            'b': [ this.handleBalance ],
+            'p': [ this.handleOrder, this.handleBalance ],
+            'n': [ this.handleOrder ],
+            'o': [ this.handleBalance ],
+            't': [ this.handleOrder, this.handleMyTrade ],
+        };
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const type = this.safeString (entry, 0);
+            const callbacks = this.safeValue (methods, type);
+            if (Array.isArray (callbacks)) {
+                for (let j = 0; j < callbacks.length; j++) {
+                    const callback = callbacks[j];
+                    callback.call (this, client, entry);
+                }
+            }
+        }
+    }
+
+    handleBalance (client, message) {
+        //
+        // balance update
+        // [ 'b', 28, 'e', '-0.00004133' ],
+        // [ 'b', 214, 'e', '1.99915833' ],
+        //
+        // pending
+        // [ 'p', 6083059, 148, '48402.31639500', '0.00004133', '0', null ],
+        //
+        // change
+        //
+        const messageType = this.safeString (message, 0);
+        if (messageType === 'b') {
+            const balanceType = this.safeString (message, 2);
+            if (balanceType !== 'e') {
+                // no support for poloniex futures atm
+                return;
+            }
+            const numericId = this.safeString (message, 1);
+            const code = this.safeCurrencyCode (numericId);
+            const changeAmount = this.safeFloat (message, 3);
+            this.balance[code]['free'] = this.sum (this.balance[code]['free'], changeAmount);
+            this.balance[code]['total'] = undefined;
+            this.balance = this.parseBalance (this.balance);
+        } else if (messageType === 'p') {
+            const numericId = this.safeString (message, 2);
+            const market = this.safeValue (this.options['marketsByNumericId'], numericId);
+            if (market === undefined) {
+                return undefined;
+            }
+            const orderType = this.safeInteger (message, 5);
+            const side = orderType ? 'buy' : 'sell';
+            let code = undefined;
+            if (side === 'buy') {
+                code = market['quote'];
+            } else {
+                code = market['base'];
+            }
+            const changeAmount = this.safeFloat (message, 3);
+            this.balance[code]['used'] = this.balance[code]['used'] -changeAmount;
+            this.balance[code]['total'] = undefined;
+            this.balance = this.parseBalance (this.balance);
+        }
+
+        // this.balance[symbol] = this.sum (this.balance[])
+    }
+
+    handleOrder (client, message) {
+        //
+        // pending
+        // [ 'p', 6083059, 148, '48402.31639500', '0.00004133', '0', null ],
+        //
+        // new order
+        // ["n", 148, 6083059, 1, "0.03000000", "2.00000000", "2018-09-08 04:54:09", "2.00000000", "12345"]
+        //
+        let orders = this.orders;
+        if (orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            orders = new ArrayCacheBySymbolById (limit);
+            this.orders = orders;
+        }
+        const type = this.safeString (message, 1);
+        if (type === 'p') {
+            const orderId = this.safeString (message, 1);
+            const numericId = this.safeString (message, 2);
+            const market = this.safeValue (this.options['marketsByNumericId'], numericId);
+            if (market === undefined) {
+                return undefined;
+            }
+            const symbol = market['symbol'];
+            const price = this.safeFloat (message, 3);
+            const amount = this.safeFloat (message, 4);
+            const orderType = this.safeInteger (message, 5);
+            const side = orderType ? 'buy' : 'sell';
+            const clientOrderId = this.safeString (message, 6);
+            orders.append ({
+                'info': message,
+                'symbol': symbol,
+                'id': orderId,
+                'clientOrderId': clientOrderId,
+                'timestamp': undefined,
+                'datetime': undefined,
+                'lastTradeTimestamp': undefined,
+                'type': type,
+                'timeInForce': undefined,
+                'postOnly': undefined,
+                'side': side,
+                'price': price,
+                'stopPrice': undefined,
+                'amount': amount,
+                'cost': undefined,
+                'average': undefined,
+                'filled': undefined,
+                'remaining': amount,
+                'status': 'open',
+                'fee': undefined,
+                'trades': undefined,
+            });
+        } else if (type === 'n') {
+            const numericId = this.safeString (message, 1);
+            const market = this.safeValue (this.options['marketsByNumericId'], numericId);
+            if (market === undefined) {
+                return undefined;
+            }
+            const symbol = market['symbol'];
+            const orderId = this.safeString (message, 2);
+            const orderType = this.safeInteger (message, 3);
+            const side = orderType ? 'buy' : 'sell';
+            const price = this.safeFloat (message, 4);
+            const remaining = this.safeFloat (message, 5);
+            const date = this.safeString (message, 6);
+            const timestamp = this.parse8601 (date);
+            const amount = this.safeFloat (message, 7);
+            const clientOrderId = this.safeString (message, 8);
+            let filled = undefined;
+            let cost = undefined;
+            if (amount !== undefined) {
+                if (remaining !== undefined) {
+                    filled = amount - remaining;
+                }
+                if (price !== undefined) {
+                    cost = amount * price;
+                }
+            }
+            orders.append ({
+                'info': message,
+                'symbol': symbol,
+                'id': orderId,
+                'clientOrderId': clientOrderId,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'lastTradeTimestamp': undefined,
+                'type': type,
+                'timeInForce': undefined,
+                'postOnly': undefined,
+                'side': side,
+                'price': price,
+                'stopPrice': undefined,
+                'amount': amount,
+                'cost': cost,
+                'average': undefined,
+                'filled': filled,
+                'remaining': remaining,
+                'status': 'open',
+                'fee': undefined,
+                'trades': undefined,
+            });
+        } else if (type === 'o') {
+
+        }
+    }
+
+    handleMyTrade (client, message) {
+        return message
+    }
+
+    parseWsTrade (trade) {
+        //
     }
 
     handleMessage (client, message) {
+        console.log (message)
         const channelId = this.safeString (message, 0);
         const methods = {
             // '<numericId>': 'handleOrderBookAndTrades', // Price Aggregated Book
