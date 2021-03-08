@@ -2762,7 +2762,17 @@ class Exchange {
         // Amount
         // Filled
         //
-        // First we ensure amount = filled + remaining
+        // First we try to calculate filled from the trades
+        if ($order['filled'] === null) {
+            if (gettype($order['trades']) === 'array') {
+                $order['filled'] = 0;
+                for ($i = 0; $i < count($order['trades']); $i++) {
+                    $trade = $order['trades'][$i];
+                    $order['filled'] = $this->sum($order['filled'], $trade['amount']);
+                }
+            }
+        }
+        // We ensure amount = filled + remaining
         if ($order['amount'] === null) {
             if ($order['filled'] !== null && $order['remaining'] !== null) {
                 $order['amount'] = $this->sum($order['filled'], $order['remaining']);

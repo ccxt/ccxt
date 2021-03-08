@@ -1401,7 +1401,17 @@ module.exports = class Exchange {
         // Amount
         // Filled
         //
-        // First we ensure amount = filled + remaining
+        // First we try to calculate filled from the trades
+        if (order['filled'] === undefined) {
+            if (Array.isArray (order['trades'])) {
+                order['filled'] = 0
+                for (let i = 0; i < order['trades'].length; i++) {
+                    const trade = order['trades'][i]
+                    order['filled'] = this.sum (order['filled'], trade['amount'])
+                }
+            }
+        }
+        // We ensure amount = filled + remaining
         if (order['amount'] === undefined) {
             if (order['filled'] !== undefined && order['remaining'] !== undefined) {
                 order['amount'] = this.sum (order['filled'], order['remaining'])
