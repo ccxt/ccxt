@@ -165,7 +165,11 @@ module.exports = class poloniex extends ccxt.poloniex {
             const marketId = this.marketId (symbol);
             messageHash = messageHash + ':' + marketId;
         }
-        return await this.subscribePrivate (messageHash, {});
+        const orders = await this.subscribePrivate (messageHash, {});
+        if (this.newUpdates) {
+            limit = trades.getLimit ();
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
