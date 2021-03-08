@@ -167,9 +167,9 @@ module.exports = class poloniex extends ccxt.poloniex {
         }
         const orders = await this.subscribePrivate (messageHash, {});
         if (this.newUpdates) {
-            limit = trades.getLimit ();
+            limit = orders.getLimit ();
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -460,7 +460,7 @@ module.exports = class poloniex extends ccxt.poloniex {
         const methods = {
             'b': [ this.handleBalance ],
             'p': [ this.handleOrder, this.handleBalance ],
-            'n': [ this.handleOrder ],
+            'n': [ this.handleOrder, this.handleBalance ],
             'o': [ this.handleOrder, this.handleBalance ],
             't': [ this.handleMyTrade, this.handleOrder, this.handleBalance ],
         };
@@ -485,6 +485,10 @@ module.exports = class poloniex extends ccxt.poloniex {
         //
         // pending
         // [ 'p', 6083059, 148, '48402.31639500', '0.00004133', '0', null ]
+        //
+        // new order
+        // ["n", 148, 6083059, 1, "0.03000000", "2.00000000", "2018-09-08 04:54:09", "2.00000000", "12345"]
+        // ["n", <currency pair id>, <order number>, <order type>, "<rate>", "<amount>", "<date>", "<original amount ordered>" "<clientOrderId>"]
         //
         // order change
         // [ 'o', 899641758820, '0.00000000', 'c', null, '0.00001971' ]
@@ -522,18 +526,20 @@ module.exports = class poloniex extends ccxt.poloniex {
             this.balance[code]['free'] = this.sum (this.balance[code]['free'], changeAmount);
             this.balance[code]['total'] = undefined;
             this.balance = this.parseBalance (this.balance);
-        } else if ((messageType === 'o') || (messageType === 'p') || (messageType === 't')) {
+        } else if ((messageType === 'o') || (messageType === 'p') || (messageType === 't') || (messageType === 'n')) {
             let symbol = undefined;
             let orderId = undefined;
             if ((messageType === 'o') || (messageType === 'p')) {
                 orderId = this.safeString (message, 1);
                 const orderType = this.safeString (message, 3);
-                if ((messageType === 'o') && (orderType !== 'c')) {
+                if ((messageType === 'o') && (orderType === 'f')) {
                     // we use the trades for the fills and the order events for the cancels
                     return;
                 }
-            } else {
+            } else if (messageType === 't') {
                 orderId = this.safeString (message, 6);
+            } else if (messageType === 'n') {
+                orderId = this.safeString (message, 2);
             }
             const symbolsByOrderId = this.safeValue (this.options, 'symbolsByOrderId');
             symbol = this.safeString (symbolsByOrderId, orderId);
@@ -544,9 +550,17 @@ module.exports = class poloniex extends ccxt.poloniex {
             const previousOrders = this.safeValue (this.orders.hashmap, symbol, {});
             const previousOrder = this.safeValue (previousOrders, orderId);
             const quote = market['quote'];
-            const quoteAmount = previousOrder['amount'] * previousOrder['price'];
+            let changeAmount = undefined;
+            if (messageType === 'n') {
+                changeAmount = previousOrder['filled'];
+            } else if (messageType === 'o') {
+                changeAmount = this.safeFloat (message, 5);
+            } else {
+                changeAmount = previousOrder['amount'];
+            }
+            const quoteAmount = changeAmount * previousOrder['price'];
             const base = market['base'];
-            const baseAmount = previousOrder['amount'];
+            const baseAmount = changeAmount;
             let orderAmount = undefined;
             let orderCode = undefined;
             if (previousOrder['side'] === 'buy') {
@@ -556,10 +570,12 @@ module.exports = class poloniex extends ccxt.poloniex {
                 orderAmount = baseAmount;
                 orderCode = base;
             }
-            if ((messageType === 'o') || (messageType === 't')) {
-                this.balance[orderCode]['used'] = this.balance[orderCode]['used'] - orderAmount;
+            const preciseAmount = this.amountToPrecision (symbol, orderAmount);
+            const floatAmount = parseFloat (preciseAmount);
+            if ((messageType === 'o') || (messageType === 't') || (messageType === 'n')) {
+                this.balance[orderCode]['used'] = this.balance[orderCode]['used'] - floatAmount;
             } else {
-                this.balance[orderCode]['used'] = this.sum (this.balance[orderCode]['used'], orderAmount);
+                this.balance[orderCode]['used'] = this.sum (this.balance[orderCode]['used'], floatAmount);
             }
             this.balance[orderCode]['total'] = undefined;
             this.balance = this.parseBalance (this.balance);
