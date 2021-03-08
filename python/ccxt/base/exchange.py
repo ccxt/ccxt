@@ -2086,3 +2086,36 @@ class Exchange(object):
             string.append(Exchange.base58_encoder[next_character])
         string.reverse()
         return ''.join(string)
+
+    def safe_order(self, order):
+        # Cost
+        # Remaining
+        # Average
+        # Price
+        # Amount
+        # Filled
+        #
+        # First we ensure amount = filled + remaining
+        if order['amount'] is None:
+            if order['filled'] is not None and order['remaining'] is not None:
+                order['amount'] = self.sum(order['filled'], order['remaining'])
+        if order['filled'] is None:
+            if order['amount'] is not None and order['remaining'] is not None:
+                order['filled'] = self.sum(order['amount'], -order['remaining'])
+        if order['remaining'] is None:
+            if order['amount'] is not None and order['filled'] is not None:
+                order['remaining'] = self.sum(order['amount'], -order['filled'])
+        # We ensure that the average field is calculated correctly
+        if order['average'] is None:
+            if order['filled'] is not None and order['cost'] is not None and order['cost'] > 0:
+                order['average'] = order['filled'] / order['cost']
+        # We also ensure the cost field is calculated correctly
+        cost_price_exists = (order['average'] is not None) or (order['price'] is not None)
+        if (order['filled'] is not None) and cost_price_exists:
+            cost_price = None
+            if order['average'] is None:
+                cost_price = order['price']
+            else:
+                cost_price = order['average']
+            order['cost'] = cost_price * order['filled']
+        return order

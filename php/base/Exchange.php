@@ -2753,4 +2753,48 @@ class Exchange {
     public function remove0x_prefix($string) {
         return (substr($string, 0, 2) === '0x') ? substr($string, 2) : $string;
     }
+
+    public function safe_order($order) {
+        // Cost
+        // Remaining
+        // Average
+        // Price
+        // Amount
+        // Filled
+        //
+        // First we ensure amount = filled + remaining
+        if ($order['amount'] === null) {
+            if ($order['filled'] !== null && $order['remaining'] !== null) {
+                $order['amount'] = $this->sum($order['filled'], $order['remaining']);
+            }
+        }
+        if ($order['filled'] === null) {
+            if ($order['amount'] !== null && $order['remaining'] !== null) {
+                $order['filled'] = $this->sum($order['amount'], -$order['remaining']);
+            }
+        }
+        if ($order['remaining'] === null) {
+            if ($order['amount'] !== null && $order['filled'] !== null) {
+                $order['remaining'] = $this->sum($order['amount'], -$order['filled']);
+            }
+        }
+        // We ensure that the average field is calculated correctly
+        if ($order['average'] === null) {
+            if ($order['filled'] !== null && $order['cost'] !== null && $order['cost'] > 0) {
+                $order['average'] = $order['filled'] / $order['cost'];
+            }
+        }
+        // We also ensure the cost field is calculated correctly
+        $costPriceExists = ($order['average'] !== null) || ($order['price'] !== null);
+        if (($order['filled'] !== null) && $costPriceExists) {
+            $costPrice = null;
+            if ($order['average'] === null) {
+                $costPrice = $order['price'];
+            } else {
+                $costPrice = $order['average'];
+            }
+            $order['cost'] = $costPrice * $order['filled'];
+        }
+        return $order;
+    }
 }

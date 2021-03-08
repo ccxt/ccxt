@@ -1392,5 +1392,48 @@ module.exports = class Exchange {
     integerPow (a, b) {
         return new BN (a).pow (new BN (b))
     }
-}
 
+    safeOrder (order) {
+        // Cost
+        // Remaining
+        // Average
+        // Price
+        // Amount
+        // Filled
+        //
+        // First we ensure amount = filled + remaining
+        if (order['amount'] === undefined) {
+            if (order['filled'] !== undefined && order['remaining'] !== undefined) {
+                order['amount'] = this.sum (order['filled'], order['remaining'])
+            }
+        }
+        if (order['filled'] === undefined) {
+            if (order['amount'] !== undefined && order['remaining'] !== undefined) {
+                order['filled'] = this.sum (order['amount'], -order['remaining'])
+            }
+        }
+        if (order['remaining'] === undefined) {
+            if (order['amount'] !== undefined && order['filled'] !== undefined) {
+                order['remaining'] = this.sum (order['amount'], -order['filled'])
+            }
+        }
+        // We ensure that the average field is calculated correctly
+        if (order['average'] === undefined) {
+            if (order['filled'] !== undefined && order['cost'] !== undefined && order['cost'] > 0) {
+                order['average'] = order['filled'] / order['cost']
+            }
+        }
+        // We also ensure the cost field is calculated correctly
+        const costPriceExists = (order['average'] !== undefined) || (order['price'] !== undefined)
+        if ((order['filled'] !== undefined) && costPriceExists) {
+            let costPrice = undefined;
+            if (order['average'] === undefined) {
+                costPrice = order['price']
+            } else {
+                costPrice = order['average']
+            }
+            order['cost'] = costPrice * order['filled']
+        }
+        return order
+    }
+}
