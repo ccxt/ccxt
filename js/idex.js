@@ -823,16 +823,8 @@ module.exports = class idex extends Exchange {
         const type = this.safeString (order, 'type');
         const amount = this.safeFloat (order, 'originalQuantity');
         const filled = this.safeFloat (order, 'executedQuantity');
-        let remaining = undefined;
-        if ((amount !== undefined) && (filled !== undefined)) {
-            remaining = amount - filled;
-        }
         const average = this.safeFloat (order, 'avgExecutionPrice');
-        const price = this.safeFloat (order, 'price', average);  // for market orders
-        let cost = undefined;
-        if ((amount !== undefined) && (price !== undefined)) {
-            cost = amount * price;
-        }
+        const price = this.safeFloat (order, 'price');
         const rawStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (rawStatus);
         const fee = {
@@ -846,7 +838,7 @@ module.exports = class idex extends Exchange {
             fee['cost'] = this.sum (fee['cost'], lastTrade['fee']['cost']);
         }
         const lastTradeTimestamp = this.safeInteger (lastTrade, 'timestamp');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -861,14 +853,14 @@ module.exports = class idex extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     async associateWallet (walletAddress, params = {}) {
