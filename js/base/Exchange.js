@@ -1444,6 +1444,10 @@ module.exports = class Exchange {
             }
             order['cost'] = costPrice * order['filled']
         }
+        // We add support for market orders
+        if (order['price'] === undefined && order['type'] === 'market') {
+            order['price'] = order['average']
+        }
         return order
     }
 }

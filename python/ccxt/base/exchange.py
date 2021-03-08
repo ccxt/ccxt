@@ -2158,4 +2158,7 @@ class Exchange(object):
             else:
                 costPrice = order['average']
             order['cost'] = costPrice * order['filled']
+        # We add support for market orders
+        if order['price'] is None and order['type'] == 'market':
+            order['price'] = order['average']
         return order

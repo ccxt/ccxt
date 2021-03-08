@@ -2805,6 +2805,10 @@ class Exchange {
             }
             $order['cost'] = $costPrice * $order['filled'];
         }
+        // We add support for market orders
+        if ($order['price'] === null && $order['type'] === 'market') {
+            $order['price'] = $order['average'];
+        }
         return $order;
     }
 }
