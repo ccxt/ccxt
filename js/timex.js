@@ -466,7 +466,7 @@ module.exports = class timex extends Exchange {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
             'side': uppercaseSide,
-            'type': uppercaseType,
+            'orderTypes': uppercaseType,
             // 'clientOrderId': '123',
             // 'expireIn': 1575523308, // in seconds
             // 'expireTime': 1575523308, // unix timestamp
