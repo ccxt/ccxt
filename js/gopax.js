@@ -220,7 +220,7 @@ module.exports = class gopax extends ccxt.gopax {
         if (this.newUpdates) {
             limit = orders.getLimit (limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     parseWsOrderStatus (status) {

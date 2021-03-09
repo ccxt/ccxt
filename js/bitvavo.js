@@ -419,7 +419,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         if (this.newUpdates) {
             limit = orders.getLimit (limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -447,7 +447,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         if (this.newUpdates) {
             limit = trades.getLimit (limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleOrder (client, message) {

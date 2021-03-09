@@ -403,7 +403,7 @@ module.exports = class ftx extends ccxt.ftx {
         if (this.newUpdates) {
             limit = orders.getLimit (limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     handleOrder (client, message) {
@@ -479,7 +479,7 @@ module.exports = class ftx extends ccxt.ftx {
         if (this.newUpdates) {
             limit = trades.getLimit (limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleMyTrade (client, message) {
