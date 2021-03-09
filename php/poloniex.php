@@ -29,6 +29,7 @@ class poloniex extends \ccxt\async\poloniex {
             ),
             'options' => array(
                 'tradesLimit' => 1000,
+                'symbolsByOrderId' => array(),
             ),
         ));
     }
@@ -104,29 +105,89 @@ class poloniex extends \ccxt\async\poloniex {
         $client->resolve ($result, $messageHash);
     }
 
-    public function watch_balance($params = array ()) {
-        $this->check_required_credentials();
-        yield $this->load_markets();
+    public function subscribe_private($messageHash, $subscription) {
         $channelId = '1000';
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
-        $messageHash = $channelId . ':b:e';
         if (!(is_array($client->subscriptions) && array_key_exists($channelId, $client->subscriptions))) {
-            $this->balance = yield $this->fetchBalance ($params);
-            $nonce = $this->nonce();
-            $payload = $this->urlencode(array( 'nonce' => $nonce ));
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512');
-            $subscribe = array(
-                'command' => 'subscribe',
-                'channel' => $channelId,
-                'key' => $this->apiKey,
-                'payload' => $payload,
-                'sign' => $signature,
-            );
-            return yield $this->watch($url, $messageHash, $subscribe, $channelId);
-        } else {
-            return yield $this->watch($url, $messageHash, array(), $channelId);
+            $this->spawn(array($this, 'fetch_and_cache_open_orders'));
         }
+        $nonce = $this->nonce();
+        $payload = $this->urlencode(array( 'nonce' => $nonce ));
+        $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512');
+        $subscribe = array(
+            'command' => 'subscribe',
+            'channel' => $channelId,
+            'key' => $this->apiKey,
+            'payload' => $payload,
+            'sign' => $signature,
+        );
+        return yield $this->watch($url, $messageHash, $subscribe, $channelId, $subscription);
+    }
+
+    public function watch_balance($params = array ()) {
+        $this->check_required_credentials();
+        yield $this->load_markets();
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $messageHash = 'balance';
+        $channelId = '1000';
+        $existingSubscription = $this->safe_value($client->subscriptions, $channelId, array());
+        $fetchedBalance = $this->safe_value($existingSubscription, 'fetchedBalance', false);
+        if (!$fetchedBalance) {
+            $this->balance = yield $this->fetchBalance ();
+            $existingSubscription['fetchedBalance'] = true;
+        }
+        return yield $this->subscribe_private($messageHash, $existingSubscription);
+    }
+
+    public function fetch_and_cache_open_orders() {
+        // a cancel order update does not give us very much information
+        // about an order, we cache the information before receiving cancel updates
+        $openOrders = yield $this->fetch_open_orders();
+        $orders = $this->orders;
+        $symbolsByOrderId = $this->safe_value($this->options, 'symbolsByOrderId', array());
+        if ($orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = $orders;
+        }
+        for ($i = 0; $i < count($openOrders); $i++) {
+            $openOrder = $openOrders[$i];
+            $orders->append ($openOrder);
+            $symbolsByOrderId[$openOrder->id] = $openOrder->symbol;
+        }
+        $this->options['symbolsByOrderId'] = $symbolsByOrderId;
+    }
+
+    public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->check_required_credentials();
+        yield $this->load_markets();
+        $messageHash = 'orders';
+        if ($symbol) {
+            $marketId = $this->market_id($symbol);
+            $messageHash = $messageHash . ':' . $marketId;
+        }
+        $orders = yield $this->subscribe_private($messageHash, array());
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit ();
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+    }
+
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->check_required_credentials();
+        yield $this->load_markets();
+        $messageHash = 'myTrades';
+        if ($symbol) {
+            $marketId = $this->market_id($symbol);
+            $messageHash = $messageHash . ':' . $marketId;
+        }
+        $trades = yield $this->subscribe_private($messageHash, array());
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ();
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
     }
 
     public function watch_ticker($symbol, $params = array ()) {
@@ -168,6 +229,17 @@ class poloniex extends \ccxt\async\poloniex {
                 $marketsByNumericId[$numericId] = $market;
             }
             $this->options['marketsByNumericId'] = $marketsByNumericId;
+        }
+        $currenciesByNumericId = $this->safe_value($this->options, 'marketsByNumericId');
+        if (($currenciesByNumericId === null) || $reload) {
+            $currenciesByNumericId = array();
+            $keys = is_array($this->currencies) ? array_keys($this->currencies) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $currency = $this->currencies[$keys[$i]];
+                $numericId = $this->safe_string($currency, 'numericId');
+                $currenciesByNumericId[$numericId] = $currency;
+            }
+            $this->options['currenciesByNumericId'] = $currenciesByNumericId;
         }
         return $markets;
     }
@@ -356,8 +428,409 @@ class poloniex extends \ccxt\async\poloniex {
     }
 
     public function handle_account_notifications($client, $message) {
-        // not implemented yet
-        return $message;
+        // array(
+        //   1000,
+        //   '',
+        //   array(
+        //     array(
+        //       'p',
+        //       898860801559,
+        //       121,
+        //       '48402.31639500',
+        //       '0.00004133',
+        //       '0',
+        //       null
+        //     ),
+        //     array( 'b', 28, 'e', '-0.00004133' ),
+        //     array( 'b', 214, 'e', '1.99915833' ),
+        //     array(
+        //       't',
+        //       42365437,
+        //       '48431.17368463',
+        //       '0.00004133',
+        //       '0.00125000',
+        //       0,
+        //       898860801559,
+        //       '0.00242155',
+        //       '2021-03-06 20:01:23',
+        //       null,
+        //       '0.00004133'
+        //     )
+        //   )
+        // )
+        $data = $this->safe_value($message, 2, array());
+        // order is important here
+        $methods = array(
+            'b' => array( array($this, 'handle_balance')),
+            'p' => array( array($this, 'handle_order'), array($this, 'handle_balance')),
+            'n' => array( array($this, 'handle_order'), array($this, 'handle_balance')),
+            'o' => array( array($this, 'handle_order'), array($this, 'handle_balance')),
+            't' => array( array($this, 'handle_my_trade'), array($this, 'handle_order'), array($this, 'handle_balance')),
+        );
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $type = $this->safe_string($entry, 0);
+            $callbacks = $this->safe_value($methods, $type);
+            if (gettype($callbacks) === 'array' && count(array_filter(array_keys($callbacks), 'is_string')) == 0) {
+                for ($j = 0; $j < count($callbacks); $j++) {
+                    $callback = $callbacks[$j];
+                    $callback($client, $entry);
+                }
+            }
+        }
+    }
+
+    public function handle_balance($client, $message) {
+        //
+        // balance update
+        // array( 'b', 28, 'e', '-0.00004133' )
+        // array( 'b', 214, 'e', '1.99915833' )
+        //
+        // pending
+        // array( 'p', 6083059, 148, '48402.31639500', '0.00004133', '0', null )
+        //
+        // new order
+        // ["n", 148, 6083059, 1, "0.03000000", "2.00000000", "2018-09-08 04:54:09", "2.00000000", "12345"]
+        // ["n", <$currency pair id>, <order number>, <order type>, "<rate>", "<amount>", "<date>", "<original amount ordered>" "<clientOrderId>"]
+        //
+        // order change
+        // array( 'o', 899641758820, '0.00000000', 'c', null, '0.00001971' )
+        // [ 'o', 6083059, '1.50000000', 'f', '12345']
+        //
+        // ["o", <order number>, "<new amount>", "<order type>", "<clientOrderId>"]
+        //
+        // trade update
+        //
+        // ["t", 12345, "0.03000000", "0.50000000", "0.00250000", 0, 6083059, "0.00000375", "2018-09-08 05:54:09", "12345", "0.015"]
+        //
+        // ["t", <trade ID>, "<rate>", "<amount>", "<fee multiplier>", <funding type>, <order number>, <total fee>, <date>, "<clientOrderId>", "<trade total>"]
+        //
+        $subscription = $this->safe_value($client->subscriptions, '1000', array());
+        $fetchedBalance = $this->safe_value($subscription, 'fetchedBalance', false);
+        // to avoid synchronisation issues
+        if (!$fetchedBalance) {
+            return;
+        }
+        $messageHash = 'balance';
+        $messageType = $this->safe_string($message, 0);
+        if ($messageType === 'b') {
+            $balanceType = $this->safe_string($message, 2);
+            if ($balanceType !== 'e') {
+                // no support for poloniex futures atm
+                return;
+            }
+            $numericId = $this->safe_string($message, 1);
+            $currency = $this->safe_value($this->options['currenciesByNumericId'], $numericId);
+            if ($currency === null) {
+                return;
+            }
+            $code = $currency['code'];
+            $changeAmount = $this->safe_float($message, 3);
+            $this->balance[$code]['free'] = $this->sum($this->balance[$code]['free'], $changeAmount);
+            $this->balance[$code]['total'] = null;
+            $this->balance = $this->parse_balance($this->balance);
+        } else if (($messageType === 'o') || ($messageType === 'p') || ($messageType === 't') || ($messageType === 'n')) {
+            $symbol = null;
+            $orderId = null;
+            if (($messageType === 'o') || ($messageType === 'p')) {
+                $orderId = $this->safe_string($message, 1);
+                $orderType = $this->safe_string($message, 3);
+                if (($messageType === 'o') && ($orderType === 'f')) {
+                    // we use the trades for the fills and the order events for the cancels
+                    return;
+                }
+            } else if ($messageType === 't') {
+                $orderId = $this->safe_string($message, 6);
+            } else if ($messageType === 'n') {
+                $orderId = $this->safe_string($message, 2);
+            }
+            $symbolsByOrderId = $this->safe_value($this->options, 'symbolsByOrderId');
+            $symbol = $this->safe_string($symbolsByOrderId, $orderId);
+            if (!(is_array($this->markets) && array_key_exists($symbol, $this->markets))) {
+                return;
+            }
+            $market = $this->market($symbol);
+            $previousOrders = $this->safe_value($this->orders.hashmap, $symbol, array());
+            $previousOrder = $this->safe_value($previousOrders, $orderId);
+            $quote = $market['quote'];
+            $changeAmount = null;
+            if ($messageType === 'n') {
+                $changeAmount = $previousOrder['filled'];
+            } else if ($messageType === 'o') {
+                $changeAmount = $this->safe_float($message, 5);
+            } else {
+                $changeAmount = $previousOrder['amount'];
+            }
+            $quoteAmount = $changeAmount * $previousOrder['price'];
+            $base = $market['base'];
+            $baseAmount = $changeAmount;
+            $orderAmount = null;
+            $orderCode = null;
+            if ($previousOrder['side'] === 'buy') {
+                $orderAmount = $quoteAmount;
+                $orderCode = $quote;
+            } else {
+                $orderAmount = $baseAmount;
+                $orderCode = $base;
+            }
+            $preciseAmount = $this->amount_to_precision($symbol, $orderAmount);
+            $floatAmount = floatval($preciseAmount);
+            if (($messageType === 'o') || ($messageType === 't') || ($messageType === 'n')) {
+                $this->balance[$orderCode]['used'] = $this->balance[$orderCode]['used'] - $floatAmount;
+            } else {
+                $this->balance[$orderCode]['used'] = $this->sum($this->balance[$orderCode]['used'], $floatAmount);
+            }
+            $this->balance[$orderCode]['total'] = null;
+            $this->balance = $this->parse_balance($this->balance);
+        }
+        $client->resolve ($this->balance, $messageHash);
+    }
+
+    public function handle_order($client, $message) {
+        //
+        // pending
+        // array( 'p', 6083059, 148, '48402.31639500', '0.00004133', '0', null ),
+        // ["p", <order number>, <currency pair id>, "<rate>", "<$amount>", "<order $type>", "<$clientOrderId>"]
+        //
+        // new order
+        // ["n", 148, 6083059, 1, "0.03000000", "2.00000000", "2018-09-08 04:54:09", "2.00000000", "12345"]
+        // ["n", <currency pair id>, <order number>, <order $type>, "<rate>", "<$amount>", "<$date>", "<original $amount ordered>" "<$clientOrderId>"]
+        //
+        // order change
+        // array( 'o', 899641758820, '0.00000000', 'c', null, '0.00001971' )
+        // [ 'o', 6083059, '1.50000000', 'f', '12345']
+        // ["o", <order number>, "<new $amount>", "c", "<$clientOrderId>", "<canceledAmount>"]
+        //
+        // $trade change
+        // ["t", 12345, "0.03000000", "0.50000000", "0.00250000", 0, 6083059, "0.00000375", "2018-09-08 05:54:09", "12345", "0.015"]
+        // ["t", <$trade ID>, "<rate>", "<$amount>", "<fee multiplier>", <funding $type>, <order number>, <total fee>, <$date>, "<$clientOrderId>", "<$trade total>"]
+        //
+        // in the case of an n update, as corresponding t update is not sent, the code accounts for this
+        //
+        $orders = $this->orders;
+        $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+        $symbolsByOrderId = $this->safe_value($this->options, 'symbolsByOrderId', array());
+        if ($orders === null) {
+            $orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = $orders;
+        }
+        $length = is_array($orders) ? count($orders) : 0;
+        $type = $this->safe_string($message, 0);
+        $symbol = null;
+        if ($type === 'p') {
+            $orderId = $this->safe_string($message, 1);
+            $numericId = $this->safe_string($message, 2);
+            $market = $this->safe_value($this->options['marketsByNumericId'], $numericId);
+            if ($market === null) {
+                return null;
+            }
+            $symbol = $market['symbol'];
+            $symbolsByOrderId[$orderId] = $symbol;
+            $price = $this->safe_float($message, 3);
+            $amount = $this->safe_float($message, 4);
+            $orderType = $this->safe_integer($message, 5);
+            $side = $orderType ? 'buy' : 'sell';
+            $clientOrderId = $this->safe_string($message, 6);
+            if ($length === $limit) {
+                $first = $orders[0];
+                if (is_array($symbolsByOrderId) && array_key_exists($first['id'], $symbolsByOrderId)) {
+                    unset($symbolsByOrderId[$first['id']]);
+                }
+            }
+            $orders->append (array(
+                'info' => $message,
+                'symbol' => $symbol,
+                'id' => $orderId,
+                'clientOrderId' => $clientOrderId,
+                'timestamp' => null,
+                'datetime' => null,
+                'lastTradeTimestamp' => null,
+                'type' => 'limit',
+                'timeInForce' => null,
+                'postOnly' => null,
+                'side' => $side,
+                'price' => $price,
+                'stopPrice' => null,
+                'amount' => $amount,
+                'cost' => null,
+                'average' => null,
+                'filled' => null,
+                'remaining' => $amount,
+                'status' => 'open',
+                'fee' => null,
+                'trades' => null,
+            ));
+        } else if ($type === 'n') {
+            $numericId = $this->safe_string($message, 1);
+            $market = $this->safe_value($this->options['marketsByNumericId'], $numericId);
+            if ($market === null) {
+                return null;
+            }
+            $symbol = $market['symbol'];
+            $orderId = $this->safe_string($message, 2);
+            $orderType = $this->safe_integer($message, 3);
+            $side = $orderType ? 'buy' : 'sell';
+            $price = $this->safe_float($message, 4);
+            $remaining = $this->safe_float($message, 5);
+            $date = $this->safe_string($message, 6);
+            $timestamp = $this->parse8601($date);
+            $amount = $this->safe_float($message, 7);
+            $clientOrderId = $this->safe_string($message, 8);
+            $filled = null;
+            $cost = null;
+            if (($amount !== null) && ($remaining !== null)) {
+                $filled = $amount - $remaining;
+                $cost = $filled * $price;
+            }
+            if ($length === $limit) {
+                $first = $orders[0];
+                if (is_array($symbolsByOrderId) && array_key_exists($first['id'], $symbolsByOrderId)) {
+                    unset($symbolsByOrderId[$first['id']]);
+                }
+            }
+            $orders->append (array(
+                'info' => $message,
+                'symbol' => $symbol,
+                'id' => $orderId,
+                'clientOrderId' => $clientOrderId,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'lastTradeTimestamp' => null,
+                'type' => 'limit',
+                'timeInForce' => null,
+                'postOnly' => null,
+                'side' => $side,
+                'price' => $price,
+                'stopPrice' => null,
+                'amount' => $amount,
+                'cost' => $cost,
+                'average' => null,
+                'filled' => $filled,
+                'remaining' => $remaining,
+                'status' => 'open',
+                'fee' => null,
+                'trades' => null,
+            ));
+        } else if ($type === 'o') {
+            $orderId = $this->safe_string($message, 1);
+            $orderType = $this->safe_string($message, 3);
+            if (($orderType === 'c') || ($orderType === 'k')) {
+                $symbol = $this->safe_string($symbolsByOrderId, $orderId);
+                $previousOrders = $this->safe_value($orders->hashmap, $symbol, array());
+                $previousOrder = $this->safe_value($previousOrders, $orderId);
+                if ($previousOrder !== null) {
+                    $previousOrder['status'] = 'canceled';
+                }
+            }
+        } else if ($type === 't') {
+            $trade = $this->parse_ws_trade($message);
+            $orderId = $this->safe_string($trade, 'order');
+            $symbol = $this->safe_string($symbolsByOrderId, $orderId);
+            $previousOrders = $this->safe_value($orders->hashmap, $symbol, array());
+            $previousOrder = $this->safe_value($previousOrders, $orderId);
+            if ($previousOrder['trades'] === null) {
+                $previousOrder['trades'] = array();
+            }
+            $previousOrder['trades'][] = $trade;
+            $filled = $previousOrder['filled'];
+            if ($filled === null) {
+                $filled = $trade['amount'];
+            } else {
+                $filled = $previousOrder['filled'] . $trade['amount'];
+            }
+            if ($previousOrder['amount'] !== null) {
+                $previousOrder['remaining'] = max ($previousOrder['amount'] - $filled, 0.0);
+                if ($previousOrder['remaining'] === 0.0) {
+                    $previousOrder['status'] = 'closed';
+                }
+            }
+            $previousOrder['filled'] = $filled;
+            $previousOrder['cost'] = $filled * $previousOrder['price'];
+            if ($previousOrder['fee'] === null) {
+                $previousOrder['fee'] = array(
+                    'currency' => $trade['fee']['currency'],
+                    'cost' => $trade['fee']['cost'],
+                );
+            } else {
+                $previousOrder['fee']['cost'] = $this->sum($previousOrder['fee']['cost'], $trade['fee']['cost']);
+            }
+        }
+        $messageHash = 'orders';
+        $client->resolve ($orders, $messageHash);
+        $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
+        $client->resolve ($orders, $symbolSpecificMessageHash);
+    }
+
+    public function handle_my_trade($client, $message) {
+        //
+        // ["t", 12345, "0.03000000", "0.50000000", "0.00250000", 0, 6083059, "0.00000375", "2018-09-08 05:54:09", "12345", "0.015"]
+        // ["t", <trade ID>, "<rate>", "<amount>", "<fee multiplier>", <funding type>, <order number>, <total fee>, <date>, "<clientOrderId>", "<trade total>"]
+        //
+        // in the case of an n update, as corresponding t update is not sent, the code accounts for this
+        // so it is possible to miss myTrade updates
+        //
+        $trades = $this->myTrades;
+        if ($trades === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $trades = new ArrayCacheBySymbolById ($limit);
+        }
+        $orders = $this->orders;
+        if ($orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = $orders;
+        }
+        $parsed = $this->parse_ws_trade($message);
+        $trades->append ($parsed);
+        $messageHash = 'myTrades';
+        $client->resolve ($trades, $messageHash);
+        $symbolSpecificMessageHash = $messageHash . ':' . $parsed['symbol'];
+        $client->resolve ($trades, $symbolSpecificMessageHash);
+    }
+
+    public function parse_ws_trade($trade) {
+        $orders = $this->orders;
+        $tradeId = $this->safe_string($trade, 1);
+        $price = $this->safe_float($trade, 2);
+        $amount = $this->safe_float($trade, 3);
+        $feeRate = $this->safe_float($trade, 4);
+        $order = $this->safe_string($trade, 6);
+        $feeCost = $this->safe_float($trade, 7);
+        $date = $this->safe_string($trade, 8);
+        $cost = $this->safe_float($trade, 10);
+        $timestamp = $this->parse8601($date);
+        $symbolsByOrderId = $this->safe_value($this->options, 'symbolsByOrderId', array());
+        $symbol = $this->safe_string($symbolsByOrderId, $order);
+        $previousOrders = $this->safe_value($orders->hashmap, $symbol, array());
+        $previousOrder = $this->safe_value($previousOrders, $order);
+        $market = $this->market($symbol);
+        $side = $this->safe_string($previousOrder, 'side');
+        $feeCurrency = null;
+        if ($side === 'buy') {
+            $feeCurrency = $market['base'];
+        } else {
+            $feeCurrency = $market['quote'];
+        }
+        $fee = array(
+            'cost' => $feeCost,
+            'rate' => $feeRate,
+            'currency' => $feeCurrency,
+        );
+        return array(
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => $symbol,
+            'id' => $tradeId,
+            'order' => $order,
+            'type' => 'limit',
+            'takerOrMaker' => null,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => $fee,
+        );
     }
 
     public function handle_message($client, $message) {
