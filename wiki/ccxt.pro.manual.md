@@ -373,13 +373,17 @@ CCXT Pro is designed for async/await style syntax and relies heavily on async pr
 
 Creating a CCXT Pro exchange instance is pretty much identical to creating a CCXT exchange instance.
 
+#### newUpdates mode
+
+The newUpdates mode will provide only the latest updates since the last call to `await exchange.watchMethod`
+
 ```JavaScript
 // JavaScript
 const ccxtpro = require ('ccxt.pro')
-const exchange = new ccxtpro.binance ({ enableRateLimit: true })
+const exchange = new ccxtpro.binance ({ enableRateLimit: true, newUpdates: true })
 ```
 
-The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.python.org/3/library/asyncio.html) and [Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html) in particular. In Python it is required to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to `ccxt.async support`):
+The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.python.org/3/library/asyncio.html) and [Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html) in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to `ccxt.async support`):
 
 ```Python
 # Python
@@ -387,7 +391,7 @@ import ccxtpro
 import asyncio
 
 async def main(loop):
-    exchange = ccxtpro.kraken({'enableRateLimit': True, 'asyncio_loop': loop})
+    exchange = ccxtpro.kraken({'enableRateLimit': True, 'asyncio_loop': loop, 'newUpdates': True })
     while True:
         orderbook = await exchange.watch_order_book('BTC/USD')
         print(orderbook['asks'][0], orderbook['bids'][0])
@@ -406,7 +410,7 @@ date_default_timezone_set('UTC');
 require_once 'vendor/autoload.php';
 
 $loop = \React\EventLoop\Factory::create(); // the event loop goes here ↓
-$exchange = new \ccxtpro\kucoin(array('enableRateLimit' => true, 'loop' => $loop));
+$exchange = new \ccxtpro\kucoin(array('enableRateLimit' => true, 'loop' => $loop, 'newUpdates': true ));
 ```
 
 ## Exchange Properties
