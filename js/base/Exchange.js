@@ -115,7 +115,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         connected.then (() => {
             if (!client.subscriptions[subscribeHash]) {
                 client.subscriptions[subscribeHash] = subscription || true
-                const options = this.safeValue (this.options, 'ws');
+                const options = this.safeValue (this.options, 'ws')
                 const rateLimit = this.safeValue (options, 'rateLimit', this.rateLimit);
                 if (message) {
                     if (this.enableRateLimit && client.throttle) {
