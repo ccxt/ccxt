@@ -414,7 +414,7 @@ module.exports = class aofex extends Exchange {
         const last = this.safeFloat (ticker, 'close');
         let change = undefined;
         if (symbol !== undefined) {
-            change = parseFloat (this.priceToPrecision (symbol, last - open));
+            change = this.priceToPrecisionNum (symbol, last - open);
         } else {
             change = last - open;
         }
