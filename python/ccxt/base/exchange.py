@@ -723,6 +723,27 @@ class Exchange(object):
                 pass
         return default_value
 
+    def safe_integer_divide(self, dictionary, key, divisor, default_value=None):
+        if not Exchange.key_exists(dictionary, key):
+            return default_value
+        value = dictionary[key]
+        if isinstance(divisor, Number):
+            assert divisor % 1 == 0
+            if isinstance(value, (decimal.Decimal, basestring)):
+                divisor = decimal.Decimal(divisor)
+        else:
+            assert isinstance(divisor, (int, decimal.Decimal))
+        if isinstance(value, decimal.Decimal):
+            return int(value / divisor)
+        elif isinstance(value, Number):
+            return int(value / divisor)
+        elif isinstance(value, basestring):
+            try:
+                return int(decimal.Decimal(value) / divisor)
+            except ValueError:
+                pass
+        return default_value
+
     def safe_timestamp(self, dictionary, key, default_value=None):
         return self.safe_integer_product(dictionary, key, 1000, default_value)
 
@@ -750,6 +771,10 @@ class Exchange(object):
     def safe_integer_product_2(self, dictionary, key1, key2, factor, default_value=None):
         value = self.safe_integer_product(dictionary, key1, factor)
         return value if value is not None else Exchange.safe_integer_product(dictionary, key2, factor, default_value)
+
+    def safe_integer_divide_2(self, dictionary, key1, key2, divisor, default_value=None):
+        value = self.safe_integer_divide(dictionary, key1, divisor)
+        return value if value is not None else Exchange.safe_integer_divide(dictionary, key2, divisor, default_value)
 
     def safe_timestamp_2(self, dictionary, key1, key2, default_value=None):
         return self.safe_integer_product_2(dictionary, key1, key2, 1000, default_value)
