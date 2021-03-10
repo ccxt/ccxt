@@ -1405,10 +1405,10 @@ module.exports = class Exchange {
         const parseFilled = order['filled'] === undefined;
         const parseCost = order['cost'] === undefined;
         if (parseFilled) {
-           order['filled'] = 0
+            order['filled'] = 0
         }
         if (parseCost) {
-           order['cost'] = 0
+            order['cost'] = 0
         }
         if (parseFilled || parseCost) {
             if (Array.isArray (order['trades'])) {
