@@ -333,16 +333,18 @@ while True:
 
 The newUpdates mode continues to utilize the sliding cache in the background, but the user will only be given the new updates. This is because some exchanges use incremental structures, so we need to keep a cache of objects as the exchange may only provide partial information such as status updates.
 
-The result from the newUpdates mode will be one or more updates that have occurred since the last time `exchange.watchMethod` resolved. Most of the time this will be a list with just one object inside. So the result of calling `exchange.watchOrders` will be:
+The result from the newUpdates mode will be one or more updates that have occurred since the last time `exchange.watchMethod` resolved. CCXT Pro can return one or more orders that were updated since the previous call. The result of calling `exchange.watchOrders` will look like shown below:
 
-```
+```JavaScript
 [ 
-    orderObject,
+    order, // see https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+    order,
+    order,
+    ...
 ]
 ```
 
-
-*Depreciation Warning*: in the future `newUpdates: true` will be the default mode and you will have to set newUpdates to false to get the sliding cache.
+*Deprecation Warning*: in the future `newUpdates: true` will be the default mode and you will have to set newUpdates to false to get the sliding cache.
 
 ## Linking
 
