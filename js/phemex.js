@@ -796,7 +796,7 @@ module.exports = class phemex extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const book = this.safeValue (result, 'book', {});
-        const timestamp = this.safeIntegerProduct (result, 'timestamp', 0.000001);
+        const timestamp = this.safeIntegerDivide (result, 'timestamp', 1000000);
         const orderbook = this.parseOrderBook (book, timestamp, 'bids', 'asks', 0, 1, market);
         orderbook['nonce'] = this.safeInteger (result, 'sequence');
         return orderbook;
@@ -825,7 +825,7 @@ module.exports = class phemex extends Exchange {
             return en;
         }
         precisionMode = (precisionMode === undefined) ? this.precisionMode : precisionMode;
-        return parseFloat (this.decimalToPrecision (en * Math.pow (10, -scale), ROUND, precision, precisionMode));
+        return parseFloat (this.decimalToPrecision (en / this.integerPow (10, scale), ROUND, precision, precisionMode));
     }
 
     fromEp (ep, market = undefined) {
@@ -970,7 +970,7 @@ module.exports = class phemex extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
+        const timestamp = this.safeIntegerDivide (ticker, 'timestamp', 1000000);
         const last = this.fromEp (this.safeFloat (ticker, 'lastEp'), market);
         const quoteVolume = this.fromEp (this.safeFloat (ticker, 'turnoverEv'), market);
         let baseVolume = this.safeFloat (ticker, 'volume');
@@ -1186,7 +1186,7 @@ module.exports = class phemex extends Exchange {
         let takerOrMaker = undefined;
         if (Array.isArray (trade)) {
             const tradeLength = trade.length;
-            timestamp = this.safeIntegerProduct (trade, 0, 0.000001);
+            timestamp = this.safeIntegerDivide (trade, 0, 1000000);
             if (tradeLength > 4) {
                 id = this.safeString (trade, tradeLength - 4);
             }
@@ -1199,7 +1199,7 @@ module.exports = class phemex extends Exchange {
                 }
             }
         } else {
-            timestamp = this.safeIntegerProduct (trade, 'transactTimeNs', 0.000001);
+            timestamp = this.safeIntegerDivide (trade, 'transactTimeNs', 1000000);
             id = this.safeString2 (trade, 'execId', 'execID');
             orderId = this.safeString (trade, 'orderID');
             side = this.safeStringLower (trade, 'side');
@@ -1632,7 +1632,7 @@ module.exports = class phemex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
-        const timestamp = this.safeIntegerProduct2 (order, 'actionTimeNs', 'createTimeNs', 0.000001);
+        const timestamp = this.safeIntegerDivide2 (order, 'actionTimeNs', 'createTimeNs', 1000000);
         let fee = undefined;
         const feeCost = this.fromEv (this.safeFloat (order, 'cumFeeEv'), market);
         if (feeCost !== undefined) {
@@ -1724,9 +1724,9 @@ module.exports = class phemex extends Exchange {
         const amount = this.safeFloat (order, 'orderQty');
         const filled = this.safeFloat (order, 'cumQty');
         const remaining = this.safeFloat (order, 'leavesQty');
-        const timestamp = this.safeIntegerProduct (order, 'actionTimeNs', 0.000001);
+        const timestamp = this.safeIntegerDivide (order, 'actionTimeNs', 1000000);
         const cost = this.safeFloat (order, 'cumValue');
-        let lastTradeTimestamp = this.safeIntegerProduct (order, 'transactTimeNs', 0.000001);
+        let lastTradeTimestamp = this.safeIntegerDivide (order, 'transactTimeNs', 1000000);
         if (lastTradeTimestamp === 0) {
             lastTradeTimestamp = undefined;
         }
