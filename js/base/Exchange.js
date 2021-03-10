@@ -1392,5 +1392,74 @@ module.exports = class Exchange {
     integerPow (a, b) {
         return new BN (a).pow (new BN (b))
     }
-}
 
+    safeOrder (order) {
+        // Cost
+        // Remaining
+        // Average
+        // Price
+        // Amount
+        // Filled
+        //
+        // First we try to calculate filled from the trades
+        const parseFilled = order['filled'] === undefined;
+        const parseCost = order['cost'] === undefined;
+        if (parseFilled) {
+            order['filled'] = 0
+        }
+        if (parseCost) {
+            order['cost'] = 0
+        }
+        if (parseFilled || parseCost) {
+            if (Array.isArray (order['trades'])) {
+                for (let i = 0; i < order['trades'].length; i++) {
+                    const trade = order['trades'][i]
+                    if (parseFilled) {
+                        order['filled'] = this.sum (order['filled'], trade['amount'])
+                    }
+                    if (parseCost) {
+                        order['cost'] = this.sum (order['cost'], trade['cost'])
+                    }
+                }
+            }
+        }
+        // We ensure amount = filled + remaining
+        if (order['amount'] === undefined) {
+            if (order['filled'] !== undefined && order['remaining'] !== undefined) {
+                order['amount'] = this.sum (order['filled'], order['remaining'])
+            }
+        }
+        if (order['filled'] === undefined) {
+            if (order['amount'] !== undefined && order['remaining'] !== undefined) {
+                order['filled'] = Math.max (this.sum (order['amount'], -order['remaining']), 0)
+            }
+        }
+        if (order['remaining'] === undefined) {
+            if (order['amount'] !== undefined && order['filled'] !== undefined) {
+                order['remaining'] = Math.max (this.sum (order['amount'], -order['filled']), 0)
+            }
+        }
+        // We ensure that the average field is calculated correctly
+        if (order['average'] === undefined) {
+            if (order['filled'] !== undefined && order['cost'] !== undefined && order['cost'] > 0) {
+                order['average'] = order['filled'] / order['cost']
+            }
+        }
+        // We also ensure the cost field is calculated correctly
+        const costPriceExists = (order['average'] !== undefined) || (order['price'] !== undefined)
+        if ((order['filled'] !== undefined) && costPriceExists) {
+            let costPrice = undefined;
+            if (order['average'] === undefined) {
+                costPrice = order['price']
+            } else {
+                costPrice = order['average']
+            }
+            order['cost'] = costPrice * order['filled']
+        }
+        // We add support for market orders
+        if (order['price'] === undefined && order['type'] === 'market') {
+            order['price'] = order['average']
+        }
+        return order
+    }
+}
