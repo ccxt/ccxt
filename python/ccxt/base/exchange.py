@@ -666,6 +666,20 @@ class Exchange(object):
             return dictionary[key] is not None
         return False
 
+    def to_number(self, val, default_value=None):
+        value = default_value
+        try:
+            if any(x in list(self.options.keys()) for x in ['numbersAsDecimals', 'numbersAsStrings']):
+                if isinstance(val, decimal.Decimal):
+                    value = val
+                else:
+                    value = decimal.Decimal(val)
+            else:
+                value = float(val)
+        except ValueError as e:
+            value = default_value
+        return value
+
     def safe_float(self, dictionary, key, default_value=None):
         value = default_value
         try:
