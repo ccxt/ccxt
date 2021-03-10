@@ -486,7 +486,7 @@ module.exports = class kraken extends ccxt.kraken {
         if (this.newUpdates) {
             limit = result.getLimit (limit);
         }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit, true);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

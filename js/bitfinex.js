@@ -440,7 +440,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         const url = this.urls['api']['ws']['private'];
         const orders = await this.watch (url, 'os', undefined, 1);
         // purgeOrders here
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     handleOrders (client, message) {

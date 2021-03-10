@@ -1109,7 +1109,7 @@ module.exports = class binance extends ccxt.binance {
         if (this.newUpdates) {
             limit = trades.getLimit (limit);
         }
-        return this.filterBySymbolSinceLimit (limit, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleMyTrade (client, message) {

@@ -593,7 +593,7 @@ module.exports = class bitmex extends ccxt.bitmex {
             ],
         };
         const orders = await this.watch (url, messageHash, request, subscriptionHash);
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     handleOrders (client, message) {
@@ -797,7 +797,7 @@ module.exports = class bitmex extends ccxt.bitmex {
             ],
         };
         const trades = await this.watch (url, messageHash, request, subscriptionHash);
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleMyTrades (client, message) {
