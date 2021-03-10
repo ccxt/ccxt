@@ -141,11 +141,11 @@ module.exports = class bl3p extends Exchange {
         const timestamp = this.safeInteger (trade, 'date');
         let price = this.safeFloat (trade, 'price_int');
         if (price !== undefined) {
-            price /= 100000.0;
+            price /= 100000;
         }
         let amount = this.safeFloat (trade, 'amount_int');
         if (amount !== undefined) {
-            amount /= 100000000.0;
+            amount /= 100000000;
         }
         let cost = undefined;
         if (price !== undefined) {
