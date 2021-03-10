@@ -40,6 +40,7 @@ class Transpiler {
             [ /\.safeFloat\s/g, '.safe_float'],
             [ /\.safeInteger\s/g, '.safe_integer'],
             [ /\.safeIntegerProduct\s/g, '.safe_integer_product'],
+            [ /\.safeIntegerDivide\s/g, '.safe_integer_divide'],
             [ /\.safeTimestamp\s/g, '.safe_timestamp'],
             [ /\.safeString\s/g, '.safe_string'],
             [ /\.safeStringLower\s/g, '.safe_string_lower'],
