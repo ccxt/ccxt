@@ -423,7 +423,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         if ($this->newUpdates) {
             $limit = $orders->getLimit ($limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -451,7 +451,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         if ($this->newUpdates) {
             $limit = $trades->getLimit ($limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function handle_order($client, $message) {

@@ -407,7 +407,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
         url = self.urls['api']['ws']['private']
         orders = await self.watch(url, 'os', None, 1)
         # purgeOrders here
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_orders(self, client, message):
         #

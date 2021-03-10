@@ -215,7 +215,7 @@ class gopax(Exchange, ccxt.gopax):
         orders = await self.watch(url, messageHash, message, subscriptionHash, subscription)
         if self.newUpdates:
             limit = orders.getLimit(limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def parse_ws_order_status(self, status):
         statuses = {

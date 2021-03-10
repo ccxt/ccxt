@@ -597,7 +597,7 @@ class bitmex extends \ccxt\async\bitmex {
             ),
         );
         $orders = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function handle_orders($client, $message) {
@@ -801,7 +801,7 @@ class bitmex extends \ccxt\async\bitmex {
             ),
         );
         $trades = yield $this->watch($url, $messageHash, $request, $subscriptionHash);
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function handle_my_trades($client, $message) {

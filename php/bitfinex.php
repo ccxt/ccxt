@@ -444,7 +444,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $url = $this->urls['api']['ws']['private'];
         $orders = yield $this->watch($url, 'os', null, 1);
         // purgeOrders here
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function handle_orders($client, $message) {

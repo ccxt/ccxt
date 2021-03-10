@@ -202,7 +202,7 @@ class bittrex(Exchange, ccxt.bittrex):
         orders = await self.subscribe_to_orders(authentication, params)
         if self.newUpdates:
             limit = orders.getLimit(limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     async def subscribe_to_orders(self, authentication, params={}):
         messageHash = 'order'

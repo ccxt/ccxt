@@ -578,7 +578,7 @@ class bitmex(Exchange, ccxt.bitmex):
             ],
         }
         orders = await self.watch(url, messageHash, request, subscriptionHash)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_orders(self, client, message):
         #
@@ -774,7 +774,7 @@ class bitmex(Exchange, ccxt.bitmex):
             ],
         }
         trades = await self.watch(url, messageHash, request, subscriptionHash)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client, message):
         #

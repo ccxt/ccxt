@@ -490,7 +490,7 @@ class kraken extends \ccxt\async\kraken {
         if ($this->newUpdates) {
             $limit = $result->getLimit ($limit);
         }
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, true);
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

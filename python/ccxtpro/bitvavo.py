@@ -384,7 +384,7 @@ class bitvavo(Exchange, ccxt.bitvavo):
         orders = await self.watch(url, messageHash, request, subscriptionHash)
         if self.newUpdates:
             limit = orders.getLimit(limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -409,7 +409,7 @@ class bitvavo(Exchange, ccxt.bitvavo):
         trades = await self.watch(url, messageHash, request, subscriptionHash)
         if self.newUpdates:
             limit = trades.getLimit(limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_order(self, client, message):
         #

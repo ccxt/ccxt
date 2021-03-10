@@ -223,7 +223,7 @@ class gopax extends \ccxt\async\gopax {
         if ($this->newUpdates) {
             $limit = $orders->getLimit ($limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function parse_ws_order_status($status) {

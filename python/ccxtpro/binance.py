@@ -1037,7 +1037,7 @@ class binance(Exchange, ccxt.binance):
         trades = await self.watch(url, messageHash, message, subscriptionHash)
         if self.newUpdates:
             limit = trades.getLimit(limit)
-        return self.filter_by_symbol_since_limit(limit, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trade(self, client, message):
         messageHash = 'myTrades'

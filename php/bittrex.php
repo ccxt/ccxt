@@ -221,7 +221,7 @@ class bittrex extends \ccxt\async\bittrex {
         if ($this->newUpdates) {
             $limit = $orders->getLimit ($limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function subscribe_to_orders($authentication, $params = array ()) {

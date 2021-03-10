@@ -365,7 +365,7 @@ class ftx(Exchange, ccxt.ftx):
         orders = await self.watch_private('orders', symbol)
         if self.newUpdates:
             limit = orders.getLimit(limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_order(self, client, message):
         #
@@ -437,7 +437,7 @@ class ftx(Exchange, ccxt.ftx):
         trades = await self.watch_private('fills', symbol)
         if self.newUpdates:
             limit = trades.getLimit(limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trade(self, client, message):
         #
