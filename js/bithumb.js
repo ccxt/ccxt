@@ -474,7 +474,7 @@ module.exports = class bithumb extends Exchange {
                 }
                 timestamp = this.parse8601 (transactionDate + ' ' + transactionTime);
             } else {
-                timestamp = this.safeIntegerProduct (trade, 'transaction_date', 0.001);
+                timestamp = this.safeIntegerDivide (trade, 'transaction_date', 1000);
             }
         }
         if (timestamp !== undefined) {
@@ -698,7 +698,7 @@ module.exports = class bithumb extends Exchange {
         //         "price": "501000",
         //     }
         //
-        const timestamp = this.safeIntegerProduct (order, 'order_date', 0.001);
+        const timestamp = this.safeIntegerDivide (order, 'order_date', 1000);
         const sideProperty = this.safeValue2 (order, 'type', 'side');
         const side = (sideProperty === 'bid') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'order_status'));
