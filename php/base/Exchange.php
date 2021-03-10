@@ -2439,6 +2439,10 @@ class Exchange {
         return $this->price_to_precision($symbol, $price);
     }
 
+    public function price_to_precision_num($symbol, $price) {
+        return floatval($this->price_to_precision($symbol, $price));
+    }
+    
     public function amount_to_precision($symbol, $amount) {
         return self::decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode, $this->paddingMode);
     }
