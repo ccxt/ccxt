@@ -207,7 +207,7 @@ module.exports = class lbank extends Exchange {
         if (percentage !== undefined) {
             const relativeChange = this.sum (1, percentage / 100);
             if (relativeChange > 0) {
-                open = last / this.sum (1, relativeChange);
+                open = last / relativeChange;
             }
         }
         let change = undefined;
