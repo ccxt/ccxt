@@ -231,6 +231,8 @@ class ftx extends Exchange {
                     'Missing parameter price' => '\\ccxt\\InvalidOrder', // array("error":"Missing parameter price","success":false)
                     'Order not found' => '\\ccxt\\OrderNotFound', // array("error":"Order not found","success":false)
                     'Order already closed' => '\\ccxt\\InvalidOrder', // array("error":"Order already closed","success":false)
+                    'Trigger price too high' => '\\ccxt\\InvalidOrder', // array("error":"Trigger price too high","success":false)
+                    'Trigger price too low' => '\\ccxt\\InvalidOrder', // array("error":"Trigger price too low","success":false)
                     'Order already queued for cancellation' => '\\ccxt\\CancelPending', // array("error":"Order already queued for cancellation","success":false)
                 ),
                 'broad' => array(

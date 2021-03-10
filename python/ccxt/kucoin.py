@@ -883,8 +883,9 @@ class kucoin(Exchange):
             # 'symbol': market['id'],
             # 'tradeType': 'TRADE',  # default is to cancel the spot trading order
         }
-        market = self.market(symbol)
+        market = None
         if symbol is not None:
+            market = self.market(symbol)
             request['symbol'] = market['id']
         return self.privateDeleteOrders(self.extend(request, params))
 

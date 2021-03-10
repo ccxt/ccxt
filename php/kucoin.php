@@ -910,8 +910,9 @@ class kucoin extends Exchange {
             // 'symbol' => $market['id'],
             // 'tradeType' => 'TRADE', // default is to cancel the spot trading order
         );
-        $market = $this->market($symbol);
+        $market = null;
         if ($symbol !== null) {
+            $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
         return $this->privateDeleteOrders (array_merge($request, $params));

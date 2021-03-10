@@ -463,7 +463,7 @@ class timex(Exchange):
             'symbol': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
             'side': uppercaseSide,
-            'type': uppercaseType,
+            'orderTypes': uppercaseType,
             # 'clientOrderId': '123',
             # 'expireIn': 1575523308,  # in seconds
             # 'expireTime': 1575523308,  # unix timestamp

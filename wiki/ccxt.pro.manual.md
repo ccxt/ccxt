@@ -320,23 +320,31 @@ limit = 2
 await exchange.watchTrades (symbol, since, limit)
 ```
 
-If you want to always get just the most recent trade, **you should set a cache limit to 1, instead of using the `limit=1` argument**.
+#### newUpdates mode
+
+If you want to always get just the most recent trade, **you should instantiate the exchange with the newUpdates flag set to true**.
 
 ```Python
-# this loop will properly print the most recent trade when it happens
-exchange.options['tradesLimit'] = 1
+exchange = ccxtpro.binance({'newUpdates': True})
 while True:
-    trade = await exchange.watchTrades (symbol)
-    print(trade)
+    trades = await exchange.watchTrades (symbol)
+    print(trades)
 ```
 
-The following loop will always print the first trade of up to 1000 most recent trades from the cache. It will print the same trade over and over again as the cache grows through the first 1000 iterations. When the cache size hits 1000, it will print the first trade from the beginning of the cache, that will slide with each new trade added to the end.
+The newUpdates mode continues to utilize the sliding cache in the background, but the user will only be given the new updates. This is because some exchanges use incremental structures, so we need to keep a cache of objects as the exchange may only provide partial information such as status updates.
 
-```Python
-while True:
-    trade = await exchange.watchTrades (symbol, since=None, limit=1)
-    print(trade)
+The result from the newUpdates mode will be one or more updates that have occurred since the last time `exchange.watchMethod` resolved. CCXT Pro can return one or more orders that were updated since the previous call. The result of calling `exchange.watchOrders` will look like shown below:
+
+```JavaScript
+[ 
+    order, // see https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+    order,
+    order,
+    ...
+]
 ```
+
+*Deprecation Warning*: in the future `newUpdates: true` will be the default mode and you will have to set newUpdates to false to get the sliding cache.
 
 ## Linking
 
@@ -376,10 +384,10 @@ Creating a CCXT Pro exchange instance is pretty much identical to creating a CCX
 ```JavaScript
 // JavaScript
 const ccxtpro = require ('ccxt.pro')
-const exchange = new ccxtpro.binance ({ enableRateLimit: true })
+const exchange = new ccxtpro.binance ({ enableRateLimit: true, newUpdates: false })
 ```
 
-The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.python.org/3/library/asyncio.html) and [Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html) in particular. In Python it is required to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to `ccxt.async support`):
+The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.python.org/3/library/asyncio.html) and [Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html) in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to `ccxt.async support`):
 
 ```Python
 # Python
@@ -387,7 +395,7 @@ import ccxtpro
 import asyncio
 
 async def main(loop):
-    exchange = ccxtpro.kraken({'enableRateLimit': True, 'asyncio_loop': loop})
+    exchange = ccxtpro.kraken({'enableRateLimit': True, 'asyncio_loop': loop, 'newUpdates': False })
     while True:
         orderbook = await exchange.watch_order_book('BTC/USD')
         print(orderbook['asks'][0], orderbook['bids'][0])
@@ -406,7 +414,7 @@ date_default_timezone_set('UTC');
 require_once 'vendor/autoload.php';
 
 $loop = \React\EventLoop\Factory::create(); // the event loop goes here ↓
-$exchange = new \ccxtpro\kucoin(array('enableRateLimit' => true, 'loop' => $loop));
+$exchange = new \ccxtpro\kucoin(array('enableRateLimit' => true, 'loop' => $loop, 'newUpdates': false ));
 ```
 
 ## Exchange Properties
