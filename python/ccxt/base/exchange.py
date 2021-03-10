@@ -1253,12 +1253,19 @@ class Exchange(object):
         return Exchange.binary_to_base58(signature)
 
     @staticmethod
+    def decimal_default(o):
+        if isinstance(o, decimal.Decimal):
+            return str(o)
+        raise TypeError(f'Object of type {o.__class__.__name__} '
+                        f'is not JSON serializable')
+
+    @staticmethod
     def unjson(input):
         return json.loads(input)
 
     @staticmethod
     def json(data, params=None):
-        return json.dumps(data, separators=(',', ':'))
+        return json.dumps(data, separators=(',', ':'), default=Exchange.decimal_default)
 
     @staticmethod
     def is_json_encoded_object(input):
