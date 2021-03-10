@@ -172,10 +172,10 @@ class Transpiler {
             [ /typeof\s+(.+?)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
             [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 is not None' ],
 
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'number\'/g, "isinstance($1[$2], numbers.Real)" ],
-            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "not isinstance($1[$2], numbers.Real)" ],
-            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "isinstance($1, numbers.Real)" ],
-            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "not isinstance($1, numbers.Real)" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'number\'/g, "isinstance($1[$2], (numbers.Real, decimal.Decimal))" ],
+            [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "not isinstance($1[$2], (numbers.Real,decimal.Decimal))" ],
+            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'number\'/g, "isinstance($1, (numbers.Real, decimal.Decimal))" ],
+            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "not isinstance($1, (numbers.Real, decimal.Decimal))" ],
 
             [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+undefined/g, '$1[$2] is None' ],
             [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '$1[$2] is not None' ],
@@ -438,10 +438,22 @@ class Transpiler {
     //-------------------------------------------------------------------------
     // the following common headers are used for transpiled tests
 
-    getPythonPreamble () {
+    getPythonPreamble (python3Body) {
+    	const pythonStandardLibraries = {
+    		'decimal\\.Decimal': 'decimal',
+    	}
+    	const libraries = [
+    		"import os",
+    		"import sys",
+		]
+        for (let library in pythonStandardLibraries) {
+            const regex = new RegExp ("[^\\'a-zA-Z]" + library + "[^\\'a-zA-Z]")
+            if (python3Body.match (regex))
+                libraries.push ('import ' + pythonStandardLibraries[library])
+        }
+
         return [
-            "import os",
-            "import sys",
+            libraries.join('\n'),
             "",
             "root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))",
             "sys.path.append(root)",
@@ -535,6 +547,7 @@ class Transpiler {
             'math': 'math',
             'json.loads': 'json',
             'sys': 'sys',
+            'decimal\\.Decimal': 'decimal',
         }
 
         const baseClasses = {
@@ -1181,7 +1194,7 @@ class Transpiler {
             "",
         ].join ("\n")
 
-        const python = this.getPythonPreamble () + pythonHeader + python2Body
+        const python = this.getPythonPreamble (python2Body) + pythonHeader + python2Body
         const php = this.getPHPPreamble () + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -1267,7 +1280,7 @@ class Transpiler {
             "",
         ].join ("\n")
 
-        const python = this.getPythonPreamble () + pythonHeader + python2Body
+        const python = this.getPythonPreamble (python2Body) + pythonHeader + python2Body
         const php = this.getPHPPreamble () + phpHeader + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -1334,7 +1347,7 @@ class Transpiler {
             "}",
         ].join ("\n")
 
-        const python = this.getPythonPreamble () + pythonHeader + python2Body
+        const python = this.getPythonPreamble (python2Body) + pythonHeader + python2Body
         const php = this.getPHPPreamble () + phpHeader + phpBody
 
         log.magenta ('→', pyFile.yellow)
@@ -1398,7 +1411,7 @@ class Transpiler {
         ].join('\n')
 
         let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-        const python = this.getPythonPreamble () + pythonHeader + python3Body;
+        const python = this.getPythonPreamble (python3Body) + pythonHeader + python3Body;
         const php = this.getPHPPreamble (false) + phpBody;
 
         log.magenta ('→', test.pyFile.yellow)
