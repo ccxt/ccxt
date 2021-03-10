@@ -1330,6 +1330,11 @@ class Exchange(object):
     def price_to_precision(self, symbol, price):
         return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
 
+    def price_to_precision_num(self, symbol, price):
+        if isinstance(price, decimal.Decimal):
+            return price
+        return float(self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode))
+
     def amount_to_precision(self, symbol, amount):
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode, self.paddingMode)
 
