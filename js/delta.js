@@ -190,7 +190,7 @@ module.exports = class delta extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return this.safeIntegerProduct (result, 'server_time', 0.001);
+        return this.safeIntegerDivide (result, 'server_time', 1000);
     }
 
     async fetchStatus (params = {}) {
@@ -198,7 +198,7 @@ module.exports = class delta extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const underMaintenance = this.safeValue (result, 'under_maintenance');
         const status = (underMaintenance === 'true') ? 'maintenance' : 'ok';
-        const updated = this.safeIntegerProduct (result, 'server_time', 0.001);
+        const updated = this.safeIntegerDivide (result, 'server_time', 1000);
         this.status = this.extend (this.status, {
             'status': status,
             'updated': updated,
@@ -461,7 +461,7 @@ module.exports = class delta extends Exchange {
         //         "volume":640.5520000000001
         //     }
         //
-        const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.001);
+        const timestamp = this.safeIntegerDivide (ticker, 'timestamp', 1000);
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeFloat (ticker, 'close');
@@ -653,7 +653,7 @@ module.exports = class delta extends Exchange {
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order_id');
         let timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
-        timestamp = this.safeIntegerProduct (trade, 'timestamp', 0.001, timestamp);
+        timestamp = this.safeIntegerDivide (trade, 'timestamp', 1000, timestamp);
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'size');
         let cost = undefined;
