@@ -111,6 +111,7 @@ class Transpiler {
             [ /\.numberToString\s/g, '.number_to_string' ],
             [ /\.decimalToPrecision\s/g, '.decimal_to_precision'],
             [ /\.priceToPrecision\s/g, '.price_to_precision'],
+            [ /\.priceToPrecisionNum\s/g, '.price_to_precision_num'],
             [ /\.amountToPrecision\s/g, '.amount_to_precision'],
             [ /\.amountToLots\s/g, '.amount_to_lots'],
             [ /\.feeToPrecision\s/g, '.fee_to_precision'],
