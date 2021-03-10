@@ -607,10 +607,10 @@ module.exports = class bitfinex2 extends bitfinex {
         const priceIndex = (fullRequest['precision'] === 'R0') ? 1 : 0;
         for (let i = 0; i < orderbook.length; i++) {
             const order = orderbook[i];
-            const price = order[priceIndex];
-            const amount = Math.abs (order[2]);
-            const side = (order[2] > 0) ? 'bids' : 'asks';
-            result[side].push ([ price, amount ]);
+            const price = this.toNumber (order[priceIndex]);
+            const amount = this.toNumber (order[2]);
+            const side = (amount > 0) ? 'bids' : 'asks';
+            result[side].push ([ price, Math.abs (amount) ]);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
@@ -734,10 +734,10 @@ module.exports = class bitfinex2 extends bitfinex {
         const isPrivate = (tradeLength > 5);
         const id = trade[0].toString ();
         const amountIndex = isPrivate ? 4 : 2;
-        let amount = trade[amountIndex];
+        let amount = this.toNumber (trade[amountIndex]);
         let cost = undefined;
         const priceIndex = isPrivate ? 5 : 3;
-        const price = trade[priceIndex];
+        const price = this.toNumber (trade[priceIndex]);
         let side = undefined;
         let orderId = undefined;
         let takerOrMaker = undefined;
@@ -756,7 +756,7 @@ module.exports = class bitfinex2 extends bitfinex {
             }
             orderId = trade[3].toString ();
             takerOrMaker = (trade[8] === 1) ? 'maker' : 'taker';
-            let feeCost = trade[9];
+            let feeCost = this.toNumber (trade[9]);
             const feeCurrency = this.safeCurrencyCode (trade[10]);
             if (feeCost !== undefined) {
                 feeCost = -feeCost;
