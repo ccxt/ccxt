@@ -325,7 +325,7 @@ module.exports = class whitebit extends Exchange {
         const percentage = this.safeFloat (ticker, 'change');
         let change = undefined;
         if (percentage !== undefined) {
-            change = this.numberToString (percentage * 0.01);
+            change = this.numberToString (percentage / 100);
         }
         return {
             'symbol': symbol,
