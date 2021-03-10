@@ -59,6 +59,7 @@ import base64
 import calendar
 import collections
 import datetime
+import decimal
 from email.utils import parsedate
 import functools
 import gzip
@@ -665,100 +666,101 @@ class Exchange(object):
             return dictionary[key] is not None
         return False
 
-    @staticmethod
-    def safe_float(dictionary, key, default_value=None):
+    def safe_float(self, dictionary, key, default_value=None):
         value = default_value
         try:
             if Exchange.key_exists(dictionary, key):
-                value = float(dictionary[key])
+                if any(x in list(self.options.keys()) for x in ['numbersAsDecimals', 'numbersAsStrings']):
+                    if isinstance(dictionary[key], decimal.Decimal):
+                        value = dictionary[key]
+                    else:
+                        value = decimal.Decimal(dictionary[key])
+                else:
+                    value = float(dictionary[key])
         except ValueError as e:
             value = default_value
         return value
 
-    @staticmethod
-    def safe_string(dictionary, key, default_value=None):
+    def safe_string(self, dictionary, key, default_value=None):
         return str(dictionary[key]) if Exchange.key_exists(dictionary, key) else default_value
 
-    @staticmethod
-    def safe_string_lower(dictionary, key, default_value=None):
+    def safe_string_lower(self, dictionary, key, default_value=None):
         return str(dictionary[key]).lower() if Exchange.key_exists(dictionary, key) else default_value
 
-    @staticmethod
-    def safe_string_upper(dictionary, key, default_value=None):
+    def safe_string_upper(self, dictionary, key, default_value=None):
         return str(dictionary[key]).upper() if Exchange.key_exists(dictionary, key) else default_value
 
-    @staticmethod
-    def safe_integer(dictionary, key, default_value=None):
-        if not Exchange.key_exists(dictionary, key):
-            return default_value
-        value = dictionary[key]
-        if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
-            return int(value)
-        return default_value
-
-    @staticmethod
-    def safe_integer_product(dictionary, key, factor, default_value=None):
+    def safe_integer(self, dictionary, key, default_value=None):
         if not Exchange.key_exists(dictionary, key):
             return default_value
         value = dictionary[key]
         if isinstance(value, Number):
+            return int(value)
+        elif isinstance(value, basestring):
+            match = re.fullmatch('^(([1-9][0-9]*)|0)(\\.0+)?$', value)
+            if match:
+                return int(match.group(1))
+        return default_value
+
+    def safe_integer_product(self, dictionary, key, factor, default_value=None):
+        if not Exchange.key_exists(dictionary, key):
+            return default_value
+        value = dictionary[key]
+        if isinstance(factor, Number):
+            assert factor % 1 == 0
+            if isinstance(value, (decimal.Decimal, basestring)):
+                factor = decimal.Decimal(factor)
+        else:
+            assert isinstance(factor, (int, decimal.Decimal))
+        if isinstance(value, decimal.Decimal):
+            return int(value * factor)
+        elif isinstance(value, Number):
             return int(value * factor)
         elif isinstance(value, basestring):
             try:
-                return int(float(value) * factor)
+                return int(decimal.Decimal(value) * factor)
             except ValueError:
                 pass
         return default_value
 
-    @staticmethod
-    def safe_timestamp(dictionary, key, default_value=None):
-        return Exchange.safe_integer_product(dictionary, key, 1000, default_value)
+    def safe_timestamp(self, dictionary, key, default_value=None):
+        return self.safe_integer_product(dictionary, key, 1000, default_value)
 
-    @staticmethod
-    def safe_value(dictionary, key, default_value=None):
+    def safe_value(self, dictionary, key, default_value=None):
         return dictionary[key] if Exchange.key_exists(dictionary, key) else default_value
 
     # we're not using safe_floats with a list argument as we're trying to save some cycles here
     # we're not using safe_float_3 either because those cases are too rare to deserve their own optimization
 
-    @staticmethod
-    def safe_float_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_float, dictionary, key1, key2, default_value)
+    def safe_float_2(self, dictionary, key1, key2, default_value=None):
+        return self.safe_either(Exchange.safe_float, dictionary, key1, key2, default_value)
 
-    @staticmethod
-    def safe_string_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_string, dictionary, key1, key2, default_value)
+    def safe_string_2(self, dictionary, key1, key2, default_value=None):
+        return self.safe_either(Exchange.safe_string, dictionary, key1, key2, default_value)
 
-    @staticmethod
-    def safe_string_lower_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_string_lower, dictionary, key1, key2, default_value)
+    def safe_string_lower_2(self, dictionary, key1, key2, default_value=None):
+        return self.safe_either(Exchange.safe_string_lower, dictionary, key1, key2, default_value)
 
-    @staticmethod
-    def safe_string_upper_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_string_upper, dictionary, key1, key2, default_value)
+    def safe_string_upper_2(self, dictionary, key1, key2, default_value=None):
+        return self.safe_either(Exchange.safe_string_upper, dictionary, key1, key2, default_value)
 
-    @staticmethod
-    def safe_integer_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_integer, dictionary, key1, key2, default_value)
+    def safe_integer_2(self, dictionary, key1, key2, default_value=None):
+        return self.safe_either(Exchange.safe_integer, dictionary, key1, key2, default_value)
 
-    @staticmethod
-    def safe_integer_product_2(dictionary, key1, key2, factor, default_value=None):
-        value = Exchange.safe_integer_product(dictionary, key1, factor)
+    def safe_integer_product_2(self, dictionary, key1, key2, factor, default_value=None):
+        value = self.safe_integer_product(dictionary, key1, factor)
         return value if value is not None else Exchange.safe_integer_product(dictionary, key2, factor, default_value)
 
-    @staticmethod
-    def safe_timestamp_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_integer_product_2(dictionary, key1, key2, 1000, default_value)
+    def safe_timestamp_2(self, dictionary, key1, key2, default_value=None):
+        return self.safe_integer_product_2(dictionary, key1, key2, 1000, default_value)
 
-    @staticmethod
-    def safe_value_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_either(Exchange.safe_value, dictionary, key1, key2, default_value)
+    def safe_value_2(self, dictionary, key1, key2, default_value=None):
+        return self.safe_either(Exchange.safe_value, dictionary, key1, key2, default_value)
 
-    @staticmethod
-    def safe_either(method, dictionary, key1, key2, default_value=None):
+    def safe_either(self, method, dictionary, key1, key2, default_value=None):
         """A helper-wrapper for the safe_value_2() family."""
-        value = method(dictionary, key1)
-        return value if value is not None else method(dictionary, key2, default_value)
+        value = method(self, dictionary, key1)
+        return value if value is not None else method(self, dictionary, key2, default_value)
 
     @staticmethod
     def truncate(num, precision=0):
