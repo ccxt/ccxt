@@ -3,6 +3,11 @@ import numbers
 import itertools
 import re
 
+try:
+    basestring  # basestring was removed in Python 3
+except NameError:
+    basestring = str
+
 __all__ = [
     'TRUNCATE',
     'ROUND',
@@ -36,9 +41,10 @@ PAD_WITH_ZERO = 6
 def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
     assert precision is not None
     if counting_mode == TICK_SIZE:
-        assert(isinstance(precision, float) or isinstance(precision, numbers.Integral))
+        assert isinstance(precision, (float, decimal.Decimal, numbers.Integral))
     else:
-        assert(isinstance(precision, numbers.Integral))
+        assert isinstance(precision, numbers.Integral)
+    assert isinstance(n, (numbers.Real, decimal.Decimal, basestring))
     assert rounding_mode in [TRUNCATE, ROUND]
     assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE]
     assert padding_mode in [NO_PADDING, PAD_WITH_ZERO]
@@ -52,8 +58,15 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
     context.traps[decimal.Underflow] = True
     context.rounding = decimal.ROUND_HALF_UP  # rounds 0.5 away from zero
 
-    dec = decimal.Decimal(str(n))
-    precision_dec = decimal.Decimal(str(precision))
+    if isinstance(n, decimal.Decimal):
+        dec = n
+    else:
+        dec = decimal.Decimal(str(n))
+    if isinstance(precision, decimal.Decimal):
+        precision_dec = precision
+    else:
+        precision_dec = decimal.Decimal(str(precision))
+
     string = '{:f}'.format(dec)  # convert to string using .format to avoid engineering notation
     precise = None
 
