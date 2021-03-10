@@ -1180,6 +1180,26 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
+    toNumber (data, default_value = undefined) {
+        let value = default_value;
+        try {
+            // Not ready for this yet for JavaScript - also need to adapt safeFloat
+            // if ('numbersAsDecimals' in this.options ) {
+            //     if (typeof data === BN) {
+            //         value = data
+            //     } else {
+            //         value = BN(data)
+            //     }
+            // } else {
+                value = parseFloat(data);
+            // }
+        }
+        catch (e) {
+            value = default_value;
+        }
+        return value
+    }
+
     safeCurrency (currencyId, currency = undefined) {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency
