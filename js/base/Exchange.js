@@ -1335,6 +1335,10 @@ module.exports = class Exchange {
         return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode)
     }
 
+    priceToPrecisionNum (symbol, price) {
+        return parseFloat (decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode, this.paddingMode))
+    }
+
     amountToPrecision (symbol, amount) {
         return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode, this.paddingMode)
     }
