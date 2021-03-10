@@ -1431,12 +1431,12 @@ module.exports = class Exchange {
         }
         if (order['filled'] === undefined) {
             if (order['amount'] !== undefined && order['remaining'] !== undefined) {
-                order['filled'] = this.sum (order['amount'], -order['remaining'])
+                order['filled'] = Math.max (this.sum (order['amount'], -order['remaining']), 0)
             }
         }
         if (order['remaining'] === undefined) {
             if (order['amount'] !== undefined && order['filled'] !== undefined) {
-                order['remaining'] = this.sum (order['amount'], -order['filled'])
+                order['remaining'] = Math.max (this.sum (order['amount'], -order['filled']), 0)
             }
         }
         // We ensure that the average field is calculated correctly

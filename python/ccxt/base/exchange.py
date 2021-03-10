@@ -2116,10 +2116,10 @@ class Exchange(object):
                 order['amount'] = self.sum(order['filled'], order['remaining'])
         if order['filled'] is None:
             if order['amount'] is not None and order['remaining'] is not None:
-                order['filled'] = self.sum(order['amount'], -order['remaining'])
+                order['filled'] = max(self.sum(order['amount'], -order['remaining']), 0)
         if order['remaining'] is None:
             if order['amount'] is not None and order['filled'] is not None:
-                order['remaining'] = self.sum(order['amount'], -order['filled'])
+                order['remaining'] = max(self.sum(order['amount'], -order['filled']), 0)
         # We ensure that the average field is calculated correctly
         if order['average'] is None:
             if order['filled'] is not None and order['cost'] is not None and order['cost'] > 0:

@@ -2793,12 +2793,12 @@ class Exchange {
         }
         if ($order['filled'] === null) {
             if ($order['amount'] !== null && $order['remaining'] !== null) {
-                $order['filled'] = $this->sum($order['amount'], -$order['remaining']);
+                $order['filled'] = max($this->sum($order['amount'], -$order['remaining']), 0);
             }
         }
         if ($order['remaining'] === null) {
             if ($order['amount'] !== null && $order['filled'] !== null) {
-                $order['remaining'] = $this->sum($order['amount'], -$order['filled']);
+                $order['remaining'] = max($this->sum($order['amount'], -$order['filled']), 0);
             }
         }
         // We ensure that the average field is calculated correctly
