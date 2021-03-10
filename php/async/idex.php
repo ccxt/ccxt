@@ -827,16 +827,8 @@ class idex extends Exchange {
         $type = $this->safe_string($order, 'type');
         $amount = $this->safe_float($order, 'originalQuantity');
         $filled = $this->safe_float($order, 'executedQuantity');
-        $remaining = null;
-        if (($amount !== null) && ($filled !== null)) {
-            $remaining = $amount - $filled;
-        }
         $average = $this->safe_float($order, 'avgExecutionPrice');
-        $price = $this->safe_float($order, 'price', $average);  // for $market orders
-        $cost = null;
-        if (($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
-        }
+        $price = $this->safe_float($order, 'price');
         $rawStatus = $this->safe_string($order, 'status');
         $status = $this->parse_order_status($rawStatus);
         $fee = array(
@@ -850,7 +842,7 @@ class idex extends Exchange {
             $fee['cost'] = $this->sum($fee['cost'], $lastTrade['fee']['cost']);
         }
         $lastTradeTimestamp = $this->safe_integer($lastTrade, 'timestamp');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -865,14 +857,14 @@ class idex extends Exchange {
             'price' => $price,
             'stopPrice' => null,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function associate_wallet($walletAddress, $params = array ()) {

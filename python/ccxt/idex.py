@@ -787,14 +787,8 @@ class idex(Exchange):
         type = self.safe_string(order, 'type')
         amount = self.safe_float(order, 'originalQuantity')
         filled = self.safe_float(order, 'executedQuantity')
-        remaining = None
-        if (amount is not None) and (filled is not None):
-            remaining = amount - filled
         average = self.safe_float(order, 'avgExecutionPrice')
-        price = self.safe_float(order, 'price', average)  # for market orders
-        cost = None
-        if (amount is not None) and (price is not None):
-            cost = amount * price
+        price = self.safe_float(order, 'price')
         rawStatus = self.safe_string(order, 'status')
         status = self.parse_order_status(rawStatus)
         fee = {
@@ -807,7 +801,7 @@ class idex(Exchange):
             fee['currency'] = lastTrade['fee']['currency']
             fee['cost'] = self.sum(fee['cost'], lastTrade['fee']['cost'])
         lastTradeTimestamp = self.safe_integer(lastTrade, 'timestamp')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -822,14 +816,14 @@ class idex(Exchange):
             'price': price,
             'stopPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': trades,
-        }
+        })
 
     def associate_wallet(self, walletAddress, params={}):
         nonce = self.uuidv1()
