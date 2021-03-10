@@ -268,7 +268,7 @@ class Transpiler {
             [ / = new /g, ' = ' ], // python does not have a 'new' keyword
             [ /console\.log\s/g, 'print' ],
             [ /process\.exit\s+/g, 'sys.exit' ],
-            [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
+            [ /([^:+=\/\*\s-,]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
             [ /\sand\(/g, ' and (' ],
             [ /\sor\(/g, ' or (' ],
             [ /\snot\(/g, ' not (' ],
