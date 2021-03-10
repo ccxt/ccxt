@@ -1931,6 +1931,26 @@ class Exchange {
         );
     }
 
+    public function to_number ($data, $default_value = null) {
+        $value = $default_value;
+        try {
+            // Not ready for this yet for PHP - also need to adapt safeFloat
+            // if ('numbersAsDecimals' in this.options ) {
+            //     if (typeof data === BN) {
+            //         value = data
+            //     } else {
+            //         value = BN(data)
+            //     }
+            // } else {
+            $value = floatval($data);
+            // }
+        }
+        catch (Exception $e) {
+            $value = $default_value;
+        }
+        return $value;
+    }
+    
     public function safeCurrency($currency_id, $currency = null) {
         return $this->safe_currency($currency_id, $currency);
     }
