@@ -376,7 +376,7 @@ module.exports = class qtrade extends Exchange {
             }
             orderbook[side] = result;
         }
-        const timestamp = this.safeIntegerProduct (data, 'last_change', 0.001);
+        const timestamp = this.safeIntegerDivide (data, 'last_change', 1000);
         return this.parseOrderBook (orderbook, timestamp);
     }
 
@@ -402,7 +402,7 @@ module.exports = class qtrade extends Exchange {
         //
         const marketId = this.safeString (ticker, 'id_hr');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const timestamp = this.safeIntegerProduct (ticker, 'last_change', 0.001);
+        const timestamp = this.safeIntegerDivide (ticker, 'last_change', 1000);
         const previous = this.safeFloat (ticker, 'day_open');
         const last = this.safeFloat (ticker, 'last');
         const day_change = this.safeFloat (ticker, 'day_change');
@@ -630,7 +630,7 @@ module.exports = class qtrade extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'id');
-        let timestamp = this.safeIntegerProduct (trade, 'created_at_ts', 0.001);
+        let timestamp = this.safeIntegerDivide (trade, 'created_at_ts', 1000);
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
