@@ -14,6 +14,9 @@ function testOHLCV (exchange, ohlcv, symbol, now) {
     const length = ohlcv.length;
     assert (length >= 6);
     for (let i = 0; i < ohlcv.length; i++) {
+        if (('numbersAsStrings' in exchange.options) && (typeof ohlcv[i] === 'string')) {
+            ohlcv[i] = exchange.toNumber(ohlcv[i]);
+        }
         assert ((ohlcv[i] === undefined) || (typeof ohlcv[i] === 'number'), json);
     }
 
