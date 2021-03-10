@@ -407,6 +407,12 @@ def test_exchange(exchange, symbol=None):
 
     if symbol.find('.d') < 0:
         test_symbol(exchange, symbol, code)
+        exchange.options['numbersAsDecimals'] = 1
+        test_symbol(exchange, symbol, code)
+        del exchange.options['numbersAsDecimals']
+        exchange.options['numbersAsStrings'] = 1
+        test_symbol(exchange, symbol, code)
+        del exchange.options['numbersAsStrings']
 
     # ..........................................................................
     # private API
