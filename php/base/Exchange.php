@@ -363,6 +363,7 @@ class Exchange {
         'integerDivide' => 'integer_divide',
         'integerModulo' => 'integer_modulo',
         'integerPow' => 'integer_pow',
+        'safeOrder' => 'safe_order',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -2763,12 +2764,24 @@ class Exchange {
         // Filled
         //
         // First we try to calculate filled from the trades
-        if ($order['filled'] === null) {
-            if (gettype($order['trades']) === 'array') {
-                $order['filled'] = 0;
+        $parseFilled = $order['filled'] === null;
+        $parseCost = $order['cost'] === null;
+        if ($parseFilled) {
+            $order['filled'] = 0;
+        }
+        if ($parseCost) {
+            $order['cost'] = 0;
+        }
+        if ($parseFilled || $parseCost) {
+            if (gettype($order['trades']) === 'array' && count(array_filter(array_keys($order['trades']), 'is_string')) == 0) {
                 for ($i = 0; $i < count($order['trades']); $i++) {
                     $trade = $order['trades'][$i];
-                    $order['filled'] = $this->sum($order['filled'], $trade['amount']);
+                    if ($parseFilled) {
+                        $order['filled'] = $this->sum($order['filled'], $trade['amount']);
+                    }
+                    if ($parseCost) {
+                        $order['cost'] = $this->sum($order['cost'], $trade['cost']);
+                    }
                 }
             }
         }

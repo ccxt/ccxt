@@ -2095,13 +2095,21 @@ class Exchange(object):
         # Amount
         # Filled
         #
-        # First try to calculate filled from the trades
-        if order['filled'] is None:
+        # First we try to calculate filled from the trades
+        parseFilled = order['filled'] is None
+        parseCost = order['cost'] is None
+        if parseFilled:
+            order['filled'] = 0
+        if parseCost:
+            order['cost'] = 0
+        if parseFilled or parseCost:
             if isinstance(order['trades'], list):
-                order['filled'] = 0
                 for i in range(0, len(order['trades'])):
                     trade = order['trades'][i]
-                    order['filled'] = self.sum(order['filled'], trade['amount'])
+                    if parseFilled:
+                        order['filled'] = self.sum(order['filled'], trade['amount'])
+                    if parseCost:
+                        order['cost'] = self.sum(order['cost'], trade['amount'])
         # We ensure amount = filled + remaining
         if order['amount'] is None:
             if order['filled'] is not None and order['remaining'] is not None:

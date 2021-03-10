@@ -1402,12 +1402,24 @@ module.exports = class Exchange {
         // Filled
         //
         // First we try to calculate filled from the trades
-        if (order['filled'] === undefined) {
+        const parseFilled = order['filled'] === undefined;
+        const parseCost = order['cost'] === undefined;
+        if (parseFilled) {
+           order['filled'] = 0
+        }
+        if (parseCost) {
+           order['cost'] = 0
+        }
+        if (parseFilled || parseCost) {
             if (Array.isArray (order['trades'])) {
-                order['filled'] = 0
                 for (let i = 0; i < order['trades'].length; i++) {
                     const trade = order['trades'][i]
-                    order['filled'] = this.sum (order['filled'], trade['amount'])
+                    if (parseFilled) {
+                        order['filled'] = this.sum (order['filled'], trade['amount'])
+                    }
+                    if (parseCost) {
+                        order['cost'] = this.sum (order['cost'], trade['cost'])
+                    }
                 }
             }
         }
