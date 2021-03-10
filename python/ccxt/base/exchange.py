@@ -982,7 +982,7 @@ class Exchange(object):
 
     @staticmethod
     def sum(*args):
-        return sum([arg for arg in args if isinstance(arg, (float, int))])
+        return sum([arg for arg in args if isinstance(arg, (float, int, decimal.Decimal))])
 
     @staticmethod
     def ordered(array):
