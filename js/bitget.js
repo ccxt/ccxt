@@ -1921,11 +1921,11 @@ module.exports = class bitget extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        let amount = this.safeFloat2 (order, 'amount', 'size');
+        const amount = this.safeFloat2 (order, 'amount', 'size');
         const filled = this.safeFloat2 (order, 'filled_amount', 'filled_qty');
         const cost = this.safeFloat (order, 'filled_cash_amount');
         const price = this.safeFloat (order, 'price');
-        let average = this.safeFloat (order, 'price_avg');
+        const average = this.safeFloat (order, 'price_avg');
         const status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
         const feeCost = this.safeFloat2 (order, 'filled_fees', 'fee');
         let fee = undefined;
