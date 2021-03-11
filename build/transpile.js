@@ -1097,8 +1097,8 @@ class Transpiler {
 
         log.bright.cyan ('Exporting TypeScript exchange ids →', file.yellow)
 
-        const regex = /\/[\n]{2}    type ExchangeId =\n(?:        \| \'[a-z0-9_]+\'[\r]?[\n])+/
-        const replacement = "/\n\n    type ExchangeId =\n" + Object.keys (classes).map (className => {
+        const regex = /\/[\n]{2}    export type ExchangeId =\n(?:        \| \'[a-z0-9_]+\'[\r]?[\n])+/
+        const replacement = "/\n\n    export type ExchangeId =\n" + Object.keys (classes).map (className => {
             return "        | '" + className + "'"
         }).join ("\n") + "\n"
 
