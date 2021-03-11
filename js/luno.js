@@ -526,15 +526,16 @@ module.exports = class luno extends Exchange {
         if (type === 'market') {
             method += 'Marketorder';
             request['type'] = side.toUpperCase ();
+            // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side === 'buy') {
-                request['counter_volume'] = amount;
+                request['counter_volume'] = parseFloat (this.amountToPrecision (symbol, amount));
             } else {
-                request['base_volume'] = amount;
+                request['base_volume'] = parseFloat (this.amountToPrecision (symbol, amount));
             }
         } else {
             method += 'Postorder';
-            request['volume'] = amount;
-            request['price'] = price;
+            request['volume'] = parseFloat (this.amountToPrecision (symbol, amount));
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
             request['type'] = (side === 'buy') ? 'BID' : 'ASK';
         }
         const response = await this[method] (this.extend (request, params));
