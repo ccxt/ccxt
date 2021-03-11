@@ -73,6 +73,43 @@ Creates a global `ccxt` object:
 console.log (ccxt.exchanges) // print all available exchanges
 ```
 
+### Custom JavaScript Builds
+
+It takes time to load all scripts and resources. The problem with in-browser usage is that the entire CCXT library weighs a few megabytes which is a lot for a web application. Sometimes it is also critical for a Node app. Therefore to lower the loading time you might want to make your own custom build of CCXT for your app with just the exchanges you need.
+
+Follow these steps:
+
+```bash
+# 1. clone the repository
+
+git clone https://github.com/ccxt/ccxt.git
+
+# 2. go to the cloned repository
+
+cd ccxt
+
+# 3. install dependencies
+
+npm install
+
+# 4. edit exchanges.cfg for the exchanges of your interest
+
+echo "binance\nftx" > exchanges.cfg
+
+# 5. build the library
+
+npm run build
+
+# 6a. copy the browser file to your project folder if you are buildig a web application
+
+cp build/ccxt.browser.js path/to/your/html/project
+
+# 6b. or link against the library if you are building a Node.js application
+npm link
+cd path/to/your/node/project
+npm link ccxt
+```
+
 ### Python
 
 [ccxt algotrading library in PyPI](https://pypi.python.org/pypi/ccxt)
