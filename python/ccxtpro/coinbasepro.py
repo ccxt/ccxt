@@ -78,6 +78,8 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         name = 'matches'
         trades = await self.subscribe(name, symbol, name, params)
+        if self.newUpdates:
+            limit = trades.getLimit(limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):

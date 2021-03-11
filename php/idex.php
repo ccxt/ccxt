@@ -143,6 +143,9 @@ class idex extends \ccxt\async\idex {
         );
         $messageHash = $name . ':' . $market['id'];
         $trades = yield $this->subscribe($subscribeObject, $messageHash);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 

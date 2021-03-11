@@ -83,6 +83,9 @@ class coinbasepro extends \ccxt\async\coinbasepro {
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $name = 'matches';
         $trades = yield $this->subscribe($name, $symbol, $name, $params);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($limit);
+        }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 

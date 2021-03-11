@@ -118,6 +118,8 @@ class ndax(Exchange, ccxt.ndax):
         }
         message = self.extend(request, params)
         trades = await self.watch(url, messageHash, message)
+        if self.newUpdates:
+            limit = trades.getLimit(limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client, message):
@@ -183,6 +185,8 @@ class ndax(Exchange, ccxt.ndax):
         }
         message = self.extend(request, params)
         ohlcv = await self.watch(url, messageHash, message)
+        if self.newUpdates:
+            limit = ohlcv.getLimit(limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):

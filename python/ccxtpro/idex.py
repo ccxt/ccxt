@@ -136,6 +136,8 @@ class idex(Exchange, ccxt.idex):
         }
         messageHash = name + ':' + market['id']
         trades = await self.subscribe(subscribeObject, messageHash)
+        if self.newUpdates:
+            limit = trades.getLimit(limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trade(self, client, message):

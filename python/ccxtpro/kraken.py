@@ -266,6 +266,8 @@ class kraken(Exchange, ccxt.kraken):
         }
         request = self.deep_extend(subscribe, params)
         ohlcv = await self.watch(url, messageHash, request, messageHash)
+        if self.newUpdates:
+            limit = ohlcv.getLimit(limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     async def load_markets(self, reload=False, params={}):
