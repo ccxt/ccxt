@@ -1057,6 +1057,10 @@ module.exports = class kucoin extends Exchange {
         const timestamp = this.safeInteger (order, 'createdAt');
         const datetime = this.iso8601 (timestamp);
         let price = this.safeFloat (order, 'price');
+        if (price === 0.0) {
+            // market orders
+            price = undefined;
+        }
         const side = this.safeString (order, 'side');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
