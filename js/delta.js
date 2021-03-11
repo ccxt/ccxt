@@ -933,15 +933,7 @@ module.exports = class delta extends Exchange {
         const price = this.safeFloat (order, 'limit_price');
         const amount = this.safeFloat (order, 'size');
         const remaining = this.safeFloat (order, 'unfilled_size');
-        let filled = undefined;
-        if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (0, amount - remaining);
-        }
-        let cost = undefined;
         const average = this.safeFloat (order, 'average_fill_price');
-        if ((average !== undefined) && filled) {
-            cost = average * filled;
-        }
         let fee = undefined;
         const feeCost = this.safeFloat (order, 'paid_commission');
         if (feeCost !== undefined) {
@@ -956,7 +948,7 @@ module.exports = class delta extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -968,14 +960,14 @@ module.exports = class delta extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
