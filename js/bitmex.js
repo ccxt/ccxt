@@ -525,6 +525,9 @@ module.exports = class bitmex extends ccxt.bitmex {
             ],
         };
         const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -593,6 +596,9 @@ module.exports = class bitmex extends ccxt.bitmex {
             ],
         };
         const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        if (this.newUpdates) {
+            limit = orders.getLimit (limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
@@ -797,6 +803,9 @@ module.exports = class bitmex extends ccxt.bitmex {
             ],
         };
         const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
@@ -923,6 +932,9 @@ module.exports = class bitmex extends ccxt.bitmex {
             ],
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 

@@ -278,6 +278,9 @@ module.exports = class kraken extends ccxt.kraken {
         };
         const request = this.deepExtend (subscribe, params);
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 

@@ -119,6 +119,9 @@ module.exports = class ndax extends ccxt.ndax {
         };
         const message = this.extend (request, params);
         const trades = await this.watch (url, messageHash, message);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -189,6 +192,9 @@ module.exports = class ndax extends ccxt.ndax {
         };
         const message = this.extend (request, params);
         const ohlcv = await this.watch (url, messageHash, message);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (limit);
+        }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
