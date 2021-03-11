@@ -697,10 +697,6 @@ module.exports = class bigone extends Exchange {
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat (order, 'filled_amount');
-        let remaining = undefined;
-        if (amount !== undefined && filled !== undefined) {
-            remaining = Math.max (0, amount - filled);
-        }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side = this.safeString (order, 'side');
         if (side === 'BID') {
@@ -708,15 +704,9 @@ module.exports = class bigone extends Exchange {
         } else {
             side = 'sell';
         }
-        let cost = undefined;
-        if (filled !== undefined) {
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-        }
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'updated_at'));
         const average = this.safeFloat (order, 'avg_deal_price');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -731,14 +721,14 @@ module.exports = class bigone extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
