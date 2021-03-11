@@ -201,21 +201,6 @@ class CCXTProTranspiler extends Transpiler {
 
     // ------------------------------------------------------------------------
 
-    exportTypeScriptDeclarations (file, classes) {
-
-        log.bright.cyan ('Exporting TypeScript declarations →', file.yellow)
-
-        const regex = /\/[\n]{2}(?:    export class [^\s]+ extends [^\s]+ \{\}[\r]?[\n])+/
-        const replacement = "/\n\n" + Object.keys (classes).map (className => {
-            const baseClass = classes[className].replace (/ccxt\.[a-z]+/, 'Exchange')
-            return '    export class ' + className + ' extends ' + baseClass + " {}"
-        }).join ("\n") + "\n"
-
-        replaceInFile (file, regex, replacement)
-    }
-
-    // ------------------------------------------------------------------------
-
     transpileEverything (force = false) {
 
         // default pattern is '.js'
@@ -271,4 +256,4 @@ if (require.main === module) {
 
 // ============================================================================
 
-module.exports = {}
+module.exports = CCXTProTranspiler

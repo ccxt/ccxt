@@ -218,7 +218,6 @@ module.exports = class ndax extends ccxt.ndax {
         //         ]
         //     ]
         //
-        console.log (payload);
         const updates = {};
         for (let i = 0; i < payload.length; i++) {
             const ohlcv = payload[i];
