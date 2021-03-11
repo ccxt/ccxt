@@ -1016,15 +1016,9 @@ module.exports = class bittrex extends Exchange {
         //     }
         //
         const marketSymbol = this.safeString (order, 'marketSymbol');
-        let symbol = undefined;
-        let feeCurrency = undefined;
-        if (marketSymbol !== undefined) {
-            const [ baseId, quoteId ] = marketSymbol.split ('-');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
-            feeCurrency = quote;
-        }
+        market = this.safeSymbol (marketSymbol, market, '-');
+        const symbol = market['symbol'];
+        const feeCurrency = market['quote'];
         const direction = this.safeStringLower (order, 'direction');
         const createdAt = this.safeString (order, 'createdAt');
         const updatedAt = this.safeString (order, 'updatedAt');
@@ -1042,27 +1036,10 @@ module.exports = class bittrex extends Exchange {
         const fillQuantity = this.safeFloat (order, 'fillQuantity');
         const commission = this.safeFloat (order, 'commission');
         const proceeds = this.safeFloat (order, 'proceeds');
-        let average = undefined;
-        let remaining = undefined;
-        if (fillQuantity !== undefined) {
-            if (proceeds !== undefined) {
-                if (fillQuantity > 0) {
-                    average = proceeds / fillQuantity;
-                } else if (proceeds === 0) {
-                    average = 0;
-                }
-            }
-            if (quantity !== undefined) {
-                remaining = quantity - fillQuantity;
-            }
-        }
-        let status = this.safeStringLower (order, 'status');
-        if ((status === 'closed') && (remaining !== undefined) && (remaining > 0)) {
-            status = 'canceled';
-        }
+        const status = this.safeStringLower (order, 'status');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const postOnly = (timeInForce === 'PO');
-        return {
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -1076,10 +1053,10 @@ module.exports = class bittrex extends Exchange {
             'price': limit,
             'stopPrice': undefined,
             'cost': proceeds,
-            'average': average,
+            'average': undefined,
             'amount': quantity,
             'filled': fillQuantity,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': {
                 'cost': commission,
@@ -1087,7 +1064,7 @@ module.exports = class bittrex extends Exchange {
             },
             'info': order,
             'trades': undefined,
-        };
+        });
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
