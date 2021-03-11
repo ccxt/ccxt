@@ -221,7 +221,6 @@ class ndax extends \ccxt\async\ndax {
         //         )
         //     )
         //
-        var_dump ($payload);
         $updates = array();
         for ($i = 0; $i < count($payload); $i++) {
             $ohlcv = $payload[$i];

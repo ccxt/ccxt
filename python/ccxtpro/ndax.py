@@ -211,7 +211,6 @@ class ndax(Exchange, ccxt.ndax):
         #         ]
         #     ]
         #
-        print(payload)
         updates = {}
         for i in range(0, len(payload)):
             ohlcv = payload[i]
