@@ -529,15 +529,16 @@ class luno extends Exchange {
         if ($type === 'market') {
             $method .= 'Marketorder';
             $request['type'] = strtoupper($side);
+            // todo add createMarketBuyOrderRequires $price logic as it is implemented in the other exchanges
             if ($side === 'buy') {
-                $request['counter_volume'] = $amount;
+                $request['counter_volume'] = floatval($this->amount_to_precision($symbol, $amount));
             } else {
-                $request['base_volume'] = $amount;
+                $request['base_volume'] = floatval($this->amount_to_precision($symbol, $amount));
             }
         } else {
             $method .= 'Postorder';
-            $request['volume'] = $amount;
-            $request['price'] = $price;
+            $request['volume'] = floatval($this->amount_to_precision($symbol, $amount));
+            $request['price'] = floatval($this->price_to_precision($symbol, $price));
             $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
         }
         $response = yield $this->$method (array_merge($request, $params));
