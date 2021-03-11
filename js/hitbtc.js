@@ -59,6 +59,10 @@ module.exports = class hitbtc extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
+                'test': {
+                    'public': 'https://api.demo.hitbtc.com',
+                    'private': 'https://api.demo.hitbtc.com',
+                },
                 'api': {
                     'public': 'https://api.hitbtc.com',
                     'private': 'https://api.hitbtc.com',
