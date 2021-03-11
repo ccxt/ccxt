@@ -551,7 +551,7 @@ declare module 'ccxt' {
 
     /* tslint:enable */
 
-    type ExchangeName =
+    type ExchangeId =
         | 'aax'
         | 'acx'
         | 'aofex'
