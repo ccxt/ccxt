@@ -1022,6 +1022,9 @@ class kucoin(Exchange):
         timestamp = self.safe_integer(order, 'createdAt')
         datetime = self.iso8601(timestamp)
         price = self.safe_float(order, 'price')
+        if price == 0.0:
+            # market orders
+            price = None
         side = self.safe_string(order, 'side')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
@@ -1029,7 +1032,6 @@ class kucoin(Exchange):
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'dealSize')
         cost = self.safe_float(order, 'dealFunds')
-        remaining = amount - filled
         # bool
         isActive = self.safe_value(order, 'isActive', False)
         cancelExist = self.safe_value(order, 'cancelExist', False)
@@ -1039,16 +1041,11 @@ class kucoin(Exchange):
             'currency': feeCurrency,
             'cost': feeCost,
         }
-        if type == 'market':
-            if price == 0.0:
-                if (cost is not None) and (filled is not None):
-                    if (cost > 0) and (filled > 0):
-                        price = cost / filled
         clientOrderId = self.safe_string(order, 'clientOid')
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_float(order, 'stopPrice')
         postOnly = self.safe_value(order, 'postOnly')
-        return {
+        return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
@@ -1061,7 +1058,7 @@ class kucoin(Exchange):
             'stopPrice': stopPrice,
             'cost': cost,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'timestamp': timestamp,
             'datetime': datetime,
             'fee': fee,
@@ -1070,7 +1067,7 @@ class kucoin(Exchange):
             'lastTradeTimestamp': None,
             'average': None,
             'trades': None,
-        }
+        })
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
