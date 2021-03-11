@@ -1080,9 +1080,9 @@ class Transpiler {
 
     // ========================================================================
 
-    exportTypeScriptDeclarations (file, classes) {
+    exportTypeScriptClassNames (file, classes) {
 
-        log.bright.cyan ('Exporting TypeScript declarations →', file.yellow)
+        log.bright.cyan ('Exporting TypeScript class names →', file.yellow)
 
         const regex = /\/[\n]{2}(?:    export class [^\s]+ extends [^\s]+ \{\}[\r]?[\n])+/
         const replacement = "/\n\n" + Object.keys (classes).map (className => {
@@ -1091,6 +1091,24 @@ class Transpiler {
         }).join ("\n") + "\n"
 
         replaceInFile (file, regex, replacement)
+    }
+
+    exportTypeScriptExchangeIds (file, classes) {
+
+        log.bright.cyan ('Exporting TypeScript exchange ids →', file.yellow)
+
+        const regex = /\/[\n]{2}    type ExchangeId =\n(?:        \| \'[a-z0-9_]+\'[\r]?[\n])+/
+        const replacement = "/\n\n    type ExchangeId =\n" + Object.keys (classes).map (className => {
+            return "        | '" + className + "'"
+        }).join ("\n") + "\n"
+
+        replaceInFile (file, regex, replacement)
+    }
+
+    exportTypeScriptDeclarations (file, classes) {
+
+        this.exportTypeScriptClassNames (file, classes)
+        this.exportTypeScriptExchangeIds (file, classes)
     }
 
     // ========================================================================
