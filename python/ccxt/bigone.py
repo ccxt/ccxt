@@ -671,22 +671,15 @@ class bigone(Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'filled_amount')
-        remaining = None
-        if amount is not None and filled is not None:
-            remaining = max(0, amount - filled)
         status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
         if side == 'BID':
             side = 'buy'
         else:
             side = 'sell'
-        cost = None
-        if filled is not None:
-            if price is not None:
-                cost = filled * price
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'updated_at'))
         average = self.safe_float(order, 'avg_deal_price')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -701,14 +694,14 @@ class bigone(Exchange):
             'price': price,
             'stopPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
