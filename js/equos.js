@@ -1331,28 +1331,6 @@ module.exports = class equos extends Exchange {
         let remaining = this.safeInteger (order, 'leavesQty');
         const remainingScale = this.safeInteger (order, 'leavesQty_scale');
         remaining = this.convertFromScale (remaining, remainingScale);
-        if (remaining <= 0) {
-            if ((filled !== undefined) && (amount !== undefined) && (filled < amount)) {
-                remaining = undefined;
-            }
-        }
-        if ((remaining === undefined) && (amount !== undefined) && (filled !== undefined)) {
-            remaining = Math.max (amount - filled, 0);
-        }
-        let average = this.safeInteger (order, 'price', 0);
-        if (average === 0) {
-            average = undefined;
-        }
-        const averageScale = this.safeInteger (order, 'price_scale');
-        average = this.convertFromScale (average, averageScale);
-        let cost = undefined;
-        if (filled !== 0) {
-            if (average > 0) {
-                cost = average * filled;
-            } else if (price > 0) {
-                cost = price * filled;
-            }
-        }
         let fee = undefined;
         const currencyId = this.safeInteger (order, 'feeInstrumentId');
         const feeCurrencyCode = this.safeCurrencyCode (currencyId);
@@ -1375,7 +1353,7 @@ module.exports = class equos extends Exchange {
         }
         const stopPriceScale = this.safeInteger (order, 'stopPx_scale', 0);
         const stopPrice = this.convertFromScale (this.safeInteger (order, 'stopPx'), stopPriceScale);
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1390,14 +1368,14 @@ module.exports = class equos extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
-            'average': average,
+            'cost': undefined,
+            'average': undefined,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     parseOrderStatus (status) {
