@@ -338,7 +338,6 @@ module.exports = class bitflyer extends Exchange {
         const remaining = this.safeFloat (order, 'outstanding_size');
         const filled = this.safeFloat (order, 'executed_size');
         const price = this.safeFloat (order, 'price');
-        const cost = price * filled;
         const status = this.parseOrderStatus (this.safeString (order, 'child_order_state'));
         const type = this.safeStringLower (order, 'child_order_type');
         const side = this.safeStringLower (order, 'side');
@@ -354,7 +353,7 @@ module.exports = class bitflyer extends Exchange {
             };
         }
         const id = this.safeString (order, 'child_order_acceptance_id');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
@@ -369,14 +368,14 @@ module.exports = class bitflyer extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
             'average': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
