@@ -140,6 +140,9 @@ module.exports = class idex extends ccxt.idex {
         };
         const messageHash = name + ':' + market['id'];
         const trades = await this.subscribe (subscribeObject, messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (limit);
+        }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
