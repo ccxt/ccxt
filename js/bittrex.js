@@ -1016,7 +1016,7 @@ module.exports = class bittrex extends Exchange {
         //     }
         //
         const marketSymbol = this.safeString (order, 'marketSymbol');
-        market = this.safeSymbol (marketSymbol, market, '-');
+        market = this.safeMarket (marketSymbol, market, '-');
         const symbol = market['symbol'];
         const feeCurrency = market['quote'];
         const direction = this.safeStringLower (order, 'direction');
