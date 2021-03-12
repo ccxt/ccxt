@@ -476,16 +476,14 @@ class bitforex(Exchange):
         average = self.safe_float(order, 'avgPrice')
         amount = self.safe_float(order, 'orderAmount')
         filled = self.safe_float(order, 'dealAmount')
-        remaining = amount - filled
         status = self.parse_order_status(self.safe_string(order, 'orderState'))
-        cost = filled * price
         feeSide = 'base' if (side == 'buy') else 'quote'
         feeCurrency = market[feeSide]
         fee = {
             'cost': self.safe_float(order, 'tradeFee'),
             'currency': feeCurrency,
         }
-        result = {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -499,16 +497,15 @@ class bitforex(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
-        return result
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

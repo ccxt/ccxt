@@ -484,16 +484,14 @@ class bitforex extends Exchange {
         $average = $this->safe_float($order, 'avgPrice');
         $amount = $this->safe_float($order, 'orderAmount');
         $filled = $this->safe_float($order, 'dealAmount');
-        $remaining = $amount - $filled;
         $status = $this->parse_order_status($this->safe_string($order, 'orderState'));
-        $cost = $filled * $price;
         $feeSide = ($side === 'buy') ? 'base' : 'quote';
         $feeCurrency = $market[$feeSide];
         $fee = array(
             'cost' => $this->safe_float($order, 'tradeFee'),
             'currency' => $feeCurrency,
         );
-        $result = array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -507,16 +505,15 @@ class bitforex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
-        return $result;
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
