@@ -43,7 +43,7 @@ The structure of the library can be outlined as follows:
     +=============================================================+
 ```
 
-Full public and private HTTP REST APIs for all exchanges are implemented. WebSocket and FIX implementations in JavaScript, PHP, Python are available in [CCXT Pro](https://ccxt.pro), which is a professional addon to CCXT with support for WebSocket streams.
+Full public and private HTTP REST APIs for all exchanges are implemented. WebSocket implementations in JavaScript, PHP, Python are available in [CCXT Pro](https://ccxt.pro), which is a professional addon to CCXT with support for WebSocket streams.
 
 - [**Exchanges**](#exchanges)
 - [**Markets**](#markets)
@@ -907,10 +907,10 @@ def currency_to_precision (code, amount):
 
 ```PHP
 // PHP
-function amount_to_precision ($symbol, $amount)
-function price_to_precision ($symbol, $price)
-function cost_to_precision ($symbol, $cost)
-function currency_to_precision ($code, $amount)
+function amount_to_precision($symbol, $amount)
+function price_to_precision($symbol, $price)
+function cost_to_precision($symbol, $cost)
+function currency_to_precision($code, $amount)
 ```
 
 Every exchange has its own precision settings, the above methods will help format those values according to exchange-specific precision rules, in a way that is portable and agnostic of the underlying exchange. In order to make that possible, markets and currencies have to be loaded prior to formatting any values.
@@ -969,18 +969,18 @@ In order to load markets manually beforehand call the `loadMarkets ()` / `load_m
 
 ```Python
 # Python
-okcoin = ccxt.okcoinusd ()
-markets = okcoin.load_markets ()
-print (okcoin.id, markets)
+okcoin = ccxt.okcoinusd()
+markets = okcoin.load_markets()
+print(okcoin.id, markets)
 ```
 
 ```PHP
 // PHP
 $id = 'huobipro';
 $exchange = '\\ccxt\\' . $id;
-$huobipro = new $exchange ();
-$markets = $huobipro->load_markets ();
-var_dump ($huobipro->id, $markets);
+$huobipro = new $exchange();
+$markets = $huobipro->load_markets();
+var_dump($huobipro->id, $markets);
 ```
 
 Apart from the market info, the `loadMarkets()` call will also load the currencies from the exchange and will cache the info in the `.markets` and the `.currencies` properties respectively.
@@ -1037,22 +1037,22 @@ Most of the time users will be working with market symbols. You will get a stand
 ```Python
 # Python
 
-print (exchange.load_markets ())
+print(exchange.load_markets())
 
 etheur1 = exchange.markets['ETH/EUR']      # get market structure by symbol
-etheur2 = exchange.market ('ETH/EUR')      # same result in a slightly different way
+etheur2 = exchange.market('ETH/EUR')       # same result in a slightly different way
 
-etheurId = exchange.market_id ('ETH/EUR')  # get market id by symbol
+etheurId = exchange.market_id('ETH/EUR')   # get market id by symbol
 
 symbols = exchange.symbols                 # get a list of symbols
-symbols2 = list (exchange.markets.keys ()) # same as previous line
+symbols2 = list(exchange.markets.keys())   # same as previous line
 
-print (exchange.id, symbols)               # print all symbols
+print(exchange.id, symbols)                # print all symbols
 
 currencies = exchange.currencies           # a dictionary of currencies
 
-kraken = ccxt.kraken ()
-kraken.load_markets ()
+kraken = ccxt.kraken()
+kraken.load_markets()
 
 kraken.markets['BTC/USD']                  # symbol → market (get market by symbol)
 kraken.markets_by_id['XXRPZUSD']           # id → market (get market by id)
@@ -1064,24 +1064,24 @@ kraken.markets_by_id['XXRPZUSD']['symbol'] # id → symbol (get symbol by id)
 ```PHP
 // PHP
 
-$var_dump ($exchange->load_markets ());
+$var_dump($exchange->load_markets());
 
 $dashcny1 = $exchange->markets['DASH/CNY'];     // get market structure by symbol
-$dashcny2 = $exchange->market ('DASH/CNY');     // same result in a slightly different way
+$dashcny2 = $exchange->market('DASH/CNY');      // same result in a slightly different way
 
-$dashcnyId = $exchange->market_id ('DASH/CNY'); // get market id by symbol
+$dashcnyId = $exchange->market_id('DASH/CNY');  // get market id by symbol
 
 $symbols = $exchange->symbols;                  // get an array of symbols
-$symbols2 = array_keys ($exchange->markets);    // same as previous line
+$symbols2 = array_keys($exchange->markets);     // same as previous line
 
-var_dump ($exchange->id, $symbols);             // print all symbols
+var_dump($exchange->id, $symbols);              // print all symbols
 
 $currencies = $exchange->currencies;            // an associative array of currencies
 
 $okcoinusd = '\\ccxt\\okcoinusd';
-$okcoinusd = new $okcoinusd ();
+$okcoinusd = new $okcoinusd();
 
-$okcoinusd->load_markets ();
+$okcoinusd->load_markets();
 
 $okcoinusd->markets['BTC/USD'];                 // symbol → market (get market by symbol)
 $okcoinusd->markets_by_id['btc_usd'];           // id → market (get market by id)
@@ -1178,14 +1178,14 @@ print(reloadedMarkets['ETH/ZEC'])
 
 ```PHP
 // PHP
-$bitfinex = new \ccxt\bitfinex (array ('verbose' => true)); // log HTTP requests
-$bitfinex.load_markets (); // request markets
-var_dump ($bitfinex->id, $bitfinex->markets); // output a full list of all loaded markets
-var_dump (array_keys ($bitfinex->markets));   // output a short list of market symbols
-var_dump ($bitfinex->markets['XRP/USD']);     // output single market details
-$bitfinex->load_markets (); // return a locally cached version, no reload
-$reloadedMarkets = $bitfinex->load_markets (true); // force HTTP reload = true
-var_dump ($bitfinex->markets['XRP/BTC']);
+$bitfinex = new \ccxt\bitfinex(array('verbose' => true)); // log HTTP requests
+$bitfinex.load_markets(); // request markets
+var_dump($bitfinex->id, $bitfinex->markets); // output a full list of all loaded markets
+var_dump(array_keys ($bitfinex->markets));   // output a short list of market symbols
+var_dump($bitfinex->markets['XRP/USD']);     // output single market details
+$bitfinex->load_markets(); // return a locally cached version, no reload
+$reloadedMarkets = $bitfinex->load_markets(true); // force HTTP reload = true
+var_dump($bitfinex->markets['XRP/BTC']);
 ```
 
 # Implicit API
