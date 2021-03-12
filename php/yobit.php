@@ -579,18 +579,10 @@ class yobit extends Exchange {
         $remaining = $this->safe_float($order, 'amount');
         $amount = $this->safe_float($order, 'start_amount');
         $price = $this->safe_float($order, 'rate');
-        $filled = null;
-        $cost = null;
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                $filled = max (0, $amount - $remaining);
-                $cost = $price * $filled;
-            }
-        }
         $fee = null;
         $type = 'limit';
         $side = $this->safe_string($order, 'type');
-        $result = array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -604,16 +596,15 @@ class yobit extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'amount' => $amount,
             'remaining' => $remaining,
-            'filled' => $filled,
+            'filled' => null,
             'status' => $status,
             'fee' => $fee,
             'average' => null,
             'trades' => null,
-        );
-        return $result;
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

@@ -557,16 +557,10 @@ class yobit(Exchange):
         remaining = self.safe_float(order, 'amount')
         amount = self.safe_float(order, 'start_amount')
         price = self.safe_float(order, 'rate')
-        filled = None
-        cost = None
-        if amount is not None:
-            if remaining is not None:
-                filled = max(0, amount - remaining)
-                cost = price * filled
         fee = None
         type = 'limit'
         side = self.safe_string(order, 'type')
-        result = {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -580,16 +574,15 @@ class yobit(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': None,
             'status': status,
             'fee': fee,
             'average': None,
             'trades': None,
-        }
-        return result
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
