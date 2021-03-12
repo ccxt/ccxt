@@ -1402,10 +1402,10 @@ module.exports = class Exchange {
         // Filled
         //
         // First we try to calculate filled from the trades
-        const parseFilled = order['filled'] === undefined;
-        const parseCost = order['cost'] === undefined;
-        const parseFee = order['fee'] === undefined;
-        const parseFees = order['fees'] === undefined;
+        const parseFilled = this.safeValue (order, 'filled') === undefined;
+        const parseCost = this.safeValue (order, 'cost') === undefined;
+        const parseFee = this.safeValue (order, 'fee') === undefined;
+        const parseFees = this.safeValue (order, 'fees') === undefined;
         let fees = undefined;
         if (parseFee || parseFees) {
             fees = []

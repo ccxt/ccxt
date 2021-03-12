@@ -2096,10 +2096,10 @@ class Exchange(object):
         # Filled
         #
         # First we try to calculate filled from the trades
-        parseFilled = order['filled'] is None
-        parseCost = order['cost'] is None
-        parseFee = order['fee'] is None
-        parseFees = order['fees'] is None
+        parseFilled = self.safe_value(order, 'filled') is None
+        parseCost = self.safe_value(order, 'cost') is None
+        parseFee = self.safe_value(order, 'fee') is None
+        parseFees = self.safe_value(order, 'fees') is None
         fees = None
         if parseFee or parseFees:
             fees = []

@@ -2764,10 +2764,10 @@ class Exchange {
         // Filled
         //
         // First we try to calculate filled from the trades
-        $parseFilled = $order['filled'] === null;
-        $parseCost = $order['cost'] === null;
-        $parseFee = $order['fee'] === null;
-        $parseFees = $order['fees'] === null;
+        $parseFilled = $this->safe_value($order, 'filled') === null;
+        $parseCost = $this->safe_vaule($order, 'cost') === null;
+        $parseFee = $this->safe_value($order, 'fee') === null;
+        $parseFees = $this->safe_value($order, 'fees') === null;
         $fees = null;
         if ($parseFee || $parseFees) {
             $fees = array();
