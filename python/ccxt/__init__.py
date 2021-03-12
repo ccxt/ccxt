@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.42.92'
+__version__ = '1.42.93'
 
 # ----------------------------------------------------------------------------
 
@@ -184,7 +184,6 @@ from ccxt.tidebit import tidebit                            # noqa: F401
 from ccxt.tidex import tidex                                # noqa: F401
 from ccxt.timex import timex                                # noqa: F401
 from ccxt.upbit import upbit                                # noqa: F401
-from ccxt.vaultoro import vaultoro                          # noqa: F401
 from ccxt.vbtc import vbtc                                  # noqa: F401
 from ccxt.vcc import vcc                                    # noqa: F401
 from ccxt.wavesexchange import wavesexchange                # noqa: F401
@@ -312,7 +311,6 @@ exchanges = [
     'tidex',
     'timex',
     'upbit',
-    'vaultoro',
     'vbtc',
     'vcc',
     'wavesexchange',
