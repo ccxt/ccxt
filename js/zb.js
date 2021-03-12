@@ -677,18 +677,8 @@ module.exports = class zb extends Exchange {
         const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'trade_amount');
         const amount = this.safeFloat (order, 'total_amount');
-        let remaining = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = amount - filled;
-            }
-        }
         const cost = this.safeFloat (order, 'trade_money');
-        let average = undefined;
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        if ((cost !== undefined) && (filled !== undefined) && (filled > 0)) {
-            average = cost / filled;
-        }
         const id = this.safeString (order, 'id');
         const feeCost = this.safeFloat (order, 'fees');
         let fee = undefined;
@@ -705,7 +695,7 @@ module.exports = class zb extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -719,15 +709,15 @@ module.exports = class zb extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'average': average,
+            'average': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     parseOrderStatus (status) {
