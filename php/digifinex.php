@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
 use \ccxt\BadResponse;
 use \ccxt\InvalidAddress;
 use \ccxt\OrderNotFound;
@@ -66,11 +65,6 @@ class digifinex extends Exchange {
                 'referral' => 'https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp',
             ),
             'api' => array(
-                'v2' => array(
-                    'get' => array(
-                        'ticker',
-                    ),
-                ),
                 'public' => array(
                     'get' => array(
                         '{market}/symbols',
@@ -505,87 +499,67 @@ class digifinex extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        $apiKey = $this->safe_value($params, 'apiKey', $this->apiKey);
-        if (!$apiKey) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `$apiKey` extra parameter');
-        }
         $this->load_markets();
-        $request = array(
-            'apiKey' => $apiKey,
-        );
-        $response = $this->v2GetTicker (array_merge($request, $params));
+        $response = $this->publicGetTicker ($params);
         //
-        //     {
-        //         "$ticker":{
-        //             "btc_eth":array(
-        //                 "last":0.021957,
-        //                 "base_vol":2249.3521732227,
-        //                 "change":-0.6,
-        //                 "vol":102443.5111,
-        //                 "sell":0.021978,
-        //                 "low":0.021791,
-        //                 "buy":0.021946,
-        //                 "high":0.022266
-        //             }
-        //         ),
-        //         "$date":1564518452,
-        //         "code":0
-        //     }
+        //    {
+        //        "$ticker" => [array(
+        //            "vol" => 40717.4461,
+        //            "change" => -1.91,
+        //            "base_vol" => 392447999.65374,
+        //            "sell" => 9592.23,
+        //            "last" => 9592.22,
+        //            "$symbol" => "btc_usdt",
+        //            "low" => 9476.24,
+        //            "buy" => 9592.03,
+        //            "high" => 9793.87
+        //        )],
+        //        "$date" => 1589874294,
+        //        "code" => 0
+        //    }
         //
         $result = array();
         $tickers = $this->safe_value($response, 'ticker', array());
         $date = $this->safe_integer($response, 'date');
-        $reversedMarketIds = is_array($tickers) ? array_keys($tickers) : array();
-        for ($i = 0; $i < count($reversedMarketIds); $i++) {
-            $reversedMarketId = $reversedMarketIds[$i];
-            $ticker = array_merge(array(
+        for ($i = 0; $i < count($tickers); $i++) {
+            $rawTicker = array_merge(array(
                 'date' => $date,
-            ), $tickers[$reversedMarketId]);
-            list($quoteId, $baseId) = explode('_', $reversedMarketId);
-            $marketId = strtoupper($baseId) . '_' . strtoupper($quoteId);
-            $market = $this->safe_market($marketId, null, '_');
-            $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            ), $tickers[$i]);
+            $ticker = $this->parse_ticker($rawTicker);
+            $symbol = $ticker['symbol'];
+            $result[$symbol] = $ticker;
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        $apiKey = $this->safe_value($params, 'apiKey', $this->apiKey);
-        if (!$apiKey) {
-            throw new ArgumentsRequired($this->id . ' fetchTicker() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `$apiKey` extra parameter');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
-        // reversed base/quote in v2
-        $marketId = strtolower($market['quoteId']) . '_' . strtolower($market['baseId']);
         $request = array(
-            'symbol' => $marketId,
-            'apiKey' => $apiKey,
+            'symbol' => $market['id'],
         );
-        $response = $this->v2GetTicker (array_merge($request, $params));
+        $response = $this->publicGetTicker (array_merge($request, $params));
         //
-        //     {
-        //         "$ticker":{
-        //             "btc_eth":array(
-        //                 "last":0.021957,
-        //                 "base_vol":2249.3521732227,
-        //                 "change":-0.6,
-        //                 "vol":102443.5111,
-        //                 "sell":0.021978,
-        //                 "low":0.021791,
-        //                 "buy":0.021946,
-        //                 "high":0.022266
-        //             }
-        //         ),
-        //         "$date":1564518452,
-        //         "code":0
-        //     }
+        //    {
+        //        "ticker" => [array(
+        //            "vol" => 40717.4461,
+        //            "change" => -1.91,
+        //            "base_vol" => 392447999.65374,
+        //            "sell" => 9592.23,
+        //            "last" => 9592.22,
+        //            "$symbol" => "btc_usdt",
+        //            "low" => 9476.24,
+        //            "buy" => 9592.03,
+        //            "high" => 9793.87
+        //        )],
+        //        "$date" => 1589874294,
+        //        "code" => 0
+        //    }
         //
         $date = $this->safe_integer($response, 'date');
-        $ticker = $this->safe_value($response, 'ticker', array());
-        $result = $this->safe_value($ticker, $marketId, array());
-        $result = array_merge(array( 'date' => $date ), $result);
+        $tickers = $this->safe_value($response, 'ticker', array());
+        $firstTicker = $this->safe_value($tickers, 0, array());
+        $result = array_merge(array( 'date' => $date ), $firstTicker);
         return $this->parse_ticker($result, $market);
     }
 
@@ -595,6 +569,7 @@ class digifinex extends Exchange {
         //
         //     {
         //         "$last":0.021957,
+        //         "$symbol" => "btc_usdt",
         //         "base_vol":2249.3521732227,
         //         "change":-0.6,
         //         "vol":102443.5111,
@@ -605,10 +580,8 @@ class digifinex extends Exchange {
         //         "date"1564518452, // injected from fetchTicker/fetchTickers
         //     }
         //
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string_upper($ticker, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_timestamp($ticker, 'date');
         $last = $this->safe_float($ticker, 'last');
         $percentage = $this->safe_float($ticker, 'change');
@@ -1471,7 +1444,7 @@ class digifinex extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $version = ($api === 'v2') ? $api : $this->version;
+        $version = $this->version;
         $url = $this->urls['api'] . '/' . $version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $urlencoded = $this->urlencode($this->keysort($query));
