@@ -979,17 +979,7 @@ class digifinex extends Exchange {
         $filled = $this->safe_float($order, 'executed_amount');
         $price = $this->safe_float($order, 'price');
         $average = $this->safe_float($order, 'avg_price');
-        $remaining = null;
-        $cost = null;
-        if ($filled !== null) {
-            if ($average !== null) {
-                $cost = $filled * $average;
-            }
-            if ($amount !== null) {
-                $remaining = max (0, $amount - $filled);
-            }
-        }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -1005,13 +995,13 @@ class digifinex extends Exchange {
             'stopPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
-            'cost' => $cost,
+            'remaining' => null,
+            'cost' => null,
             'average' => $average,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

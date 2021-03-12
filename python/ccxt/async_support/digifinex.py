@@ -948,14 +948,7 @@ class digifinex(Exchange):
         filled = self.safe_float(order, 'executed_amount')
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'avg_price')
-        remaining = None
-        cost = None
-        if filled is not None:
-            if average is not None:
-                cost = filled * average
-            if amount is not None:
-                remaining = max(0, amount - filled)
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -971,13 +964,13 @@ class digifinex(Exchange):
             'stopPrice': None,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
-            'cost': cost,
+            'remaining': None,
+            'cost': None,
             'average': average,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
