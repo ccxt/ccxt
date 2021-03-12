@@ -1921,24 +1921,11 @@ module.exports = class bitget extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        let amount = this.safeFloat2 (order, 'amount', 'size');
+        const amount = this.safeFloat2 (order, 'amount', 'size');
         const filled = this.safeFloat2 (order, 'filled_amount', 'filled_qty');
-        let remaining = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                amount = Math.max (amount, filled);
-                remaining = Math.max (0, amount - filled);
-            }
-        }
-        if (type === 'market') {
-            remaining = 0;
-        }
         const cost = this.safeFloat (order, 'filled_cash_amount');
         const price = this.safeFloat (order, 'price');
-        let average = this.safeFloat (order, 'price_avg');
-        if ((average === undefined) && (filled !== undefined) && (cost !== undefined) && (filled > 0)) {
-            average = cost / filled;
-        }
+        const average = this.safeFloat (order, 'price_avg');
         const status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
         const feeCost = this.safeFloat2 (order, 'filled_fees', 'fee');
         let fee = undefined;
@@ -1950,7 +1937,7 @@ module.exports = class bitget extends Exchange {
             };
         }
         const clientOrderId = this.safeString (order, 'client_oid');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1968,11 +1955,11 @@ module.exports = class bitget extends Exchange {
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
