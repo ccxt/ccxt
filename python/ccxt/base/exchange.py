@@ -38,7 +38,6 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # ecdsa signing
 from ccxt.static_dependencies import ecdsa
-
 # eddsa signing
 try:
     import axolotl_curve25519 as eddsa
@@ -73,8 +72,7 @@ from numbers import Number
 import re
 from requests import Session
 from requests.utils import default_user_agent
-from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException, \
-    ConnectionError as requestsConnectionError
+from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException, ConnectionError as requestsConnectionError
 # import socket
 from ssl import SSLError
 # import sys
@@ -100,9 +98,9 @@ except NameError:
 # -----------------------------------------------------------------------------
 
 try:
-    import urllib.parse as _urlencode  # Python 3
+    import urllib.parse as _urlencode    # Python 3
 except ImportError:
-    import urllib as _urlencode  # Python 2
+    import urllib as _urlencode          # Python 2
 
 # -----------------------------------------------------------------------------
 # web3/0x imports
@@ -111,8 +109,6 @@ try:
     from web3 import Web3, HTTPProvider
 except ImportError:
     Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
-
-
 # -----------------------------------------------------------------------------
 
 
@@ -127,7 +123,7 @@ class Exchange(object):
     # rate limiter settings
     enableRateLimit = False
     rateLimit = 2000  # milliseconds = seconds * 1000
-    timeout = 10000  # milliseconds = seconds * 1000
+    timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None
     aiohttp_trust_env = False
@@ -447,8 +443,7 @@ class Exchange(object):
                         underscore_prefix = paths[0]
                         if len(paths) > 1:
                             camelcase_prefix += ''.join([Exchange.capitalize(x) for x in paths[1:]])
-                            underscore_prefix += '_' + '_'.join(
-                                [x.strip() for p in paths[1:] for x in delimiters.split(p)])
+                            underscore_prefix += '_' + '_'.join([x.strip() for p in paths[1:] for x in delimiters.split(p)])
                             api_argument = paths
                         else:
                             api_argument = paths[0]
@@ -469,9 +464,7 @@ class Exchange(object):
                             if params is not None:
                                 inner_kwargs['params'] = params
                             return entry(_self, **inner_kwargs)
-
                         return inner
-
                     to_bind = partialer()
                     setattr(cls, camelcase, to_bind)
                     setattr(cls, underscore, to_bind)
@@ -547,8 +540,7 @@ class Exchange(object):
     def handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body):
         pass
 
-    def on_rest_response(self, code, reason, url, method, response_headers, response_body, request_headers,
-                         request_body):
+    def on_rest_response(self, code, reason, url, method, response_headers, response_body, request_headers, request_body):
         return response_body.strip()
 
     def fetch(self, url, method='GET', headers=None, body=None):
@@ -585,8 +577,7 @@ class Exchange(object):
             headers = response.headers
             http_status_code = response.status_code
             http_status_text = response.reason
-            http_response = self.on_rest_response(http_status_code, http_status_text, url, method, headers,
-                                                  response.text, request_headers, request_body)
+            http_response = self.on_rest_response(http_status_code, http_status_text, url, method, headers, response.text, request_headers, request_body)
             json_response = self.parse_json(http_response)
             # FIXME remove last_x_responses from subclasses
             if self.enableLastHttpResponse:
@@ -614,8 +605,7 @@ class Exchange(object):
 
         except HTTPError as e:
             details = ' '.join([self.id, method, url])
-            self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response,
-                               request_headers, request_body)
+            self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
             self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
             raise ExchangeError(details) from e
 
@@ -635,8 +625,7 @@ class Exchange(object):
             else:
                 raise ExchangeError(details) from e
 
-        self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response,
-                           request_headers, request_body)
+        self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         if json_response is not None:
             return json_response
         elif self.is_text_response(headers):
@@ -1268,11 +1257,8 @@ class Exchange(object):
         """Checks an address is not the same character repeated or an empty sequence"""
         if address is None:
             raise InvalidAddress('address is None')
-        if all(letter == address[0] for letter in address) or len(
-                address) < self.minFundingAddressLength or ' ' in address:
-            raise InvalidAddress(
-                'address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(
-                    address) + '"')
+        if all(letter == address[0] for letter in address) or len(address) < self.minFundingAddressLength or ' ' in address:
+            raise InvalidAddress('address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
         return address
 
     def account(self):
@@ -1301,24 +1287,19 @@ class Exchange(object):
         return len(parts[1]) if len(parts) > 1 else 0
 
     def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['price'], self.precisionMode,
-                                         self.paddingMode)
+        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
 
     def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode,
-                                         self.paddingMode)
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
 
     def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'],
-                                         self.precisionMode, self.paddingMode)
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode, self.paddingMode)
 
     def fee_to_precision(self, symbol, fee):
-        return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode,
-                                         self.paddingMode)
+        return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
 
     def currency_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode,
-                                         self.paddingMode)
+        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
@@ -1347,8 +1328,7 @@ class Exchange(object):
                 ) if 'precision' in market else 8,
             } for market in values if 'base' in market]
             quote_currencies = [{
-                'id': market['quoteId'] if (('quoteId' in market) and (market['quoteId'] is not None)) else market[
-                    'quote'],
+                'id': market['quoteId'] if (('quoteId' in market) and (market['quoteId'] is not None)) else market['quote'],
                 'numericId': market['quoteNumericId'] if 'quoteNumericId' in market else None,
                 'code': market['quote'],
                 'precision': (
@@ -1432,15 +1412,13 @@ class Exchange(object):
         return self.cancel_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
     def fetch_bids_asks(self, symbols=None, params={}) -> dict:
-        raise NotSupported(
-            'API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
+        raise NotSupported('API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
     def fetch_ticker(self, symbol, params={}):
         raise NotSupported('fetch_ticker() not supported yet')
 
     def fetch_tickers(self, symbols=None, params={}):
-        raise NotSupported(
-            'API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
+        raise NotSupported('API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
 
     def fetch_order_status(self, id, symbol=None, params={}):
         order = self.fetch_order(id, symbol, params)
@@ -1515,12 +1493,8 @@ class Exchange(object):
 
     def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         return {
-            'bids': self.sort_by(self.parse_bids_asks(orderbook[bids_key], price_key, amount_key) if (
-                                                                                                                 bids_key in orderbook) and isinstance(
-                orderbook[bids_key], list) else [], 0, True),
-            'asks': self.sort_by(self.parse_bids_asks(orderbook[asks_key], price_key, amount_key) if (
-                                                                                                                 asks_key in orderbook) and isinstance(
-                orderbook[asks_key], list) else [], 0),
+            'bids': self.sort_by(self.parse_bids_asks(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else [], 0, True),
+            'asks': self.sort_by(self.parse_bids_asks(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else [], 0),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp) if timestamp is not None else None,
             'nonce': None,
@@ -1577,7 +1551,7 @@ class Exchange(object):
 
     def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
-            if reload or not ('limitsLoaded' in list(self.options.keys())):
+            if reload or not('limitsLoaded' in list(self.options.keys())):
                 response = self.fetch_trading_limits(symbols)
                 for i in range(0, len(symbols)):
                     symbol = symbols[i]
@@ -1735,8 +1709,7 @@ class Exchange(object):
         if isinstance(orders, list):
             array = [self.extend(self.parse_order(order, market), params) for order in orders]
         else:
-            array = [self.extend(self.parse_order(self.extend({'id': id}, order), market), params) for id, order in
-                     orders.items()]
+            array = [self.extend(self.parse_order(self.extend({'id': id}, order), market), params) for id, order in orders.items()]
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
         tail = since is None
@@ -1786,8 +1759,7 @@ class Exchange(object):
         currency = self.safe_currency(currency_id, currency)
         return currency['code']
 
-    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp',
-                                    tail=False):
+    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
         if value is not None:
             array = [entry for entry in array if entry[field] == value]
@@ -1905,8 +1877,7 @@ class Exchange(object):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
 
     def vwap(self, baseVolume, quoteVolume):
-        return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (
-                    baseVolume > 0) else None
+        return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None
 
     # -------------------------------------------------------------------------
     # web3 / 0x methods
@@ -1917,11 +1888,9 @@ class Exchange(object):
 
     def check_required_dependencies(self):
         if self.requiresWeb3 and not Exchange.has_web3():
-            raise NotSupported(
-                "Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
+            raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
         if self.requiresEddsa and eddsa is None:
-            raise NotSupported(
-                'Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
+            raise NotSupported('Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
 
     @staticmethod
     def from_wei(amount, decimals=18):
@@ -1945,8 +1914,7 @@ class Exchange(object):
 
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
-        public_key_bytes = ecdsa.SigningKey.from_string(private_key_bytes,
-                                                        curve=ecdsa.SECP256k1).verifying_key.to_string()
+        public_key_bytes = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()
         public_key_hash = self.web3.sha3(public_key_bytes)
         return '0x' + Exchange.decode(base64.b16encode(public_key_hash))[-40:].lower()
 
@@ -1959,8 +1927,7 @@ class Exchange(object):
         return ['address' if self.web3.isAddress(value) else 'uint256' for value in array]
 
     def solidityValues(self, array):
-        return [self.web3.toChecksumAddress(value) if self.web3.isAddress(value) else (
-            int(value, 16) if str(value)[:2] == '0x' else int(value)) for value in array]
+        return [self.web3.toChecksumAddress(value) if self.web3.isAddress(value) else (int(value, 16) if str(value)[:2] == '0x' else int(value)) for value in array]
 
     @staticmethod
     def remove0x_prefix(value):
@@ -1970,8 +1937,7 @@ class Exchange(object):
 
     def hashMessage(self, message):
         message_bytes = base64.b16decode(Exchange.encode(Exchange.remove0x_prefix(message)), True)
-        hash_bytes = self.web3.sha3(
-            b"\x19Ethereum Signed Message:\n" + Exchange.encode(str(len(message_bytes))) + message_bytes)
+        hash_bytes = self.web3.sha3(b"\x19Ethereum Signed Message:\n" + Exchange.encode(str(len(message_bytes))) + message_bytes)
         return '0x' + Exchange.decode(base64.b16encode(hash_bytes)).lower()
 
     @staticmethod
@@ -1985,8 +1951,7 @@ class Exchange(object):
 
     def sign_message_string(self, message, privateKey):
         signature = self.signMessage(message, privateKey)
-        return signature['r'] + Exchange.remove0x_prefix(signature['s']) + Exchange.binary_to_base16(
-            Exchange.number_to_be(signature['v'], 1))
+        return signature['r'] + Exchange.remove0x_prefix(signature['s']) + Exchange.binary_to_base16(Exchange.number_to_be(signature['v'], 1))
 
     def signMessage(self, message, privateKey):
         #
@@ -2050,8 +2015,7 @@ class Exchange(object):
             return base64.b32decode(padded)  # throws an error if the key is invalid
 
         epoch = int(time.time()) // 30
-        hmac_res = Exchange.hmac(Exchange.decimal_to_bytes(epoch, 'big'), base32_to_bytes(key.replace(' ', '')),
-                                 hashlib.sha1, 'hex')
+        hmac_res = Exchange.hmac(Exchange.decimal_to_bytes(epoch, 'big'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
@@ -2124,81 +2088,81 @@ class Exchange(object):
         return ''.join(string)
 
     def safe_order(self, order):
-          # Cost
-          # Remaining
-          # Average
-          # Price
-          # Amount
-          # Filled
-          #
-          # First we try to calculate filled from the trades
-          parseFilled = order['filled'] is None
-          parseCost = order['cost'] is None
-          parseFee = order['fee'] is None
-          parseFees = order['fees'] is None
-          fees = None
-          if parseFee or parseFees:
-              fees = []
-          if parseFilled or parseCost or parseFee or parseFees:
-              if isinstance(order['trades'], list):
-                  if parseFilled:
-                      order['filled'] = 0
-                  if parseCost:
-                      order['cost'] = 0
-                  for i in range(0, len(order['trades'])):
-                      trade = order['trades'][i]
-                      if parseFilled:
-                          order['filled'] = self.sum(order['filled'], trade['amount'])
-                      if parseCost:
-                          order['cost'] = self.sum(order['cost'], trade['cost'])
-                      if parseFee or parseFees:
-                          if isinstance(trade['fees'], list):
-                              for j in range(0, len(trade['fees'])):
-                                  fee = trade['fees'][j]
-                                  fees.append(self.extend({}, fee))
-                          elif trade['fee'] is not None:
-                              fees.append(self.extend({}, trade['fee']))
-          if parseFee or parseFees:
-              reduced = []
-              for i in range(0, len(fees)):
-                  fee = fees[i]
-                  appendFee = True
-                  for j in range(0, len(reduced)):
-                      reducedFee = reduced[j]
-                      if reducedFee['currency'] == fee['currency']:
-                          reducedFee['cost'] = self.sum(reducedFee['cost'], fee['cost'])
-                          appendFee = False
-                  if appendFee:
-                      reduced.append(fee)
-              if parseFees:
-                  order['fees'] = reduced
-              length = len(reduced)
-              if parseFee and (length == 1):
-                  order['fee'] = reduced[0]
-          # We ensure amount = filled + remaining
-          if order['amount'] is None:
-              if order['filled'] is not None and order['remaining'] is not None:
-                  order['amount'] = self.sum(order['filled'], order['remaining'])
-          if order['filled'] is None:
-              if order['amount'] is not None and order['remaining'] is not None:
-                  order['filled'] = max(self.sum(order['amount'], -order['remaining']), 0)
-          if order['remaining'] is None:
-              if order['amount'] is not None and order['filled'] is not None:
-                  order['remaining'] = max(self.sum(order['amount'], -order['filled']), 0)
-          # We ensure that the average field is calculated correctly
-          if order['average'] is None:
-              if order['filled'] is not None and order['cost'] is not None and order['cost'] > 0:
-                  order['average'] = order['filled'] / order['cost']
-          # We also ensure the cost field is calculated correctly
-          costPriceExists = (order['average'] is not None) or (order['price'] is not None)
-          if (order['filled'] is not None) and costPriceExists:
-              costPrice = None
-              if order['average'] is None:
-                  costPrice = order['price']
-              else:
-                  costPrice = order['average']
-              order['cost'] = costPrice * order['filled']
-          # We add support for market orders
-          if order['price'] is None and order['type'] == 'market':
-              order['price'] = order['average']
-          return order
+        # Cost
+        # Remaining
+        # Average
+        # Price
+        # Amount
+        # Filled
+        #
+        # First we try to calculate filled from the trades
+        parseFilled = order['filled'] is None
+        parseCost = order['cost'] is None
+        parseFee = order['fee'] is None
+        parseFees = order['fees'] is None
+        fees = None
+        if parseFee or parseFees:
+            fees = []
+        if parseFilled or parseCost or parseFee or parseFees:
+            if isinstance(order['trades'], list):
+                if parseFilled:
+                    order['filled'] = 0
+                if parseCost:
+                    order['cost'] = 0
+                for i in range(0, len(order['trades'])):
+                    trade = order['trades'][i]
+                    if parseFilled:
+                        order['filled'] = self.sum(order['filled'], trade['amount'])
+                    if parseCost:
+                        order['cost'] = self.sum(order['cost'], trade['cost'])
+                    if parseFee or parseFees:
+                        if isinstance(trade['fees'], list):
+                            for j in range(0, len(trade['fees'])):
+                                fee = trade['fees'][j]
+                                fees.append(self.extend({}, fee))
+                        elif trade['fee'] is not None:
+                            fees.append(self.extend({}, trade['fee']))
+        if parseFee or parseFees:
+            reduced = []
+            for i in range(0, len(fees)):
+                fee = fees[i]
+                appendFee = True
+                for j in range(0, len(reduced)):
+                    reducedFee = reduced[j]
+                    if reducedFee['currency'] == fee['currency']:
+                        reducedFee['cost'] = self.sum(reducedFee['cost'], fee['cost'])
+                        appendFee = False
+                if appendFee:
+                    reduced.append(fee)
+            if parseFees:
+                order['fees'] = reduced
+            length = len(reduced)
+            if parseFee and (length == 1):
+                order['fee'] = reduced[0]
+        # We ensure amount = filled + remaining
+        if order['amount'] is None:
+            if order['filled'] is not None and order['remaining'] is not None:
+                order['amount'] = self.sum(order['filled'], order['remaining'])
+        if order['filled'] is None:
+            if order['amount'] is not None and order['remaining'] is not None:
+                order['filled'] = max(self.sum(order['amount'], -order['remaining']), 0)
+        if order['remaining'] is None:
+            if order['amount'] is not None and order['filled'] is not None:
+                order['remaining'] = max(self.sum(order['amount'], -order['filled']), 0)
+        # We ensure that the average field is calculated correctly
+        if order['average'] is None:
+            if order['filled'] is not None and order['cost'] is not None and order['cost'] > 0:
+                order['average'] = order['filled'] / order['cost']
+        # We also ensure the cost field is calculated correctly
+        costPriceExists = (order['average'] is not None) or (order['price'] is not None)
+        if (order['filled'] is not None) and costPriceExists:
+            costPrice = None
+            if order['average'] is None:
+                costPrice = order['price']
+            else:
+                costPrice = order['average']
+            order['cost'] = costPrice * order['filled']
+        # We add support for market orders
+        if order['price'] is None and order['type'] == 'market':
+            order['price'] = order['average']
+        return order
