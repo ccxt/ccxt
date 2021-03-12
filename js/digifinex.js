@@ -974,17 +974,7 @@ module.exports = class digifinex extends Exchange {
         const filled = this.safeFloat (order, 'executed_amount');
         const price = this.safeFloat (order, 'price');
         const average = this.safeFloat (order, 'avg_price');
-        let remaining = undefined;
-        let cost = undefined;
-        if (filled !== undefined) {
-            if (average !== undefined) {
-                cost = filled * average;
-            }
-            if (amount !== undefined) {
-                remaining = Math.max (0, amount - filled);
-            }
-        }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1000,13 +990,13 @@ module.exports = class digifinex extends Exchange {
             'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
-            'cost': cost,
+            'remaining': undefined,
+            'cost': undefined,
             'average': average,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
