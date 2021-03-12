@@ -409,12 +409,8 @@ class bitso(Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'original_amount')
         remaining = self.safe_float(order, 'unfilled_amount')
-        filled = None
-        if amount is not None:
-            if remaining is not None:
-                filled = amount - remaining
         clientOrderId = self.safe_string(order, 'client_id')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -431,12 +427,12 @@ class bitso(Exchange):
             'amount': amount,
             'cost': None,
             'remaining': remaining,
-            'filled': filled,
+            'filled': None,
             'status': status,
             'fee': None,
             'average': None,
             'trades': None,
-        }
+        })
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=25, params={}):
         await self.load_markets()
