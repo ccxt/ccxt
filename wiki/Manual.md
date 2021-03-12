@@ -888,6 +888,71 @@ For examples of how to use the `decimalToPrecision` to format strings and floats
 
 **Python WARNING! The `decimal_to_precision` method is susceptible to `getcontext().prec!`**
 
+For users' convenience CCXT base exchange class also implements the following methods:
+
+```JavaScript
+// JavaScript
+function amountToPrecision (symbol, amount)
+function priceToPrecision (symbol, price)
+function costToPrecision (symbol, cost)
+function currencyToPrecision (code, amount)
+```
+
+```Python
+# Python
+def amount_to_precision (symbol, amount):
+def price_to_precision (symbol, price):
+def cost_to_precision (symbol, cost):
+def currency_to_precision (code, amount):
+```
+
+```PHP
+// PHP
+function amount_to_precision ($symbol, $amount)
+function price_to_precision ($symbol, $price)
+function cost_to_precision ($symbol, $cost)
+function currency_to_precision ($code, $amount)
+```
+
+Every exchange has its own precision settings, the above methods will help format those values according to exchange-specific precision rules, in a way that is portable and agnostic of the underlying exchange. In order to make that possible, markets and currencies have to be loaded prior to formatting any values.
+
+**Make sure to [load the markets with `exchange.loadMarkets()`](#loading-markets) before calling these methods!**
+
+For example:
+
+```JavaScript
+// JavaScript
+await exchange.loadMarkets ()
+const symbol = 'BTC/USDT'
+const amount = 1.2345678 // amount in base currency BTC
+const price = 87654.321 // price in quote currency USDT
+const formattedAmount = exchange.amountToPrecision (symbol, amount)
+const formattedPrice = exchange.priceToPrecision (symbol, price)
+console.log (formattedAmount, formattedPrice)
+```
+
+```Python
+# Python
+exchange.load_markets()
+symbol = 'BTC/USDT'
+amount = 1.2345678  # amount in base currency BTC
+price = 87654.321  # price in quote currency USDT
+formatted_amount = exchange.amount_to_precision(symbol, amount)
+formatted_price = exchange.price_to_precision(symbol, price)
+print(formatted_amount, formatted_price)
+```
+
+```PHP
+// PHP
+$exchange->load_markets();
+$symbol = 'BTC/USDT';
+$amount = 1.2345678;  // amount in base currency BTC
+$price = 87654.321; // price in quote currency USDT
+$formatted_amount = $exchange->amount_to_precision($symbol, $amount);
+$formatted_price = $exchange->price_to_precision($symbol, $price);
+echo $formatted_amount, " ", $formatted_price, "\n";
+```
+
 ## Loading Markets
 
 In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially.
