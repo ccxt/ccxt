@@ -1407,10 +1407,11 @@ module.exports = class Exchange {
         const parseFee = this.safeValue (order, 'fee') === undefined;
         const parseFees = this.safeValue (order, 'fees') === undefined;
         let fees = undefined;
-        if (parseFee || parseFees) {
+        const shouldParseFees = parseFee || parseFees;
+        if (shouldParseFees) {
             fees = []
         }
-        if (parseFilled || parseCost || parseFee || parseFees) {
+        if (parseFilled || parseCost || shouldParseFees) {
             if (Array.isArray (order['trades'])) {
                 if (parseFilled) {
                     order['filled'] = 0
@@ -1426,7 +1427,7 @@ module.exports = class Exchange {
                     if (parseCost) {
                         order['cost'] = this.sum (order['cost'], trade['cost'])
                     }
-                    if (parseFee || parseFees) {
+                    if (shouldParseFees) {
                         if (Array.isArray (trade['fees'])) {
                             for (let j = 0; j < trade['fees'].length; j++) {
                                 const fee = trade['fees'][j];
@@ -1439,7 +1440,7 @@ module.exports = class Exchange {
                 }
             }
         }
-        if (parseFee || parseFees) {
+        if (shouldParseFees) {
             const reduced = []
             for (let i = 0; i < fees.length; i++) {
                 const fee = fees[i]
