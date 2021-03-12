@@ -1861,18 +1861,9 @@ class bitget(Exchange):
             symbol = market['symbol']
         amount = self.safe_float_2(order, 'amount', 'size')
         filled = self.safe_float_2(order, 'filled_amount', 'filled_qty')
-        remaining = None
-        if amount is not None:
-            if filled is not None:
-                amount = max(amount, filled)
-                remaining = max(0, amount - filled)
-        if type == 'market':
-            remaining = 0
         cost = self.safe_float(order, 'filled_cash_amount')
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'price_avg')
-        if (average is None) and (filled is not None) and (cost is not None) and (filled > 0):
-            average = cost / filled
         status = self.parse_order_status(self.safe_string_2(order, 'state', 'status'))
         feeCost = self.safe_float_2(order, 'filled_fees', 'fee')
         fee = None
@@ -1883,7 +1874,7 @@ class bitget(Exchange):
                 'currency': feeCurrency,
             }
         clientOrderId = self.safe_string(order, 'client_oid')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1901,11 +1892,11 @@ class bitget(Exchange):
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
