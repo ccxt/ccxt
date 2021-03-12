@@ -345,14 +345,8 @@ module.exports = class bitbay extends Exchange {
         const timestamp = this.safeInteger (order, 'time');
         const amount = this.safeFloat (order, 'startAmount');
         const remaining = this.safeFloat (order, 'currentAmount');
-        let filled = undefined;
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = Math.max (0, amount - remaining);
-            }
-        }
         const postOnly = this.safeValue (order, 'postOnly');
-        return {
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'info': order,
@@ -369,12 +363,12 @@ module.exports = class bitbay extends Exchange {
             'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'average': undefined,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

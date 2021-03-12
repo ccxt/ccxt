@@ -353,12 +353,8 @@ class bitbay(Exchange):
         timestamp = self.safe_integer(order, 'time')
         amount = self.safe_float(order, 'startAmount')
         remaining = self.safe_float(order, 'currentAmount')
-        filled = None
-        if amount is not None:
-            if remaining is not None:
-                filled = max(0, amount - remaining)
         postOnly = self.safe_value(order, 'postOnly')
-        return {
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'info': order,
@@ -375,12 +371,12 @@ class bitbay(Exchange):
             'stopPrice': None,
             'amount': amount,
             'cost': None,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'average': None,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

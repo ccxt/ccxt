@@ -1061,6 +1061,10 @@ class kucoin extends Exchange {
         $timestamp = $this->safe_integer($order, 'createdAt');
         $datetime = $this->iso8601($timestamp);
         $price = $this->safe_float($order, 'price');
+        if ($price === 0.0) {
+            // $market orders
+            $price = null;
+        }
         $side = $this->safe_string($order, 'side');
         $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
@@ -1068,7 +1072,6 @@ class kucoin extends Exchange {
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'dealSize');
         $cost = $this->safe_float($order, 'dealFunds');
-        $remaining = $amount - $filled;
         // bool
         $isActive = $this->safe_value($order, 'isActive', false);
         $cancelExist = $this->safe_value($order, 'cancelExist', false);
@@ -1078,20 +1081,11 @@ class kucoin extends Exchange {
             'currency' => $feeCurrency,
             'cost' => $feeCost,
         );
-        if ($type === 'market') {
-            if ($price === 0.0) {
-                if (($cost !== null) && ($filled !== null)) {
-                    if (($cost > 0) && ($filled > 0)) {
-                        $price = $cost / $filled;
-                    }
-                }
-            }
-        }
         $clientOrderId = $this->safe_string($order, 'clientOid');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_float($order, 'stopPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return array(
+        return $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
             'symbol' => $symbol,
@@ -1104,7 +1098,7 @@ class kucoin extends Exchange {
             'stopPrice' => $stopPrice,
             'cost' => $cost,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'fee' => $fee,
@@ -1113,7 +1107,7 @@ class kucoin extends Exchange {
             'lastTradeTimestamp' => null,
             'average' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -1270,21 +1270,7 @@ class bitmex extends Exchange {
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'orderQty');
         $filled = $this->safe_float($order, 'cumQty', 0.0);
-        $remaining = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = max ($amount - $filled, 0.0);
-            }
-        }
         $average = $this->safe_float($order, 'avgPx');
-        $cost = null;
-        if ($filled !== null) {
-            if ($average !== null) {
-                $cost = $average * $filled;
-            } else if ($price !== null) {
-                $cost = $price * $filled;
-            }
-        }
         $id = $this->safe_string($order, 'orderID');
         $type = $this->safe_string_lower($order, 'ordType');
         $side = $this->safe_string_lower($order, 'side');
@@ -1293,7 +1279,7 @@ class bitmex extends Exchange {
         $stopPrice = $this->safe_float($order, 'stopPx');
         $execInst = $this->safe_string($order, 'execInst');
         $postOnly = ($execInst === 'ParticipateDoNotInitiate');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1308,14 +1294,14 @@ class bitmex extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

@@ -1265,21 +1265,7 @@ module.exports = class bitmex extends Exchange {
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'orderQty');
         const filled = this.safeFloat (order, 'cumQty', 0.0);
-        let remaining = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = Math.max (amount - filled, 0.0);
-            }
-        }
         const average = this.safeFloat (order, 'avgPx');
-        let cost = undefined;
-        if (filled !== undefined) {
-            if (average !== undefined) {
-                cost = average * filled;
-            } else if (price !== undefined) {
-                cost = price * filled;
-            }
-        }
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
         const side = this.safeStringLower (order, 'side');
@@ -1288,7 +1274,7 @@ module.exports = class bitmex extends Exchange {
         const stopPrice = this.safeFloat (order, 'stopPx');
         const execInst = this.safeString (order, 'execInst');
         const postOnly = (execInst === 'ParticipateDoNotInitiate');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1303,14 +1289,14 @@ module.exports = class bitmex extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

@@ -342,7 +342,6 @@ class bitflyer extends Exchange {
         $remaining = $this->safe_float($order, 'outstanding_size');
         $filled = $this->safe_float($order, 'executed_size');
         $price = $this->safe_float($order, 'price');
-        $cost = $price * $filled;
         $status = $this->parse_order_status($this->safe_string($order, 'child_order_state'));
         $type = $this->safe_string_lower($order, 'child_order_type');
         $side = $this->safe_string_lower($order, 'side');
@@ -358,7 +357,7 @@ class bitflyer extends Exchange {
             );
         }
         $id = $this->safe_string($order, 'child_order_acceptance_id');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
@@ -373,14 +372,14 @@ class bitflyer extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'fee' => $fee,
             'average' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = 100, $params = array ()) {

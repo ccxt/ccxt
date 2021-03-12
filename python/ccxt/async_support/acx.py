@@ -315,7 +315,7 @@ class acx(Exchange):
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
         id = self.safe_string(order, 'id')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -337,7 +337,7 @@ class acx(Exchange):
             'info': order,
             'cost': None,
             'average': None,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()

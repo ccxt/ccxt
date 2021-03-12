@@ -1057,6 +1057,10 @@ module.exports = class kucoin extends Exchange {
         const timestamp = this.safeInteger (order, 'createdAt');
         const datetime = this.iso8601 (timestamp);
         let price = this.safeFloat (order, 'price');
+        if (price === 0.0) {
+            // market orders
+            price = undefined;
+        }
         const side = this.safeString (order, 'side');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
@@ -1064,7 +1068,6 @@ module.exports = class kucoin extends Exchange {
         const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'dealSize');
         const cost = this.safeFloat (order, 'dealFunds');
-        const remaining = amount - filled;
         // bool
         const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
@@ -1074,20 +1077,11 @@ module.exports = class kucoin extends Exchange {
             'currency': feeCurrency,
             'cost': feeCost,
         };
-        if (type === 'market') {
-            if (price === 0.0) {
-                if ((cost !== undefined) && (filled !== undefined)) {
-                    if ((cost > 0) && (filled > 0)) {
-                        price = cost / filled;
-                    }
-                }
-            }
-        }
         const clientOrderId = this.safeString (order, 'clientOid');
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeFloat (order, 'stopPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return {
+        return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'symbol': symbol,
@@ -1100,7 +1094,7 @@ module.exports = class kucoin extends Exchange {
             'stopPrice': stopPrice,
             'cost': cost,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'timestamp': timestamp,
             'datetime': datetime,
             'fee': fee,
@@ -1109,7 +1103,7 @@ module.exports = class kucoin extends Exchange {
             'lastTradeTimestamp': undefined,
             'average': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
