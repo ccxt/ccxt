@@ -518,15 +518,12 @@ module.exports = class digifinex extends Exchange {
         const tickers = this.safeValue (response, 'ticker', []);
         const date = this.safeInteger (response, 'date');
         for (let i = 0; i < tickers.length; i++) {
-            const reversedMarketId = tickers[i]['symbol'];
-            const ticker = this.extend ({
+            const rawTicker = this.extend ({
                 'date': date,
             }, tickers[i]);
-            const [ baseId, quoteId ] = reversedMarketId.split ('_');
-            const marketId = baseId.toUpperCase () + '_' + quoteId.toUpperCase ();
-            const market = this.safeMarket (marketId, undefined, '_');
-            const symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            const ticker = this.parseTicker (rawTicker);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -557,8 +554,8 @@ module.exports = class digifinex extends Exchange {
         //
         const date = this.safeInteger (response, 'date');
         const tickers = this.safeValue (response, 'ticker', []);
-        let result = this.safeValue (tickers, 0, {});
-        result = this.extend ({ 'date': date }, result);
+        const firstTicker = this.safeValue (tickers, 0, {});
+        const result = this.extend ({ 'date': date }, firstTicker);
         return this.parseTicker (result, market);
     }
 
@@ -568,6 +565,7 @@ module.exports = class digifinex extends Exchange {
         //
         //     {
         //         "last":0.021957,
+        //         "symbol": "btc_usdt",
         //         "base_vol":2249.3521732227,
         //         "change":-0.6,
         //         "vol":102443.5111,
@@ -578,10 +576,8 @@ module.exports = class digifinex extends Exchange {
         //         "date"1564518452, // injected from fetchTicker/fetchTickers
         //     }
         //
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeStringUpper (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeTimestamp (ticker, 'date');
         const last = this.safeFloat (ticker, 'last');
         const percentage = this.safeFloat (ticker, 'change');
