@@ -1404,14 +1404,20 @@ module.exports = class Exchange {
         // First we try to calculate filled from the trades
         const parseFilled = order['filled'] === undefined;
         const parseCost = order['cost'] === undefined;
-        if (parseFilled) {
-            order['filled'] = 0
+        const parseFee = order['fee'] === undefined;
+        const parseFees = order['fees'] === undefined;
+        let fees = undefined;
+        if (parseFee || parseFees) {
+            fees = []
         }
-        if (parseCost) {
-            order['cost'] = 0
-        }
-        if (parseFilled || parseCost) {
+        if (parseFilled || parseCost || parseFee || parseFees) {
             if (Array.isArray (order['trades'])) {
+                if (parseFilled) {
+                    order['filled'] = 0
+                }
+                if (parseCost) {
+                    order['cost'] = 0
+                }
                 for (let i = 0; i < order['trades'].length; i++) {
                     const trade = order['trades'][i]
                     if (parseFilled) {
@@ -1420,7 +1426,41 @@ module.exports = class Exchange {
                     if (parseCost) {
                         order['cost'] = this.sum (order['cost'], trade['cost'])
                     }
+                    if (parseFee || parseFees) {
+                        if (Array.isArray (trade['fees'])) {
+                            for (let j = 0; j < trade['fees'].length; j++) {
+                                const fee = trade['fees'][j];
+                                fees.push (this.extend ({}, fee))
+                            }
+                        } else if (trade['fee'] !== undefined) {
+                            fees.push (this.extend ({}, trade['fee']))
+                        }
+                    }
                 }
+            }
+        }
+        if (parseFee || parseFees) {
+            const reduced = []
+            for (let i = 0; i < fees.length; i++) {
+                const fee = fees[i]
+                let appendFee = true;
+                for (let j = 0; j < reduced.length; j++) {
+                    const reducedFee = reduced[j]
+                    if (reducedFee['currency'] === fee['currency']) {
+                        reducedFee['cost'] = this.sum (reducedFee['cost'], fee['cost'])
+                        appendFee = false
+                    }
+                }
+                if (appendFee) {
+                    reduced.push (fee)
+                }
+            }
+            if (parseFees) {
+                order['fees'] = reduced
+            }
+            const length = reduced.length;
+            if (parseFee && (length === 1)) {
+                order['fee'] = reduced[0]
             }
         }
         // We ensure amount = filled + remaining

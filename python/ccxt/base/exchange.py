@@ -2087,53 +2087,82 @@ class Exchange(object):
         string.reverse()
         return ''.join(string)
 
-    def safe_order(self, order):
-        # Cost
-        # Remaining
-        # Average
-        # Price
-        # Amount
-        # Filled
-        #
-        # First we try to calculate filled from the trades
-        parseFilled = order['filled'] is None
-        parseCost = order['cost'] is None
-        if parseFilled:
-            order['filled'] = 0
-        if parseCost:
-            order['cost'] = 0
-        if parseFilled or parseCost:
-            if isinstance(order['trades'], list):
-                for i in range(0, len(order['trades'])):
-                    trade = order['trades'][i]
-                    if parseFilled:
-                        order['filled'] = self.sum(order['filled'], trade['amount'])
-                    if parseCost:
-                        order['cost'] = self.sum(order['cost'], trade['amount'])
-        # We ensure amount = filled + remaining
-        if order['amount'] is None:
-            if order['filled'] is not None and order['remaining'] is not None:
-                order['amount'] = self.sum(order['filled'], order['remaining'])
-        if order['filled'] is None:
-            if order['amount'] is not None and order['remaining'] is not None:
-                order['filled'] = max(self.sum(order['amount'], -order['remaining']), 0)
-        if order['remaining'] is None:
-            if order['amount'] is not None and order['filled'] is not None:
-                order['remaining'] = max(self.sum(order['amount'], -order['filled']), 0)
-        # We ensure that the average field is calculated correctly
-        if order['average'] is None:
-            if order['filled'] is not None and order['cost'] is not None and order['cost'] > 0:
-                order['average'] = order['filled'] / order['cost']
-        # We also ensure the cost field is calculated correctly
-        costPriceExists = (order['average'] is not None) or (order['price'] is not None)
-        if (order['filled'] is not None) and costPriceExists:
-            costPrice = None
-            if order['average'] is None:
-                costPrice = order['price']
-            else:
-                costPrice = order['average']
-            order['cost'] = costPrice * order['filled']
-        # We add support for market orders
-        if order['price'] is None and order['type'] == 'market':
-            order['price'] = order['average']
-        return order
+def safe_order(self, order):
+      # Cost
+      # Remaining
+      # Average
+      # Price
+      # Amount
+      # Filled
+      #
+      # First we try to calculate filled from the trades
+      parseFilled = order['filled'] is None
+      parseCost = order['cost'] is None
+      parseFee = order['fee'] is None
+      parseFees = order['fees'] is None
+      fees = None
+      if parseFee or parseFees:
+          fees = []
+      if parseFilled or parseCost or parseFee or parseFees:
+          if isinstance(order['trades'], list):
+              if parseFilled:
+                  order['filled'] = 0
+              if parseCost:
+                  order['cost'] = 0
+              for i in range(0, len(order['trades'])):
+                  trade = order['trades'][i]
+                  if parseFilled:
+                      order['filled'] = self.sum(order['filled'], trade['amount'])
+                  if parseCost:
+                      order['cost'] = self.sum(order['cost'], trade['cost'])
+                  if parseFee or parseFees:
+                      if isinstance(trade['fees'], list):
+                          for j in range(0, len(trade['fees'])):
+                              fee = trade['fees'][j]
+                              fees.append(self.extend({}, fee))
+                      elif trade['fee'] is not None:
+                          fees.append(self.extend({}, trade['fee']))
+      if parseFee or parseFees:
+          reduced = []
+          for i in range(0, len(fees)):
+              fee = fees[i]
+              appendFee = True
+              for j in range(0, len(reduced)):
+                  reducedFee = reduced[j]
+                  if reducedFee['currency'] == fee['currency']:
+                      reducedFee['cost'] = self.sum(reducedFee['cost'], fee['cost'])
+                      appendFee = False
+              if appendFee:
+                  reduced.append(fee)
+          if parseFees:
+              order['fees'] = reduced
+          length = len(reduced)
+          if parseFee and (length == 1):
+              order['fee'] = reduced[0]
+      # We ensure amount = filled + remaining
+      if order['amount'] is None:
+          if order['filled'] is not None and order['remaining'] is not None:
+              order['amount'] = self.sum(order['filled'], order['remaining'])
+      if order['filled'] is None:
+          if order['amount'] is not None and order['remaining'] is not None:
+              order['filled'] = max(self.sum(order['amount'], -order['remaining']), 0)
+      if order['remaining'] is None:
+          if order['amount'] is not None and order['filled'] is not None:
+              order['remaining'] = max(self.sum(order['amount'], -order['filled']), 0)
+      # We ensure that the average field is calculated correctly
+      if order['average'] is None:
+          if order['filled'] is not None and order['cost'] is not None and order['cost'] > 0:
+              order['average'] = order['filled'] / order['cost']
+      # We also ensure the cost field is calculated correctly
+      costPriceExists = (order['average'] is not None) or (order['price'] is not None)
+      if (order['filled'] is not None) and costPriceExists:
+          costPrice = None
+          if order['average'] is None:
+              costPrice = order['price']
+          else:
+              costPrice = order['average']
+          order['cost'] = costPrice * order['filled']
+      # We add support for market orders
+      if order['price'] is None and order['type'] == 'market':
+          order['price'] = order['average']
+      return order
