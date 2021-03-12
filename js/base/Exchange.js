@@ -1428,13 +1428,17 @@ module.exports = class Exchange {
                         order['cost'] = this.sum (order['cost'], trade['cost'])
                     }
                     if (shouldParseFees) {
-                        if (Array.isArray (trade['fees'])) {
-                            for (let j = 0; j < trade['fees'].length; j++) {
-                                const fee = trade['fees'][j];
-                                fees.push (this.extend ({}, fee))
+                        const tradeFees = this.safeValue (trade, 'fees');
+                        if (tradeFees !== undefined) {
+                            for (let j = 0; j < tradeFees.length; j++) {
+                                const tradeFee = tradeFees[j];
+                                fees.push (this.extend ({}, tradeFee))
                             }
-                        } else if (trade['fee'] !== undefined) {
-                            fees.push (this.extend ({}, trade['fee']))
+                        } else {
+                            const tradeFee = this.safeValue (trade, 'fee');
+                            if (tradeFee !== undefined) {
+                                fees.push (this.extend ({}, tradeFee))
+                            }
                         }
                     }
                 }
