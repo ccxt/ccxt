@@ -576,18 +576,10 @@ module.exports = class yobit extends Exchange {
         const remaining = this.safeFloat (order, 'amount');
         const amount = this.safeFloat (order, 'start_amount');
         const price = this.safeFloat (order, 'rate');
-        let filled = undefined;
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = Math.max (0, amount - remaining);
-                cost = price * filled;
-            }
-        }
         const fee = undefined;
         const type = 'limit';
         const side = this.safeString (order, 'type');
-        const result = {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -601,16 +593,15 @@ module.exports = class yobit extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': undefined,
             'status': status,
             'fee': fee,
             'average': undefined,
             'trades': undefined,
-        };
-        return result;
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
