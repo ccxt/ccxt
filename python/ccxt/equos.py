@@ -1267,22 +1267,6 @@ class equos(Exchange):
         remaining = self.safe_integer(order, 'leavesQty')
         remainingScale = self.safe_integer(order, 'leavesQty_scale')
         remaining = self.convert_from_scale(remaining, remainingScale)
-        if remaining <= 0:
-            if (filled is not None) and (amount is not None) and (filled < amount):
-                remaining = None
-        if (remaining is None) and (amount is not None) and (filled is not None):
-            remaining = max(amount - filled, 0)
-        average = self.safe_integer(order, 'price', 0)
-        if average == 0:
-            average = None
-        averageScale = self.safe_integer(order, 'price_scale')
-        average = self.convert_from_scale(average, averageScale)
-        cost = None
-        if filled != 0:
-            if average > 0:
-                cost = average * filled
-            elif price > 0:
-                cost = price * filled
         fee = None
         currencyId = self.safe_integer(order, 'feeInstrumentId')
         feeCurrencyCode = self.safe_currency_code(currencyId)
@@ -1302,7 +1286,7 @@ class equos(Exchange):
             timeInForce = None
         stopPriceScale = self.safe_integer(order, 'stopPx_scale', 0)
         stopPrice = self.convert_from_scale(self.safe_integer(order, 'stopPx'), stopPriceScale)
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1317,14 +1301,14 @@ class equos(Exchange):
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
-            'average': average,
+            'cost': None,
+            'average': None,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def parse_order_status(self, status):
         statuses = {
