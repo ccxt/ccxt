@@ -1024,15 +1024,9 @@ class bittrex extends Exchange {
         //     }
         //
         $marketSymbol = $this->safe_string($order, 'marketSymbol');
-        $symbol = null;
-        $feeCurrency = null;
-        if ($marketSymbol !== null) {
-            list($baseId, $quoteId) = explode('-', $marketSymbol);
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $feeCurrency = $quote;
-        }
+        $market = $this->safe_market($marketSymbol, $market, '-');
+        $symbol = $market['symbol'];
+        $feeCurrency = $market['quote'];
         $direction = $this->safe_string_lower($order, 'direction');
         $createdAt = $this->safe_string($order, 'createdAt');
         $updatedAt = $this->safe_string($order, 'updatedAt');
@@ -1050,27 +1044,10 @@ class bittrex extends Exchange {
         $fillQuantity = $this->safe_float($order, 'fillQuantity');
         $commission = $this->safe_float($order, 'commission');
         $proceeds = $this->safe_float($order, 'proceeds');
-        $average = null;
-        $remaining = null;
-        if ($fillQuantity !== null) {
-            if ($proceeds !== null) {
-                if ($fillQuantity > 0) {
-                    $average = $proceeds / $fillQuantity;
-                } else if ($proceeds === 0) {
-                    $average = 0;
-                }
-            }
-            if ($quantity !== null) {
-                $remaining = $quantity - $fillQuantity;
-            }
-        }
         $status = $this->safe_string_lower($order, 'status');
-        if (($status === 'closed') && ($remaining !== null) && ($remaining > 0)) {
-            $status = 'canceled';
-        }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $postOnly = ($timeInForce === 'PO');
-        return array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -1084,10 +1061,10 @@ class bittrex extends Exchange {
             'price' => $limit,
             'stopPrice' => null,
             'cost' => $proceeds,
-            'average' => $average,
+            'average' => null,
             'amount' => $quantity,
             'filled' => $fillQuantity,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => array(
                 'cost' => $commission,
@@ -1095,7 +1072,7 @@ class bittrex extends Exchange {
             ),
             'info' => $order,
             'trades' => null,
-        );
+        ));
     }
 
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
