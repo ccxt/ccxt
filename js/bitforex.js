@@ -482,16 +482,14 @@ module.exports = class bitforex extends Exchange {
         const average = this.safeFloat (order, 'avgPrice');
         const amount = this.safeFloat (order, 'orderAmount');
         const filled = this.safeFloat (order, 'dealAmount');
-        const remaining = amount - filled;
         const status = this.parseOrderStatus (this.safeString (order, 'orderState'));
-        const cost = filled * price;
         const feeSide = (side === 'buy') ? 'base' : 'quote';
         const feeCurrency = market[feeSide];
         const fee = {
             'cost': this.safeFloat (order, 'tradeFee'),
             'currency': feeCurrency,
         };
-        const result = {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -505,16 +503,15 @@ module.exports = class bitforex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
-        return result;
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
