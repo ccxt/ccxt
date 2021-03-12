@@ -644,15 +644,8 @@ class zb(Exchange):
         price = self.safe_float(order, 'price')
         filled = self.safe_float(order, 'trade_amount')
         amount = self.safe_float(order, 'total_amount')
-        remaining = None
-        if amount is not None:
-            if filled is not None:
-                remaining = amount - filled
         cost = self.safe_float(order, 'trade_money')
-        average = None
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        if (cost is not None) and (filled is not None) and (filled > 0):
-            average = cost / filled
         id = self.safe_string(order, 'id')
         feeCost = self.safe_float(order, 'fees')
         fee = None
@@ -667,7 +660,7 @@ class zb(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -681,15 +674,15 @@ class zb(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'average': average,
+            'average': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def parse_order_status(self, status):
         statuses = {
