@@ -1016,28 +1016,9 @@ class vcc extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $cost = $this->safe_float($order, 'ceiling');
         $id = $this->safe_string($order, 'id');
-        $average = null;
         $price = $this->safe_float($order, 'price');
-        // in case of $market $order
-        if (!$price) {
-            $price = $this->safe_float($order, 'executed_price');
-            $average = $price;
-        }
+        $average = $this->safe_float($order, 'executed_price');
         $remaining = $this->safe_float($order, 'remaining');
-        if (($filled === null) && ($amount !== null) && ($remaining !== null)) {
-            $filled = max (0, $amount - $remaining);
-        }
-        if ($filled !== null) {
-            if (($amount !== null) && ($remaining === null)) {
-                $remaining = max (0, $amount - $filled);
-            }
-            if (($price !== null) && ($cost === null)) {
-                $cost = $filled * $price;
-            }
-            if (($average === null) && ($cost !== null) && ($filled > 0)) {
-                $average = $cost / $filled;
-            }
-        }
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'trade_type');
         $fee = array(
@@ -1050,7 +1031,7 @@ class vcc extends Exchange {
             $lastTradeTimestamp = $updated;
         }
         $stopPrice = $this->safe_float($order, 'stopPrice');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $id,
             'timestamp' => $created,
@@ -1072,7 +1053,7 @@ class vcc extends Exchange {
             'fee' => $fee,
             'trades' => null,
             'info' => $order,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

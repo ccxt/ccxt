@@ -976,22 +976,9 @@ class vcc(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         cost = self.safe_float(order, 'ceiling')
         id = self.safe_string(order, 'id')
-        average = None
         price = self.safe_float(order, 'price')
-        # in case of market order
-        if not price:
-            price = self.safe_float(order, 'executed_price')
-            average = price
+        average = self.safe_float(order, 'executed_price')
         remaining = self.safe_float(order, 'remaining')
-        if (filled is None) and (amount is not None) and (remaining is not None):
-            filled = max(0, amount - remaining)
-        if filled is not None:
-            if (amount is not None) and (remaining is None):
-                remaining = max(0, amount - filled)
-            if (price is not None) and (cost is None):
-                cost = filled * price
-            if (average is None) and (cost is not None) and (filled > 0):
-                average = cost / filled
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'trade_type')
         fee = {
@@ -1003,7 +990,7 @@ class vcc(Exchange):
         if updated != created:
             lastTradeTimestamp = updated
         stopPrice = self.safe_float(order, 'stopPrice')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': id,
             'timestamp': created,
@@ -1025,7 +1012,7 @@ class vcc(Exchange):
             'fee': fee,
             'trades': None,
             'info': order,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
