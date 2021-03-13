@@ -2174,10 +2174,12 @@ module.exports = class binance extends Exchange {
 
     async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const type = this.safeString (this.options, 'defaultType', 'future');
-        const fetchPositions = this.safeValue (this.options, 'fetchPositions', {});
+        const defaultType = this.safeString (this.options, 'defaultType', 'future');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        const options = this.safeValue (this.options, 'fetchPositions', {});
         const defaultMethod = (type === 'future') ? 'fapiPrivateV2GetAccount' : 'dapiPrivateGetAccount';
-        const method = this.safeString (fetchPositions, type, defaultMethod);
+        const method = this.safeString (options, type, defaultMethod);
         const response = await this[method] (params);
         //
         // futures, delivery
