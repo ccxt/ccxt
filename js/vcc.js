@@ -1008,32 +1008,13 @@ module.exports = class vcc extends Exchange {
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const amount = this.safeFloat (order, 'quantity');
-        let filled = this.safeFloat (order, 'executed_quantity');
+        const filled = this.safeFloat (order, 'executed_quantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let cost = this.safeFloat (order, 'ceiling');
+        const cost = this.safeFloat (order, 'ceiling');
         const id = this.safeString (order, 'id');
-        let average = undefined;
-        let price = this.safeFloat (order, 'price');
-        // in case of market order
-        if (!price) {
-            price = this.safeFloat (order, 'executed_price');
-            average = price;
-        }
-        let remaining = this.safeFloat (order, 'remaining');
-        if ((filled === undefined) && (amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (0, amount - remaining);
-        }
-        if (filled !== undefined) {
-            if ((amount !== undefined) && (remaining === undefined)) {
-                remaining = Math.max (0, amount - filled);
-            }
-            if ((price !== undefined) && (cost === undefined)) {
-                cost = filled * price;
-            }
-            if ((average === undefined) && (cost !== undefined) && (filled > 0)) {
-                average = cost / filled;
-            }
-        }
+        const price = this.safeFloat (order, 'price');
+        const average = this.safeFloat (order, 'executed_price');
+        const remaining = this.safeFloat (order, 'remaining');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'trade_type');
         const fee = {
@@ -1046,7 +1027,7 @@ module.exports = class vcc extends Exchange {
             lastTradeTimestamp = updated;
         }
         const stopPrice = this.safeFloat (order, 'stopPrice');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': id,
             'timestamp': created,
@@ -1068,7 +1049,7 @@ module.exports = class vcc extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
