@@ -1402,43 +1402,49 @@ module.exports = class Exchange {
         // Filled
         //
         // First we try to calculate filled from the trades
-        const parseFilled = this.safeValue (order, 'filled') === undefined;
-        const parseCost = this.safeValue (order, 'cost') === undefined;
+        let amount = this.safeValue (order, 'amount');
+        let remaining = this.safeValue (order, 'remaining');
+        let filled = this.safeValue (order, 'filled');
+        let cost = this.safeValue (order, 'cost');
+        let average = this.safeValue (order, 'average');
+        let price = this.safeValue (order, 'price');
+        const parseFilled = (filled === undefined);
+        const parseCost = (cost === undefined);
         const parseFee = this.safeValue (order, 'fee') === undefined;
         const parseFees = this.safeValue (order, 'fees') === undefined;
         let fees = undefined;
         const shouldParseFees = parseFee || parseFees;
         if (shouldParseFees) {
-            fees = []
+            fees = [];
         }
         if (parseFilled || parseCost || shouldParseFees) {
             const trades = this.safeValue (order, 'trades');
             if (trades !== undefined) {
                 if (parseFilled) {
-                    order['filled'] = 0
+                    filled = 0;
                 }
                 if (parseCost) {
-                    order['cost'] = 0
+                    cost = 0;
                 }
-                for (let i = 0; i < order['trades'].length; i++) {
-                    const trade = order['trades'][i]
+                for (let i = 0; i < trades.length; i++) {
+                    const trade = trades[i];
                     if (parseFilled) {
-                        order['filled'] = this.sum (order['filled'], trade['amount'])
+                        filled = this.sum (filled, trade['amount']);
                     }
                     if (parseCost) {
-                        order['cost'] = this.sum (order['cost'], trade['cost'])
+                        cost = this.sum (cost, trade['cost']);
                     }
                     if (shouldParseFees) {
                         const tradeFees = this.safeValue (trade, 'fees');
                         if (tradeFees !== undefined) {
                             for (let j = 0; j < tradeFees.length; j++) {
                                 const tradeFee = tradeFees[j];
-                                fees.push (this.extend ({}, tradeFee))
+                                fees.push (this.extend ({}, tradeFee));
                             }
                         } else {
                             const tradeFee = this.safeValue (trade, 'fee');
                             if (tradeFee !== undefined) {
-                                fees.push (this.extend ({}, tradeFee))
+                                fees.push (this.extend ({}, tradeFee));
                             }
                         }
                     }
@@ -1446,66 +1452,68 @@ module.exports = class Exchange {
             }
         }
         if (shouldParseFees) {
-            const reduced = []
+            const reduced = [];
             for (let i = 0; i < fees.length; i++) {
-                const fee = fees[i]
+                const fee = fees[i];
                 let appendFee = true;
                 for (let j = 0; j < reduced.length; j++) {
                     const reducedFee = reduced[j]
                     if (reducedFee['currency'] === fee['currency']) {
-                        reducedFee['cost'] = this.sum (reducedFee['cost'], fee['cost'])
-                        appendFee = false
+                        reducedFee['cost'] = this.sum (reducedFee['cost'], fee['cost']);
+                        appendFee = false;
                     }
                 }
                 if (appendFee) {
-                    reduced.push (fee)
+                    reduced.push (fee);
                 }
             }
             if (parseFees) {
-                order['fees'] = reduced
+                order['fees'] = reduced;
             }
             const length = reduced.length;
             if (parseFee && (length === 1)) {
-                order['fee'] = reduced[0]
+                order['fee'] = reduced[0];
             }
         }
-        // We ensure amount = filled + remaining
-        if (order['amount'] === undefined) {
-            if (order['filled'] !== undefined && order['remaining'] !== undefined) {
-                order['amount'] = this.sum (order['filled'], order['remaining'])
+        if (amount === undefined) {
+        // ensure amount = filled + remaining
+            if (filled !== undefined && remaining !== undefined) {
+                amount = this.sum (filled, remaining);
             }
         }
-        if (order['filled'] === undefined) {
-            if (order['amount'] !== undefined && order['remaining'] !== undefined) {
-                order['filled'] = Math.max (this.sum (order['amount'], -order['remaining']), 0)
+        if (filled === undefined) {
+            if (amount !== undefined && remaining !== undefined) {
+                filled = Math.max (this.sum (amount, -remaining), 0);
             }
         }
-        if (order['remaining'] === undefined) {
-            if (order['amount'] !== undefined && order['filled'] !== undefined) {
-                order['remaining'] = Math.max (this.sum (order['amount'], -order['filled']), 0)
+        if (remaining === undefined) {
+            if (amount !== undefined && filled !== undefined) {
+                remaining = Math.max (this.sum (amount, -filled), 0);
             }
         }
         // We ensure that the average field is calculated correctly
-        if (order['average'] === undefined) {
-            if (order['filled'] !== undefined && order['cost'] !== undefined && order['cost'] > 0) {
-                order['average'] = order['filled'] / order['cost']
+        if (average === undefined) {
+            if ((filled !== undefined) && (cost !== undefined) && (cost > 0)) {
+                average = filled / cost;
             }
         }
         // We also ensure the cost field is calculated correctly
-        const costPriceExists = (order['average'] !== undefined) || (order['price'] !== undefined)
-        if ((order['filled'] !== undefined) && costPriceExists) {
-            let costPrice = undefined;
-            if (order['average'] === undefined) {
-                costPrice = order['price']
-            } else {
-                costPrice = order['average']
-            }
-            order['cost'] = costPrice * order['filled']
+        const costPriceExists = (average !== undefined) || (price !== undefined)
+        if ((filled !== undefined) && costPriceExists) {
+            cost = (average === undefined) ? (price * filled) : (average * filled);
         }
         // We add support for market orders
-        if (order['price'] === undefined && order['type'] === 'market') {
-            order['price'] = order['average']
+        if ((price === undefined) && (order['type'] === 'market')) {
+            price = average;
         }
-        return order
+        return this.extend (order, {
+            'lastTradeTimestamp': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+        });
     }
 }
