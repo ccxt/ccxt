@@ -1503,7 +1503,7 @@ module.exports = class Exchange {
         // ensure that the average field is calculated correctly
         if (average === undefined) {
             if ((filled !== undefined) && (cost !== undefined) && (cost > 0)) {
-                average = filled / cost;
+                average = cost / filled;
             }
         }
         // also ensure the cost field is calculated correctly
