@@ -1442,7 +1442,7 @@ module.exports = class Exchange {
         // We ensure that the average field is calculated correctly
         if (order['average'] === undefined) {
             if (order['filled'] !== undefined && order['cost'] !== undefined && order['cost'] > 0) {
-                order['average'] = order['filled'] / order['cost']
+                order['average'] = order['cost'] / order['filled']
             }
         }
         // We also ensure the cost field is calculated correctly
