@@ -616,26 +616,14 @@ module.exports = class latoken extends Exchange {
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat (order, 'executedAmount');
-        let remaining = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = amount - filled;
-            }
-        }
         const status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
-        let cost = undefined;
-        if (filled !== undefined) {
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-        }
         const timeFilled = this.safeTimestamp (order, 'timeFilled');
         let lastTradeTimestamp = undefined;
         if ((timeFilled !== undefined) && (timeFilled > 0)) {
             lastTradeTimestamp = timeFilled;
         }
         const clientOrderId = this.safeString (order, 'cliOrdId');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -650,14 +638,14 @@ module.exports = class latoken extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
             'filled': filled,
             'average': undefined,
-            'remaining': remaining,
+            'remaining': undefined,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
