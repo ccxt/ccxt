@@ -405,14 +405,8 @@ module.exports = class tidebit extends Exchange {
         const amount = this.safeFloat (order, 'volume');
         const filled = this.safeFloat (order, 'executed_volume');
         const remaining = this.safeFloat (order, 'remaining_volume');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (filled !== undefined) {
-                cost = price * filled;
-            }
-        }
         const average = this.safeFloat (order, 'avg_price');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -429,12 +423,12 @@ module.exports = class tidebit extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'cost': cost,
+            'cost': undefined,
             'trades': undefined,
             'fee': undefined,
             'info': order,
             'average': average,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
