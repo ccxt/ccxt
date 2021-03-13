@@ -939,7 +939,6 @@ class xena extends Exchange {
         $amount = $this->safe_float($order, 'orderQty');
         $filled = $this->safe_float($order, 'cumQty');
         $remaining = $this->safe_float($order, 'leavesQty');
-        $cost = null;
         $side = $this->safe_string_lower($order, 'side');
         if ($side === '1') {
             $side = 'buy';
@@ -956,12 +955,7 @@ class xena extends Exchange {
         } else if ($type === '4') {
             $type = 'stop-limit';
         }
-        if ($cost === null) {
-            if (($price !== null) && ($filled !== null)) {
-                $cost = $price * $filled;
-            }
-        }
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -976,14 +970,14 @@ class xena extends Exchange {
             'price' => $price,
             'stopPrice' => null,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => null,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

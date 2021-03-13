@@ -895,7 +895,6 @@ class xena(Exchange):
         amount = self.safe_float(order, 'orderQty')
         filled = self.safe_float(order, 'cumQty')
         remaining = self.safe_float(order, 'leavesQty')
-        cost = None
         side = self.safe_string_lower(order, 'side')
         if side == '1':
             side = 'buy'
@@ -910,10 +909,7 @@ class xena(Exchange):
             type = 'stop'
         elif type == '4':
             type = 'stop-limit'
-        if cost is None:
-            if (price is not None) and (filled is not None):
-                cost = price * filled
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -928,14 +924,14 @@ class xena(Exchange):
             'price': price,
             'stopPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': None,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
