@@ -1401,7 +1401,7 @@ module.exports = class Exchange {
         // Amount
         // Filled
         //
-        // First we try to calculate filled from the trades
+        // first we try to calculate the order fields from the trades
         let amount = this.safeValue (order, 'amount');
         let remaining = this.safeValue (order, 'remaining');
         let filled = this.safeValue (order, 'filled');
@@ -1476,7 +1476,7 @@ module.exports = class Exchange {
             }
         }
         if (amount === undefined) {
-        // ensure amount = filled + remaining
+            // ensure amount = filled + remaining
             if (filled !== undefined && remaining !== undefined) {
                 amount = this.sum (filled, remaining);
             }
@@ -1491,18 +1491,18 @@ module.exports = class Exchange {
                 remaining = Math.max (this.sum (amount, -filled), 0);
             }
         }
-        // We ensure that the average field is calculated correctly
+        // ensure that the average field is calculated correctly
         if (average === undefined) {
             if ((filled !== undefined) && (cost !== undefined) && (cost > 0)) {
                 average = filled / cost;
             }
         }
-        // We also ensure the cost field is calculated correctly
+        // also ensure the cost field is calculated correctly
         const costPriceExists = (average !== undefined) || (price !== undefined)
         if ((filled !== undefined) && costPriceExists) {
             cost = (average === undefined) ? (price * filled) : (average * filled);
         }
-        // We add support for market orders
+        // support for market orders
         if ((price === undefined) && (order['type'] === 'market')) {
             price = average;
         }
