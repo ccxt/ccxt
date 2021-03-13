@@ -683,18 +683,8 @@ class zb extends Exchange {
         $price = $this->safe_float($order, 'price');
         $filled = $this->safe_float($order, 'trade_amount');
         $amount = $this->safe_float($order, 'total_amount');
-        $remaining = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = $amount - $filled;
-            }
-        }
         $cost = $this->safe_float($order, 'trade_money');
-        $average = null;
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        if (($cost !== null) && ($filled !== null) && ($filled > 0)) {
-            $average = $cost / $filled;
-        }
         $id = $this->safe_string($order, 'id');
         $feeCost = $this->safe_float($order, 'fees');
         $fee = null;
@@ -711,7 +701,7 @@ class zb extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -725,15 +715,15 @@ class zb extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'average' => $average,
+            'average' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {

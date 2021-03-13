@@ -351,16 +351,10 @@ module.exports = class bitbank extends Exchange {
         const filled = this.safeFloat (order, 'executed_amount');
         const remaining = this.safeFloat (order, 'remaining_amount');
         const average = this.safeFloat (order, 'average_price');
-        let cost = undefined;
-        if (filled !== undefined) {
-            if (average !== undefined) {
-                cost = filled * average;
-            }
-        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -374,7 +368,7 @@ module.exports = class bitbank extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'amount': amount,
             'filled': filled,
@@ -382,7 +376,7 @@ module.exports = class bitbank extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

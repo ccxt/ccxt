@@ -336,7 +336,7 @@ module.exports = class acx extends Exchange {
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         const id = this.safeString (order, 'id');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -358,7 +358,7 @@ module.exports = class acx extends Exchange {
             'info': order,
             'cost': undefined,
             'average': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

@@ -338,7 +338,7 @@ class acx extends Exchange {
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $id = $this->safe_string($order, 'id');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -360,7 +360,7 @@ class acx extends Exchange {
             'info' => $order,
             'cost' => null,
             'average' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

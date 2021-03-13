@@ -526,6 +526,10 @@ class binance(Exchange):
                     'future': 'x-xcKtGhcu',
                     'delivery': 'x-xcKtGhcu',
                 },
+                'fetchPositions': {
+                    'future': 'fapiPrivateV2GetAccount',  # 'fapiPrivateGetPositionRisk'
+                    'delivery': 'dapiPrivateGetAccount',  # 'dapiPrivateGetPositionRisk'
+                },
             },
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
@@ -2061,8 +2065,13 @@ class binance(Exchange):
 
     async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.fetch_balance(params)
-        info = self.safe_value(response, 'info', {})
+        defaultType = self.safe_string(self.options, 'defaultType', 'future')
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        options = self.safe_value(self.options, 'fetchPositions', {})
+        defaultMethod = 'fapiPrivateV2GetAccount' if (type == 'future') else 'dapiPrivateGetAccount'
+        method = self.safe_string(options, type, defaultMethod)
+        response = await getattr(self, method)(params)
         #
         # futures, delivery
         #
@@ -2105,9 +2114,44 @@ class binance(Exchange):
         #         ]
         #     }
         #
-        positions = self.safe_value_2(info, 'positions', 'userAssets', [])
-        # todo unify parsePosition/parsePositions
-        return positions
+        # fapiPrivateGetPositionRisk, dapiPrivateGetPositionRisk
+        #
+        # [
+        #   {
+        #     symbol: 'XRPUSD_210625',
+        #     positionAmt: '0',
+        #     entryPrice: '0.00000000',
+        #     markPrice: '0.00000000',
+        #     unRealizedProfit: '0.00000000',
+        #     liquidationPrice: '0',
+        #     leverage: '20',
+        #     maxQty: '500000',
+        #     marginType: 'cross',
+        #     isolatedMargin: '0.00000000',
+        #     isAutoAddMargin: 'false',
+        #     positionSide: 'BOTH',
+        #     notionalValue: '0',
+        #     isolatedWallet: '0'
+        #   },
+        #   {
+        #     symbol: 'BTCUSD_210326',
+        #     positionAmt: '1',
+        #     entryPrice: '60665.79999885',
+        #     markPrice: '60696.76856843',
+        #     unRealizedProfit: '0.00000084',
+        #     liquidationPrice: '58034.68208092',
+        #     leverage: '20',
+        #     maxQty: '50',
+        #     marginType: 'isolated',
+        #     isolatedMargin: '0.00008345',
+        #     isAutoAddMargin: 'false',
+        #     positionSide: 'BOTH',
+        #     notionalValue: '0.00164753',
+        #     isolatedWallet: '0.00008261'
+        #   },
+        # ]
+        #
+        return self.safe_value(response, 'positions', response)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

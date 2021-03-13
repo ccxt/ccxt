@@ -1334,28 +1334,6 @@ class equos extends Exchange {
         $remaining = $this->safe_integer($order, 'leavesQty');
         $remainingScale = $this->safe_integer($order, 'leavesQty_scale');
         $remaining = $this->convert_from_scale($remaining, $remainingScale);
-        if ($remaining <= 0) {
-            if (($filled !== null) && ($amount !== null) && ($filled < $amount)) {
-                $remaining = null;
-            }
-        }
-        if (($remaining === null) && ($amount !== null) && ($filled !== null)) {
-            $remaining = max ($amount - $filled, 0);
-        }
-        $average = $this->safe_integer($order, 'price', 0);
-        if ($average === 0) {
-            $average = null;
-        }
-        $averageScale = $this->safe_integer($order, 'price_scale');
-        $average = $this->convert_from_scale($average, $averageScale);
-        $cost = null;
-        if ($filled !== 0) {
-            if ($average > 0) {
-                $cost = $average * $filled;
-            } else if ($price > 0) {
-                $cost = $price * $filled;
-            }
-        }
         $fee = null;
         $currencyId = $this->safe_integer($order, 'feeInstrumentId');
         $feeCurrencyCode = $this->safe_currency_code($currencyId);
@@ -1378,7 +1356,7 @@ class equos extends Exchange {
         }
         $stopPriceScale = $this->safe_integer($order, 'stopPx_scale', 0);
         $stopPrice = $this->convert_from_scale($this->safe_integer($order, 'stopPx'), $stopPriceScale);
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1393,14 +1371,14 @@ class equos extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'amount' => $amount,
-            'cost' => $cost,
-            'average' => $average,
+            'cost' => null,
+            'average' => null,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {

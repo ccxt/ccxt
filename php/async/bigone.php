@@ -700,10 +700,6 @@ class bigone extends Exchange {
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'filled_amount');
-        $remaining = null;
-        if ($amount !== null && $filled !== null) {
-            $remaining = max (0, $amount - $filled);
-        }
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $side = $this->safe_string($order, 'side');
         if ($side === 'BID') {
@@ -711,15 +707,9 @@ class bigone extends Exchange {
         } else {
             $side = 'sell';
         }
-        $cost = null;
-        if ($filled !== null) {
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-        }
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'updated_at'));
         $average = $this->safe_float($order, 'avg_deal_price');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -734,14 +724,14 @@ class bigone extends Exchange {
             'price' => $price,
             'stopPrice' => null,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

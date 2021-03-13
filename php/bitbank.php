@@ -354,16 +354,10 @@ class bitbank extends Exchange {
         $filled = $this->safe_float($order, 'executed_amount');
         $remaining = $this->safe_float($order, 'remaining_amount');
         $average = $this->safe_float($order, 'average_price');
-        $cost = null;
-        if ($filled !== null) {
-            if ($average !== null) {
-                $cost = $filled * $average;
-            }
-        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -377,7 +371,7 @@ class bitbank extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
@@ -385,7 +379,7 @@ class bitbank extends Exchange {
             'trades' => null,
             'fee' => null,
             'info' => $order,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

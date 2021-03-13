@@ -43,7 +43,7 @@ The structure of the library can be outlined as follows:
     +=============================================================+
 ```
 
-Full public and private HTTP REST APIs for all exchanges are implemented. WebSocket and FIX implementations in JavaScript, PHP, Python are available in [CCXT Pro](https://ccxt.pro), which is a professional addon to CCXT with support for WebSocket streams.
+Full public and private HTTP REST APIs for all exchanges are implemented. WebSocket implementations in JavaScript, PHP, Python are available in [CCXT Pro](https://ccxt.pro), which is a professional addon to CCXT with support for WebSocket streams.
 
 - [**Exchanges**](#exchanges)
 - [**Markets**](#markets)
@@ -61,7 +61,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 126 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 125 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                             | id                 | name                                                                                    | ver | doc                                                                                         | certified                                                                                                                   | pro                                                                          |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------------------------------------|:---:|:-------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -181,7 +181,6 @@ The CCXT library currently supports the following 126 cryptocurrency exchange ma
 | [![tidex](https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg)](https://tidex.com/exchange/?ref=57f5638d9cd7)                                    | tidex              | [Tidex](https://tidex.com/exchange/?ref=57f5638d9cd7)                                   | 3   | [API](https://tidex.com/exchange/public-api)                                                |                                                                                                                             |                                                                              |
 | [![timex](https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg)](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                     | timex              | [TimeX](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                    | 1   | [API](https://docs.timex.io)                                                                |                                                                                                                             |                                                                              |
 | [![upbit](https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg)](https://upbit.com)                                                               | upbit              | [Upbit](https://upbit.com)                                                              | 1   | [API](https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C)          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![vaultoro](https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg)](https://www.vaultoro.com)                                                     | vaultoro           | [Vaultoro](https://www.vaultoro.com)                                                    | 1   | [API](https://api.vaultoro.com)                                                             |                                                                                                                             |                                                                              |
 | [![vbtc](https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg)](https://vbtc.exchange)                                                            | vbtc               | [VBTC](https://vbtc.exchange)                                                           | 1   | [API](https://blinktrade.com/docs)                                                          |                                                                                                                             |                                                                              |
 | [![vcc](https://user-images.githubusercontent.com/1294454/100545356-8427f500-326c-11eb-9539-7d338242d61b.jpg)](https://vcc.exchange?ref=l4xhrH)                                                  | vcc                | [VCC Exchange](https://vcc.exchange?ref=l4xhrH)                                         | 3   | [API](https://vcc.exchange/api)                                                             |                                                                                                                             |                                                                              |
 | [![wavesexchange](https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg)](https://waves.exchange)                                                  | wavesexchange      | [Waves.Exchange](https://waves.exchange)                                                | *   | [API](https://docs.waves.exchange)                                                          | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
@@ -888,6 +887,71 @@ For examples of how to use the `decimalToPrecision` to format strings and floats
 
 **Python WARNING! The `decimal_to_precision` method is susceptible to `getcontext().prec!`**
 
+For users' convenience CCXT base exchange class also implements the following methods:
+
+```JavaScript
+// JavaScript
+function amountToPrecision (symbol, amount)
+function priceToPrecision (symbol, price)
+function costToPrecision (symbol, cost)
+function currencyToPrecision (code, amount)
+```
+
+```Python
+# Python
+def amount_to_precision (symbol, amount):
+def price_to_precision (symbol, price):
+def cost_to_precision (symbol, cost):
+def currency_to_precision (code, amount):
+```
+
+```PHP
+// PHP
+function amount_to_precision($symbol, $amount)
+function price_to_precision($symbol, $price)
+function cost_to_precision($symbol, $cost)
+function currency_to_precision($code, $amount)
+```
+
+Every exchange has its own precision settings, the above methods will help format those values according to exchange-specific precision rules, in a way that is portable and agnostic of the underlying exchange. In order to make that possible, markets and currencies have to be loaded prior to formatting any values.
+
+**Make sure to [load the markets with `exchange.loadMarkets()`](#loading-markets) before calling these methods!**
+
+For example:
+
+```JavaScript
+// JavaScript
+await exchange.loadMarkets ()
+const symbol = 'BTC/USDT'
+const amount = 1.2345678 // amount in base currency BTC
+const price = 87654.321 // price in quote currency USDT
+const formattedAmount = exchange.amountToPrecision (symbol, amount)
+const formattedPrice = exchange.priceToPrecision (symbol, price)
+console.log (formattedAmount, formattedPrice)
+```
+
+```Python
+# Python
+exchange.load_markets()
+symbol = 'BTC/USDT'
+amount = 1.2345678  # amount in base currency BTC
+price = 87654.321  # price in quote currency USDT
+formatted_amount = exchange.amount_to_precision(symbol, amount)
+formatted_price = exchange.price_to_precision(symbol, price)
+print(formatted_amount, formatted_price)
+```
+
+```PHP
+// PHP
+$exchange->load_markets();
+$symbol = 'BTC/USDT';
+$amount = 1.2345678;  // amount in base currency BTC
+$price = 87654.321; // price in quote currency USDT
+$formatted_amount = $exchange->amount_to_precision($symbol, $amount);
+$formatted_price = $exchange->price_to_precision($symbol, $price);
+echo $formatted_amount, " ", $formatted_price, "\n";
+```
+
 ## Loading Markets
 
 In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially.
@@ -905,18 +969,18 @@ In order to load markets manually beforehand call the `loadMarkets ()` / `load_m
 
 ```Python
 # Python
-okcoin = ccxt.okcoinusd ()
-markets = okcoin.load_markets ()
-print (okcoin.id, markets)
+okcoin = ccxt.okcoinusd()
+markets = okcoin.load_markets()
+print(okcoin.id, markets)
 ```
 
 ```PHP
 // PHP
 $id = 'huobipro';
 $exchange = '\\ccxt\\' . $id;
-$huobipro = new $exchange ();
-$markets = $huobipro->load_markets ();
-var_dump ($huobipro->id, $markets);
+$huobipro = new $exchange();
+$markets = $huobipro->load_markets();
+var_dump($huobipro->id, $markets);
 ```
 
 Apart from the market info, the `loadMarkets()` call will also load the currencies from the exchange and will cache the info in the `.markets` and the `.currencies` properties respectively.
@@ -973,22 +1037,22 @@ Most of the time users will be working with market symbols. You will get a stand
 ```Python
 # Python
 
-print (exchange.load_markets ())
+print(exchange.load_markets())
 
 etheur1 = exchange.markets['ETH/EUR']      # get market structure by symbol
-etheur2 = exchange.market ('ETH/EUR')      # same result in a slightly different way
+etheur2 = exchange.market('ETH/EUR')       # same result in a slightly different way
 
-etheurId = exchange.market_id ('ETH/EUR')  # get market id by symbol
+etheurId = exchange.market_id('ETH/EUR')   # get market id by symbol
 
 symbols = exchange.symbols                 # get a list of symbols
-symbols2 = list (exchange.markets.keys ()) # same as previous line
+symbols2 = list(exchange.markets.keys())   # same as previous line
 
-print (exchange.id, symbols)               # print all symbols
+print(exchange.id, symbols)                # print all symbols
 
 currencies = exchange.currencies           # a dictionary of currencies
 
-kraken = ccxt.kraken ()
-kraken.load_markets ()
+kraken = ccxt.kraken()
+kraken.load_markets()
 
 kraken.markets['BTC/USD']                  # symbol → market (get market by symbol)
 kraken.markets_by_id['XXRPZUSD']           # id → market (get market by id)
@@ -1000,24 +1064,24 @@ kraken.markets_by_id['XXRPZUSD']['symbol'] # id → symbol (get symbol by id)
 ```PHP
 // PHP
 
-$var_dump ($exchange->load_markets ());
+$var_dump($exchange->load_markets());
 
 $dashcny1 = $exchange->markets['DASH/CNY'];     // get market structure by symbol
-$dashcny2 = $exchange->market ('DASH/CNY');     // same result in a slightly different way
+$dashcny2 = $exchange->market('DASH/CNY');      // same result in a slightly different way
 
-$dashcnyId = $exchange->market_id ('DASH/CNY'); // get market id by symbol
+$dashcnyId = $exchange->market_id('DASH/CNY');  // get market id by symbol
 
 $symbols = $exchange->symbols;                  // get an array of symbols
-$symbols2 = array_keys ($exchange->markets);    // same as previous line
+$symbols2 = array_keys($exchange->markets);     // same as previous line
 
-var_dump ($exchange->id, $symbols);             // print all symbols
+var_dump($exchange->id, $symbols);              // print all symbols
 
 $currencies = $exchange->currencies;            // an associative array of currencies
 
 $okcoinusd = '\\ccxt\\okcoinusd';
-$okcoinusd = new $okcoinusd ();
+$okcoinusd = new $okcoinusd();
 
-$okcoinusd->load_markets ();
+$okcoinusd->load_markets();
 
 $okcoinusd->markets['BTC/USD'];                 // symbol → market (get market by symbol)
 $okcoinusd->markets_by_id['btc_usd'];           // id → market (get market by id)
@@ -1114,14 +1178,14 @@ print(reloadedMarkets['ETH/ZEC'])
 
 ```PHP
 // PHP
-$bitfinex = new \ccxt\bitfinex (array ('verbose' => true)); // log HTTP requests
-$bitfinex.load_markets (); // request markets
-var_dump ($bitfinex->id, $bitfinex->markets); // output a full list of all loaded markets
-var_dump (array_keys ($bitfinex->markets));   // output a short list of market symbols
-var_dump ($bitfinex->markets['XRP/USD']);     // output single market details
-$bitfinex->load_markets (); // return a locally cached version, no reload
-$reloadedMarkets = $bitfinex->load_markets (true); // force HTTP reload = true
-var_dump ($bitfinex->markets['XRP/BTC']);
+$bitfinex = new \ccxt\bitfinex(array('verbose' => true)); // log HTTP requests
+$bitfinex.load_markets(); // request markets
+var_dump($bitfinex->id, $bitfinex->markets); // output a full list of all loaded markets
+var_dump(array_keys ($bitfinex->markets));   // output a short list of market symbols
+var_dump($bitfinex->markets['XRP/USD']);     // output single market details
+$bitfinex->load_markets(); // return a locally cached version, no reload
+$reloadedMarkets = $bitfinex->load_markets(true); // force HTTP reload = true
+var_dump($bitfinex->markets['XRP/BTC']);
 ```
 
 # Implicit API

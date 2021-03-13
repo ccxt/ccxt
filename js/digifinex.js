@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
+const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -61,11 +61,6 @@ module.exports = class digifinex extends Exchange {
                 'referral': 'https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp',
             },
             'api': {
-                'v2': {
-                    'get': [
-                        'ticker',
-                    ],
-                },
                 'public': {
                     'get': [
                         '{market}/symbols',
@@ -500,87 +495,67 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        const apiKey = this.safeValue (params, 'apiKey', this.apiKey);
-        if (!apiKey) {
-            throw new ArgumentsRequired (this.id + ' fetchTickers() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter');
-        }
         await this.loadMarkets ();
-        const request = {
-            'apiKey': apiKey,
-        };
-        const response = await this.v2GetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (params);
         //
-        //     {
-        //         "ticker":{
-        //             "btc_eth":{
-        //                 "last":0.021957,
-        //                 "base_vol":2249.3521732227,
-        //                 "change":-0.6,
-        //                 "vol":102443.5111,
-        //                 "sell":0.021978,
-        //                 "low":0.021791,
-        //                 "buy":0.021946,
-        //                 "high":0.022266
-        //             }
-        //         },
-        //         "date":1564518452,
-        //         "code":0
-        //     }
+        //    {
+        //        "ticker": [{
+        //            "vol": 40717.4461,
+        //            "change": -1.91,
+        //            "base_vol": 392447999.65374,
+        //            "sell": 9592.23,
+        //            "last": 9592.22,
+        //            "symbol": "btc_usdt",
+        //            "low": 9476.24,
+        //            "buy": 9592.03,
+        //            "high": 9793.87
+        //        }],
+        //        "date": 1589874294,
+        //        "code": 0
+        //    }
         //
         const result = {};
-        const tickers = this.safeValue (response, 'ticker', {});
+        const tickers = this.safeValue (response, 'ticker', []);
         const date = this.safeInteger (response, 'date');
-        const reversedMarketIds = Object.keys (tickers);
-        for (let i = 0; i < reversedMarketIds.length; i++) {
-            const reversedMarketId = reversedMarketIds[i];
-            const ticker = this.extend ({
+        for (let i = 0; i < tickers.length; i++) {
+            const rawTicker = this.extend ({
                 'date': date,
-            }, tickers[reversedMarketId]);
-            const [ quoteId, baseId ] = reversedMarketId.split ('_');
-            const marketId = baseId.toUpperCase () + '_' + quoteId.toUpperCase ();
-            const market = this.safeMarket (marketId, undefined, '_');
-            const symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            }, tickers[i]);
+            const ticker = this.parseTicker (rawTicker);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
-        const apiKey = this.safeValue (params, 'apiKey', this.apiKey);
-        if (!apiKey) {
-            throw new ArgumentsRequired (this.id + ' fetchTicker() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // reversed base/quote in v2
-        const marketId = market['quoteId'].toLowerCase () + '_' + market['baseId'].toLowerCase ();
         const request = {
-            'symbol': marketId,
-            'apiKey': apiKey,
+            'symbol': market['id'],
         };
-        const response = await this.v2GetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         //
-        //     {
-        //         "ticker":{
-        //             "btc_eth":{
-        //                 "last":0.021957,
-        //                 "base_vol":2249.3521732227,
-        //                 "change":-0.6,
-        //                 "vol":102443.5111,
-        //                 "sell":0.021978,
-        //                 "low":0.021791,
-        //                 "buy":0.021946,
-        //                 "high":0.022266
-        //             }
-        //         },
-        //         "date":1564518452,
-        //         "code":0
-        //     }
+        //    {
+        //        "ticker": [{
+        //            "vol": 40717.4461,
+        //            "change": -1.91,
+        //            "base_vol": 392447999.65374,
+        //            "sell": 9592.23,
+        //            "last": 9592.22,
+        //            "symbol": "btc_usdt",
+        //            "low": 9476.24,
+        //            "buy": 9592.03,
+        //            "high": 9793.87
+        //        }],
+        //        "date": 1589874294,
+        //        "code": 0
+        //    }
         //
         const date = this.safeInteger (response, 'date');
-        const ticker = this.safeValue (response, 'ticker', {});
-        let result = this.safeValue (ticker, marketId, {});
-        result = this.extend ({ 'date': date }, result);
+        const tickers = this.safeValue (response, 'ticker', []);
+        const firstTicker = this.safeValue (tickers, 0, {});
+        const result = this.extend ({ 'date': date }, firstTicker);
         return this.parseTicker (result, market);
     }
 
@@ -590,6 +565,7 @@ module.exports = class digifinex extends Exchange {
         //
         //     {
         //         "last":0.021957,
+        //         "symbol": "btc_usdt",
         //         "base_vol":2249.3521732227,
         //         "change":-0.6,
         //         "vol":102443.5111,
@@ -600,10 +576,8 @@ module.exports = class digifinex extends Exchange {
         //         "date"1564518452, // injected from fetchTicker/fetchTickers
         //     }
         //
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeStringUpper (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeTimestamp (ticker, 'date');
         const last = this.safeFloat (ticker, 'last');
         const percentage = this.safeFloat (ticker, 'change');
@@ -974,17 +948,7 @@ module.exports = class digifinex extends Exchange {
         const filled = this.safeFloat (order, 'executed_amount');
         const price = this.safeFloat (order, 'price');
         const average = this.safeFloat (order, 'avg_price');
-        let remaining = undefined;
-        let cost = undefined;
-        if (filled !== undefined) {
-            if (average !== undefined) {
-                cost = filled * average;
-            }
-            if (amount !== undefined) {
-                remaining = Math.max (0, amount - filled);
-            }
-        }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1000,13 +964,13 @@ module.exports = class digifinex extends Exchange {
             'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
-            'cost': cost,
+            'remaining': undefined,
+            'cost': undefined,
             'average': average,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1476,7 +1440,7 @@ module.exports = class digifinex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const version = (api === 'v2') ? api : this.version;
+        const version = this.version;
         let url = this.urls['api'] + '/' + version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const urlencoded = this.urlencode (this.keysort (query));

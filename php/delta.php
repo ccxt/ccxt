@@ -935,15 +935,7 @@ class delta extends Exchange {
         $price = $this->safe_float($order, 'limit_price');
         $amount = $this->safe_float($order, 'size');
         $remaining = $this->safe_float($order, 'unfilled_size');
-        $filled = null;
-        if (($amount !== null) && ($remaining !== null)) {
-            $filled = max (0, $amount - $remaining);
-        }
-        $cost = null;
         $average = $this->safe_float($order, 'average_fill_price');
-        if (($average !== null) && $filled) {
-            $cost = $average * $filled;
-        }
         $fee = null;
         $feeCost = $this->safe_float($order, 'paid_commission');
         if ($feeCost !== null) {
@@ -958,7 +950,7 @@ class delta extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -970,14 +962,14 @@ class delta extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

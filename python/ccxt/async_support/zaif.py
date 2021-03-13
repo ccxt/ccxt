@@ -325,12 +325,8 @@ class zaif(Exchange):
         symbol = self.safe_symbol(marketId, market, '_')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
         id = self.safe_string(order, 'id')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -344,7 +340,7 @@ class zaif(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
             'filled': None,
             'remaining': None,
@@ -352,7 +348,7 @@ class zaif(Exchange):
             'fee': None,
             'info': order,
             'average': None,
-        }
+        })
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

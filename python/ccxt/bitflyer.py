@@ -318,7 +318,6 @@ class bitflyer(Exchange):
         remaining = self.safe_float(order, 'outstanding_size')
         filled = self.safe_float(order, 'executed_size')
         price = self.safe_float(order, 'price')
-        cost = price * filled
         status = self.parse_order_status(self.safe_string(order, 'child_order_state'))
         type = self.safe_string_lower(order, 'child_order_type')
         side = self.safe_string_lower(order, 'side')
@@ -333,7 +332,7 @@ class bitflyer(Exchange):
                 'rate': None,
             }
         id = self.safe_string(order, 'child_order_acceptance_id')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'info': order,
@@ -348,14 +347,14 @@ class bitflyer(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
             'average': None,
             'trades': None,
-        }
+        })
 
     def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
         if symbol is None:

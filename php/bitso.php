@@ -421,14 +421,8 @@ class bitso extends Exchange {
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'original_amount');
         $remaining = $this->safe_float($order, 'unfilled_amount');
-        $filled = null;
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                $filled = $amount - $remaining;
-            }
-        }
         $clientOrderId = $this->safe_string($order, 'client_id');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -445,12 +439,12 @@ class bitso extends Exchange {
             'amount' => $amount,
             'cost' => null,
             'remaining' => $remaining,
-            'filled' => $filled,
+            'filled' => null,
             'status' => $status,
             'fee' => null,
             'average' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = 25, $params = array ()) {

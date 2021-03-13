@@ -419,14 +419,8 @@ module.exports = class bitso extends Exchange {
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'original_amount');
         const remaining = this.safeFloat (order, 'unfilled_amount');
-        let filled = undefined;
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = amount - remaining;
-            }
-        }
         const clientOrderId = this.safeString (order, 'client_id');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -443,12 +437,12 @@ module.exports = class bitso extends Exchange {
             'amount': amount,
             'cost': undefined,
             'remaining': remaining,
-            'filled': filled,
+            'filled': undefined,
             'status': status,
             'fee': undefined,
             'average': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 25, params = {}) {

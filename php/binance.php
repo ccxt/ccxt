@@ -513,6 +513,10 @@ class binance extends Exchange {
                     'future' => 'x-xcKtGhcu',
                     'delivery' => 'x-xcKtGhcu',
                 ),
+                'fetchPositions' => array(
+                    'future' => 'fapiPrivateV2GetAccount', // 'fapiPrivateGetPositionRisk'
+                    'delivery' => 'dapiPrivateGetAccount', // 'dapiPrivateGetPositionRisk'
+                ),
             ),
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions' => array(
@@ -2176,8 +2180,13 @@ class binance extends Exchange {
 
     public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->fetch_balance($params);
-        $info = $this->safe_value($response, 'info', array());
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
+        $options = $this->safe_value($this->options, 'fetchPositions', array());
+        $defaultMethod = ($type === 'future') ? 'fapiPrivateV2GetAccount' : 'dapiPrivateGetAccount';
+        $method = $this->safe_string($options, $type, $defaultMethod);
+        $response = $this->$method ($params);
         //
         // futures, delivery
         //
@@ -2203,7 +2212,7 @@ class binance extends Exchange {
         //                 "availableBalance":"0.09886711"
         //             }
         //         ),
-        //         "$positions":array(
+        //         "positions":array(
         //             array(
         //                 "symbol":"BTCUSD_201225",
         //                 "initialMargin":"0",
@@ -2220,9 +2229,44 @@ class binance extends Exchange {
         //         )
         //     }
         //
-        $positions = $this->safe_value_2($info, 'positions', 'userAssets', array());
-        // todo unify parsePosition/parsePositions
-        return $positions;
+        // fapiPrivateGetPositionRisk, dapiPrivateGetPositionRisk
+        //
+        // array(
+        //   array(
+        //     symbol => 'XRPUSD_210625',
+        //     positionAmt => '0',
+        //     entryPrice => '0.00000000',
+        //     markPrice => '0.00000000',
+        //     unRealizedProfit => '0.00000000',
+        //     liquidationPrice => '0',
+        //     leverage => '20',
+        //     maxQty => '500000',
+        //     marginType => 'cross',
+        //     isolatedMargin => '0.00000000',
+        //     isAutoAddMargin => 'false',
+        //     positionSide => 'BOTH',
+        //     notionalValue => '0',
+        //     isolatedWallet => '0'
+        //   ),
+        //   array(
+        //     symbol => 'BTCUSD_210326',
+        //     positionAmt => '1',
+        //     entryPrice => '60665.79999885',
+        //     markPrice => '60696.76856843',
+        //     unRealizedProfit => '0.00000084',
+        //     liquidationPrice => '58034.68208092',
+        //     leverage => '20',
+        //     maxQty => '50',
+        //     marginType => 'isolated',
+        //     isolatedMargin => '0.00008345',
+        //     isAutoAddMargin => 'false',
+        //     positionSide => 'BOTH',
+        //     notionalValue => '0.00164753',
+        //     isolatedWallet => '0.00008261'
+        //   ),
+        // )
+        //
+        return $this->safe_value($response, 'positions', $response);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

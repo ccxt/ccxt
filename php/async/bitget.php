@@ -1927,22 +1927,9 @@ class bitget extends Exchange {
         }
         $amount = $this->safe_float_2($order, 'amount', 'size');
         $filled = $this->safe_float_2($order, 'filled_amount', 'filled_qty');
-        $remaining = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $amount = max ($amount, $filled);
-                $remaining = max (0, $amount - $filled);
-            }
-        }
-        if ($type === 'market') {
-            $remaining = 0;
-        }
         $cost = $this->safe_float($order, 'filled_cash_amount');
         $price = $this->safe_float($order, 'price');
         $average = $this->safe_float($order, 'price_avg');
-        if (($average === null) && ($filled !== null) && ($cost !== null) && ($filled > 0)) {
-            $average = $cost / $filled;
-        }
         $status = $this->parse_order_status($this->safe_string_2($order, 'state', 'status'));
         $feeCost = $this->safe_float_2($order, 'filled_fees', 'fee');
         $fee = null;
@@ -1954,7 +1941,7 @@ class bitget extends Exchange {
             );
         }
         $clientOrderId = $this->safe_string($order, 'client_oid');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1972,11 +1959,11 @@ class bitget extends Exchange {
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

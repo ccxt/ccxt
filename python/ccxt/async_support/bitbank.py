@@ -340,14 +340,10 @@ class bitbank(Exchange):
         filled = self.safe_float(order, 'executed_amount')
         remaining = self.safe_float(order, 'remaining_amount')
         average = self.safe_float(order, 'average_price')
-        cost = None
-        if filled is not None:
-            if average is not None:
-                cost = filled * average
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -361,7 +357,7 @@ class bitbank(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'amount': amount,
             'filled': filled,
@@ -369,7 +365,7 @@ class bitbank(Exchange):
             'trades': None,
             'fee': None,
             'info': order,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

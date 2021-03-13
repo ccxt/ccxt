@@ -1203,17 +1203,7 @@ class bitmex(Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'orderQty')
         filled = self.safe_float(order, 'cumQty', 0.0)
-        remaining = None
-        if amount is not None:
-            if filled is not None:
-                remaining = max(amount - filled, 0.0)
         average = self.safe_float(order, 'avgPx')
-        cost = None
-        if filled is not None:
-            if average is not None:
-                cost = average * filled
-            elif price is not None:
-                cost = price * filled
         id = self.safe_string(order, 'orderID')
         type = self.safe_string_lower(order, 'ordType')
         side = self.safe_string_lower(order, 'side')
@@ -1222,7 +1212,7 @@ class bitmex(Exchange):
         stopPrice = self.safe_float(order, 'stopPx')
         execInst = self.safe_string(order, 'execInst')
         postOnly = (execInst == 'ParticipateDoNotInitiate')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1237,14 +1227,14 @@ class bitmex(Exchange):
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

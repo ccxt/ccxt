@@ -908,13 +908,7 @@ class delta(Exchange):
         price = self.safe_float(order, 'limit_price')
         amount = self.safe_float(order, 'size')
         remaining = self.safe_float(order, 'unfilled_size')
-        filled = None
-        if (amount is not None) and (remaining is not None):
-            filled = max(0, amount - remaining)
-        cost = None
         average = self.safe_float(order, 'average_fill_price')
-        if (average is not None) and filled:
-            cost = average * filled
         fee = None
         feeCost = self.safe_float(order, 'paid_commission')
         if feeCost is not None:
@@ -927,7 +921,7 @@ class delta(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -939,14 +933,14 @@ class delta(Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

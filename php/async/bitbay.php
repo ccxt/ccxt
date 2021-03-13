@@ -347,14 +347,8 @@ class bitbay extends Exchange {
         $timestamp = $this->safe_integer($order, 'time');
         $amount = $this->safe_float($order, 'startAmount');
         $remaining = $this->safe_float($order, 'currentAmount');
-        $filled = null;
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                $filled = max (0, $amount - $remaining);
-            }
-        }
         $postOnly = $this->safe_value($order, 'postOnly');
-        return array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'info' => $order,
@@ -371,12 +365,12 @@ class bitbay extends Exchange {
             'stopPrice' => null,
             'amount' => $amount,
             'cost' => null,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'average' => null,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

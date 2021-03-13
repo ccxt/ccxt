@@ -985,14 +985,9 @@ class bittrex(Exchange):
         #     }
         #
         marketSymbol = self.safe_string(order, 'marketSymbol')
-        symbol = None
-        feeCurrency = None
-        if marketSymbol is not None:
-            baseId, quoteId = marketSymbol.split('-')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            feeCurrency = quote
+        market = self.safe_market(marketSymbol, market, '-')
+        symbol = market['symbol']
+        feeCurrency = market['quote']
         direction = self.safe_string_lower(order, 'direction')
         createdAt = self.safe_string(order, 'createdAt')
         updatedAt = self.safe_string(order, 'updatedAt')
@@ -1009,22 +1004,10 @@ class bittrex(Exchange):
         fillQuantity = self.safe_float(order, 'fillQuantity')
         commission = self.safe_float(order, 'commission')
         proceeds = self.safe_float(order, 'proceeds')
-        average = None
-        remaining = None
-        if fillQuantity is not None:
-            if proceeds is not None:
-                if fillQuantity > 0:
-                    average = proceeds / fillQuantity
-                elif proceeds == 0:
-                    average = 0
-            if quantity is not None:
-                remaining = quantity - fillQuantity
         status = self.safe_string_lower(order, 'status')
-        if (status == 'closed') and (remaining is not None) and (remaining > 0):
-            status = 'canceled'
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         postOnly = (timeInForce == 'PO')
-        return {
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -1038,10 +1021,10 @@ class bittrex(Exchange):
             'price': limit,
             'stopPrice': None,
             'cost': proceeds,
-            'average': average,
+            'average': None,
             'amount': quantity,
             'filled': fillQuantity,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': {
                 'cost': commission,
@@ -1049,7 +1032,7 @@ class bittrex(Exchange):
             },
             'info': order,
             'trades': None,
-        }
+        })
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         if self.options['fetchClosedOrdersFilterBySince']:

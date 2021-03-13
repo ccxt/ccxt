@@ -8,7 +8,6 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import BadResponse
@@ -77,11 +76,6 @@ class digifinex(Exchange):
                 'referral': 'https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp',
             },
             'api': {
-                'v2': {
-                    'get': [
-                        'ticker',
-                    ],
-                },
                 'public': {
                     'get': [
                         '{market}/symbols',
@@ -502,83 +496,65 @@ class digifinex(Exchange):
         return self.parse_order_book(response, timestamp)
 
     def fetch_tickers(self, symbols=None, params={}):
-        apiKey = self.safe_value(params, 'apiKey', self.apiKey)
-        if not apiKey:
-            raise ArgumentsRequired(self.id + ' fetchTickers() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter')
         self.load_markets()
-        request = {
-            'apiKey': apiKey,
-        }
-        response = self.v2GetTicker(self.extend(request, params))
+        response = self.publicGetTicker(params)
         #
-        #     {
-        #         "ticker":{
-        #             "btc_eth":{
-        #                 "last":0.021957,
-        #                 "base_vol":2249.3521732227,
-        #                 "change":-0.6,
-        #                 "vol":102443.5111,
-        #                 "sell":0.021978,
-        #                 "low":0.021791,
-        #                 "buy":0.021946,
-        #                 "high":0.022266
-        #             }
-        #         },
-        #         "date":1564518452,
-        #         "code":0
-        #     }
+        #    {
+        #        "ticker": [{
+        #            "vol": 40717.4461,
+        #            "change": -1.91,
+        #            "base_vol": 392447999.65374,
+        #            "sell": 9592.23,
+        #            "last": 9592.22,
+        #            "symbol": "btc_usdt",
+        #            "low": 9476.24,
+        #            "buy": 9592.03,
+        #            "high": 9793.87
+        #        }],
+        #        "date": 1589874294,
+        #        "code": 0
+        #    }
         #
         result = {}
-        tickers = self.safe_value(response, 'ticker', {})
+        tickers = self.safe_value(response, 'ticker', [])
         date = self.safe_integer(response, 'date')
-        reversedMarketIds = list(tickers.keys())
-        for i in range(0, len(reversedMarketIds)):
-            reversedMarketId = reversedMarketIds[i]
-            ticker = self.extend({
+        for i in range(0, len(tickers)):
+            rawTicker = self.extend({
                 'date': date,
-            }, tickers[reversedMarketId])
-            quoteId, baseId = reversedMarketId.split('_')
-            marketId = baseId.upper() + '_' + quoteId.upper()
-            market = self.safe_market(marketId, None, '_')
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
+            }, tickers[i])
+            ticker = self.parse_ticker(rawTicker)
+            symbol = ticker['symbol']
+            result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
-        apiKey = self.safe_value(params, 'apiKey', self.apiKey)
-        if not apiKey:
-            raise ArgumentsRequired(self.id + ' fetchTicker() is a private v2 endpoint that requires an `exchange.apiKey` credential or an `apiKey` extra parameter')
         self.load_markets()
         market = self.market(symbol)
-        # reversed base/quote in v2
-        marketId = market['quoteId'].lower() + '_' + market['baseId'].lower()
         request = {
-            'symbol': marketId,
-            'apiKey': apiKey,
+            'symbol': market['id'],
         }
-        response = self.v2GetTicker(self.extend(request, params))
+        response = self.publicGetTicker(self.extend(request, params))
         #
-        #     {
-        #         "ticker":{
-        #             "btc_eth":{
-        #                 "last":0.021957,
-        #                 "base_vol":2249.3521732227,
-        #                 "change":-0.6,
-        #                 "vol":102443.5111,
-        #                 "sell":0.021978,
-        #                 "low":0.021791,
-        #                 "buy":0.021946,
-        #                 "high":0.022266
-        #             }
-        #         },
-        #         "date":1564518452,
-        #         "code":0
-        #     }
+        #    {
+        #        "ticker": [{
+        #            "vol": 40717.4461,
+        #            "change": -1.91,
+        #            "base_vol": 392447999.65374,
+        #            "sell": 9592.23,
+        #            "last": 9592.22,
+        #            "symbol": "btc_usdt",
+        #            "low": 9476.24,
+        #            "buy": 9592.03,
+        #            "high": 9793.87
+        #        }],
+        #        "date": 1589874294,
+        #        "code": 0
+        #    }
         #
         date = self.safe_integer(response, 'date')
-        ticker = self.safe_value(response, 'ticker', {})
-        result = self.safe_value(ticker, marketId, {})
-        result = self.extend({'date': date}, result)
+        tickers = self.safe_value(response, 'ticker', [])
+        firstTicker = self.safe_value(tickers, 0, {})
+        result = self.extend({'date': date}, firstTicker)
         return self.parse_ticker(result, market)
 
     def parse_ticker(self, ticker, market=None):
@@ -587,6 +563,7 @@ class digifinex(Exchange):
         #
         #     {
         #         "last":0.021957,
+        #         "symbol": "btc_usdt",
         #         "base_vol":2249.3521732227,
         #         "change":-0.6,
         #         "vol":102443.5111,
@@ -597,9 +574,8 @@ class digifinex(Exchange):
         #         "date"1564518452,  # injected from fetchTicker/fetchTickers
         #     }
         #
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string_upper(ticker, 'symbol')
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_timestamp(ticker, 'date')
         last = self.safe_float(ticker, 'last')
         percentage = self.safe_float(ticker, 'change')
@@ -948,14 +924,7 @@ class digifinex(Exchange):
         filled = self.safe_float(order, 'executed_amount')
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'avg_price')
-        remaining = None
-        cost = None
-        if filled is not None:
-            if average is not None:
-                cost = filled * average
-            if amount is not None:
-                remaining = max(0, amount - filled)
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -971,13 +940,13 @@ class digifinex(Exchange):
             'stopPrice': None,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
-            'cost': cost,
+            'remaining': None,
+            'cost': None,
             'average': average,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
@@ -1410,7 +1379,7 @@ class digifinex(Exchange):
         return self.parse_transaction(response, currency)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        version = api if (api == 'v2') else self.version
+        version = self.version
         url = self.urls['api'] + '/' + version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         urlencoded = self.urlencode(self.keysort(query))
