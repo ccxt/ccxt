@@ -562,22 +562,14 @@ class tidex extends Exchange {
         $remaining = null;
         $amount = null;
         $price = $this->safe_float($order, 'rate');
-        $filled = null;
-        $cost = null;
         if (is_array($order) && array_key_exists('start_amount', $order)) {
             $amount = $this->safe_float($order, 'start_amount');
             $remaining = $this->safe_float($order, 'amount');
         } else {
             $remaining = $this->safe_float($order, 'amount');
         }
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                $filled = $amount - $remaining;
-                $cost = $price * $filled;
-            }
-        }
         $fee = null;
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -591,15 +583,15 @@ class tidex extends Exchange {
             'side' => $this->safe_string($order, 'type'),
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'amount' => $amount,
             'remaining' => $remaining,
-            'filled' => $filled,
+            'filled' => null,
             'status' => $status,
             'fee' => $fee,
             'average' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

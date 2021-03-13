@@ -532,19 +532,13 @@ class tidex(Exchange):
         remaining = None
         amount = None
         price = self.safe_float(order, 'rate')
-        filled = None
-        cost = None
         if 'start_amount' in order:
             amount = self.safe_float(order, 'start_amount')
             remaining = self.safe_float(order, 'amount')
         else:
             remaining = self.safe_float(order, 'amount')
-        if amount is not None:
-            if remaining is not None:
-                filled = amount - remaining
-                cost = price * filled
         fee = None
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -558,15 +552,15 @@ class tidex(Exchange):
             'side': self.safe_string(order, 'type'),
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': None,
             'status': status,
             'fee': fee,
             'average': None,
             'trades': None,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
