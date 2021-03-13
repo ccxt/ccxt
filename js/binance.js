@@ -507,6 +507,10 @@ module.exports = class binance extends Exchange {
                     'future': 'x-xcKtGhcu',
                     'delivery': 'x-xcKtGhcu',
                 },
+                'fetchPositions': {
+                    'future': 'fapiPrivateV2GetAccount', // 'fapiPrivateGetPositionRisk'
+                    'delivery': 'dapiPrivateGetAccount', // 'dapiPrivateGetPositionRisk'
+                },
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
@@ -2170,8 +2174,11 @@ module.exports = class binance extends Exchange {
 
     async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.fetchBalance (params);
-        const info = this.safeValue (response, 'info', {});
+        const type = this.safeString (this.options, 'defaultType', 'future');
+        const fetchPositions = this.safeValue (this.options, 'fetchPositions', {});
+        const defaultMethod = (type === 'future') ? 'fapiPrivateV2GetAccount' : 'dapiPrivateGetAccount';
+        const method = this.safeString (fetchPositions, type, defaultMethod);
+        const response = await this[method] (params);
         //
         // futures, delivery
         //
@@ -2214,9 +2221,44 @@ module.exports = class binance extends Exchange {
         //         ]
         //     }
         //
-        const positions = this.safeValue2 (info, 'positions', 'userAssets', []);
-        // todo unify parsePosition/parsePositions
-        return positions;
+        // fapiPrivateGetPositionRisk, dapiPrivateGetPositionRisk
+        //
+        // [
+        //   {
+        //     symbol: 'XRPUSD_210625',
+        //     positionAmt: '0',
+        //     entryPrice: '0.00000000',
+        //     markPrice: '0.00000000',
+        //     unRealizedProfit: '0.00000000',
+        //     liquidationPrice: '0',
+        //     leverage: '20',
+        //     maxQty: '500000',
+        //     marginType: 'cross',
+        //     isolatedMargin: '0.00000000',
+        //     isAutoAddMargin: 'false',
+        //     positionSide: 'BOTH',
+        //     notionalValue: '0',
+        //     isolatedWallet: '0'
+        //   },
+        //   {
+        //     symbol: 'BTCUSD_210326',
+        //     positionAmt: '1',
+        //     entryPrice: '60665.79999885',
+        //     markPrice: '60696.76856843',
+        //     unRealizedProfit: '0.00000084',
+        //     liquidationPrice: '58034.68208092',
+        //     leverage: '20',
+        //     maxQty: '50',
+        //     marginType: 'isolated',
+        //     isolatedMargin: '0.00008345',
+        //     isAutoAddMargin: 'false',
+        //     positionSide: 'BOTH',
+        //     notionalValue: '0.00164753',
+        //     isolatedWallet: '0.00008261'
+        //   },
+        // ]
+        //
+        return this.safeValue (response, 'positions', response);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
