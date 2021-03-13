@@ -278,12 +278,6 @@ module.exports = class bit2c extends Exchange {
         const timestamp = this.safeInteger (order, 'created');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -296,7 +290,7 @@ module.exports = class bit2c extends Exchange {
         }
         const id = this.safeString (order, 'id');
         const status = this.safeString (order, 'status');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -313,12 +307,12 @@ module.exports = class bit2c extends Exchange {
             'amount': amount,
             'filled': undefined,
             'remaining': undefined,
-            'cost': cost,
+            'cost': undefined,
             'trades': undefined,
             'fee': undefined,
             'info': order,
             'average': undefined,
-        };
+        });
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
