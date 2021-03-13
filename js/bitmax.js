@@ -995,20 +995,6 @@ module.exports = class bitmax extends Exchange {
         const amount = this.safeFloat (order, 'orderQty');
         const average = this.safeFloat (order, 'avgPx');
         const filled = this.safeFloat2 (order, 'cumFilledQty', 'cumQty');
-        let remaining = undefined;
-        if (filled !== undefined) {
-            if (filled === 0) {
-                timestamp = lastTradeTimestamp;
-                lastTradeTimestamp = undefined;
-            }
-            if (amount !== undefined) {
-                remaining = Math.max (0, amount - filled);
-            }
-        }
-        let cost = undefined;
-        if ((average !== undefined) && (filled !== undefined)) {
-            cost = average * filled;
-        }
         const id = this.safeString (order, 'orderId');
         let clientOrderId = this.safeString (order, 'id');
         if (clientOrderId !== undefined) {
@@ -1029,7 +1015,7 @@ module.exports = class bitmax extends Exchange {
             };
         }
         const stopPrice = this.safeFloat (order, 'stopPrice');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1044,14 +1030,14 @@ module.exports = class bitmax extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
