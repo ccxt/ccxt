@@ -2868,7 +2868,7 @@ class Exchange {
             }
         }
         // also ensure the $cost field is calculated correctly
-        $costPriceExists = ($average !== null) || ($price !== null)
+        $costPriceExists = ($average !== null) || ($price !== null);
         if (($filled !== null) && $costPriceExists) {
             $cost = ($average === null) ? ($price * $filled) : ($average * $filled);
         }

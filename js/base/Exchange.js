@@ -1507,7 +1507,7 @@ module.exports = class Exchange {
             }
         }
         // also ensure the cost field is calculated correctly
-        const costPriceExists = (average !== undefined) || (price !== undefined)
+        const costPriceExists = (average !== undefined) || (price !== undefined);
         if ((filled !== undefined) && costPriceExists) {
             cost = (average === undefined) ? (price * filled) : (average * filled);
         }
