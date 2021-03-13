@@ -2152,7 +2152,7 @@ class Exchange(object):
         # We ensure that the average field is calculated correctly
         if order['average'] is None:
             if order['filled'] is not None and order['cost'] is not None and order['cost'] > 0:
-                order['average'] = order['filled'] / order['cost']
+                order['average'] = order['cost'] / order['filled']
         # We also ensure the cost field is calculated correctly
         costPriceExists = (order['average'] is not None) or (order['price'] is not None)
         if (order['filled'] is not None) and costPriceExists:
