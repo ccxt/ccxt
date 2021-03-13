@@ -1408,8 +1408,10 @@ module.exports = class Exchange {
         let cost = this.safeValue (order, 'cost');
         let average = this.safeValue (order, 'average');
         let price = this.safeValue (order, 'price');
+        let lastTradeTimeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
         const parseFilled = (filled === undefined);
         const parseCost = (cost === undefined);
+        const parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp === undefined);
         const parseFee = this.safeValue (order, 'fee') === undefined;
         const parseFees = this.safeValue (order, 'fees') === undefined;
         let fees = undefined;
@@ -1428,11 +1430,18 @@ module.exports = class Exchange {
                 }
                 for (let i = 0; i < trades.length; i++) {
                     const trade = trades[i];
-                    if (parseFilled) {
+                    if (parseFilled && (trade['amount'] !== undefined)) {
                         filled = this.sum (filled, trade['amount']);
                     }
-                    if (parseCost) {
+                    if (parseCost && (trade['cost'] !== undefined)) {
                         cost = this.sum (cost, trade['cost']);
+                    }
+                    if (parseLastTradeTimeTimestamp && (trade['timestamp'] !== undefined)) {
+                        if (lastTradeTimeTimestamp === undefined) {
+                            lastTradeTimeTimestamp = trade['timestamp'];
+                        } else {
+                            lastTradeTimeTimestamp = Math.max (lastTradeTimeTimestamp, trade['timestamp']);
+                        }
                     }
                     if (shouldParseFees) {
                         const tradeFees = this.safeValue (trade, 'fees');
@@ -1457,7 +1466,7 @@ module.exports = class Exchange {
                 const fee = fees[i];
                 let appendFee = true;
                 for (let j = 0; j < reduced.length; j++) {
-                    const reducedFee = reduced[j]
+                    const reducedFee = reduced[j];
                     if (reducedFee['currency'] === fee['currency']) {
                         reducedFee['cost'] = this.sum (reducedFee['cost'], fee['cost']);
                         appendFee = false;
@@ -1507,7 +1516,7 @@ module.exports = class Exchange {
             price = average;
         }
         return this.extend (order, {
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': price,
             'amount': amount,
             'cost': cost,
