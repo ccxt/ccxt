@@ -2803,7 +2803,7 @@ class Exchange {
         // We ensure that the average field is calculated correctly
         if ($order['average'] === null) {
             if ($order['filled'] !== null && $order['cost'] !== null && $order['cost'] > 0) {
-                $order['average'] = $order['filled'] / $order['cost'];
+                $order['average'] = $order['cost'] / $order['filled'];
             }
         }
         // We also ensure the cost field is calculated correctly
