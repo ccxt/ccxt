@@ -1412,7 +1412,8 @@ module.exports = class Exchange {
             fees = []
         }
         if (parseFilled || parseCost || shouldParseFees) {
-            if (Array.isArray (order['trades'])) {
+            const trades = this.safeValue (order, 'trades');
+            if (trades !== undefined) {
                 if (parseFilled) {
                     order['filled'] = 0
                 }
