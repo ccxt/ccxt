@@ -555,22 +555,14 @@ module.exports = class tidex extends Exchange {
         let remaining = undefined;
         let amount = undefined;
         const price = this.safeFloat (order, 'rate');
-        let filled = undefined;
-        let cost = undefined;
         if ('start_amount' in order) {
             amount = this.safeFloat (order, 'start_amount');
             remaining = this.safeFloat (order, 'amount');
         } else {
             remaining = this.safeFloat (order, 'amount');
         }
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = amount - remaining;
-                cost = price * filled;
-            }
-        }
         const fee = undefined;
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -584,15 +576,15 @@ module.exports = class tidex extends Exchange {
             'side': this.safeString (order, 'type'),
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': undefined,
             'status': status,
             'fee': fee,
             'average': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
