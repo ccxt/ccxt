@@ -2762,45 +2762,66 @@ class Exchange {
         // Amount
         // Filled
         //
-        // First we try to calculate filled from the trades
-        $parseFilled = $this->safe_value($order, 'filled') === null;
-        $parseCost = $this->safe_vaule($order, 'cost') === null;
+        // first we try to calculate the $order fields from the $trades
+        $amount = $this->safe_value($order, 'amount');
+        $remaining = $this->safe_value($order, 'remaining');
+        $filled = $this->safe_value($order, 'filled');
+        $cost = $this->safe_value($order, 'cost');
+        $average = $this->safe_value($order, 'average');
+        $price = $this->safe_value($order, 'price');
+        $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
+        $parseFilled = ($filled === null);
+        $parseCost = ($cost === null);
+        $parseLastTradeTimeTimestamp = ($lastTradeTimeTimestamp === null);
         $parseFee = $this->safe_value($order, 'fee') === null;
         $parseFees = $this->safe_value($order, 'fees') === null;
         $fees = null;
-        if ($parseFee || $parseFees) {
+        $shouldParseFees = $parseFee || $parseFees;
+        if ($shouldParseFees) {
             $fees = array();
         }
-        if ($parseFilled || $parseCost || $parseFee || $parseFees) {
-            if (gettype($order['trades']) === 'array' && count(array_filter(array_keys($order['trades']), 'is_string')) == 0) {
+        if ($parseFilled || $parseCost || $shouldParseFees) {
+            $trades = $this->safe_value($order, 'trades');
+            if ($trades !== null) {
                 if ($parseFilled) {
-                    $order['filled'] = 0;
+                    $filled = 0;
                 }
                 if ($parseCost) {
-                    $order['cost'] = 0;
+                    $cost = 0;
                 }
-                for ($i = 0; $i < count($order['trades']); $i++) {
-                    $trade = $order['trades'][$i];
-                    if ($parseFilled) {
-                        $order['filled'] = $this->sum($order['filled'], $trade['amount']);
+                for ($i = 0; $i < count($trades); $i++) {
+                    $trade = $trades[$i];
+                    if ($parseFilled && ($trade['amount'] !== null)) {
+                        $filled = $this->sum($filled, $trade['amount']);
                     }
-                    if ($parseCost) {
-                        $order['cost'] = $this->sum($order['cost'], $trade['cost']);
+                    if ($parseCost && ($trade['cost'] !== null)) {
+                        $cost = $this->sum($cost, $trade['cost']);
                     }
-                    if ($parseFee || $parseFees) {
-                        if (gettype($trade['fees']) === 'array' && count(array_filter(array_keys($trade['fees']), 'is_string')) == 0) {
-                            for ($j = 0; $j < count($trade['fees']); $j++) {
-                                $fee = $trade['fees'][$j];
-                                $fees[] = array_merge(array(), $fee);
+                    if ($parseLastTradeTimeTimestamp && ($trade['timestamp'] !== null)) {
+                        if ($lastTradeTimeTimestamp === null) {
+                            $lastTradeTimeTimestamp = $trade['timestamp'];
+                        } else {
+                            $lastTradeTimeTimestamp = max ($lastTradeTimeTimestamp, $trade['timestamp']);
+                        }
+                    }
+                    if ($shouldParseFees) {
+                        $tradeFees = $this->safe_value($trade, 'fees');
+                        if ($tradeFees !== null) {
+                            for ($j = 0; $j < count($tradeFees); $j++) {
+                                $tradeFee = $tradeFees[$j];
+                                $fees[] = array_merge(array(), $tradeFee);
                             }
-                        } else if ($trade['fee'] !== null) {
-                            $fees[] = array_merge(array(), $trade['fee']);
+                        } else {
+                            $tradeFee = $this->safe_value($trade, 'fee');
+                            if ($tradeFee !== null) {
+                                $fees[] = array_merge(array(), $tradeFee);
+                            }
                         }
                     }
                 }
             }
         }
-        if ($parseFee || $parseFees) {
+        if ($shouldParseFees) {
             $reduced = array();
             for ($i = 0; $i < count($fees); $i++) {
                 $fee = $fees[$i];
@@ -2824,43 +2845,45 @@ class Exchange {
                 $order['fee'] = $reduced[0];
             }
         }
-        // We ensure amount = filled . remaining
-        if ($order['amount'] === null) {
-            if ($order['filled'] !== null && $order['remaining'] !== null) {
-                $order['amount'] = $this->sum($order['filled'], $order['remaining']);
+        if ($amount === null) {
+            // ensure $amount = $filled . $remaining
+            if ($filled !== null && $remaining !== null) {
+                $amount = $this->sum($filled, $remaining);
             }
         }
-        if ($order['filled'] === null) {
-            if ($order['amount'] !== null && $order['remaining'] !== null) {
-                $order['filled'] = max ($this->sum($order['amount'], -$order['remaining']), 0);
+        if ($filled === null) {
+            if ($amount !== null && $remaining !== null) {
+                $filled = max ($this->sum($amount, -$remaining), 0);
             }
         }
-        if ($order['remaining'] === null) {
-            if ($order['amount'] !== null && $order['filled'] !== null) {
-                $order['remaining'] = max ($this->sum($order['amount'], -$order['filled']), 0);
+        if ($remaining === null) {
+            if ($amount !== null && $filled !== null) {
+                $remaining = max ($this->sum($amount, -$filled), 0);
             }
         }
-        // We ensure that the average field is calculated correctly
-        if ($order['average'] === null) {
-            if ($order['filled'] !== null && $order['cost'] !== null && $order['cost'] > 0) {
-                $order['average'] = $order['cost'] / $order['filled'];
+        // ensure that the $average field is calculated correctly
+        if ($average === null) {
+            if (($filled !== null) && ($cost !== null) && ($cost > 0)) {
+                $average = $cost / $filled;
             }
         }
-        // We also ensure the cost field is calculated correctly
-        $costPriceExists = ($order['average'] !== null) || ($order['price'] !== null);
-        if (($order['filled'] !== null) && $costPriceExists) {
-            $costPrice = null;
-            if ($order['average'] === null) {
-                $costPrice = $order['price'];
-            } else {
-                $costPrice = $order['average'];
-            }
-            $order['cost'] = $costPrice * $order['filled'];
+        // also ensure the $cost field is calculated correctly
+        $costPriceExists = ($average !== null) || ($price !== null)
+        if (($filled !== null) && $costPriceExists) {
+            $cost = ($average === null) ? ($price * $filled) : ($average * $filled);
         }
-        // We add support for market orders
-        if ($order['price'] === null && $order['type'] === 'market') {
-            $order['price'] = $order['average'];
+        // support for market orders
+        if (($price === null) && ($order['type'] === 'market')) {
+            $price = $average;
         }
-        return $order;
+        return array_merge($order, array(
+            'lastTradeTimestamp' => $lastTradeTimeTimestamp,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'average' => $average,
+            'filled' => $filled,
+            'remaining' => $remaining,
+        ));
     }
 }

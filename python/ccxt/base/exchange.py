@@ -2095,34 +2095,52 @@ class Exchange(object):
         # Amount
         # Filled
         #
-        # First we try to calculate filled from the trades
-        parseFilled = self.safe_value(order, 'filled') is None
-        parseCost = self.safe_value(order, 'cost') is None
+        # first we try to calculate the order fields from the trades
+        amount = self.safe_value(order, 'amount')
+        remaining = self.safe_value(order, 'remaining')
+        filled = self.safe_value(order, 'filled')
+        cost = self.safe_value(order, 'cost')
+        average = self.safe_value(order, 'average')
+        price = self.safe_value(order, 'price')
+        lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
+        parseFilled = (filled is None)
+        parseCost = (cost is None)
+        parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
         parseFee = self.safe_value(order, 'fee') is None
         parseFees = self.safe_value(order, 'fees') is None
         fees = None
-        if parseFee or parseFees:
+        shouldParseFees = parseFee or parseFees
+        if shouldParseFees:
             fees = []
-        if parseFilled or parseCost or parseFee or parseFees:
-            if isinstance(order['trades'], list):
+        if parseFilled or parseCost or shouldParseFees:
+            trades = self.safe_value(order, 'trades')
+            if trades is not None:
                 if parseFilled:
-                    order['filled'] = 0
+                    filled = 0
                 if parseCost:
-                    order['cost'] = 0
-                for i in range(0, len(order['trades'])):
-                    trade = order['trades'][i]
-                    if parseFilled:
-                        order['filled'] = self.sum(order['filled'], trade['amount'])
-                    if parseCost:
-                        order['cost'] = self.sum(order['cost'], trade['cost'])
-                    if parseFee or parseFees:
-                        if isinstance(trade['fees'], list):
-                            for j in range(0, len(trade['fees'])):
-                                fee = trade['fees'][j]
-                                fees.append(self.extend({}, fee))
-                        elif trade['fee'] is not None:
-                            fees.append(self.extend({}, trade['fee']))
-        if parseFee or parseFees:
+                    cost = 0
+                for i in range(0, len(trades)):
+                    trade = trades[i]
+                    if parseFilled and (trade['amount'] is not None):
+                        filled = self.sum(filled, trade['amount'])
+                    if parseCost and (trade['cost'] is not None):
+                        cost = self.sum(cost, trade['cost'])
+                    if parseLastTradeTimeTimestamp and (trade['timestamp'] is not None):
+                        if lastTradeTimeTimestamp is None:
+                            lastTradeTimeTimestamp = trade['timestamp']
+                        else:
+                            lastTradeTimeTimestamp = max(lastTradeTimeTimestamp, trade['timestamp'])
+                    if shouldParseFees:
+                        tradeFees = self.safe_value(trade, 'fees')
+                        if tradeFees is not None:
+                            for j in range(0, len(tradeFees)):
+                                tradeFee = tradeFees[j]
+                                fees.append(self.extend({}, tradeFee))
+                        else:
+                            tradeFee = self.safe_value(trade, 'fee')
+                            if tradeFee is not None:
+                                fees.append(self.extend({}, tradeFee))
+        if shouldParseFees:
             reduced = []
             for i in range(0, len(fees)):
                 fee = fees[i]
@@ -2139,30 +2157,33 @@ class Exchange(object):
             length = len(reduced)
             if parseFee and (length == 1):
                 order['fee'] = reduced[0]
-        # We ensure amount = filled + remaining
-        if order['amount'] is None:
-            if order['filled'] is not None and order['remaining'] is not None:
-                order['amount'] = self.sum(order['filled'], order['remaining'])
-        if order['filled'] is None:
-            if order['amount'] is not None and order['remaining'] is not None:
-                order['filled'] = max(self.sum(order['amount'], -order['remaining']), 0)
-        if order['remaining'] is None:
-            if order['amount'] is not None and order['filled'] is not None:
-                order['remaining'] = max(self.sum(order['amount'], -order['filled']), 0)
-        # We ensure that the average field is calculated correctly
-        if order['average'] is None:
-            if order['filled'] is not None and order['cost'] is not None and order['cost'] > 0:
-                order['average'] = order['cost'] / order['filled']
-        # We also ensure the cost field is calculated correctly
-        costPriceExists = (order['average'] is not None) or (order['price'] is not None)
-        if (order['filled'] is not None) and costPriceExists:
-            costPrice = None
-            if order['average'] is None:
-                costPrice = order['price']
-            else:
-                costPrice = order['average']
-            order['cost'] = costPrice * order['filled']
-        # We add support for market orders
-        if order['price'] is None and order['type'] == 'market':
-            order['price'] = order['average']
-        return order
+        if amount is None:
+            # ensure amount = filled + remaining
+            if filled is not None and remaining is not None:
+                amount = self.sum(filled, remaining)
+        if filled is None:
+            if amount is not None and remaining is not None:
+                filled = max(self.sum(amount, -remaining), 0)
+        if remaining is None:
+            if amount is not None and filled is not None:
+                remaining = max(self.sum(amount, -filled), 0)
+        # ensure that the average field is calculated correctly
+        if average is None:
+            if (filled is not None) and (cost is not None) and (cost > 0):
+                average = cost / filled
+        # also ensure the cost field is calculated correctly
+        costPriceExists = (average is not None) or (price is not None)
+        if (filled is not None) and costPriceExists:
+            cost = (price * filled) if (average is None) else (average * filled)
+        # support for market orders
+        if (price is None) and (order['type'] == 'market'):
+            price = average
+        return self.extend(order, {
+            'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+        })
