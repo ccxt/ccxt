@@ -269,10 +269,6 @@ class luno(Exchange):
         baseFee = self.safe_float(order, 'fee_base')
         filled = self.safe_float(order, 'base')
         cost = self.safe_float(order, 'counter')
-        remaining = None
-        if amount is not None:
-            if filled is not None:
-                remaining = max(0, amount - filled)
         fee = {'currency': None}
         if quoteFee:
             fee['cost'] = quoteFee
@@ -283,7 +279,7 @@ class luno(Exchange):
             if market is not None:
                 fee['currency'] = market['base']
         id = self.safe_string(order, 'order_id')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -300,12 +296,12 @@ class luno(Exchange):
             'amount': amount,
             'filled': filled,
             'cost': cost,
-            'remaining': remaining,
+            'remaining': None,
             'trades': None,
             'fee': fee,
             'info': order,
             'average': None,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
