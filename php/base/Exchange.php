@@ -1428,7 +1428,7 @@ class Exchange {
     }
 
     public function on_rest_response($code, $reason, $url, $method, $response_headers, $response_body, $request_headers, $request_body) {
-        return is_string($response_body) ? trim($response_body) : $response_body;
+        return is_string($response_body) ? preg_replace('/:([0-9.eE-]+)/', '"$1"', trim($response_body)) : $response_body;
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
