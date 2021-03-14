@@ -1551,26 +1551,7 @@ module.exports = class bitmart extends Exchange {
         let price = this.safeFloat (order, 'price');
         let average = this.safeFloat2 (order, 'price_avg', 'done_avg_price');
         const amount = this.safeFloat2 (order, 'size', 'vol');
-        let cost = undefined;
-        let filled = this.safeFloat2 (order, 'filled_size', 'done_vol');
-        let remaining = undefined;
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                if (filled === undefined) {
-                    filled = Math.max (0, amount - remaining);
-                }
-            }
-            if (filled !== undefined) {
-                if (remaining === undefined) {
-                    remaining = Math.max (0, amount - filled);
-                }
-                if (cost === undefined) {
-                    if (average !== undefined) {
-                        cost = average * filled;
-                    }
-                }
-            }
-        }
+        const filled = this.safeFloat2 (order, 'filled_size', 'done_vol');
         let side = this.safeString (order, 'side');
         // 1 = Open long
         // 2 = Close short
@@ -1592,7 +1573,7 @@ module.exports = class bitmart extends Exchange {
                 average = undefined;
             }
         }
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
@@ -1607,14 +1588,14 @@ module.exports = class bitmart extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     parseOrderStatusByType (type, status) {
