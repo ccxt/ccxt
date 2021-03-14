@@ -558,12 +558,12 @@ module.exports = class oceanex extends Exchange {
         //
         const status = this.parseOrderStatus (this.safeValue (order, 'state'));
         const marketId = this.safeString2 (order, 'market', 'market_id');
-        const symbol = this.safeSymbol (marketId);
+        const symbol = this.safeSymbol (marketId, market);
         let timestamp = this.safeTimestamp (order, 'created_on');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
@@ -585,7 +585,7 @@ module.exports = class oceanex extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
-        };
+        });
     }
 
     parseOrderStatus (status) {
