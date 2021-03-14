@@ -717,6 +717,45 @@ module.exports = class ftx extends Exchange {
         //         "type": "otc"
         //     }
         //
+        //     with -ve fee
+        //     {
+        //         "id": 1171258927,
+        //         "fee": -0.0000713875,
+        //         "side": "sell",
+        //         "size": 1,
+        //         "time": "2021-03-11T13:34:35.523627+00:00",
+        //         "type": "order",
+        //         "price": 14.2775,
+        //         "future": null,
+        //         "market": "SOL/USD",
+        //         "feeRate": -0.000005,
+        //         "orderId": 33182929044,
+        //         "tradeId": 582936801,
+        //         "liquidity": "maker",
+        //         "feeCurrency": "USD",
+        //         "baseCurrency": "SOL",
+        //         "quoteCurrency": "USD"
+        //     }
+        //
+        //     // from OTC order
+        //     {
+        //         "id": 1172129651,
+        //         "fee": 0,
+        //         "side": "sell",
+        //         "size": 1.47568846,
+        //         "time": "2021-03-11T15:04:46.893383+00:00",
+        //         "type": "otc",
+        //         "price": 14.60932598,
+        //         "future": null,
+        //         "market": null,
+        //         "feeRate": 0,
+        //         "orderId": null,
+        //         "tradeId": null,
+        //         "liquidity": "taker",
+        //         "feeCurrency": "USD",
+        //         "baseCurrency": "BCHA",
+        //         "quoteCurrency": "USD"
+        //     }
         const id = this.safeString (trade, 'id');
         const takerOrMaker = this.safeString (trade, 'liquidity');
         const marketId = this.safeString (trade, 'market');
