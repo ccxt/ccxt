@@ -906,29 +906,16 @@ module.exports = class probit extends Exchange {
             remaining = this.sum (remaining, canceledAmount);
         }
         const amount = this.safeFloat (order, 'quantity', this.sum (filled, remaining));
-        let cost = this.safeFloat2 (order, 'filled_cost', 'cost');
+        const cost = this.safeFloat2 (order, 'filled_cost', 'cost');
         if (type === 'market') {
             price = undefined;
-        }
-        let average = undefined;
-        if (filled !== undefined) {
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = price * filled;
-                }
-            }
-            if (cost !== undefined) {
-                if (filled > 0) {
-                    average = cost / filled;
-                }
-            }
         }
         let clientOrderId = this.safeString (order, 'client_order_id');
         if (clientOrderId === '') {
             clientOrderId = undefined;
         }
         const timeInForce = this.safeStringUpper (order, 'time_in_force');
-        return {
+        return this.safeOrder ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
@@ -945,11 +932,11 @@ module.exports = class probit extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'average': average,
+            'average': undefined,
             'cost': cost,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     costToPrecision (symbol, cost) {
