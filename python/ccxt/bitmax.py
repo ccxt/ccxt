@@ -970,16 +970,6 @@ class bitmax(Exchange):
         amount = self.safe_float(order, 'orderQty')
         average = self.safe_float(order, 'avgPx')
         filled = self.safe_float_2(order, 'cumFilledQty', 'cumQty')
-        remaining = None
-        if filled is not None:
-            if filled == 0:
-                timestamp = lastTradeTimestamp
-                lastTradeTimestamp = None
-            if amount is not None:
-                remaining = max(0, amount - filled)
-        cost = None
-        if (average is not None) and (filled is not None):
-            cost = average * filled
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'id')
         if clientOrderId is not None:
@@ -997,7 +987,7 @@ class bitmax(Exchange):
                 'currency': feeCurrencyCode,
             }
         stopPrice = self.safe_float(order, 'stopPrice')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -1012,14 +1002,14 @@ class bitmax(Exchange):
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
