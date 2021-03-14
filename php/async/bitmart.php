@@ -1556,26 +1556,7 @@ class bitmart extends Exchange {
         $price = $this->safe_float($order, 'price');
         $average = $this->safe_float_2($order, 'price_avg', 'done_avg_price');
         $amount = $this->safe_float_2($order, 'size', 'vol');
-        $cost = null;
         $filled = $this->safe_float_2($order, 'filled_size', 'done_vol');
-        $remaining = null;
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                if ($filled === null) {
-                    $filled = max (0, $amount - $remaining);
-                }
-            }
-            if ($filled !== null) {
-                if ($remaining === null) {
-                    $remaining = max (0, $amount - $filled);
-                }
-                if ($cost === null) {
-                    if ($average !== null) {
-                        $cost = $average * $filled;
-                    }
-                }
-            }
-        }
         $side = $this->safe_string($order, 'side');
         // 1 = Open long
         // 2 = Close short
@@ -1597,7 +1578,7 @@ class bitmart extends Exchange {
                 $average = null;
             }
         }
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
@@ -1612,14 +1593,14 @@ class bitmart extends Exchange {
             'price' => $price,
             'stopPrice' => null,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function parse_order_status_by_type($type, $status) {
