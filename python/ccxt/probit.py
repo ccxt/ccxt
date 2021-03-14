@@ -869,19 +869,11 @@ class probit(Exchange):
         cost = self.safe_float_2(order, 'filled_cost', 'cost')
         if type == 'market':
             price = None
-        average = None
-        if filled is not None:
-            if cost is None:
-                if price is not None:
-                    cost = price * filled
-            if cost is not None:
-                if filled > 0:
-                    average = cost / filled
         clientOrderId = self.safe_string(order, 'client_order_id')
         if clientOrderId == '':
             clientOrderId = None
         timeInForce = self.safe_string_upper(order, 'time_in_force')
-        return {
+        return self.safe_order({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
@@ -898,11 +890,11 @@ class probit(Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'average': average,
+            'average': None,
             'cost': cost,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
