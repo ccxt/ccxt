@@ -617,6 +617,11 @@ class Exchange(object):
             else:
                 raise NetworkError(details) from e
 
+        except ConnectionResetError as e:
+            error_string = str(e)
+            details = ' '.join([self.id, method, url])
+            raise NetworkError(details) from e
+
         except RequestException as e:  # base exception class
             error_string = str(e)
             details = ' '.join([self.id, method, url])
