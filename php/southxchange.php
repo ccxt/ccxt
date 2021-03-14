@@ -245,18 +245,10 @@ class southxchange extends Exchange {
         $price = $this->safe_float($order, 'LimitPrice');
         $amount = $this->safe_float($order, 'OriginalAmount');
         $remaining = $this->safe_float($order, 'Amount');
-        $filled = null;
-        $cost = null;
-        if ($amount !== null) {
-            $cost = $price * $amount;
-            if ($remaining !== null) {
-                $filled = $amount - $remaining;
-            }
-        }
         $type = 'limit';
         $side = $this->safe_string_lower($order, 'Type');
         $id = $this->safe_string($order, 'Code');
-        $result = array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -271,15 +263,14 @@ class southxchange extends Exchange {
             'price' => $price,
             'stopPrice' => null,
             'amount' => $amount,
-            'cost' => $cost,
-            'filled' => $filled,
+            'cost' => null,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
             'average' => null,
             'trades' => null,
-        );
-        return $result;
+        ));
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

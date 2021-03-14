@@ -409,14 +409,8 @@ class tidebit extends Exchange {
         $amount = $this->safe_float($order, 'volume');
         $filled = $this->safe_float($order, 'executed_volume');
         $remaining = $this->safe_float($order, 'remaining_volume');
-        $cost = null;
-        if ($price !== null) {
-            if ($filled !== null) {
-                $cost = $price * $filled;
-            }
-        }
         $average = $this->safe_float($order, 'avg_price');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -433,12 +427,12 @@ class tidebit extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
-            'cost' => $cost,
+            'cost' => null,
             'trades' => null,
             'fee' => null,
             'info' => $order,
             'average' => $average,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
