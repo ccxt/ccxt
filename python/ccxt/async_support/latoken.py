@@ -595,21 +595,13 @@ class latoken(Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'executedAmount')
-        remaining = None
-        if amount is not None:
-            if filled is not None:
-                remaining = amount - filled
         status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
-        cost = None
-        if filled is not None:
-            if price is not None:
-                cost = filled * price
         timeFilled = self.safe_timestamp(order, 'timeFilled')
         lastTradeTimestamp = None
         if (timeFilled is not None) and (timeFilled > 0):
             lastTradeTimestamp = timeFilled
         clientOrderId = self.safe_string(order, 'cliOrdId')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -624,14 +616,14 @@ class latoken(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
             'filled': filled,
             'average': None,
-            'remaining': remaining,
+            'remaining': None,
             'fee': None,
             'trades': None,
-        }
+        })
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_with_method('private_get_order_active', symbol, since, limit, params)

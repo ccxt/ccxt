@@ -618,26 +618,14 @@ class latoken extends Exchange {
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'executedAmount');
-        $remaining = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = $amount - $filled;
-            }
-        }
         $status = $this->parse_order_status($this->safe_string($order, 'orderStatus'));
-        $cost = null;
-        if ($filled !== null) {
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-        }
         $timeFilled = $this->safe_timestamp($order, 'timeFilled');
         $lastTradeTimestamp = null;
         if (($timeFilled !== null) && ($timeFilled > 0)) {
             $lastTradeTimestamp = $timeFilled;
         }
         $clientOrderId = $this->safe_string($order, 'cliOrdId');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -652,14 +640,14 @@ class latoken extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'amount' => $amount,
             'filled' => $filled,
             'average' => null,
-            'remaining' => $remaining,
+            'remaining' => null,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
