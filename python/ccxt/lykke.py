@@ -464,10 +464,8 @@ class lykke(Exchange):
         else:
             side = 'buy'
         remaining = abs(self.safe_float(order, 'RemainingVolume'))
-        filled = amount - remaining
-        cost = filled * price
         id = self.safe_string(order, 'Id')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -481,15 +479,15 @@ class lykke(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'average': None,
             'amount': amount,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

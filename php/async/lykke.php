@@ -488,10 +488,8 @@ class lykke extends Exchange {
             $side = 'buy';
         }
         $remaining = abs($this->safe_float($order, 'RemainingVolume'));
-        $filled = $amount - $remaining;
-        $cost = $filled * $price;
         $id = $this->safe_string($order, 'Id');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -505,15 +503,15 @@ class lykke extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'average' => null,
             'amount' => $amount,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
