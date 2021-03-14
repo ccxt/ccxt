@@ -482,13 +482,6 @@ class rightbtc(Exchange):
         remaining = self.divide_safe_float(order, 'rest', 1e8)
         cost = self.divide_safe_float(order, 'cost', 1e8)
         # lines 483-494 should be generalized into a base class method
-        if amount is not None:
-            if remaining is None:
-                if filled is not None:
-                    remaining = max(0, amount - filled)
-            if filled is None:
-                if remaining is not None:
-                    filled = max(0, amount - remaining)
         type = 'limit'
         side = self.safe_string_lower(order, 'side')
         feeCost = self.divide_safe_float(order, 'min_fee', 1e8)
@@ -503,7 +496,7 @@ class rightbtc(Exchange):
                 'currency': feeCurrency,
             }
         trades = None
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -525,7 +518,7 @@ class rightbtc(Exchange):
             'fee': fee,
             'trades': trades,
             'average': None,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
