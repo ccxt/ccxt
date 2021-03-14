@@ -448,35 +448,20 @@ module.exports = class lbank extends Exchange {
         //         "status"：2
         //     }
         //
-        let symbol = undefined;
-        const responseMarket = this.safeValue (this.marketsById, order['symbol']);
-        if (responseMarket !== undefined) {
-            symbol = responseMarket['symbol'];
-        } else if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeInteger (order, 'create_time');
         // Limit Order Request Returns: Order Price
         // Market Order Returns: cny amount of market order
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount', 0.0);
         const filled = this.safeFloat (order, 'deal_amount', 0.0);
-        const av_price = this.safeFloat (order, 'avg_price');
-        let cost = undefined;
-        if (av_price !== undefined) {
-            cost = filled * av_price;
-        }
+        const average = this.safeFloat (order, 'avg_price');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'order_id');
         const type = this.safeString (order, 'order_type');
         const side = this.safeString (order, 'type');
-        let remaining = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = amount - filled;
-            }
-        }
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -490,15 +475,15 @@ module.exports = class lbank extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
             'info': this.safeValue (order, 'info', order),
-            'average': undefined,
-        };
+            'average': average,
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
