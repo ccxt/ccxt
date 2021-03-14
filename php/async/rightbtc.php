@@ -509,18 +509,6 @@ class rightbtc extends Exchange {
         $remaining = $this->divide_safe_float($order, 'rest', 1e8);
         $cost = $this->divide_safe_float($order, 'cost', 1e8);
         // lines 483-494 should be generalized into a base class method
-        if ($amount !== null) {
-            if ($remaining === null) {
-                if ($filled !== null) {
-                    $remaining = max (0, $amount - $filled);
-                }
-            }
-            if ($filled === null) {
-                if ($remaining !== null) {
-                    $filled = max (0, $amount - $remaining);
-                }
-            }
-        }
         $type = 'limit';
         $side = $this->safe_string_lower($order, 'side');
         $feeCost = $this->divide_safe_float($order, 'min_fee', 1e8);
@@ -537,7 +525,7 @@ class rightbtc extends Exchange {
             );
         }
         $trades = null;
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -559,7 +547,7 @@ class rightbtc extends Exchange {
             'fee' => $fee,
             'trades' => $trades,
             'average' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

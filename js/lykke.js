@@ -486,10 +486,8 @@ module.exports = class lykke extends Exchange {
             side = 'buy';
         }
         const remaining = Math.abs (this.safeFloat (order, 'RemainingVolume'));
-        const filled = amount - remaining;
-        const cost = filled * price;
         const id = this.safeString (order, 'Id');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -503,15 +501,15 @@ module.exports = class lykke extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'average': undefined,
             'amount': amount,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

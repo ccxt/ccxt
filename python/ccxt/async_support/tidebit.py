@@ -385,12 +385,8 @@ class tidebit(Exchange):
         amount = self.safe_float(order, 'volume')
         filled = self.safe_float(order, 'executed_volume')
         remaining = self.safe_float(order, 'remaining_volume')
-        cost = None
-        if price is not None:
-            if filled is not None:
-                cost = price * filled
         average = self.safe_float(order, 'avg_price')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -407,12 +403,12 @@ class tidebit(Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'cost': cost,
+            'cost': None,
             'trades': None,
             'fee': None,
             'info': order,
             'average': average,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

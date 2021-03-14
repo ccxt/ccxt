@@ -1083,7 +1083,7 @@ module.exports = class ndax extends Exchange {
         //
         const id = this.safeString2 (order, 'ReplacementOrderId', 'OrderId');
         const timestamp = this.safeInteger (order, 'ReceiveTime');
-        let lastTradeTimestamp = undefined;
+        const lastTradeTimestamp = this.safeInteger (order, 'LastUpdatedTime');
         const marketId = this.safeString (order, 'Instrument');
         const symbol = this.safeSymbol (marketId, market);
         const side = this.safeStringLower (order, 'Side');
@@ -1094,25 +1094,15 @@ module.exports = class ndax extends Exchange {
         const amount = this.safeFloat (order, 'OrigQuantity');
         const filled = this.safeFloat (order, 'QuantityExecuted');
         const cost = this.safeFloat (order, 'GrossValueExecuted');
-        let remaining = undefined;
-        let average = undefined;
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = Math.max (0, amount - filled);
-            }
-            if (filled > 0) {
-                lastTradeTimestamp = this.safeInteger (order, 'LastUpdatedTime');
-                average = this.safeFloat (order, 'AvgPrice', 0.0);
-                average = (average > 0) ? average : undefined;
-            }
-        }
+        let average = this.safeFloat (order, 'AvgPrice', 0.0);
+        average = (average > 0) ? average : undefined;
         let stopPrice = this.safeFloat (order, 'StopPrice', 0.0);
         stopPrice = (stopPrice > 0.0) ? stopPrice : undefined;
         const timeInForce = undefined;
         const status = this.parseOrderStatus (this.safeString (order, 'OrderState'));
         const fee = undefined;
         const trades = undefined;
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1131,10 +1121,10 @@ module.exports = class ndax extends Exchange {
             'amount': amount,
             'filled': filled,
             'average': average,
-            'remaining': remaining,
+            'remaining': undefined,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

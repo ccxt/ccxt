@@ -243,18 +243,10 @@ module.exports = class southxchange extends Exchange {
         const price = this.safeFloat (order, 'LimitPrice');
         const amount = this.safeFloat (order, 'OriginalAmount');
         const remaining = this.safeFloat (order, 'Amount');
-        let filled = undefined;
-        let cost = undefined;
-        if (amount !== undefined) {
-            cost = price * amount;
-            if (remaining !== undefined) {
-                filled = amount - remaining;
-            }
-        }
         const type = 'limit';
         const side = this.safeStringLower (order, 'Type');
         const id = this.safeString (order, 'Code');
-        const result = {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -269,15 +261,14 @@ module.exports = class southxchange extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
-            'cost': cost,
-            'filled': filled,
+            'cost': undefined,
+            'filled': undefined,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
             'average': undefined,
             'trades': undefined,
-        };
-        return result;
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

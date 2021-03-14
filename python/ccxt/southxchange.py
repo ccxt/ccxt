@@ -230,16 +230,10 @@ class southxchange(Exchange):
         price = self.safe_float(order, 'LimitPrice')
         amount = self.safe_float(order, 'OriginalAmount')
         remaining = self.safe_float(order, 'Amount')
-        filled = None
-        cost = None
-        if amount is not None:
-            cost = price * amount
-            if remaining is not None:
-                filled = amount - remaining
         type = 'limit'
         side = self.safe_string_lower(order, 'Type')
         id = self.safe_string(order, 'Code')
-        result = {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -254,15 +248,14 @@ class southxchange(Exchange):
             'price': price,
             'stopPrice': None,
             'amount': amount,
-            'cost': cost,
-            'filled': filled,
+            'cost': None,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'average': None,
             'trades': None,
-        }
-        return result
+        })
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

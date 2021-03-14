@@ -562,12 +562,12 @@ class oceanex extends Exchange {
         //
         $status = $this->parse_order_status($this->safe_value($order, 'state'));
         $marketId = $this->safe_string_2($order, 'market', 'market_id');
-        $symbol = $this->safe_symbol($marketId);
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_timestamp($order, 'created_on');
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
@@ -589,7 +589,7 @@ class oceanex extends Exchange {
             'cost' => null,
             'trades' => null,
             'fee' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {

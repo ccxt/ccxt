@@ -916,25 +916,12 @@ class probit extends Exchange {
         if ($type === 'market') {
             $price = null;
         }
-        $average = null;
-        if ($filled !== null) {
-            if ($cost === null) {
-                if ($price !== null) {
-                    $cost = $price * $filled;
-                }
-            }
-            if ($cost !== null) {
-                if ($filled > 0) {
-                    $average = $cost / $filled;
-                }
-            }
-        }
         $clientOrderId = $this->safe_string($order, 'client_order_id');
         if ($clientOrderId === '') {
             $clientOrderId = null;
         }
         $timeInForce = $this->safe_string_upper($order, 'time_in_force');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'info' => $order,
             'clientOrderId' => $clientOrderId,
@@ -951,11 +938,11 @@ class probit extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
-            'average' => $average,
+            'average' => null,
             'cost' => $cost,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function cost_to_precision($symbol, $cost) {

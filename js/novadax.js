@@ -847,10 +847,6 @@ module.exports = class novadax extends Exchange {
         const timestamp = this.safeInteger (order, 'timestamp');
         const average = this.safeFloat (order, 'averagePrice');
         const filled = this.safeFloat (order, 'filledAmount');
-        let remaining = undefined;
-        if ((amount !== undefined) && (filled !== undefined)) {
-            remaining = Math.max (0, amount - filled);
-        }
         let fee = undefined;
         const feeCost = this.safeFloat (order, 'filledFee');
         if (feeCost !== undefined) {
@@ -861,7 +857,7 @@ module.exports = class novadax extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
@@ -879,11 +875,11 @@ module.exports = class novadax extends Exchange {
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
