@@ -478,21 +478,14 @@ class itbit(Exchange):
         timestamp = self.parse8601(order['createdTime'])
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'amountFilled')
-        remaining = None
-        cost = None
         fee = None
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'volumeWeightedAveragePrice')
-        if filled is not None:
-            if amount is not None:
-                remaining = amount - filled
-            if average is not None:
-                cost = filled * average
         clientOrderId = self.safe_string(order, 'clientOrderIdentifier')
         id = self.safe_string(order, 'id')
         postOnlyString = self.safe_string(order, 'postOnly')
         postOnly = (postOnlyString == 'True')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -507,15 +500,15 @@ class itbit(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'fee': fee,
             # 'trades': self.parse_trades(order['trades'], market),
             'trades': None,
-        }
+        })
 
     def nonce(self):
         return self.milliseconds()
