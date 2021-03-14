@@ -514,24 +514,14 @@ module.exports = class itbit extends Exchange {
         const timestamp = this.parse8601 (order['createdTime']);
         const amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat (order, 'amountFilled');
-        let remaining = undefined;
-        let cost = undefined;
         const fee = undefined;
         const price = this.safeFloat (order, 'price');
         const average = this.safeFloat (order, 'volumeWeightedAveragePrice');
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
-            }
-            if (average !== undefined) {
-                cost = filled * average;
-            }
-        }
         const clientOrderId = this.safeString (order, 'clientOrderIdentifier');
         const id = this.safeString (order, 'id');
         const postOnlyString = this.safeString (order, 'postOnly');
         const postOnly = (postOnlyString === 'True');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -546,15 +536,15 @@ module.exports = class itbit extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
             'trades': undefined,
-        };
+        });
     }
 
     nonce () {
