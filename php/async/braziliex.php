@@ -442,20 +442,15 @@ class braziliex extends Exchange {
             $timestamp = $this->parse8601($this->safe_string($order, 'date'));
         }
         $price = $this->safe_float($order, 'price');
-        $cost = $this->safe_float($order, 'total', 0.0);
+        $cost = $this->safe_float($order, 'total');
         $amount = $this->safe_float($order, 'amount');
         $filledPercentage = $this->safe_float($order, 'progress');
         $filled = $amount * $filledPercentage;
-        $remaining = floatval($this->amount_to_precision($symbol, $amount - $filled));
-        $info = $order;
-        if (is_array($info) && array_key_exists('info', $info)) {
-            $info = $order['info'];
-        }
         $id = $this->safe_string($order, 'order_number');
         $fee = $this->safe_value($order, 'fee'); // propagated from createOrder
         $status = ($filledPercentage === 1.0) ? 'closed' : 'open';
         $side = $this->safe_string($order, 'type');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -472,12 +467,12 @@ class braziliex extends Exchange {
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'trades' => null,
             'fee' => $fee,
-            'info' => $info,
+            'info' => $order,
             'average' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
