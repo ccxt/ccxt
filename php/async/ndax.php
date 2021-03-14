@@ -1085,7 +1085,7 @@ class ndax extends Exchange {
         //
         $id = $this->safe_string_2($order, 'ReplacementOrderId', 'OrderId');
         $timestamp = $this->safe_integer($order, 'ReceiveTime');
-        $lastTradeTimestamp = null;
+        $lastTradeTimestamp = $this->safe_integer($order, 'LastUpdatedTime');
         $marketId = $this->safe_string($order, 'Instrument');
         $symbol = $this->safe_symbol($marketId, $market);
         $side = $this->safe_string_lower($order, 'Side');
@@ -1096,25 +1096,15 @@ class ndax extends Exchange {
         $amount = $this->safe_float($order, 'OrigQuantity');
         $filled = $this->safe_float($order, 'QuantityExecuted');
         $cost = $this->safe_float($order, 'GrossValueExecuted');
-        $remaining = null;
-        $average = null;
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = max (0, $amount - $filled);
-            }
-            if ($filled > 0) {
-                $lastTradeTimestamp = $this->safe_integer($order, 'LastUpdatedTime');
-                $average = $this->safe_float($order, 'AvgPrice', 0.0);
-                $average = ($average > 0) ? $average : null;
-            }
-        }
+        $average = $this->safe_float($order, 'AvgPrice', 0.0);
+        $average = ($average > 0) ? $average : null;
         $stopPrice = $this->safe_float($order, 'StopPrice', 0.0);
         $stopPrice = ($stopPrice > 0.0) ? $stopPrice : null;
         $timeInForce = null;
         $status = $this->parse_order_status($this->safe_string($order, 'OrderState'));
         $fee = null;
         $trades = null;
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -1133,10 +1123,10 @@ class ndax extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'average' => $average,
-            'remaining' => $remaining,
+            'remaining' => null,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

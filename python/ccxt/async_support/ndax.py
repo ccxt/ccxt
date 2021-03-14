@@ -1053,7 +1053,7 @@ class ndax(Exchange):
         #
         id = self.safe_string_2(order, 'ReplacementOrderId', 'OrderId')
         timestamp = self.safe_integer(order, 'ReceiveTime')
-        lastTradeTimestamp = None
+        lastTradeTimestamp = self.safe_integer(order, 'LastUpdatedTime')
         marketId = self.safe_string(order, 'Instrument')
         symbol = self.safe_symbol(marketId, market)
         side = self.safe_string_lower(order, 'Side')
@@ -1064,22 +1064,15 @@ class ndax(Exchange):
         amount = self.safe_float(order, 'OrigQuantity')
         filled = self.safe_float(order, 'QuantityExecuted')
         cost = self.safe_float(order, 'GrossValueExecuted')
-        remaining = None
-        average = None
-        if filled is not None:
-            if amount is not None:
-                remaining = max(0, amount - filled)
-            if filled > 0:
-                lastTradeTimestamp = self.safe_integer(order, 'LastUpdatedTime')
-                average = self.safe_float(order, 'AvgPrice', 0.0)
-                average = average if (average > 0) else None
+        average = self.safe_float(order, 'AvgPrice', 0.0)
+        average = average if (average > 0) else None
         stopPrice = self.safe_float(order, 'StopPrice', 0.0)
         stopPrice = stopPrice if (stopPrice > 0.0) else None
         timeInForce = None
         status = self.parse_order_status(self.safe_string(order, 'OrderState'))
         fee = None
         trades = None
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1098,10 +1091,10 @@ class ndax(Exchange):
             'amount': amount,
             'filled': filled,
             'average': average,
-            'remaining': remaining,
+            'remaining': None,
             'fee': fee,
             'trades': trades,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)
