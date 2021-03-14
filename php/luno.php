@@ -282,12 +282,6 @@ class luno extends Exchange {
         $baseFee = $this->safe_float($order, 'fee_base');
         $filled = $this->safe_float($order, 'base');
         $cost = $this->safe_float($order, 'counter');
-        $remaining = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = max (0, $amount - $filled);
-            }
-        }
         $fee = array( 'currency' => null );
         if ($quoteFee) {
             $fee['cost'] = $quoteFee;
@@ -301,7 +295,7 @@ class luno extends Exchange {
             }
         }
         $id = $this->safe_string($order, 'order_id');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -318,12 +312,12 @@ class luno extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'cost' => $cost,
-            'remaining' => $remaining,
+            'remaining' => null,
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
             'average' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

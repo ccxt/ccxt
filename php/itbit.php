@@ -518,24 +518,14 @@ class itbit extends Exchange {
         $timestamp = $this->parse8601($order['createdTime']);
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'amountFilled');
-        $remaining = null;
-        $cost = null;
         $fee = null;
         $price = $this->safe_float($order, 'price');
         $average = $this->safe_float($order, 'volumeWeightedAveragePrice');
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-            }
-            if ($average !== null) {
-                $cost = $filled * $average;
-            }
-        }
         $clientOrderId = $this->safe_string($order, 'clientOrderIdentifier');
         $id = $this->safe_string($order, 'id');
         $postOnlyString = $this->safe_string($order, 'postOnly');
         $postOnly = ($postOnlyString === 'True');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -550,15 +540,15 @@ class itbit extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'fee' => $fee,
             // 'trades' => $this->parse_trades($order['trades'], $market),
             'trades' => null,
-        );
+        ));
     }
 
     public function nonce() {
