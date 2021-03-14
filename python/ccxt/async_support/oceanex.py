@@ -527,11 +527,11 @@ class oceanex(Exchange):
         #
         status = self.parse_order_status(self.safe_value(order, 'state'))
         marketId = self.safe_string_2(order, 'market', 'market_id')
-        symbol = self.safe_symbol(marketId)
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_timestamp(order, 'created_on')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        return {
+        return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
@@ -553,7 +553,7 @@ class oceanex(Exchange):
             'cost': None,
             'trades': None,
             'fee': None,
-        }
+        })
 
     def parse_order_status(self, status):
         statuses = {
