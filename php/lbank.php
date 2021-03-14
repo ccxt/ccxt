@@ -450,35 +450,20 @@ class lbank extends Exchange {
         //         "$status"：2
         //     }
         //
-        $symbol = null;
-        $responseMarket = $this->safe_value($this->marketsById, $order['symbol']);
-        if ($responseMarket !== null) {
-            $symbol = $responseMarket['symbol'];
-        } else if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_integer($order, 'create_time');
         // Limit Order Request Returns => Order Price
         // Market Order Returns => cny $amount of $market $order
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount', 0.0);
         $filled = $this->safe_float($order, 'deal_amount', 0.0);
-        $av_price = $this->safe_float($order, 'avg_price');
-        $cost = null;
-        if ($av_price !== null) {
-            $cost = $filled * $av_price;
-        }
+        $average = $this->safe_float($order, 'avg_price');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'order_id');
         $type = $this->safe_string($order, 'order_type');
         $side = $this->safe_string($order, 'type');
-        $remaining = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = $amount - $filled;
-            }
-        }
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -492,15 +477,15 @@ class lbank extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'trades' => null,
             'fee' => null,
             'info' => $this->safe_value($order, 'info', $order),
-            'average' => null,
-        );
+            'average' => $average,
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

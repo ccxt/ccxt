@@ -423,31 +423,20 @@ class lbank(Exchange):
         #         "status"：2
         #     }
         #
-        symbol = None
-        responseMarket = self.safe_value(self.marketsById, order['symbol'])
-        if responseMarket is not None:
-            symbol = responseMarket['symbol']
-        elif market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'symbol')
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_integer(order, 'create_time')
         # Limit Order Request Returns: Order Price
         # Market Order Returns: cny amount of market order
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount', 0.0)
         filled = self.safe_float(order, 'deal_amount', 0.0)
-        av_price = self.safe_float(order, 'avg_price')
-        cost = None
-        if av_price is not None:
-            cost = filled * av_price
+        average = self.safe_float(order, 'avg_price')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'order_id')
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')
-        remaining = None
-        if amount is not None:
-            if filled is not None:
-                remaining = amount - filled
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -461,15 +450,15 @@ class lbank(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'trades': None,
             'fee': None,
             'info': self.safe_value(order, 'info', order),
-            'average': None,
-        }
+            'average': average,
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
