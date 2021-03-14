@@ -499,22 +499,10 @@ module.exports = class rightbtc extends Exchange {
             price = price / 1e8;
         }
         const amount = this.divideSafeFloat (order, 'quantity', 1e8);
-        let filled = this.divideSafeFloat (order, 'filled_quantity', 1e8);
-        let remaining = this.divideSafeFloat (order, 'rest', 1e8);
+        const filled = this.divideSafeFloat (order, 'filled_quantity', 1e8);
+        const remaining = this.divideSafeFloat (order, 'rest', 1e8);
         const cost = this.divideSafeFloat (order, 'cost', 1e8);
         // lines 483-494 should be generalized into a base class method
-        if (amount !== undefined) {
-            if (remaining === undefined) {
-                if (filled !== undefined) {
-                    remaining = Math.max (0, amount - filled);
-                }
-            }
-            if (filled === undefined) {
-                if (remaining !== undefined) {
-                    filled = Math.max (0, amount - remaining);
-                }
-            }
-        }
         const type = 'limit';
         const side = this.safeStringLower (order, 'side');
         const feeCost = this.divideSafeFloat (order, 'min_fee', 1e8);
@@ -531,7 +519,7 @@ module.exports = class rightbtc extends Exchange {
             };
         }
         const trades = undefined;
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -553,7 +541,7 @@ module.exports = class rightbtc extends Exchange {
             'fee': fee,
             'trades': trades,
             'average': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
