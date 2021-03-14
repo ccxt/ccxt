@@ -849,10 +849,6 @@ class novadax extends Exchange {
         $timestamp = $this->safe_integer($order, 'timestamp');
         $average = $this->safe_float($order, 'averagePrice');
         $filled = $this->safe_float($order, 'filledAmount');
-        $remaining = null;
-        if (($amount !== null) && ($filled !== null)) {
-            $remaining = max (0, $amount - $filled);
-        }
         $fee = null;
         $feeCost = $this->safe_float($order, 'filledFee');
         if ($feeCost !== null) {
@@ -863,7 +859,7 @@ class novadax extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
@@ -881,11 +877,11 @@ class novadax extends Exchange {
             'cost' => $cost,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

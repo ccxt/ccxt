@@ -820,9 +820,6 @@ class novadax(Exchange):
         timestamp = self.safe_integer(order, 'timestamp')
         average = self.safe_float(order, 'averagePrice')
         filled = self.safe_float(order, 'filledAmount')
-        remaining = None
-        if (amount is not None) and (filled is not None):
-            remaining = max(0, amount - filled)
         fee = None
         feeCost = self.safe_float(order, 'filledFee')
         if feeCost is not None:
@@ -832,7 +829,7 @@ class novadax(Exchange):
             }
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'info': order,
@@ -850,11 +847,11 @@ class novadax(Exchange):
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
