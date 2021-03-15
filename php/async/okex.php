@@ -2450,7 +2450,8 @@ class okex extends Exchange {
 
     public function fetch_deposit_address($code, $params = array ()) {
         yield $this->load_markets();
-        $currency = $this->currency($code);
+        $parts = explode('-', $code);
+        $currency = $this->currency($parts[0]);
         $request = array(
             'currency' => $currency['id'],
         );
@@ -2463,10 +2464,10 @@ class okex extends Exchange {
         //         }
         //     )
         //
-        $addresses = $this->parse_deposit_addresses($response);
-        $address = $this->safe_value($addresses, $code);
+        $addressesByCode = $this->parse_deposit_addresses($response);
+        $address = $this->safe_value($addressesByCode, $code);
         if ($address === null) {
-            throw new InvalidAddress($this->id . ' fetchDepositAddress cannot return nonexistent $addresses, you should create withdrawal $addresses with the exchange website first');
+            throw new InvalidAddress($this->id . ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
         }
         return $address;
     }
