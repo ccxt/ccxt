@@ -225,6 +225,9 @@ module.exports = class Exchange {
         this.minFundingAddressLength = 1 // used in checkAddress
         this.substituteCommonCurrencyCodes = true  // reserved
 
+        // whether fees should be summed by currency code
+        this.reduceFees = false
+
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
 
@@ -1480,7 +1483,7 @@ module.exports = class Exchange {
             }
         }
         if (shouldParseFees) {
-            const reducedFees = this.reduceFeesByCurrency (fees);
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
             if (parseFees) {
                 order['fees'] = reducedFees;
             }
