@@ -301,6 +301,8 @@ class Exchange(object):
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
+    # whether fees should be summed by currency code
+    reduceFees = False
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
     restRequestQueue = None
@@ -2157,7 +2159,7 @@ class Exchange(object):
                             if tradeFee is not None:
                                 fees.append(self.extend({}, tradeFee))
         if shouldParseFees:
-            reducedFees = self.reduce_fees_by_currency(fees)
+            reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
             if parseFees:
                 order['fees'] = reducedFees
             reducedLength = len(reducedFees)
@@ -2194,3 +2196,4 @@ class Exchange(object):
             'filled': filled,
             'remaining': remaining,
         })
+
