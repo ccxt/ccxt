@@ -39,7 +39,7 @@ class Precise:
         integer_result = self.integer * other.integer
         return Precise(integer_result, self.decimals + other.decimals)
 
-    def div(self, other, precision = 18):
+    def div(self, other, precision=18):
         distance = precision - self.decimals
         exponent = self.base ** distance
         numerator = self.integer * exponent
