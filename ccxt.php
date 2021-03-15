@@ -87,6 +87,8 @@ require_once PATH_TO_CCXT_BASE . 'OnMaintenance.php';
 require_once PATH_TO_CCXT_BASE . 'InvalidNonce.php';
 require_once PATH_TO_CCXT_BASE . 'RequestTimeout.php';
 
+require_once PATH_TO_CCXT_BASE . 'Precise.php';
+
 require_once PATH_TO_CCXT_BASE . 'Exchange.php';
 require_once PATH_TO_CCXT_ASYNC_BASE . 'Exchange.php';
 
