@@ -2196,4 +2196,3 @@ class Exchange(object):
             'filled': filled,
             'remaining': remaining,
         })
-
