@@ -1480,7 +1480,7 @@ module.exports = class Exchange {
             }
         }
         if (shouldParseFees) {
-            const reducedFees = this.reduceFeesByCurrency (fees)
+            const reducedFees = this.reduceFeesByCurrency (fees);
             if (parseFees) {
                 order['fees'] = reducedFees;
             }
