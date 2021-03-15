@@ -404,6 +404,8 @@ class binance(Exchange):
                         'positionSide/dual',
                         'userTrades',
                         'income',
+                        'commissionRate',
+                        'apiTradingStatus',
                         # broker endpoints
                         'apiReferral/ifNewUser',
                         'apiReferral/customization',
