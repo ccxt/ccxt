@@ -1439,7 +1439,7 @@ module.exports = class Exchange {
                         cost = this.sum (cost, tradeCost);
                     }
                     const tradeTimestamp = this.safeValue (trade, 'timestamp');
-                    if (parseLastTradeTimeTimestamp && (tradeTimestamp !== undefined) {
+                    if (parseLastTradeTimeTimestamp && (tradeTimestamp !== undefined)) {
                         if (lastTradeTimeTimestamp === undefined) {
                             lastTradeTimeTimestamp = tradeTimestamp;
                         } else {
