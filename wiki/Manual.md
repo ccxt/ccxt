@@ -828,12 +828,12 @@ Examples:
 
 The user is required to stay within all limits and precision! The values of the order should satisfy the following conditions:
 
-- Order `amount` >= `limits['min']['amount']`
-- Order `amount` <= `limits['max']['amount']`
-- Order `price` >= `limits['min']['price']`
-- Order `price` <= `limits['max']['price']`
-- Order `cost` (`amount * price`) >= `limits['min']['cost']`
-- Order `cost` (`amount * price`) <= `limits['max']['cost']`
+- Order `amount` >= `limits['amount']['min']`
+- Order `amount` <= `limits['amount']['max']`
+- Order `price` >= `limits['price']['min']`
+- Order `price` <= `limits['price']['max']`
+- Order `cost` (`amount * price`) >= `limits['cost']['min']`
+- Order `cost` (`amount * price`) <= `limits['cost']['max']`
 - Precision of `amount` must be <= `precision['amount']`
 - Precision of `price` must be <= `precision['price']`
 
