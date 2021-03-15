@@ -2754,6 +2754,25 @@ class Exchange {
         return (substr($string, 0, 2) === '0x') ? substr($string, 2) : $string;
     }
 
+    public function reduce_fees_by_currency($fees) {
+        $reduced = array();
+        for ($i = 0; $i < count($fees); $i++) {
+            $fee = $fees[$i];
+            $feeCurrencyCode = $this->safe_value($fee, 'currency');
+            if ($feeCurrencyCode !== null) {
+                if (is_array($reduced) && array_key_exists($feeCurrencyCode, $reduced)) {
+                    $reduced[$feeCurrencyCode]['cost'] = $this->sum($reduced[$feeCurrencyCode]['cost'], $fee['cost']);
+                } else {
+                    $reduced[$feeCurrencyCode] = array(
+                        'cost' => $fee['cost'],
+                        'currency' => $feeCurrencyCode,
+                    );
+                }
+            }
+        }
+        return is_array($reduced) ? array_values($reduced) : array();
+    }
+
     public function safe_order($order) {
         // Cost
         // Remaining
@@ -2775,11 +2794,8 @@ class Exchange {
         $parseLastTradeTimeTimestamp = ($lastTradeTimeTimestamp === null);
         $parseFee = $this->safe_value($order, 'fee') === null;
         $parseFees = $this->safe_value($order, 'fees') === null;
-        $fees = null;
         $shouldParseFees = $parseFee || $parseFees;
-        if ($shouldParseFees) {
-            $fees = array();
-        }
+        $fees = $shouldParseFees ? array() : null;
         if ($parseFilled || $parseCost || $shouldParseFees) {
             $trades = $this->safe_value($order, 'trades');
             if ($trades !== null) {
@@ -2791,17 +2807,20 @@ class Exchange {
                 }
                 for ($i = 0; $i < count($trades); $i++) {
                     $trade = $trades[$i];
-                    if ($parseFilled && ($trade['amount'] !== null)) {
-                        $filled = $this->sum($filled, $trade['amount']);
+                    $tradeAmount = $this->safe_value($trade, 'amount');
+                    if ($parseFilled && ($tradeAmount !== null)) {
+                        $filled = $this->sum($filled, $tradeAmount);
                     }
-                    if ($parseCost && ($trade['cost'] !== null)) {
-                        $cost = $this->sum($cost, $trade['cost']);
+                    $tradeCost = $this->safe_value($trade, 'cost');
+                    if ($parseCost && ($tradeCost !== null)) {
+                        $cost = $this->sum($cost, $tradeCost);
                     }
-                    if ($parseLastTradeTimeTimestamp && ($trade['timestamp'] !== null)) {
+                    $tradeTimestamp = $this->safe_value($trade, 'timestamp');
+                    if ($parseLastTradeTimeTimestamp && ($tradeTimestamp !== null)) {
                         if ($lastTradeTimeTimestamp === null) {
-                            $lastTradeTimeTimestamp = $trade['timestamp'];
+                            $lastTradeTimeTimestamp = $tradeTimestamp;
                         } else {
-                            $lastTradeTimeTimestamp = max ($lastTradeTimeTimestamp, $trade['timestamp']);
+                            $lastTradeTimeTimestamp = max ($lastTradeTimeTimestamp, $tradeTimestamp);
                         }
                     }
                     if ($shouldParseFees) {
@@ -2822,27 +2841,13 @@ class Exchange {
             }
         }
         if ($shouldParseFees) {
-            $reduced = array();
-            for ($i = 0; $i < count($fees); $i++) {
-                $fee = $fees[$i];
-                $appendFee = true;
-                for ($j = 0; $j < count($reduced); $j++) {
-                    $reducedFee = $reduced[$j];
-                    if ($reducedFee['currency'] === $fee['currency']) {
-                        $reducedFee['cost'] = $this->sum($reducedFee['cost'], $fee['cost']);
-                        $appendFee = false;
-                    }
-                }
-                if ($appendFee) {
-                    $reduced[] = $fee;
-                }
-            }
+            $reducedFees = $this->reduce_fees_by_currency($fees);
             if ($parseFees) {
-                $order['fees'] = $reduced;
+                $order['fees'] = $reducedFees;
             }
-            $length = is_array($reduced) ? count($reduced) : 0;
-            if ($parseFee && ($length === 1)) {
-                $order['fee'] = $reduced[0];
+            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            if ($parseFee && ($reducedLength === 1)) {
+                $order['fee'] = $reducedFees[0];
             }
         }
         if ($amount === null) {
@@ -2873,7 +2878,8 @@ class Exchange {
             $cost = ($average === null) ? ($price * $filled) : ($average * $filled);
         }
         // support for market orders
-        if (($price === null) && ($order['type'] === 'market')) {
+        $orderType = $this->safe_value($order, 'type');
+        if (($price === null) && ($orderType === 'market')) {
             $price = $average;
         }
         return array_merge($order, array(
