@@ -2458,8 +2458,8 @@ module.exports = class okex extends Exchange {
         //         }
         //     ]
         //
-        const addresses = this.parseDepositAddresses (response);
-        const address = this.safeValue (addresses, code);
+        const addressesByCode = this.parseDepositAddresses (response);
+        const address = this.safeValue (addressesByCode, code);
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
         }
