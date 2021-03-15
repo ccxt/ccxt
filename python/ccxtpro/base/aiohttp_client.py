@@ -44,7 +44,7 @@ class AiohttpClient(Client):
         elif message.type == WSMsgType.PING:
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'ping', message)
-            ensure_future(self.connection.pong())
+            ensure_future(self.connection.pong(), loop=self.asyncio_loop)
         elif message.type == WSMsgType.PONG:
             self.lastPong = Exchange.milliseconds()
             if self.verbose:
@@ -83,6 +83,12 @@ class AiohttpClient(Client):
             self.print(Exchange.iso8601(Exchange.milliseconds()), 'closing', code)
         if not self.closed():
             await self.connection.close()
+        # these will end automatically once self.closed() = True
+        # so we don't need to cancel them
+        if self.ping_looper:
+            self.ping_looper.cancel()
+        if self.receive_looper:
+            self.receive_looper.cancel()
 
     async def ping_loop(self):
         if self.verbose:
