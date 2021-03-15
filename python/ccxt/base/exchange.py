@@ -2087,6 +2087,21 @@ class Exchange(object):
         string.reverse()
         return ''.join(string)
 
+    def reduce_fees_by_currency(self, fees):
+        reduced = {}
+        for i in range(0, len(fees)):
+            fee = fees[i]
+            feeCurrencyCode = self.safe_value(fee, 'currency')
+            if feeCurrencyCode is not None:
+                if feeCurrencyCode in reduced:
+                    reduced[feeCurrencyCode]['cost'] = self.sum(reduced[feeCurrencyCode]['cost'], fee['cost'])
+                else:
+                    reduced[feeCurrencyCode] = {
+                        'cost': fee['cost'],
+                        'currency': feeCurrencyCode,
+                    }
+        return list(reduced.values())
+
     def safe_order(self, order):
         # Cost
         # Remaining
@@ -2108,10 +2123,8 @@ class Exchange(object):
         parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
         parseFee = self.safe_value(order, 'fee') is None
         parseFees = self.safe_value(order, 'fees') is None
-        fees = None
         shouldParseFees = parseFee or parseFees
-        if shouldParseFees:
-            fees = []
+        fees = [] if shouldParseFees else None
         if parseFilled or parseCost or shouldParseFees:
             trades = self.safe_value(order, 'trades')
             if trades is not None:
@@ -2121,15 +2134,18 @@ class Exchange(object):
                     cost = 0
                 for i in range(0, len(trades)):
                     trade = trades[i]
-                    if parseFilled and (trade['amount'] is not None):
-                        filled = self.sum(filled, trade['amount'])
-                    if parseCost and (trade['cost'] is not None):
-                        cost = self.sum(cost, trade['cost'])
-                    if parseLastTradeTimeTimestamp and (trade['timestamp'] is not None):
+                    tradeAmount = self.safe_value(trade, 'amount')
+                    if parseFilled and (tradeAmount is not None):
+                        filled = self.sum(filled, tradeAmount)
+                    tradeCost = self.safe_value(trade, 'cost')
+                    if parseCost and (tradeCost is not None):
+                        cost = self.sum(cost, tradeCost)
+                    tradeTimestamp = self.safe_value(trade, 'timestamp')
+                    if parseLastTradeTimeTimestamp and (tradeTimestamp is not None):
                         if lastTradeTimeTimestamp is None:
-                            lastTradeTimeTimestamp = trade['timestamp']
+                            lastTradeTimeTimestamp = tradeTimestamp
                         else:
-                            lastTradeTimeTimestamp = max(lastTradeTimeTimestamp, trade['timestamp'])
+                            lastTradeTimeTimestamp = max(lastTradeTimeTimestamp, tradeTimestamp)
                     if shouldParseFees:
                         tradeFees = self.safe_value(trade, 'fees')
                         if tradeFees is not None:
@@ -2141,22 +2157,12 @@ class Exchange(object):
                             if tradeFee is not None:
                                 fees.append(self.extend({}, tradeFee))
         if shouldParseFees:
-            reduced = []
-            for i in range(0, len(fees)):
-                fee = fees[i]
-                appendFee = True
-                for j in range(0, len(reduced)):
-                    reducedFee = reduced[j]
-                    if reducedFee['currency'] == fee['currency']:
-                        reducedFee['cost'] = self.sum(reducedFee['cost'], fee['cost'])
-                        appendFee = False
-                if appendFee:
-                    reduced.append(fee)
+            reducedFees = self.reduce_fees_by_currency(fees)
             if parseFees:
-                order['fees'] = reduced
-            length = len(reduced)
-            if parseFee and (length == 1):
-                order['fee'] = reduced[0]
+                order['fees'] = reducedFees
+            reducedLength = len(reducedFees)
+            if parseFee and (reducedLength == 1):
+                order['fee'] = reducedFees[0]
         if amount is None:
             # ensure amount = filled + remaining
             if filled is not None and remaining is not None:
@@ -2176,7 +2182,8 @@ class Exchange(object):
         if (filled is not None) and costPriceExists:
             cost = (price * filled) if (average is None) else (average * filled)
         # support for market orders
-        if (price is None) and (order['type'] == 'market'):
+        orderType = self.safe_value(order, 'type')
+        if (price is None) and (orderType == 'market'):
             price = average
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
