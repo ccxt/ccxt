@@ -2358,7 +2358,8 @@ class okex(Exchange):
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
-        currency = self.currency(code)
+        parts = code.split('-')
+        currency = self.currency(parts[0])
         request = {
             'currency': currency['id'],
         }
@@ -2371,8 +2372,8 @@ class okex(Exchange):
         #         }
         #     ]
         #
-        addresses = self.parse_deposit_addresses(response)
-        address = self.safe_value(addresses, code)
+        addressesByCode = self.parse_deposit_addresses(response)
+        address = self.safe_value(addressesByCode, code)
         if address is None:
             raise InvalidAddress(self.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first')
         return address
