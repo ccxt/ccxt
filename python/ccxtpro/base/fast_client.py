@@ -41,6 +41,31 @@ class FastClient(AiohttpClient):
                 return func(buf)
             return parse_frame
 
+        async def close(code=1000, message=b''):
+            # this is needed because our other wrappers break the closing process
+            # we also don't wait for a response to the close message to speed it up
+            # this code is adapted from aiohttp client_ws.py
+            _self = self.connection
+            if not _self._closed:
+                _self._cancel_heartbeat()
+                _self._closed = True
+                try:
+                    await _self._writer.close(code, message)
+                except asyncio.CancelledError:
+                    _self._close_code = 1006
+                    _self._response.close()
+                    raise
+                except Exception as exc:
+                    _self._close_code = 1006
+                    _self._exception = exc
+                    _self._response.close()
+                    return True
+
+                if _self._closing:
+                    _self._response.close()
+                    return True
+            return True
+
         connection = self.connection._conn
         if connection.closed:
             # connection got terminated after the connection was made and before the receive loop ran
@@ -51,6 +76,7 @@ class FastClient(AiohttpClient):
         ws_reader.parse_frame = wrapper(ws_reader.parse_frame)
         ws_reader.queue.feed_data = feed_data
         ws_reader.queue.feed_eof = feed_eof
+        self.connection.close = close
         # return a future so super class won't complain
         return asyncio.sleep(0)
 

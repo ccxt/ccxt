@@ -32,6 +32,9 @@ class Client(object):
     inflate = False
     throttle = None
     connecting = False
+    asyncio_loop = None
+    ping_looper = None
+    receive_looper = None
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, on_connected_callback, config={}):
         defaults = {
@@ -116,14 +119,15 @@ class Client(object):
         self.connectionStarted = Exchange.milliseconds()
         try:
             coroutine = self.create_connection(session)
-            self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
+            self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000), loop=self.asyncio_loop)
             self.connecting = False
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
             self.connected.resolve(self.url)
             self.on_connected_callback(self)
             # run both loops forever
-            await gather(self.ping_loop(), self.receive_loop())
+            self.ping_looper = ensure_future(self.ping_loop(), loop=self.asyncio_loop)
+            self.receive_looper = ensure_future(self.receive_loop(), loop=self.asyncio_loop)
         except TimeoutError:
             # connection timeout
             error = RequestTimeout('Connection timeout')
@@ -140,7 +144,7 @@ class Client(object):
     def connect(self, session, backoff_delay=0):
         if not self.connection and not self.connecting:
             self.connecting = True
-            ensure_future(self.open(session, backoff_delay))
+            ensure_future(self.open(session, backoff_delay), loop=self.asyncio_loop)
         return self.connected
 
     def on_error(self, error):
@@ -150,7 +154,7 @@ class Client(object):
         self.reset(error)
         self.on_error_callback(self, error)
         if not self.closed():
-            ensure_future(self.close(1006))
+            ensure_future(self.close(1006), loop=self.asyncio_loop)
 
     def on_close(self, code):
         if self.verbose:
@@ -159,7 +163,7 @@ class Client(object):
             self.reset(NetworkError('Connection closed by remote server, closing code ' + str(code)))
         self.on_close_callback(self, code)
         if not self.closed():
-            ensure_future(self.close(code))
+            ensure_future(self.close(code), loop=self.asyncio_loop)
 
     def reset(self, error):
         self.connected.reject(error)
@@ -186,9 +190,7 @@ class Client(object):
         raise NotSupported('close() not implemented')
 
     def create_connection(self, session):
-        if True:
-            raise NotSupported('create_connection() not implemented')
-        return False
+        raise NotSupported('create_connection() not implemented')
 
     def print(self, *args):
         print(*args)

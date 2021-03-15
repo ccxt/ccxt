@@ -164,6 +164,8 @@ class Exchange(BaseExchange):
     async def close(self):
         if self.clients:
             await asyncio.wait([client.close() for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
+            for url in self.clients:
+                del self.clients[url]
         await super(Exchange, self).close()
 
     def find_timeframe(self, timeframe):
