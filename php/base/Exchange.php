@@ -1087,7 +1087,11 @@ class Exchange {
             'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         );
         $this->minFundingAddressLength = 1; // used in check_address
-        $this->substituteCommonCurrencyCodes = true;
+        $this->substituteCommonCurrencyCodes = true;        
+
+        // whether fees should be summed by currency code
+        $this->reduceFees = false;
+
         $this->timeframes = null;
 
         $this->requiredCredentials = array(
@@ -2841,7 +2845,7 @@ class Exchange {
             }
         }
         if ($shouldParseFees) {
-            $reducedFees = $this->reduce_fees_by_currency($fees);
+            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
             if ($parseFees) {
                 $order['fees'] = $reducedFees;
             }
