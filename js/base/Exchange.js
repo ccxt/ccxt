@@ -1430,17 +1430,20 @@ module.exports = class Exchange {
                 }
                 for (let i = 0; i < trades.length; i++) {
                     const trade = trades[i];
-                    if (parseFilled && (trade['amount'] !== undefined)) {
-                        filled = this.sum (filled, trade['amount']);
+                    const tradeAmount = this.safeValue (trade, 'amount');
+                    if (parseFilled && (tradeAmount !== undefined)) {
+                        filled = this.sum (filled, tradeAmount);
                     }
-                    if (parseCost && (trade['cost'] !== undefined)) {
-                        cost = this.sum (cost, trade['cost']);
+                    const tradeCost = this.safeValue (trade, 'cost');
+                    if (parseCost && (tradeCost !== undefined)) {
+                        cost = this.sum (cost, tradeCost);
                     }
-                    if (parseLastTradeTimeTimestamp && (trade['timestamp'] !== undefined)) {
+                    const tradeTimestamp = this.safeValue (trade, 'timestamp');
+                    if (parseLastTradeTimeTimestamp && (tradeTimestamp !== undefined) {
                         if (lastTradeTimeTimestamp === undefined) {
-                            lastTradeTimeTimestamp = trade['timestamp'];
+                            lastTradeTimeTimestamp = tradeTimestamp;
                         } else {
-                            lastTradeTimeTimestamp = Math.max (lastTradeTimeTimestamp, trade['timestamp']);
+                            lastTradeTimeTimestamp = Math.max (lastTradeTimeTimestamp, tradeTimestamp);
                         }
                     }
                     if (shouldParseFees) {
@@ -1512,7 +1515,8 @@ module.exports = class Exchange {
             cost = (average === undefined) ? (price * filled) : (average * filled);
         }
         // support for market orders
-        if ((price === undefined) && (order['type'] === 'market')) {
+        const orderType = this.safeValue (order, 'type');
+        if ((price === undefined) && (orderType === 'market')) {
             price = average;
         }
         return this.extend (order, {
