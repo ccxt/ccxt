@@ -288,7 +288,7 @@ assert (decimal_to_precision ('1.45', ROUND, 0, DECIMAL_PLACES) === '1'); // not
 
 // ----------------------------------------------------------------------------
 // negative precision only implemented so far in python
-// pretty useless for decimal applications as anything |x| < 5 === 0
+// pretty useless for decimal applications as anything |$x| < 5 === 0
 // NO_PADDING and PAD_WITH_ZERO are ignored
 
 assert (decimal_to_precision ('5', ROUND, -1, DECIMAL_PLACES) === '10');
@@ -319,3 +319,35 @@ assert (decimal_to_precision ('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT
 // throws (() =>
 //     decimal_to_precision ('0.01', TRUNCATE, -1, TICK_SIZE),
 //         "TICK_SIZE cant be used with negative numPrecisionDigits")
+
+// ----------------------------------------------------------------------------
+
+$w = new Precise ('-1.123e-6');
+$x = new Precise ('0.00000002');
+$y = new Precise ('69696900000');
+$z = new Precise ('12');
+
+assert (strval($w) === '-0.000001123');
+assert (strval($x) === '0.00000002');
+assert (strval($y) === '69696900000');
+assert (strval($z) === '12');
+
+assert (strval($x->mul ($y)) === '1393.938');
+assert (strval($y->mul ($x)) === '1393.938');
+assert (strval($x->add ($y)) === '69696900000.00000002');
+assert (strval($y->add ($x)) === '69696900000.00000002');
+assert (strval($x->sub ($y)) === '-69696899999.99999998');
+assert (strval($y->sub ($x)) === '69696899999.99999998');
+assert (strval($x->div ($y, 18)) === '0.000000000000028695');
+assert (strval($y->div ($x, 18)) === '34848450000');
+assert (strval($x->div ($y, 17)) === '0.00000000000002869');
+assert (strval($y->div ($x, 17)) === '34848450000');
+
+assert (strval($x->mul ($w)) === '-0.00000000000002246');
+assert (strval($w->mul ($x)) === '-0.00000000000002246');
+assert (strval($x->add ($w)) === '-0.000001103');
+assert (strval($w->add ($x)) === '-0.000001103');
+assert (strval($x->sub ($w)) === '0.000001143');
+assert (strval($w->sub ($x)) === '-0.000001143');
+assert (strval($x->div ($w, 18)) === '-0.000000000017809439');
+assert (strval($w->div ($x, 18)) === '-0.0000005615');

@@ -21,6 +21,7 @@ from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401
 from ccxt.base.decimal_to_precision import number_to_string      # noqa F401
 from ccxt.base.exchange import Exchange                          # noqa F401
+from ccxt.base.precise import Precise                            # noqa F401
 
 
 def toWei(amount, decimals):
@@ -315,3 +316,35 @@ assert decimal_to_precision('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_D
 # throws(() =>
 #     decimal_to_precision('0.01', TRUNCATE, -1, TICK_SIZE),
 #         "TICK_SIZE cant be used with negative numPrecisionDigits")
+
+# ----------------------------------------------------------------------------
+
+w = Precise('-1.123e-6')
+x = Precise('0.00000002')
+y = Precise('69696900000')
+z = Precise('12')
+
+assert str(w) == '-0.000001123'
+assert str(x) == '0.00000002'
+assert str(y) == '69696900000'
+assert str(z) == '12'
+
+assert str(x.mul(y)) == '1393.938'
+assert str(y.mul(x)) == '1393.938'
+assert str(x.add(y)) == '69696900000.00000002'
+assert str(y.add(x)) == '69696900000.00000002'
+assert str(x.sub(y)) == '-69696899999.99999998'
+assert str(y.sub(x)) == '69696899999.99999998'
+assert str(x.div(y, 18)) == '0.000000000000028695'
+assert str(y.div(x, 18)) == '34848450000'
+assert str(x.div(y, 17)) == '0.00000000000002869'
+assert str(y.div(x, 17)) == '34848450000'
+
+assert str(x.mul(w)) == '-0.00000000000002246'
+assert str(w.mul(x)) == '-0.00000000000002246'
+assert str(x.add(w)) == '-0.000001103'
+assert str(w.add(x)) == '-0.000001103'
+assert str(x.sub(w)) == '0.000001143'
+assert str(w.sub(x)) == '-0.000001143'
+assert str(x.div(w, 18)) == '-0.000000000017809439'
+assert str(w.div(x, 18)) == '-0.0000005615'
