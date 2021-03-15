@@ -85,7 +85,6 @@ class AiohttpClient(Client):
             await self.connection.close()
         # these will end automatically once self.closed() = True
         # so we don't need to cancel them
-        print('canceled')
         if self.ping_looper:
             self.ping_looper.cancel()
         if self.receive_looper:
