@@ -2432,7 +2432,8 @@ module.exports = class okex extends Exchange {
         let tag = this.safeString2 (depositAddress, 'tag', 'payment_id');
         tag = this.safeString (depositAddress, 'memo', tag);
         const currencyId = this.safeString (depositAddress, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
+        const parts = currencyId.split ('-');
+        const code = this.safeCurrencyCode (parts[0]);
         this.checkAddress (address);
         return {
             'currency': code,
@@ -2444,7 +2445,8 @@ module.exports = class okex extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        const parts = code.split ('-');
+        const currency = this.currency (parts[0]);
         const request = {
             'currency': currency['id'],
         };
@@ -2458,7 +2460,7 @@ module.exports = class okex extends Exchange {
         //     ]
         //
         const addresses = this.parseDepositAddresses (response);
-        const address = this.safeValue (addresses, code);
+        const address = this.safeValue (addresses, currency['code']);
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
         }
