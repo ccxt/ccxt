@@ -279,6 +279,7 @@ module.exports = class tidex extends Exchange {
             };
             const hidden = this.safeInteger (market, 'hidden');
             const active = (hidden === 0);
+            const takerFee = this.safeFloat (market, 'fee');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -287,7 +288,7 @@ module.exports = class tidex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': market['fee'] / 100,
+                'taker': takerFee / 100,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
