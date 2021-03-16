@@ -130,6 +130,27 @@ class zaif(Exchange):
 
     async def fetch_markets(self, params={}):
         markets = await self.publicGetCurrencyPairsAll(params)
+        #
+        #     [
+        #         {
+        #             "aux_unit_point": 0,
+        #             "item_japanese": "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3",
+        #             "aux_unit_step": 5.0,
+        #             "description": "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3\u30fb\u65e5\u672c\u5186\u306e\u53d6\u5f15\u3092\u884c\u3046\u3053\u3068\u304c\u3067\u304d\u307e\u3059",
+        #             "item_unit_min": 0.001,
+        #             "event_number": 0,
+        #             "currency_pair": "btc_jpy",
+        #             "is_token": False,
+        #             "aux_unit_min": 5.0,
+        #             "aux_japanese": "\u65e5\u672c\u5186",
+        #             "id": 1,
+        #             "item_unit_step": 0.0001,
+        #             "name": "BTC/JPY",
+        #             "seq": 0,
+        #             "title": "BTC/JPY"
+        #         }
+        #     ]
+        #
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
