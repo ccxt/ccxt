@@ -279,13 +279,15 @@ class bitstamp(Exchange):
             symbolId = baseId + '_' + quoteId
             id = self.safe_string(market, 'url_symbol')
             precision = {
-                'amount': market['base_decimals'],
-                'price': market['counter_decimals'],
+                'amount': self.safe_integer(market, 'base_decimals'),
+                'price': self.safe_integer(market, 'counter_decimals'),
             }
-            parts = market['minimum_order'].split(' ')
+            minimumOrder = self.safe_string(market, 'minimum_order')
+            parts = minimumOrder.split(' ')
             cost = parts[0]
             # cost, currency = market['minimum_order'].split(' ')
-            active = (market['trading'] == 'Enabled')
+            trading = self.safe_string(market, 'trading')
+            active = (trading == 'Enabled')
             result.append({
                 'id': id,
                 'symbol': symbol,
