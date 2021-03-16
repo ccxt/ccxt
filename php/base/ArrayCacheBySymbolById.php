@@ -6,7 +6,6 @@ use Ds\Deque;
 
 class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
     private $index;
-    private $index_tracker;
 
     public function __construct($max_size = null) {
         parent::__construct($max_size);
@@ -31,9 +30,9 @@ class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
         } else {
             $by_id[$item['id']] = &$item;
             if ($this->deque->count() === $this->max_size) {
-                $this->deque->shift();
-                $delete_reference = $this->index->shift();
-                unset($by_id[$delete_reference]);
+                $delete_item = $this->deque->shift();
+                $this->index->shift();
+                unset($this->hashmap[$delete_item['symbol']][$delete_item['id']]);
             }
         }
         # this allows us to effectively pass by reference
