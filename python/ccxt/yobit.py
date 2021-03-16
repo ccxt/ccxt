@@ -260,6 +260,24 @@ class yobit(Exchange):
 
     def fetch_markets(self, params={}):
         response = self.publicGetInfo(params)
+        #
+        #     {
+        #         "server_time":1615856752,
+        #         "pairs":{
+        #             "ltc_btc":{
+        #                 "decimal_places":8,
+        #                 "min_price":0.00000001,
+        #                 "max_price":10000,
+        #                 "min_amount":0.0001,
+        #                 "min_total":0.0001,
+        #                 "hidden":0,
+        #                 "fee":0.2,
+        #                 "fee_buyer":0.2,
+        #                 "fee_seller":0.2
+        #             },
+        #         },
+        #     }
+        #
         markets = self.safe_value(response, 'pairs')
         keys = list(markets.keys())
         result = []
@@ -294,6 +312,7 @@ class yobit(Exchange):
             }
             hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
+            takerFee = self.safe_float(market, 'fee')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -302,7 +321,7 @@ class yobit(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': market['fee'] / 100,
+                'taker': takerFee / 100,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
