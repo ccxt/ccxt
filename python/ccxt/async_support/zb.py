@@ -216,6 +216,16 @@ class zb(Exchange):
 
     async def fetch_markets(self, params={}):
         markets = await self.publicGetMarkets(params)
+        #
+        #     {
+        #         "zb_qc":{
+        #             "amountScale":2,
+        #             "minAmount":0.01,
+        #             "minSize":5,
+        #             "priceScale":4,
+        #         },
+        #     }
+        #
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
@@ -455,6 +465,16 @@ class zb(Exchange):
             'quoteVolume': None,
             'info': ticker,
         }
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        return [
+            self.safe_integer(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
+        ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
