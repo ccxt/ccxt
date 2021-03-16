@@ -163,6 +163,7 @@ module.exports = class crex24 extends Exchange {
                     'API Key': AuthenticationError, // "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
                     'Insufficient funds': InsufficientFunds, // "Insufficient funds: new order requires 10 ETH which is more than the available balance."
                     'has been delisted.': BadSymbol, // {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
+                    'is currently suspended.': BadSymbol, // {"errorDescription":"Trading in BITG-BTC is currently suspended."}
                     'Mandatory parameter': BadRequest, // {"errorDescription":"Mandatory parameter 'feeCurrency' is missing."}
                 },
             },
