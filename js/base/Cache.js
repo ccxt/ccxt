@@ -112,7 +112,7 @@ class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
         }
         if (this.maxSize && (this.length === this.maxSize)) {
             const deleteReference = this.shift ()
-            delete byId[deleteReference.id]
+            delete this.hashmap[deleteReference.symbol][deleteReference.id]
         }
         this.push (item)
         if (this.clearUpdates) {
