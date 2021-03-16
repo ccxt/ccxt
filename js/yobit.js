@@ -245,6 +245,24 @@ module.exports = class yobit extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetInfo (params);
+        //
+        //     {
+        //         "server_time":1615856752,
+        //         "pairs":{
+        //             "ltc_btc":{
+        //                 "decimal_places":8,
+        //                 "min_price":0.00000001,
+        //                 "max_price":10000,
+        //                 "min_amount":0.0001,
+        //                 "min_total":0.0001,
+        //                 "hidden":0,
+        //                 "fee":0.2,
+        //                 "fee_buyer":0.2,
+        //                 "fee_seller":0.2
+        //             },
+        //         },
+        //     }
+        //
         const markets = this.safeValue (response, 'pairs');
         const keys = Object.keys (markets);
         const result = [];
@@ -279,6 +297,7 @@ module.exports = class yobit extends Exchange {
             };
             const hidden = this.safeInteger (market, 'hidden');
             const active = (hidden === 0);
+            const takerFee = this.safeFloat (market, 'fee');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -287,7 +306,7 @@ module.exports = class yobit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': market['fee'] / 100,
+                'taker': takerFee / 100,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
