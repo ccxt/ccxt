@@ -620,9 +620,10 @@ class bitfinex2 extends bitfinex {
         $priceIndex = ($fullRequest['precision'] === 'R0') ? 1 : 0;
         for ($i = 0; $i < count($orderbook); $i++) {
             $order = $orderbook[$i];
-            $price = $order[$priceIndex];
-            $amount = abs($order[2]);
-            $side = ($order[2] > 0) ? 'bids' : 'asks';
+            $price = $this->safe_float($order, $priceIndex);
+            $signedAmount = $this->safe_float($order, 2);
+            $amount = abs($signedAmount);
+            $side = ($signedAmount > 0) ? 'bids' : 'asks';
             $result[$side][] = array( $price, $amount );
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
