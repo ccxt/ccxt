@@ -739,12 +739,12 @@ module.exports = class bitfinex2 extends bitfinex {
         //
         const tradeLength = trade.length;
         const isPrivate = (tradeLength > 5);
-        const id = trade[0].toString ();
+        const id = this.safeString (trade, 0);
         const amountIndex = isPrivate ? 4 : 2;
-        let amount = trade[amountIndex];
+        let amount = this.safeFloat (trade, amountIndex);
         let cost = undefined;
         const priceIndex = isPrivate ? 5 : 3;
-        const price = trade[priceIndex];
+        const price = this.safeFloat (trade, priceIndex);
         let side = undefined;
         let orderId = undefined;
         let takerOrMaker = undefined;
@@ -752,7 +752,7 @@ module.exports = class bitfinex2 extends bitfinex {
         let fee = undefined;
         let symbol = undefined;
         const timestampIndex = isPrivate ? 2 : 1;
-        const timestamp = trade[timestampIndex];
+        const timestamp = this.safeInteger (trade, timestampIndex);
         if (isPrivate) {
             const marketId = trade[1];
             if (marketId in this.markets_by_id) {
@@ -761,10 +761,12 @@ module.exports = class bitfinex2 extends bitfinex {
             } else {
                 symbol = this.parseSymbol (marketId);
             }
-            orderId = trade[3].toString ();
-            takerOrMaker = (trade[8] === 1) ? 'maker' : 'taker';
-            let feeCost = trade[9];
-            const feeCurrency = this.safeCurrencyCode (trade[10]);
+            orderId = this.safeString (trade, 3);
+            const maker = this.safeInteger (trade, 8);
+            takerOrMaker = (maker === 1) ? 'maker' : 'taker';
+            let feeCost = this.safeFloat (trade, 9);
+            const feeCurrencyId = this.safeString (trade, 10);
+            const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             if (feeCost !== undefined) {
                 feeCost = -feeCost;
                 if (symbol in this.markets) {
