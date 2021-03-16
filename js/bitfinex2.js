@@ -613,9 +613,10 @@ module.exports = class bitfinex2 extends bitfinex {
         const priceIndex = (fullRequest['precision'] === 'R0') ? 1 : 0;
         for (let i = 0; i < orderbook.length; i++) {
             const order = orderbook[i];
-            const price = order[priceIndex];
-            const amount = Math.abs (order[2]);
-            const side = (order[2] > 0) ? 'bids' : 'asks';
+            const price = this.safeFloat (order, priceIndex);
+            const signedAmount = this.safeFloat (order, 2);
+            const amount = Math.abs (signedAmount);
+            const side = (signedAmount > 0) ? 'bids' : 'asks';
             result[side].push ([ price, amount ]);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
