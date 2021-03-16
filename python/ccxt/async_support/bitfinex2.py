@@ -723,12 +723,12 @@ class bitfinex2(bitfinex):
         #
         tradeLength = len(trade)
         isPrivate = (tradeLength > 5)
-        id = str(trade[0])
+        id = self.safe_string(trade, 0)
         amountIndex = 4 if isPrivate else 2
-        amount = trade[amountIndex]
+        amount = self.safe_float(trade, amountIndex)
         cost = None
         priceIndex = 5 if isPrivate else 3
-        price = trade[priceIndex]
+        price = self.safe_float(trade, priceIndex)
         side = None
         orderId = None
         takerOrMaker = None
@@ -736,7 +736,7 @@ class bitfinex2(bitfinex):
         fee = None
         symbol = None
         timestampIndex = 2 if isPrivate else 1
-        timestamp = trade[timestampIndex]
+        timestamp = self.safe_integer(trade, timestampIndex)
         if isPrivate:
             marketId = trade[1]
             if marketId in self.markets_by_id:
@@ -744,10 +744,12 @@ class bitfinex2(bitfinex):
                 symbol = market['symbol']
             else:
                 symbol = self.parse_symbol(marketId)
-            orderId = str(trade[3])
-            takerOrMaker = 'maker' if (trade[8] == 1) else 'taker'
-            feeCost = trade[9]
-            feeCurrency = self.safe_currency_code(trade[10])
+            orderId = self.safe_string(trade, 3)
+            maker = self.safe_integer(trade, 8)
+            takerOrMaker = 'maker' if (maker == 1) else 'taker'
+            feeCost = self.safe_float(trade, 9)
+            feeCurrencyId = self.safe_string(trade, 10)
+            feeCurrency = self.safe_currency_code(feeCurrencyId)
             if feeCost is not None:
                 feeCost = -feeCost
                 if symbol in self.markets:

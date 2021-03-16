@@ -746,12 +746,12 @@ class bitfinex2 extends bitfinex {
         //
         $tradeLength = is_array($trade) ? count($trade) : 0;
         $isPrivate = ($tradeLength > 5);
-        $id = (string) $trade[0];
+        $id = $this->safe_string($trade, 0);
         $amountIndex = $isPrivate ? 4 : 2;
-        $amount = $trade[$amountIndex];
+        $amount = $this->safe_float($trade, $amountIndex);
         $cost = null;
         $priceIndex = $isPrivate ? 5 : 3;
-        $price = $trade[$priceIndex];
+        $price = $this->safe_float($trade, $priceIndex);
         $side = null;
         $orderId = null;
         $takerOrMaker = null;
@@ -759,7 +759,7 @@ class bitfinex2 extends bitfinex {
         $fee = null;
         $symbol = null;
         $timestampIndex = $isPrivate ? 2 : 1;
-        $timestamp = $trade[$timestampIndex];
+        $timestamp = $this->safe_integer($trade, $timestampIndex);
         if ($isPrivate) {
             $marketId = $trade[1];
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
@@ -768,10 +768,12 @@ class bitfinex2 extends bitfinex {
             } else {
                 $symbol = $this->parse_symbol($marketId);
             }
-            $orderId = (string) $trade[3];
-            $takerOrMaker = ($trade[8] === 1) ? 'maker' : 'taker';
-            $feeCost = $trade[9];
-            $feeCurrency = $this->safe_currency_code($trade[10]);
+            $orderId = $this->safe_string($trade, 3);
+            $maker = $this->safe_integer($trade, 8);
+            $takerOrMaker = ($maker === 1) ? 'maker' : 'taker';
+            $feeCost = $this->safe_float($trade, 9);
+            $feeCurrencyId = $this->safe_string($trade, 10);
+            $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             if ($feeCost !== null) {
                 $feeCost = -$feeCost;
                 if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
