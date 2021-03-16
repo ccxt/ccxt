@@ -265,7 +265,7 @@ class kraken extends Exchange {
         //         "error":array(),
         //         "$result":{
         //             "ADAETH":array(
-        //                 "altname":"ADAETH",
+        //                 "$altname":"ADAETH",
         //                 "wsname":"ADA\/ETH",
         //                 "aclass_base":"currency",
         //                 "$base":"ADA",
@@ -307,24 +307,36 @@ class kraken extends Exchange {
         //         }
         //     }
         //
-        $keys = is_array($response['result']) ? array_keys($response['result']) : array();
+        $markets = $this->safe_value($response, 'result', array());
+        $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
             $id = $keys[$i];
-            $market = $response['result'][$id];
-            $baseId = $market['base'];
-            $quoteId = $market['quote'];
+            $market = $markets[$id];
+            $baseId = $this->safe_string($market, 'base');
+            $quoteId = $this->safe_string($market, 'quote');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $darkpool = mb_strpos($id, '.d') !== false;
-            $symbol = $darkpool ? $market['altname'] : ($base . '/' . $quote);
+            $altname = $this->safe_string($market, 'altname');
+            $symbol = $darkpool ? $altname : ($base . '/' . $quote);
+            $makerFees = $this->safe_value($market, 'fees_maker', array());
+            $firstMakerFee = $this->safe_value($makerFees, 0, array());
+            $firstMakerFeeRate = $this->safe_float($firstMakerFee, 1);
             $maker = null;
-            if (is_array($market) && array_key_exists('fees_maker', $market)) {
-                $maker = floatval($market['fees_maker'][0][1]) / 100;
+            if ($firstMakerFeeRate !== null) {
+                $maker = floatval($firstMakerFeeRate) / 100;
+            }
+            $takerFees = $this->safe_value($market, 'fees', array());
+            $firstTakerFee = $this->safe_value($takerFees, 0, array());
+            $firstTakerFeeRate = $this->safe_float($firstTakerFee, 1);
+            $taker = null;
+            if ($firstTakerFeeRate !== null) {
+                $taker = floatval($firstTakerFeeRate) / 100;
             }
             $precision = array(
-                'amount' => $market['lot_decimals'],
-                'price' => $market['pair_decimals'],
+                'amount' => $this->safe_integer($market, 'lot_decimals'),
+                'price' => $this->safe_integer($market, 'pair_decimals'),
             );
             $minAmount = $this->safe_float($market, 'ordermin');
             $result[] = array(
@@ -338,7 +350,7 @@ class kraken extends Exchange {
                 'info' => $market,
                 'altname' => $market['altname'],
                 'maker' => $maker,
-                'taker' => floatval($market['fees'][0][1]) / 100,
+                'taker' => $taker,
                 'active' => true,
                 'precision' => $precision,
                 'limits' => array(

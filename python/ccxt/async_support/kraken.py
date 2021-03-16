@@ -318,23 +318,34 @@ class kraken(Exchange):
         #         }
         #     }
         #
-        keys = list(response['result'].keys())
+        markets = self.safe_value(response, 'result', {})
+        keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
             id = keys[i]
-            market = response['result'][id]
-            baseId = market['base']
-            quoteId = market['quote']
+            market = markets[id]
+            baseId = self.safe_string(market, 'base')
+            quoteId = self.safe_string(market, 'quote')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             darkpool = id.find('.d') >= 0
-            symbol = market['altname'] if darkpool else (base + '/' + quote)
+            altname = self.safe_string(market, 'altname')
+            symbol = altname if darkpool else (base + '/' + quote)
+            makerFees = self.safe_value(market, 'fees_maker', [])
+            firstMakerFee = self.safe_value(makerFees, 0, [])
+            firstMakerFeeRate = self.safe_float(firstMakerFee, 1)
             maker = None
-            if 'fees_maker' in market:
-                maker = float(market['fees_maker'][0][1]) / 100
+            if firstMakerFeeRate is not None:
+                maker = float(firstMakerFeeRate) / 100
+            takerFees = self.safe_value(market, 'fees', [])
+            firstTakerFee = self.safe_value(takerFees, 0, [])
+            firstTakerFeeRate = self.safe_float(firstTakerFee, 1)
+            taker = None
+            if firstTakerFeeRate is not None:
+                taker = float(firstTakerFeeRate) / 100
             precision = {
-                'amount': market['lot_decimals'],
-                'price': market['pair_decimals'],
+                'amount': self.safe_integer(market, 'lot_decimals'),
+                'price': self.safe_integer(market, 'pair_decimals'),
             }
             minAmount = self.safe_float(market, 'ordermin')
             result.append({
@@ -348,7 +359,7 @@ class kraken(Exchange):
                 'info': market,
                 'altname': market['altname'],
                 'maker': maker,
-                'taker': float(market['fees'][0][1]) / 100,
+                'taker': taker,
                 'active': True,
                 'precision': precision,
                 'limits': {
