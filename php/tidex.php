@@ -286,6 +286,7 @@ class tidex extends Exchange {
             );
             $hidden = $this->safe_integer($market, 'hidden');
             $active = ($hidden === 0);
+            $takerFee = $this->safe_float($market, 'fee');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -294,7 +295,7 @@ class tidex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
-                'taker' => $market['fee'] / 100,
+                'taker' => $takerFee / 100,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,

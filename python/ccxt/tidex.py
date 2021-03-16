@@ -294,6 +294,7 @@ class tidex(Exchange):
             }
             hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
+            takerFee = self.safe_float(market, 'fee')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -302,7 +303,7 @@ class tidex(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': market['fee'] / 100,
+                'taker': takerFee / 100,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
