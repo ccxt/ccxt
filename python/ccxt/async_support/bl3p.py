@@ -88,9 +88,11 @@ class bl3p(Exchange):
         return self.parse_balance(result)
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+        price = self.safe_float(bidask, priceKey)
+        size = self.safe_float(bidask, amountKey)
         return [
-            bidask[priceKey] / 100000.0,
-            bidask[amountKey] / 100000000.0,
+            price / 100000.0,
+            size / 100000000.0,
         ]
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
