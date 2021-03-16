@@ -137,8 +137,8 @@ module.exports = class zaif extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': -Math.log10 (market['item_unit_step']),
-                'price': market['aux_unit_point'],
+                'amount': -Math.log10 (this.safeFloat (market, 'item_unit_step')),
+                'price': this.safeInteger (market, 'aux_unit_point'),
             };
             const fees = this.safeValue (this.options['fees'], symbol, this.fees['trading']);
             const taker = fees['taker'];
