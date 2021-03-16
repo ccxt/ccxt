@@ -264,13 +264,15 @@ class bitstamp extends Exchange {
             $symbolId = $baseId . '_' . $quoteId;
             $id = $this->safe_string($market, 'url_symbol');
             $precision = array(
-                'amount' => $market['base_decimals'],
-                'price' => $market['counter_decimals'],
+                'amount' => $this->safe_integer($market, 'base_decimals'),
+                'price' => $this->safe_integer($market, 'counter_decimals'),
             );
-            $parts = explode(' ', $market['minimum_order']);
+            $minimumOrder = $this->safe_string($market, 'minimum_order');
+            $parts = explode(' ', $minimumOrder);
             $cost = $parts[0];
             // list($cost, $currency) = explode(' ', $market['minimum_order']);
-            $active = ($market['trading'] === 'Enabled');
+            $trading = $this->safe_string($market, 'trading');
+            $active = ($trading === 'Enabled');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
