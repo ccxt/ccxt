@@ -476,7 +476,7 @@ module.exports = class zb extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         return [
-            this.safeTimestamp (ohlcv, 0),
+            this.safeInteger (ohlcv, 0),
             this.safeFloat (ohlcv, 1),
             this.safeFloat (ohlcv, 2),
             this.safeFloat (ohlcv, 3),
