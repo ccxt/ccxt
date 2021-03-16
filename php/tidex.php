@@ -134,19 +134,48 @@ class tidex extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = $this->webGetCurrency ($params);
+        //
+        //     array(
+        //         {
+        //             "$id":2,
+        //             "symbol":"BTC",
+        //             "type":2,
+        //             "$name":"Bitcoin",
+        //             "amountPoint":8,
+        //             "$depositEnable":true,
+        //             "depositMinAmount":0.0005,
+        //             "$withdrawEnable":true,
+        //             "withdrawFee":0.0004,
+        //             "withdrawMinAmount":0.0005,
+        //             "settings":array(
+        //                 "Blockchain":"https://blockchair.com/bitcoin/",
+        //                 "TxUrl":"https://blockchair.com/bitcoin/transaction/{0}",
+        //                 "AddrUrl":"https://blockchair.com/bitcoin/address/{0}",
+        //                 "ConfirmationCount":3,
+        //                 "NeedMemo":false
+        //             ),
+        //             "$visible":true,
+        //             "isDelisted":false
+        //         }
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
-            $precision = $currency['amountPoint'];
+            $precision = $this->safe_integer($currency, 'amountPoint');
             $code = $this->safe_currency_code($id);
-            $active = $currency['visible'] === true;
-            $canWithdraw = $currency['withdrawEnable'] === true;
-            $canDeposit = $currency['depositEnable'] === true;
+            $visible = $this->safe_value($currency, 'visible');
+            $active = $visible === true;
+            $withdrawEnable = $this->safe_value($currency, 'withdrawEnable');
+            $depositEnable = $this->safe_value($currency, 'depositEnable');
+            $canWithdraw = $withdrawEnable === true;
+            $canDeposit = $depositEnable === true;
             if (!$canWithdraw || !$canDeposit) {
                 $active = false;
             }
             $name = $this->safe_string($currency, 'name');
+            $fee = $this->safe_float($currency, 'withdrawFee');
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -156,7 +185,7 @@ class tidex extends Exchange {
                 'funding' => array(
                     'withdraw' => array(
                         'active' => $canWithdraw,
-                        'fee' => $currency['withdrawFee'],
+                        'fee' => $fee,
                     ),
                     'deposit' => array(
                         'active' => $canDeposit,
@@ -211,6 +240,23 @@ class tidex extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetInfo ($params);
+        //
+        //     {
+        //         "server_time":1615861869,
+        //         "pairs":array(
+        //             "ltc_btc":array(
+        //                 "decimal_places":8,
+        //                 "min_price":0.00000001,
+        //                 "max_price":3.0,
+        //                 "min_amount":0.001,
+        //                 "max_amount":1000000.0,
+        //                 "min_total":0.0001,
+        //                 "$hidden":0,
+        //                 "fee":0.1,
+        //             ),
+        //         ),
+        //     }
+        //
         $markets = $response['pairs'];
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
