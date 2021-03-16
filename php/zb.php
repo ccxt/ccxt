@@ -211,6 +211,16 @@ class zb extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $markets = $this->publicGetMarkets ($params);
+        //
+        //     {
+        //         "zb_qc":array(
+        //             "amountScale":2,
+        //             "minAmount":0.01,
+        //             "minSize":5,
+        //             "priceScale":4,
+        //         ),
+        //     }
+        //
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -467,6 +477,17 @@ class zb extends Exchange {
             'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
+        );
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        return array(
+            $this->safe_integer($ohlcv, 0),
+            $this->safe_float($ohlcv, 1),
+            $this->safe_float($ohlcv, 2),
+            $this->safe_float($ohlcv, 3),
+            $this->safe_float($ohlcv, 4),
+            $this->safe_float($ohlcv, 5),
         );
     }
 
