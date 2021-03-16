@@ -92,16 +92,6 @@ class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
 
     constructor (maxSize = undefined) {
         super (maxSize)
-        Object.defineProperty (this, 'indexTracker', {
-            __proto__: null, // make it invisible
-            value: {},
-            writable: true,
-        })
-        Object.defineProperty (this, 'indexCounter', {
-            __proto__: null, // make it invisible
-            value: 0,
-            writable: true,
-        })
     }
 
     append (item) {
@@ -119,12 +109,10 @@ class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
             this.splice (index, 1)
         } else {
             byId[item.id] = item
-            this.indexTracker[item.id] = this.indexCounter
         }
         if (this.maxSize && (this.length === this.maxSize)) {
             const deleteReference = this.shift ()
-            delete byId[deleteReference.id]
-            delete this.indexTracker[deleteReference.id]
+            delete this.hashmap[deleteReference.symbol][deleteReference.id]
         }
         this.push (item)
         if (this.clearUpdates) {

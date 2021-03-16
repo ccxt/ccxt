@@ -105,9 +105,9 @@ class ArrayCacheBySymbolById(ArrayCacheByTimestamp):
         else:
             by_id[item['id']] = item
         if len(self._deque) == self._deque.maxlen:
-            self._deque.popleft()
-            delete_reference = self._index.popleft()
-            del by_id[delete_reference]
+            delete_item = self._deque.popleft()
+            self._index.popleft()
+            del self.hashmap[delete_item['symbol']][delete_item['id']]
         self._deque.append(item)
         self._index.append(item['id'])
         if self._clear_updates:
