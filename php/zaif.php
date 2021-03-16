@@ -139,8 +139,8 @@ class zaif extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array(
-                'amount' => -log10 ($market['item_unit_step']),
-                'price' => $market['aux_unit_point'],
+                'amount' => -log10 ($this->safe_float($market, 'item_unit_step')),
+                'price' => $this->safe_integer($market, 'aux_unit_point'),
             );
             $fees = $this->safe_value($this->options['fees'], $symbol, $this->fees['trading']);
             $taker = $fees['taker'];

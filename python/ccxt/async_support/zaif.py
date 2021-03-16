@@ -140,8 +140,8 @@ class zaif(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': -math.log10(market['item_unit_step']),
-                'price': market['aux_unit_point'],
+                'amount': -math.log10(self.safe_float(market, 'item_unit_step')),
+                'price': self.safe_integer(market, 'aux_unit_point'),
             }
             fees = self.safe_value(self.options['fees'], symbol, self.fees['trading'])
             taker = fees['taker']
