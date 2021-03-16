@@ -107,7 +107,7 @@ class ArrayCacheBySymbolById(ArrayCacheByTimestamp):
         if len(self._deque) == self._deque.maxlen:
             self._deque.popleft()
             delete_reference = self._index.popleft()
-            del by_id[delete_reference]
+            del by_id[delete_reference['id']]
         self._deque.append(item)
         self._index.append(item['id'])
         if self._clear_updates:
