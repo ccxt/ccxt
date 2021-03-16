@@ -552,7 +552,7 @@ class wavesexchange(Exchange):
         vwap = self.safe_float(data, 'weightedAveragePrice')
         baseVolume = self.safe_float(data, 'volume')
         quoteVolume = self.safe_float(data, 'quoteVolume')
-        open = self.safe_value(data, 'firstPrice')
+        open = self.safe_float(data, 'firstPrice')
         change = None
         average = None
         percentage = None
