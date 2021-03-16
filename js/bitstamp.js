@@ -259,13 +259,15 @@ module.exports = class bitstamp extends Exchange {
             const symbolId = baseId + '_' + quoteId;
             const id = this.safeString (market, 'url_symbol');
             const precision = {
-                'amount': market['base_decimals'],
-                'price': market['counter_decimals'],
+                'amount': this.safeInteger (market, 'base_decimals'),
+                'price': this.safeInteger (market, 'counter_decimals'),
             };
-            const parts = market['minimum_order'].split (' ');
+            const minimumOrder = this.safeString (market, 'minimum_order');
+            const parts = minimumOrder.split (' ');
             const cost = parts[0];
             // let [ cost, currency ] = market['minimum_order'].split (' ');
-            const active = (market['trading'] === 'Enabled');
+            const trading = this.safeString (market, 'trading');
+            const active = (trading === 'Enabled');
             result.push ({
                 'id': id,
                 'symbol': symbol,
