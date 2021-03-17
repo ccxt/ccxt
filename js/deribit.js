@@ -1066,16 +1066,6 @@ module.exports = class deribit extends Exchange {
                 lastTradeTimestamp = lastUpdate;
             }
         }
-        let remaining = undefined;
-        let cost = undefined;
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
-            }
-            if (price !== undefined) {
-                cost = price * filled;
-            }
-        }
         const status = this.parseOrderStatus (this.safeString (order, 'order_state'));
         const marketId = this.safeString (order, 'instrument_name');
         market = this.safeMarket (marketId, market);
@@ -1098,7 +1088,7 @@ module.exports = class deribit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const stopPrice = this.safeValue (order, 'stop_price');
         const postOnly = this.safeValue (order, 'post_only');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1113,14 +1103,14 @@ module.exports = class deribit extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
