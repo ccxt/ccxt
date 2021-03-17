@@ -335,11 +335,7 @@ def test_symbol(exchange, symbol, code):
 
 
 def load_exchange(exchange):
-    try:
-        exchange.load_markets()
-    except Exception as e:
-        print(exchange.last_http_response)
-        raise
+    exchange.load_markets()
 
 
 def test_exchange(exchange, symbol=None):
