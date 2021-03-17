@@ -58,6 +58,7 @@ class binance(Exchange, ccxt.binance):
                     'name': 'ticker',  # ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
                 'wallet': 'wb',  # wb = wallet balance, cb = cross balance
+                'futureBalance': {},
             },
         })
 
@@ -682,6 +683,7 @@ class binance(Exchange, ccxt.binance):
     async def authenticate(self, params={}):
         time = self.seconds()
         type = self.safe_string_2(self.options, 'defaultType', 'authenticate', 'spot')
+        type = self.safe_string(params, 'type', type)
         options = self.safe_value(self.options, type, {})
         lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
         if time - lastAuthenticatedTime > 1800:
@@ -700,13 +702,14 @@ class binance(Exchange, ccxt.binance):
 
     async def watch_balance(self, params={}):
         await self.load_markets()
-        await self.authenticate()
+        await self.authenticate(params)
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
-        messageHash = 'balance'
+        isSpotBalance = (type == 'spot') or (type == 'margin')
+        messageHash = 'spotBalance' if isSpotBalance else 'futureBalance'
         message = None
-        subscriptionHash = 'private'
+        subscriptionHash = type + 'Private'
         return await self.watch(url, messageHash, message, subscriptionHash)
 
     def handle_balance(self, client, message):
@@ -757,9 +760,15 @@ class binance(Exchange, ccxt.binance):
         #         }
         #     }
         #
-        self.balance['info'] = message
         wallet = self.safe_value(self.options, 'wallet', 'wb')
-        messageHash = 'balance'
+        event = self.safe_string(message, 'e')
+        isSpotBalance = event == 'outboundAccountPosition'
+        balanceType = None
+        if isSpotBalance:
+            balanceType = self.balance
+        else:
+            balanceType = self.safe_value(self.options, 'futureBalance', {})
+        balanceType['info'] = message
         message = self.safe_value(message, 'a', message)
         balances = self.safe_value(message, 'B', [])
         for i in range(0, len(balances)):
@@ -770,18 +779,22 @@ class binance(Exchange, ccxt.binance):
             account['free'] = self.safe_float(balance, 'f')
             account['used'] = self.safe_float(balance, 'l')
             account['total'] = self.safe_float(balance, wallet)
-            self.balance[code] = account
-        self.balance = self.parse_balance(self.balance)
-        client.resolve(self.balance, messageHash)
+            balanceType[code] = account
+        if isSpotBalance:
+            self.balance = self.parse_balance(balanceType)
+            client.resolve(self.balance, 'spotBalance')
+        else:
+            self.options['futureBalance'] = self.parse_balance(balanceType)
+            client.resolve(self.options['futureBalance'], 'futureBalance')
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        await self.authenticate()
+        await self.authenticate(params)
         defaultType = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'orders'
-        subscriptionHash = 'private'
+        subscriptionHash = type + 'Private'
         if symbol is not None:
             messageHash += ':' + symbol
         message = None
@@ -1025,12 +1038,12 @@ class binance(Exchange, ccxt.binance):
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        await self.authenticate()
+        await self.authenticate(params)
         defaultType = self.safe_string_2(self.options, 'watchMyTrades', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'myTrades'
-        subscriptionHash = 'private'
+        subscriptionHash = type + 'Private'
         if symbol is not None:
             messageHash += ':' + symbol
         message = None

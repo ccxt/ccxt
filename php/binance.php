@@ -59,6 +59,7 @@ class binance extends \ccxt\async\binance {
                     'name' => 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 ),
                 'wallet' => 'wb', // wb = wallet balance, cb = cross balance
+                'futureBalance' => array(),
             ),
         ));
     }
@@ -735,6 +736,7 @@ class binance extends \ccxt\async\binance {
     public function authenticate($params = array ()) {
         $time = $this->seconds();
         $type = $this->safe_string_2($this->options, 'defaultType', 'authenticate', 'spot');
+        $type = $this->safe_string($params, 'type', $type);
         $options = $this->safe_value($this->options, $type, array());
         $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
         if ($time - $lastAuthenticatedTime > 1800) {
@@ -756,13 +758,14 @@ class binance extends \ccxt\async\binance {
 
     public function watch_balance($params = array ()) {
         yield $this->load_markets();
-        yield $this->authenticate();
+        yield $this->authenticate($params);
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
-        $messageHash = 'balance';
+        $isSpotBalance = ($type === 'spot') || ($type === 'margin');
+        $messageHash = $isSpotBalance ? 'spotBalance' : 'futureBalance';
         $message = null;
-        $subscriptionHash = 'private';
+        $subscriptionHash = $type . 'Private';
         return yield $this->watch($url, $messageHash, $message, $subscriptionHash);
     }
 
@@ -814,9 +817,16 @@ class binance extends \ccxt\async\binance {
         //         }
         //     }
         //
-        $this->balance['info'] = $message;
         $wallet = $this->safe_value($this->options, 'wallet', 'wb');
-        $messageHash = 'balance';
+        $event = $this->safe_string($message, 'e');
+        $isSpotBalance = $event === 'outboundAccountPosition';
+        $balanceType = null;
+        if ($isSpotBalance) {
+            $balanceType = $this->balance;
+        } else {
+            $balanceType = $this->safe_value($this->options, 'futureBalance', array());
+        }
+        $balanceType['info'] = $message;
         $message = $this->safe_value($message, 'a', $message);
         $balances = $this->safe_value($message, 'B', array());
         for ($i = 0; $i < count($balances); $i++) {
@@ -827,20 +837,25 @@ class binance extends \ccxt\async\binance {
             $account['free'] = $this->safe_float($balance, 'f');
             $account['used'] = $this->safe_float($balance, 'l');
             $account['total'] = $this->safe_float($balance, $wallet);
-            $this->balance[$code] = $account;
+            $balanceType[$code] = $account;
         }
-        $this->balance = $this->parse_balance($this->balance);
-        $client->resolve ($this->balance, $messageHash);
+        if ($isSpotBalance) {
+            $this->balance = $this->parse_balance($balanceType);
+            $client->resolve ($this->balance, 'spotBalance');
+        } else {
+            $this->options['futureBalance'] = $this->parse_balance($balanceType);
+            $client->resolve ($this->options['futureBalance'], 'futureBalance');
+        }
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        yield $this->authenticate();
+        yield $this->authenticate($params);
         $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
         $messageHash = 'orders';
-        $subscriptionHash = 'private';
+        $subscriptionHash = $type . 'Private';
         if ($symbol !== null) {
             $messageHash .= ':' . $symbol;
         }
@@ -1098,12 +1113,12 @@ class binance extends \ccxt\async\binance {
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
-        yield $this->authenticate();
+        yield $this->authenticate($params);
         $defaultType = $this->safe_string_2($this->options, 'watchMyTrades', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
         $messageHash = 'myTrades';
-        $subscriptionHash = 'private';
+        $subscriptionHash = $type . 'Private';
         if ($symbol !== null) {
             $messageHash .= ':' . $symbol;
         }
