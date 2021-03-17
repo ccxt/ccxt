@@ -491,7 +491,7 @@ module.exports = class coinex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.safeString (order, 'order_type');
         const side = this.safeString (order, 'type');
-        return {
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -516,7 +516,7 @@ module.exports = class coinex extends Exchange {
                 'cost': this.safeFloat (order, 'deal_fee'),
             },
             'info': order,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
