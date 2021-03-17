@@ -854,58 +854,17 @@ module.exports = class hitbtc extends Exchange {
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
         const clientOrderId = id;
-        let price = this.safeFloat (order, 'price');
-        let remaining = undefined;
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = amount - filled;
-                if (price !== undefined) {
-                    cost = filled * price;
-                }
-            }
-        }
+        const price = this.safeFloat (order, 'price');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         let trades = this.safeValue (order, 'tradesReport');
-        let fee = undefined;
-        let average = this.safeValue (order, 'avgPrice');
+        const fee = undefined;
+        const average = this.safeValue (order, 'avgPrice');
         if (trades !== undefined) {
             trades = this.parseTrades (trades, market);
-            let feeCost = undefined;
-            const numTrades = trades.length;
-            let tradesCost = 0;
-            for (let i = 0; i < numTrades; i++) {
-                if (feeCost === undefined) {
-                    feeCost = 0;
-                }
-                tradesCost = this.sum (tradesCost, trades[i]['cost']);
-                const tradeFee = this.safeValue (trades[i], 'fee', {});
-                const tradeFeeCost = this.safeFloat (tradeFee, 'cost');
-                if (tradeFeeCost !== undefined) {
-                    feeCost = this.sum (feeCost, tradeFeeCost);
-                }
-            }
-            cost = tradesCost;
-            if ((filled !== undefined) && (filled > 0)) {
-                if (average === undefined) {
-                    average = cost / filled;
-                }
-                if (type === 'market') {
-                    if (price === undefined) {
-                        price = average;
-                    }
-                }
-            }
-            if (feeCost !== undefined) {
-                fee = {
-                    'cost': feeCost,
-                    'currency': market['quote'],
-                };
-            }
         }
         const timeInForce = this.safeString (order, 'timeInForce');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId, // https://github.com/ccxt/ccxt/issues/5674
             'timestamp': created,
@@ -920,13 +879,13 @@ module.exports = class hitbtc extends Exchange {
             'stopPrice': undefined,
             'average': average,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'fee': fee,
             'trades': trades,
             'info': order,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
