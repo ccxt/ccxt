@@ -2847,10 +2847,13 @@ class Exchange {
         }
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
+            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            if (!$parseFee && ($reducedLength === 0)) {
+                array_push($reducedFees, $order['fee']);
+            }
             if ($parseFees) {
                 $order['fees'] = $reducedFees;
             }
-            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
             if ($parseFee && ($reducedLength === 1)) {
                 $order['fee'] = $reducedFees[0];
             }
