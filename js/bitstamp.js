@@ -364,13 +364,16 @@ module.exports = class bitstamp extends Exchange {
             quote = this.safeCurrencyCode (quote);
             const description = this.safeString (market, 'description');
             const [ baseDescription, quoteDescription ] = description.split (' / ');
-            const parts = market['minimum_order'].split (' ');
+            const minimumOrder = this.safeString (market, 'minimum_order');
+            const parts = minimumOrder.split (' ');
             const cost = parts[0];
             if (!(base in result)) {
-                result[base] = this.constructCurrencyObject (baseId, base, baseDescription, market['base_decimals'], undefined, market);
+                const baseDecimals = this.safeInteger (market, 'base_decimals');
+                result[base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
             }
             if (!(quote in result)) {
-                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, market['counter_decimals'], parseFloat (cost), market);
+                const counterDecimals = this.safeInteger (market, 'counter_decimals');
+                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, parseFloat (cost), market);
             }
         }
         return result;
