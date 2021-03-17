@@ -56,6 +56,7 @@ module.exports = class binance extends ccxt.binance {
                     'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
                 'wallet': 'wb', // wb = wallet balance, cb = cross balance
+                'futureBalance': {},
             },
         });
     }
@@ -731,7 +732,8 @@ module.exports = class binance extends ccxt.binance {
 
     async authenticate (params = {}) {
         const time = this.seconds ();
-        const type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
+        let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
+        type = this.safeString (params, 'type', type);
         const options = this.safeValue (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         if (time - lastAuthenticatedTime > 1800) {
@@ -753,13 +755,14 @@ module.exports = class binance extends ccxt.binance {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        await this.authenticate ();
+        await this.authenticate (params);
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
-        const messageHash = 'balance';
+        const isSpotBalance = (type === 'spot') || (type === 'margin');
+        const messageHash = isSpotBalance ? 'spotBalance' : 'futureBalance';
         const message = undefined;
-        const subscriptionHash = 'private';
+        const subscriptionHash = type + 'Private';
         return await this.watch (url, messageHash, message, subscriptionHash);
     }
 
@@ -811,9 +814,16 @@ module.exports = class binance extends ccxt.binance {
         //         }
         //     }
         //
-        this.balance['info'] = message;
         const wallet = this.safeValue (this.options, 'wallet', 'wb');
-        const messageHash = 'balance';
+        const event = this.safeString (message, 'e');
+        const isSpotBalance = event === 'outboundAccountPosition';
+        let balanceType = undefined;
+        if (isSpotBalance) {
+            balanceType = this.balance;
+        } else {
+            balanceType = this.safeValue (this.options, 'futureBalance', {});
+        }
+        balanceType['info'] = message;
         message = this.safeValue (message, 'a', message);
         const balances = this.safeValue (message, 'B', []);
         for (let i = 0; i < balances.length; i++) {
@@ -824,20 +834,25 @@ module.exports = class binance extends ccxt.binance {
             account['free'] = this.safeFloat (balance, 'f');
             account['used'] = this.safeFloat (balance, 'l');
             account['total'] = this.safeFloat (balance, wallet);
-            this.balance[code] = account;
+            balanceType[code] = account;
         }
-        this.balance = this.parseBalance (this.balance);
-        client.resolve (this.balance, messageHash);
+        if (isSpotBalance) {
+            this.balance = this.parseBalance (balanceType);
+            client.resolve (this.balance, 'spotBalance');
+        } else {
+            this.options['futureBalance'] = this.parseBalance (balanceType);
+            client.resolve (this.options['futureBalance'], 'futureBalance');
+        }
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.authenticate ();
+        await this.authenticate (params);
         const defaultType = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         let messageHash = 'orders';
-        const subscriptionHash = 'private';
+        const subscriptionHash = type + 'Private';
         if (symbol !== undefined) {
             messageHash += ':' + symbol;
         }
@@ -1095,12 +1110,12 @@ module.exports = class binance extends ccxt.binance {
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.authenticate ();
+        await this.authenticate (params);
         const defaultType = this.safeString2 (this.options, 'watchMyTrades', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         let messageHash = 'myTrades';
-        const subscriptionHash = 'private';
+        const subscriptionHash = type + 'Private';
         if (symbol !== undefined) {
             messageHash += ':' + symbol;
         }
