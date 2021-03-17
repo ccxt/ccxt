@@ -1484,10 +1484,13 @@ module.exports = class Exchange {
         }
         if (shouldParseFees) {
             const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
+            const reducedLength = reducedFees.length;
+            if (!parseFee && (reducedLength === 0)) {
+                reducedFees.push (order['fee']);
+            }
             if (parseFees) {
                 order['fees'] = reducedFees;
             }
-            const reducedLength = reducedFees.length;
             if (parseFee && (reducedLength === 1)) {
                 order['fee'] = reducedFees[0];
             }

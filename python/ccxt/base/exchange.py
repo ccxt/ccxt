@@ -2175,9 +2175,11 @@ class Exchange(object):
                                 fees.append(self.extend({}, tradeFee))
         if shouldParseFees:
             reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
+            reducedLength = len(reducedFees)
+            if not parseFee and (reducedLength == 0):
+                reducedFees.append(order['fee'])
             if parseFees:
                 order['fees'] = reducedFees
-            reducedLength = len(reducedFees)
             if parseFee and (reducedLength == 1):
                 order['fee'] = reducedFees[0]
         if amount is None:
