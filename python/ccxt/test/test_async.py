@@ -364,7 +364,11 @@ async def test_symbol(exchange, symbol, code):
 
 
 async def load_exchange(exchange):
-    await exchange.load_markets()
+    try:
+        await exchange.load_markets()
+    except Exception as e:
+        print(exchange.last_http_response)
+        raise
 
 
 async def test_exchange(exchange, symbol=None):
