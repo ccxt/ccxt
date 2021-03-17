@@ -2200,7 +2200,8 @@ class Exchange(object):
             cost = (price * filled) if (average is None) else (average * filled)
         # support for market orders
         orderType = self.safe_value(order, 'type')
-        if (price is None) and (orderType == 'market'):
+        emptyPrice = price is None or price == 0.0
+        if emptyPrice and (orderType == 'market'):
             price = average
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,

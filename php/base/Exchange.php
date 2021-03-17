@@ -1088,7 +1088,7 @@ class Exchange {
             'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         );
         $this->minFundingAddressLength = 1; // used in check_address
-        $this->substituteCommonCurrencyCodes = true;        
+        $this->substituteCommonCurrencyCodes = true;
 
         // whether fees should be summed by currency code
         $this->reduceFees = false;
@@ -2884,7 +2884,8 @@ class Exchange {
         }
         // support for market orders
         $orderType = $this->safe_value($order, 'type');
-        if (($price === null) && ($orderType === 'market')) {
+        $emptyPrice = ($price === null) || ($price === 0.0);
+        if ($emptyPrice && ($orderType === 'market')) {
             $price = $average;
         }
         return array_merge($order, array(
