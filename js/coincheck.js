@@ -173,20 +173,10 @@ module.exports = class coincheck extends Exchange {
         const amount = this.safeFloat (order, 'pending_amount');
         const remaining = this.safeFloat (order, 'pending_amount');
         const price = this.safeFloat (order, 'rate');
-        let filled = undefined;
-        let cost = undefined;
-        if (remaining !== undefined) {
-            if (amount !== undefined) {
-                filled = Math.max (amount - remaining, 0);
-                if (price !== undefined) {
-                    cost = filled * price;
-                }
-            }
-        }
         const status = undefined;
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market, '_');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -194,7 +184,7 @@ module.exports = class coincheck extends Exchange {
             'lastTradeTimestamp': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': undefined,
             'side': side,
             'type': undefined,
             'timeInForce': undefined,
@@ -203,12 +193,12 @@ module.exports = class coincheck extends Exchange {
             'symbol': symbol,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
             'info': order,
             'average': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
