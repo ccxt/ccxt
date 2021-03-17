@@ -666,50 +666,19 @@ module.exports = class crex24 extends Exchange {
         const marketId = this.safeString (order, 'instrument');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
-        let price = this.safeFloat (order, 'price');
+        const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'volume');
         const remaining = this.safeFloat (order, 'remainingVolume');
-        let filled = undefined;
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'lastUpdate'));
-        let cost = undefined;
-        if (remaining !== undefined) {
-            if (amount !== undefined) {
-                filled = amount - remaining;
-                if (this.options['parseOrderToPrecision']) {
-                    filled = parseFloat (this.amountToPrecision (symbol, filled));
-                }
-                filled = Math.max (filled, 0.0);
-                if (price !== undefined) {
-                    cost = price * filled;
-                }
-            }
-        }
         const id = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
-        if (type === 'market') {
-            if (price === 0.0) {
-                if ((cost !== undefined) && (filled !== undefined)) {
-                    if ((cost > 0) && (filled > 0)) {
-                        price = cost / filled;
-                    }
-                }
-            }
-        }
         const side = this.safeString (order, 'side');
         const fee = undefined;
         const trades = undefined;
-        let average = undefined;
-        if (cost !== undefined) {
-            if (filled) {
-                average = cost / filled;
-            }
-            if (this.options['parseOrderToPrecision']) {
-                cost = parseFloat (this.costToPrecision (symbol, cost));
-            }
-        }
+        const average = undefined;
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeFloat (order, 'stopPrice');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -723,14 +692,14 @@ module.exports = class crex24 extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
