@@ -168,17 +168,10 @@ class coincheck(Exchange):
         amount = self.safe_float(order, 'pending_amount')
         remaining = self.safe_float(order, 'pending_amount')
         price = self.safe_float(order, 'rate')
-        filled = None
-        cost = None
-        if remaining is not None:
-            if amount is not None:
-                filled = max(amount - remaining, 0)
-                if price is not None:
-                    cost = filled * price
         status = None
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market, '_')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -186,7 +179,7 @@ class coincheck(Exchange):
             'lastTradeTimestamp': None,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': None,
             'side': side,
             'type': None,
             'timeInForce': None,
@@ -195,12 +188,12 @@ class coincheck(Exchange):
             'symbol': symbol,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'fee': None,
             'info': order,
             'average': None,
             'trades': None,
-        }
+        })
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
