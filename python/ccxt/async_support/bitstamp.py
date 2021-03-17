@@ -378,12 +378,15 @@ class bitstamp(Exchange):
             quote = self.safe_currency_code(quote)
             description = self.safe_string(market, 'description')
             baseDescription, quoteDescription = description.split(' / ')
-            parts = market['minimum_order'].split(' ')
+            minimumOrder = self.safe_string(market, 'minimum_order')
+            parts = minimumOrder.split(' ')
             cost = parts[0]
             if not (base in result):
-                result[base] = self.construct_currency_object(baseId, base, baseDescription, market['base_decimals'], None, market)
+                baseDecimals = self.safe_integer(market, 'base_decimals')
+                result[base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
             if not (quote in result):
-                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, market['counter_decimals'], float(cost), market)
+                counterDecimals = self.safe_integer(market, 'counter_decimals')
+                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, float(cost), market)
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

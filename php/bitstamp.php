@@ -369,13 +369,16 @@ class bitstamp extends Exchange {
             $quote = $this->safe_currency_code($quote);
             $description = $this->safe_string($market, 'description');
             list($baseDescription, $quoteDescription) = explode(' / ', $description);
-            $parts = explode(' ', $market['minimum_order']);
+            $minimumOrder = $this->safe_string($market, 'minimum_order');
+            $parts = explode(' ', $minimumOrder);
             $cost = $parts[0];
             if (!(is_array($result) && array_key_exists($base, $result))) {
-                $result[$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $market['base_decimals'], null, $market);
+                $baseDecimals = $this->safe_integer($market, 'base_decimals');
+                $result[$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
             }
             if (!(is_array($result) && array_key_exists($quote, $result))) {
-                $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $market['counter_decimals'], floatval($cost), $market);
+                $counterDecimals = $this->safe_integer($market, 'counter_decimals');
+                $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, floatval($cost), $market);
             }
         }
         return $result;
