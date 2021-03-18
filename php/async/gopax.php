@@ -798,14 +798,8 @@ class gopax extends Exchange {
             $cost = abs($cost);
         }
         $updated = null;
-        if (($filled === null) && ($amount !== null) && ($remaining !== null)) {
-            $filled = max (0, $amount - $remaining);
-        }
         if (($filled !== null) && ($filled > 0)) {
             $updated = $this->parse8601($this->safe_string($order, 'updatedAt'));
-        }
-        if (($cost === null) && ($price !== null) && ($filled !== null)) {
-            $cost = $filled * $price;
         }
         $fee = null;
         if ($side === 'buy') {
@@ -829,7 +823,7 @@ class gopax extends Exchange {
         if ($timeInForce !== null) {
             $postOnly = ($timeInForce === 'PO');
         }
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'datetime' => $this->iso8601($timestamp),
@@ -851,7 +845,7 @@ class gopax extends Exchange {
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

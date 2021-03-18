@@ -771,12 +771,8 @@ class gopax(Exchange):
         if cost is not None:
             cost = abs(cost)
         updated = None
-        if (filled is None) and (amount is not None) and (remaining is not None):
-            filled = max(0, amount - remaining)
         if (filled is not None) and (filled > 0):
             updated = self.parse8601(self.safe_string(order, 'updatedAt'))
-        if (cost is None) and (price is not None) and (filled is not None):
-            cost = filled * price
         fee = None
         if side == 'buy':
             baseFee = self.safe_value(balanceChange, 'baseFee', {})
@@ -797,7 +793,7 @@ class gopax(Exchange):
         postOnly = None
         if timeInForce is not None:
             postOnly = (timeInForce == 'PO')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'datetime': self.iso8601(timestamp),
@@ -819,7 +815,7 @@ class gopax(Exchange):
             'trades': None,
             'fee': fee,
             'info': order,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
