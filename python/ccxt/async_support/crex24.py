@@ -655,36 +655,16 @@ class crex24(Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'volume')
         remaining = self.safe_float(order, 'remainingVolume')
-        filled = None
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'lastUpdate'))
-        cost = None
-        if remaining is not None:
-            if amount is not None:
-                filled = amount - remaining
-                if self.options['parseOrderToPrecision']:
-                    filled = float(self.amount_to_precision(symbol, filled))
-                filled = max(filled, 0.0)
-                if price is not None:
-                    cost = price * filled
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
-        if type == 'market':
-            if price == 0.0:
-                if (cost is not None) and (filled is not None):
-                    if (cost > 0) and (filled > 0):
-                        price = cost / filled
         side = self.safe_string(order, 'side')
         fee = None
         trades = None
         average = None
-        if cost is not None:
-            if filled:
-                average = cost / filled
-            if self.options['parseOrderToPrecision']:
-                cost = float(self.cost_to_precision(symbol, cost))
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_float(order, 'stopPrice')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -698,14 +678,14 @@ class crex24(Exchange):
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': trades,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
