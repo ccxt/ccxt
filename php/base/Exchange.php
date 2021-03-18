@@ -1091,7 +1091,7 @@ class Exchange {
         $this->substituteCommonCurrencyCodes = true;
 
         // whether fees should be summed by currency code
-        $this->reduceFees = false;
+        $this->reduceFees = true;
 
         $this->timeframes = null;
 
