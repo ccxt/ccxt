@@ -35,7 +35,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.43.70'
+const version = '1.43.71'
 
 Exchange.ccxtVersion = version
 
@@ -122,7 +122,6 @@ const exchanges = {
     'hollaex':                 require ('./js/hollaex.js'),
     'huobijp':                 require ('./js/huobijp.js'),
     'huobipro':                require ('./js/huobipro.js'),
-    'ice3x':                   require ('./js/ice3x.js'),
     'idex':                    require ('./js/idex.js'),
     'independentreserve':      require ('./js/independentreserve.js'),
     'indodax':                 require ('./js/indodax.js'),
