@@ -736,22 +736,10 @@ module.exports = class bw extends Exchange {
         const amount = this.safeFloat (order, 'amount');
         const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'completeAmount');
-        let remaining = this.safeFloat2 (order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
-        let cost = this.safeFloat (order, 'totalMoney');
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                if (remaining === undefined) {
-                    remaining = amount - filled;
-                }
-            }
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = filled * cost;
-                }
-            }
-        }
+        const remaining = this.safeFloat2 (order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
+        const cost = this.safeFloat (order, 'totalMoney');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'entrustId'),
             'clientOrderId': undefined,
@@ -773,7 +761,7 @@ module.exports = class bw extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
