@@ -851,7 +851,6 @@ class qtrade extends Exchange {
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'market_amount');
         $remaining = $this->safe_float($order, 'market_amount_remaining');
-        $filled = null;
         $open = $this->safe_value($order, 'open', false);
         $closeReason = $this->safe_string($order, 'close_reason');
         $status = null;
@@ -863,58 +862,21 @@ class qtrade extends Exchange {
             $status = 'closed';
         }
         $marketId = $this->safe_string($order, 'market_string');
-        $symbol = $this->safe_symbol($marketId, $market, '_');
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
         $rawTrades = $this->safe_value($order, 'trades', array());
         $parsedTrades = $this->parse_trades($rawTrades, $market, null, null, array(
             'order' => $id,
             'side' => $side,
             'type' => $orderType,
         ));
-        $numTrades = is_array($parsedTrades) ? count($parsedTrades) : 0;
-        $lastTradeTimestamp = null;
-        $feeCost = null;
-        $cost = null;
-        if ($numTrades > 0) {
-            $feeCost = 0;
-            $cost = 0;
-            $filled = 0;
-            $remaining = $amount;
-            for ($i = 0; $i < count($parsedTrades); $i++) {
-                $trade = $parsedTrades[$i];
-                $feeCost = $this->sum($trade['fee']['cost'], $feeCost);
-                $lastTradeTimestamp = $this->safe_integer($trade, 'timestamp');
-                $cost = $this->sum($trade['cost'], $cost);
-                $filled = $this->sum($trade['amount'], $filled);
-                $remaining = max (0, $remaining - $trade['amount']);
-            }
-        }
-        $fee = null;
-        if ($feeCost !== null) {
-            $feeCurrencyCode = ($market === null) ? null : $market['quote'];
-            $fee = array(
-                'currency' => $feeCurrencyCode,
-                'cost' => $feeCost,
-            );
-        }
-        if (($amount !== null) && ($remaining !== null)) {
-            $filled = max (0, $amount - $remaining);
-        }
-        $average = null;
-        if ($filled !== null) {
-            if (($price !== null) && ($cost === null)) {
-                $cost = $filled * $price;
-            }
-            if (($cost !== null) && ($filled > 0)) {
-                $average = $cost / $filled;
-            }
-        }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
             'timeInForce' => null,
@@ -922,15 +884,16 @@ class qtrade extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'average' => $average,
+            'average' => null,
             'amount' => $amount,
             'remaining' => $remaining,
-            'filled' => $filled,
+            'filled' => null,
             'status' => $status,
-            'fee' => $fee,
-            'cost' => $cost,
+            'fee' => null,
+            'fees' => null,
+            'cost' => null,
             'trades' => $parsedTrades,
-        );
+        ));
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
