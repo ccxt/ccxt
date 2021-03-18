@@ -557,21 +557,8 @@ class fcoin extends Exchange {
         $timestamp = $this->safe_integer($order, 'created_at');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'filled_amount');
-        $remaining = null;
         $price = $this->safe_float($order, 'price');
         $cost = $this->safe_float($order, 'executed_value');
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-            }
-            if ($cost === null) {
-                if ($price !== null) {
-                    $cost = $price * $filled;
-                }
-            } else if (($cost > 0) && ($filled > 0)) {
-                $price = $cost / $filled;
-            }
-        }
         $feeCurrency = null;
         $feeCost = null;
         $feeRebate = $this->safe_float($order, 'fees_income');
@@ -586,7 +573,7 @@ class fcoin extends Exchange {
                 $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
             }
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -602,7 +589,7 @@ class fcoin extends Exchange {
             'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
-            'remaining' => $remaining,
+            'remaining' => null,
             'filled' => $filled,
             'average' => null,
             'status' => $status,
@@ -611,7 +598,7 @@ class fcoin extends Exchange {
                 'currency' => $feeCurrency,
             ),
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
