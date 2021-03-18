@@ -1148,10 +1148,6 @@ class kraken extends Exchange {
         $timestamp = $this->safe_timestamp($order, 'opentm');
         $amount = $this->safe_float($order, 'vol', $amount);
         $filled = $this->safe_float($order, 'vol_exec');
-        $remaining = null;
-        if (($amount !== null) && ($filled !== null)) {
-            $remaining = $amount - $filled;
-        }
         $fee = null;
         $cost = $this->safe_float($order, 'cost');
         $price = $this->safe_float($description, 'price', $price);
@@ -1191,7 +1187,7 @@ class kraken extends Exchange {
             $trades = $this->parse_trades($rawTrades, $market, null, null, array( 'order' => $id ));
         }
         $stopPrice = $this->safe_float($order, 'stopprice');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -1210,10 +1206,10 @@ class kraken extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'average' => $average,
-            'remaining' => $remaining,
+            'remaining' => null,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

@@ -1083,9 +1083,6 @@ class kraken(Exchange):
         timestamp = self.safe_timestamp(order, 'opentm')
         amount = self.safe_float(order, 'vol', amount)
         filled = self.safe_float(order, 'vol_exec')
-        remaining = None
-        if (amount is not None) and (filled is not None):
-            remaining = amount - filled
         fee = None
         cost = self.safe_float(order, 'cost')
         price = self.safe_float(description, 'price', price)
@@ -1118,7 +1115,7 @@ class kraken(Exchange):
         if rawTrades is not None:
             trades = self.parse_trades(rawTrades, market, None, None, {'order': id})
         stopPrice = self.safe_float(order, 'stopprice')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1137,10 +1134,10 @@ class kraken(Exchange):
             'amount': amount,
             'filled': filled,
             'average': average,
-            'remaining': remaining,
+            'remaining': None,
             'fee': fee,
             'trades': trades,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
