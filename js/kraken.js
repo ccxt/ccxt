@@ -1138,10 +1138,6 @@ module.exports = class kraken extends Exchange {
         const timestamp = this.safeTimestamp (order, 'opentm');
         amount = this.safeFloat (order, 'vol', amount);
         const filled = this.safeFloat (order, 'vol_exec');
-        let remaining = undefined;
-        if ((amount !== undefined) && (filled !== undefined)) {
-            remaining = amount - filled;
-        }
         let fee = undefined;
         const cost = this.safeFloat (order, 'cost');
         price = this.safeFloat (description, 'price', price);
@@ -1181,7 +1177,7 @@ module.exports = class kraken extends Exchange {
             trades = this.parseTrades (rawTrades, market, undefined, undefined, { 'order': id });
         }
         const stopPrice = this.safeFloat (order, 'stopprice');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1200,10 +1196,10 @@ module.exports = class kraken extends Exchange {
             'amount': amount,
             'filled': filled,
             'average': average,
-            'remaining': remaining,
+            'remaining': undefined,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
