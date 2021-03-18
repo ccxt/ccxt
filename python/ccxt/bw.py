@@ -716,15 +716,8 @@ class bw(Exchange):
         filled = self.safe_float(order, 'completeAmount')
         remaining = self.safe_float_2(order, 'availabelAmount', 'availableAmount')  # typo in the docs or in the API, availabel vs available
         cost = self.safe_float(order, 'totalMoney')
-        if filled is not None:
-            if amount is not None:
-                if remaining is None:
-                    remaining = amount - filled
-            if cost is None:
-                if price is not None:
-                    cost = filled * cost
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        return {
+        return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'entrustId'),
             'clientOrderId': None,
@@ -746,7 +739,7 @@ class bw(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
