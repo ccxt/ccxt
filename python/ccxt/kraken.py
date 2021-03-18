@@ -526,6 +526,12 @@ class kraken(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         orderbook = self.safe_value(result, market['id'])
+        # sometimes kraken returns wsname instead of market id
+        # https://github.com/ccxt/ccxt/issues/8662
+        marketInfo = self.safe_value(market, 'info', {})
+        wsName = self.safe_value(marketInfo, 'wsname')
+        if wsName is not None:
+            orderbook = self.safe_value(result, wsName, orderbook)
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):

@@ -728,12 +728,6 @@ class coinbasepro extends Exchange {
         $price = $this->safe_float($order, 'price');
         $filled = $this->safe_float($order, 'filled_size');
         $amount = $this->safe_float($order, 'size', $filled);
-        $remaining = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = $amount - $filled;
-            }
-        }
         $cost = $this->safe_float($order, 'executed_value');
         $feeCost = $this->safe_float($order, 'fill_fees');
         $fee = null;
@@ -755,7 +749,7 @@ class coinbasepro extends Exchange {
         $postOnly = $this->safe_value($order, 'post_only');
         $stopPrice = $this->safe_float($order, 'stop_price');
         $clientOrderId = $this->safe_string($order, 'client_oid');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -773,11 +767,11 @@ class coinbasepro extends Exchange {
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'fee' => $fee,
             'average' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

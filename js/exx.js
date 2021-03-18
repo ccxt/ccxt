@@ -300,7 +300,6 @@ module.exports = class exx extends Exchange {
         const cost = this.safeFloat (order, 'trade_money');
         const amount = this.safeFloat (order, 'total_amount');
         const filled = this.safeFloat (order, 'trade_amount', 0.0);
-        const remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let status = this.safeInteger (order, 'status');
         if (status === 1) {
             status = 'canceled';
@@ -316,7 +315,7 @@ module.exports = class exx extends Exchange {
                 'currency': market['quote'],
             };
         }
-        return {
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -333,12 +332,12 @@ module.exports = class exx extends Exchange {
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'trades': undefined,
             'fee': fee,
             'info': order,
             'average': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

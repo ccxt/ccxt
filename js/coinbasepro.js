@@ -724,12 +724,6 @@ module.exports = class coinbasepro extends Exchange {
         const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'filled_size');
         const amount = this.safeFloat (order, 'size', filled);
-        let remaining = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = amount - filled;
-            }
-        }
         const cost = this.safeFloat (order, 'executed_value');
         const feeCost = this.safeFloat (order, 'fill_fees');
         let fee = undefined;
@@ -751,7 +745,7 @@ module.exports = class coinbasepro extends Exchange {
         const postOnly = this.safeValue (order, 'post_only');
         const stopPrice = this.safeFloat (order, 'stop_price');
         const clientOrderId = this.safeString (order, 'client_oid');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -769,11 +763,11 @@ module.exports = class coinbasepro extends Exchange {
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'fee': fee,
             'average': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

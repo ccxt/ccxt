@@ -1068,16 +1068,6 @@ class deribit extends Exchange {
                 $lastTradeTimestamp = $lastUpdate;
             }
         }
-        $remaining = null;
-        $cost = null;
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-            }
-            if ($price !== null) {
-                $cost = $price * $filled;
-            }
-        }
         $status = $this->parse_order_status($this->safe_string($order, 'order_state'));
         $marketId = $this->safe_string($order, 'instrument_name');
         $market = $this->safe_market($marketId, $market);
@@ -1100,7 +1090,7 @@ class deribit extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_value($order, 'stop_price');
         $postOnly = $this->safe_value($order, 'post_only');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -1115,14 +1105,14 @@ class deribit extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

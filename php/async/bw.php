@@ -741,20 +741,8 @@ class bw extends Exchange {
         $filled = $this->safe_float($order, 'completeAmount');
         $remaining = $this->safe_float_2($order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
         $cost = $this->safe_float($order, 'totalMoney');
-        if ($filled !== null) {
-            if ($amount !== null) {
-                if ($remaining === null) {
-                    $remaining = $amount - $filled;
-                }
-            }
-            if ($cost === null) {
-                if ($price !== null) {
-                    $cost = $filled * $cost;
-                }
-            }
-        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'entrustId'),
             'clientOrderId' => null,
@@ -776,7 +764,7 @@ class bw extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

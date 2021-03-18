@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.43.55'
+__version__ = '1.43.63'
 
 # -----------------------------------------------------------------------------
 
@@ -302,7 +302,7 @@ class Exchange(object):
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     # whether fees should be summed by currency code
-    reduceFees = False
+    reduceFees = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
     restRequestQueue = None

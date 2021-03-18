@@ -647,15 +647,13 @@ class gateio(Exchange):
         filled = self.safe_float(order, 'filledAmount')
         # In the order status response, self field has a different name.
         remaining = self.safe_float_2(order, 'leftAmount', 'left')
-        if remaining is None:
-            remaining = amount - filled
         feeCost = self.safe_float(order, 'feeValue')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
         feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
         feeRate = self.safe_float(order, 'feePercentage')
         if feeRate is not None:
             feeRate = feeRate / 100
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -681,7 +679,7 @@ class gateio(Exchange):
                 'rate': feeRate,
             },
             'info': order,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
