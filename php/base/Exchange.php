@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.43.52';
+$version = '1.43.57';
 
 // rounding mode
 const TRUNCATE = 0;
