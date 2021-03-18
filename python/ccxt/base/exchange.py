@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.43.45'
+__version__ = '1.43.55'
 
 # -----------------------------------------------------------------------------
 
@@ -2175,9 +2175,11 @@ class Exchange(object):
                                 fees.append(self.extend({}, tradeFee))
         if shouldParseFees:
             reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
+            reducedLength = len(reducedFees)
+            if not parseFee and (reducedLength == 0):
+                reducedFees.append(order['fee'])
             if parseFees:
                 order['fees'] = reducedFees
-            reducedLength = len(reducedFees)
             if parseFee and (reducedLength == 1):
                 order['fee'] = reducedFees[0]
         if amount is None:
@@ -2200,7 +2202,8 @@ class Exchange(object):
             cost = (price * filled) if (average is None) else (average * filled)
         # support for market orders
         orderType = self.safe_value(order, 'type')
-        if (price is None) and (orderType == 'market'):
+        emptyPrice = price is None or price == 0.0
+        if emptyPrice and (orderType == 'market'):
             price = average
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,

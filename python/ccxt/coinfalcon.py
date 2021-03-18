@@ -287,13 +287,6 @@ class coinfalcon(Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'size_filled')
-        remaining = None
-        cost = None
-        if amount is not None:
-            if filled is not None:
-                remaining = max(0, amount - filled)
-            if price is not None:
-                cost = filled * price
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'operation_type')
         if type is not None:
@@ -301,7 +294,7 @@ class coinfalcon(Exchange):
             type = type[0]
         side = self.safe_string(order, 'order_type')
         postOnly = self.safe_value(order, 'post_only')
-        return {
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -314,16 +307,16 @@ class coinfalcon(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'trades': None,
             'fee': None,
             'info': order,
             'lastTradeTimestamp': None,
             'average': None,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

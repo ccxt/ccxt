@@ -303,16 +303,6 @@ module.exports = class coinfalcon extends Exchange {
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'size_filled');
-        let remaining = undefined;
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = Math.max (0, amount - filled);
-            }
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'operation_type');
         if (type !== undefined) {
@@ -321,7 +311,7 @@ module.exports = class coinfalcon extends Exchange {
         }
         const side = this.safeString (order, 'order_type');
         const postOnly = this.safeValue (order, 'post_only');
-        return {
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -334,16 +324,16 @@ module.exports = class coinfalcon extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
             'info': order,
             'lastTradeTimestamp': undefined,
             'average': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

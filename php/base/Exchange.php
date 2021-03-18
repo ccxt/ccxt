@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.43.45';
+$version = '1.43.55';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.43.45';
+    const VERSION = '1.43.55';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1088,7 +1088,7 @@ class Exchange {
             'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         );
         $this->minFundingAddressLength = 1; // used in check_address
-        $this->substituteCommonCurrencyCodes = true;        
+        $this->substituteCommonCurrencyCodes = true;
 
         // whether fees should be summed by currency code
         $this->reduceFees = false;
@@ -2847,10 +2847,13 @@ class Exchange {
         }
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
+            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            if (!$parseFee && ($reducedLength === 0)) {
+                array_push($reducedFees, $order['fee']);
+            }
             if ($parseFees) {
                 $order['fees'] = $reducedFees;
             }
-            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
             if ($parseFee && ($reducedLength === 1)) {
                 $order['fee'] = $reducedFees[0];
             }
@@ -2884,7 +2887,8 @@ class Exchange {
         }
         // support for market orders
         $orderType = $this->safe_value($order, 'type');
-        if (($price === null) && ($orderType === 'market')) {
+        $emptyPrice = ($price === null) || ($price === 0.0);
+        if ($emptyPrice && ($orderType === 'market')) {
             $price = $average;
         }
         return array_merge($order, array(

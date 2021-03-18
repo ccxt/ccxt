@@ -2186,7 +2186,7 @@ class binance extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
         $options = $this->safe_value($this->options, 'fetchPositions', array());
-        $defaultMethod = ($type === 'future') ? 'fapiPrivateV2GetAccount' : 'dapiPrivateGetAccount';
+        $defaultMethod = ($type === 'delivery') ? 'dapiPrivateGetAccount' : 'fapiPrivateV2GetAccount';
         $method = $this->safe_string($options, $type, $defaultMethod);
         $response = $this->$method ($params);
         //

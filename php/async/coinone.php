@@ -464,7 +464,6 @@ class coinone extends Exchange {
             $side = 'buy';
         }
         $remaining = $this->safe_float($order, 'remainQty');
-        $filled = null;
         $amount = $this->safe_float($order, 'qty');
         $status = $this->safe_string($order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
@@ -475,14 +474,7 @@ class coinone extends Exchange {
                 }
             }
         }
-        if (($remaining !== null) && ($amount !== null)) {
-            $filled = max ($amount - $remaining);
-        }
         $status = $this->parse_order_status($status);
-        $cost = null;
-        if (($price !== null) && ($filled !== null)) {
-            $cost = $price * $filled;
-        }
         $symbol = null;
         $base = null;
         $quote = null;
@@ -511,7 +503,7 @@ class coinone extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -525,15 +517,15 @@ class coinone extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'average' => null,
             'amount' => $amount,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $amount,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

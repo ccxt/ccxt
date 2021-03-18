@@ -1484,10 +1484,13 @@ module.exports = class Exchange {
         }
         if (shouldParseFees) {
             const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
+            const reducedLength = reducedFees.length;
+            if (!parseFee && (reducedLength === 0)) {
+                reducedFees.push (order['fee']);
+            }
             if (parseFees) {
                 order['fees'] = reducedFees;
             }
-            const reducedLength = reducedFees.length;
             if (parseFee && (reducedLength === 1)) {
                 order['fee'] = reducedFees[0];
             }
@@ -1521,7 +1524,8 @@ module.exports = class Exchange {
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');
-        if ((price === undefined) && (orderType === 'market')) {
+        const emptyPrice = (price === undefined) || (price === 0.0);
+        if (emptyPrice && (orderType === 'market')) {
             price = average;
         }
         return this.extend (order, {
