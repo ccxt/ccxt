@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.43.57';
+$version = '1.43.52';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.43.57';
+    const VERSION = '1.43.52';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1091,7 +1091,7 @@ class Exchange {
         $this->substituteCommonCurrencyCodes = true;
 
         // whether fees should be summed by currency code
-        $this->reduceFees = false;
+        $this->reduceFees = true;
 
         $this->timeframes = null;
 
