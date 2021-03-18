@@ -1838,12 +1838,12 @@ class kucoin extends Exchange {
         $endpart = '';
         $headers = ($headers !== null) ? $headers : array();
         if ($query) {
-            if ($method !== 'GET') {
+            if (($method === 'GET') || ($method === 'DELETE')) {
+                $endpoint .= '?' . $this->urlencode($query);
+            } else {
                 $body = $this->json($query);
                 $endpart = $body;
                 $headers['Content-Type'] = 'application/json';
-            } else {
-                $endpoint .= '?' . $this->urlencode($query);
             }
         }
         $url = $this->urls['api'][$api] . $endpoint;

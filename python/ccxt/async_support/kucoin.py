@@ -1737,12 +1737,12 @@ class kucoin(Exchange):
         endpart = ''
         headers = headers if (headers is not None) else {}
         if query:
-            if method != 'GET':
+            if (method == 'GET') or (method == 'DELETE'):
+                endpoint += '?' + self.urlencode(query)
+            else:
                 body = self.json(query)
                 endpart = body
                 headers['Content-Type'] = 'application/json'
-            else:
-                endpoint += '?' + self.urlencode(query)
         url = self.urls['api'][api] + endpoint
         if api == 'private':
             self.check_required_credentials()
