@@ -638,12 +638,6 @@ module.exports = class gemini extends Exchange {
         }
         const price = this.safeFloat (order, 'price');
         const average = this.safeFloat (order, 'avg_execution_price');
-        let cost = undefined;
-        if (filled !== undefined) {
-            if (average !== undefined) {
-                cost = filled * average;
-            }
-        }
         let type = this.safeString (order, 'type');
         if (type === 'exchange limit') {
             type = 'limit';
@@ -658,7 +652,7 @@ module.exports = class gemini extends Exchange {
         const id = this.safeString (order, 'order_id');
         const side = this.safeStringLower (order, 'side');
         const clientOrderId = this.safeString (order, 'client_order_id');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -674,13 +668,13 @@ module.exports = class gemini extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'average': average,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
