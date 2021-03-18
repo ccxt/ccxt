@@ -2071,7 +2071,7 @@ class binance(Exchange):
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         options = self.safe_value(self.options, 'fetchPositions', {})
-        defaultMethod = 'fapiPrivateV2GetAccount' if (type == 'future') else 'dapiPrivateGetAccount'
+        defaultMethod = 'dapiPrivateGetAccount' if (type == 'delivery') else 'fapiPrivateV2GetAccount'
         method = self.safe_string(options, type, defaultMethod)
         response = getattr(self, method)(params)
         #
