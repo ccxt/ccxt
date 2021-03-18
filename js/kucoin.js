@@ -1834,12 +1834,12 @@ module.exports = class kucoin extends Exchange {
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
         if (Object.keys (query).length) {
-            if (method !== 'GET') {
+            if ((method === 'GET') || (method === 'DELETE')) {
+                endpoint += '?' + this.urlencode (query);
+            } else {
                 body = this.json (query);
                 endpart = body;
                 headers['Content-Type'] = 'application/json';
-            } else {
-                endpoint += '?' + this.urlencode (query);
             }
         }
         const url = this.urls['api'][api] + endpoint;
