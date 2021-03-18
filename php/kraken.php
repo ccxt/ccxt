@@ -535,6 +535,13 @@ class kraken extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $orderbook = $this->safe_value($result, $market['id']);
+        // sometimes kraken returns wsname instead of $market id
+        // https://github.com/ccxt/ccxt/issues/8662
+        $marketInfo = $this->safe_value($market, 'info', array());
+        $wsName = $this->safe_value($marketInfo, 'wsname');
+        if ($wsName !== null) {
+            $orderbook = $this->safe_value($result, $wsName, $orderbook);
+        }
         return $this->parse_order_book($orderbook);
     }
 
