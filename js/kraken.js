@@ -524,7 +524,14 @@ module.exports = class kraken extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const orderbook = this.safeValue (result, market['id']);
+        let orderbook = this.safeValue (result, market['id']);
+        // sometimes kraken returns wsname instead of market id
+        // https://github.com/ccxt/ccxt/issues/8662
+        const marketInfo = this.safeValue (market, 'info', {});
+        const wsName = this.safeValue (marketInfo, 'wsname');
+        if (wsName !== undefined) {
+            orderbook = this.safeValue (result, wsName, orderbook);
+        }
         return this.parseOrderBook (orderbook);
     }
 
