@@ -471,14 +471,15 @@ module.exports = class gooplex extends Exchange {
     }
 
     symbolOriginal (displaySymbol) {
-        return displaySymbol.replace ('/', '_');
+        const marketId = this.marketId (displaySymbol);
+        return marketId;
     }
 
     convertSymbol (market) {
         const trading_fees = this.getFees ();
         const symbol = this.safeString (market, 'symbol');
         const entry = {
-            'id': this.symbolDisplay (symbol),
+            'id': symbol,
             'symbol': this.symbolDisplay (symbol),
             'base': this.safeCurrencyCode (this.safeValue (market, 'baseAsset')),
             'quote': this.safeCurrencyCode (this.safeValue (market, 'quoteAsset')),
@@ -662,6 +663,34 @@ module.exports = class gooplex extends Exchange {
         return this.parseOrderBook (response);
     }
 
+    convertOrder (order) {
+        const timestamp = order['createTime'];
+        const side = order['side'];
+        const type = order['type'];
+        return {
+            'info': order,
+            'id': order['orderId'],
+            'clientOrderId': order['orderId'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.symbolDisplay (order['symbol']),
+            'type': type,
+            'timeInForce': order['timeInForce'],
+            'postOnly': '',
+            'side': side,
+            'price': order['price'],
+            'stopPrice': order['stopPrice'],
+            'amount': order['origQty'],
+            'cost': '',
+            'average': '',
+            'filled': '',
+            'remaining': '',
+            'status': order['status'],
+            'fee': '',
+            'trades': '',
+        };
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired ('fetchOrders requires a symbol argument');
@@ -677,7 +706,14 @@ module.exports = class gooplex extends Exchange {
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
-        return response;                // map
+        const data = this.safeValue (response, 'data');
+        const list = this.safeValue (data, 'list');
+        const result = [];
+        for (let i = 0; i < list.length; i++) {
+            const order = list[i];
+            result.push (this.convertOrder (order));
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -698,7 +734,7 @@ module.exports = class gooplex extends Exchange {
         }
         const method = 'signedPostOrders';
         const request = {
-            'symbol': this.originalSymbol (symbol),
+            'symbol': this.symbolOriginal (symbol),
             'side': requestSide,
             'type': requestType,
             'quantity': amount,
@@ -707,7 +743,8 @@ module.exports = class gooplex extends Exchange {
             request['price'] = price;
         }
         const response = await this[method] (this.extend (request, params));
-        return response;
+        const data = this.safeValue (response, 'data');
+        return this.convertOrder (data);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -716,7 +753,7 @@ module.exports = class gooplex extends Exchange {
             'orderId': id,
         };
         const response = await this[method] (this.extend (request, params));
-        return response;
+        return this.convertOrder (this.safeValue (response, 'data'));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -752,34 +789,6 @@ module.exports = class gooplex extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        //
-        // fetchDeposits
-        //
-        //     {
-        //         insertTime:  1517425007000,
-        //         amount:  0.3,
-        //         address: "0x0123456789abcdef",
-        //         addressTag: "",
-        //         txId: "0x0123456789abcdef",
-        //         asset: "ETH",
-        //         status:  1
-        //     }
-        //
-        // fetchWithdrawals
-        //
-        //     {
-        //         amount:  14,
-        //         address: "0x0123456789abcdef...",
-        //         successTime:  1514489710000,
-        //         transactionFee:  0.01,
-        //         addressTag: "",
-        //         txId: "0x0123456789abcdef...",
-        //         id: "0123456789abcdef...",
-        //         asset: "ETH",
-        //         applyTime:  1514488724000,
-        //         status:  6
-        //     }
-        //
         const id = this.safeString (transaction, 'id');
         const address = this.safeString (transaction, 'address');
         let tag = this.safeString (transaction, 'addressTag'); // set but unused
@@ -931,13 +940,6 @@ module.exports = class gooplex extends Exchange {
     }
 
     parseTradingFee (fee, market = undefined) {
-        //
-        //     {
-        //         "symbol": "ADABNB",
-        //         "maker": 0.9000,
-        //         "taker": 1.0000
-        //     }
-        //
         const marketId = this.safeString (fee, 'symbol');
         const symbol = this.safeSymbol (marketId);
         return {
@@ -1089,37 +1091,12 @@ module.exports = class gooplex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        //
-        //     {
-        //         symbol: 'ETHBTC',
-        //         priceChange: '0.00068700',
-        //         priceChangePercent: '2.075',
-        //         weightedAvgPrice: '0.03342681',
-        //         prevClosePrice: '0.03310300',
-        //         lastPrice: '0.03378900',
-        //         lastQty: '0.07700000',
-        //         bidPrice: '0.03378900',
-        //         bidQty: '7.16800000',
-        //         askPrice: '0.03379000',
-        //         askQty: '24.00000000',
-        //         openPrice: '0.03310200',
-        //         highPrice: '0.03388900',
-        //         lowPrice: '0.03306900',
-        //         volume: '205478.41000000',
-        //         quoteVolume: '6868.48826294',
-        //         openTime: 1601469986932,
-        //         closeTime: 1601556386932,
-        //         firstId: 196098772,
-        //         lastId: 196186315,
-        //         count: 87544
-        //     }
-        //
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeFloat (ticker, 'lastPrice');
         return {
-            'symbol': symbol,
+            'symbol': this.symbolDisplay (symbol),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'highPrice'),
