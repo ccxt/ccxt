@@ -2619,18 +2619,18 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async transfer (amount, code, from = undefined, to = undefined, params = {}) {
+    async transfer (code, amount, fromAccount = undefined, toAccount = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'spot');
         const methodType = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        if (from === undefined) {
-            from = methodType;
+        if (fromAccount === undefined) {
+            fromAccount = methodType;
         }
-        if (to === undefined) {
-            if (from !== defaultType) {
-                to = defaultType;
+        if (toAccount === undefined) {
+            if (fromAccount !== defaultType) {
+                toAccount = defaultType;
             }
         }
         const accounts = {
@@ -2641,14 +2641,14 @@ module.exports = class binance extends Exchange {
             'delivery': 'CMFUTURE',
             'mining': 'MINING',
         };
-        const fromId = this.safeString (accounts, from);
-        const toId = this.safeString (accounts, to);
+        const fromId = this.safeString (accounts, fromAccount);
+        const toId = this.safeString (accounts, toAccount);
         const allAccounts = 'spot/margin/future/delivery/mining';
         if (fromId === undefined) {
-            throw new ExchangeError (this.id + ' from is not valid it must be one of ' + allAccounts + ' instead of ' + from);
+            throw new ExchangeError (this.id + ' from is not a valid account it must be one of ' + allAccounts + ' instead of ' + fromAccount);
         }
         if (toId === undefined) {
-            throw new ExchangeError (this.id + ' to is not valid it must be one of ' + allAccounts + ' instead of ' + to);
+            throw new ExchangeError (this.id + ' to is not a valid account it must be one of ' + allAccounts + ' instead of ' + toAccount);
         }
         const requestedAmount = this.currencyToPrecision (code, amount);
         const type = fromId + '_' + toId;
@@ -2664,27 +2664,27 @@ module.exports = class binance extends Exchange {
             'id': tranId,
             'currency': code,
             'amount': requestedAmount,
-            'from': from,
-            'to': to,
+            'from': fromAccount,
+            'to': toAccount,
             'timestamp': undefined,
             'datetime': undefined,
             'status': undefined,
         };
     }
 
-    async fetchTransfers (from = undefined, to = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfers (fromAccount = undefined, toAccount = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'spot');
         const methodType = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        if (from === undefined) {
-            from = methodType;
+        if (fromAccount === undefined) {
+            fromAccount = methodType;
         }
-        if (to === undefined) {
-            if (from !== defaultType) {
-                to = defaultType;
+        if (toAccount === undefined) {
+            if (fromAccount !== defaultType) {
+                toAccount = defaultType;
             } else {
-                to = 'future';
+                toAccount = 'future';
             }
         }
         const accounts = {
@@ -2702,14 +2702,14 @@ module.exports = class binance extends Exchange {
             'CMFUTURE': 'delivery',
             'MINING': 'mining',
         };
-        const fromId = this.safeString (accounts, from);
-        const toId = this.safeString (accounts, to);
+        const fromId = this.safeString (accounts, fromAccount);
+        const toId = this.safeString (accounts, toAccount);
         const allAccounts = 'spot/margin/future/delivery/mining';
         if (fromId === undefined) {
-            throw new ExchangeError (this.id + ' from is not valid it must be one of ' + allAccounts + ' instead of ' + from);
+            throw new ExchangeError (this.id + ' from is not a valid account it must be one of ' + allAccounts + ' instead of ' + fromAccount);
         }
         if (toId === undefined) {
-            throw new ExchangeError (this.id + ' to is not valid it must be one of ' + allAccounts + ' instead of ' + to);
+            throw new ExchangeError (this.id + ' to is not a valid account it must be one of ' + allAccounts + ' instead of ' + toAccount);
         }
         const type = fromId + '_' + toId;
         const request = {
@@ -2748,12 +2748,12 @@ module.exports = class binance extends Exchange {
             const type = this.safeString (row, 'type');
             let fromId = undefined;
             let toId = undefined;
-            let from = undefined;
-            let to = undefined;
+            let fromAccount = undefined;
+            let toAccount = undefined;
             if (type !== undefined) {
                 [ fromId, toId ] = type.split ('_');
-                from = this.safeString (reverseAccounts, fromId);
-                to = this.safeString (reverseAccounts, toId);
+                fromAccount = this.safeString (reverseAccounts, fromId);
+                toAccount = this.safeString (reverseAccounts, toId);
             }
             result.push ({
                 'info': row,
@@ -2763,8 +2763,8 @@ module.exports = class binance extends Exchange {
                 'status': status,
                 'amount': amount,
                 'currency': code,
-                'from': from,
-                'to': to,
+                'from': fromAccount,
+                'to': toAccount,
             });
         }
         return result;
