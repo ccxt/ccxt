@@ -840,9 +840,10 @@ module.exports = class kucoin extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
             request['size'] = this.amountToPrecision (symbol, amount);
         } else {
-            if (this.safeValue (params, 'quoteAmount')) {
+            const quoteAmount = this.safeFloat2 (params, 'quoteAmount', 'funds');
+            if (quoteAmount !== undefined) {
                 // used to create market order by quote amount - https://github.com/ccxt/ccxt/issues/4876
-                request['funds'] = this.amountToPrecision (symbol, amount);
+                request['funds'] = this.amountToPrecision (symbol, quoteAmount);
             } else {
                 request['size'] = this.amountToPrecision (symbol, amount);
             }
