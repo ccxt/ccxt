@@ -820,13 +820,6 @@ class hitbtc(Exchange):
         id = self.safe_string(order, 'clientOrderId')
         clientOrderId = id
         price = self.safe_float(order, 'price')
-        remaining = None
-        cost = None
-        if amount is not None:
-            if filled is not None:
-                remaining = amount - filled
-                if price is not None:
-                    cost = filled * price
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
         trades = self.safe_value(order, 'tradesReport')
@@ -834,31 +827,8 @@ class hitbtc(Exchange):
         average = self.safe_value(order, 'avgPrice')
         if trades is not None:
             trades = self.parse_trades(trades, market)
-            feeCost = None
-            numTrades = len(trades)
-            tradesCost = 0
-            for i in range(0, numTrades):
-                if feeCost is None:
-                    feeCost = 0
-                tradesCost = self.sum(tradesCost, trades[i]['cost'])
-                tradeFee = self.safe_value(trades[i], 'fee', {})
-                tradeFeeCost = self.safe_float(tradeFee, 'cost')
-                if tradeFeeCost is not None:
-                    feeCost = self.sum(feeCost, tradeFeeCost)
-            cost = tradesCost
-            if (filled is not None) and (filled > 0):
-                if average is None:
-                    average = cost / filled
-                if type == 'market':
-                    if price is None:
-                        price = average
-            if feeCost is not None:
-                fee = {
-                    'cost': feeCost,
-                    'currency': market['quote'],
-                }
         timeInForce = self.safe_string(order, 'timeInForce')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,  # https://github.com/ccxt/ccxt/issues/5674
             'timestamp': created,
@@ -873,13 +843,13 @@ class hitbtc(Exchange):
             'stopPrice': None,
             'average': average,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'fee': fee,
             'trades': trades,
             'info': order,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()

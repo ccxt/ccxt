@@ -799,46 +799,15 @@ class currencycom(Exchange):
         filled = self.safe_float(order, 'executedQty')
         remaining = None
         cost = self.safe_float(order, 'cummulativeQuoteQty')
-        if filled is not None:
-            if amount is not None:
-                remaining = amount - filled
-                if self.options['parseOrderToPrecision']:
-                    remaining = float(self.amount_to_precision(symbol, remaining))
-                remaining = max(remaining, 0.0)
-            if price is not None:
-                if cost is None:
-                    cost = price * filled
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
-        if type == 'market':
-            if price == 0.0:
-                if (cost is not None) and (filled is not None):
-                    if (cost > 0) and (filled > 0):
-                        price = cost / filled
         side = self.safe_string_lower(order, 'side')
-        fee = None
         trades = None
         fills = self.safe_value(order, 'fills')
         if fills is not None:
             trades = self.parse_trades(fills, market)
-            numTrades = len(trades)
-            if numTrades > 0:
-                cost = trades[0]['cost']
-                fee = {
-                    'cost': trades[0]['fee']['cost'],
-                    'currency': trades[0]['fee']['currency'],
-                }
-                for i in range(1, len(trades)):
-                    cost = self.sum(cost, trades[i]['cost'])
-                    fee['cost'] = self.sum(fee['cost'], trades[i]['fee']['cost'])
-        average = None
-        if cost is not None:
-            if filled:
-                average = cost / filled
-            if self.options['parseOrderToPrecision']:
-                cost = float(self.cost_to_precision(symbol, cost))
         timeInForce = self.safe_string(order, 'timeInForce')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -852,13 +821,13 @@ class currencycom(Exchange):
             'stopPrice': None,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': None,
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
+            'fee': None,
             'trades': trades,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

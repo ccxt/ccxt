@@ -827,66 +827,21 @@ module.exports = class currencycom extends Exchange {
         } else if ('transactTime' in order) {
             timestamp = this.safeInteger (order, 'transactTime');
         }
-        let price = this.safeFloat (order, 'price');
+        const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'origQty');
         const filled = this.safeFloat (order, 'executedQty');
-        let remaining = undefined;
-        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
-                if (this.options['parseOrderToPrecision']) {
-                    remaining = parseFloat (this.amountToPrecision (symbol, remaining));
-                }
-                remaining = Math.max (remaining, 0.0);
-            }
-            if (price !== undefined) {
-                if (cost === undefined) {
-                    cost = price * filled;
-                }
-            }
-        }
+        const remaining = undefined;
+        const cost = this.safeFloat (order, 'cummulativeQuoteQty');
         const id = this.safeString (order, 'orderId');
         const type = this.safeStringLower (order, 'type');
-        if (type === 'market') {
-            if (price === 0.0) {
-                if ((cost !== undefined) && (filled !== undefined)) {
-                    if ((cost > 0) && (filled > 0)) {
-                        price = cost / filled;
-                    }
-                }
-            }
-        }
         const side = this.safeStringLower (order, 'side');
-        let fee = undefined;
         let trades = undefined;
         const fills = this.safeValue (order, 'fills');
         if (fills !== undefined) {
             trades = this.parseTrades (fills, market);
-            const numTrades = trades.length;
-            if (numTrades > 0) {
-                cost = trades[0]['cost'];
-                fee = {
-                    'cost': trades[0]['fee']['cost'],
-                    'currency': trades[0]['fee']['currency'],
-                };
-                for (let i = 1; i < trades.length; i++) {
-                    cost = this.sum (cost, trades[i]['cost']);
-                    fee['cost'] = this.sum (fee['cost'], trades[i]['fee']['cost']);
-                }
-            }
-        }
-        let average = undefined;
-        if (cost !== undefined) {
-            if (filled) {
-                average = cost / filled;
-            }
-            if (this.options['parseOrderToPrecision']) {
-                cost = parseFloat (this.costToPrecision (symbol, cost));
-            }
         }
         const timeInForce = this.safeString (order, 'timeInForce');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -900,13 +855,13 @@ module.exports = class currencycom extends Exchange {
             'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': undefined,
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
+            'fee': undefined,
             'trades': trades,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

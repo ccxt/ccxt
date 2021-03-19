@@ -859,16 +859,6 @@ class hitbtc extends Exchange {
         $id = $this->safe_string($order, 'clientOrderId');
         $clientOrderId = $id;
         $price = $this->safe_float($order, 'price');
-        $remaining = null;
-        $cost = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = $amount - $filled;
-                if ($price !== null) {
-                    $cost = $filled * $price;
-                }
-            }
-        }
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $trades = $this->safe_value($order, 'tradesReport');
@@ -876,40 +866,9 @@ class hitbtc extends Exchange {
         $average = $this->safe_value($order, 'avgPrice');
         if ($trades !== null) {
             $trades = $this->parse_trades($trades, $market);
-            $feeCost = null;
-            $numTrades = is_array($trades) ? count($trades) : 0;
-            $tradesCost = 0;
-            for ($i = 0; $i < $numTrades; $i++) {
-                if ($feeCost === null) {
-                    $feeCost = 0;
-                }
-                $tradesCost = $this->sum($tradesCost, $trades[$i]['cost']);
-                $tradeFee = $this->safe_value($trades[$i], 'fee', array());
-                $tradeFeeCost = $this->safe_float($tradeFee, 'cost');
-                if ($tradeFeeCost !== null) {
-                    $feeCost = $this->sum($feeCost, $tradeFeeCost);
-                }
-            }
-            $cost = $tradesCost;
-            if (($filled !== null) && ($filled > 0)) {
-                if ($average === null) {
-                    $average = $cost / $filled;
-                }
-                if ($type === 'market') {
-                    if ($price === null) {
-                        $price = $average;
-                    }
-                }
-            }
-            if ($feeCost !== null) {
-                $fee = array(
-                    'cost' => $feeCost,
-                    'currency' => $market['quote'],
-                );
-            }
         }
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId, // https://github.com/ccxt/ccxt/issues/5674
             'timestamp' => $created,
@@ -924,13 +883,13 @@ class hitbtc extends Exchange {
             'stopPrice' => null,
             'average' => $average,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'fee' => $fee,
             'trades' => $trades,
             'info' => $order,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
