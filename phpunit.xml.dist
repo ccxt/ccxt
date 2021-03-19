@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit bootstrap="php/test/bootstrap.php"
+         backupGlobals="false"
+         backupStaticAttributes="false"
+         colors="true"
+         verbose="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         processIsolation="true"
+         stopOnFailure="false">
+
+    <testsuites>
+        <testsuite name="ccxt Test Suite">
+            <directory>php/test</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">php</directory>
+        </whitelist>
+    </filter>
+
+    <php>
+        <ini name="memory_limit" value="-1" />
+    </php>
+</phpunit>

@@ -4,7 +4,7 @@ const ccxt = require ('../../ccxt')
 const asTable = require ('as-table')
 const log = require ('ololog')
 
-require ('ansicolor').nice;
+require ('ansicolor').nice
 
 const exchange = new ccxt.bittrex ({
     apiKey: "471b47a06c384e81b24072e9a8739064",

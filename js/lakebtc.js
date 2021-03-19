@@ -1,21 +1,32 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class lakebtc extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'lakebtc',
             'name': 'LakeBTC',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'version': 'api_v2',
-            'hasCORS': true,
+            'rateLimit': 1000,
+            'has': {
+                'cancelOrder': true,
+                'CORS': true,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
                 'api': 'https://api.lakebtc.com',
@@ -46,27 +57,46 @@ module.exports = class lakebtc extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.15 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
+            'exceptions': {
+                'broad': {
+                    'Signature': AuthenticationError,
+                    'invalid symbol': BadSymbol,
+                    'Volume doit': InvalidOrder,
+                    'insufficient_balance': InsufficientFunds,
+                },
+            },
         });
     }
 
-    async fetchMarkets () {
-        let markets = await this.publicGetTicker ();
-        let result = [];
-        let keys = Object.keys (markets);
-        for (let k = 0; k < keys.length; k++) {
-            let id = keys[k];
-            let market = markets[id];
-            let base = id.slice (0, 3);
-            let quote = id.slice (3, 6);
-            base = base.toUpperCase ();
-            quote = quote.toUpperCase ();
-            let symbol = base + '/' + quote;
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetTicker (params);
+        const result = [];
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            const market = response[id];
+            const baseId = id.slice (0, 3);
+            const quoteId = id.slice (3, 6);
+            const base = baseId.toUpperCase ();
+            const quote = quoteId.toUpperCase ();
+            const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
+                'active': undefined,
+                'precision': this.precision,
+                'limits': this.limits,
             });
         }
         return result;
@@ -74,39 +104,36 @@ module.exports = class lakebtc extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostGetAccountInfo ();
-        let balances = response['balance'];
-        let result = { 'info': response };
-        let currencies = Object.keys (balances);
-        for (let c = 0; c < currencies.length; c++) {
-            let currency = currencies[c];
-            let balance = parseFloat (balances[currency]);
-            let account = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            };
-            result[currency] = account;
+        const response = await this.privatePostGetAccountInfo (params);
+        const balances = this.safeValue (response, 'balance', {});
+        const result = { 'info': response };
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeFloat (balances, currencyId);
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetBcorderbook (this.extend ({
+        const request = {
             'symbol': this.marketId (symbol),
-        }, params));
-        return this.parseOrderBook (orderbook);
+        };
+        const response = await this.publicGetBcorderbook (this.extend (request, params));
+        return this.parseOrderBook (response);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let tickers = await this.publicGetTicker (this.extend ({
-            'symbol': market['id'],
-        }, params));
-        let ticker = tickers[market['id']];
-        let timestamp = this.milliseconds ();
+    parseTicker (ticker, market = undefined) {
+        const timestamp = this.milliseconds ();
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -114,106 +141,188 @@ module.exports = class lakebtc extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
 
-    parseTrade (trade, market) {
-        let timestamp = trade['date'] * 1000;
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetTicker (params);
+        const ids = Object.keys (response);
+        const result = {};
+        for (let i = 0; i < ids.length; i++) {
+            const marketId = ids[i];
+            const ticker = response[marketId];
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tickers = await this.publicGetTicker (params);
+        return this.parseTicker (tickers[market['id']], market);
+    }
+
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.safeTimestamp (trade, 'date');
+        const id = this.safeString (trade, 'tid');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'id': trade['tid'].toString (),
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
             'side': undefined,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetBctrades (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
-        }, params));
-        return this.parseTrades (response, market);
+        };
+        const response = await this.publicGetBctrades (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (type == 'market')
+        if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
-        let method = 'privatePost' + this.capitalize (side) + 'Order';
-        let marketId = this.marketId (market);
-        let order = {
-            'params': [ price, amount, marketId ],
+        }
+        const method = 'privatePost' + this.capitalize (side) + 'Order';
+        const market = this.market (symbol);
+        const order = {
+            'params': [ price, amount, market['id'] ],
         };
-        let response = await this[method] (this.extend (order, params));
+        const response = await this[method] (this.extend (order, params));
         return {
             'info': response,
-            'id': response['id'].toString (),
+            'id': this.safeString (response, 'id'),
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostCancelOrder ({ 'params': id });
+        const request = {
+            'params': [ id ],
+        };
+        return await this.privatePostCancelOrder (this.extend (request, params));
+    }
+
+    nonce () {
+        return this.microseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version;
-        if (api == 'public') {
+        if (api === 'public') {
             url += '/' + path;
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         } else {
-            let nonce = this.nonce ();
-            if (Object.keys (params).length)
-                params = params.join (',');
-            else
-                params = '';
-            let query = this.urlencode ({
-                'tonce': nonce,
-                'accesskey': this.apiKey,
-                'requestmethod': method.toLowerCase (),
-                'id': nonce,
-                'method': path,
-                'params': params,
-            });
-            body = this.json ({
-                'method': path,
-                'params': params,
-                'id': nonce,
-            });
-            let signature = this.hmac (this.encode (query), this.secret, 'sha1', 'base64');
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ();
+            const nonceAsString = nonce.toString ();
+            const requestId = this.seconds ();
+            let queryParams = '';
+            if ('params' in params) {
+                const paramsList = params['params'];
+                const stringParams = [];
+                for (let i = 0; i < paramsList.length; i++) {
+                    let param = paramsList[i];
+                    if (typeof paramsList !== 'string') {
+                        param = param.toString ();
+                    }
+                    stringParams.push (param);
+                }
+                queryParams = stringParams.join (',');
+                body = {
+                    'method': path,
+                    'params': params['params'],
+                    'id': requestId,
+                };
+            } else {
+                body = {
+                    'method': path,
+                    'params': '',
+                    'id': requestId,
+                };
+            }
+            body = this.json (body);
+            let query = [
+                'tonce=' + nonceAsString,
+                'accesskey=' + this.apiKey,
+                'requestmethod=' + method.toLowerCase (),
+                'id=' + requestId.toString (),
+                'method=' + path,
+                'params=' + queryParams,
+            ];
+            query = query.join ('&');
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
+            const auth = this.apiKey + ':' + signature;
+            const signature64 = this.decode (this.stringToBase64 (auth));
             headers = {
-                'Json-Rpc-Tonce': nonce,
-                'Authorization': "Basic " + this.apiKey + ':' + signature,
+                'Json-Rpc-Tonce': nonceAsString,
+                'Authorization': 'Basic ' + signature64,
                 'Content-Type': 'application/json',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response)
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to the default error handler
+        }
+        //
+        //     {"error":"Failed to submit order: invalid symbol"}
+        //     {"error":"Failed to submit order: La validation a échoué : Volume doit être supérieur ou égal à 1.0"}
+        //     {"error":"Failed to submit order: insufficient_balance"}
+        //
+        const feedback = this.id + ' ' + body;
+        const error = this.safeString (response, 'error');
+        if (error !== undefined) {
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
-}
+};

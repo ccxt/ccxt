@@ -47,43 +47,31 @@ def dump(*args):
 
 # instantiate exchanges
 
-gdax = ccxt.gdax({
+coinbasepro = ccxt.coinbasepro({
     'apiKey': '92560ffae9b8a01d012726c698bcb2f1',  # standard
     'secret': '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg==',
-    'password': '6kszf4aci8r',  # GDAX requires a password!
+    'password': '6kszf4aci8r',  # requires a password!
 })
 
-gdax.urls['api'] = 'https://api-public.sandbox.gdax.com'  # use the testnet for GDAX
+coinbasepro.urls['api'] = coinbasepro.urls['test']  # use the testnet
 
 hitbtc = ccxt.hitbtc({
     'apiKey': '18339694544745d9357f9e7c0f7c41bb',
     'secret': '8340a60fb4e9fc73a169c26c7a7926f5',
 })
 
-quadrigacx = ccxt.quadrigacx({
-    'apiKey': 'jKvWkMqrOj',
-    'secret': 'f65a2e3bf3c73171ee14e389314b2f78',
-    'uid': '395037',  # QuadrigaCX requires uid!
-})
-
 try:
     # fetch account balance from the exchange
-    gdaxBalance = gdax.fetch_balance()
+    coinbaseproBalance = coinbasepro.fetch_balance()
 
     # output the result
-    dump(green(gdax.name), 'balance', gdaxBalance)
+    dump(green(coinbasepro.name), 'balance', coinbaseproBalance)
 
     # fetch another one
     hitbtcBalance = hitbtc.fetch_balance()
 
     # output the result
     dump(green(hitbtc.name), 'balance', hitbtcBalance)
-
-    # ... and another one
-    quadrigacxBalance = quadrigacx.fetch_balance()
-
-    # output the result
-    dump(green(quadrigacx.name), 'balance', quadrigacxBalance)
 
 except ccxt.DDoSProtection as e:
     print(type(e).__name__, e.args, 'DDoS Protection (ignoring)')

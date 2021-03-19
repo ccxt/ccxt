@@ -30,100 +30,76 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.9.312';
+if (defined('PATH_TO_CCXT')) {
+    return;
+}
 
-include_once ('php/base/errors.php');
-include_once ('php/base/Exchange.php');
+define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
+define('PATH_TO_CCXT_BASE', PATH_TO_CCXT . 'base' . DIRECTORY_SEPARATOR);
+define('PATH_TO_CCXT_ASYNC', PATH_TO_CCXT . 'async' . DIRECTORY_SEPARATOR);
+define('PATH_TO_CCXT_ASYNC_BASE', PATH_TO_CCXT_ASYNC . 'base' . DIRECTORY_SEPARATOR);
 
-include_once ('php/_1broker.php');
-include_once ('php/_1btcxe.php');
-include_once ('php/acx.php');
-include_once ('php/allcoin.php');
-include_once ('php/anxpro.php');
-include_once ('php/binance.php');
-include_once ('php/bit2c.php');
-include_once ('php/bitbay.php');
-include_once ('php/bitcoincoid.php');
-include_once ('php/bitfinex.php');
-include_once ('php/bitfinex2.php');
-include_once ('php/bitflyer.php');
-include_once ('php/bithumb.php');
-include_once ('php/bitlish.php');
-include_once ('php/bitmarket.php');
-include_once ('php/bitmex.php');
-include_once ('php/bitso.php');
-include_once ('php/bitstamp1.php');
-include_once ('php/bitstamp.php');
-include_once ('php/bittrex.php');
-include_once ('php/bl3p.php');
-include_once ('php/bleutrade.php');
-include_once ('php/btcbox.php');
-include_once ('php/btcchina.php');
-include_once ('php/btcmarkets.php');
-include_once ('php/btctradeua.php');
-include_once ('php/btcturk.php');
-include_once ('php/btcx.php');
-include_once ('php/bter.php');
-include_once ('php/bxinth.php');
-include_once ('php/ccex.php');
-include_once ('php/cex.php');
-include_once ('php/chbtc.php');
-include_once ('php/chilebit.php');
-include_once ('php/coincheck.php');
-include_once ('php/coinfloor.php');
-include_once ('php/coingi.php');
-include_once ('php/coinmarketcap.php');
-include_once ('php/coinmate.php');
-include_once ('php/coinsecure.php');
-include_once ('php/coinspot.php');
-include_once ('php/cryptopia.php');
-include_once ('php/dsx.php');
-include_once ('php/exmo.php');
-include_once ('php/flowbtc.php');
-include_once ('php/foxbit.php');
-include_once ('php/fybse.php');
-include_once ('php/fybsg.php');
-include_once ('php/gatecoin.php');
-include_once ('php/gateio.php');
-include_once ('php/gdax.php');
-include_once ('php/gemini.php');
-include_once ('php/hitbtc.php');
-include_once ('php/hitbtc2.php');
-include_once ('php/huobi.php');
-include_once ('php/huobicny.php');
-include_once ('php/huobipro.php');
-include_once ('php/independentreserve.php');
-include_once ('php/itbit.php');
-include_once ('php/jubi.php');
-include_once ('php/kraken.php');
-include_once ('php/kuna.php');
-include_once ('php/lakebtc.php');
-include_once ('php/livecoin.php');
-include_once ('php/liqui.php');
-include_once ('php/luno.php');
-include_once ('php/mercado.php');
-include_once ('php/mixcoins.php');
-include_once ('php/nova.php');
-include_once ('php/okcoincny.php');
-include_once ('php/okcoinusd.php');
-include_once ('php/okex.php');
-include_once ('php/paymium.php');
-include_once ('php/poloniex.php');
-include_once ('php/quadrigacx.php');
-include_once ('php/qryptos.php');
-include_once ('php/quoine.php');
-include_once ('php/southxchange.php');
-include_once ('php/surbitcoin.php');
-include_once ('php/tidex.php');
-include_once ('php/therock.php');
-include_once ('php/urdubit.php');
-include_once ('php/vaultoro.php');
-include_once ('php/vbtc.php');
-include_once ('php/virwox.php');
-include_once ('php/wex.php');
-include_once ('php/xbtce.php');
-include_once ('php/yobit.php');
-include_once ('php/yunbi.php');
-include_once ('php/zaif.php');
+spl_autoload_register(function ($class) {
+    // used to include static dependencies
+    $PATH = PATH_TO_CCXT . 'static_dependencies/';
+    if (strpos($class, 'kornrunner') !== false) {
+        $version = phpversion();
+        if (intval(explode('.', $version)[0]) < 7) {
+            throw new \RuntimeException($class . " requires php7 or greater, your version: " . $version);
+        }
+    }
+    $class_name = str_replace('kornrunner\\Solidity', 'kornrunner/solidity/src/Solidity', $class);
+    $class_name = str_replace('kornrunner\\Keccak', 'kornrunner/keccak/src/Keccak', $class_name);
+    $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
+    $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
+    $file = $PATH . $class_name . '.php';
+    if (file_exists($file)) {
+        require_once $file;
+    }
+});
 
-?>
+require_once PATH_TO_CCXT_BASE . 'BaseError.php';
+require_once PATH_TO_CCXT_BASE . 'ExchangeError.php';
+require_once PATH_TO_CCXT_BASE . 'AuthenticationError.php';
+require_once PATH_TO_CCXT_BASE . 'PermissionDenied.php';
+require_once PATH_TO_CCXT_BASE . 'AccountSuspended.php';
+require_once PATH_TO_CCXT_BASE . 'ArgumentsRequired.php';
+require_once PATH_TO_CCXT_BASE . 'BadRequest.php';
+require_once PATH_TO_CCXT_BASE . 'BadSymbol.php';
+require_once PATH_TO_CCXT_BASE . 'BadResponse.php';
+require_once PATH_TO_CCXT_BASE . 'NullResponse.php';
+require_once PATH_TO_CCXT_BASE . 'InsufficientFunds.php';
+require_once PATH_TO_CCXT_BASE . 'InvalidAddress.php';
+require_once PATH_TO_CCXT_BASE . 'AddressPending.php';
+require_once PATH_TO_CCXT_BASE . 'InvalidOrder.php';
+require_once PATH_TO_CCXT_BASE . 'OrderNotFound.php';
+require_once PATH_TO_CCXT_BASE . 'OrderNotCached.php';
+require_once PATH_TO_CCXT_BASE . 'CancelPending.php';
+require_once PATH_TO_CCXT_BASE . 'OrderImmediatelyFillable.php';
+require_once PATH_TO_CCXT_BASE . 'OrderNotFillable.php';
+require_once PATH_TO_CCXT_BASE . 'DuplicateOrderId.php';
+require_once PATH_TO_CCXT_BASE . 'NotSupported.php';
+require_once PATH_TO_CCXT_BASE . 'NetworkError.php';
+require_once PATH_TO_CCXT_BASE . 'DDoSProtection.php';
+require_once PATH_TO_CCXT_BASE . 'RateLimitExceeded.php';
+require_once PATH_TO_CCXT_BASE . 'ExchangeNotAvailable.php';
+require_once PATH_TO_CCXT_BASE . 'OnMaintenance.php';
+require_once PATH_TO_CCXT_BASE . 'InvalidNonce.php';
+require_once PATH_TO_CCXT_BASE . 'RequestTimeout.php';
+
+require_once PATH_TO_CCXT_BASE . 'Exchange.php';
+require_once PATH_TO_CCXT_ASYNC_BASE . 'Exchange.php';
+
+$autoloadFile = __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+if (file_exists($autoloadFile)) {
+    require_once $autoloadFile;
+}
+
+spl_autoload_register(function ($class_name) {
+    $class_name = str_replace("ccxt\\", "", $class_name);
+    $sections = explode("\\", $class_name);
+    $file = PATH_TO_CCXT . implode(DIRECTORY_SEPARATOR, $sections) . '.php';
+    if (file_exists($file)) {
+        require_once $file;
+    }
+});

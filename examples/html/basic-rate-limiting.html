@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>CCXT Basic example for the browser</title>
+    <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+    <script>
+
+        document.addEventListener ("DOMContentLoaded", async function () {
+
+            alert ('ccxt version ' + ccxt.version + ' supporting '+ ccxt.exchanges.length.toString () + ' exchanges');
+
+            const enableRateLimit = true
+            const exchange = new ccxt.poloniex ({ enableRateLimit })
+            const symbol = 'ETH/BTC'
+
+            while (true) {
+
+                let text = []
+
+                try {
+
+                    const ticker = await exchange.fetchTicker (symbol)
+
+                    text = [
+                        exchange.id,
+                        symbol,
+                        JSON.stringify (exchange.omit (ticker, 'info'), undefined, '\t')
+                    ]
+
+                } catch (e) {
+
+                    text = [
+                        e.constructor.name,
+                        e.message,
+                    ]
+                }
+
+                document.getElementById ('content').innerHTML = text.join (' ')
+
+            }
+
+        })
+    </script>
+</head>
+<body>
+<h1>Hello, CCXT!</h1>
+<pre id="content"></pre>
+</body>
+</html>

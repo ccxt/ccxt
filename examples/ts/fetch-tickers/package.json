@@ -1,0 +1,34 @@
+{
+  "name": "fetch-tickers",
+  "version": "0.1.0",
+  "description": "ccxt example code in typescript.",
+  "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
+  "files": [
+    "build/src"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ccxt/ccxt.git"
+  },
+  "keywords": [],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -p .",
+    "start": "node ./build/index"
+  },
+  "dependencies": {
+    "ansicolor": "^1.1.92",
+    "as-table": "^1.0.55",
+    "ccxt": "^1.18.1145",
+    "ololog": "^1.1.146"
+  },
+  "devDependencies": {
+    "typescript": "~3.5.0",
+    "@types/node": "^10.0.3"
+  },
+  "engines": {
+    "node": ">=7.6.0"
+  }
+}

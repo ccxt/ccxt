@@ -2,7 +2,7 @@
 
 $root = dirname (dirname (dirname (__FILE__)));
 
-include $root . '/build/ccxt.php';
+include $root . '/ccxt.php';
 include 'Console/Table.php';
 
 date_default_timezone_set ('UTC');
@@ -53,7 +53,7 @@ if (count ($argv) > 1) {
 
     if ($exchange_found) {
 
-        dump ('Instantiating', green ($id), 'exchange exchange');
+        dump ('Instantiating', green ($id), 'exchange');
 
         // instantiate the exchange by id
         $exchange = '\\ccxt\\' . $id;

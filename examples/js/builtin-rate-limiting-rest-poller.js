@@ -5,8 +5,8 @@ const log     = require ('ololog')
 const ansi    = require ('ansicolor').nice
 const asTable = require ('as-table')
 
-const exchange = new ccxt.gdax ({ enableRateLimit: true })
-const repeat   = 100;
+const exchange = new ccxt.coinbasepro ({ enableRateLimit: true })
+const repeat   = 100
 
 async function test (symbol) {
 

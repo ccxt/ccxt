@@ -1,21 +1,29 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, ArgumentsRequired, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinspot extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinspot',
             'name': 'CoinSpot',
-            'countries': 'AU', // Australia
+            'countries': [ 'AU' ], // Australia
             'rateLimit': 1000,
-            'hasCORS': false,
+            'has': {
+                'cancelOrder': false,
+                'CORS': false,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
                 'api': {
@@ -24,6 +32,7 @@ module.exports = class coinspot extends Exchange {
                 },
                 'www': 'https://www.coinspot.com.au',
                 'doc': 'https://www.coinspot.com.au/api',
+                'referral': 'https://www.coinspot.com.au/register?code=PJURCU',
             },
             'api': {
                 'public': {
@@ -45,69 +54,125 @@ module.exports = class coinspot extends Exchange {
                         'my/sell',
                         'my/buy/cancel',
                         'my/sell/cancel',
+                        'ro/my/balances',
+                        'ro/my/balances/{cointype}',
+                        'ro/my/deposits',
+                        'ro/my/withdrawals',
+                        'ro/my/transactions',
+                        'ro/my/transactions/{cointype}',
+                        'ro/my/transactions/open',
+                        'ro/my/transactions/{cointype}/open',
+                        'ro/my/sendreceive',
+                        'ro/my/affiliatepayments',
+                        'ro/my/referralpayments',
                     ],
                 },
             },
             'markets': {
-                'BTC/AUD': { 'id': 'BTC', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD' },
-                'LTC/AUD': { 'id': 'LTC', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD' },
-                'DOGE/AUD': { 'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD' },
+                'BTC/AUD': { 'id': 'btc', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'baseId': 'btc', 'quoteId': 'aud' },
+                'ETH/AUD': { 'id': 'eth', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD', 'baseId': 'eth', 'quoteId': 'aud' },
+                'XRP/AUD': { 'id': 'xrp', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD', 'baseId': 'xrp', 'quoteId': 'aud' },
+                'LTC/AUD': { 'id': 'ltc', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'baseId': 'ltc', 'quoteId': 'aud' },
+                'DOGE/AUD': { 'id': 'doge', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', 'baseId': 'doge', 'quoteId': 'aud' },
+                'RFOX/AUD': { 'id': 'rfox', 'symbol': 'RFOX/AUD', 'base': 'RFOX', 'quote': 'AUD', 'baseId': 'rfox', 'quoteId': 'aud' },
+                'POWR/AUD': { 'id': 'powr', 'symbol': 'POWR/AUD', 'base': 'POWR', 'quote': 'AUD', 'baseId': 'powr', 'quoteId': 'aud' },
+                'NEO/AUD': { 'id': 'neo', 'symbol': 'NEO/AUD', 'base': 'NEO', 'quote': 'AUD', 'baseId': 'neo', 'quoteId': 'aud' },
+                'TRX/AUD': { 'id': 'trx', 'symbol': 'TRX/AUD', 'base': 'TRX', 'quote': 'AUD', 'baseId': 'trx', 'quoteId': 'aud' },
+                'EOS/AUD': { 'id': 'eos', 'symbol': 'EOS/AUD', 'base': 'EOS', 'quote': 'AUD', 'baseId': 'eos', 'quoteId': 'aud' },
+                'XLM/AUD': { 'id': 'xlm', 'symbol': 'XLM/AUD', 'base': 'XLM', 'quote': 'AUD', 'baseId': 'xlm', 'quoteId': 'aud' },
+                'RHOC/AUD': { 'id': 'rhoc', 'symbol': 'RHOC/AUD', 'base': 'RHOC', 'quote': 'AUD', 'baseId': 'rhoc', 'quoteId': 'aud' },
+                'GAS/AUD': { 'id': 'gas', 'symbol': 'GAS/AUD', 'base': 'GAS', 'quote': 'AUD', 'baseId': 'gas', 'quoteId': 'aud' },
+            },
+            'commonCurrencies': {
+                'DRK': 'DASH',
+            },
+            'options': {
+                'fetchBalance': 'private_post_my_balances',
             },
         });
     }
 
     async fetchBalance (params = {}) {
-        let response = await this.privatePostMyBalances ();
-        let result = { 'info': response };
-        if ('balance' in response) {
-            let balances = response['balance'];
-            let currencies = Object.keys (balances);
-            for (let c = 0; c < currencies.length; c++) {
-                let currency = currencies[c];
-                let uppercase = currency.toUpperCase ();
-                let account = {
-                    'free': balances[currency],
-                    'used': 0.0,
-                    'total': balances[currency],
-                };
-                if (uppercase == 'DRK')
-                    uppercase = 'DASH';
-                result[uppercase] = account;
+        await this.loadMarkets ();
+        const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
+        const response = await this[method] (params);
+        //
+        // read-write api keys
+        //
+        //     ...
+        //
+        // read-only api keys
+        //
+        //     {
+        //         "status":"ok",
+        //         "balances":[
+        //             {
+        //                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
+        //             }
+        //         ]
+        //     }
+        //
+        const result = { 'info': response };
+        const balances = this.safeValue2 (response, 'balance', 'balances');
+        if (Array.isArray (balances)) {
+            for (let i = 0; i < balances.length; i++) {
+                const currencies = balances[i];
+                const currencyIds = Object.keys (currencies);
+                for (let j = 0; j < currencyIds.length; j++) {
+                    const currencyId = currencyIds[j];
+                    const balance = currencies[currencyId];
+                    const code = this.safeCurrencyCode (currencyId);
+                    const account = this.account ();
+                    account['total'] = this.safeFloat (balance, 'balance');
+                    result[code] = account;
+                }
+            }
+        } else {
+            const currencyIds = Object.keys (balances);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['total'] = this.safeFloat (balances, currencyId);
+                result[code] = account;
             }
         }
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
-        let market = this.market (symbol);
-        let orderbook = await this.privatePostOrders (this.extend ({
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
             'cointype': market['id'],
-        }, params));
-        let result = this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        };
+        const orderbook = await this.privatePostOrders (this.extend (request, params));
+        return this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
-        let response = await this.publicGetLatest (params);
+        await this.loadMarkets ();
+        const response = await this.publicGetLatest (params);
         let id = this.marketId (symbol);
         id = id.toLowerCase ();
-        let ticker = response['prices'][id];
-        let timestamp = this.milliseconds ();
+        const ticker = response['prices'][id];
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -117,36 +182,99 @@ module.exports = class coinspot extends Exchange {
         };
     }
 
-    fetchTrades (market, params = {}) {
-        return this.privatePostOrdersHistory (this.extend ({
-            'cointype': this.marketId (market),
-        }, params));
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'cointype': market['id'],
+        };
+        const response = await this.privatePostOrdersHistory (this.extend (request, params));
+        //
+        //     {
+        //         "status":"ok",
+        //         "orders":[
+        //             {"amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"market":"BTC/AUD"},
+        //         ],
+        //     }
+        //
+        const trades = this.safeValue (response, 'orders', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
-    createOrder (market, type, side, amount, price = undefined, params = {}) {
-        let method = 'privatePostMy' + this.capitalize (side);
-        if (type == 'market')
+    parseTrade (trade, market = undefined) {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "amount":0.00102091,
+        //         "rate":21549.09999991,
+        //         "total":21.99969168,
+        //         "coin":"BTC",
+        //         "solddate":1604890646143,
+        //         "market":"BTC/AUD"
+        //     }
+        //
+        const price = this.safeFloat (trade, 'rate');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = this.safeFloat (trade, 'total');
+        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
+        const timestamp = this.safeInteger (trade, 'solddate');
+        const marketId = this.safeString (trade, 'market');
+        const symbol = this.safeSymbol (marketId, market, '/');
+        return {
+            'info': trade,
+            'id': undefined,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'order': undefined,
+            'type': undefined,
+            'side': undefined,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        };
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const method = 'privatePostMy' + this.capitalize (side);
+        if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
-        let order = {
-            'cointype': this.marketId (market),
+        }
+        const request = {
+            'cointype': this.marketId (symbol),
             'amount': amount,
             'rate': price,
         };
-        return this[method] (this.extend (order, params));
+        return await this[method] (this.extend (request, params));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        throw new ExchangeError (this.id + ' cancelOrder () is not fully implemented yet');
-        let method = 'privatePostMyBuy';
-        return await this[method] ({ 'id': id });
+        const side = this.safeString (params, 'side');
+        if (side !== 'buy' && side !== 'sell') {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a side parameter, "buy" or "sell"');
+        }
+        params = this.omit (params, 'side');
+        const method = 'privatePostMy' + this.capitalize (side) + 'Cancel';
+        const request = {
+            'id': id,
+        };
+        return await this[method] (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!this.apiKey)
+        if (!this.apiKey) {
             throw new AuthenticationError (this.id + ' requires apiKey for all requests');
-        let url = this.urls['api'][api] + '/' + path;
-        if (api == 'private') {
-            let nonce = this.nonce ();
+        }
+        const url = this.urls['api'][api] + '/' + path;
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ();
             body = this.json (this.extend ({ 'nonce': nonce }, params));
             headers = {
                 'Content-Type': 'application/json',
@@ -156,4 +284,4 @@ module.exports = class coinspot extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

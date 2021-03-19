@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class mixcoins extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'mixcoins',
@@ -16,9 +15,18 @@ module.exports = class mixcoins extends Exchange {
             'countries': [ 'GB', 'HK' ],
             'rateLimit': 1500,
             'version': 'v1',
-            'hasCORS': false,
+            'userAgent': this.userAgents['chrome'],
+            'has': {
+                'cancelOrder': true,
+                'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
+            },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87460810-1dd06c00-c616-11ea-9276-956f400d6ffa.jpg',
                 'api': 'https://mixcoins.com/api',
                 'www': 'https://mixcoins.com',
                 'doc': 'https://mixcoins.com/help/api/',
@@ -26,9 +34,9 @@ module.exports = class mixcoins extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'ticker',
-                        'trades',
-                        'depth',
+                        'ticker/',
+                        'trades/',
+                        'depth/',
                     ],
                 },
                 'private': {
@@ -43,105 +51,132 @@ module.exports = class mixcoins extends Exchange {
                 },
             },
             'markets': {
-                'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
-                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
-                'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC' },
-                'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC' },
-                'BCH/USD': { 'id': 'bcc_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD' },
-                'ETH/USD': { 'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
+                'BTC/USDT': { 'id': 'btc_usdt', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'baseId': 'btc', 'quoteId': 'usdt', 'maker': 0.0015, 'taker': 0.0025 },
+                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'maker': 0.001, 'taker': 0.0015 },
+                'BCH/BTC': { 'id': 'bch_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bch', 'quoteId': 'btc', 'maker': 0.001, 'taker': 0.0015 },
+                'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'baseId': 'lsk', 'quoteId': 'btc', 'maker': 0.0015, 'taker': 0.0025 },
+                'BCH/USDT': { 'id': 'bch_usdt', 'symbol': 'BCH/USDT', 'base': 'BCH', 'quote': 'USDT', 'baseId': 'bch', 'quoteId': 'usdt', 'maker': 0.001, 'taker': 0.0015 },
+                'ETH/USDT': { 'id': 'eth_usdt', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT', 'baseId': 'eth', 'quoteId': 'usdt', 'maker': 0.001, 'taker': 0.0015 },
             },
         });
     }
 
     async fetchBalance (params = {}) {
-        let response = await this.privatePostInfo ();
-        let balance = response['result']['wallet'];
-        let result = { 'info': balance };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
-            let lowercase = currency.toLowerCase ();
-            let account = this.account ();
-            if (lowercase in balance) {
-                account['free'] = parseFloat (balance[lowercase]['avail']);
-                account['used'] = parseFloat (balance[lowercase]['lock']);
-                account['total'] = this.sum (account['free'], account['used']);
-            }
-            result[currency] = account;
+        await this.loadMarkets ();
+        const response = await this.privatePostInfo (params);
+        const balances = this.safeValue (response['result'], 'wallet');
+        const result = { 'info': response };
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const balance = this.safeValue (balances, currencyId, {});
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'avail');
+            account['used'] = this.safeFloat (balance, 'lock');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
-        let response = await this.publicGetDepth (this.extend ({
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
             'market': this.marketId (symbol),
-        }, params));
+        };
+        const response = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (response['result']);
     }
 
     async fetchTicker (symbol, params = {}) {
-        let response = await this.publicGetTicker (this.extend ({
+        await this.loadMarkets ();
+        const request = {
             'market': this.marketId (symbol),
-        }, params));
-        let ticker = response['result'];
-        let timestamp = this.milliseconds ();
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const ticker = this.safeValue (response, 'result');
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
-            'ask': parseFloat (ticker['sell']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'sell'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['vol']),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
 
-    parseTrade (trade, market) {
-        let timestamp = parseInt (trade['date']) * 1000;
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.safeTimestamp (trade, 'date');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const id = this.safeString (trade, 'id');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
-            'id': trade['id'].toString (),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': undefined,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'order': undefined,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetTrades (this.extend ({
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
-        }, params));
-        return this.parseTrades (response['result'], market);
+        };
+        const response = await this.publicGetTrades (this.extend (request, params));
+        return this.parseTrades (response['result'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let order = {
+        await this.loadMarkets ();
+        const request = {
             'market': this.marketId (symbol),
             'op': side,
             'amount': amount,
         };
-        if (type == 'market') {
-            order['order_type'] = 1;
-            order['price'] = price;
+        if (type === 'market') {
+            request['order_type'] = 1;
+            request['price'] = price;
         } else {
-            order['order_type'] = 0;
+            request['order_type'] = 0;
         }
-        let response = await this.privatePostTrade (this.extend (order, params));
+        const response = await this.privatePostTrade (this.extend (request, params));
         return {
             'info': response,
             'id': response['result']['id'].toString (),
@@ -149,16 +184,22 @@ module.exports = class mixcoins extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancel ({ 'id': id });
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        return await this.privatePostCancel (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
-            if (Object.keys (params).length)
+        if (api === 'public') {
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         } else {
-            let nonce = this.nonce ();
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ();
             body = this.urlencode (this.extend ({
                 'nonce': nonce,
             }, params));
@@ -172,10 +213,17 @@ module.exports = class mixcoins extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('status' in response)
-            if (response['status'] == 200)
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        if ('status' in response) {
+            //
+            // todo add a unified standard handleErrors with this.exceptions in describe()
+            //
+            //     {"status":503,"message":"Maintenancing, try again later","result":null}
+            //
+            if (response['status'] === 200) {
                 return response;
+            }
+        }
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};

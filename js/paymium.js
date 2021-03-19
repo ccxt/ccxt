@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class paymium extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'paymium',
@@ -16,146 +15,198 @@ module.exports = class paymium extends Exchange {
             'countries': [ 'FR', 'EU' ],
             'rateLimit': 2000,
             'version': 'v1',
-            'hasCORS': true,
+            'has': {
+                'CORS': true,
+                'fetchBalance': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
+                'fetchOrderBook': true,
+                'createOrder': true,
+                'cancelOrder': true,
+            },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
                 'api': 'https://paymium.com/api',
                 'www': 'https://www.paymium.com',
+                'fees': 'https://www.paymium.com/page/help/fees',
                 'doc': [
                     'https://github.com/Paymium/api-documentation',
                     'https://www.paymium.com/page/developers',
                 ],
+                'referral': 'https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj',
             },
             'api': {
                 'public': {
                     'get': [
                         'countries',
-                        'data/{id}/ticker',
-                        'data/{id}/trades',
-                        'data/{id}/depth',
+                        'data/{currency}/ticker',
+                        'data/{currency}/trades',
+                        'data/{currency}/depth',
                         'bitcoin_charts/{id}/trades',
                         'bitcoin_charts/{id}/depth',
                     ],
                 },
                 'private': {
                     'get': [
-                        'merchant/get_payment/{UUID}',
                         'user',
                         'user/addresses',
-                        'user/addresses/{btc_address}',
+                        'user/addresses/{address}',
                         'user/orders',
-                        'user/orders/{UUID}',
+                        'user/orders/{uuid}',
                         'user/price_alerts',
+                        'merchant/get_payment/{uuid}',
                     ],
                     'post': [
-                        'user/orders',
                         'user/addresses',
+                        'user/orders',
+                        'user/withdrawals',
+                        'user/email_transfers',
                         'user/payment_requests',
                         'user/price_alerts',
                         'merchant/create_payment',
                     ],
                     'delete': [
-                        'user/orders/{UUID}/cancel',
+                        'user/orders/{uuid}',
+                        'user/orders/{uuid}/cancel',
                         'user/price_alerts/{id}',
                     ],
                 },
             },
             'markets': {
-                'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
+                'BTC/EUR': { 'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur' },
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.002,
+                    'taker': 0.002,
+                },
             },
         });
     }
 
     async fetchBalance (params = {}) {
-        let balances = await this.privateGetUser ();
-        let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
-            let lowercase = currency.toLowerCase ();
-            let account = this.account ();
-            let balance = 'balance_' + lowercase;
-            let locked = 'locked_' + lowercase;
-            if (balance in balances)
-                account['free'] = balances[balance];
-            if (locked in balances)
-                account['used'] = balances[locked];
-            account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+        await this.loadMarkets ();
+        const response = await this.privateGetUser (params);
+        const result = { 'info': response };
+        const currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            const code = currencies[i];
+            const currencyId = this.currencyId (code);
+            const free = 'balance_' + currencyId;
+            if (free in response) {
+                const account = this.account ();
+                const used = 'locked_' + currencyId;
+                account['free'] = this.safeFloat (response, free);
+                account['used'] = this.safeFloat (response, used);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
-        let orderbook = await this.publicGetDataIdDepth (this.extend ({
-            'id': this.marketId (symbol),
-        }, params));
-        let result = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        return result;
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'currency': this.marketId (symbol),
+        };
+        const response = await this.publicGetDataCurrencyDepth (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
-        let ticker = await this.publicGetDataIdTicker (this.extend ({
-            'id': this.marketId (symbol),
-        }, params));
-        let timestamp = ticker['at'] * 1000;
+        await this.loadMarkets ();
+        const request = {
+            'currency': this.marketId (symbol),
+        };
+        const ticker = await this.publicGetDataCurrencyTicker (this.extend (request, params));
+        const timestamp = this.safeTimestamp (ticker, 'at');
+        const vwap = this.safeFloat (ticker, 'vwap');
+        const baseVolume = this.safeFloat (ticker, 'volume');
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined) {
+            quoteVolume = baseVolume * vwap;
+        }
+        const last = this.safeFloat (ticker, 'price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
-            'vwap': parseFloat (ticker['vwap']),
-            'open': parseFloat (ticker['open']),
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['price']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': vwap,
+            'open': this.safeFloat (ticker, 'open'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
-            'percentage': parseFloat (ticker['variation']),
+            'percentage': this.safeFloat (ticker, 'variation'),
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume']),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
 
     parseTrade (trade, market) {
-        let timestamp = parseInt (trade['created_at_int']) * 1000;
-        let volume = 'traded_' + market['base'].toLowerCase ();
+        const timestamp = this.safeTimestamp (trade, 'created_at_int');
+        const id = this.safeString (trade, 'uuid');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const side = this.safeString (trade, 'side');
+        const price = this.safeFloat (trade, 'price');
+        const amountField = 'traded_' + market['base'].toLowerCase ();
+        const amount = this.safeFloat (trade, amountField);
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
             'info': trade,
-            'id': trade['uuid'],
+            'id': id,
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
-            'side': trade['side'],
-            'price': trade['price'],
-            'amount': trade[volume],
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetDataIdTrades (this.extend ({
-            'id': market['id'],
-        }, params));
-        return this.parseTrades (response, market);
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['id'],
+        };
+        const response = await this.publicGetDataCurrencyTrades (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
-        let order = {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
             'type': this.capitalize (type) + 'Order',
-            'currency': this.marketId (market),
+            'currency': this.marketId (symbol),
             'direction': side,
             'amount': amount,
         };
-        if (type == 'market')
-            order['price'] = price;
-        let response = await this.privatePostUserOrders (this.extend (order, params));
+        if (type !== 'market') {
+            request['price'] = price;
+        }
+        const response = await this.privatePostUserOrders (this.extend (request, params));
         return {
             'info': response,
             'id': response['uuid'],
@@ -163,35 +214,50 @@ module.exports = class paymium extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancelOrder (this.extend ({
-            'orderNumber': id,
-        }, params));
+        const request = {
+            'uuid': id,
+        };
+        return await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
-            if (Object.keys (query).length)
+        const query = this.omit (params, this.extractParams (path));
+        if (api === 'public') {
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
-            body = this.json (params);
-            let nonce = this.nonce ().toString ();
-            let auth = nonce + url + body;
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ().toString ();
+            let auth = nonce + url;
             headers = {
                 'Api-Key': this.apiKey,
-                'Api-Signature': this.hmac (this.encode (auth), this.secret),
                 'Api-Nonce': nonce,
-                'Content-Type': 'application/json',
             };
+            if (method === 'POST') {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                    auth += body;
+                    headers['Content-Type'] = 'application/json';
+                }
+            } else {
+                if (Object.keys (query).length) {
+                    const queryString = this.urlencode (query);
+                    auth += queryString;
+                    url += '?' + queryString;
+                }
+            }
+            headers['Api-Signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('errors' in response)
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        if ('errors' in response) {
             throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
         return response;
     }
-}
+};
