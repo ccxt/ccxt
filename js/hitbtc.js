@@ -81,10 +81,10 @@ module.exports = class hitbtc extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'symbol', // Available Currency Symbols
-                        'symbol/{symbol}', // Get symbol info
                         'currency', // Available Currencies
                         'currency/{currency}', // Get currency info
+                        'symbol', // Available Currency Symbols
+                        'symbol/{symbol}', // Get symbol info
                         'ticker', // Ticker list for all symbols
                         'ticker/{symbol}', // Ticker for symbol
                         'trades',
@@ -102,11 +102,20 @@ module.exports = class hitbtc extends Exchange {
                         'order/{clientOrderId}', // Get a single order by clientOrderId
                         'trading/fee/all', // Get trading fee rate
                         'trading/fee/{symbol}', // Get trading fee rate
+                        'margin/account',
+                        'margin/account/{symbol}',
+                        'margin/position',
+                        'margin/position/{symbol}',
+                        'margin/order',
+                        'margin/order/{clientOrderId}',
                         'history/order', // Get historical orders
                         'history/trades', // Get historical trades
                         'history/order/{orderId}/trades', // Get historical trades by specified order
                         'account/balance', // Get main acccount balance
-                        'account/crypto/address/{currency}', // Get deposit crypro address
+                        'account/crypto/address/{currency}', // Get current address
+                        'account/crypto/addresses/{currency}', // Get last 10 deposit addresses for currency
+                        'account/crypto/used-addresses/{currency}', // Get last 10 unique addresses used for withdraw by currency
+                        'account/crypto/estimate-withdraw',
                         'account/crypto/is-mine/{address}',
                         'account/transactions', // Get account transactions
                         'account/transactions/{id}', // Get account transaction by id
@@ -117,23 +126,33 @@ module.exports = class hitbtc extends Exchange {
                     ],
                     'post': [
                         'order', // Create new order
-                        'account/crypto/address/{currency}', // Create new deposit crypro address
-                        'account/crypto/withdraw', // Withdraw crypro
+                        'margin/order',
+                        'account/crypto/address/{currency}', // Create new crypto deposit address
+                        'account/crypto/withdraw', // Withdraw crypto
                         'account/crypto/transfer-convert',
-                        'account/transfer', // Transfer amount to trading
+                        'account/transfer', // Transfer amount to trading account or to main account
+                        'account/transfer/internal',
                         'sub-acc/freeze',
                         'sub-acc/activate',
                         'sub-acc/transfer',
                     ],
                     'put': [
                         'order/{clientOrderId}', // Create new order
-                        'account/crypto/withdraw/{id}', // Commit withdraw crypro
+                        'margin/account/{symbol}',
+                        'margin/order/{clientOrderId}',
+                        'account/crypto/withdraw/{id}', // Commit crypto withdrawal
                         'sub-acc/acl/{subAccountUserId}',
                     ],
                     'delete': [
                         'order', // Cancel all open orders
                         'order/{clientOrderId}', // Cancel order
-                        'account/crypto/withdraw/{id}', // Rollback withdraw crypro
+                        'margin/account',
+                        'margin/account/{symbol}',
+                        'margin/position',
+                        'margin/position/{symbol}',
+                        'margin/order',
+                        'margin/order/{clientOrderId}',
+                        'account/crypto/withdraw/{id}', // Rollback crypto withdrawal
                     ],
                     // outdated?
                     'patch': [
