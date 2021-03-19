@@ -2622,36 +2622,34 @@ module.exports = class binance extends Exchange {
     async transfer (code, amount, fromAccount = undefined, toAccount = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'spot');
-        const methodType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        if (fromAccount === undefined) {
-            fromAccount = methodType;
-        }
-        if (toAccount === undefined) {
-            if (fromAccount !== defaultType) {
-                toAccount = defaultType;
+        let type = this.safeString (params, 'type');
+        if (type === undefined) {
+            if (fromAccount === undefined) {
+                throw new ExchangeError (this.id + ' fromAccount is not defined');
             }
-        }
-        const accounts = {
-            'main': 'MAIN',
-            'spot': 'MAIN',
-            'margin': 'MARGIN',
-            'future': 'UMFUTURE',
-            'delivery': 'CMFUTURE',
-            'mining': 'MINING',
-        };
-        const fromId = this.safeString (accounts, fromAccount);
-        const toId = this.safeString (accounts, toAccount);
-        const allAccounts = 'spot/margin/future/delivery/mining';
-        if (fromId === undefined) {
-            throw new ExchangeError (this.id + ' from is not a valid account it must be one of ' + allAccounts + ' instead of ' + fromAccount);
-        }
-        if (toId === undefined) {
-            throw new ExchangeError (this.id + ' to is not a valid account it must be one of ' + allAccounts + ' instead of ' + toAccount);
+            if (toAccount === undefined) {
+                throw new ExchangeError (this.id + ' toAccount is not defined');
+            }
+            const accounts = {
+                'main': 'MAIN',
+                'spot': 'MAIN',
+                'margin': 'MARGIN',
+                'future': 'UMFUTURE',
+                'delivery': 'CMFUTURE',
+                'mining': 'MINING',
+            };
+            const fromId = this.safeString (accounts, fromAccount);
+            const toId = this.safeString (accounts, toAccount);
+            const allAccounts = 'spot/margin/future/delivery/mining';
+            if (fromId === undefined) {
+                throw new ExchangeError (this.id + ' from is not a valid account it must be one of ' + allAccounts + ' instead of ' + fromAccount);
+            }
+            if (toId === undefined) {
+                throw new ExchangeError (this.id + ' to is not a valid account it must be one of ' + allAccounts + ' instead of ' + toAccount);
+            }
+            type = fromId + '_' + toId;
         }
         const requestedAmount = this.currencyToPrecision (code, amount);
-        const type = fromId + '_' + toId;
         const request = {
             'asset': currency['id'],
             'amount': requestedAmount,
@@ -2672,21 +2670,13 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async fetchTransfers (fromAccount = undefined, toAccount = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransfers (since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'spot');
-        const methodType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        if (fromAccount === undefined) {
-            fromAccount = methodType;
-        }
-        if (toAccount === undefined) {
-            if (fromAccount !== defaultType) {
-                toAccount = defaultType;
-            } else {
-                toAccount = 'future';
-            }
-        }
+        const fromAccount = this.safeString (params, 'from', defaultType);
+        const defaultTo = (fromAccount === 'future') ? 'spot' : 'future';
+        const toAccount = this.safeString (params, 'to', defaultTo);
+        let type = this.safeString (params, 'type');
         const accounts = {
             'main': 'MAIN',
             'spot': 'MAIN',
@@ -2705,13 +2695,15 @@ module.exports = class binance extends Exchange {
         const fromId = this.safeString (accounts, fromAccount);
         const toId = this.safeString (accounts, toAccount);
         const allAccounts = 'spot/margin/future/delivery/mining';
-        if (fromId === undefined) {
-            throw new ExchangeError (this.id + ' from is not a valid account it must be one of ' + allAccounts + ' instead of ' + fromAccount);
+        if (type === undefined) {
+            if (fromId === undefined) {
+                throw new ExchangeError (this.id + ' from is not a valid account it must be one of ' + allAccounts + ' instead of ' + fromAccount);
+            }
+            if (toId === undefined) {
+                throw new ExchangeError (this.id + ' to is not a valid account it must be one of ' + allAccounts + ' instead of ' + toAccount);
+            }
+            type = fromId + '_' + toId;
         }
-        if (toId === undefined) {
-            throw new ExchangeError (this.id + ' to is not a valid account it must be one of ' + allAccounts + ' instead of ' + toAccount);
-        }
-        const type = fromId + '_' + toId;
         const request = {
             'type': type,
         };
@@ -2746,12 +2738,10 @@ module.exports = class binance extends Exchange {
             const currencyId = this.safeString (row, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const type = this.safeString (row, 'type');
-            let fromId = undefined;
-            let toId = undefined;
             let fromAccount = undefined;
             let toAccount = undefined;
             if (type !== undefined) {
-                [ fromId, toId ] = type.split ('_');
+                const [ fromId, toId ] = type.split ('_');
                 fromAccount = this.safeString (reverseAccounts, fromId);
                 toAccount = this.safeString (reverseAccounts, toId);
             }
