@@ -844,9 +844,10 @@ class kucoin extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['size'] = $this->amount_to_precision($symbol, $amount);
         } else {
-            if ($this->safe_value($params, 'quoteAmount')) {
+            $quoteAmount = $this->safe_float_2($params, 'cost', 'funds');
+            if ($quoteAmount !== null) {
                 // used to create market $order by quote $amount - https://github.com/ccxt/ccxt/issues/4876
-                $request['funds'] = $this->amount_to_precision($symbol, $amount);
+                $request['funds'] = $this->amount_to_precision($symbol, $quoteAmount);
             } else {
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
             }

@@ -823,9 +823,10 @@ class kucoin(Exchange):
             request['price'] = self.price_to_precision(symbol, price)
             request['size'] = self.amount_to_precision(symbol, amount)
         else:
-            if self.safe_value(params, 'quoteAmount'):
+            quoteAmount = self.safe_float_2(params, 'cost', 'funds')
+            if quoteAmount is not None:
                 # used to create market order by quote amount - https://github.com/ccxt/ccxt/issues/4876
-                request['funds'] = self.amount_to_precision(symbol, amount)
+                request['funds'] = self.amount_to_precision(symbol, quoteAmount)
             else:
                 request['size'] = self.amount_to_precision(symbol, amount)
         response = await self.privatePostOrders(self.extend(request, params))
