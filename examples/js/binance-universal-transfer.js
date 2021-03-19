@@ -1,7 +1,5 @@
 const ccxt = require ('../../ccxt.js')
 
-
-
 ;(async () => {
 
     // apiKey must have universal transfer permissions
@@ -20,5 +18,4 @@ const ccxt = require ('../../ccxt.js')
 
     // alternatively the same effect as above
     console.log (await binance.fetchTransfers (undefined, undefined, { type: 'MAIN_MARGIN' })) // defaults to MAIN_UMFUTURE
-
 }) ()
