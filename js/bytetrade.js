@@ -958,10 +958,10 @@ module.exports = class bytetrade extends Exchange {
         };
     }
 
-    async transfer (code, amount, address, message = '', params = {}) {
+    async internalTransfer (code, amount, address, message = '', params = {}) {
         this.checkRequiredDependencies ();
         if (this.apiKey === undefined) {
-            throw new ArgumentsRequired ('transfer() requires this.apiKey');
+            throw new ArgumentsRequired ('internalTransfer() requires this.apiKey');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);

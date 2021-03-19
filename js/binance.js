@@ -47,6 +47,8 @@ module.exports = class binance extends Exchange {
                 'fetchTransactions': false,
                 'fetchWithdrawals': true,
                 'withdraw': true,
+                'transfer': true,
+                'fetchTransfers': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -570,6 +572,8 @@ module.exports = class binance extends Exchange {
                 '-3010': ExchangeError, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
                 '-3022': AccountSuspended, // You account's trading is banned.
                 '-4028': BadRequest, // {"code":-4028,"msg":"Leverage 100 is not valid"}
+                '-3020': InsufficientFunds, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
+                '-3041': InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
                 '-5013': InsufficientFunds, // Asset transfer failed: insufficient balance"
             },
         });
@@ -2613,6 +2617,157 @@ module.exports = class binance extends Exchange {
             'updated': updated,
             'fee': fee,
         };
+    }
+
+    async transfer (amount, code, from = undefined, to = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'spot');
+        const methodType = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        if (from === undefined) {
+            from = methodType;
+        }
+        if (to === undefined) {
+            if (from !== defaultType) {
+                to = defaultType;
+            }
+        }
+        const accounts = {
+            'main': 'MAIN',
+            'spot': 'MAIN',
+            'margin': 'MARGIN',
+            'future': 'UMFUTURE',
+            'delivery': 'CMFUTURE',
+            'mining': 'MINING',
+        };
+        const fromId = this.safeString (accounts, from);
+        const toId = this.safeString (accounts, to);
+        const allAccounts = 'spot/margin/future/delivery/mining';
+        if (fromId === undefined) {
+            throw new ExchangeError (this.id + ' from is not valid it must be one of ' + allAccounts + ' instead of ' + from);
+        }
+        if (toId === undefined) {
+            throw new ExchangeError (this.id + ' to is not valid it must be one of ' + allAccounts + ' instead of ' + to);
+        }
+        const requestedAmount = this.currencyToPrecision (code, amount);
+        const type = fromId + '_' + toId;
+        const request = {
+            'asset': currency['id'],
+            'amount': requestedAmount,
+            'type': type,
+        };
+        const response = await this.sapiPostAssetTransfer (this.extend (request, params));
+        const tranId = this.safeString (response, 'tranId');
+        return {
+            'info': response,
+            'id': tranId,
+            'currency': code,
+            'amount': requestedAmount,
+            'from': from,
+            'to': to,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'status': undefined,
+        };
+    }
+
+    async fetchTransfers (from = undefined, to = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'spot');
+        const methodType = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        if (from === undefined) {
+            from = methodType;
+        }
+        if (to === undefined) {
+            if (from !== defaultType) {
+                to = defaultType;
+            } else {
+                to = 'future';
+            }
+        }
+        const accounts = {
+            'main': 'MAIN',
+            'spot': 'MAIN',
+            'margin': 'MARGIN',
+            'future': 'UMFUTURE',
+            'delivery': 'CMFUTURE',
+            'mining': 'MINING',
+        };
+        const reverseAccounts = {
+            'MAIN': 'spot',
+            'MARGIN': 'margin',
+            'UMFUTURE': 'future',
+            'CMFUTURE': 'delivery',
+            'MINING': 'mining',
+        };
+        const fromId = this.safeString (accounts, from);
+        const toId = this.safeString (accounts, to);
+        const allAccounts = 'spot/margin/future/delivery/mining';
+        if (fromId === undefined) {
+            throw new ExchangeError (this.id + ' from is not valid it must be one of ' + allAccounts + ' instead of ' + from);
+        }
+        if (toId === undefined) {
+            throw new ExchangeError (this.id + ' to is not valid it must be one of ' + allAccounts + ' instead of ' + to);
+        }
+        const type = fromId + '_' + toId;
+        const request = {
+            'type': type,
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.sapiGetAssetTransfer (this.extend (request, params));
+        // {
+        //   total: 3,
+        //   rows: [
+        //     {
+        //       timestamp: 1614640878000,
+        //       asset: 'USDT',
+        //       amount: '25',
+        //       type: 'MAIN_UMFUTURE',
+        //       status: 'CONFIRMED',
+        //       tranId: 43000126248
+        //     },
+        //   ]
+        // }
+        const rows = this.safeValue (response, 'rows', []);
+        const result = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const timestamp = this.safeInteger (row, 'timestamp');
+            const status = this.safeStringLower (row, 'status');
+            const id = this.safeString (row, 'tranId');
+            const amount = this.safeFloat (row, 'amount');
+            const currencyId = this.safeString (row, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const type = this.safeString (row, 'type');
+            let fromId = undefined;
+            let toId = undefined;
+            let from = undefined;
+            let to = undefined;
+            if (type !== undefined) {
+                [ fromId, toId ] = type.split ('_');
+                from = this.safeString (reverseAccounts, fromId);
+                to = this.safeString (reverseAccounts, toId);
+            }
+            result.push ({
+                'info': row,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': id,
+                'status': status,
+                'amount': amount,
+                'currency': code,
+                'from': from,
+                'to': to,
+            });
+        }
+        return result;
     }
 
     async fetchDepositAddress (code, params = {}) {
