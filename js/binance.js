@@ -515,6 +515,14 @@ module.exports = class binance extends Exchange {
                     'future': 'fapiPrivateV2GetAccount', // 'fapiPrivateGetPositionRisk'
                     'delivery': 'dapiPrivateGetAccount', // 'dapiPrivateGetPositionRisk'
                 },
+                'accounts': {
+                    'main': 'MAIN',
+                    'spot': 'MAIN',
+                    'margin': 'MARGIN',
+                    'future': 'UMFUTURE',
+                    'delivery': 'CMFUTURE',
+                    'mining': 'MINING',
+                },
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
@@ -2619,40 +2627,28 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async transfer (code, amount, fromAccount = undefined, toAccount = undefined, params = {}) {
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         let type = this.safeString (params, 'type');
         if (type === undefined) {
-            if (fromAccount === undefined) {
-                throw new ExchangeError (this.id + ' fromAccount is not defined');
-            }
-            if (toAccount === undefined) {
-                throw new ExchangeError (this.id + ' toAccount is not defined');
-            }
-            const accounts = {
-                'main': 'MAIN',
-                'spot': 'MAIN',
-                'margin': 'MARGIN',
-                'future': 'UMFUTURE',
-                'delivery': 'CMFUTURE',
-                'mining': 'MINING',
-            };
+            const accounts = this.safeValue (this.options, 'accounts', {});
             const fromId = this.safeString (accounts, fromAccount);
             const toId = this.safeString (accounts, toAccount);
-            const allAccounts = 'spot/margin/future/delivery/mining';
+            const allAccounts = '';
             if (fromId === undefined) {
-                throw new ExchangeError (this.id + ' from is not a valid account it must be one of ' + allAccounts + ' instead of ' + fromAccount);
+                const keys = Object.keys (accounts);
+                throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
             }
             if (toId === undefined) {
-                throw new ExchangeError (this.id + ' to is not a valid account it must be one of ' + allAccounts + ' instead of ' + toAccount);
+                const keys = Object.keys (accounts);
+                throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
             }
             type = fromId + '_' + toId;
         }
-        const requestedAmount = this.currencyToPrecision (code, amount);
         const request = {
             'asset': currency['id'],
-            'amount': requestedAmount,
+            'amount': this.currencyToPrecision (code, amount),
             'type': type,
         };
         const response = await this.sapiPostAssetTransfer (this.extend (request, params));
@@ -2670,7 +2666,7 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async fetchTransfers (since = undefined, limit = undefined, params = {}) {
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'spot');
         const fromAccount = this.safeString (params, 'from', defaultType);
