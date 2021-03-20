@@ -964,7 +964,6 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired ('transfer() requires this.apiKey');
         }
         await this.loadMarkets ();
-        const address = toAccount;
         const currency = this.currency (code);
         const amountTruncate = this.decimalToPrecision (amount, TRUNCATE, currency['info']['basePrecision'] - currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
         const amountChain = this.toWei (amountTruncate, currency['precision']);
