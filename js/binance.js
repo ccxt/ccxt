@@ -2696,14 +2696,14 @@ module.exports = class binance extends Exchange {
         let type = this.safeString (params, 'type');
         if (type === undefined) {
             const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-            const fromId = this.safeString (accounts, fromAccount, fromAccount);
-            const toId = this.safeString (accounts, toAccount, toAccount);
+            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+            const toId = this.safeString (accountsByType, toAccount, toAccount);
             if (fromId === undefined) {
                 const keys = Object.keys (accountsByType);
                 throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
             }
             if (toId === undefined) {
-                const keys = Object.keys (accounts);
+                const keys = Object.keys (accountsByType);
                 throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
             }
             type = fromId + '_' + toId;
