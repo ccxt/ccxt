@@ -179,7 +179,6 @@ module.exports = class hitbtc extends Exchange {
                 },
                 'fetchBalanceMethod': {
                     'account': 'account',
-                    'bank': 'account',
                     'main': 'account',
                     'trading': 'trading',
                 },
