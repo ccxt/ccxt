@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable, CancelPending } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable, CancelPending, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -1132,22 +1132,28 @@ module.exports = class ftx extends Exchange {
             request['clientId'] = clientOrderId;
             params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
         }
-        let priceToPrecision = undefined;
-        if (price !== undefined) {
-            priceToPrecision = parseFloat (this.priceToPrecision (symbol, price));
-        }
-        let method = 'privatePostConditionalOrders';
+        let method = undefined;
         if (type === 'limit') {
             method = 'privatePostOrders';
-            request['price'] = priceToPrecision;
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         } else if (type === 'market') {
             method = 'privatePostOrders';
             request['price'] = null;
         } else if ((type === 'stop') || (type === 'takeProfit')) {
-            request['triggerPrice'] = priceToPrecision;
-            // request['orderPrice'] = number; // optional, order type is limit if this is specified, otherwise market
+            method = 'privatePostConditionalOrders';
+            const stopPrice = this.safeFloat2 (params, [ 'stopPrice', 'triggerPrice' ]);
+            if (stopPrice === undefined) {
+                params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
+                request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
+            } else {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders');
+            }
+            if (price !== undefined) {
+                request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
+            }
         } else if (type === 'trailingStop') {
-            request['trailValue'] = priceToPrecision; // negative for "sell", positive for "buy"
+            method = 'privatePostConditionalOrders';
+            request['trailValue'] = parseFloat (this.priceToPrecision (symbol, price)); // negative for "sell", positive for "buy"
         } else {
             throw new InvalidOrder (this.id + ' createOrder () does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported');
         }
