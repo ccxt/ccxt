@@ -171,6 +171,18 @@ module.exports = class hitbtc extends Exchange {
             },
             'options': {
                 'defaultTimeInForce': 'FOK',
+                'accountsByType': {
+                    'bank': 'bank',
+                    'exchange': 'exchange',
+                    'main': 'bank',  // alias of the above
+                    'trading': 'exchange',
+                },
+                'fetchBalanceMethod': {
+                    'account': 'account',
+                    'bank': 'account',
+                    'main': 'account',
+                    'trading': 'trading',
+                },
             },
             'commonCurrencies': {
                 'BCC': 'BCC', // initial symbol for Bitcoin Cash, now inactive
@@ -199,7 +211,6 @@ module.exports = class hitbtc extends Exchange {
                 '20002': OrderNotFound, // canceling non-existent order
                 '20001': InsufficientFunds, // {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
             },
-            'orders': {}, // orders cache / emulation
         });
     }
 
@@ -276,6 +287,47 @@ module.exports = class hitbtc extends Exchange {
             }));
         }
         return result;
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        // account can be "exchange" or "bank", with aliases "main" or "trading" respectively
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const requestAmount = this.currencyToPrecision (code, amount);
+        const request = {
+            'currency': currency['id'],
+            'amount': requestAmount,
+        };
+        let type = this.safeString (params, 'type');
+        if (type === undefined) {
+            const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+            const fromId = this.safeString (accountsByType, fromAccount);
+            const toId = this.safeString (accountsByType, toAccount);
+            const keys = Object.keys (accountsByType);
+            if (fromId === undefined) {
+                throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', ') + ' instead of ' + fromId);
+            }
+            if (toId === undefined) {
+                throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', ') + ' instead of ' + toId);
+            }
+            if (fromId === toId) {
+                throw new ExchangeError (this.id + ' from and to cannot be the same account')
+            }
+            type = fromId + 'To' + this.capitalize (toId);
+        }
+        request['type'] = type;
+        const response = await this.privatePostAccountTransfer (this.extend (request, params));
+        // { id: '2db6ebab-fb26-4537-9ef8-1a689472d236' }
+        const id = this.safeString (response, 'id');
+        return {
+            'info': response,
+            'id': id,
+            'status': undefined,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'amount': requestAmount,
+            'currency': code,
+        };
     }
 
     async fetchCurrencies (params = {}) {
@@ -381,7 +433,12 @@ module.exports = class hitbtc extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', 'trading');
-        const method = 'privateGet' + this.capitalize (type) + 'Balance';
+        const fetchBalanceAccounts = this.safeValue (this.options, 'fetchBalanceMethod', {});
+        const typeId = this.safeString (fetchBalanceAccounts, type);
+        if (typeId === undefined) {
+            throw new ExchangeError (this.id + ' fetchBalance account type must be either main or trading');
+        }
+        const method = 'privateGet' + this.capitalize (typeId) + 'Balance';
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
         const result = { 'info': response };
