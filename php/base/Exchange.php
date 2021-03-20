@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.43.80';
+$version = '1.43.81';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.43.80';
+    const VERSION = '1.43.81';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -326,6 +326,7 @@ class Exchange {
         'filterByArray' => 'filter_by_array',
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
+        'parseTransfers' => 'parse_transfers',
         'parseLedger' => 'parse_ledger',
         'parseOrders' => 'parse_orders',
         'safeCurrency' => 'safe_currency',
