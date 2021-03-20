@@ -44,6 +44,7 @@ module.exports = class hitbtc extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': false,
                 'withdraw': true,
+                'transfer': true,
             },
             'timeframes': {
                 '1m': 'M1',
