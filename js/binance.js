@@ -2725,7 +2725,6 @@ module.exports = class binance extends Exchange {
             'currency': code,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': 'pending',
         });
     }
 
