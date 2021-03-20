@@ -311,7 +311,7 @@ module.exports = class hitbtc extends Exchange {
                 throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', ') + ' instead of ' + toId);
             }
             if (fromId === toId) {
-                throw new ExchangeError (this.id + ' from and to cannot be the same account')
+                throw new ExchangeError (this.id + ' from and to cannot be the same account');
             }
             type = fromId + 'To' + this.capitalize (toId);
         }
