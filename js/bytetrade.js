@@ -991,8 +991,8 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (feeAmount, 8),  // string for 32 bit php
             this.numberToLE (this.apiKey.length, 1),
             this.stringToBinary (this.encode (this.apiKey)),
-            this.numberToLE (address.length, 1),
-            this.stringToBinary (this.encode (address)),
+            this.numberToLE (toAccount.length, 1),
+            this.stringToBinary (this.encode (toAccount)),
             this.numberToLE (assetType, 4),
             this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
             this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
@@ -1013,7 +1013,7 @@ module.exports = class bytetrade extends Exchange {
         const operation = {
             'fee': '300000000000000',
             'from': this.apiKey,
-            'to': address,
+            'to': toAccount,
             'asset_type': parseInt (currency['id']),
             'amount': amountChain.toString (),
             'message': message,
