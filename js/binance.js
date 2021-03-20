@@ -2665,7 +2665,7 @@ module.exports = class binance extends Exchange {
             fromAccount = this.safeValue (parts, 0);
             toAccount = this.safeValue (parts, 1);
         }
-        const timestamp = this.safeInteger (transfer, 'timestamp')
+        const timestamp = this.safeInteger (transfer, 'timestamp');
         const status = this.parseTransferStatus (this.safeString (transfer, 'status'));
         return {
             'info': transfer,
@@ -2688,7 +2688,6 @@ module.exports = class binance extends Exchange {
             const accounts = this.safeValue (this.options, 'accounts', {});
             const fromId = this.safeString (accounts, fromAccount);
             const toId = this.safeString (accounts, toAccount);
-            const allAccounts = '';
             if (fromId === undefined) {
                 const keys = Object.keys (accounts);
                 throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
