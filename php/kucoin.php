@@ -844,7 +844,8 @@ class kucoin extends Exchange {
         if ($type === 'market') {
             if ($quoteAmount !== null) {
                 $params = $this->omit($params, array( 'cost', 'funds' ));
-                $request['funds'] = $this->cost_to_precision($symbol, $quoteAmount);
+                // kucoin uses base precision even for quote values
+                $request['funds'] = $this->amount_to_precision($symbol, $quoteAmount);
             } else {
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
             }

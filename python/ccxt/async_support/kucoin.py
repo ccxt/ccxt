@@ -823,7 +823,8 @@ class kucoin(Exchange):
         if type == 'market':
             if quoteAmount is not None:
                 params = self.omit(params, ['cost', 'funds'])
-                request['funds'] = self.cost_to_precision(symbol, quoteAmount)
+                # kucoin uses base precision even for quote values
+                request['funds'] = self.amount_to_precision(symbol, quoteAmount)
             else:
                 request['size'] = self.amount_to_precision(symbol, amount)
         else:
