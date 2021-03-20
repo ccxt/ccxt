@@ -819,16 +819,16 @@ class kucoin(Exchange):
             # 'marginMode': 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
             # 'autoBorrow': False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
         }
-        if type != 'market':
-            request['price'] = self.price_to_precision(symbol, price)
-            request['size'] = self.amount_to_precision(symbol, amount)
-        else:
-            quoteAmount = self.safe_float_2(params, 'cost', 'funds')
+        quoteAmount = self.safe_float_2(params, 'cost', 'funds')
+        if type == 'market':
             if quoteAmount is not None:
-                # used to create market order by quote amount - https://github.com/ccxt/ccxt/issues/4876
-                request['funds'] = self.amount_to_precision(symbol, quoteAmount)
+                params = self.omit(params, ['cost', 'funds'])
+                request['funds'] = self.cost_to_precision(symbol, quoteAmount)
             else:
                 request['size'] = self.amount_to_precision(symbol, amount)
+        else:
+            request['price'] = self.price_to_precision(symbol, price)
+            request['size'] = self.amount_to_precision(symbol, amount)
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -861,8 +861,10 @@ class kucoin(Exchange):
             'fee': None,
             'trades': None,
         }
-        if not self.safe_value(params, 'quoteAmount'):
+        if quoteAmount is None:
             order['amount'] = amount
+        else:
+            order['cost'] = quoteAmount
         return order
 
     async def cancel_order(self, id, symbol=None, params={}):
