@@ -515,13 +515,20 @@ module.exports = class binance extends Exchange {
                     'future': 'fapiPrivateV2GetAccount', // 'fapiPrivateGetPositionRisk'
                     'delivery': 'dapiPrivateGetAccount', // 'dapiPrivateGetPositionRisk'
                 },
-                'accounts': {
+                'accountsByType': {
                     'main': 'MAIN',
                     'spot': 'MAIN',
                     'margin': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
                     'mining': 'MINING',
+                },
+                'typesByAccount': {
+                    'MAIN': 'spot',
+                    'MARGIN': 'margin',
+                    'UMFUTURE': 'future',
+                    'CMFUTURE': 'delivery',
+                    'MINING': 'mining',
                 },
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
@@ -2660,10 +2667,13 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (transfer, 'type');
         let fromAccount = undefined;
         let toAccount = undefined;
+        const typesByAccount = this.safeValue (this.options, 'typesByAccount', {});
         if (type !== undefined) {
             const parts = type.split ('_');
             fromAccount = this.safeValue (parts, 0);
             toAccount = this.safeValue (parts, 1);
+            fromAccount = this.safeString (typesByAccount, fromAccount, fromAccount);
+            toAccount = this.safeString (typesByAccount, toAccount, toAccount);
         }
         const timestamp = this.safeInteger (transfer, 'timestamp');
         const status = this.parseTransferStatus (this.safeString (transfer, 'status'));
@@ -2685,11 +2695,11 @@ module.exports = class binance extends Exchange {
         const currency = this.currency (code);
         let type = this.safeString (params, 'type');
         if (type === undefined) {
-            const accounts = this.safeValue (this.options, 'accounts', {});
-            const fromId = this.safeString (accounts, fromAccount);
-            const toId = this.safeString (accounts, toAccount);
+            const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+            const fromId = this.safeString (accounts, fromAccount, fromAccount);
+            const toId = this.safeString (accounts, toAccount, toAccount);
             if (fromId === undefined) {
-                const keys = Object.keys (accounts);
+                const keys = Object.keys (accountsByType);
                 throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
             }
             if (toId === undefined) {
@@ -2720,34 +2730,21 @@ module.exports = class binance extends Exchange {
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'spot');
-        const fromAccount = this.safeString (params, 'from', defaultType);
+        const fromAccount = this.safeString (params, 'fromAccount', defaultType);
         const defaultTo = (fromAccount === 'future') ? 'spot' : 'future';
-        const toAccount = this.safeString (params, 'to', defaultTo);
+        const toAccount = this.safeString (params, 'toAccount', defaultTo);
         let type = this.safeString (params, 'type');
-        const accounts = {
-            'main': 'MAIN',
-            'spot': 'MAIN',
-            'margin': 'MARGIN',
-            'future': 'UMFUTURE',
-            'delivery': 'CMFUTURE',
-            'mining': 'MINING',
-        };
-        const reverseAccounts = {
-            'MAIN': 'spot',
-            'MARGIN': 'margin',
-            'UMFUTURE': 'future',
-            'CMFUTURE': 'delivery',
-            'MINING': 'mining',
-        };
-        const fromId = this.safeString (accounts, fromAccount);
-        const toId = this.safeString (accounts, toAccount);
-        const allAccounts = 'spot/margin/future/delivery/mining';
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount);
         if (type === undefined) {
             if (fromId === undefined) {
-                throw new ExchangeError (this.id + ' from is not a valid account it must be one of ' + allAccounts + ' instead of ' + fromAccount);
+                const keys = Object.keys (accountsByType);
+                throw new ExchangeError (this.id + ' fromAccount parameter must be one of ' + keys.join (', '));
             }
             if (toId === undefined) {
-                throw new ExchangeError (this.id + ' to is not a valid account it must be one of ' + allAccounts + ' instead of ' + toAccount);
+                const keys = Object.keys (accountsByType);
+                throw new ExchangeError (this.id + ' toAccount parameter must be one of ' + keys.join (', '));
             }
             type = fromId + '_' + toId;
         }
@@ -2761,50 +2758,23 @@ module.exports = class binance extends Exchange {
             request['size'] = limit;
         }
         const response = await this.sapiGetAssetTransfer (this.extend (request, params));
-        // {
-        //   total: 3,
-        //   rows: [
+        //
         //     {
-        //       timestamp: 1614640878000,
-        //       asset: 'USDT',
-        //       amount: '25',
-        //       type: 'MAIN_UMFUTURE',
-        //       status: 'CONFIRMED',
-        //       tranId: 43000126248
-        //     },
-        //   ]
-        // }
+        //         total: 3,
+        //         rows: [
+        //             {
+        //                 timestamp: 1614640878000,
+        //                 asset: 'USDT',
+        //                 amount: '25',
+        //                 type: 'MAIN_UMFUTURE',
+        //                 status: 'CONFIRMED',
+        //                 tranId: 43000126248
+        //             },
+        //         ]
+        //     }
+        //
         const rows = this.safeValue (response, 'rows', []);
-        const result = [];
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            const timestamp = this.safeInteger (row, 'timestamp');
-            const status = this.safeStringLower (row, 'status');
-            const id = this.safeString (row, 'tranId');
-            const amount = this.safeFloat (row, 'amount');
-            const currencyId = this.safeString (row, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            const type = this.safeString (row, 'type');
-            let fromAccount = undefined;
-            let toAccount = undefined;
-            if (type !== undefined) {
-                const [ fromId, toId ] = type.split ('_');
-                fromAccount = this.safeString (reverseAccounts, fromId);
-                toAccount = this.safeString (reverseAccounts, toId);
-            }
-            result.push ({
-                'info': row,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'id': id,
-                'status': status,
-                'amount': amount,
-                'currency': code,
-                'from': fromAccount,
-                'to': toAccount,
-            });
-        }
-        return result;
+        return this.parseTransfers (rows, currency, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
