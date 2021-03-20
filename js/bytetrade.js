@@ -958,10 +958,10 @@ module.exports = class bytetrade extends Exchange {
         };
     }
 
-    async internalTransfer (code, amount, address, message = '', params = {}) {
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
         this.checkRequiredDependencies ();
         if (this.apiKey === undefined) {
-            throw new ArgumentsRequired ('internalTransfer() requires this.apiKey');
+            throw new ArgumentsRequired ('transfer() requires this.apiKey');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -976,6 +976,7 @@ module.exports = class bytetrade extends Exchange {
         expirationDatetime = expirationDatetime.split ('.')[0];
         const feeAmount = '300000000000000';
         const defaultDappId = 'Sagittarius';
+        const message = this.safeString (params, 'message', '');
         const dappId = this.safeString (params, 'dappId', defaultDappId);
         const eightBytes = this.integerPow ('2', '64');
         const byteStringArray = [
