@@ -840,7 +840,8 @@ module.exports = class kucoin extends Exchange {
         if (type === 'market') {
             if (quoteAmount !== undefined) {
                 params = this.omit (params, [ 'cost', 'funds' ]);
-                request['funds'] = this.costToPrecision (symbol, quoteAmount);
+                // kucoin uses base precision even for quote values
+                request['funds'] = this.amountToPrecision (symbol, quoteAmount);
             } else {
                 request['size'] = this.amountToPrecision (symbol, amount);
             }
