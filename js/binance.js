@@ -2627,6 +2627,59 @@ module.exports = class binance extends Exchange {
         };
     }
 
+    parseTransferStatus (status) {
+        const statuses = {
+            'CONFIRMED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // transfer
+        //
+        //     {
+        //         "tranId":13526853623
+        //     }
+        //
+        // fetchTransfers
+        //
+        //     {
+        //         timestamp: 1614640878000,
+        //         asset: 'USDT',
+        //         amount: '25',
+        //         type: 'MAIN_UMFUTURE',
+        //         status: 'CONFIRMED',
+        //         tranId: 43000126248
+        //     }
+        //
+        const id = this.safeString (transfer, 'tranId');
+        const currencyId = this.safeString (transfer, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const amount = this.safeFloat (transfer, 'amount');
+        const type = this.safeString (transfer, 'type');
+        let fromAccount = undefined;
+        let toAccount = undefined;
+        if (type !== undefined) {
+            const parts = type.split ('_');
+            fromAccount = this.safeValue (parts, 0);
+            toAccount = this.safeValue (parts, 1);
+        }
+        const timestamp = this.safeInteger (transfer, 'timestamp')
+        const status = this.parseTransferStatus (this.safeString (transfer, 'status'));
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
+        };
+    }
+
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2652,18 +2705,17 @@ module.exports = class binance extends Exchange {
             'type': type,
         };
         const response = await this.sapiPostAssetTransfer (this.extend (request, params));
-        const tranId = this.safeString (response, 'tranId');
-        return {
-            'info': response,
-            'id': tranId,
-            'currency': code,
-            'amount': requestedAmount,
-            'from': fromAccount,
-            'to': toAccount,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'status': undefined,
-        };
+        //
+        //     {
+        //         "tranId":13526853623
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        return this.extend (transfer, {
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
