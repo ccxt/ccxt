@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
 
 class ftx extends Exchange {
@@ -1134,22 +1135,28 @@ class ftx extends Exchange {
             $request['clientId'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
         }
-        $priceToPrecision = null;
-        if ($price !== null) {
-            $priceToPrecision = floatval($this->price_to_precision($symbol, $price));
-        }
-        $method = 'privatePostConditionalOrders';
+        $method = null;
         if ($type === 'limit') {
             $method = 'privatePostOrders';
-            $request['price'] = $priceToPrecision;
+            $request['price'] = floatval($this->price_to_precision($symbol, $price));
         } else if ($type === 'market') {
             $method = 'privatePostOrders';
             $request['price'] = null;
         } else if (($type === 'stop') || ($type === 'takeProfit')) {
-            $request['triggerPrice'] = $priceToPrecision;
-            // $request['orderPrice'] = number; // optional, order $type is limit if this is specified, otherwise $market
+            $method = 'privatePostConditionalOrders';
+            $stopPrice = $this->safe_float_2($params, array( 'stopPrice', 'triggerPrice' ));
+            if ($stopPrice === null) {
+                $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
+                $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $stopPrice));
+            } else {
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $stopPrice parameter or a triggerPrice parameter for ' . $type . ' orders');
+            }
+            if ($price !== null) {
+                $request['orderPrice'] = floatval($this->price_to_precision($symbol, $price)); // optional, order $type is limit if this is specified, otherwise $market
+            }
         } else if ($type === 'trailingStop') {
-            $request['trailValue'] = $priceToPrecision; // negative for "sell", positive for "buy"
+            $method = 'privatePostConditionalOrders';
+            $request['trailValue'] = floatval($this->price_to_precision($symbol, $price)); // negative for "sell", positive for "buy"
         } else {
             throw new InvalidOrder($this->id . ' createOrder () does not support order $type ' . $type . ', only limit, $market, stop, trailingStop, or takeProfit orders are supported');
         }
