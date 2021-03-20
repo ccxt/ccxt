@@ -1092,10 +1092,6 @@ module.exports = class Exchange {
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        // this code is commented out temporarily to catch for exchange-specific errors
-        // if (!this.isArray (trades)) {
-        //     throw new ExchangeError (this.id + ' parseTrades expected an array in the trades argument, but got ' + typeof trades);
-        // }
         let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
         result = sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
@@ -1104,11 +1100,15 @@ module.exports = class Exchange {
     }
 
     parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
-        // this code is commented out temporarily to catch for exchange-specific errors
-        // if (!this.isArray (transactions)) {
-        //     throw new ExchangeError (this.id + ' parseTransactions expected an array in the transactions argument, but got ' + typeof transactions);
-        // }
         let result = Object.values (transactions || []).map ((transaction) => this.extend (this.parseTransaction (transaction, currency), params))
+        result = this.sortBy (result, 'timestamp');
+        const code = (currency !== undefined) ? currency['code'] : undefined;
+        const tail = since === undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
+    }
+
+    parseTransfers (transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = Object.values (transfers || []).map ((transfer) => this.extend (this.parseTransfer (transfer, currency), params))
         result = this.sortBy (result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
         const tail = since === undefined;
