@@ -119,7 +119,7 @@ class Client(object):
         self.connectionStarted = Exchange.milliseconds()
         try:
             coroutine = self.create_connection(session)
-            self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000), loop=self.asyncio_loop)
+            self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
             self.connecting = False
             if self.verbose:
                 self.print(Exchange.iso8601(Exchange.milliseconds()), 'connected')
