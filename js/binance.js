@@ -2729,6 +2729,7 @@ module.exports = class binance extends Exchange {
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const currency = this.currency (code);
         const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'spot');
         const fromAccount = this.safeString (params, 'fromAccount', defaultType);
         const defaultTo = (fromAccount === 'future') ? 'spot' : 'future';
