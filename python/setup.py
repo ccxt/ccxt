@@ -77,7 +77,7 @@ setup(
         ':python_version>="3.5.2"': [
             'aiohttp>=3.0.1',
             'aiodns>=1.1.1',
-            'ccxt>=1.43.76',
+            'ccxt>=1.43.81',
             'yarl==1.1.0',
         ],
         'qa': [
