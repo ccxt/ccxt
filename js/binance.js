@@ -2722,8 +2722,10 @@ module.exports = class binance extends Exchange {
         const transfer = this.parseTransfer (response, currency);
         return this.extend (transfer, {
             'amount': amount,
+            'currency': code,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
+            'status': 'pending',
         });
     }
 
