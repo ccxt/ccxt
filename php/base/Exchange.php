@@ -1893,6 +1893,30 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
     }
 
+    public function parse_transactions($transactions, $currency = null, $since = null, $limit = null, $params = array()) {
+        $array = is_array($transactions) ? array_values($transactions) : array();
+        $result = array();
+        foreach ($array as $transaction) {
+            $result[] = array_replace_recursive($this->parse_transaction($transaction, $currency), $params);
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        $code = isset($currency) ? $currency['code'] : null;
+        $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
+
+    public function parse_transfers($transfers, $currency = null, $since = null, $limit = null, $params = array()) {
+        $array = is_array($transfers) ? array_values($transfers) : array();
+        $result = array();
+        foreach ($array as $transfer) {
+            $result[] = array_replace_recursive($this->parse_transaction($transfer, $currency), $params);
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        $code = isset($currency) ? $currency['code'] : null;
+        $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
+
     public function parse_ledger($items, $currency = null, $since = null, $limit = null, $params = array()) {
         $array = is_array($items) ? array_values($items) : array();
         $result = array();
@@ -1905,18 +1929,6 @@ class Exchange {
             } else {
                 $result[] = array_replace_recursive($entry, $params);
             }
-        }
-        $result = $this->sort_by($result, 'timestamp');
-        $code = isset($currency) ? $currency['code'] : null;
-        $tail = $since === null;
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
-    }
-
-    public function parse_transactions($transactions, $currency = null, $since = null, $limit = null, $params = array()) {
-        $array = is_array($transactions) ? array_values($transactions) : array();
-        $result = array();
-        foreach ($array as $transaction) {
-            $result[] = array_replace_recursive($this->parse_transaction($transaction, $currency), $params);
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = isset($currency) ? $currency['code'] : null;
