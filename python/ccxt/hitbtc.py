@@ -56,6 +56,7 @@ class hitbtc(Exchange):
                 'fetchTransactions': True,
                 'fetchWithdrawals': False,
                 'withdraw': True,
+                'transfer': True,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -183,6 +184,17 @@ class hitbtc(Exchange):
             },
             'options': {
                 'defaultTimeInForce': 'FOK',
+                'accountsByType': {
+                    'bank': 'bank',
+                    'exchange': 'exchange',
+                    'main': 'bank',  # alias of the above
+                    'trading': 'exchange',
+                },
+                'fetchBalanceMethod': {
+                    'account': 'account',
+                    'main': 'account',
+                    'trading': 'trading',
+                },
             },
             'commonCurrencies': {
                 'BCC': 'BCC',  # initial symbol for Bitcoin Cash, now inactive
@@ -211,7 +223,6 @@ class hitbtc(Exchange):
                 '20002': OrderNotFound,  # canceling non-existent order
                 '20001': InsufficientFunds,  # {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
             },
-            'orders': {},  # orders cache / emulation
         })
 
     def fee_to_precision(self, symbol, fee):
@@ -284,6 +295,44 @@ class hitbtc(Exchange):
                 },
             }))
         return result
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        # account can be "exchange" or "bank", with aliases "main" or "trading" respectively
+        self.load_markets()
+        currency = self.currency(code)
+        requestAmount = self.currency_to_precision(code, amount)
+        request = {
+            'currency': currency['id'],
+            'amount': requestAmount,
+        }
+        type = self.safe_string(params, 'type')
+        if type is None:
+            accountsByType = self.safe_value(self.options, 'accountsByType', {})
+            fromId = self.safe_string(accountsByType, fromAccount)
+            toId = self.safe_string(accountsByType, toAccount)
+            keys = list(accountsByType.keys())
+            if fromId is None:
+                raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys) + ' instead of ' + fromId)
+            if toId is None:
+                raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys) + ' instead of ' + toId)
+            if fromId == toId:
+                raise ExchangeError(self.id + ' from and to cannot be the same account')
+            type = fromId + 'To' + self.capitalize(toId)
+        request['type'] = type
+        response = self.privatePostAccountTransfer(self.extend(request, params))
+        # {id: '2db6ebab-fb26-4537-9ef8-1a689472d236'}
+        id = self.safe_string(response, 'id')
+        return {
+            'info': response,
+            'id': id,
+            'timestamp': None,
+            'datetime': None,
+            'amount': requestAmount,
+            'currency': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': None,
+        }
 
     def fetch_currencies(self, params={}):
         response = self.publicGetCurrency(params)
@@ -382,7 +431,11 @@ class hitbtc(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         type = self.safe_string(params, 'type', 'trading')
-        method = 'privateGet' + self.capitalize(type) + 'Balance'
+        fetchBalanceAccounts = self.safe_value(self.options, 'fetchBalanceMethod', {})
+        typeId = self.safe_string(fetchBalanceAccounts, type)
+        if typeId is None:
+            raise ExchangeError(self.id + ' fetchBalance account type must be either main or trading')
+        method = 'privateGet' + self.capitalize(typeId) + 'Balance'
         query = self.omit(params, 'type')
         response = getattr(self, method)(query)
         result = {'info': response}
