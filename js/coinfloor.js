@@ -451,17 +451,12 @@ module.exports = class coinfloor extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
         let side = undefined;
         const status = this.safeString (order, 'status');
-        if (order['type'] === 0) {
+        const rawType = this.safeString (order, 'type');
+        if (rawType === '0') {
             side = 'buy';
-        } else if (order['type'] === 1) {
+        } else if (rawType === '1') {
             side = 'sell';
         }
         let symbol = undefined;
@@ -469,7 +464,7 @@ module.exports = class coinfloor extends Exchange {
             symbol = market['symbol'];
         }
         const id = this.safeString (order, 'id');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -487,11 +482,11 @@ module.exports = class coinfloor extends Exchange {
             'amount': undefined,
             'filled': undefined,
             'remaining': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
             'average': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
