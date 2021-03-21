@@ -83,7 +83,7 @@ module.exports = class bybit extends Exchange {
                             'stop-order/list',
                             'stop-order',
                             'execution/list',
-                            'trade/closed-pnl/list'
+                            'trade/closed-pnl/list',
                         ],
                         'post': [
                             'order/create',
