@@ -322,11 +322,13 @@ module.exports = class hitbtc extends Exchange {
         return {
             'info': response,
             'id': id,
-            'status': undefined,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+            'timestamp': undefined,
+            'datetime': undefined,
             'amount': requestAmount,
             'currency': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': undefined,
         };
     }
 
