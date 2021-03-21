@@ -497,7 +497,24 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchMarkets (params = {}) {
         const ids = await this.publicGetSymbols ();
+        //
+        //     [ "btcusd", "ltcusd", "ltcbtc" ]
+        //
         const details = await this.publicGetSymbolsDetails ();
+        //
+        //     [
+        //         {
+        //             "pair":"btcusd",
+        //             "price_precision":5,
+        //             "initial_margin":"10.0",
+        //             "minimum_margin":"5.0",
+        //             "maximum_order_size":"2000.0",
+        //             "minimum_order_size":"0.0002",
+        //             "expiration":"NA",
+        //             "margin":true
+        //         },
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < details.length; i++) {
             const market = details[i];
@@ -540,6 +557,7 @@ module.exports = class bitfinex extends Exchange {
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': undefined,
             };
+            const margin = this.safeValue (market, 'margin');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -548,6 +566,8 @@ module.exports = class bitfinex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
+                'type': 'spot',
+                'margin': margin,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
