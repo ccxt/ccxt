@@ -3017,7 +3017,7 @@ $exchange->create_order($symbol, $type, $side, $amount, $price, array(
 
 #### Other Order Types
 
-The `type` can be either `limit` or `market`, if you want a `stopLimit` type, use params overrides, as described here: #overriding-unified-api-params.
+The `type` can be either `limit` or `market`, if you want a `stopLimit` type, use [params overrides](#overriding-unified-api-params).
 
 The following is a generic example for overriding the order type, however, you must read the docs for the exchange in question in order to specify proper arguments and values. Order types other than `limit` or `market` are currently not unified, therefore for other order types one has to override the unified params as shown below.
 
