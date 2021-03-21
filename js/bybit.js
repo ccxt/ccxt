@@ -2274,8 +2274,8 @@ module.exports = class bybit extends Exchange {
         const request = {};
         if (Array.isArray (symbols)) {
             const length = symbols.length;
-            if (length > 1) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions only takes one symbol');
+            if (length !== 1) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions takes exactly one symbol');
             }
             request['symbol'] = this.marketId (symbols[0]);
         }
