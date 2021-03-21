@@ -500,7 +500,24 @@ class bitfinex extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $ids = yield $this->publicGetSymbols ();
+        //
+        //     array( "btcusd", "ltcusd", "ltcbtc" )
+        //
         $details = yield $this->publicGetSymbolsDetails ();
+        //
+        //     array(
+        //         array(
+        //             "pair":"btcusd",
+        //             "price_precision":5,
+        //             "initial_margin":"10.0",
+        //             "minimum_margin":"5.0",
+        //             "maximum_order_size":"2000.0",
+        //             "minimum_order_size":"0.0002",
+        //             "expiration":"NA",
+        //             "$margin":true
+        //         ),
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($details); $i++) {
             $market = $details[$i];
@@ -543,6 +560,7 @@ class bitfinex extends Exchange {
                 'min' => $limits['amount']['min'] * $limits['price']['min'],
                 'max' => null,
             );
+            $margin = $this->safe_value($market, 'margin');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -551,6 +569,8 @@ class bitfinex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
+                'type' => 'spot',
+                'margin' => $margin,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,

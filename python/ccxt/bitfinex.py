@@ -510,7 +510,24 @@ class bitfinex(Exchange):
 
     def fetch_markets(self, params={}):
         ids = self.publicGetSymbols()
+        #
+        #     ["btcusd", "ltcusd", "ltcbtc"]
+        #
         details = self.publicGetSymbolsDetails()
+        #
+        #     [
+        #         {
+        #             "pair":"btcusd",
+        #             "price_precision":5,
+        #             "initial_margin":"10.0",
+        #             "minimum_margin":"5.0",
+        #             "maximum_order_size":"2000.0",
+        #             "minimum_order_size":"0.0002",
+        #             "expiration":"NA",
+        #             "margin":true
+        #         },
+        #     ]
+        #
         result = []
         for i in range(0, len(details)):
             market = details[i]
@@ -551,6 +568,7 @@ class bitfinex(Exchange):
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': None,
             }
+            margin = self.safe_value(market, 'margin')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -559,6 +577,8 @@ class bitfinex(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
+                'type': 'spot',
+                'margin': margin,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
