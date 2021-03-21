@@ -841,14 +841,16 @@ module.exports = class bibox extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const type = (this.safeString (order, 'order_type') === '1') ? 'market' : 'limit';
+        const rawType = this.safeString (order, 'order_type');
+        const type = (rawType === '1') ? 'market' : 'limit';
         const timestamp = this.safeInteger (order, 'createdAt');
         const price = this.safeFloat (order, 'price');
         const average = this.safeFloat (order, 'deal_price');
         const filled = this.safeFloat (order, 'deal_amount');
         const amount = this.safeFloat (order, 'amount');
         const cost = this.safeFloat2 (order, 'deal_money', 'money');
-        const side = (this.safeString (order, 'order_side') === '1') ? 'buy' : 'sell';
+        const rawSide = this.safeString (order, 'order_side');
+        const side = (rawSide === '1') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'id');
         const feeCost = this.safeFloat (order, 'fee');
