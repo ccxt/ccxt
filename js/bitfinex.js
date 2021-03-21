@@ -882,6 +882,28 @@ module.exports = class bitfinex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        // {
+        //       id: 57334010955,
+        //       cid: 1611584840966,
+        //       cid_date: null,
+        //       gid: null,
+        //       symbol: 'ltcbtc',
+        //       exchange: null,
+        //       price: '0.0042125',
+        //       avg_execution_price: '0.0042097',
+        //       side: 'sell',
+        //       type: 'exchange market',
+        //       timestamp: '1611584841.0',
+        //       is_live: false,
+        //       is_cancelled: false,
+        //       is_hidden: 0,
+        //       oco_order: 0,
+        //       was_forced: false,
+        //       original_amount: '0.205176',
+        //       remaining_amount: '0.0',
+        //       executed_amount: '0.205176',
+        //       src: 'web'
+        // }
         const side = this.safeString (order, 'side');
         const open = this.safeValue (order, 'is_live');
         const canceled = this.safeValue (order, 'is_cancelled');
@@ -893,30 +915,17 @@ module.exports = class bitfinex extends Exchange {
         } else {
             status = 'closed';
         }
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeStringUpper (order, 'symbol');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                }
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        let orderType = order['type'];
+        const marketId = this.safeStringUpper (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        let orderType = this.safeString (order, 'type', '');
         const exchange = orderType.indexOf ('exchange ') >= 0;
         if (exchange) {
             const parts = order['type'].split (' ');
             orderType = parts[1];
         }
-        let timestamp = this.safeFloat (order, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp) * 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'timestamp');
         const id = this.safeString (order, 'id');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -938,7 +947,7 @@ module.exports = class bitfinex extends Exchange {
             'fee': undefined,
             'cost': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
