@@ -4,6 +4,8 @@
 
 Installing CCXT Pro requires visiting the https://ccxt.pro website and obtaining a CCXT Pro license. The license gives you the access to the CCXT Pro codebase in a private GitHub repository.
 
+CCXT Pro is a tool for professionals and it requires a certain expertise in programming, cryptocurrencies and trading.
+
 **You have to configure your [GitHub authentication](https://docs.github.com/en/github/authenticating-to-github) over SSH or HTTPS.**
 
 ```diff
