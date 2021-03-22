@@ -597,7 +597,7 @@ class tprexchange(Exchange):
             'code': value.get('name').upper(),
             'name': value.get('name'),
             'active': bool(value.get('status')),
-            'fee': 0.001,
+            'fee': 0.005,
             'precision': 0,
             'limits':
             {
@@ -1020,7 +1020,7 @@ class tprexchange(Exchange):
         #       'cost': 1.0, 
         #       'fee': 
         #       {
-        #           'cost': 0.001, 
+        #           'cost': 0.005, 
         #           'currency': 'BTC', 
         #           'rate': 'None' (Have no this information inside TPR exchange)
         #       }
@@ -1064,7 +1064,7 @@ class tprexchange(Exchange):
                 'cost': cost,
                 'fee':
                 {
-                    'cost': 0.001,
+                    'cost': 0.005,
                     'currency': ExchangeOrder.get('coinSymbol'),
                     'rate': 'None',
                 }
