@@ -846,23 +846,16 @@ class bibox extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $type = ($order['order_type'] === 1) ? 'market' : 'limit';
-        $timestamp = $order['createdAt'];
+        $rawType = $this->safe_string($order, 'order_type');
+        $type = ($rawType === '1') ? 'market' : 'limit';
+        $timestamp = $this->safe_integer($order, 'createdAt');
         $price = $this->safe_float($order, 'price');
         $average = $this->safe_float($order, 'deal_price');
         $filled = $this->safe_float($order, 'deal_amount');
         $amount = $this->safe_float($order, 'amount');
         $cost = $this->safe_float_2($order, 'deal_money', 'money');
-        $remaining = null;
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-            }
-            if ($cost === null) {
-                $cost = $price * $filled;
-            }
-        }
-        $side = ($order['order_side'] === 1) ? 'buy' : 'sell';
+        $rawSide = $this->safe_string($order, 'order_side');
+        $side = ($rawSide === '1') ? 'buy' : 'sell';
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'id');
         $feeCost = $this->safe_float($order, 'fee');
@@ -873,8 +866,7 @@ class bibox extends Exchange {
                 'currency' => null,
             );
         }
-        $cost = $cost ? $cost : (floatval($price) * $filled);
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -892,11 +884,11 @@ class bibox extends Exchange {
             'cost' => $cost,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {
