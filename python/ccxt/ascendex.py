@@ -66,7 +66,7 @@ class ascendex(Exchange):
             },
             'version': 'v1',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/66820319-19710880-ef49-11e9-8fbe-16be62a11992.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg',
                 'api': 'https://ascendex.com',
                 'test': 'https://bitmax-test.io',
                 'www': 'https://ascendex.com',
