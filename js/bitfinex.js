@@ -882,28 +882,30 @@ module.exports = class bitfinex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // {
-        //       id: 57334010955,
-        //       cid: 1611584840966,
-        //       cid_date: null,
-        //       gid: null,
-        //       symbol: 'ltcbtc',
-        //       exchange: null,
-        //       price: '0.0042125',
-        //       avg_execution_price: '0.0042097',
-        //       side: 'sell',
-        //       type: 'exchange market',
-        //       timestamp: '1611584841.0',
-        //       is_live: false,
-        //       is_cancelled: false,
-        //       is_hidden: 0,
-        //       oco_order: 0,
-        //       was_forced: false,
-        //       original_amount: '0.205176',
-        //       remaining_amount: '0.0',
-        //       executed_amount: '0.205176',
-        //       src: 'web'
-        // }
+        //
+        //     {
+        //           id: 57334010955,
+        //           cid: 1611584840966,
+        //           cid_date: null,
+        //           gid: null,
+        //           symbol: 'ltcbtc',
+        //           exchange: null,
+        //           price: '0.0042125',
+        //           avg_execution_price: '0.0042097',
+        //           side: 'sell',
+        //           type: 'exchange market',
+        //           timestamp: '1611584841.0',
+        //           is_live: false,
+        //           is_cancelled: false,
+        //           is_hidden: 0,
+        //           oco_order: 0,
+        //           was_forced: false,
+        //           original_amount: '0.205176',
+        //           remaining_amount: '0.0',
+        //           executed_amount: '0.205176',
+        //           src: 'web'
+        //     }
+        //
         const side = this.safeString (order, 'side');
         const open = this.safeValue (order, 'is_live');
         const canceled = this.safeValue (order, 'is_cancelled');
