@@ -286,6 +286,15 @@ module.exports = class bitfinex2 extends bitfinex {
                     'JPY': 'JPY',
                     'GBP': 'GBP',
                 },
+                // actually the correct names unlike the v1
+                // we don't want to extend this with accountsByType in v1
+                'v2AccountsByType': {
+                    'spot': 'exchange',
+                    'exchange': 'exchange',
+                    'funding': 'funding',
+                    'margin': 'margin',
+                    'derivatives': 'margin',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -507,7 +516,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const ids = this.safeValue (response, 0, []);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
+            const id = ids[i];
             const code = this.safeCurrencyCode (id);
             const label = this.safeValue (indexed['label'], id, []);
             const name = this.safeString (label, 1);
@@ -516,12 +525,14 @@ module.exports = class bitfinex2 extends bitfinex {
             const feeValues = this.safeValue (indexed['fees'], id, []);
             const fees = this.safeValue (feeValues, 1, []);
             const fee = this.safeFloat (fees, 1);
+            // we look in both fields
+            const undl = this.safeValue (indexed['undl'], id, []);
             const precision = 8; // default precision, todo: fix "magic constants"
-            id = 'f' + id;
+            const fid = 'f' + id;
             result[code] = {
-                'id': id,
+                'id': fid,
                 'code': code,
-                'info': [ id, label, pool, feeValues ],
+                'info': [ id, label, pool, feeValues, undl ],
                 'type': type,
                 'name': name,
                 'active': true,
@@ -552,40 +563,117 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchBalance (params = {}) {
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
+        // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         await this.loadMarkets ();
-        const response = await this.privatePostAuthRWallets (params);
-        const balanceType = this.safeString (params, 'type', 'exchange');
+        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const requestedType = this.safeString (params, 'type', 'exchange');
+        const accountType = this.safeString (accountsByType, requestedType);
+        if (accountType === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));
+        }
+        const isDerivative = requestedType === 'derivatives';
+        const query = this.omit (params, 'type');
+        const response = await this.privatePostAuthRWallets (query);
         const result = { 'info': response };
-        for (let b = 0; b < response.length; b++) {
-            const balance = response[b];
-            const accountType = balance[0];
-            let currency = balance[1];
-            const total = balance[2];
-            const available = balance[4];
-            if (accountType === balanceType) {
-                if (currency[0] === 't') {
-                    currency = currency.slice (1);
-                }
-                const code = this.safeCurrencyCode (currency);
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const type = this.safeString (balance, 0);
+            const currencyId = this.safeStringLower (balance, 1, '');
+            const start = currencyId.length - 2;
+            const isDerivativeCode = currencyId.slice (start) === 'f0';
+            // this will only filter the derivative codes if the requestedType is 'derivatives'
+            const derivativeCondition = (!isDerivative || isDerivativeCode);
+            if ((accountType === type) && derivativeCondition) {
+                const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                // do not fill in zeroes and missing values in the parser
-                // rewrite and unify the following to use the unified parseBalance
-                account['total'] = total;
-                if (!available) {
-                    if (available === 0) {
-                        account['free'] = 0;
-                        account['used'] = total;
-                    } else {
-                        account['free'] = total;
-                    }
-                } else {
-                    account['free'] = available;
-                    account['used'] = account['total'] - account['free'];
-                }
+                account['total'] = this.safeFloat (balance, 2);
+                account['free'] = this.safeFloat (balance, 4);
                 result[code] = account;
             }
         }
         return this.parseBalance (result);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        // transferring between derivatives wallet and regular wallet is not documented in their API
+        // however we support it in CCXT (from just looking at web inspector)
+        await this.loadMarkets ();
+        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount);
+        if (fromId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' transfer fromAccount must be one of ' + keys.join (', '));
+        }
+        const toId = this.safeString (accountsByType, toAccount);
+        if (toId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' transfer toAccount must be one of ' + keys.join (', '));
+        }
+        const currency = this.currency (code);
+        const fromCurrencyId = this.convertDerivativesId (currency, fromAccount);
+        const toCurrencyId = this.convertDerivativesId (currency, toAccount);
+        const requestedAmount = this.currencyToPrecision (code, amount);
+        // this request is slightly different from v1 fromAccount -> from
+        const request = {
+            'amount': requestedAmount,
+            'currency': fromCurrencyId,
+            'currency_to': toCurrencyId,
+            'from': fromId,
+            'to': toId,
+        };
+        const response = await this.privatePostAuthWTransfer (this.extend (request, params));
+        //  [1616451183763,"acc_tf",null,null,[1616451183763,"exchange","margin",null,"UST","UST",null,1],null,"SUCCESS","1.0 Tether USDt transfered from Exchange to Margin"]
+        const timestamp = this.safeInteger (response, 0);
+        //  ["error",10001,"Momentary balance check. Please wait few seconds and try the transfer again."]
+        const error = this.safeString (response, 0);
+        if (error === 'error') {
+            const message = this.safeString (response, 2, '');
+            // same message as in v1
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
+            throw new ExchangeError (this.id + ' ' + message);
+        }
+        const info = this.safeValue (response, 4);
+        const fromResponse = this.safeString (info, 1);
+        const toResponse = this.safeString (info, 2);
+        const toCode = this.safeCurrencyCode (this.safeString (info, 5));
+        const success = this.safeString (response, 6);
+        const status = (success === 'SUCCESS') ? 'ok' : undefined;
+        return {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': status,
+            'amount': requestedAmount,
+            'code': toCode,
+            'fromAccount': fromResponse,
+            'toAccount': toResponse,
+        };
+    }
+
+    convertDerivativesId (currency, type) {
+        // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
+        // {
+        //   id: 'fUSTF0',
+        //   code: 'USTF0',
+        //   info: [ 'USTF0', [], [], [], [ 'USTF0', 'UST' ] ],
+        const info = this.safeValue (currency, 'info');
+        const transferId = this.safeString (info, 0);
+        const underlying = this.safeValue (info, 4, []);
+        let currencyId = undefined;
+        if (type === 'derivatives') {
+            currencyId = this.safeString (underlying, 0, transferId);
+            const start = currencyId.length - 2;
+            const isDerivativeCode = currencyId.slice (start) === 'F0';
+            if (!isDerivativeCode) {
+                currencyId = currencyId + 'F0';
+            }
+        } else if (type !== 'margin') {
+            currencyId = this.safeString (underlying, 1, transferId);
+        } else {
+            currencyId = transferId;
+        }
+        return currencyId;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
