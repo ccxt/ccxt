@@ -42,6 +42,7 @@ module.exports = class bybit extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': false,
                 'fetchWithdrawals': true,
+                'fetchPositions': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -73,6 +74,34 @@ module.exports = class bybit extends Exchange {
                 'referral': 'https://www.bybit.com/app/register?ref=X7Prm',
             },
             'api': {
+                'futures': {
+                    'private': {
+                        'get': [
+                            'position/list',
+                            'order/list',
+                            'order',
+                            'stop-order/list',
+                            'stop-order',
+                            'execution/list',
+                            'trade/closed-pnl/list',
+                        ],
+                        'post': [
+                            'order/create',
+                            'order/cancel',
+                            'order/cancelAll',
+                            'order/replace',
+                            'stop-order/create',
+                            'stop-order/cancel',
+                            'stop-order/cancelAll',
+                            'stop-order/replace',
+                            'position/change-position-margin',
+                            'position/trading-stop',
+                            'position/leverage/save',
+                            'position/switch-mode',
+                            'position/switch-isolated',
+                        ],
+                    },
+                },
                 'v2': {
                     'public': {
                         'get': [
@@ -287,6 +316,7 @@ module.exports = class bybit extends Exchange {
                     'XTZ/USDT': 'linear',
                     'LINK/USDT': 'linear',
                 },
+                'defaultType': 'linear',  // may also be inverse or inverseFuture
                 'code': 'BTC',
                 'cancelAllOrders': {
                     // 'method': 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
@@ -2238,5 +2268,36 @@ module.exports = class bybit extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (Array.isArray (symbols)) {
+            const length = symbols.length;
+            if (length !== 1) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions takes exactly one symbol');
+            }
+            request['symbol'] = this.marketId (symbols[0]);
+        }
+        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        let response = undefined;
+        if (type === 'linear') {
+            response = await this.privateLinearGetPositionList (this.extend (request, params));
+        } else if (type === 'inverse') {
+            response = await this.v2PrivateGetPositionList (this.extend (request, params));
+        } else if (type === 'inverseFuture') {
+            response = await this.futuresPrivateGetPositionList (this.extend (request, params));
+        }
+        // {
+        //   ret_code: 0,
+        //   ret_msg: 'OK',
+        //   ext_code: '',
+        //   ext_info: '',
+        //   result: [] or {} depending on the request
+        // }
+        return this.safeValue (response, 'result');
     }
 };
