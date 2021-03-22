@@ -1,4 +1,5 @@
 {
+    "aax":           { "skip": true },
     "bcex":          { "skip": true },
     "bibox":         { "has": { "fetchCurrencies": false }},
     "bitforex":      { "skip": true },
