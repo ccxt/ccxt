@@ -659,7 +659,8 @@ module.exports = class bitfinex extends Exchange {
             const balance = response[i];
             const type = this.safeString (balance, 'type');
             const currencyId = this.safeStringLower (balance, 'currency', '');
-            const isDerivativeCode = currencyId.slice (currencyId.length - 2, currencyId.length) === 'f0';
+            const start = currencyId.length - 2;
+            const isDerivativeCode = currencyId.slice (start) === 'f0';
             // this will only filter the derivative codes if the requestedType is 'derivatives'
             const derivativeCondition = (!isDerivative || isDerivativeCode);
             if ((accountType === type) && derivativeCondition) {
@@ -715,11 +716,15 @@ module.exports = class bitfinex extends Exchange {
         // ]
         const result = this.safeValue (response, 0);
         const status = this.safeString (result, 'status');
+        const message = this.safeString (result, 'message');
         // [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
         if (status === 'error') {
             const message = this.safeString (result, 'message');
             this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
             throw new ExchangeError (this.id + ' ' + message);
+        }
+        if (message === null) {
+            throw new ExchangeError (this.id + ' transfer failed');
         }
         return {
             'info': response,
@@ -732,9 +737,10 @@ module.exports = class bitfinex extends Exchange {
     }
 
     convertDerivativesId (currencyId, type) {
-        const isDerivativeCode = currencyId.slice (currencyId.length - 2, currencyId.length) === 'F0';
+        const start = currencyId.length - 2;
+        const isDerivativeCode = currencyId.slice (start) === 'F0';
         if ((type !== 'derivatives' && type !== 'trading') && isDerivativeCode) {
-            currencyId = currencyId.slice (0, currencyId.length - 2);
+            currencyId = currencyId.slice (0, start);
         } else if (type === 'derivatives' && !isDerivativeCode) {
             currencyId = currencyId + 'F0';
         }
