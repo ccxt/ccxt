@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c46849ee084e237d20f9c67d7ac47ba5",
+    "content-hash": "4c3355a065e49744a89499de6c18624d",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.43.81",
+            "version": "1.43.92",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "ddd63ff7b74a391c73717457ce9265f4777dbf11"
+                "reference": "6d44d9d4516948a4769a3f1d37453b08d845fb15"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/ddd63ff7b74a391c73717457ce9265f4777dbf11",
-                "reference": "ddd63ff7b74a391c73717457ce9265f4777dbf11",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/6d44d9d4516948a4769a3f1d37453b08d845fb15",
+                "reference": "6d44d9d4516948a4769a3f1d37453b08d845fb15",
                 "shasum": ""
             },
             "require": {
@@ -281,7 +281,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.43.81"
+                "source": "https://github.com/ccxt/ccxt/tree/1.43.92"
             },
             "funding": [
                 {
@@ -289,7 +289,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2021-03-20T14:29:16+00:00"
+            "time": "2021-03-22T11:00:58+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -340,16 +340,16 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "1.7.0",
+            "version": "1.8.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "53330f47520498c0ae1f61f7e2c90f55690c06a3"
+                "reference": "35ea11d335fd638b5882ff1725228b3d35496ab1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/53330f47520498c0ae1f61f7e2c90f55690c06a3",
-                "reference": "53330f47520498c0ae1f61f7e2c90f55690c06a3",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/35ea11d335fd638b5882ff1725228b3d35496ab1",
+                "reference": "35ea11d335fd638b5882ff1725228b3d35496ab1",
                 "shasum": ""
             },
             "require": {
@@ -409,9 +409,9 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/1.7.0"
+                "source": "https://github.com/guzzle/psr7/tree/1.8.1"
             },
-            "time": "2020-09-30T07:37:11+00:00"
+            "time": "2021-03-21T16:25:00+00:00"
         },
         {
             "name": "icecave/repr",
