@@ -3141,7 +3141,7 @@ module.exports = class okex extends Exchange {
         return response;
     }
 
-    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let method = undefined;
         const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType');

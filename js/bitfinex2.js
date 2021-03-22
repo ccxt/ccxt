@@ -1469,7 +1469,7 @@ module.exports = class bitfinex2 extends bitfinex {
         });
     }
 
-    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostPositions (params);
         //

@@ -849,7 +849,7 @@ module.exports = class delta extends Exchange {
         return result;
     }
 
-    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetPositionsMargined (params);
         //
