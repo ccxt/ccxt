@@ -1385,7 +1385,7 @@ class bitfinex2(bitfinex):
             'address': address,
         })
 
-    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+    def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
         response = self.privatePostPositions(params)
         #

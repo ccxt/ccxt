@@ -405,7 +405,7 @@ class bitflyer(Exchange):
         response = await self.privateGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+    async def fetch_positions(self, symbols=None, params={}):
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array')
         await self.load_markets()

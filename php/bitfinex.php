@@ -1227,7 +1227,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostPositions ($params);
         //

@@ -1587,7 +1587,7 @@ class ftx extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetAccount ($params);
         //

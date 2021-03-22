@@ -1657,7 +1657,7 @@ class deribit extends Exchange {
         return $result;
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $code = $this->code_from_options('fetchPositions');
         $currency = $this->currency($code);

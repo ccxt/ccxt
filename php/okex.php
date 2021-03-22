@@ -3147,7 +3147,7 @@ class okex extends Exchange {
         return $response;
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $method = null;
         $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType');

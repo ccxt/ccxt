@@ -3020,7 +3020,7 @@ class okex(Exchange):
         # todo unify parsePosition/parsePositions
         return response
 
-    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+    def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
         method = None
         defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType')
