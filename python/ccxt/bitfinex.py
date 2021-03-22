@@ -850,6 +850,30 @@ class bitfinex(Exchange):
         return self.privatePostOrderCancelAll(params)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #           id: 57334010955,
+        #           cid: 1611584840966,
+        #           cid_date: null,
+        #           gid: null,
+        #           symbol: 'ltcbtc',
+        #           exchange: null,
+        #           price: '0.0042125',
+        #           avg_execution_price: '0.0042097',
+        #           side: 'sell',
+        #           type: 'exchange market',
+        #           timestamp: '1611584841.0',
+        #           is_live: False,
+        #           is_cancelled: False,
+        #           is_hidden: 0,
+        #           oco_order: 0,
+        #           was_forced: False,
+        #           original_amount: '0.205176',
+        #           remaining_amount: '0.0',
+        #           executed_amount: '0.205176',
+        #           src: 'web'
+        #     }
+        #
         side = self.safe_string(order, 'side')
         open = self.safe_value(order, 'is_live')
         canceled = self.safe_value(order, 'is_cancelled')
@@ -860,24 +884,16 @@ class bitfinex(Exchange):
             status = 'canceled'
         else:
             status = 'closed'
-        symbol = None
-        if market is None:
-            marketId = self.safe_string_upper(order, 'symbol')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
-        orderType = order['type']
+        marketId = self.safe_string_upper(order, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        orderType = self.safe_string(order, 'type', '')
         exchange = orderType.find('exchange ') >= 0
         if exchange:
             parts = order['type'].split(' ')
             orderType = parts[1]
-        timestamp = self.safe_float(order, 'timestamp')
-        if timestamp is not None:
-            timestamp = int(timestamp) * 1000
+        timestamp = self.safe_timestamp(order, 'timestamp')
         id = self.safe_string(order, 'id')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -899,7 +915,7 @@ class bitfinex(Exchange):
             'fee': None,
             'cost': None,
             'trades': None,
-        }
+        })
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
