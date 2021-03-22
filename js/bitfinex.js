@@ -717,14 +717,13 @@ module.exports = class bitfinex extends Exchange {
         const result = this.safeValue (response, 0);
         const status = this.safeString (result, 'status');
         const message = this.safeString (result, 'message');
+        if (message === undefined) {
+            throw new ExchangeError (this.id + ' transfer failed');
+        }
         // [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
         if (status === 'error') {
-            const message = this.safeString (result, 'message');
             this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
             throw new ExchangeError (this.id + ' ' + message);
-        }
-        if (message === null) {
-            throw new ExchangeError (this.id + ' transfer failed');
         }
         return {
             'info': response,
