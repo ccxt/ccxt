@@ -345,6 +345,8 @@ module.exports = class bitfinex extends Exchange {
                     'No summary found.': ExchangeError, // fetchTradingFees (summary) endpoint can give this vague error message
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
                     'Unknown symbol': BadSymbol,
+                    'Cannot complete transfer. Exchange balance insufficient.': InsufficientFunds,
+                    'Momentary balance check. Please wait few seconds and try the transfer again.': ExchangeError,
                 },
                 'broad': {
                     'Invalid X-BFX-SIGNATURE': AuthenticationError,
@@ -449,7 +451,7 @@ module.exports = class bitfinex extends Exchange {
                     'exchange': 'exchange',
                     'trading': 'trading',
                     'deposit': 'deposit',
-                    'derivative': 'trading',
+                    'derivatives': 'trading',
                 },
             },
         });
@@ -652,15 +654,14 @@ module.exports = class bitfinex extends Exchange {
         //        amount: '0.0005',
         //        available: '0.0005' } ],
         const result = { 'info': response };
-        const isDerivative = requestedType === 'derivative';
+        const isDerivative = requestedType === 'derivatives';
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const type = this.safeString (balance, 'type');
-            const currencyId = this.safeString (balance, 'currency');
-            const isDerivativeCode = (currencyId === 'btcf0') || (currencyId === 'ustf0');
-            // idek bro
-            const derivativeXor = (isDerivative && !isDerivativeCode) || (!isDerivative && isDerivativeCode);
-            if ((accountType === type) && !derivativeXor) {
+            const currencyId = this.safeStringLower (balance, 'currency', '');
+            const isDerivativeCode = currencyId.slice (currencyId.length - 2, currencyId.length) === 'f0';
+            const derivativeCondition = (!isDerivative || isDerivativeCode);
+            if ((accountType === type) && derivativeCondition) {
                 const code = this.safeCurrencyCode (currencyId);
                 // bitfinex had BCH previously, now it's BAB, but the old
                 // BCH symbol is kept for backward-compatibility
@@ -693,30 +694,14 @@ module.exports = class bitfinex extends Exchange {
             const keys = Object.keys (accountsByType);
             throw new ExchangeError (this.id + ' transfer toAccount must be one of ' + keys.join (', '));
         }
-        let fromCode = code;
-        let toCode = code;
-        if (fromAccount === 'derivative') {
-            if (code === 'USDT') {
-                fromCode = 'USTF0';
-            } else {
-                // ETHF0, EURF0, BTCF0, LINKF0
-                fromCode = code + 'F0';
-            }
-        }
-        if (toAccount === 'derivative') {
-            if (code === 'USDT') {
-                toCode = 'USTF0';
-            } else {
-                toCode = code + 'F0';
-            }
-        }
-        const fromCurrency = this.currency (fromCode);
-        const toCurrency = this.currency (toCode);
+        const currencyId = this.currencyId (code);
+        const fromCurrencyId = this.convertDerivativesId (currencyId, fromAccount);
+        const toCurrencyId = this.convertDerivativesId (currencyId, toAccount);
         const requestedAmount = this.currencyToPrecision (code, amount);
         const request = {
             'amount': requestedAmount,
-            'currency': fromCurrency['id'],
-            'currency_to': toCurrency['id'],
+            'currency': fromCurrencyId,
+            'currency_to': toCurrencyId,
             'walletfrom': fromId,
             'walletto': toId,
         };
@@ -728,14 +713,31 @@ module.exports = class bitfinex extends Exchange {
         //   }
         // ]
         const result = this.safeValue (response, 0);
+        const status = this.safeString (result, 'status');
+        // [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
+        if (status === 'error') {
+            const message = this.safeString (result, 'message');
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
+            throw new ExchangeError (this.id + ' ' + message);
+        }
         return {
             'info': response,
-            'status': this.safeString (result, 'status'),
+            'status': status,
             'amount': requestedAmount,
             'code': code,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         };
+    }
+
+    convertDerivativesId (currencyId, type) {
+        const isDerivativeCode = currencyId.slice (currencyId.length - 2, currencyId.length) === 'F0';
+        if ((type !== 'derivatives' && type !== 'trading') && isDerivativeCode) {
+            currencyId = currencyId.slice (0, currencyId.length - 2);
+        } else if (type === 'derivatives' && !isDerivativeCode) {
+            currencyId = currencyId + 'F0';
+        }
+        return currencyId;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
