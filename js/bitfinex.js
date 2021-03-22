@@ -45,6 +45,7 @@ module.exports = class bitfinex extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': false,
                 'withdraw': true,
+                'transfer': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -441,6 +442,15 @@ module.exports = class bitfinex extends Exchange {
                     'limit': 'exchange limit',
                     'market': 'exchange market',
                 },
+                'accountsByType': {
+                    'spot': 'exchange',
+                    'margin': 'trading',
+                    'funding': 'deposit',
+                    'exchange': 'exchange',
+                    'trading': 'trading',
+                    'deposit': 'deposit',
+                    'derivative': 'trading',
+                },
             },
         });
     }
@@ -620,12 +630,13 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const types = {
-            'exchange': 'exchange',
-            'deposit': 'funding',
-            'trading': 'margin',
-        };
-        const balanceType = this.safeString (params, 'type', 'exchange');
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const requestedType = this.safeString (params, 'type', 'exchange');
+        const accountType = this.safeString (accountsByType, requestedType);
+        if (accountType === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));
+        }
         const query = this.omit (params, 'type');
         const response = await this.privatePostBalances (query);
         //    [ { type: 'deposit',
@@ -641,12 +652,15 @@ module.exports = class bitfinex extends Exchange {
         //        amount: '0.0005',
         //        available: '0.0005' } ],
         const result = { 'info': response };
+        const isDerivative = requestedType === 'derivative';
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const type = this.safeString (balance, 'type');
-            const parsedType = this.safeString (types, type);
-            if ((parsedType === balanceType) || (type === balanceType)) {
-                const currencyId = this.safeString (balance, 'currency');
+            const currencyId = this.safeString (balance, 'currency');
+            const isDerivativeCode = (currencyId === 'btcf0') || (currencyId === 'ustf0');
+            // idek bro
+            const derivativeXor = (isDerivative && !isDerivativeCode) || (!isDerivative && isDerivativeCode);
+            if ((accountType === type) && !derivativeXor) {
                 const code = this.safeCurrencyCode (currencyId);
                 // bitfinex had BCH previously, now it's BAB, but the old
                 // BCH symbol is kept for backward-compatibility
@@ -662,6 +676,66 @@ module.exports = class bitfinex extends Exchange {
             }
         }
         return this.parseBalance (result);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        // transferring between derivatives wallet and regular wallet is not documented in their API
+        // however we support it in CCXT (from just looking at web inspector)
+        await this.loadMarkets ();
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount);
+        if (fromId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' transfer fromAccount must be one of ' + keys.join (', '));
+        }
+        const toId = this.safeString (accountsByType, toAccount);
+        if (toId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' transfer toAccount must be one of ' + keys.join (', '));
+        }
+        let fromCode = code;
+        let toCode = code;
+        if (fromAccount === 'derivative') {
+            if (code === 'USDT') {
+                fromCode = 'USTF0';
+            } else {
+                // ETHF0, EURF0, BTCF0, LINKF0
+                fromCode = code + 'F0';
+            }
+        }
+        if (toAccount === 'derivative') {
+            if (code === 'USDT') {
+                toCode = 'USTF0';
+            } else {
+                toCode = code + 'F0';
+            }
+        }
+        const fromCurrency = this.currency (fromCode);
+        const toCurrency = this.currency (toCode);
+        const requestedAmount = this.currencyToPrecision (code, amount);
+        const request = {
+            'amount': requestedAmount,
+            'currency': fromCurrency['id'],
+            'currency_to': toCurrency['id'],
+            'walletfrom': fromId,
+            'walletto': toId,
+        };
+        const response = await this.privatePostTransfer (this.extend (request, params));
+        // [
+        //   {
+        //     status: 'success',
+        //     message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        //   }
+        // ]
+        const result = this.safeValue (response, 0);
+        return {
+            'info': response,
+            'status': this.safeString (result, 'status'),
+            'amount': requestedAmount,
+            'code': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
