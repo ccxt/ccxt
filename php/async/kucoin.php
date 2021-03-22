@@ -840,17 +840,18 @@ class kucoin extends Exchange {
             // 'marginMode' => 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
             // 'autoBorrow' => false, // The system will first borrow you funds at the optimal interest rate and then place an $order for you
         );
-        if ($type !== 'market') {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-            $request['size'] = $this->amount_to_precision($symbol, $amount);
-        } else {
-            $quoteAmount = $this->safe_float_2($params, 'cost', 'funds');
+        $quoteAmount = $this->safe_float_2($params, 'cost', 'funds');
+        if ($type === 'market') {
             if ($quoteAmount !== null) {
-                // used to create market $order by quote $amount - https://github.com/ccxt/ccxt/issues/4876
+                $params = $this->omit($params, array( 'cost', 'funds' ));
+                // kucoin uses base precision even for quote values
                 $request['funds'] = $this->amount_to_precision($symbol, $quoteAmount);
             } else {
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
             }
+        } else {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['size'] = $this->amount_to_precision($symbol, $amount);
         }
         $response = yield $this->privatePostOrders (array_merge($request, $params));
         //
@@ -884,8 +885,10 @@ class kucoin extends Exchange {
             'fee' => null,
             'trades' => null,
         );
-        if (!$this->safe_value($params, 'quoteAmount')) {
+        if ($quoteAmount === null) {
             $order['amount'] = $amount;
+        } else {
+            $order['cost'] = $quoteAmount;
         }
         return $order;
     }

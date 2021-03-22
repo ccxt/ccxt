@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.43.77';
+$version = '1.43.94';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.43.77';
+    const VERSION = '1.43.94';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -124,7 +124,6 @@ class Exchange {
         'delta',
         'deribit',
         'digifinex',
-        'dsx',
         'equos',
         'eterbase',
         'exmo',
@@ -326,6 +325,7 @@ class Exchange {
         'filterByArray' => 'filter_by_array',
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
+        'parseTransfers' => 'parse_transfers',
         'parseLedger' => 'parse_ledger',
         'parseOrders' => 'parse_orders',
         'safeCurrency' => 'safe_currency',
@@ -1893,6 +1893,30 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
     }
 
+    public function parse_transactions($transactions, $currency = null, $since = null, $limit = null, $params = array()) {
+        $array = is_array($transactions) ? array_values($transactions) : array();
+        $result = array();
+        foreach ($array as $transaction) {
+            $result[] = array_replace_recursive($this->parse_transaction($transaction, $currency), $params);
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        $code = isset($currency) ? $currency['code'] : null;
+        $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
+
+    public function parse_transfers($transfers, $currency = null, $since = null, $limit = null, $params = array()) {
+        $array = is_array($transfers) ? array_values($transfers) : array();
+        $result = array();
+        foreach ($array as $transfer) {
+            $result[] = array_replace_recursive($this->parse_transaction($transfer, $currency), $params);
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        $code = isset($currency) ? $currency['code'] : null;
+        $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
+
     public function parse_ledger($items, $currency = null, $since = null, $limit = null, $params = array()) {
         $array = is_array($items) ? array_values($items) : array();
         $result = array();
@@ -1905,18 +1929,6 @@ class Exchange {
             } else {
                 $result[] = array_replace_recursive($entry, $params);
             }
-        }
-        $result = $this->sort_by($result, 'timestamp');
-        $code = isset($currency) ? $currency['code'] : null;
-        $tail = $since === null;
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
-    }
-
-    public function parse_transactions($transactions, $currency = null, $since = null, $limit = null, $params = array()) {
-        $array = is_array($transactions) ? array_values($transactions) : array();
-        $result = array();
-        foreach ($array as $transaction) {
-            $result[] = array_replace_recursive($this->parse_transaction($transaction, $currency), $params);
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = isset($currency) ? $currency['code'] : null;

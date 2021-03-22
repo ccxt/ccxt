@@ -1618,7 +1618,7 @@ class kraken(Exchange):
             }
         raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, as set up on your account)")
 
-    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+    def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
         request = {
             # 'txid': 'comma delimited list of transaction ids to restrict output to',

@@ -841,23 +841,16 @@ module.exports = class bibox extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const type = (order['order_type'] === 1) ? 'market' : 'limit';
-        const timestamp = order['createdAt'];
+        const rawType = this.safeString (order, 'order_type');
+        const type = (rawType === '1') ? 'market' : 'limit';
+        const timestamp = this.safeInteger (order, 'createdAt');
         const price = this.safeFloat (order, 'price');
         const average = this.safeFloat (order, 'deal_price');
         const filled = this.safeFloat (order, 'deal_amount');
         const amount = this.safeFloat (order, 'amount');
-        let cost = this.safeFloat2 (order, 'deal_money', 'money');
-        let remaining = undefined;
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
-            }
-            if (cost === undefined) {
-                cost = price * filled;
-            }
-        }
-        const side = (order['order_side'] === 1) ? 'buy' : 'sell';
+        const cost = this.safeFloat2 (order, 'deal_money', 'money');
+        const rawSide = this.safeString (order, 'order_side');
+        const side = (rawSide === '1') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'id');
         const feeCost = this.safeFloat (order, 'fee');
@@ -868,8 +861,7 @@ module.exports = class bibox extends Exchange {
                 'currency': undefined,
             };
         }
-        cost = cost ? cost : (parseFloat (price) * filled);
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -887,11 +879,11 @@ module.exports = class bibox extends Exchange {
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     parseOrderStatus (status) {

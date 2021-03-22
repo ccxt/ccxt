@@ -1601,7 +1601,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result')
         return result
 
-    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+    def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
         code = self.code_from_options('fetchPositions')
         currency = self.currency(code)

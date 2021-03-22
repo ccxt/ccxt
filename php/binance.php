@@ -53,6 +53,8 @@ class binance extends Exchange {
                 'fetchTransactions' => false,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
+                'transfer' => true,
+                'fetchTransfers' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -519,6 +521,21 @@ class binance extends Exchange {
                     'future' => 'fapiPrivateV2GetAccount', // 'fapiPrivateGetPositionRisk'
                     'delivery' => 'dapiPrivateGetAccount', // 'dapiPrivateGetPositionRisk'
                 ),
+                'accountsByType' => array(
+                    'main' => 'MAIN',
+                    'spot' => 'MAIN',
+                    'margin' => 'MARGIN',
+                    'future' => 'UMFUTURE',
+                    'delivery' => 'CMFUTURE',
+                    'mining' => 'MINING',
+                ),
+                'typesByAccount' => array(
+                    'MAIN' => 'spot',
+                    'MARGIN' => 'margin',
+                    'UMFUTURE' => 'future',
+                    'CMFUTURE' => 'delivery',
+                    'MINING' => 'mining',
+                ),
             ),
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions' => array(
@@ -576,6 +593,8 @@ class binance extends Exchange {
                 '-3010' => '\\ccxt\\ExchangeError', // array("code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount.")
                 '-3022' => '\\ccxt\\AccountSuspended', // You account's trading is banned.
                 '-4028' => '\\ccxt\\BadRequest', // array("code":-4028,"msg":"Leverage 100 is not valid")
+                '-3020' => '\\ccxt\\InsufficientFunds', // array("code":-3020,"msg":"Transfer out amount exceeds max amount.")
+                '-3041' => '\\ccxt\\InsufficientFunds', // array("code":-3041,"msg":"Balance is not enough")
                 '-5013' => '\\ccxt\\InsufficientFunds', // Asset transfer failed => insufficient balance"
             ),
         ));
@@ -2180,7 +2199,7 @@ class binance extends Exchange {
         }
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -2619,6 +2638,151 @@ class binance extends Exchange {
             'updated' => $updated,
             'fee' => $fee,
         );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'CONFIRMED' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer
+        //
+        //     {
+        //         "tranId":13526853623
+        //     }
+        //
+        // fetchTransfers
+        //
+        //     {
+        //         $timestamp => 1614640878000,
+        //         asset => 'USDT',
+        //         $amount => '25',
+        //         $type => 'MAIN_UMFUTURE',
+        //         $status => 'CONFIRMED',
+        //         tranId => 43000126248
+        //     }
+        //
+        $id = $this->safe_string($transfer, 'tranId');
+        $currencyId = $this->safe_string($transfer, 'asset');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $amount = $this->safe_float($transfer, 'amount');
+        $type = $this->safe_string($transfer, 'type');
+        $fromAccount = null;
+        $toAccount = null;
+        $typesByAccount = $this->safe_value($this->options, 'typesByAccount', array());
+        if ($type !== null) {
+            $parts = explode('_', $type);
+            $fromAccount = $this->safe_value($parts, 0);
+            $toAccount = $this->safe_value($parts, 1);
+            $fromAccount = $this->safe_string($typesByAccount, $fromAccount, $fromAccount);
+            $toAccount = $this->safe_string($typesByAccount, $toAccount, $toAccount);
+        }
+        $timestamp = $this->safe_integer($transfer, 'timestamp');
+        $status = $this->parse_transfer_status($this->safe_string($transfer, 'status'));
+        return array(
+            'info' => $transfer,
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $code,
+            'amount' => $amount,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $status,
+        );
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $type = $this->safe_string($params, 'type');
+        if ($type === null) {
+            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+            if ($fromId === null) {
+                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+                throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
+            }
+            if ($toId === null) {
+                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+                throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+            }
+            $type = $fromId . '_' . $toId;
+        }
+        $request = array(
+            'asset' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'type' => $type,
+        );
+        $response = $this->sapiPostAssetTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "tranId":13526853623
+        //     }
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        return array_merge($transfer, array(
+            'amount' => $amount,
+            'currency' => $code,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
+    }
+
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $defaultType = $this->safe_string_2($this->options, 'fetchTransfers', 'defaultType', 'spot');
+        $fromAccount = $this->safe_string($params, 'fromAccount', $defaultType);
+        $defaultTo = ($fromAccount === 'future') ? 'spot' : 'future';
+        $toAccount = $this->safe_string($params, 'toAccount', $defaultTo);
+        $type = $this->safe_string($params, 'type');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount);
+        if ($type === null) {
+            if ($fromId === null) {
+                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+                throw new ExchangeError($this->id . ' $fromAccount parameter must be one of ' . implode(', ', $keys));
+            }
+            if ($toId === null) {
+                $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+                throw new ExchangeError($this->id . ' $toAccount parameter must be one of ' . implode(', ', $keys));
+            }
+            $type = $fromId . '_' . $toId;
+        }
+        $request = array(
+            'type' => $type,
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = $this->sapiGetAssetTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         total => 3,
+        //         $rows => array(
+        //             array(
+        //                 timestamp => 1614640878000,
+        //                 asset => 'USDT',
+        //                 amount => '25',
+        //                 $type => 'MAIN_UMFUTURE',
+        //                 status => 'CONFIRMED',
+        //                 tranId => 43000126248
+        //             ),
+        //         )
+        //     }
+        //
+        $rows = $this->safe_value($response, 'rows', array());
+        return $this->parse_transfers($rows, $currency, $since, $limit);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {

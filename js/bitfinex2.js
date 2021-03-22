@@ -379,6 +379,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': undefined,
             };
+            const margin = this.safeValue (market, 'margin');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -393,6 +394,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'type': type,
                 'swap': false,
                 'spot': spot,
+                'margin': margin,
                 'futures': futures,
             });
         }
@@ -1469,7 +1471,7 @@ module.exports = class bitfinex2 extends bitfinex {
         });
     }
 
-    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostPositions (params);
         //

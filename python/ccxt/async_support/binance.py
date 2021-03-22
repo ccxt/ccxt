@@ -66,6 +66,8 @@ class binance(Exchange):
                 'fetchTransactions': False,
                 'fetchWithdrawals': True,
                 'withdraw': True,
+                'transfer': True,
+                'fetchTransfers': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -532,6 +534,21 @@ class binance(Exchange):
                     'future': 'fapiPrivateV2GetAccount',  # 'fapiPrivateGetPositionRisk'
                     'delivery': 'dapiPrivateGetAccount',  # 'dapiPrivateGetPositionRisk'
                 },
+                'accountsByType': {
+                    'main': 'MAIN',
+                    'spot': 'MAIN',
+                    'margin': 'MARGIN',
+                    'future': 'UMFUTURE',
+                    'delivery': 'CMFUTURE',
+                    'mining': 'MINING',
+                },
+                'typesByAccount': {
+                    'MAIN': 'spot',
+                    'MARGIN': 'margin',
+                    'UMFUTURE': 'future',
+                    'CMFUTURE': 'delivery',
+                    'MINING': 'mining',
+                },
             },
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
@@ -589,6 +606,8 @@ class binance(Exchange):
                 '-3010': ExchangeError,  # {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
                 '-3022': AccountSuspended,  # You account's trading is banned.
                 '-4028': BadRequest,  # {"code":-4028,"msg":"Leverage 100 is not valid"}
+                '-3020': InsufficientFunds,  # {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
+                '-3041': InsufficientFunds,  # {"code":-3041,"msg":"Balance is not enough"}
                 '-5013': InsufficientFunds,  # Asset transfer failed: insufficient balance"
             },
         })
@@ -2065,7 +2084,7 @@ class binance(Exchange):
         else:
             return response
 
-    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+    async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
         defaultType = self.safe_string(self.options, 'defaultType', 'future')
         type = self.safe_string(params, 'type', defaultType)
@@ -2477,6 +2496,138 @@ class binance(Exchange):
             'updated': updated,
             'fee': fee,
         }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'CONFIRMED': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer
+        #
+        #     {
+        #         "tranId":13526853623
+        #     }
+        #
+        # fetchTransfers
+        #
+        #     {
+        #         timestamp: 1614640878000,
+        #         asset: 'USDT',
+        #         amount: '25',
+        #         type: 'MAIN_UMFUTURE',
+        #         status: 'CONFIRMED',
+        #         tranId: 43000126248
+        #     }
+        #
+        id = self.safe_string(transfer, 'tranId')
+        currencyId = self.safe_string(transfer, 'asset')
+        code = self.safe_currency_code(currencyId, currency)
+        amount = self.safe_float(transfer, 'amount')
+        type = self.safe_string(transfer, 'type')
+        fromAccount = None
+        toAccount = None
+        typesByAccount = self.safe_value(self.options, 'typesByAccount', {})
+        if type is not None:
+            parts = type.split('_')
+            fromAccount = self.safe_value(parts, 0)
+            toAccount = self.safe_value(parts, 1)
+            fromAccount = self.safe_string(typesByAccount, fromAccount, fromAccount)
+            toAccount = self.safe_string(typesByAccount, toAccount, toAccount)
+        timestamp = self.safe_integer(transfer, 'timestamp')
+        status = self.parse_transfer_status(self.safe_string(transfer, 'status'))
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
+        }
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        type = self.safe_string(params, 'type')
+        if type is None:
+            accountsByType = self.safe_value(self.options, 'accountsByType', {})
+            fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+            toId = self.safe_string(accountsByType, toAccount, toAccount)
+            if fromId is None:
+                keys = list(accountsByType.keys())
+                raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
+            if toId is None:
+                keys = list(accountsByType.keys())
+                raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+            type = fromId + '_' + toId
+        request = {
+            'asset': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'type': type,
+        }
+        response = await self.sapiPostAssetTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "tranId":13526853623
+        #     }
+        #
+        transfer = self.parse_transfer(response, currency)
+        return self.extend(transfer, {
+            'amount': amount,
+            'currency': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
+
+    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        defaultType = self.safe_string_2(self.options, 'fetchTransfers', 'defaultType', 'spot')
+        fromAccount = self.safe_string(params, 'fromAccount', defaultType)
+        defaultTo = 'spot' if (fromAccount == 'future') else 'future'
+        toAccount = self.safe_string(params, 'toAccount', defaultTo)
+        type = self.safe_string(params, 'type')
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount)
+        if type is None:
+            if fromId is None:
+                keys = list(accountsByType.keys())
+                raise ExchangeError(self.id + ' fromAccount parameter must be one of ' + ', '.join(keys))
+            if toId is None:
+                keys = list(accountsByType.keys())
+                raise ExchangeError(self.id + ' toAccount parameter must be one of ' + ', '.join(keys))
+            type = fromId + '_' + toId
+        request = {
+            'type': type,
+        }
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['size'] = limit
+        response = await self.sapiGetAssetTransfer(self.extend(request, params))
+        #
+        #     {
+        #         total: 3,
+        #         rows: [
+        #             {
+        #                 timestamp: 1614640878000,
+        #                 asset: 'USDT',
+        #                 amount: '25',
+        #                 type: 'MAIN_UMFUTURE',
+        #                 status: 'CONFIRMED',
+        #                 tranId: 43000126248
+        #             },
+        #         ]
+        #     }
+        #
+        rows = self.safe_value(response, 'rows', [])
+        return self.parse_transfers(rows, currency, since, limit)
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()

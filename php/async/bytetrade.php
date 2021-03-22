@@ -962,7 +962,7 @@ class bytetrade extends Exchange {
         );
     }
 
-    public function transfer($code, $amount, $address, $message = '', $params = array ()) {
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         $this->check_required_dependencies();
         if ($this->apiKey === null) {
             throw new ArgumentsRequired('transfer() requires $this->apiKey');
@@ -980,6 +980,7 @@ class bytetrade extends Exchange {
         $expirationDatetime = explode('.', $expirationDatetime)[0];
         $feeAmount = '300000000000000';
         $defaultDappId = 'Sagittarius';
+        $message = $this->safe_string($params, 'message', '');
         $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
         $eightBytes = $this->integer_pow('2', '64');
         $byteStringArray = array(
@@ -993,8 +994,8 @@ class bytetrade extends Exchange {
             $this->number_to_le($feeAmount, 8),  // string for 32 bit php
             $this->number_to_le(strlen($this->apiKey), 1),
             $this->encode($this->apiKey),
-            $this->number_to_le(strlen($address), 1),
-            $this->encode($address),
+            $this->number_to_le(strlen($toAccount), 1),
+            $this->encode($toAccount),
             $this->number_to_le($assetType, 4),
             $this->number_to_le($this->integer_divide($amountChain, $eightBytes), 8),
             $this->number_to_le($this->integer_modulo($amountChain, $eightBytes), 8),
@@ -1015,7 +1016,7 @@ class bytetrade extends Exchange {
         $operation = array(
             'fee' => '300000000000000',
             'from' => $this->apiKey,
-            'to' => $address,
+            'to' => $toAccount,
             'asset_type' => intval($currency['id']),
             'amount' => (string) $amountChain,
             'message' => $message,

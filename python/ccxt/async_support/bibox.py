@@ -805,20 +805,16 @@ class bibox(Exchange):
                 market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        type = 'market' if (order['order_type'] == 1) else 'limit'
-        timestamp = order['createdAt']
+        rawType = self.safe_string(order, 'order_type')
+        type = 'market' if (rawType == '1') else 'limit'
+        timestamp = self.safe_integer(order, 'createdAt')
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'deal_price')
         filled = self.safe_float(order, 'deal_amount')
         amount = self.safe_float(order, 'amount')
         cost = self.safe_float_2(order, 'deal_money', 'money')
-        remaining = None
-        if filled is not None:
-            if amount is not None:
-                remaining = amount - filled
-            if cost is None:
-                cost = price * filled
-        side = 'buy' if (order['order_side'] == 1) else 'sell'
+        rawSide = self.safe_string(order, 'order_side')
+        side = 'buy' if (rawSide == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
         feeCost = self.safe_float(order, 'fee')
@@ -828,8 +824,7 @@ class bibox(Exchange):
                 'cost': feeCost,
                 'currency': None,
             }
-        cost = cost if cost else (float(price) * filled)
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -847,11 +842,11 @@ class bibox(Exchange):
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def parse_order_status(self, status):
         statuses = {

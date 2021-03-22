@@ -1739,7 +1739,7 @@ class kraken extends Exchange {
         throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $request = array(
             // 'txid' => 'comma delimited list of transaction ids to restrict output to',

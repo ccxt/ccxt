@@ -1655,7 +1655,7 @@ module.exports = class deribit extends Exchange {
         return result;
     }
 
-    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const code = this.codeFromOptions ('fetchPositions');
         const currency = this.currency (code);

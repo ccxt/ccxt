@@ -44,6 +44,7 @@ class bybit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransactions' => false,
                 'fetchWithdrawals' => true,
+                'fetchPositions' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -75,6 +76,34 @@ class bybit extends Exchange {
                 'referral' => 'https://www.bybit.com/app/register?ref=X7Prm',
             ),
             'api' => array(
+                'futures' => array(
+                    'private' => array(
+                        'get' => array(
+                            'position/list',
+                            'order/list',
+                            'order',
+                            'stop-order/list',
+                            'stop-order',
+                            'execution/list',
+                            'trade/closed-pnl/list',
+                        ),
+                        'post' => array(
+                            'order/create',
+                            'order/cancel',
+                            'order/cancelAll',
+                            'order/replace',
+                            'stop-order/create',
+                            'stop-order/cancel',
+                            'stop-order/cancelAll',
+                            'stop-order/replace',
+                            'position/change-position-margin',
+                            'position/trading-stop',
+                            'position/leverage/save',
+                            'position/switch-mode',
+                            'position/switch-isolated',
+                        ),
+                    ),
+                ),
                 'v2' => array(
                     'public' => array(
                         'get' => array(
@@ -289,6 +318,7 @@ class bybit extends Exchange {
                     'XTZ/USDT' => 'linear',
                     'LINK/USDT' => 'linear',
                 ),
+                'defaultType' => 'linear',  // may also be inverse or inverseFuture
                 'code' => 'BTC',
                 'cancelAllOrders' => array(
                     // 'method' => 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
@@ -2240,5 +2270,36 @@ class bybit extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
+            $length = is_array($symbols) ? count($symbols) : 0;
+            if ($length !== 1) {
+                throw new ArgumentsRequired($this->id . ' fetchPositions takes exactly one symbol');
+            }
+            $request['symbol'] = $this->market_id($symbols[0]);
+        }
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
+        $response = null;
+        if ($type === 'linear') {
+            $response = yield $this->privateLinearGetPositionList (array_merge($request, $params));
+        } else if ($type === 'inverse') {
+            $response = yield $this->v2PrivateGetPositionList (array_merge($request, $params));
+        } else if ($type === 'inverseFuture') {
+            $response = yield $this->futuresPrivateGetPositionList (array_merge($request, $params));
+        }
+        // {
+        //   ret_code => 0,
+        //   ret_msg => 'OK',
+        //   ext_code => '',
+        //   ext_info => '',
+        //   result => array() or array() depending on the $request
+        // }
+        return $this->safe_value($response, 'result');
     }
 }

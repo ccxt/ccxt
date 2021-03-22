@@ -48,6 +48,7 @@ class hitbtc extends Exchange {
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => false,
                 'withdraw' => true,
+                'transfer' => true,
             ),
             'timeframes' => array(
                 '1m' => 'M1',
@@ -175,6 +176,17 @@ class hitbtc extends Exchange {
             ),
             'options' => array(
                 'defaultTimeInForce' => 'FOK',
+                'accountsByType' => array(
+                    'bank' => 'bank',
+                    'exchange' => 'exchange',
+                    'main' => 'bank',  // alias of the above
+                    'trading' => 'exchange',
+                ),
+                'fetchBalanceMethod' => array(
+                    'account' => 'account',
+                    'main' => 'account',
+                    'trading' => 'trading',
+                ),
             ),
             'commonCurrencies' => array(
                 'BCC' => 'BCC', // initial symbol for Bitcoin Cash, now inactive
@@ -203,7 +215,6 @@ class hitbtc extends Exchange {
                 '20002' => '\\ccxt\\OrderNotFound', // canceling non-existent order
                 '20001' => '\\ccxt\\InsufficientFunds', // array("error":array("code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"))
             ),
-            'orders' => array(), // orders cache / emulation
         ));
     }
 
@@ -280,6 +291,49 @@ class hitbtc extends Exchange {
             ));
         }
         return $result;
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        // account can be "exchange" or "bank", with aliases "main" or "trading" respectively
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $requestAmount = $this->currency_to_precision($code, $amount);
+        $request = array(
+            'currency' => $currency['id'],
+            'amount' => $requestAmount,
+        );
+        $type = $this->safe_string($params, 'type');
+        if ($type === null) {
+            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $fromId = $this->safe_string($accountsByType, $fromAccount);
+            $toId = $this->safe_string($accountsByType, $toAccount);
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            if ($fromId === null) {
+                throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys) . ' instead of ' . $fromId);
+            }
+            if ($toId === null) {
+                throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys) . ' instead of ' . $toId);
+            }
+            if ($fromId === $toId) {
+                throw new ExchangeError($this->id . ' from and to cannot be the same account');
+            }
+            $type = $fromId . 'To' . $this->capitalize($toId);
+        }
+        $request['type'] = $type;
+        $response = $this->privatePostAccountTransfer (array_merge($request, $params));
+        // array( $id => '2db6ebab-fb26-4537-9ef8-1a689472d236' )
+        $id = $this->safe_string($response, 'id');
+        return array(
+            'info' => $response,
+            'id' => $id,
+            'timestamp' => null,
+            'datetime' => null,
+            'amount' => $requestAmount,
+            'currency' => $code,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => null,
+        );
     }
 
     public function fetch_currencies($params = array ()) {
@@ -385,7 +439,12 @@ class hitbtc extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $type = $this->safe_string($params, 'type', 'trading');
-        $method = 'privateGet' . $this->capitalize($type) . 'Balance';
+        $fetchBalanceAccounts = $this->safe_value($this->options, 'fetchBalanceMethod', array());
+        $typeId = $this->safe_string($fetchBalanceAccounts, $type);
+        if ($typeId === null) {
+            throw new ExchangeError($this->id . ' fetchBalance $account $type must be either main or trading');
+        }
+        $method = 'privateGet' . $this->capitalize($typeId) . 'Balance';
         $query = $this->omit($params, 'type');
         $response = $this->$method ($query);
         $result = array( 'info' => $response );

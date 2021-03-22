@@ -387,6 +387,7 @@ class bitfinex2(bitfinex):
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': None,
             }
+            margin = self.safe_value(market, 'margin')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -401,6 +402,7 @@ class bitfinex2(bitfinex):
                 'type': type,
                 'swap': False,
                 'spot': spot,
+                'margin': margin,
                 'futures': futures,
             })
         return result
@@ -1385,7 +1387,7 @@ class bitfinex2(bitfinex):
             'address': address,
         })
 
-    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+    async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.privatePostPositions(params)
         #

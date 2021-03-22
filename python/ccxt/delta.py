@@ -826,7 +826,7 @@ class delta(Exchange):
         result = self.safe_value(response, 'result', {})
         return result
 
-    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+    def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
         response = self.privateGetPositionsMargined(params)
         #

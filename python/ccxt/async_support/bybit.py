@@ -52,6 +52,7 @@ class bybit(Exchange):
                 'fetchTrades': True,
                 'fetchTransactions': False,
                 'fetchWithdrawals': True,
+                'fetchPositions': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -83,6 +84,34 @@ class bybit(Exchange):
                 'referral': 'https://www.bybit.com/app/register?ref=X7Prm',
             },
             'api': {
+                'futures': {
+                    'private': {
+                        'get': [
+                            'position/list',
+                            'order/list',
+                            'order',
+                            'stop-order/list',
+                            'stop-order',
+                            'execution/list',
+                            'trade/closed-pnl/list',
+                        ],
+                        'post': [
+                            'order/create',
+                            'order/cancel',
+                            'order/cancelAll',
+                            'order/replace',
+                            'stop-order/create',
+                            'stop-order/cancel',
+                            'stop-order/cancelAll',
+                            'stop-order/replace',
+                            'position/change-position-margin',
+                            'position/trading-stop',
+                            'position/leverage/save',
+                            'position/switch-mode',
+                            'position/switch-isolated',
+                        ],
+                    },
+                },
                 'v2': {
                     'public': {
                         'get': [
@@ -297,6 +326,7 @@ class bybit(Exchange):
                     'XTZ/USDT': 'linear',
                     'LINK/USDT': 'linear',
                 },
+                'defaultType': 'linear',  # may also be inverse or inverseFuture
                 'code': 'BTC',
                 'cancelAllOrders': {
                     # 'method': 'v2PrivatePostOrderCancelAll',  # v2PrivatePostStopOrderCancelAll
@@ -2130,3 +2160,30 @@ class bybit(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
+
+    async def fetch_positions(self, symbols=None, params={}):
+        await self.load_markets()
+        request = {}
+        if isinstance(symbols, list):
+            length = len(symbols)
+            if length != 1:
+                raise ArgumentsRequired(self.id + ' fetchPositions takes exactly one symbol')
+            request['symbol'] = self.market_id(symbols[0])
+        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        response = None
+        if type == 'linear':
+            response = await self.privateLinearGetPositionList(self.extend(request, params))
+        elif type == 'inverse':
+            response = await self.v2PrivateGetPositionList(self.extend(request, params))
+        elif type == 'inverseFuture':
+            response = await self.futuresPrivateGetPositionList(self.extend(request, params))
+        # {
+        #   ret_code: 0,
+        #   ret_msg: 'OK',
+        #   ext_code: '',
+        #   ext_info: '',
+        #   result: [] or {} depending on the request
+        # }
+        return self.safe_value(response, 'result')

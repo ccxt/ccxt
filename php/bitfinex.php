@@ -500,7 +500,24 @@ class bitfinex extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $ids = $this->publicGetSymbols ();
+        //
+        //     array( "btcusd", "ltcusd", "ltcbtc" )
+        //
         $details = $this->publicGetSymbolsDetails ();
+        //
+        //     array(
+        //         array(
+        //             "pair":"btcusd",
+        //             "price_precision":5,
+        //             "initial_margin":"10.0",
+        //             "minimum_margin":"5.0",
+        //             "maximum_order_size":"2000.0",
+        //             "minimum_order_size":"0.0002",
+        //             "expiration":"NA",
+        //             "$margin":true
+        //         ),
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($details); $i++) {
             $market = $details[$i];
@@ -543,6 +560,7 @@ class bitfinex extends Exchange {
                 'min' => $limits['amount']['min'] * $limits['price']['min'],
                 'max' => null,
             );
+            $margin = $this->safe_value($market, 'margin');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -551,6 +569,8 @@ class bitfinex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
+                'type' => 'spot',
+                'margin' => $margin,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
@@ -865,6 +885,30 @@ class bitfinex extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //           $id => 57334010955,
+        //           cid => 1611584840966,
+        //           cid_date => null,
+        //           gid => null,
+        //           $symbol => 'ltcbtc',
+        //           $exchange => null,
+        //           price => '0.0042125',
+        //           avg_execution_price => '0.0042097',
+        //           $side => 'sell',
+        //           type => 'exchange market',
+        //           $timestamp => '1611584841.0',
+        //           is_live => false,
+        //           is_cancelled => false,
+        //           is_hidden => 0,
+        //           oco_order => 0,
+        //           was_forced => false,
+        //           original_amount => '0.205176',
+        //           remaining_amount => '0.0',
+        //           executed_amount => '0.205176',
+        //           src => 'web'
+        //     }
+        //
         $side = $this->safe_string($order, 'side');
         $open = $this->safe_value($order, 'is_live');
         $canceled = $this->safe_value($order, 'is_cancelled');
@@ -876,30 +920,17 @@ class bitfinex extends Exchange {
         } else {
             $status = 'closed';
         }
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string_upper($order, 'symbol');
-            if ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                }
-            }
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $orderType = $order['type'];
+        $marketId = $this->safe_string_upper($order, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $orderType = $this->safe_string($order, 'type', '');
         $exchange = mb_strpos($orderType, 'exchange ') !== false;
         if ($exchange) {
             $parts = explode(' ', $order['type']);
             $orderType = $parts[1];
         }
-        $timestamp = $this->safe_float($order, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = intval($timestamp) * 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'timestamp');
         $id = $this->safe_string($order, 'id');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -921,7 +952,7 @@ class bitfinex extends Exchange {
             'fee' => null,
             'cost' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1207,7 +1238,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostPositions ($params);
         //
