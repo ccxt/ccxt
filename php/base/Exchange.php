@@ -1910,7 +1910,7 @@ class Exchange {
         $array = is_array($transfers) ? array_values($transfers) : array();
         $result = array();
         foreach ($array as $transfer) {
-            $result[] = array_replace_recursive($this->parse_transaction($transfer, $currency), $params);
+            $result[] = array_replace_recursive($this->parse_transfer($transfer, $currency), $params);
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = isset($currency) ? $currency['code'] : null;

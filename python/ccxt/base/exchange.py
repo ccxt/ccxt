@@ -1710,7 +1710,7 @@ class Exchange(object):
 
     def parse_transfers(self, transfers, currency=None, since=None, limit=None, params={}):
         array = self.to_array(transfers)
-        array = [self.extend(self.parse_transaction(transfer, currency), params) for transfer in array]
+        array = [self.extend(self.parse_transfer(transfer, currency), params) for transfer in array]
         array = self.sort_by(array, 'timestamp')
         code = currency['code'] if currency else None
         tail = since is None
