@@ -48,6 +48,7 @@ class bitfinex extends Exchange {
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => false,
                 'withdraw' => true,
+                'transfer' => true,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -347,6 +348,8 @@ class bitfinex extends Exchange {
                     'No summary found.' => '\\ccxt\\ExchangeError', // fetchTradingFees (summary) endpoint can give this vague error message
                     'Cannot evaluate your available balance, please try again' => '\\ccxt\\ExchangeNotAvailable',
                     'Unknown symbol' => '\\ccxt\\BadSymbol',
+                    'Cannot complete transfer. Exchange balance insufficient.' => '\\ccxt\\InsufficientFunds',
+                    'Momentary balance check. Please wait few seconds and try the transfer again.' => '\\ccxt\\ExchangeError',
                 ),
                 'broad' => array(
                     'Invalid X-BFX-SIGNATURE' => '\\ccxt\\AuthenticationError',
@@ -443,6 +446,15 @@ class bitfinex extends Exchange {
                 'orderTypes' => array(
                     'limit' => 'exchange limit',
                     'market' => 'exchange market',
+                ),
+                'accountsByType' => array(
+                    'spot' => 'exchange',
+                    'margin' => 'trading',
+                    'funding' => 'deposit',
+                    'exchange' => 'exchange',
+                    'trading' => 'trading',
+                    'deposit' => 'deposit',
+                    'derivatives' => 'trading',
                 ),
             ),
         ));
@@ -623,12 +635,13 @@ class bitfinex extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $types = array(
-            'exchange' => 'exchange',
-            'deposit' => 'funding',
-            'trading' => 'margin',
-        );
-        $balanceType = $this->safe_string($params, 'type', 'exchange');
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $requestedType = $this->safe_string($params, 'type', 'exchange');
+        $accountType = $this->safe_string($accountsByType, $requestedType);
+        if ($accountType === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' fetchBalance $type parameter must be one of ' . implode(', ', $keys));
+        }
         $query = $this->omit($params, 'type');
         $response = $this->privatePostBalances ($query);
         //    array( array( $type => 'deposit',
@@ -644,12 +657,16 @@ class bitfinex extends Exchange {
         //        amount => '0.0005',
         //        available => '0.0005' } ),
         $result = array( 'info' => $response );
+        $isDerivative = $requestedType === 'derivatives';
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $type = $this->safe_string($balance, 'type');
-            $parsedType = $this->safe_string($types, $type);
-            if (($parsedType === $balanceType) || ($type === $balanceType)) {
-                $currencyId = $this->safe_string($balance, 'currency');
+            $currencyId = $this->safe_string_lower($balance, 'currency', '');
+            $start = strlen($currencyId) - 2;
+            $isDerivativeCode = mb_substr($currencyId, $start) === 'f0';
+            // this will only filter the derivative codes if the $requestedType is 'derivatives'
+            $derivativeCondition = (!$isDerivative || $isDerivativeCode);
+            if (($accountType === $type) && $derivativeCondition) {
                 $code = $this->safe_currency_code($currencyId);
                 // bitfinex had BCH previously, now it's BAB, but the old
                 // BCH symbol is kept for backward-compatibility
@@ -665,6 +682,71 @@ class bitfinex extends Exchange {
             }
         }
         return $this->parse_balance($result);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        // transferring between derivatives wallet and regular wallet is not documented in their API
+        // however we support it in CCXT (from just looking at web inspector)
+        $this->load_markets();
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount);
+        if ($fromId === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' transfer $fromAccount must be one of ' . implode(', ', $keys));
+        }
+        $toId = $this->safe_string($accountsByType, $toAccount);
+        if ($toId === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' transfer $toAccount must be one of ' . implode(', ', $keys));
+        }
+        $currencyId = $this->currency_id($code);
+        $fromCurrencyId = $this->convert_derivatives_id($currencyId, $fromAccount);
+        $toCurrencyId = $this->convert_derivatives_id($currencyId, $toAccount);
+        $requestedAmount = $this->currency_to_precision($code, $amount);
+        $request = array(
+            'amount' => $requestedAmount,
+            'currency' => $fromCurrencyId,
+            'currency_to' => $toCurrencyId,
+            'walletfrom' => $fromId,
+            'walletto' => $toId,
+        );
+        $response = $this->privatePostTransfer (array_merge($request, $params));
+        // array(
+        //   {
+        //     $status => 'success',
+        //     $message => '0.0001 Bitcoin transfered from Margin to Exchange'
+        //   }
+        // )
+        $result = $this->safe_value($response, 0);
+        $status = $this->safe_string($result, 'status');
+        $message = $this->safe_string($result, 'message');
+        if ($message === null) {
+            throw new ExchangeError($this->id . ' transfer failed');
+        }
+        // [array("$status":"error","$message":"Momentary balance check. Please wait few seconds and try the transfer again.")]
+        if ($status === 'error') {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
+            throw new ExchangeError($this->id . ' ' . $message);
+        }
+        return array(
+            'info' => $response,
+            'status' => $status,
+            'amount' => $requestedAmount,
+            'code' => $code,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        );
+    }
+
+    public function convert_derivatives_id($currencyId, $type) {
+        $start = strlen($currencyId) - 2;
+        $isDerivativeCode = mb_substr($currencyId, $start) === 'F0';
+        if (($type !== 'derivatives' && $type !== 'trading') && $isDerivativeCode) {
+            $currencyId = mb_substr($currencyId, 0, $start - 0);
+        } else if ($type === 'derivatives' && !$isDerivativeCode) {
+            $currencyId = $currencyId . 'F0';
+        }
+        return $currencyId;
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
