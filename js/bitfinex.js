@@ -660,6 +660,7 @@ module.exports = class bitfinex extends Exchange {
             const type = this.safeString (balance, 'type');
             const currencyId = this.safeStringLower (balance, 'currency', '');
             const isDerivativeCode = currencyId.slice (currencyId.length - 2, currencyId.length) === 'f0';
+            // this will only filter the derivative codes if the requestedType is 'derivatives'
             const derivativeCondition = (!isDerivative || isDerivativeCode);
             if ((accountType === type) && derivativeCondition) {
                 const code = this.safeCurrencyCode (currencyId);
