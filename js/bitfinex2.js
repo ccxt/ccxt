@@ -525,7 +525,6 @@ module.exports = class bitfinex2 extends bitfinex {
             const feeValues = this.safeValue (indexed['fees'], id, []);
             const fees = this.safeValue (feeValues, 1, []);
             const fee = this.safeFloat (fees, 1);
-            // we look in both fields
             const undl = this.safeValue (indexed['undl'], id, []);
             const precision = 8; // default precision, todo: fix "magic constants"
             const fid = 'f' + id;
