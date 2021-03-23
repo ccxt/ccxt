@@ -732,13 +732,15 @@ module.exports = class bitfinex extends Exchange {
             'code': code,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
     convertDerivativesId (currencyId, type) {
         const start = currencyId.length - 2;
         const isDerivativeCode = currencyId.slice (start) === 'F0';
-        if ((type !== 'derivatives' && type !== 'trading') && isDerivativeCode) {
+        if ((type !== 'derivatives' && type !== 'trading' && type !== 'margin') && isDerivativeCode) {
             currencyId = currencyId.slice (0, start);
         } else if (type === 'derivatives' && !isDerivativeCode) {
             currencyId = currencyId + 'F0';
