@@ -726,12 +726,14 @@ class bitfinex(Exchange):
             'code': code,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
+            'timestamp': None,
+            'datetime': None,
         }
 
     def convert_derivatives_id(self, currencyId, type):
         start = len(currencyId) - 2
         isDerivativeCode = currencyId[start:] == 'F0'
-        if (type != 'derivatives' and type != 'trading') and isDerivativeCode:
+        if (type != 'derivatives' and type != 'trading' and type != 'margin') and isDerivativeCode:
             currencyId = currencyId[0:start]
         elif type == 'derivatives' and not isDerivativeCode:
             currencyId = currencyId + 'F0'

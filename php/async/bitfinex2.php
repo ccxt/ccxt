@@ -293,6 +293,15 @@ class bitfinex2 extends bitfinex {
                     'JPY' => 'JPY',
                     'GBP' => 'GBP',
                 ),
+                // actually the correct names unlike the v1
+                // we don't want to extend this with accountsByType in v1
+                'v2AccountsByType' => array(
+                    'spot' => 'exchange',
+                    'exchange' => 'exchange',
+                    'funding' => 'funding',
+                    'margin' => 'margin',
+                    'derivatives' => 'margin',
+                ),
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -464,7 +473,7 @@ class bitfinex2 extends bitfinex {
         //         array(
         //             array( 'IOT', 'Mi|MegaIOTA' ),
         //         ),
-        //         // undl
+        //         // $undl
         //         // maps derivatives symbols to their underlying currency
         //         array(
         //             array( 'USTF0', 'UST' ),
@@ -523,12 +532,13 @@ class bitfinex2 extends bitfinex {
             $feeValues = $this->safe_value($indexed['fees'], $id, array());
             $fees = $this->safe_value($feeValues, 1, array());
             $fee = $this->safe_float($fees, 1);
+            $undl = $this->safe_value($indexed['undl'], $id, array());
             $precision = 8; // default $precision, todo => fix "magic constants"
-            $id = 'f' . $id;
+            $fid = 'f' . $id;
             $result[$code] = array(
-                'id' => $id,
+                'id' => $fid,
                 'code' => $code,
-                'info' => array( $id, $label, $pool, $feeValues ),
+                'info' => array( $id, $label, $pool, $feeValues, $undl ),
                 'type' => $type,
                 'name' => $name,
                 'active' => true,
@@ -559,40 +569,117 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_balance($params = array ()) {
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
+        // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         yield $this->load_markets();
-        $response = yield $this->privatePostAuthRWallets ($params);
-        $balanceType = $this->safe_string($params, 'type', 'exchange');
+        $accountsByType = $this->safe_value($this->options, 'v2AccountsByType', array());
+        $requestedType = $this->safe_string($params, 'type', 'exchange');
+        $accountType = $this->safe_string($accountsByType, $requestedType);
+        if ($accountType === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' fetchBalance $type parameter must be one of ' . implode(', ', $keys));
+        }
+        $isDerivative = $requestedType === 'derivatives';
+        $query = $this->omit($params, 'type');
+        $response = yield $this->privatePostAuthRWallets ($query);
         $result = array( 'info' => $response );
-        for ($b = 0; $b < count($response); $b++) {
-            $balance = $response[$b];
-            $accountType = $balance[0];
-            $currency = $balance[1];
-            $total = $balance[2];
-            $available = $balance[4];
-            if ($accountType === $balanceType) {
-                if ($currency[0] === 't') {
-                    $currency = mb_substr($currency, 1);
-                }
-                $code = $this->safe_currency_code($currency);
+        for ($i = 0; $i < count($response); $i++) {
+            $balance = $response[$i];
+            $type = $this->safe_string($balance, 0);
+            $currencyId = $this->safe_string_lower($balance, 1, '');
+            $start = strlen($currencyId) - 2;
+            $isDerivativeCode = mb_substr($currencyId, $start) === 'f0';
+            // this will only filter the derivative codes if the $requestedType is 'derivatives'
+            $derivativeCondition = (!$isDerivative || $isDerivativeCode);
+            if (($accountType === $type) && $derivativeCondition) {
+                $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                // do not fill in zeroes and missing values in the parser
-                // rewrite and unify the following to use the unified parseBalance
-                $account['total'] = $total;
-                if (!$available) {
-                    if ($available === 0) {
-                        $account['free'] = 0;
-                        $account['used'] = $total;
-                    } else {
-                        $account['free'] = $total;
-                    }
-                } else {
-                    $account['free'] = $available;
-                    $account['used'] = $account['total'] - $account['free'];
-                }
+                $account['total'] = $this->safe_float($balance, 2);
+                $account['free'] = $this->safe_float($balance, 4);
                 $result[$code] = $account;
             }
         }
         return $this->parse_balance($result);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        // transferring between derivatives wallet and regular wallet is not documented in their API
+        // however we support it in CCXT (from just looking at web inspector)
+        yield $this->load_markets();
+        $accountsByType = $this->safe_value($this->options, 'v2AccountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount);
+        if ($fromId === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' transfer $fromAccount must be one of ' . implode(', ', $keys));
+        }
+        $toId = $this->safe_string($accountsByType, $toAccount);
+        if ($toId === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' transfer $toAccount must be one of ' . implode(', ', $keys));
+        }
+        $currency = $this->currency($code);
+        $fromCurrencyId = $this->convert_derivatives_id($currency, $fromAccount);
+        $toCurrencyId = $this->convert_derivatives_id($currency, $toAccount);
+        $requestedAmount = $this->currency_to_precision($code, $amount);
+        // this $request is slightly different from v1 $fromAccount -> from
+        $request = array(
+            'amount' => $requestedAmount,
+            'currency' => $fromCurrencyId,
+            'currency_to' => $toCurrencyId,
+            'from' => $fromId,
+            'to' => $toId,
+        );
+        $response = yield $this->privatePostAuthWTransfer (array_merge($request, $params));
+        //  [1616451183763,"acc_tf",null,null,[1616451183763,"exchange","margin",null,"UST","UST",null,1],null,"SUCCESS","1.0 Tether USDt transfered from Exchange to Margin"]
+        $timestamp = $this->safe_integer($response, 0);
+        //  ["$error",10001,"Momentary balance check. Please wait few seconds and try the transfer again."]
+        $error = $this->safe_string($response, 0);
+        if ($error === 'error') {
+            $message = $this->safe_string($response, 2, '');
+            // same $message as in v1
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
+            throw new ExchangeError($this->id . ' ' . $message);
+        }
+        $info = $this->safe_value($response, 4);
+        $fromResponse = $this->safe_string($info, 1);
+        $toResponse = $this->safe_string($info, 2);
+        $toCode = $this->safe_currency_code($this->safe_string($info, 5));
+        $success = $this->safe_string($response, 6);
+        $status = ($success === 'SUCCESS') ? 'ok' : null;
+        return array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'status' => $status,
+            'amount' => $requestedAmount,
+            'code' => $toCode,
+            'fromAccount' => $fromResponse,
+            'toAccount' => $toResponse,
+        );
+    }
+
+    public function convert_derivatives_id($currency, $type) {
+        // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
+        // {
+        //   id => 'fUSTF0',
+        //   code => 'USTF0',
+        //   $info => array( 'USTF0', array(), array(), array(), array( 'USTF0', 'UST' ) ),
+        $info = $this->safe_value($currency, 'info');
+        $transferId = $this->safe_string($info, 0);
+        $underlying = $this->safe_value($info, 4, array());
+        $currencyId = null;
+        if ($type === 'derivatives') {
+            $currencyId = $this->safe_string($underlying, 0, $transferId);
+            $start = strlen($currencyId) - 2;
+            $isDerivativeCode = mb_substr($currencyId, $start) === 'F0';
+            if (!$isDerivativeCode) {
+                $currencyId = $currencyId . 'F0';
+            }
+        } else if ($type !== 'margin') {
+            $currencyId = $this->safe_string($underlying, 1, $transferId);
+        } else {
+            $currencyId = $transferId;
+        }
+        return $currencyId;
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

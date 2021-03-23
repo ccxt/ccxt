@@ -735,13 +735,15 @@ class bitfinex extends Exchange {
             'code' => $code,
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
     public function convert_derivatives_id($currencyId, $type) {
         $start = strlen($currencyId) - 2;
         $isDerivativeCode = mb_substr($currencyId, $start) === 'F0';
-        if (($type !== 'derivatives' && $type !== 'trading') && $isDerivativeCode) {
+        if (($type !== 'derivatives' && $type !== 'trading' && $type !== 'margin') && $isDerivativeCode) {
             $currencyId = mb_substr($currencyId, 0, $start - 0);
         } else if ($type === 'derivatives' && !$isDerivativeCode) {
             $currencyId = $currencyId . 'F0';
