@@ -1882,6 +1882,18 @@ class Exchange {
         return $result;
     }
 
+    public function parse_deposit_addresses($addresses, $codes = null) {
+        $result = array();
+        for ($i = 0; $i < count($addresses); $i++) {
+            $address = $this->parse_deposit_address($addresses[$i]);
+            $result[] = $address;
+        }
+        if ($codes) {
+            $result = $this->filter_by_array($result, 'currency', $codes);
+        }
+        return $this->index_by($result, 'currency');
+    }
+
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
         $array = is_array($trades) ? array_values($trades) : array();
         $result = array();

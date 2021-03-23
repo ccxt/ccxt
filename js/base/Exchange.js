@@ -1091,6 +1091,18 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
+    parseDepositAddresses (addresses, codes = undefined) {
+        let result = [];
+        for (let i = 0; i < addresses.length; i++) {
+            const address = this.parseDepositAddress (addresses[i]);
+            result.push (address);
+        }
+        if (codes) {
+            result = this.filterByArray (result, 'currency', codes);
+        }
+        return this.indexBy (result, 'currency');
+    }
+
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = Object.values (trades || []).map ((trade) => this.extend (this.parseTrade (trade, market), params))
         result = sortBy (result, 'timestamp')
