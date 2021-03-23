@@ -1091,16 +1091,6 @@ module.exports = class probit extends Exchange {
         return this.parseDepositAddresses (data);
     }
 
-    parseDepositAddresses (addresses) {
-        const result = {};
-        for (let i = 0; i < addresses.length; i++) {
-            const address = this.parseDepositAddress (addresses[i]);
-            const code = address['currency'];
-            result[code] = address;
-        }
-        return result;
-    }
-
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         // In order to use this method
         // you need to allow API withdrawal from the API Settings Page, and
