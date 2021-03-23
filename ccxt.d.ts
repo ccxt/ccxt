@@ -425,6 +425,7 @@ declare module 'ccxt' {
     export class aax extends Exchange {}
     export class acx extends Exchange {}
     export class aofex extends Exchange {}
+    export class ascendex extends Exchange {}
     export class bequant extends hitbtc {}
     export class bibox extends Exchange {}
     export class bigone extends Exchange {}
@@ -442,7 +443,7 @@ declare module 'ccxt' {
     export class bithumb extends Exchange {}
     export class bitkk extends zb {}
     export class bitmart extends Exchange {}
-    export class bitmax extends Exchange {}
+    export class bitmax extends ascendex {}
     export class bitmex extends Exchange {}
     export class bitpanda extends Exchange {}
     export class bitso extends Exchange {}
@@ -552,6 +553,7 @@ declare module 'ccxt' {
         | 'aax'
         | 'acx'
         | 'aofex'
+        | 'ascendex'
         | 'bequant'
         | 'bibox'
         | 'bigone'

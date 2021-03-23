@@ -1031,14 +1031,6 @@ class probit(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_deposit_addresses(data)
 
-    def parse_deposit_addresses(self, addresses):
-        result = {}
-        for i in range(0, len(addresses)):
-            address = self.parse_deposit_address(addresses[i])
-            code = address['currency']
-            result[code] = address
-        return result
-
     async def withdraw(self, code, amount, address, tag=None, params={}):
         # In order to use self method
         # you need to allow API withdrawal from the API Settings Page, and

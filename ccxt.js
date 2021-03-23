@@ -35,7 +35,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.43.94'
+const version = '1.44.4'
 
 Exchange.ccxtVersion = version
 
@@ -45,6 +45,7 @@ const exchanges = {
     'aax':                     require ('./js/aax.js'),
     'acx':                     require ('./js/acx.js'),
     'aofex':                   require ('./js/aofex.js'),
+    'ascendex':                require ('./js/ascendex.js'),
     'bequant':                 require ('./js/bequant.js'),
     'bibox':                   require ('./js/bibox.js'),
     'bigone':                  require ('./js/bigone.js'),

@@ -62,6 +62,7 @@ class bitfinex(Exchange):
                 'fetchTransactions': True,
                 'fetchWithdrawals': False,
                 'withdraw': True,
+                'transfer': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -361,6 +362,8 @@ class bitfinex(Exchange):
                     'No summary found.': ExchangeError,  # fetchTradingFees(summary) endpoint can give self vague error message
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
                     'Unknown symbol': BadSymbol,
+                    'Cannot complete transfer. Exchange balance insufficient.': InsufficientFunds,
+                    'Momentary balance check. Please wait few seconds and try the transfer again.': ExchangeError,
                 },
                 'broad': {
                     'Invalid X-BFX-SIGNATURE': AuthenticationError,
@@ -457,6 +460,15 @@ class bitfinex(Exchange):
                 'orderTypes': {
                     'limit': 'exchange limit',
                     'market': 'exchange market',
+                },
+                'accountsByType': {
+                    'spot': 'exchange',
+                    'margin': 'trading',
+                    'funding': 'deposit',
+                    'exchange': 'exchange',
+                    'trading': 'trading',
+                    'deposit': 'deposit',
+                    'derivatives': 'trading',
                 },
             },
         })
@@ -623,12 +635,12 @@ class bitfinex(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        types = {
-            'exchange': 'exchange',
-            'deposit': 'funding',
-            'trading': 'margin',
-        }
-        balanceType = self.safe_string(params, 'type', 'exchange')
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        requestedType = self.safe_string(params, 'type', 'exchange')
+        accountType = self.safe_string(accountsByType, requestedType)
+        if accountType is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' fetchBalance type parameter must be one of ' + ', '.join(keys))
         query = self.omit(params, 'type')
         response = self.privatePostBalances(query)
         #    [{type: 'deposit',
@@ -644,12 +656,16 @@ class bitfinex(Exchange):
         #        amount: '0.0005',
         #        available: '0.0005'}],
         result = {'info': response}
+        isDerivative = requestedType == 'derivatives'
         for i in range(0, len(response)):
             balance = response[i]
             type = self.safe_string(balance, 'type')
-            parsedType = self.safe_string(types, type)
-            if (parsedType == balanceType) or (type == balanceType):
-                currencyId = self.safe_string(balance, 'currency')
+            currencyId = self.safe_string_lower(balance, 'currency', '')
+            start = len(currencyId) - 2
+            isDerivativeCode = currencyId[start:] == 'f0'
+            # self will only filter the derivative codes if the requestedType is 'derivatives'
+            derivativeCondition = (not isDerivative or isDerivativeCode)
+            if (accountType == type) and derivativeCondition:
                 code = self.safe_currency_code(currencyId)
                 # bitfinex had BCH previously, now it's BAB, but the old
                 # BCH symbol is kept for backward-compatibility
@@ -662,6 +678,66 @@ class bitfinex(Exchange):
                     account['total'] = self.safe_float(balance, 'amount')
                     result[code] = account
         return self.parse_balance(result)
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        # transferring between derivatives wallet and regular wallet is not documented in their API
+        # however we support it in CCXT(from just looking at web inspector)
+        self.load_markets()
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount)
+        if fromId is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' transfer fromAccount must be one of ' + ', '.join(keys))
+        toId = self.safe_string(accountsByType, toAccount)
+        if toId is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' transfer toAccount must be one of ' + ', '.join(keys))
+        currencyId = self.currency_id(code)
+        fromCurrencyId = self.convert_derivatives_id(currencyId, fromAccount)
+        toCurrencyId = self.convert_derivatives_id(currencyId, toAccount)
+        requestedAmount = self.currency_to_precision(code, amount)
+        request = {
+            'amount': requestedAmount,
+            'currency': fromCurrencyId,
+            'currency_to': toCurrencyId,
+            'walletfrom': fromId,
+            'walletto': toId,
+        }
+        response = self.privatePostTransfer(self.extend(request, params))
+        # [
+        #   {
+        #     status: 'success',
+        #     message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        #   }
+        # ]
+        result = self.safe_value(response, 0)
+        status = self.safe_string(result, 'status')
+        message = self.safe_string(result, 'message')
+        if message is None:
+            raise ExchangeError(self.id + ' transfer failed')
+        # [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
+        if status == 'error':
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
+            raise ExchangeError(self.id + ' ' + message)
+        return {
+            'info': response,
+            'status': status,
+            'amount': requestedAmount,
+            'code': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'timestamp': None,
+            'datetime': None,
+        }
+
+    def convert_derivatives_id(self, currencyId, type):
+        start = len(currencyId) - 2
+        isDerivativeCode = currencyId[start:] == 'F0'
+        if (type != 'derivatives' and type != 'trading' and type != 'margin') and isDerivativeCode:
+            currencyId = currencyId[0:start]
+        elif type == 'derivatives' and not isDerivativeCode:
+            currencyId = currencyId + 'F0'
+        return currencyId
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

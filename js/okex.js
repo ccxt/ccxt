@@ -2407,16 +2407,6 @@ module.exports = class okex extends Exchange {
         return await this.fetchOrdersByState ('7', symbol, since, limit, params);
     }
 
-    parseDepositAddresses (addresses) {
-        const result = {};
-        for (let i = 0; i < addresses.length; i++) {
-            const address = this.parseDepositAddress (addresses[i]);
-            const code = address['currency'];
-            result[code] = address;
-        }
-        return result;
-    }
-
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {

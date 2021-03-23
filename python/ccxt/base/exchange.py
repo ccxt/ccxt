@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.43.94'
+__version__ = '1.44.4'
 
 # -----------------------------------------------------------------------------
 
@@ -1692,6 +1692,15 @@ class Exchange(object):
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
+    def parse_deposit_addresses(self, addresses, codes=None):
+        result = []
+        for i in range(0, len(addresses)):
+            address = self.parse_deposit_address(addresses[i])
+            result.append(address)
+        if codes:
+            result = self.filter_by_array(result, 'currency', codes)
+        return self.index_by(result, 'currency')
+
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
         array = [self.extend(self.parse_trade(trade, market), params) for trade in array]
@@ -1710,7 +1719,7 @@ class Exchange(object):
 
     def parse_transfers(self, transfers, currency=None, since=None, limit=None, params={}):
         array = self.to_array(transfers)
-        array = [self.extend(self.parse_transaction(transfer, currency), params) for transfer in array]
+        array = [self.extend(self.parse_transfer(transfer, currency), params) for transfer in array]
         array = self.sort_by(array, 'timestamp')
         code = currency['code'] if currency else None
         tail = since is None

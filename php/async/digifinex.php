@@ -1231,16 +1231,6 @@ class digifinex extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function parse_deposit_addresses($addresses) {
-        $result = array();
-        for ($i = 0; $i < count($addresses); $i++) {
-            $address = $this->parse_deposit_address($addresses[$i]);
-            $code = $address['currency'];
-            $result[$code] = $address;
-        }
-        return $result;
-    }
-
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {

@@ -2413,16 +2413,6 @@ class okex extends Exchange {
         return $this->fetch_orders_by_state('7', $symbol, $since, $limit, $params);
     }
 
-    public function parse_deposit_addresses($addresses) {
-        $result = array();
-        for ($i = 0; $i < count($addresses); $i++) {
-            $address = $this->parse_deposit_address($addresses[$i]);
-            $code = $address['currency'];
-            $result[$code] = $address;
-        }
-        return $result;
-    }
-
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {

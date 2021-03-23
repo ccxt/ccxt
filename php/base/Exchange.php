@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.43.94';
+$version = '1.44.4';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.43.94';
+    const VERSION = '1.44.4';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -65,6 +65,7 @@ class Exchange {
         'aax',
         'acx',
         'aofex',
+        'ascendex',
         'bequant',
         'bibox',
         'bigone',
@@ -323,6 +324,7 @@ class Exchange {
         'filterBySymbolSinceLimit' => 'filter_by_symbol_since_limit',
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
         'filterByArray' => 'filter_by_array',
+        'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
         'parseTransfers' => 'parse_transfers',
@@ -1881,6 +1883,18 @@ class Exchange {
         return $result;
     }
 
+    public function parse_deposit_addresses($addresses, $codes = null) {
+        $result = array();
+        for ($i = 0; $i < count($addresses); $i++) {
+            $address = $this->parse_deposit_address($addresses[$i]);
+            $result[] = $address;
+        }
+        if ($codes) {
+            $result = $this->filter_by_array($result, 'currency', $codes);
+        }
+        return $this->index_by($result, 'currency');
+    }
+
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
         $array = is_array($trades) ? array_values($trades) : array();
         $result = array();
@@ -1909,7 +1923,7 @@ class Exchange {
         $array = is_array($transfers) ? array_values($transfers) : array();
         $result = array();
         foreach ($array as $transfer) {
-            $result[] = array_replace_recursive($this->parse_transaction($transfer, $currency), $params);
+            $result[] = array_replace_recursive($this->parse_transfer($transfer, $currency), $params);
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = isset($currency) ? $currency['code'] : null;
