@@ -585,12 +585,6 @@ class currencycom(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    def parse_tickers(self, rawTickers, symbols=None):
-        tickers = []
-        for i in range(0, len(rawTickers)):
-            tickers.append(self.parse_ticker(rawTickers[i]))
-        return self.filter_by_array(tickers, 'symbol', symbols)
-
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.publicGetTicker24hr(params)

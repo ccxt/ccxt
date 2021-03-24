@@ -409,13 +409,13 @@ class bytetrade(Exchange):
 
     async def fetch_bids_asks(self, symbols=None, params={}):
         await self.load_markets()
-        rawTickers = await self.marketGetDepth(params)
-        return self.parse_tickers(rawTickers, symbols)
+        response = await self.marketGetDepth(params)
+        return self.parse_tickers(response, symbols)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        rawTickers = await self.marketGetTickers(params)
-        return self.parse_tickers(rawTickers, symbols)
+        response = await self.marketGetTickers(params)
+        return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
