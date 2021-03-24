@@ -515,12 +515,6 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_ticker(result, market)
 
-    def parse_tickers(self, tickers, symbols=None):
-        result = []
-        for i in range(0, len(tickers)):
-            result.append(self.parse_ticker(tickers[i]))
-        return self.filter_by_array(result, 'symbol', symbols)
-
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         response = self.publicGetMarkets(params)
