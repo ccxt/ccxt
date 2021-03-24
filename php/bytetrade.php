@@ -427,14 +427,14 @@ class bytetrade extends Exchange {
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
         $this->load_markets();
-        $rawTickers = $this->marketGetDepth ($params);
-        return $this->parse_tickers($rawTickers, $symbols);
+        $response = $this->marketGetDepth ($params);
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $rawTickers = $this->marketGetTickers ($params);
-        return $this->parse_tickers($rawTickers, $symbols);
+        $response = $this->marketGetTickers ($params);
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
