@@ -1686,19 +1686,21 @@ module.exports = class kucoin extends Exchange {
             // you can send 'currency' in params to fetch other currencies
             // fetchBalance ({ 'type': 'futures', 'currency': 'USDT' })
             const response = await this.futuresPrivateGetAccountOverview (params);
-            // {
-            //   code: '200000',
-            //   data: {
-            //     accountEquity: 0.00005,
-            //     unrealisedPNL: 0,
-            //     marginBalance: 0.00005,
-            //     positionMargin: 0,
-            //     orderMargin: 0,
-            //     frozenFunds: 0,
-            //     availableBalance: 0.00005,
-            //     currency: 'XBT'
-            //   }
-            // }
+            //
+            //     {
+            //         code: '200000',
+            //         data: {
+            //             accountEquity: 0.00005,
+            //             unrealisedPNL: 0,
+            //             marginBalance: 0.00005,
+            //             positionMargin: 0,
+            //             orderMargin: 0,
+            //             frozenFunds: 0,
+            //             availableBalance: 0.00005,
+            //             currency: 'XBT'
+            //         }
+            //     }
+            //
             const data = this.safeValue (response, 'data');
             const currencyId = this.safeString (data, 'currency');
             const code = this.safeCurrencyCode (currencyId);
@@ -1770,28 +1772,30 @@ module.exports = class kucoin extends Exchange {
                 request['bizNo'] = this.uuid22 ();
             }
             const response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
-            // {
-            //   code: '200000',
-            //   data: {
-            //     applyId: '605a87217dff1500063d485d',
-            //     bizNo: 'bcd6e5e1291f4905af84dc',
-            //     payAccountType: 'CONTRACT',
-            //     payTag: 'DEFAULT',
-            //     remark: '',
-            //     recAccountType: 'MAIN',
-            //     recTag: 'DEFAULT',
-            //     recRemark: '',
-            //     recSystem: 'KUCOIN',
-            //     status: 'PROCESSING',
-            //     currency: 'XBT',
-            //     amount: '0.00001',
-            //     fee: '0',
-            //     sn: '573688685663948',
-            //     reason: '',
-            //     createdAt: 1616545569000,
-            //     updatedAt: 1616545569000
-            //   }
-            // }
+            //
+            //     {
+            //         code: '200000',
+            //         data: {
+            //             applyId: '605a87217dff1500063d485d',
+            //             bizNo: 'bcd6e5e1291f4905af84dc',
+            //             payAccountType: 'CONTRACT',
+            //             payTag: 'DEFAULT',
+            //             remark: '',
+            //             recAccountType: 'MAIN',
+            //             recTag: 'DEFAULT',
+            //             recRemark: '',
+            //             recSystem: 'KUCOIN',
+            //             status: 'PROCESSING',
+            //             currency: 'XBT',
+            //             amount: '0.00001',
+            //             fee: '0',
+            //             sn: '573688685663948',
+            //             reason: '',
+            //             createdAt: 1616545569000,
+            //             updatedAt: 1616545569000
+            //         }
+            //     }
+            //
             const data = this.safeValue (response, 'data');
             const timestamp = this.safeInteger (data, 'createdAt');
             const id = this.safeString (data, 'applyId');
@@ -1981,6 +1985,94 @@ module.exports = class kucoin extends Exchange {
         return this.safeString (types, type, type);
     }
 
+    async fetchPositions (symbols = undefined, params = {}) {
+        const response = await this.futuresPrivateGetPositions (params);
+        //
+        //     {
+        //         code: '200000',
+        //         data: [
+        //             {
+        //                 id: '605a9772a229ab0006408258',
+        //                 symbol: 'XBTUSDTM',
+        //                 autoDeposit: false,
+        //                 maintMarginReq: 0.005,
+        //                 riskLimit: 200,
+        //                 realLeverage: 0,
+        //                 crossMode: false,
+        //                 delevPercentage: 0,
+        //                 currentTimestamp: 1616549746099,
+        //                 currentQty: 0,
+        //                 currentCost: 0,
+        //                 currentComm: 0,
+        //                 unrealisedCost: 0,
+        //                 realisedGrossCost: 0,
+        //                 realisedCost: 0,
+        //                 isOpen: false,
+        //                 markPrice: 54371.92,
+        //                 markValue: 0,
+        //                 posCost: 0,
+        //                 posCross: 0,
+        //                 posInit: 0,
+        //                 posComm: 0,
+        //                 posLoss: 0,
+        //                 posMargin: 0,
+        //                 posMaint: 0,
+        //                 maintMargin: 0,
+        //                 realisedGrossPnl: 0,
+        //                 realisedPnl: 0,
+        //                 unrealisedPnl: 0,
+        //                 unrealisedPnlPcnt: 0,
+        //                 unrealisedRoePcnt: 0,
+        //                 avgEntryPrice: 0,
+        //                 liquidationPrice: 0,
+        //                 bankruptPrice: 0,
+        //                 settleCurrency: 'USDT',
+        //                 isInverse: false
+        //             },
+        //             {
+        //                 id: '605a9772026ac900066550df',
+        //                 symbol: 'XBTUSDM',
+        //                 autoDeposit: false,
+        //                 maintMarginReq: 0.005,
+        //                 riskLimit: 200,
+        //                 realLeverage: 0,
+        //                 crossMode: false,
+        //                 delevPercentage: 0,
+        //                 currentTimestamp: 1616549746110,
+        //                 currentQty: 0,
+        //                 currentCost: 0,
+        //                 currentComm: 0,
+        //                 unrealisedCost: 0,
+        //                 realisedGrossCost: 0,
+        //                 realisedCost: 0,
+        //                 isOpen: false,
+        //                 markPrice: 54354.76,
+        //                 markValue: 0,
+        //                 posCost: 0,
+        //                 posCross: 0,
+        //                 posInit: 0,
+        //                 posComm: 0,
+        //                 posLoss: 0,
+        //                 posMargin: 0,
+        //                 posMaint: 0,
+        //                 maintMargin: 0,
+        //                 realisedGrossPnl: 0,
+        //                 realisedPnl: 0,
+        //                 unrealisedPnl: 0,
+        //                 unrealisedPnlPcnt: 0,
+        //                 unrealisedRoePcnt: 0,
+        //                 avgEntryPrice: 0,
+        //                 liquidationPrice: 0,
+        //                 bankruptPrice: 0,
+        //                 settleCurrency: 'XBT',
+        //                 isInverse: true
+        //             }
+        //         ]
+        //     }
+        //
+        return this.safeValue (response, 'data', response);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
@@ -2052,91 +2144,5 @@ module.exports = class kucoin extends Exchange {
         const message = this.safeString (response, 'msg', '');
         this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + message);
-    }
-
-    async fetchPositions (symbols = undefined, params = {}) {
-        const response = await this.futuresPrivateGetPositions (params);
-        // {
-        //   code: '200000',
-        //   data: [
-        //     {
-        //       id: '605a9772a229ab0006408258',
-        //       symbol: 'XBTUSDTM',
-        //       autoDeposit: false,
-        //       maintMarginReq: 0.005,
-        //       riskLimit: 200,
-        //       realLeverage: 0,
-        //       crossMode: false,
-        //       delevPercentage: 0,
-        //       currentTimestamp: 1616549746099,
-        //       currentQty: 0,
-        //       currentCost: 0,
-        //       currentComm: 0,
-        //       unrealisedCost: 0,
-        //       realisedGrossCost: 0,
-        //       realisedCost: 0,
-        //       isOpen: false,
-        //       markPrice: 54371.92,
-        //       markValue: 0,
-        //       posCost: 0,
-        //       posCross: 0,
-        //       posInit: 0,
-        //       posComm: 0,
-        //       posLoss: 0,
-        //       posMargin: 0,
-        //       posMaint: 0,
-        //       maintMargin: 0,
-        //       realisedGrossPnl: 0,
-        //       realisedPnl: 0,
-        //       unrealisedPnl: 0,
-        //       unrealisedPnlPcnt: 0,
-        //       unrealisedRoePcnt: 0,
-        //       avgEntryPrice: 0,
-        //       liquidationPrice: 0,
-        //       bankruptPrice: 0,
-        //       settleCurrency: 'USDT',
-        //       isInverse: false
-        //     },
-        //     {
-        //       id: '605a9772026ac900066550df',
-        //       symbol: 'XBTUSDM',
-        //       autoDeposit: false,
-        //       maintMarginReq: 0.005,
-        //       riskLimit: 200,
-        //       realLeverage: 0,
-        //       crossMode: false,
-        //       delevPercentage: 0,
-        //       currentTimestamp: 1616549746110,
-        //       currentQty: 0,
-        //       currentCost: 0,
-        //       currentComm: 0,
-        //       unrealisedCost: 0,
-        //       realisedGrossCost: 0,
-        //       realisedCost: 0,
-        //       isOpen: false,
-        //       markPrice: 54354.76,
-        //       markValue: 0,
-        //       posCost: 0,
-        //       posCross: 0,
-        //       posInit: 0,
-        //       posComm: 0,
-        //       posLoss: 0,
-        //       posMargin: 0,
-        //       posMaint: 0,
-        //       maintMargin: 0,
-        //       realisedGrossPnl: 0,
-        //       realisedPnl: 0,
-        //       unrealisedPnl: 0,
-        //       unrealisedPnlPcnt: 0,
-        //       unrealisedRoePcnt: 0,
-        //       avgEntryPrice: 0,
-        //       liquidationPrice: 0,
-        //       bankruptPrice: 0,
-        //       settleCurrency: 'XBT',
-        //       isInverse: true
-        //     }
-        //   ]
-        // }
-        return this.safeValue (response, 'data', response);
     }
 };
