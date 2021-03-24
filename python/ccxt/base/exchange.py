@@ -704,6 +704,8 @@ class Exchange(object):
             return int(float(value))
         except ValueError:
             return default_value
+        except TypeError:
+            return default_value
 
     @staticmethod
     def safe_integer_product(dictionary, key, factor, default_value=None):
