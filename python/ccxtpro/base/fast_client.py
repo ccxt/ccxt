@@ -53,6 +53,7 @@ class FastClient(AiohttpClient):
                     await _self._writer.close(code, message)
                     _self._response.close()
                 except asyncio.CancelledError:
+                    _self._response.close()
                     _self._close_code = 1006
                     raise
                 except Exception as exc:
