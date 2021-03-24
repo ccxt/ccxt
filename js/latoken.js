@@ -155,7 +155,6 @@ module.exports = class latoken extends Exchange {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            console.log (market);
             const id = this.safeString (market, 'symbol');
             // the exchange shows them inverted
             const baseId = this.safeString (market, 'baseCurrency');
@@ -168,7 +167,9 @@ module.exports = class latoken extends Exchange {
                 'price': this.safeInteger (market, 'pricePrecision'),
                 'amount': this.safeInteger (market, 'amountPrecision'),
             };
-            console.log (precision);
+            if (precision['price'] === undefined) {
+                console.log (market);
+            }
             const limits = {
                 'amount': {
                     'min': this.safeFloat (market, 'minQty'),
