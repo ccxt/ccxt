@@ -194,7 +194,7 @@ module.exports = class kucoin extends Exchange {
                     'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
                     'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
                     'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
-                    'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds, //  {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
+                    'Unsuccessful! Exceeded the max. funds out-transfer limit': InsufficientFunds, // {"code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit"}
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
