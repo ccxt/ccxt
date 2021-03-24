@@ -598,7 +598,7 @@ module.exports = class Exchange {
     }
 
     onRestResponse (statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
-        return responseBody.trim ().replace (/:([.0-9eE-]+),/g, ':"$1",');
+        return responseBody.trim ().replace (/:([+.0-9eE-]+),/g, ':"$1",');
     }
 
     setMarkets (markets, currencies = undefined) {
