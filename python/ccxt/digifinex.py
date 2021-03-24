@@ -1183,14 +1183,6 @@ class digifinex(Exchange):
         items = self.safe_value(data, 'finance', [])
         return self.parse_ledger(items, currency, since, limit)
 
-    def parse_deposit_addresses(self, addresses):
-        result = {}
-        for i in range(0, len(addresses)):
-            address = self.parse_deposit_address(addresses[i])
-            code = address['currency']
-            result[code] = address
-        return result
-
     def parse_deposit_address(self, depositAddress, currency=None):
         #
         #     {
