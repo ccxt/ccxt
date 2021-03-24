@@ -167,9 +167,6 @@ module.exports = class latoken extends Exchange {
                 'price': this.safeInteger (market, 'pricePrecision'),
                 'amount': this.safeInteger (market, 'amountPrecision'),
             };
-            if (precision['price'] === undefined) {
-                console.log (market);
-            }
             const limits = {
                 'amount': {
                     'min': this.safeFloat (market, 'minQty'),
