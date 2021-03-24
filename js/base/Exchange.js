@@ -1091,6 +1091,14 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
+    parseTickers (tickers, symbols = undefined) {
+        const result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            result.push (this.parseTicker (tickers[i]));
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
     parseDepositAddresses (addresses, codes = undefined) {
         let result = [];
         for (let i = 0; i < addresses.length; i++) {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.44.4'
+__version__ = '1.44.3'
 
 # -----------------------------------------------------------------------------
 
@@ -1691,6 +1691,12 @@ class Exchange(object):
         # Get offset based on timeframe in milliseconds
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
+
+    def parse_tickers(self, tickers, symbols=None):
+        result = []
+        for i in range(0, len(tickers)):
+            result.append(self.parse_ticker(tickers[i]))
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_deposit_addresses(self, addresses, codes=None):
         result = []

@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.44.4';
+$version = '1.44.3';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.44.4';
+    const VERSION = '1.44.3';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -324,7 +324,6 @@ class Exchange {
         'filterBySymbolSinceLimit' => 'filter_by_symbol_since_limit',
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
         'filterByArray' => 'filter_by_array',
-        'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
         'parseTransfers' => 'parse_transfers',
@@ -1881,6 +1880,14 @@ class Exchange {
             }
         }
         return $result;
+    }
+
+    public function parse_tickers($tickers, $symbols = null) {
+        $result = array();
+        for ($i = 0; $i < count($tickers); $i++) {
+            $result[] = $this->parse_ticker($tickers[$i]);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_deposit_addresses($addresses, $codes = null) {
