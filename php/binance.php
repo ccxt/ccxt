@@ -929,7 +929,7 @@ class binance extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference();
         }
-        $markets = $this->safe_value($response, 'symbols');
+        $markets = (array) $this->safe_value($response, 'symbols');
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
