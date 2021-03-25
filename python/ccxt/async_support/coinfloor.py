@@ -423,21 +423,18 @@ class coinfloor(Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
         side = None
         status = self.safe_string(order, 'status')
-        if order['type'] == 0:
+        rawType = self.safe_string(order, 'type')
+        if rawType == '0':
             side = 'buy'
-        elif order['type'] == 1:
+        elif rawType == '1':
             side = 'sell'
         symbol = None
         if market is not None:
             symbol = market['symbol']
         id = self.safe_string(order, 'id')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -455,11 +452,11 @@ class coinfloor(Exchange):
             'amount': None,
             'filled': None,
             'remaining': amount,
-            'cost': cost,
+            'cost': None,
             'fee': None,
             'average': None,
             'trades': None,
-        }
+        })
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

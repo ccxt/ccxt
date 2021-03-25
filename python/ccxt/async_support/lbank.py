@@ -285,6 +285,7 @@ class lbank(Exchange):
         id = self.safe_string(trade, 'tid')
         type = None
         side = self.safe_string(trade, 'type')
+        side = side.replace('_market', '')
         return {
             'id': id,
             'info': self.safe_value(trade, 'info', trade),

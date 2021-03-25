@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable, CancelPending } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable, CancelPending, ArgumentsRequired, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -243,6 +243,7 @@ module.exports = class ftx extends Exchange {
                     'An unexpected error occurred': ExchangeNotAvailable, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
                     'Please retry request': ExchangeNotAvailable, // {"error":"Please retry request","success":false}
                     'Please try again': ExchangeNotAvailable, // {"error":"Please try again","success":false}
+                    'Only have permissions for subaccount': PermissionDenied, // {"success":false,"error":"Only have permissions for subaccount *sub_name*"}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -506,14 +507,6 @@ module.exports = class ftx extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    parseTickers (tickers, symbols = undefined) {
-        const result = [];
-        for (let i = 0; i < tickers.length; i++) {
-            result.push (this.parseTicker (tickers[i]));
-        }
-        return this.filterByArray (result, 'symbol', symbols);
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetMarkets (params);
@@ -717,6 +710,45 @@ module.exports = class ftx extends Exchange {
         //         "type": "otc"
         //     }
         //
+        //     with -ve fee
+        //     {
+        //         "id": 1171258927,
+        //         "fee": -0.0000713875,
+        //         "side": "sell",
+        //         "size": 1,
+        //         "time": "2021-03-11T13:34:35.523627+00:00",
+        //         "type": "order",
+        //         "price": 14.2775,
+        //         "future": null,
+        //         "market": "SOL/USD",
+        //         "feeRate": -0.000005,
+        //         "orderId": 33182929044,
+        //         "tradeId": 582936801,
+        //         "liquidity": "maker",
+        //         "feeCurrency": "USD",
+        //         "baseCurrency": "SOL",
+        //         "quoteCurrency": "USD"
+        //     }
+        //
+        //     // from OTC order
+        //     {
+        //         "id": 1172129651,
+        //         "fee": 0,
+        //         "side": "sell",
+        //         "size": 1.47568846,
+        //         "time": "2021-03-11T15:04:46.893383+00:00",
+        //         "type": "otc",
+        //         "price": 14.60932598,
+        //         "future": null,
+        //         "market": null,
+        //         "feeRate": 0,
+        //         "orderId": null,
+        //         "tradeId": null,
+        //         "liquidity": "taker",
+        //         "feeCurrency": "USD",
+        //         "baseCurrency": "BCHA",
+        //         "quoteCurrency": "USD"
+        //     }
         const id = this.safeString (trade, 'id');
         const takerOrMaker = this.safeString (trade, 'liquidity');
         const marketId = this.safeString (trade, 'market');
@@ -1093,22 +1125,28 @@ module.exports = class ftx extends Exchange {
             request['clientId'] = clientOrderId;
             params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
         }
-        let priceToPrecision = undefined;
-        if (price !== undefined) {
-            priceToPrecision = parseFloat (this.priceToPrecision (symbol, price));
-        }
-        let method = 'privatePostConditionalOrders';
+        let method = undefined;
         if (type === 'limit') {
             method = 'privatePostOrders';
-            request['price'] = priceToPrecision;
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         } else if (type === 'market') {
             method = 'privatePostOrders';
             request['price'] = null;
         } else if ((type === 'stop') || (type === 'takeProfit')) {
-            request['triggerPrice'] = priceToPrecision;
-            // request['orderPrice'] = number; // optional, order type is limit if this is specified, otherwise market
+            method = 'privatePostConditionalOrders';
+            const stopPrice = this.safeFloat2 (params, [ 'stopPrice', 'triggerPrice' ]);
+            if (stopPrice === undefined) {
+                params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
+                request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
+            } else {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders');
+            }
+            if (price !== undefined) {
+                request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
+            }
         } else if (type === 'trailingStop') {
-            request['trailValue'] = priceToPrecision; // negative for "sell", positive for "buy"
+            method = 'privatePostConditionalOrders';
+            request['trailValue'] = parseFloat (this.priceToPrecision (symbol, price)); // negative for "sell", positive for "buy"
         } else {
             throw new InvalidOrder (this.id + ' createOrder () does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported');
         }
@@ -1539,7 +1577,7 @@ module.exports = class ftx extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAccount (params);
         //

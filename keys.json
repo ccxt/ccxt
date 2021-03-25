@@ -1,4 +1,5 @@
 {
+    "aax":           { "skip": true },
     "bcex":          { "skip": true },
     "bibox":         { "has": { "fetchCurrencies": false }},
     "bitforex":      { "skip": true },
@@ -23,6 +24,7 @@
     "fcoinjp":       { "skip": true },
     "flowbtc":       { "skip": true },
     "gemini":        { "skip": true },
+    "kuna":          { "skip": true },
     "luno":          { "skip": true },
     "mixcoins":      { "skip": true },
     "mercado":       { "skip": true },

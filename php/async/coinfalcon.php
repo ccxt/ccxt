@@ -305,16 +305,6 @@ class coinfalcon extends Exchange {
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'size_filled');
-        $remaining = null;
-        $cost = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $remaining = max (0, $amount - $filled);
-            }
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string($order, 'operation_type');
         if ($type !== null) {
@@ -323,7 +313,7 @@ class coinfalcon extends Exchange {
         }
         $side = $this->safe_string($order, 'order_type');
         $postOnly = $this->safe_value($order, 'post_only');
-        return array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -336,16 +326,16 @@ class coinfalcon extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'trades' => null,
             'fee' => null,
             'info' => $order,
             'lastTradeTimestamp' => null,
             'average' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

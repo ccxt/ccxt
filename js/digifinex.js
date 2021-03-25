@@ -1227,16 +1227,6 @@ module.exports = class digifinex extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    parseDepositAddresses (addresses) {
-        const result = {};
-        for (let i = 0; i < addresses.length; i++) {
-            const address = this.parseDepositAddress (addresses[i]);
-            const code = address['currency'];
-            result[code] = address;
-        }
-        return result;
-    }
-
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {

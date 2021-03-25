@@ -828,7 +828,6 @@ class qtrade(Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'market_amount')
         remaining = self.safe_float(order, 'market_amount_remaining')
-        filled = None
         open = self.safe_value(order, 'open', False)
         closeReason = self.safe_string(order, 'close_reason')
         status = None
@@ -839,51 +838,21 @@ class qtrade(Exchange):
         else:
             status = 'closed'
         marketId = self.safe_string(order, 'market_string')
-        symbol = self.safe_symbol(marketId, market, '_')
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         rawTrades = self.safe_value(order, 'trades', [])
         parsedTrades = self.parse_trades(rawTrades, market, None, None, {
             'order': id,
             'side': side,
             'type': orderType,
         })
-        numTrades = len(parsedTrades)
-        lastTradeTimestamp = None
-        feeCost = None
-        cost = None
-        if numTrades > 0:
-            feeCost = 0
-            cost = 0
-            filled = 0
-            remaining = amount
-            for i in range(0, len(parsedTrades)):
-                trade = parsedTrades[i]
-                feeCost = self.sum(trade['fee']['cost'], feeCost)
-                lastTradeTimestamp = self.safe_integer(trade, 'timestamp')
-                cost = self.sum(trade['cost'], cost)
-                filled = self.sum(trade['amount'], filled)
-                remaining = max(0, remaining - trade['amount'])
-        fee = None
-        if feeCost is not None:
-            feeCurrencyCode = None if (market is None) else market['quote']
-            fee = {
-                'currency': feeCurrencyCode,
-                'cost': feeCost,
-            }
-        if (amount is not None) and (remaining is not None):
-            filled = max(0, amount - remaining)
-        average = None
-        if filled is not None:
-            if (price is not None) and (cost is None):
-                cost = filled * price
-            if (cost is not None) and (filled > 0):
-                average = cost / filled
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
             'timeInForce': None,
@@ -891,15 +860,16 @@ class qtrade(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'average': average,
+            'average': None,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': None,
             'status': status,
-            'fee': fee,
-            'cost': cost,
+            'fee': None,
+            'fees': None,
+            'cost': None,
             'trades': parsedTrades,
-        }
+        })
 
     def cancel_order(self, id, symbol=None, params={}):
         request = {

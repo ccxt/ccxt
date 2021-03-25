@@ -14,6 +14,8 @@ except NameError:
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -260,6 +262,7 @@ class ftx(Exchange):
                     'An unexpected error occurred': ExchangeNotAvailable,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
                     'Please retry request': ExchangeNotAvailable,  # {"error":"Please retry request","success":false}
                     'Please try again': ExchangeNotAvailable,  # {"error":"Please try again","success":false}
+                    'Only have permissions for subaccount': PermissionDenied,  # {"success":false,"error":"Only have permissions for subaccount *sub_name*"}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -512,12 +515,6 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_ticker(result, market)
 
-    def parse_tickers(self, tickers, symbols=None):
-        result = []
-        for i in range(0, len(tickers)):
-            result.append(self.parse_ticker(tickers[i]))
-        return self.filter_by_array(result, 'symbol', symbols)
-
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         response = self.publicGetMarkets(params)
@@ -712,6 +709,45 @@ class ftx(Exchange):
         #         "type": "otc"
         #     }
         #
+        #     with -ve fee
+        #     {
+        #         "id": 1171258927,
+        #         "fee": -0.0000713875,
+        #         "side": "sell",
+        #         "size": 1,
+        #         "time": "2021-03-11T13:34:35.523627+00:00",
+        #         "type": "order",
+        #         "price": 14.2775,
+        #         "future": null,
+        #         "market": "SOL/USD",
+        #         "feeRate": -0.000005,
+        #         "orderId": 33182929044,
+        #         "tradeId": 582936801,
+        #         "liquidity": "maker",
+        #         "feeCurrency": "USD",
+        #         "baseCurrency": "SOL",
+        #         "quoteCurrency": "USD"
+        #     }
+        #
+        #     # from OTC order
+        #     {
+        #         "id": 1172129651,
+        #         "fee": 0,
+        #         "side": "sell",
+        #         "size": 1.47568846,
+        #         "time": "2021-03-11T15:04:46.893383+00:00",
+        #         "type": "otc",
+        #         "price": 14.60932598,
+        #         "future": null,
+        #         "market": null,
+        #         "feeRate": 0,
+        #         "orderId": null,
+        #         "tradeId": null,
+        #         "liquidity": "taker",
+        #         "feeCurrency": "USD",
+        #         "baseCurrency": "BCHA",
+        #         "quoteCurrency": "USD"
+        #     }
         id = self.safe_string(trade, 'id')
         takerOrMaker = self.safe_string(trade, 'liquidity')
         marketId = self.safe_string(trade, 'market')
@@ -1067,21 +1103,26 @@ class ftx(Exchange):
         if clientOrderId is not None:
             request['clientId'] = clientOrderId
             params = self.omit(params, ['clientId', 'clientOrderId'])
-        priceToPrecision = None
-        if price is not None:
-            priceToPrecision = float(self.price_to_precision(symbol, price))
-        method = 'privatePostConditionalOrders'
+        method = None
         if type == 'limit':
             method = 'privatePostOrders'
-            request['price'] = priceToPrecision
+            request['price'] = float(self.price_to_precision(symbol, price))
         elif type == 'market':
             method = 'privatePostOrders'
             request['price'] = None
         elif (type == 'stop') or (type == 'takeProfit'):
-            request['triggerPrice'] = priceToPrecision
-            # request['orderPrice'] = number  # optional, order type is limit if self is specified, otherwise market
+            method = 'privatePostConditionalOrders'
+            stopPrice = self.safe_float_2(params, ['stopPrice', 'triggerPrice'])
+            if stopPrice is None:
+                params = self.omit(params, ['stopPrice', 'triggerPrice'])
+                request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
+            else:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders')
+            if price is not None:
+                request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
         elif type == 'trailingStop':
-            request['trailValue'] = priceToPrecision  # negative for "sell", positive for "buy"
+            method = 'privatePostConditionalOrders'
+            request['trailValue'] = float(self.price_to_precision(symbol, price))  # negative for "sell", positive for "buy"
         else:
             raise InvalidOrder(self.id + ' createOrder() does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported')
         response = getattr(self, method)(self.extend(request, params))
@@ -1480,7 +1521,7 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_transaction(result, currency)
 
-    def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+    def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
         response = self.privateGetAccount(params)
         #

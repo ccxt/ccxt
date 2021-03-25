@@ -425,6 +425,7 @@ declare module 'ccxt' {
     export class aax extends Exchange {}
     export class acx extends Exchange {}
     export class aofex extends Exchange {}
+    export class ascendex extends Exchange {}
     export class bequant extends hitbtc {}
     export class bibox extends Exchange {}
     export class bigone extends Exchange {}
@@ -442,7 +443,7 @@ declare module 'ccxt' {
     export class bithumb extends Exchange {}
     export class bitkk extends zb {}
     export class bitmart extends Exchange {}
-    export class bitmax extends Exchange {}
+    export class bitmax extends ascendex {}
     export class bitmex extends Exchange {}
     export class bitpanda extends Exchange {}
     export class bitso extends Exchange {}
@@ -484,7 +485,6 @@ declare module 'ccxt' {
     export class delta extends Exchange {}
     export class deribit extends Exchange {}
     export class digifinex extends Exchange {}
-    export class dsx extends Exchange {}
     export class equos extends Exchange {}
     export class eterbase extends Exchange {}
     export class exmo extends Exchange {}
@@ -502,7 +502,6 @@ declare module 'ccxt' {
     export class hollaex extends Exchange {}
     export class huobijp extends huobipro {}
     export class huobipro extends Exchange {}
-    export class ice3x extends Exchange {}
     export class idex extends Exchange {}
     export class independentreserve extends Exchange {}
     export class indodax extends Exchange {}
@@ -554,6 +553,7 @@ declare module 'ccxt' {
         | 'aax'
         | 'acx'
         | 'aofex'
+        | 'ascendex'
         | 'bequant'
         | 'bibox'
         | 'bigone'
@@ -613,7 +613,6 @@ declare module 'ccxt' {
         | 'delta'
         | 'deribit'
         | 'digifinex'
-        | 'dsx'
         | 'equos'
         | 'eterbase'
         | 'exmo'
@@ -631,7 +630,6 @@ declare module 'ccxt' {
         | 'hollaex'
         | 'huobijp'
         | 'huobipro'
-        | 'ice3x'
         | 'idex'
         | 'independentreserve'
         | 'indodax'

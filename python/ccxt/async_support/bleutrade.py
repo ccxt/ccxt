@@ -601,21 +601,11 @@ class bleutrade(Exchange):
         if 'Created' in order:
             timestamp = self.parse8601(order['Created'] + '+00:00')
         price = self.safe_float(order, 'Price')
-        cost = None
         amount = self.safe_float(order, 'Quantity')
         remaining = self.safe_float(order, 'QuantityRemaining')
-        filled = None
-        if amount is not None and remaining is not None:
-            filled = amount - remaining
-        if not cost:
-            if price and filled:
-                cost = price * filled
-        if not price:
-            if cost and filled:
-                price = cost / filled
         average = self.safe_float(order, 'PricePerUnit')
         id = self.safe_string(order, 'OrderID')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -629,15 +619,15 @@ class bleutrade(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'amount': amount,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def parse_order_status(self, status):
         statuses = {

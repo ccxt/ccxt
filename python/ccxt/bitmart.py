@@ -1519,19 +1519,7 @@ class bitmart(Exchange):
         price = self.safe_float(order, 'price')
         average = self.safe_float_2(order, 'price_avg', 'done_avg_price')
         amount = self.safe_float_2(order, 'size', 'vol')
-        cost = None
         filled = self.safe_float_2(order, 'filled_size', 'done_vol')
-        remaining = None
-        if amount is not None:
-            if remaining is not None:
-                if filled is None:
-                    filled = max(0, amount - remaining)
-            if filled is not None:
-                if remaining is None:
-                    remaining = max(0, amount - filled)
-                if cost is None:
-                    if average is not None:
-                        cost = average * filled
         side = self.safe_string(order, 'side')
         # 1 = Open long
         # 2 = Close short
@@ -1549,7 +1537,7 @@ class bitmart(Exchange):
                 price = None
             if average == 0.0:
                 average = None
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'info': order,
@@ -1564,14 +1552,14 @@ class bitmart(Exchange):
             'price': price,
             'stopPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def parse_order_status_by_type(self, type, status):
         statusesByType = {

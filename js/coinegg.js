@@ -342,12 +342,6 @@ module.exports = class coinegg extends Exchange {
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount_original');
         const remaining = this.safeFloat (order, 'amount_outstanding');
-        let filled = undefined;
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = amount - remaining;
-            }
-        }
         let status = this.safeString (order, 'status');
         if (status === 'cancelled') {
             status = 'canceled';
@@ -358,7 +352,7 @@ module.exports = class coinegg extends Exchange {
         const type = 'limit';
         const side = this.safeString (order, 'type');
         const id = this.safeString (order, 'id');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -374,13 +368,13 @@ module.exports = class coinegg extends Exchange {
             'stopPrice': undefined,
             'cost': undefined,
             'amount': amount,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'trades': undefined,
             'fee': undefined,
             'info': info,
             'average': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

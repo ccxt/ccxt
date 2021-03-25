@@ -433,14 +433,6 @@ class probit extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function parse_tickers($rawTickers, $symbols = null) {
-        $tickers = array();
-        for ($i = 0; $i < count($rawTickers); $i++) {
-            $tickers[] = $this->parse_ticker($rawTickers[$i]);
-        }
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
-    }
-
     public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1095,16 +1087,6 @@ class probit extends Exchange {
         $response = $this->privateGetDepositAddress (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_deposit_addresses($data);
-    }
-
-    public function parse_deposit_addresses($addresses) {
-        $result = array();
-        for ($i = 0; $i < count($addresses); $i++) {
-            $address = $this->parse_deposit_address($addresses[$i]);
-            $code = $address['currency'];
-            $result[$code] = $address;
-        }
-        return $result;
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

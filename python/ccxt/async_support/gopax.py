@@ -433,12 +433,6 @@ class gopax(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    def parse_tickers(self, rawTickers, symbols=None):
-        tickers = []
-        for i in range(0, len(rawTickers)):
-            tickers.append(self.parse_ticker(rawTickers[i]))
-        return self.filter_by_array(tickers, 'symbol', symbols)
-
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.publicGetTradingPairsStats(params)
@@ -771,12 +765,8 @@ class gopax(Exchange):
         if cost is not None:
             cost = abs(cost)
         updated = None
-        if (filled is None) and (amount is not None) and (remaining is not None):
-            filled = max(0, amount - remaining)
         if (filled is not None) and (filled > 0):
             updated = self.parse8601(self.safe_string(order, 'updatedAt'))
-        if (cost is None) and (price is not None) and (filled is not None):
-            cost = filled * price
         fee = None
         if side == 'buy':
             baseFee = self.safe_value(balanceChange, 'baseFee', {})
@@ -797,7 +787,7 @@ class gopax(Exchange):
         postOnly = None
         if timeInForce is not None:
             postOnly = (timeInForce == 'PO')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'datetime': self.iso8601(timestamp),
@@ -819,7 +809,7 @@ class gopax(Exchange):
             'trades': None,
             'fee': fee,
             'info': order,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -1074,15 +1064,6 @@ class gopax(Exchange):
             'tag': tag,
             'info': depositAddress,
         }
-
-    def parse_deposit_addresses(self, addresses, codes=None):
-        result = []
-        for i in range(0, len(addresses)):
-            address = self.parse_deposit_address(addresses[i])
-            result.append(address)
-        if codes:
-            result = self.filter_by_array(result, 'currency', codes)
-        return self.index_by(result, 'currency')
 
     async def fetch_deposit_addresses(self, codes=None, params={}):
         await self.load_markets()

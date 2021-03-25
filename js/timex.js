@@ -961,14 +961,6 @@ module.exports = class timex extends Exchange {
         };
     }
 
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
-    }
-
     parseTicker (ticker, market = undefined) {
         //
         //     {

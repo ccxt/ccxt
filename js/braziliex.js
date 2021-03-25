@@ -437,20 +437,15 @@ module.exports = class braziliex extends Exchange {
             timestamp = this.parse8601 (this.safeString (order, 'date'));
         }
         const price = this.safeFloat (order, 'price');
-        const cost = this.safeFloat (order, 'total', 0.0);
+        const cost = this.safeFloat (order, 'total');
         const amount = this.safeFloat (order, 'amount');
         const filledPercentage = this.safeFloat (order, 'progress');
         const filled = amount * filledPercentage;
-        const remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
-        let info = order;
-        if ('info' in info) {
-            info = order['info'];
-        }
         const id = this.safeString (order, 'order_number');
         const fee = this.safeValue (order, 'fee'); // propagated from createOrder
         const status = (filledPercentage === 1.0) ? 'closed' : 'open';
         const side = this.safeString (order, 'type');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -467,12 +462,12 @@ module.exports = class braziliex extends Exchange {
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'trades': undefined,
             'fee': fee,
-            'info': info,
+            'info': order,
             'average': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

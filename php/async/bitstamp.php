@@ -120,6 +120,16 @@ class bitstamp extends Exchange {
                         'usdc_address/',
                         'omg_withdrawal/',
                         'omg_address/',
+                        'dai_withdrawal/',
+                        'dai_address/',
+                        'knc_withdrawal/',
+                        'knc_address/',
+                        'mkr_withdrawal/',
+                        'mkr_address/',
+                        'zrx_withdrawal/',
+                        'zrx_address/',
+                        'gusd_withdrawal/',
+                        'gusd_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -254,13 +264,15 @@ class bitstamp extends Exchange {
             $symbolId = $baseId . '_' . $quoteId;
             $id = $this->safe_string($market, 'url_symbol');
             $precision = array(
-                'amount' => $market['base_decimals'],
-                'price' => $market['counter_decimals'],
+                'amount' => $this->safe_integer($market, 'base_decimals'),
+                'price' => $this->safe_integer($market, 'counter_decimals'),
             );
-            $parts = explode(' ', $market['minimum_order']);
+            $minimumOrder = $this->safe_string($market, 'minimum_order');
+            $parts = explode(' ', $minimumOrder);
             $cost = $parts[0];
             // list($cost, $currency) = explode(' ', $market['minimum_order']);
-            $active = ($market['trading'] === 'Enabled');
+            $trading = $this->safe_string($market, 'trading');
+            $active = ($trading === 'Enabled');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -357,13 +369,16 @@ class bitstamp extends Exchange {
             $quote = $this->safe_currency_code($quote);
             $description = $this->safe_string($market, 'description');
             list($baseDescription, $quoteDescription) = explode(' / ', $description);
-            $parts = explode(' ', $market['minimum_order']);
+            $minimumOrder = $this->safe_string($market, 'minimum_order');
+            $parts = explode(' ', $minimumOrder);
             $cost = $parts[0];
             if (!(is_array($result) && array_key_exists($base, $result))) {
-                $result[$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $market['base_decimals'], null, $market);
+                $baseDecimals = $this->safe_integer($market, 'base_decimals');
+                $result[$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
             }
             if (!(is_array($result) && array_key_exists($quote, $result))) {
-                $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $market['counter_decimals'], floatval($cost), $market);
+                $counterDecimals = $this->safe_integer($market, 'counter_decimals');
+                $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, floatval($cost), $market);
             }
         }
         return $result;

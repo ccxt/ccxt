@@ -35,7 +35,7 @@ def scrape_ohlcv(exchange, max_retries, symbol, timeframe, since, limit):
     fetch_since = since
     while fetch_since < now:
         ohlcv = retry_fetch_ohlcv(exchange, max_retries, symbol, timeframe, fetch_since, limit)
-        fetch_since = (ohlcv[-1][0] + 1) if len(ohlcv) else fetch_since + timedelta
+        fetch_since = (ohlcv[-1][0] + 1) if len(ohlcv) else (fetch_since + timedelta)
         all_ohlcv = all_ohlcv + ohlcv
         if len(all_ohlcv):
             print(len(all_ohlcv), 'candles in total from', exchange.iso8601(all_ohlcv[0][0]), 'to', exchange.iso8601(all_ohlcv[-1][0]))

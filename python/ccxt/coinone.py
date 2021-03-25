@@ -438,7 +438,6 @@ class coinone(Exchange):
         elif side == 'bid':
             side = 'buy'
         remaining = self.safe_float(order, 'remainQty')
-        filled = None
         amount = self.safe_float(order, 'qty')
         status = self.safe_string(order, 'status')
         # https://github.com/ccxt/ccxt/pull/7067
@@ -446,12 +445,7 @@ class coinone(Exchange):
             if (remaining is not None) and (amount is not None):
                 if remaining < amount:
                     status = 'canceled'
-        if (remaining is not None) and (amount is not None):
-            filled = max(amount - remaining)
         status = self.parse_order_status(status)
-        cost = None
-        if (price is not None) and (filled is not None):
-            cost = price * filled
         symbol = None
         base = None
         quote = None
@@ -476,7 +470,7 @@ class coinone(Exchange):
                 'rate': self.safe_float(order, 'feeRate'),
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -490,15 +484,15 @@ class coinone(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'average': None,
             'amount': amount,
-            'filled': filled,
+            'filled': None,
             'remaining': amount,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         # The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.

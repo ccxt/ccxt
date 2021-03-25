@@ -1325,16 +1325,6 @@ class upbit extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function parse_deposit_addresses($addresses) {
-        $result = array();
-        for ($i = 0; $i < count($addresses); $i++) {
-            $address = $this->parse_deposit_address($addresses[$i]);
-            $code = $address['currency'];
-            $result[$code] = $address;
-        }
-        return $result;
-    }
-
     public function fetch_deposit_addresses($codes = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetDepositsCoinAddresses ($params);

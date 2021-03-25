@@ -127,19 +127,48 @@ module.exports = class tidex extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.webGetCurrency (params);
+        //
+        //     [
+        //         {
+        //             "id":2,
+        //             "symbol":"BTC",
+        //             "type":2,
+        //             "name":"Bitcoin",
+        //             "amountPoint":8,
+        //             "depositEnable":true,
+        //             "depositMinAmount":0.0005,
+        //             "withdrawEnable":true,
+        //             "withdrawFee":0.0004,
+        //             "withdrawMinAmount":0.0005,
+        //             "settings":{
+        //                 "Blockchain":"https://blockchair.com/bitcoin/",
+        //                 "TxUrl":"https://blockchair.com/bitcoin/transaction/{0}",
+        //                 "AddrUrl":"https://blockchair.com/bitcoin/address/{0}",
+        //                 "ConfirmationCount":3,
+        //                 "NeedMemo":false
+        //             },
+        //             "visible":true,
+        //             "isDelisted":false
+        //         }
+        //     ]
+        //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
-            const precision = currency['amountPoint'];
+            const precision = this.safeInteger (currency, 'amountPoint');
             const code = this.safeCurrencyCode (id);
-            let active = currency['visible'] === true;
-            const canWithdraw = currency['withdrawEnable'] === true;
-            const canDeposit = currency['depositEnable'] === true;
+            const visible = this.safeValue (currency, 'visible');
+            let active = visible === true;
+            const withdrawEnable = this.safeValue (currency, 'withdrawEnable');
+            const depositEnable = this.safeValue (currency, 'depositEnable');
+            const canWithdraw = withdrawEnable === true;
+            const canDeposit = depositEnable === true;
             if (!canWithdraw || !canDeposit) {
                 active = false;
             }
             const name = this.safeString (currency, 'name');
+            const fee = this.safeFloat (currency, 'withdrawFee');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -149,7 +178,7 @@ module.exports = class tidex extends Exchange {
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': currency['withdrawFee'],
+                        'fee': fee,
                     },
                     'deposit': {
                         'active': canDeposit,
@@ -204,6 +233,23 @@ module.exports = class tidex extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetInfo (params);
+        //
+        //     {
+        //         "server_time":1615861869,
+        //         "pairs":{
+        //             "ltc_btc":{
+        //                 "decimal_places":8,
+        //                 "min_price":0.00000001,
+        //                 "max_price":3.0,
+        //                 "min_amount":0.001,
+        //                 "max_amount":1000000.0,
+        //                 "min_total":0.0001,
+        //                 "hidden":0,
+        //                 "fee":0.1,
+        //             },
+        //         },
+        //     }
+        //
         const markets = response['pairs'];
         const keys = Object.keys (markets);
         const result = [];
@@ -233,6 +279,7 @@ module.exports = class tidex extends Exchange {
             };
             const hidden = this.safeInteger (market, 'hidden');
             const active = (hidden === 0);
+            const takerFee = this.safeFloat (market, 'fee');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -241,7 +288,7 @@ module.exports = class tidex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': market['fee'] / 100,
+                'taker': takerFee / 100,
                 'precision': precision,
                 'limits': limits,
                 'info': market,

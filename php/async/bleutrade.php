@@ -637,26 +637,11 @@ class bleutrade extends Exchange {
             $timestamp = $this->parse8601($order['Created'] . '+00:00');
         }
         $price = $this->safe_float($order, 'Price');
-        $cost = null;
         $amount = $this->safe_float($order, 'Quantity');
         $remaining = $this->safe_float($order, 'QuantityRemaining');
-        $filled = null;
-        if ($amount !== null && $remaining !== null) {
-            $filled = $amount - $remaining;
-        }
-        if (!$cost) {
-            if ($price && $filled) {
-                $cost = $price * $filled;
-            }
-        }
-        if (!$price) {
-            if ($cost && $filled) {
-                $price = $cost / $filled;
-            }
-        }
         $average = $this->safe_float($order, 'PricePerUnit');
         $id = $this->safe_string($order, 'OrderID');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -670,15 +655,15 @@ class bleutrade extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'amount' => $amount,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {

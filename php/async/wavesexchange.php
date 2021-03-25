@@ -577,7 +577,7 @@ class wavesexchange extends Exchange {
         $vwap = $this->safe_float($data, 'weightedAveragePrice');
         $baseVolume = $this->safe_float($data, 'volume');
         $quoteVolume = $this->safe_float($data, 'quoteVolume');
-        $open = $this->safe_value($data, 'firstPrice');
+        $open = $this->safe_float($data, 'firstPrice');
         $change = null;
         $average = null;
         $percentage = null;

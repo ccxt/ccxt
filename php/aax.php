@@ -39,6 +39,7 @@ class aax extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -235,6 +236,37 @@ class aax extends Exchange {
                 'defaultType' => 'spot', // 'spot', 'future'
             ),
         ));
+    }
+
+    public function fetch_status($params = array ()) {
+        $response = $this->publicGetAnnouncementMaintenance ($params);
+        //
+        //     {
+        //         "code" => 1,
+        //         "$data" => array(
+        //             "$startTime":"2020-06-25T02:15:00.000Z",
+        //             "$endTime":"2020-06-25T02:45:00.000Z"，
+        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading => UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com."
+        //         ),
+        //         "message":"success",
+        //         "ts":1593043237000
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $timestamp = $this->milliseconds();
+        $startTime = $this->parse8601($this->safe_string($data, 'startTime'));
+        $endTime = $this->parse8601($this->safe_string($data, 'endTime'));
+        $update = array(
+            'updated' => $this->safe_integer($response, 'ts', $timestamp),
+        );
+        if ($endTime !== null) {
+            $startTimeIsOk = ($startTime === null) ? true : ($timestamp < $startTime);
+            $isOk = ($timestamp > $endTime) || $startTimeIsOk;
+            $update['eta'] = $endTime;
+            $update['status'] = $isOk ? 'ok' : 'maintenance';
+        }
+        $this->status = array_merge($this->status, $update);
+        return $this->status;
     }
 
     public function fetch_markets($params = array ()) {

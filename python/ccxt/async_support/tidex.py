@@ -147,18 +147,47 @@ class tidex(Exchange):
 
     async def fetch_currencies(self, params={}):
         response = await self.webGetCurrency(params)
+        #
+        #     [
+        #         {
+        #             "id":2,
+        #             "symbol":"BTC",
+        #             "type":2,
+        #             "name":"Bitcoin",
+        #             "amountPoint":8,
+        #             "depositEnable":true,
+        #             "depositMinAmount":0.0005,
+        #             "withdrawEnable":true,
+        #             "withdrawFee":0.0004,
+        #             "withdrawMinAmount":0.0005,
+        #             "settings":{
+        #                 "Blockchain":"https://blockchair.com/bitcoin/",
+        #                 "TxUrl":"https://blockchair.com/bitcoin/transaction/{0}",
+        #                 "AddrUrl":"https://blockchair.com/bitcoin/address/{0}",
+        #                 "ConfirmationCount":3,
+        #                 "NeedMemo":false
+        #             },
+        #             "visible":true,
+        #             "isDelisted":false
+        #         }
+        #     ]
+        #
         result = {}
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
-            precision = currency['amountPoint']
+            precision = self.safe_integer(currency, 'amountPoint')
             code = self.safe_currency_code(id)
-            active = currency['visible'] is True
-            canWithdraw = currency['withdrawEnable'] is True
-            canDeposit = currency['depositEnable'] is True
+            visible = self.safe_value(currency, 'visible')
+            active = visible is True
+            withdrawEnable = self.safe_value(currency, 'withdrawEnable')
+            depositEnable = self.safe_value(currency, 'depositEnable')
+            canWithdraw = withdrawEnable is True
+            canDeposit = depositEnable is True
             if not canWithdraw or not canDeposit:
                 active = False
             name = self.safe_string(currency, 'name')
+            fee = self.safe_float(currency, 'withdrawFee')
             result[code] = {
                 'id': id,
                 'code': code,
@@ -168,7 +197,7 @@ class tidex(Exchange):
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': currency['withdrawFee'],
+                        'fee': fee,
                     },
                     'deposit': {
                         'active': canDeposit,
@@ -219,6 +248,23 @@ class tidex(Exchange):
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetInfo(params)
+        #
+        #     {
+        #         "server_time":1615861869,
+        #         "pairs":{
+        #             "ltc_btc":{
+        #                 "decimal_places":8,
+        #                 "min_price":0.00000001,
+        #                 "max_price":3.0,
+        #                 "min_amount":0.001,
+        #                 "max_amount":1000000.0,
+        #                 "min_total":0.0001,
+        #                 "hidden":0,
+        #                 "fee":0.1,
+        #             },
+        #         },
+        #     }
+        #
         markets = response['pairs']
         keys = list(markets.keys())
         result = []
@@ -248,6 +294,7 @@ class tidex(Exchange):
             }
             hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
+            takerFee = self.safe_float(market, 'fee')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -256,7 +303,7 @@ class tidex(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': market['fee'] / 100,
+                'taker': takerFee / 100,
                 'precision': precision,
                 'limits': limits,
                 'info': market,

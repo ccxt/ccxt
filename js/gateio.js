@@ -670,10 +670,7 @@ module.exports = class gateio extends Exchange {
         const amount = this.safeFloat2 (order, 'initialAmount', 'amount');
         const filled = this.safeFloat (order, 'filledAmount');
         // In the order status response, this field has a different name.
-        let remaining = this.safeFloat2 (order, 'leftAmount', 'left');
-        if (remaining === undefined) {
-            remaining = amount - filled;
-        }
+        const remaining = this.safeFloat2 (order, 'leftAmount', 'left');
         const feeCost = this.safeFloat (order, 'feeValue');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -681,7 +678,7 @@ module.exports = class gateio extends Exchange {
         if (feeRate !== undefined) {
             feeRate = feeRate / 100;
         }
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -707,7 +704,7 @@ module.exports = class gateio extends Exchange {
                 'rate': feeRate,
             },
             'info': order,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

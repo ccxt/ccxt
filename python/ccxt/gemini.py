@@ -502,12 +502,6 @@ class gemini(Exchange):
             'info': ticker,
         }
 
-    def parse_tickers(self, tickers, symbols=None):
-        result = []
-        for i in range(0, len(tickers)):
-            result.append(self.parse_ticker(tickers[i]))
-        return self.filter_by_array(result, 'symbol', symbols)
-
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         response = self.publicGetV1Pricefeed(params)
@@ -623,10 +617,6 @@ class gemini(Exchange):
             status = 'canceled'
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'avg_execution_price')
-        cost = None
-        if filled is not None:
-            if average is not None:
-                cost = filled * average
         type = self.safe_string(order, 'type')
         if type == 'exchange limit':
             type = 'limit'
@@ -640,7 +630,7 @@ class gemini(Exchange):
         id = self.safe_string(order, 'order_id')
         side = self.safe_string_lower(order, 'side')
         clientOrderId = self.safe_string(order, 'client_order_id')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -656,13 +646,13 @@ class gemini(Exchange):
             'price': price,
             'stopPrice': None,
             'average': average,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

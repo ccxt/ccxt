@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.43.18';
+$version = '1.44.21';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.43.18';
+    const VERSION = '1.44.21';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -65,6 +65,7 @@ class Exchange {
         'aax',
         'acx',
         'aofex',
+        'ascendex',
         'bequant',
         'bibox',
         'bigone',
@@ -124,7 +125,6 @@ class Exchange {
         'delta',
         'deribit',
         'digifinex',
-        'dsx',
         'equos',
         'eterbase',
         'exmo',
@@ -142,7 +142,6 @@ class Exchange {
         'hollaex',
         'huobijp',
         'huobipro',
-        'ice3x',
         'idex',
         'independentreserve',
         'indodax',
@@ -325,8 +324,11 @@ class Exchange {
         'filterBySymbolSinceLimit' => 'filter_by_symbol_since_limit',
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
         'filterByArray' => 'filter_by_array',
+        'parseTickers' => 'parse_tickers',
+        'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
+        'parseTransfers' => 'parse_transfers',
         'parseLedger' => 'parse_ledger',
         'parseOrders' => 'parse_orders',
         'safeCurrency' => 'safe_currency',
@@ -362,6 +364,7 @@ class Exchange {
         'integerDivide' => 'integer_divide',
         'integerModulo' => 'integer_modulo',
         'integerPow' => 'integer_pow',
+        'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeOrder' => 'safe_order',
     );
 
@@ -1089,6 +1092,10 @@ class Exchange {
         );
         $this->minFundingAddressLength = 1; // used in check_address
         $this->substituteCommonCurrencyCodes = true;
+
+        // whether fees should be summed by currency code
+        $this->reduceFees = true;
+
         $this->timeframes = null;
 
         $this->requiredCredentials = array(
@@ -1882,6 +1889,26 @@ class Exchange {
         return $result;
     }
 
+    public function parse_tickers($tickers, $symbols = null) {
+        $result = array();
+        for ($i = 0; $i < count($tickers); $i++) {
+            $result[] = $this->parse_ticker($tickers[$i]);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function parse_deposit_addresses($addresses, $codes = null) {
+        $result = array();
+        for ($i = 0; $i < count($addresses); $i++) {
+            $address = $this->parse_deposit_address($addresses[$i]);
+            $result[] = $address;
+        }
+        if ($codes) {
+            $result = $this->filter_by_array($result, 'currency', $codes);
+        }
+        return $this->index_by($result, 'currency');
+    }
+
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
         $array = is_array($trades) ? array_values($trades) : array();
         $result = array();
@@ -1892,6 +1919,30 @@ class Exchange {
         $symbol = isset($market) ? $market['symbol'] : null;
         $tail = $since === null;
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
+    }
+
+    public function parse_transactions($transactions, $currency = null, $since = null, $limit = null, $params = array()) {
+        $array = is_array($transactions) ? array_values($transactions) : array();
+        $result = array();
+        foreach ($array as $transaction) {
+            $result[] = array_replace_recursive($this->parse_transaction($transaction, $currency), $params);
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        $code = isset($currency) ? $currency['code'] : null;
+        $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
+
+    public function parse_transfers($transfers, $currency = null, $since = null, $limit = null, $params = array()) {
+        $array = is_array($transfers) ? array_values($transfers) : array();
+        $result = array();
+        foreach ($array as $transfer) {
+            $result[] = array_replace_recursive($this->parse_transfer($transfer, $currency), $params);
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        $code = isset($currency) ? $currency['code'] : null;
+        $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
     public function parse_ledger($items, $currency = null, $since = null, $limit = null, $params = array()) {
@@ -1906,18 +1957,6 @@ class Exchange {
             } else {
                 $result[] = array_replace_recursive($entry, $params);
             }
-        }
-        $result = $this->sort_by($result, 'timestamp');
-        $code = isset($currency) ? $currency['code'] : null;
-        $tail = $since === null;
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
-    }
-
-    public function parse_transactions($transactions, $currency = null, $since = null, $limit = null, $params = array()) {
-        $array = is_array($transactions) ? array_values($transactions) : array();
-        $result = array();
-        foreach ($array as $transaction) {
-            $result[] = array_replace_recursive($this->parse_transaction($transaction, $currency), $params);
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = isset($currency) ? $currency['code'] : null;
@@ -2759,6 +2798,25 @@ class Exchange {
         return (substr($string, 0, 2) === '0x') ? substr($string, 2) : $string;
     }
 
+    public function reduce_fees_by_currency($fees) {
+        $reduced = array();
+        for ($i = 0; $i < count($fees); $i++) {
+            $fee = $fees[$i];
+            $feeCurrencyCode = $this->safe_value($fee, 'currency');
+            if ($feeCurrencyCode !== null) {
+                if (is_array($reduced) && array_key_exists($feeCurrencyCode, $reduced)) {
+                    $reduced[$feeCurrencyCode]['cost'] = $this->sum($reduced[$feeCurrencyCode]['cost'], $fee['cost']);
+                } else {
+                    $reduced[$feeCurrencyCode] = array(
+                        'cost' => $fee['cost'],
+                        'currency' => $feeCurrencyCode,
+                    );
+                }
+            }
+        }
+        return is_array($reduced) ? array_values($reduced) : array();
+    }
+
     public function safe_order($order) {
         // Cost
         // Remaining
@@ -2767,65 +2825,119 @@ class Exchange {
         // Amount
         // Filled
         //
-        // First we try to calculate filled from the trades
-        $parseFilled = $order['filled'] === null;
-        $parseCost = $order['cost'] === null;
-        if ($parseFilled) {
-            $order['filled'] = 0;
-        }
-        if ($parseCost) {
-            $order['cost'] = 0;
-        }
-        if ($parseFilled || $parseCost) {
-            if (gettype($order['trades']) === 'array' && count(array_filter(array_keys($order['trades']), 'is_string')) == 0) {
-                for ($i = 0; $i < count($order['trades']); $i++) {
-                    $trade = $order['trades'][$i];
-                    if ($parseFilled) {
-                        $order['filled'] = $this->sum($order['filled'], $trade['amount']);
+        // first we try to calculate the $order fields from the $trades
+        $amount = $this->safe_value($order, 'amount');
+        $remaining = $this->safe_value($order, 'remaining');
+        $filled = $this->safe_value($order, 'filled');
+        $cost = $this->safe_value($order, 'cost');
+        $average = $this->safe_value($order, 'average');
+        $price = $this->safe_value($order, 'price');
+        $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
+        $parseFilled = ($filled === null);
+        $parseCost = ($cost === null);
+        $parseLastTradeTimeTimestamp = ($lastTradeTimeTimestamp === null);
+        $parseFee = $this->safe_value($order, 'fee') === null;
+        $parseFees = $this->safe_value($order, 'fees') === null;
+        $shouldParseFees = $parseFee || $parseFees;
+        $fees = $shouldParseFees ? array() : null;
+        if ($parseFilled || $parseCost || $shouldParseFees) {
+            $trades = $this->safe_value($order, 'trades');
+            if ($trades !== null) {
+                if ($parseFilled) {
+                    $filled = 0;
+                }
+                if ($parseCost) {
+                    $cost = 0;
+                }
+                for ($i = 0; $i < count($trades); $i++) {
+                    $trade = $trades[$i];
+                    $tradeAmount = $this->safe_value($trade, 'amount');
+                    if ($parseFilled && ($tradeAmount !== null)) {
+                        $filled = $this->sum($filled, $tradeAmount);
                     }
-                    if ($parseCost) {
-                        $order['cost'] = $this->sum($order['cost'], $trade['cost']);
+                    $tradeCost = $this->safe_value($trade, 'cost');
+                    if ($parseCost && ($tradeCost !== null)) {
+                        $cost = $this->sum($cost, $tradeCost);
+                    }
+                    $tradeTimestamp = $this->safe_value($trade, 'timestamp');
+                    if ($parseLastTradeTimeTimestamp && ($tradeTimestamp !== null)) {
+                        if ($lastTradeTimeTimestamp === null) {
+                            $lastTradeTimeTimestamp = $tradeTimestamp;
+                        } else {
+                            $lastTradeTimeTimestamp = max ($lastTradeTimeTimestamp, $tradeTimestamp);
+                        }
+                    }
+                    if ($shouldParseFees) {
+                        $tradeFees = $this->safe_value($trade, 'fees');
+                        if ($tradeFees !== null) {
+                            for ($j = 0; $j < count($tradeFees); $j++) {
+                                $tradeFee = $tradeFees[$j];
+                                $fees[] = array_merge(array(), $tradeFee);
+                            }
+                        } else {
+                            $tradeFee = $this->safe_value($trade, 'fee');
+                            if ($tradeFee !== null) {
+                                $fees[] = array_merge(array(), $tradeFee);
+                            }
+                        }
                     }
                 }
             }
         }
-        // We ensure amount = filled + remaining
-        if ($order['amount'] === null) {
-            if ($order['filled'] !== null && $order['remaining'] !== null) {
-                $order['amount'] = $this->sum($order['filled'], $order['remaining']);
+        if ($shouldParseFees) {
+            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
+            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            if (!$parseFee && ($reducedLength === 0)) {
+                array_push($reducedFees, $order['fee']);
+            }
+            if ($parseFees) {
+                $order['fees'] = $reducedFees;
+            }
+            if ($parseFee && ($reducedLength === 1)) {
+                $order['fee'] = $reducedFees[0];
             }
         }
-        if ($order['filled'] === null) {
-            if ($order['amount'] !== null && $order['remaining'] !== null) {
-                $order['filled'] = max($this->sum($order['amount'], -$order['remaining']), 0);
+        if ($amount === null) {
+            // ensure $amount = $filled . $remaining
+            if ($filled !== null && $remaining !== null) {
+                $amount = $this->sum($filled, $remaining);
             }
         }
-        if ($order['remaining'] === null) {
-            if ($order['amount'] !== null && $order['filled'] !== null) {
-                $order['remaining'] = max($this->sum($order['amount'], -$order['filled']), 0);
+        if ($filled === null) {
+            if ($amount !== null && $remaining !== null) {
+                $filled = max ($this->sum($amount, -$remaining), 0);
             }
         }
-        // We ensure that the average field is calculated correctly
-        if ($order['average'] === null) {
-            if ($order['filled'] !== null && $order['cost'] !== null && $order['cost'] > 0) {
-                $order['average'] = $order['cost'] / $order['filled'];
+        if ($remaining === null) {
+            if ($amount !== null && $filled !== null) {
+                $remaining = max ($this->sum($amount, -$filled), 0);
             }
         }
-        // We also ensure the cost field is calculated correctly
-        $costPriceExists = ($order['average'] !== null) || ($order['price'] !== null);
-        if (($order['filled'] !== null) && $costPriceExists) {
-            $costPrice = null;
-            if ($order['average'] === null) {
-                $costPrice = $order['price'];
-            } else {
-                $costPrice = $order['average'];
+        // ensure that the $average field is calculated correctly
+        if ($average === null) {
+            if (($filled !== null) && ($cost !== null) && ($cost > 0)) {
+                $average = $cost / $filled;
             }
-            $order['cost'] = $costPrice * $order['filled'];
         }
-        // We add support for market orders
-        if ($order['price'] === null && $order['type'] === 'market') {
-            $order['price'] = $order['average'];
+        // also ensure the $cost field is calculated correctly
+        $costPriceExists = ($average !== null) || ($price !== null);
+        if (($filled !== null) && $costPriceExists) {
+            $cost = ($average === null) ? ($price * $filled) : ($average * $filled);
         }
-        return $order;
+        // support for market orders
+        $orderType = $this->safe_value($order, 'type');
+        $emptyPrice = ($price === null) || ($price === 0.0);
+        if ($emptyPrice && ($orderType === 'market')) {
+            $price = $average;
+        }
+        return array_merge($order, array(
+            'lastTradeTimestamp' => $lastTradeTimeTimestamp,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'average' => $average,
+            'filled' => $filled,
+            'remaining' => $remaining,
+        ));
     }
 }

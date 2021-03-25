@@ -250,18 +250,8 @@ module.exports = class independentreserve extends Exchange {
         }
         const timestamp = this.parse8601 (this.safeString (order, 'CreatedTimestampUtc'));
         const amount = this.safeFloat2 (order, 'VolumeOrdered', 'Volume');
-        let filled = this.safeFloat (order, 'VolumeFilled');
-        let remaining = this.safeFloat (order, 'Outstanding');
-        if (filled === undefined) {
-            if ((remaining !== undefined) && (amount !== undefined)) {
-                filled = Math.max (0, amount - remaining);
-            }
-        }
-        if (remaining === undefined) {
-            if ((filled !== undefined) && (amount !== undefined)) {
-                remaining = Math.max (0, amount - filled);
-            }
-        }
+        const filled = this.safeFloat (order, 'VolumeFilled');
+        const remaining = this.safeFloat (order, 'Outstanding');
         const feeRate = this.safeFloat (order, 'FeePercent');
         let feeCost = undefined;
         if (feeRate !== undefined) {
@@ -276,8 +266,8 @@ module.exports = class independentreserve extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'Status'));
         const cost = this.safeFloat (order, 'Value');
         const average = this.safeFloat (order, 'AvgPrice');
-        const price = this.safeFloat (order, 'Price', average);
-        return {
+        const price = this.safeFloat (order, 'Price');
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -299,7 +289,7 @@ module.exports = class independentreserve extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     parseOrderStatus (status) {

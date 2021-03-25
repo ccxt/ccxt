@@ -248,6 +248,24 @@ class yobit extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetInfo ($params);
+        //
+        //     {
+        //         "server_time":1615856752,
+        //         "pairs":array(
+        //             "ltc_btc":array(
+        //                 "decimal_places":8,
+        //                 "min_price":0.00000001,
+        //                 "max_price":10000,
+        //                 "min_amount":0.0001,
+        //                 "min_total":0.0001,
+        //                 "$hidden":0,
+        //                 "fee":0.2,
+        //                 "fee_buyer":0.2,
+        //                 "fee_seller":0.2
+        //             ),
+        //         ),
+        //     }
+        //
         $markets = $this->safe_value($response, 'pairs');
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
@@ -282,6 +300,7 @@ class yobit extends Exchange {
             );
             $hidden = $this->safe_integer($market, 'hidden');
             $active = ($hidden === 0);
+            $takerFee = $this->safe_float($market, 'fee');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -290,7 +309,7 @@ class yobit extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
-                'taker' => $market['fee'] / 100,
+                'taker' => $takerFee / 100,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.43.18'
+__version__ = '1.44.21'
 
 # -----------------------------------------------------------------------------
 
@@ -54,6 +54,7 @@ from ccxt.base.errors import error_hierarchy                # noqa: F401
 from ccxt.async_support.aax import aax                                    # noqa: F401
 from ccxt.async_support.acx import acx                                    # noqa: F401
 from ccxt.async_support.aofex import aofex                                # noqa: F401
+from ccxt.async_support.ascendex import ascendex                          # noqa: F401
 from ccxt.async_support.bequant import bequant                            # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
 from ccxt.async_support.bigone import bigone                              # noqa: F401
@@ -113,7 +114,6 @@ from ccxt.async_support.currencycom import currencycom                    # noqa
 from ccxt.async_support.delta import delta                                # noqa: F401
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
-from ccxt.async_support.dsx import dsx                                    # noqa: F401
 from ccxt.async_support.equos import equos                                # noqa: F401
 from ccxt.async_support.eterbase import eterbase                          # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
@@ -131,7 +131,6 @@ from ccxt.async_support.hitbtc import hitbtc                              # noqa
 from ccxt.async_support.hollaex import hollaex                            # noqa: F401
 from ccxt.async_support.huobijp import huobijp                            # noqa: F401
 from ccxt.async_support.huobipro import huobipro                          # noqa: F401
-from ccxt.async_support.ice3x import ice3x                                # noqa: F401
 from ccxt.async_support.idex import idex                                  # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve      # noqa: F401
 from ccxt.async_support.indodax import indodax                            # noqa: F401
@@ -181,6 +180,7 @@ exchanges = [
     'aax',
     'acx',
     'aofex',
+    'ascendex',
     'bequant',
     'bibox',
     'bigone',
@@ -240,7 +240,6 @@ exchanges = [
     'delta',
     'deribit',
     'digifinex',
-    'dsx',
     'equos',
     'eterbase',
     'exmo',
@@ -258,7 +257,6 @@ exchanges = [
     'hollaex',
     'huobijp',
     'huobipro',
-    'ice3x',
     'idex',
     'independentreserve',
     'indodax',

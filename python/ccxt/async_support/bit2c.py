@@ -275,10 +275,6 @@ class bit2c(Exchange):
         timestamp = self.safe_integer(order, 'created')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -289,7 +285,7 @@ class bit2c(Exchange):
             side = 'sell'
         id = self.safe_string(order, 'id')
         status = self.safe_string(order, 'status')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -306,12 +302,12 @@ class bit2c(Exchange):
             'amount': amount,
             'filled': None,
             'remaining': None,
-            'cost': cost,
+            'cost': None,
             'trades': None,
             'fee': None,
             'info': order,
             'average': None,
-        }
+        })
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

@@ -455,17 +455,12 @@ class coinfloor extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($order, 'datetime'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
         $side = null;
         $status = $this->safe_string($order, 'status');
-        if ($order['type'] === 0) {
+        $rawType = $this->safe_string($order, 'type');
+        if ($rawType === '0') {
             $side = 'buy';
-        } else if ($order['type'] === 1) {
+        } else if ($rawType === '1') {
             $side = 'sell';
         }
         $symbol = null;
@@ -473,7 +468,7 @@ class coinfloor extends Exchange {
             $symbol = $market['symbol'];
         }
         $id = $this->safe_string($order, 'id');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -491,11 +486,11 @@ class coinfloor extends Exchange {
             'amount' => null,
             'filled' => null,
             'remaining' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => null,
             'average' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

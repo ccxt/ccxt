@@ -176,6 +176,7 @@ class crex24(Exchange):
                     'API Key': AuthenticationError,  # "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
                     'Insufficient funds': InsufficientFunds,  # "Insufficient funds: new order requires 10 ETH which is more than the available balance."
                     'has been delisted.': BadSymbol,  # {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
+                    'is currently suspended.': BadSymbol,  # {"errorDescription":"Trading in BITG-BTC is currently suspended."}
                     'Mandatory parameter': BadRequest,  # {"errorDescription":"Mandatory parameter 'feeCurrency' is missing."}
                 },
             },
@@ -481,12 +482,6 @@ class crex24(Exchange):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_tickers(self, tickers, symbols=None):
-        result = []
-        for i in range(0, len(tickers)):
-            result.append(self.parse_ticker(tickers[i]))
-        return self.filter_by_array(result, 'symbol', symbols)
-
     def parse_trade(self, trade, market=None):
         #
         # public fetchTrades
@@ -654,36 +649,16 @@ class crex24(Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'volume')
         remaining = self.safe_float(order, 'remainingVolume')
-        filled = None
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'lastUpdate'))
-        cost = None
-        if remaining is not None:
-            if amount is not None:
-                filled = amount - remaining
-                if self.options['parseOrderToPrecision']:
-                    filled = float(self.amount_to_precision(symbol, filled))
-                filled = max(filled, 0.0)
-                if price is not None:
-                    cost = price * filled
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
-        if type == 'market':
-            if price == 0.0:
-                if (cost is not None) and (filled is not None):
-                    if (cost > 0) and (filled > 0):
-                        price = cost / filled
         side = self.safe_string(order, 'side')
         fee = None
         trades = None
         average = None
-        if cost is not None:
-            if filled:
-                average = cost / filled
-            if self.options['parseOrderToPrecision']:
-                cost = float(self.cost_to_precision(symbol, cost))
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_float(order, 'stopPrice')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -697,14 +672,14 @@ class crex24(Exchange):
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': trades,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

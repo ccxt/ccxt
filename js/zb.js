@@ -205,6 +205,16 @@ module.exports = class zb extends Exchange {
 
     async fetchMarkets (params = {}) {
         const markets = await this.publicGetMarkets (params);
+        //
+        //     {
+        //         "zb_qc":{
+        //             "amountScale":2,
+        //             "minAmount":0.01,
+        //             "minSize":5,
+        //             "priceScale":4,
+        //         },
+        //     }
+        //
         const keys = Object.keys (markets);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -319,18 +329,6 @@ module.exports = class zb extends Exchange {
             'tag': tag,
             'info': depositAddress,
         };
-    }
-
-    parseDepositAddresses (addresses, codes = undefined) {
-        let result = [];
-        for (let i = 0; i < addresses.length; i++) {
-            const address = this.parseDepositAddress (addresses[i]);
-            result.push (address);
-        }
-        if (codes) {
-            result = this.filterByArray (result, 'currency', codes);
-        }
-        return this.indexBy (result, 'currency');
     }
 
     async fetchDepositAddresses (codes = undefined, params = {}) {
@@ -462,6 +460,17 @@ module.exports = class zb extends Exchange {
             'quoteVolume': undefined,
             'info': ticker,
         };
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeFloat (ohlcv, 1),
+            this.safeFloat (ohlcv, 2),
+            this.safeFloat (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
+        ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

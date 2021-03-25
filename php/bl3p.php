@@ -91,10 +91,12 @@ class bl3p extends Exchange {
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
-        return [
-            $bidask[$priceKey] / 100000.0,
-            $bidask[$amountKey] / 100000000.0,
-        ];
+        $price = $this->safe_float($bidask, $priceKey);
+        $size = $this->safe_float($bidask, $amountKey);
+        return array(
+            $price / 100000.0,
+            $size / 100000000.0,
+        );
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

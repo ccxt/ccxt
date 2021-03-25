@@ -632,27 +632,12 @@ module.exports = class bleutrade extends Exchange {
         if ('Created' in order) {
             timestamp = this.parse8601 (order['Created'] + '+00:00');
         }
-        let price = this.safeFloat (order, 'Price');
-        let cost = undefined;
+        const price = this.safeFloat (order, 'Price');
         const amount = this.safeFloat (order, 'Quantity');
         const remaining = this.safeFloat (order, 'QuantityRemaining');
-        let filled = undefined;
-        if (amount !== undefined && remaining !== undefined) {
-            filled = amount - remaining;
-        }
-        if (!cost) {
-            if (price && filled) {
-                cost = price * filled;
-            }
-        }
-        if (!price) {
-            if (cost && filled) {
-                price = cost / filled;
-            }
-        }
         const average = this.safeFloat (order, 'PricePerUnit');
         const id = this.safeString (order, 'OrderID');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -666,15 +651,15 @@ module.exports = class bleutrade extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'amount': amount,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     parseOrderStatus (status) {

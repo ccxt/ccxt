@@ -298,7 +298,8 @@ module.exports = class lbank extends Exchange {
         }
         const id = this.safeString (trade, 'tid');
         const type = undefined;
-        const side = this.safeString (trade, 'type');
+        let side = this.safeString (trade, 'type');
+        side = side.replace ('_market', '');
         return {
             'id': id,
             'info': this.safeValue (trade, 'info', trade),

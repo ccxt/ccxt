@@ -254,16 +254,6 @@ class independentreserve extends Exchange {
         $amount = $this->safe_float_2($order, 'VolumeOrdered', 'Volume');
         $filled = $this->safe_float($order, 'VolumeFilled');
         $remaining = $this->safe_float($order, 'Outstanding');
-        if ($filled === null) {
-            if (($remaining !== null) && ($amount !== null)) {
-                $filled = max (0, $amount - $remaining);
-            }
-        }
-        if ($remaining === null) {
-            if (($filled !== null) && ($amount !== null)) {
-                $remaining = max (0, $amount - $filled);
-            }
-        }
         $feeRate = $this->safe_float($order, 'FeePercent');
         $feeCost = null;
         if ($feeRate !== null) {
@@ -278,8 +268,8 @@ class independentreserve extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'Status'));
         $cost = $this->safe_float($order, 'Value');
         $average = $this->safe_float($order, 'AvgPrice');
-        $price = $this->safe_float($order, 'Price', $average);
-        return array(
+        $price = $this->safe_float($order, 'Price');
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -301,7 +291,7 @@ class independentreserve extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {

@@ -334,10 +334,6 @@ class coinegg(Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount_original')
         remaining = self.safe_float(order, 'amount_outstanding')
-        filled = None
-        if amount is not None:
-            if remaining is not None:
-                filled = amount - remaining
         status = self.safe_string(order, 'status')
         if status == 'cancelled':
             status = 'canceled'
@@ -347,7 +343,7 @@ class coinegg(Exchange):
         type = 'limit'
         side = self.safe_string(order, 'type')
         id = self.safe_string(order, 'id')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -363,13 +359,13 @@ class coinegg(Exchange):
             'stopPrice': None,
             'cost': None,
             'amount': amount,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'trades': None,
             'fee': None,
             'info': info,
             'average': None,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

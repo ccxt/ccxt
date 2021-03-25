@@ -634,4 +634,4 @@ class oceanex(Exchange):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['codes'], errorCode, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-            raise ExchangeError(response)
+            raise ExchangeError(feedback)
