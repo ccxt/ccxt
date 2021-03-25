@@ -1114,10 +1114,10 @@ class ftx(Exchange):
             method = 'privatePostConditionalOrders'
             stopPrice = self.safe_float_2(params, 'stopPrice', 'triggerPrice')
             if stopPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders')
+            else:
                 params = self.omit(params, ['stopPrice', 'triggerPrice'])
                 request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
-            else:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders')
             if price is not None:
                 request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
         elif type == 'trailingStop':
