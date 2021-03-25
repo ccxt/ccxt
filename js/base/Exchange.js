@@ -1564,4 +1564,22 @@ module.exports = class Exchange {
             'remaining': remaining,
         });
     }
+
+    safeNumber (object, key, d) {
+        const value = this.safeString (object, key)
+        if (value === undefined) {
+            return d
+        } else {
+            return this.number (value)
+        }
+    }
+
+    safeNumber2 (object, key1, key2, d) {
+        const value = this.safeString2 (object, key1, key2)
+        if (value === undefined) {
+            return d
+        } else {
+            return this.number (value)
+        }
+    }
 }

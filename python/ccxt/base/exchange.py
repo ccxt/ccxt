@@ -2246,3 +2246,17 @@ class Exchange(object):
             'filled': filled,
             'remaining': remaining,
         })
+
+    def safe_number(self, dictionary, key, default):
+        value = self.safe_string(dictionary, key)
+        if value is None:
+            return default
+        else:
+            return self.number(value)
+
+    def safe_number_2(self, dictionary, key1, key2, default):
+        value = self.safe_string_2(dictionary, key1, key2)
+        if value is None:
+            return default
+        else:
+            return self.number(value)

@@ -2948,4 +2948,22 @@ class Exchange {
             'remaining' => $remaining,
         ));
     }
+
+    public function safe_number($object, $key, $default) {
+        $value = $this->safe_string($object, $key);
+        if ($value === null) {
+            return $default;
+        } else {
+            return $this->number($value);
+        }
+    }
+
+    public function safe_number_2($object, $key1, $key2, $default) {
+        $value = $this->safe_string2($object, $key1, $key2);
+        if ($value === null) {
+            return $default;
+        } else {
+            return $this->number($value);
+        }
+    }
 }
