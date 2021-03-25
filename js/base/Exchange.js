@@ -225,7 +225,6 @@ module.exports = class Exchange {
         this.minFundingAddressLength = 1 // used in checkAddress
         this.substituteCommonCurrencyCodes = true  // reserved
         this.quoteJsonNumbers = true // treat numbers in json as quoted precise strings
-
         this.number = Number // or String (a pointer to a function)
 
         // whether fees should be summed by currency code
@@ -606,7 +605,7 @@ module.exports = class Exchange {
     onRestResponse (statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
         return responseBody.trim ()
     }
-    
+
     onJsonResponse (responseBody) {
         return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+),/g, '":"$1",') : responseBody;
     }
