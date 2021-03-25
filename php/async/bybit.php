@@ -2230,7 +2230,7 @@ class bybit extends Exchange {
                 'recv_window' => $this->options['recvWindow'],
                 'timestamp' => $timestamp,
             ));
-            $auth = $this->rawencode($this->keysort($query));
+            $auth = $this->urlencode($this->keysort($query));
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
             if ($method === 'POST') {
                 $body = $this->json(array_merge($query, array(
