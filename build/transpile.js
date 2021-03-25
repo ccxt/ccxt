@@ -260,7 +260,7 @@ class Transpiler {
             [ /(\s|\()false/g, '$1False'],
             [ /([^\s]+\s*\(\))\.toString\s+\(\)/g, 'str($1)' ],
             [ /([^\s]+)\.toString \(\)/g, 'str($1)' ],
-            [ /String\s+\((.+)\)/g, 'str($1)' ],
+            [ /([^a-zA-Z])String\s+\((.+)\)/g, '$1str($2)' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join($1)' ],
             [ /Math\.(max|min)\s/g, '$1' ],
             [ / = new /g, ' = ' ], // python does not have a 'new' keyword
@@ -358,7 +358,7 @@ class Transpiler {
             [ /Object\.values\s*\((.*)\)/g, 'is_array($1) ? array_values($1) : array()' ],
             [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
             [ /([^\s]+)\.toString \(\)/g, '(string) $1' ],
-            [ /String\s+\((.+)\)/g, 'strval($1)' ],
+            [ /([^a-zA-Z])String\s+\((.+)\)/g, '$1strval($2)' ],
             [ /throw new Error \((.*)\)/g, 'throw new \\Exception($1)' ],
             [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1($2)' ],
             [ /throw ([\S]+)\;/g, 'throw $$$1;' ],
