@@ -291,14 +291,6 @@ class bibox(Exchange):
         response = await self.publicGetMdata(self.extend(request, params))
         return self.parse_ticker(response['result'], market)
 
-    def parse_tickers(self, rawTickers, symbols=None):
-        tickers = []
-        for i in range(0, len(rawTickers)):
-            ticker = self.parse_ticker(rawTickers[i])
-            if (symbols is None) or (self.in_array(ticker['symbol'], symbols)):
-                tickers.append(ticker)
-        return tickers
-
     async def fetch_tickers(self, symbols=None, params={}):
         request = {
             'cmd': 'marketAll',
