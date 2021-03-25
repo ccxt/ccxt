@@ -176,20 +176,10 @@ class coincheck extends Exchange {
         $amount = $this->safe_float($order, 'pending_amount');
         $remaining = $this->safe_float($order, 'pending_amount');
         $price = $this->safe_float($order, 'rate');
-        $filled = null;
-        $cost = null;
-        if ($remaining !== null) {
-            if ($amount !== null) {
-                $filled = max ($amount - $remaining, 0);
-                if ($price !== null) {
-                    $cost = $filled * $price;
-                }
-            }
-        }
         $status = null;
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -197,7 +187,7 @@ class coincheck extends Exchange {
             'lastTradeTimestamp' => null,
             'amount' => $amount,
             'remaining' => $remaining,
-            'filled' => $filled,
+            'filled' => null,
             'side' => $side,
             'type' => null,
             'timeInForce' => null,
@@ -206,12 +196,12 @@ class coincheck extends Exchange {
             'symbol' => $symbol,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => null,
             'info' => $order,
             'average' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -388,6 +378,10 @@ class coincheck extends Exchange {
             'id' => $id,
         );
         return $this->privateDeleteExchangeOrdersId (array_merge($request, $params));
+    }
+
+    public function nonce() {
+        return $this->milliseconds();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

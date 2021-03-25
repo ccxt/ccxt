@@ -840,16 +840,18 @@ class kucoin extends Exchange {
             // 'marginMode' => 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
             // 'autoBorrow' => false, // The system will first borrow you funds at the optimal interest rate and then place an $order for you
         );
-        if ($type !== 'market') {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-            $request['size'] = $this->amount_to_precision($symbol, $amount);
-        } else {
-            if ($this->safe_value($params, 'quoteAmount')) {
-                // used to create market $order by quote $amount - https://github.com/ccxt/ccxt/issues/4876
-                $request['funds'] = $this->amount_to_precision($symbol, $amount);
+        $quoteAmount = $this->safe_float_2($params, 'cost', 'funds');
+        if ($type === 'market') {
+            if ($quoteAmount !== null) {
+                $params = $this->omit($params, array( 'cost', 'funds' ));
+                // kucoin uses base precision even for quote values
+                $request['funds'] = $this->amount_to_precision($symbol, $quoteAmount);
             } else {
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
             }
+        } else {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['size'] = $this->amount_to_precision($symbol, $amount);
         }
         $response = yield $this->privatePostOrders (array_merge($request, $params));
         //
@@ -883,8 +885,10 @@ class kucoin extends Exchange {
             'fee' => null,
             'trades' => null,
         );
-        if (!$this->safe_value($params, 'quoteAmount')) {
+        if ($quoteAmount === null) {
             $order['amount'] = $amount;
+        } else {
+            $order['cost'] = $quoteAmount;
         }
         return $order;
     }
@@ -1838,12 +1842,12 @@ class kucoin extends Exchange {
         $endpart = '';
         $headers = ($headers !== null) ? $headers : array();
         if ($query) {
-            if ($method !== 'GET') {
+            if (($method === 'GET') || ($method === 'DELETE')) {
+                $endpoint .= '?' . $this->urlencode($query);
+            } else {
                 $body = $this->json($query);
                 $endpart = $body;
                 $headers['Content-Type'] = 'application/json';
-            } else {
-                $endpoint .= '?' . $this->urlencode($query);
             }
         }
         $url = $this->urls['api'][$api] . $endpoint;

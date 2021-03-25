@@ -549,12 +549,6 @@ class stex(Exchange):
             'info': ticker,
         }
 
-    def parse_tickers(self, tickers, symbols=None):
-        result = []
-        for i in range(0, len(tickers)):
-            result.append(self.parse_ticker(tickers[i]))
-        return self.filter_by_array(result, 'symbol', symbols)
-
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.publicGetTicker(params)

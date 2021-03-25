@@ -474,7 +474,7 @@ class coinex(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')
-        return {
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -499,7 +499,7 @@ class coinex(Exchange):
                 'cost': self.safe_float(order, 'deal_fee'),
             },
             'info': order,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

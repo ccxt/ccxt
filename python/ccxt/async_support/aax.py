@@ -54,6 +54,7 @@ class aax(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -250,6 +251,35 @@ class aax(Exchange):
                 'defaultType': 'spot',  # 'spot', 'future'
             },
         })
+
+    async def fetch_status(self, params={}):
+        response = await self.publicGetAnnouncementMaintenance(params)
+        #
+        #     {
+        #         "code": 1,
+        #         "data": {
+        #             "startTime":"2020-06-25T02:15:00.000Z",
+        #             "endTime":"2020-06-25T02:45:00.000Z"，
+        #             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45(HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com."
+        #         },
+        #         "message":"success",
+        #         "ts":1593043237000
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        timestamp = self.milliseconds()
+        startTime = self.parse8601(self.safe_string(data, 'startTime'))
+        endTime = self.parse8601(self.safe_string(data, 'endTime'))
+        update = {
+            'updated': self.safe_integer(response, 'ts', timestamp),
+        }
+        if endTime is not None:
+            startTimeIsOk = True if (startTime is None) else (timestamp < startTime)
+            isOk = (timestamp > endTime) or startTimeIsOk
+            update['eta'] = endTime
+            update['status'] = 'ok' if isOk else 'maintenance'
+        self.status = self.extend(self.status, update)
+        return self.status
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetInstruments(params)

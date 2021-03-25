@@ -136,6 +136,16 @@ class bitstamp(Exchange):
                         'usdc_address/',
                         'omg_withdrawal/',
                         'omg_address/',
+                        'dai_withdrawal/',
+                        'dai_address/',
+                        'knc_withdrawal/',
+                        'knc_address/',
+                        'mkr_withdrawal/',
+                        'mkr_address/',
+                        'zrx_withdrawal/',
+                        'zrx_address/',
+                        'gusd_withdrawal/',
+                        'gusd_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -269,13 +279,15 @@ class bitstamp(Exchange):
             symbolId = baseId + '_' + quoteId
             id = self.safe_string(market, 'url_symbol')
             precision = {
-                'amount': market['base_decimals'],
-                'price': market['counter_decimals'],
+                'amount': self.safe_integer(market, 'base_decimals'),
+                'price': self.safe_integer(market, 'counter_decimals'),
             }
-            parts = market['minimum_order'].split(' ')
+            minimumOrder = self.safe_string(market, 'minimum_order')
+            parts = minimumOrder.split(' ')
             cost = parts[0]
             # cost, currency = market['minimum_order'].split(' ')
-            active = (market['trading'] == 'Enabled')
+            trading = self.safe_string(market, 'trading')
+            active = (trading == 'Enabled')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -366,12 +378,15 @@ class bitstamp(Exchange):
             quote = self.safe_currency_code(quote)
             description = self.safe_string(market, 'description')
             baseDescription, quoteDescription = description.split(' / ')
-            parts = market['minimum_order'].split(' ')
+            minimumOrder = self.safe_string(market, 'minimum_order')
+            parts = minimumOrder.split(' ')
             cost = parts[0]
             if not (base in result):
-                result[base] = self.construct_currency_object(baseId, base, baseDescription, market['base_decimals'], None, market)
+                baseDecimals = self.safe_integer(market, 'base_decimals')
+                result[base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
             if not (quote in result):
-                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, market['counter_decimals'], float(cost), market)
+                counterDecimals = self.safe_integer(market, 'counter_decimals')
+                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, float(cost), market)
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):

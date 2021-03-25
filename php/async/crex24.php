@@ -172,6 +172,7 @@ class crex24 extends Exchange {
                     'API Key' => '\\ccxt\\AuthenticationError', // "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds', // "Insufficient funds => new order requires 10 ETH which is more than the available balance."
                     'has been delisted.' => '\\ccxt\\BadSymbol', // array("errorDescription":"Instrument '$PAC-BTC' has been delisted.")
+                    'is currently suspended.' => '\\ccxt\\BadSymbol', // array(is_array(BITG-BTC is currently suspended.") && array_key_exists("errorDescription":"Trading, BITG-BTC is currently suspended."))
                     'Mandatory parameter' => '\\ccxt\\BadRequest', // array("errorDescription":"Mandatory parameter 'feeCurrency' is missing.")
                 ),
             ),
@@ -492,14 +493,6 @@ class crex24 extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_tickers($tickers, $symbols = null) {
-        $result = array();
-        for ($i = 0; $i < count($tickers); $i++) {
-            $result[] = $this->parse_ticker($tickers[$i]);
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
-    }
-
     public function parse_trade($trade, $market = null) {
         //
         // public fetchTrades
@@ -677,47 +670,16 @@ class crex24 extends Exchange {
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'volume');
         $remaining = $this->safe_float($order, 'remainingVolume');
-        $filled = null;
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'lastUpdate'));
-        $cost = null;
-        if ($remaining !== null) {
-            if ($amount !== null) {
-                $filled = $amount - $remaining;
-                if ($this->options['parseOrderToPrecision']) {
-                    $filled = floatval($this->amount_to_precision($symbol, $filled));
-                }
-                $filled = max ($filled, 0.0);
-                if ($price !== null) {
-                    $cost = $price * $filled;
-                }
-            }
-        }
         $id = $this->safe_string($order, 'id');
         $type = $this->safe_string($order, 'type');
-        if ($type === 'market') {
-            if ($price === 0.0) {
-                if (($cost !== null) && ($filled !== null)) {
-                    if (($cost > 0) && ($filled > 0)) {
-                        $price = $cost / $filled;
-                    }
-                }
-            }
-        }
         $side = $this->safe_string($order, 'side');
         $fee = null;
         $trades = null;
         $average = null;
-        if ($cost !== null) {
-            if ($filled) {
-                $average = $cost / $filled;
-            }
-            if ($this->options['parseOrderToPrecision']) {
-                $cost = floatval($this->cost_to_precision($symbol, $cost));
-            }
-        }
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_float($order, 'stopPrice');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -731,14 +693,14 @@ class crex24 extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

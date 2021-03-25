@@ -216,6 +216,16 @@ class zb(Exchange):
 
     def fetch_markets(self, params={}):
         markets = self.publicGetMarkets(params)
+        #
+        #     {
+        #         "zb_qc":{
+        #             "amountScale":2,
+        #             "minAmount":0.01,
+        #             "minSize":5,
+        #             "priceScale":4,
+        #         },
+        #     }
+        #
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
@@ -325,15 +335,6 @@ class zb(Exchange):
             'tag': tag,
             'info': depositAddress,
         }
-
-    def parse_deposit_addresses(self, addresses, codes=None):
-        result = []
-        for i in range(0, len(addresses)):
-            address = self.parse_deposit_address(addresses[i])
-            result.append(address)
-        if codes:
-            result = self.filter_by_array(result, 'currency', codes)
-        return self.index_by(result, 'currency')
 
     def fetch_deposit_addresses(self, codes=None, params={}):
         self.load_markets()
@@ -455,6 +456,16 @@ class zb(Exchange):
             'quoteVolume': None,
             'info': ticker,
         }
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        return [
+            self.safe_integer(ohlcv, 0),
+            self.safe_float(ohlcv, 1),
+            self.safe_float(ohlcv, 2),
+            self.safe_float(ohlcv, 3),
+            self.safe_float(ohlcv, 4),
+            self.safe_float(ohlcv, 5),
+        ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()

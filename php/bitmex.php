@@ -1479,7 +1479,7 @@ class bitmex extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetPosition ($params);
         //     array(

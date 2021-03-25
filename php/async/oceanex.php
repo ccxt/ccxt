@@ -682,7 +682,7 @@ class oceanex extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['codes'], $errorCode, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-            throw new ExchangeError($response);
+            throw new ExchangeError($feedback);
         }
     }
 }

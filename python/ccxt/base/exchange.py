@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.43.21'
+__version__ = '1.44.20'
 
 # -----------------------------------------------------------------------------
 
@@ -301,6 +301,8 @@ class Exchange(object):
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
+    # whether fees should be summed by currency code
+    reduceFees = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
     restRequestQueue = None
@@ -696,9 +698,14 @@ class Exchange(object):
         if not Exchange.key_exists(dictionary, key):
             return default_value
         value = dictionary[key]
-        if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
-            return int(value)
-        return default_value
+        try:
+            # needed to avoid breaking on "100.0"
+            # https://stackoverflow.com/questions/1094717/convert-a-string-to-integer-with-decimal-in-python#1094721
+            return int(float(value))
+        except ValueError:
+            return default_value
+        except TypeError:
+            return default_value
 
     @staticmethod
     def safe_integer_product(dictionary, key, factor, default_value=None):
@@ -1463,7 +1470,17 @@ class Exchange(object):
         raise NotSupported('fetch_deposit_address() is not supported yet')
 
     def parse_ohlcv(self, ohlcv, market=None):
-        return ohlcv[0:6] if isinstance(ohlcv, list) else ohlcv
+        if isinstance(ohlcv, list):
+            return [
+                self.safe_integer(ohlcv, 0),
+                self.safe_float(ohlcv, 1),
+                self.safe_float(ohlcv, 2),
+                self.safe_float(ohlcv, 3),
+                self.safe_float(ohlcv, 4),
+                self.safe_float(ohlcv, 5),
+            ]
+        else:
+            return ohlcv
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         parsed = [self.parse_ohlcv(ohlcv, market) for ohlcv in ohlcvs]
@@ -1680,6 +1697,21 @@ class Exchange(object):
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
+    def parse_tickers(self, tickers, symbols=None):
+        result = []
+        for i in range(0, len(tickers)):
+            result.append(self.parse_ticker(tickers[i]))
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def parse_deposit_addresses(self, addresses, codes=None):
+        result = []
+        for i in range(0, len(addresses)):
+            address = self.parse_deposit_address(addresses[i])
+            result.append(address)
+        if codes:
+            result = self.filter_by_array(result, 'currency', codes)
+        return self.index_by(result, 'currency')
+
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
         array = [self.extend(self.parse_trade(trade, market), params) for trade in array]
@@ -1687,6 +1719,22 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
+
+    def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
+        array = self.to_array(transactions)
+        array = [self.extend(self.parse_transaction(transaction, currency), params) for transaction in array]
+        array = self.sort_by(array, 'timestamp')
+        code = currency['code'] if currency else None
+        tail = since is None
+        return self.filter_by_currency_since_limit(array, code, since, limit, tail)
+
+    def parse_transfers(self, transfers, currency=None, since=None, limit=None, params={}):
+        array = self.to_array(transfers)
+        array = [self.extend(self.parse_transfer(transfer, currency), params) for transfer in array]
+        array = self.sort_by(array, 'timestamp')
+        code = currency['code'] if currency else None
+        tail = since is None
+        return self.filter_by_currency_since_limit(array, code, since, limit, tail)
 
     def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
         array = self.to_array(data)
@@ -1701,14 +1749,6 @@ class Exchange(object):
         code = currency['code'] if currency else None
         tail = since is None
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
-
-    def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
-        array = self.to_array(transactions)
-        array = [self.extend(self.parse_transaction(transaction, currency), params) for transaction in array]
-        array = self.sort_by(array, 'timestamp')
-        code = currency['code'] if currency else None
-        tail = since is None
-        return self.filter_by_currency_since_limit(array, code, since, limit, tail)
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         if isinstance(orders, list):
@@ -2092,6 +2132,21 @@ class Exchange(object):
         string.reverse()
         return ''.join(string)
 
+    def reduce_fees_by_currency(self, fees):
+        reduced = {}
+        for i in range(0, len(fees)):
+            fee = fees[i]
+            feeCurrencyCode = self.safe_value(fee, 'currency')
+            if feeCurrencyCode is not None:
+                if feeCurrencyCode in reduced:
+                    reduced[feeCurrencyCode]['cost'] = self.sum(reduced[feeCurrencyCode]['cost'], fee['cost'])
+                else:
+                    reduced[feeCurrencyCode] = {
+                        'cost': fee['cost'],
+                        'currency': feeCurrencyCode,
+                    }
+        return list(reduced.values())
+
     def safe_order(self, order):
         # Cost
         # Remaining
@@ -2100,45 +2155,90 @@ class Exchange(object):
         # Amount
         # Filled
         #
-        # First we try to calculate filled from the trades
-        parseFilled = order['filled'] is None
-        parseCost = order['cost'] is None
-        if parseFilled:
-            order['filled'] = 0
-        if parseCost:
-            order['cost'] = 0
-        if parseFilled or parseCost:
-            if isinstance(order['trades'], list):
-                for i in range(0, len(order['trades'])):
-                    trade = order['trades'][i]
-                    if parseFilled:
-                        order['filled'] = self.sum(order['filled'], trade['amount'])
-                    if parseCost:
-                        order['cost'] = self.sum(order['cost'], trade['amount'])
-        # We ensure amount = filled + remaining
-        if order['amount'] is None:
-            if order['filled'] is not None and order['remaining'] is not None:
-                order['amount'] = self.sum(order['filled'], order['remaining'])
-        if order['filled'] is None:
-            if order['amount'] is not None and order['remaining'] is not None:
-                order['filled'] = max(self.sum(order['amount'], -order['remaining']), 0)
-        if order['remaining'] is None:
-            if order['amount'] is not None and order['filled'] is not None:
-                order['remaining'] = max(self.sum(order['amount'], -order['filled']), 0)
-        # We ensure that the average field is calculated correctly
-        if order['average'] is None:
-            if order['filled'] is not None and order['cost'] is not None and order['cost'] > 0:
-                order['average'] = order['cost'] / order['filled']
-        # We also ensure the cost field is calculated correctly
-        costPriceExists = (order['average'] is not None) or (order['price'] is not None)
-        if (order['filled'] is not None) and costPriceExists:
-            costPrice = None
-            if order['average'] is None:
-                costPrice = order['price']
-            else:
-                costPrice = order['average']
-            order['cost'] = costPrice * order['filled']
-        # We add support for market orders
-        if order['price'] is None and order['type'] == 'market':
-            order['price'] = order['average']
-        return order
+        # first we try to calculate the order fields from the trades
+        amount = self.safe_value(order, 'amount')
+        remaining = self.safe_value(order, 'remaining')
+        filled = self.safe_value(order, 'filled')
+        cost = self.safe_value(order, 'cost')
+        average = self.safe_value(order, 'average')
+        price = self.safe_value(order, 'price')
+        lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
+        parseFilled = (filled is None)
+        parseCost = (cost is None)
+        parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
+        parseFee = self.safe_value(order, 'fee') is None
+        parseFees = self.safe_value(order, 'fees') is None
+        shouldParseFees = parseFee or parseFees
+        fees = [] if shouldParseFees else None
+        if parseFilled or parseCost or shouldParseFees:
+            trades = self.safe_value(order, 'trades')
+            if trades is not None:
+                if parseFilled:
+                    filled = 0
+                if parseCost:
+                    cost = 0
+                for i in range(0, len(trades)):
+                    trade = trades[i]
+                    tradeAmount = self.safe_value(trade, 'amount')
+                    if parseFilled and (tradeAmount is not None):
+                        filled = self.sum(filled, tradeAmount)
+                    tradeCost = self.safe_value(trade, 'cost')
+                    if parseCost and (tradeCost is not None):
+                        cost = self.sum(cost, tradeCost)
+                    tradeTimestamp = self.safe_value(trade, 'timestamp')
+                    if parseLastTradeTimeTimestamp and (tradeTimestamp is not None):
+                        if lastTradeTimeTimestamp is None:
+                            lastTradeTimeTimestamp = tradeTimestamp
+                        else:
+                            lastTradeTimeTimestamp = max(lastTradeTimeTimestamp, tradeTimestamp)
+                    if shouldParseFees:
+                        tradeFees = self.safe_value(trade, 'fees')
+                        if tradeFees is not None:
+                            for j in range(0, len(tradeFees)):
+                                tradeFee = tradeFees[j]
+                                fees.append(self.extend({}, tradeFee))
+                        else:
+                            tradeFee = self.safe_value(trade, 'fee')
+                            if tradeFee is not None:
+                                fees.append(self.extend({}, tradeFee))
+        if shouldParseFees:
+            reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
+            reducedLength = len(reducedFees)
+            if not parseFee and (reducedLength == 0):
+                reducedFees.append(order['fee'])
+            if parseFees:
+                order['fees'] = reducedFees
+            if parseFee and (reducedLength == 1):
+                order['fee'] = reducedFees[0]
+        if amount is None:
+            # ensure amount = filled + remaining
+            if filled is not None and remaining is not None:
+                amount = self.sum(filled, remaining)
+        if filled is None:
+            if amount is not None and remaining is not None:
+                filled = max(self.sum(amount, -remaining), 0)
+        if remaining is None:
+            if amount is not None and filled is not None:
+                remaining = max(self.sum(amount, -filled), 0)
+        # ensure that the average field is calculated correctly
+        if average is None:
+            if (filled is not None) and (cost is not None) and (cost > 0):
+                average = cost / filled
+        # also ensure the cost field is calculated correctly
+        costPriceExists = (average is not None) or (price is not None)
+        if (filled is not None) and costPriceExists:
+            cost = (price * filled) if (average is None) else (average * filled)
+        # support for market orders
+        orderType = self.safe_value(order, 'type')
+        emptyPrice = price is None or price == 0.0
+        if emptyPrice and (orderType == 'market'):
+            price = average
+        return self.extend(order, {
+            'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+        })

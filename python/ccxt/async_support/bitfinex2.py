@@ -300,6 +300,15 @@ class bitfinex2(bitfinex):
                     'JPY': 'JPY',
                     'GBP': 'GBP',
                 },
+                # actually the correct names unlike the v1
+                # we don't want to self.extend self with accountsByType in v1
+                'v2AccountsByType': {
+                    'spot': 'exchange',
+                    'exchange': 'exchange',
+                    'funding': 'funding',
+                    'margin': 'margin',
+                    'derivatives': 'margin',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -387,6 +396,7 @@ class bitfinex2(bitfinex):
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': None,
             }
+            margin = self.safe_value(market, 'margin')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -401,6 +411,7 @@ class bitfinex2(bitfinex):
                 'type': type,
                 'swap': False,
                 'spot': spot,
+                'margin': margin,
                 'futures': futures,
             })
         return result
@@ -520,12 +531,13 @@ class bitfinex2(bitfinex):
             feeValues = self.safe_value(indexed['fees'], id, [])
             fees = self.safe_value(feeValues, 1, [])
             fee = self.safe_float(fees, 1)
+            undl = self.safe_value(indexed['undl'], id, [])
             precision = 8  # default precision, todo: fix "magic constants"
-            id = 'f' + id
+            fid = 'f' + id
             result[code] = {
-                'id': id,
+                'id': fid,
                 'code': code,
-                'info': [id, label, pool, feeValues],
+                'info': [id, label, pool, feeValues, undl],
                 'type': type,
                 'name': name,
                 'active': True,
@@ -554,35 +566,107 @@ class bitfinex2(bitfinex):
 
     async def fetch_balance(self, params={}):
         # self api call does not return the 'used' amount - use the v1 version instead(which also returns zero balances)
+        # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
         await self.load_markets()
-        response = await self.privatePostAuthRWallets(params)
-        balanceType = self.safe_string(params, 'type', 'exchange')
+        accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
+        requestedType = self.safe_string(params, 'type', 'exchange')
+        accountType = self.safe_string(accountsByType, requestedType)
+        if accountType is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' fetchBalance type parameter must be one of ' + ', '.join(keys))
+        isDerivative = requestedType == 'derivatives'
+        query = self.omit(params, 'type')
+        response = await self.privatePostAuthRWallets(query)
         result = {'info': response}
-        for b in range(0, len(response)):
-            balance = response[b]
-            accountType = balance[0]
-            currency = balance[1]
-            total = balance[2]
-            available = balance[4]
-            if accountType == balanceType:
-                if currency[0] == 't':
-                    currency = currency[1:]
-                code = self.safe_currency_code(currency)
+        for i in range(0, len(response)):
+            balance = response[i]
+            type = self.safe_string(balance, 0)
+            currencyId = self.safe_string_lower(balance, 1, '')
+            start = len(currencyId) - 2
+            isDerivativeCode = currencyId[start:] == 'f0'
+            # self will only filter the derivative codes if the requestedType is 'derivatives'
+            derivativeCondition = (not isDerivative or isDerivativeCode)
+            if (accountType == type) and derivativeCondition:
+                code = self.safe_currency_code(currencyId)
                 account = self.account()
-                # do not fill in zeroes and missing values in the parser
-                # rewrite and unify the following to use the unified parseBalance
-                account['total'] = total
-                if not available:
-                    if available == 0:
-                        account['free'] = 0
-                        account['used'] = total
-                    else:
-                        account['free'] = total
-                else:
-                    account['free'] = available
-                    account['used'] = account['total'] - account['free']
+                account['total'] = self.safe_float(balance, 2)
+                account['free'] = self.safe_float(balance, 4)
                 result[code] = account
         return self.parse_balance(result)
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        # transferring between derivatives wallet and regular wallet is not documented in their API
+        # however we support it in CCXT(from just looking at web inspector)
+        await self.load_markets()
+        accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount)
+        if fromId is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' transfer fromAccount must be one of ' + ', '.join(keys))
+        toId = self.safe_string(accountsByType, toAccount)
+        if toId is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' transfer toAccount must be one of ' + ', '.join(keys))
+        currency = self.currency(code)
+        fromCurrencyId = self.convert_derivatives_id(currency, fromAccount)
+        toCurrencyId = self.convert_derivatives_id(currency, toAccount)
+        requestedAmount = self.currency_to_precision(code, amount)
+        # self request is slightly different from v1 fromAccount -> from
+        request = {
+            'amount': requestedAmount,
+            'currency': fromCurrencyId,
+            'currency_to': toCurrencyId,
+            'from': fromId,
+            'to': toId,
+        }
+        response = await self.privatePostAuthWTransfer(self.extend(request, params))
+        #  [1616451183763,"acc_tf",null,null,[1616451183763,"exchange","margin",null,"UST","UST",null,1],null,"SUCCESS","1.0 Tether USDt transfered from Exchange to Margin"]
+        timestamp = self.safe_integer(response, 0)
+        #  ["error",10001,"Momentary balance check. Please wait few seconds and try the transfer again."]
+        error = self.safe_string(response, 0)
+        if error == 'error':
+            message = self.safe_string(response, 2, '')
+            # same message as in v1
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
+            raise ExchangeError(self.id + ' ' + message)
+        info = self.safe_value(response, 4)
+        fromResponse = self.safe_string(info, 1)
+        toResponse = self.safe_string(info, 2)
+        toCode = self.safe_currency_code(self.safe_string(info, 5))
+        success = self.safe_string(response, 6)
+        status = 'ok' if (success == 'SUCCESS') else None
+        return {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': status,
+            'amount': requestedAmount,
+            'code': toCode,
+            'fromAccount': fromResponse,
+            'toAccount': toResponse,
+        }
+
+    def convert_derivatives_id(self, currency, type):
+        # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
+        # {
+        #   id: 'fUSTF0',
+        #   code: 'USTF0',
+        #   info: ['USTF0', [], [], [], ['USTF0', 'UST']],
+        info = self.safe_value(currency, 'info')
+        transferId = self.safe_string(info, 0)
+        underlying = self.safe_value(info, 4, [])
+        currencyId = None
+        if type == 'derivatives':
+            currencyId = self.safe_string(underlying, 0, transferId)
+            start = len(currencyId) - 2
+            isDerivativeCode = currencyId[start:] == 'F0'
+            if not isDerivativeCode:
+                currencyId = currencyId + 'F0'
+        elif type != 'margin':
+            currencyId = self.safe_string(underlying, 1, transferId)
+        else:
+            currencyId = transferId
+        return currencyId
 
     async def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetchOrder is not implemented yet')
@@ -609,9 +693,10 @@ class bitfinex2(bitfinex):
         priceIndex = 1 if (fullRequest['precision'] == 'R0') else 0
         for i in range(0, len(orderbook)):
             order = orderbook[i]
-            price = order[priceIndex]
-            amount = abs(order[2])
-            side = 'bids' if (order[2] > 0) else 'asks'
+            price = self.safe_float(order, priceIndex)
+            signedAmount = self.safe_float(order, 2)
+            amount = abs(signedAmount)
+            side = 'bids' if (signedAmount > 0) else 'asks'
             result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
@@ -722,12 +807,12 @@ class bitfinex2(bitfinex):
         #
         tradeLength = len(trade)
         isPrivate = (tradeLength > 5)
-        id = str(trade[0])
+        id = self.safe_string(trade, 0)
         amountIndex = 4 if isPrivate else 2
-        amount = trade[amountIndex]
+        amount = self.safe_float(trade, amountIndex)
         cost = None
         priceIndex = 5 if isPrivate else 3
-        price = trade[priceIndex]
+        price = self.safe_float(trade, priceIndex)
         side = None
         orderId = None
         takerOrMaker = None
@@ -735,7 +820,7 @@ class bitfinex2(bitfinex):
         fee = None
         symbol = None
         timestampIndex = 2 if isPrivate else 1
-        timestamp = trade[timestampIndex]
+        timestamp = self.safe_integer(trade, timestampIndex)
         if isPrivate:
             marketId = trade[1]
             if marketId in self.markets_by_id:
@@ -743,10 +828,12 @@ class bitfinex2(bitfinex):
                 symbol = market['symbol']
             else:
                 symbol = self.parse_symbol(marketId)
-            orderId = str(trade[3])
-            takerOrMaker = 'maker' if (trade[8] == 1) else 'taker'
-            feeCost = trade[9]
-            feeCurrency = self.safe_currency_code(trade[10])
+            orderId = self.safe_string(trade, 3)
+            maker = self.safe_integer(trade, 8)
+            takerOrMaker = 'maker' if (maker == 1) else 'taker'
+            feeCost = self.safe_float(trade, 9)
+            feeCurrencyId = self.safe_string(trade, 10)
+            feeCurrency = self.safe_currency_code(feeCurrencyId)
             if feeCost is not None:
                 feeCost = -feeCost
                 if symbol in self.markets:
@@ -1382,7 +1469,7 @@ class bitfinex2(bitfinex):
             'address': address,
         })
 
-    async def fetch_positions(self, symbols=None, since=None, limit=None, params={}):
+    async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.privatePostPositions(params)
         #

@@ -301,6 +301,7 @@ class lbank extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         $type = null;
         $side = $this->safe_string($trade, 'type');
+        $side = str_replace('_market', '', $side);
         return array(
             'id' => $id,
             'info' => $this->safe_value($trade, 'info', $trade),

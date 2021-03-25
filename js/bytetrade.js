@@ -421,24 +421,16 @@ module.exports = class bytetrade extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
-    }
-
     async fetchBidsAsks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const rawTickers = await this.marketGetDepth (params);
-        return this.parseTickers (rawTickers, symbols);
+        const response = await this.marketGetDepth (params);
+        return this.parseTickers (response, symbols);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const rawTickers = await this.marketGetTickers (params);
-        return this.parseTickers (rawTickers, symbols);
+        const response = await this.marketGetTickers (params);
+        return this.parseTickers (response, symbols);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -958,7 +950,7 @@ module.exports = class bytetrade extends Exchange {
         };
     }
 
-    async transfer (code, amount, address, message = '', params = {}) {
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
         this.checkRequiredDependencies ();
         if (this.apiKey === undefined) {
             throw new ArgumentsRequired ('transfer() requires this.apiKey');
@@ -976,6 +968,7 @@ module.exports = class bytetrade extends Exchange {
         expirationDatetime = expirationDatetime.split ('.')[0];
         const feeAmount = '300000000000000';
         const defaultDappId = 'Sagittarius';
+        const message = this.safeString (params, 'message', '');
         const dappId = this.safeString (params, 'dappId', defaultDappId);
         const eightBytes = this.integerPow ('2', '64');
         const byteStringArray = [
@@ -989,8 +982,8 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (feeAmount, 8),  // string for 32 bit php
             this.numberToLE (this.apiKey.length, 1),
             this.stringToBinary (this.encode (this.apiKey)),
-            this.numberToLE (address.length, 1),
-            this.stringToBinary (this.encode (address)),
+            this.numberToLE (toAccount.length, 1),
+            this.stringToBinary (this.encode (toAccount)),
             this.numberToLE (assetType, 4),
             this.numberToLE (this.integerDivide (amountChain, eightBytes), 8),
             this.numberToLE (this.integerModulo (amountChain, eightBytes), 8),
@@ -1011,7 +1004,7 @@ module.exports = class bytetrade extends Exchange {
         const operation = {
             'fee': '300000000000000',
             'from': this.apiKey,
-            'to': address,
+            'to': toAccount,
             'asset_type': parseInt (currency['id']),
             'amount': amountChain.toString (),
             'message': message,

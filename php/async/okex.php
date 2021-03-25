@@ -2413,16 +2413,6 @@ class okex extends Exchange {
         return yield $this->fetch_orders_by_state('7', $symbol, $since, $limit, $params);
     }
 
-    public function parse_deposit_addresses($addresses) {
-        $result = array();
-        for ($i = 0; $i < count($addresses); $i++) {
-            $address = $this->parse_deposit_address($addresses[$i]);
-            $code = $address['currency'];
-            $result[$code] = $address;
-        }
-        return $result;
-    }
-
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
@@ -2450,7 +2440,8 @@ class okex extends Exchange {
 
     public function fetch_deposit_address($code, $params = array ()) {
         yield $this->load_markets();
-        $currency = $this->currency($code);
+        $parts = explode('-', $code);
+        $currency = $this->currency($parts[0]);
         $request = array(
             'currency' => $currency['id'],
         );
@@ -2463,10 +2454,10 @@ class okex extends Exchange {
         //         }
         //     )
         //
-        $addresses = $this->parse_deposit_addresses($response);
-        $address = $this->safe_value($addresses, $code);
+        $addressesByCode = $this->parse_deposit_addresses($response);
+        $address = $this->safe_value($addressesByCode, $code);
         if ($address === null) {
-            throw new InvalidAddress($this->id . ' fetchDepositAddress cannot return nonexistent $addresses, you should create withdrawal $addresses with the exchange website first');
+            throw new InvalidAddress($this->id . ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
         }
         return $address;
     }
@@ -3146,7 +3137,7 @@ class okex extends Exchange {
         return $response;
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         yield $this->load_markets();
         $method = null;
         $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType');

@@ -433,14 +433,6 @@ module.exports = class gopax extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTradingPairsStats (params);
@@ -789,20 +781,14 @@ module.exports = class gopax extends Exchange {
         market = this.safeMarket (marketId, market, '-');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const balanceChange = this.safeValue (order, 'balanceChange', {});
-        let filled = this.safeFloat (balanceChange, 'baseNet');
+        const filled = this.safeFloat (balanceChange, 'baseNet');
         let cost = this.safeFloat (balanceChange, 'quoteNet');
         if (cost !== undefined) {
             cost = Math.abs (cost);
         }
         let updated = undefined;
-        if ((filled === undefined) && (amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (0, amount - remaining);
-        }
         if ((filled !== undefined) && (filled > 0)) {
             updated = this.parse8601 (this.safeString (order, 'updatedAt'));
-        }
-        if ((cost === undefined) && (price !== undefined) && (filled !== undefined)) {
-            cost = filled * price;
         }
         let fee = undefined;
         if (side === 'buy') {
@@ -826,7 +812,7 @@ module.exports = class gopax extends Exchange {
         if (timeInForce !== undefined) {
             postOnly = (timeInForce === 'PO');
         }
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'datetime': this.iso8601 (timestamp),
@@ -848,7 +834,7 @@ module.exports = class gopax extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': order,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -1123,18 +1109,6 @@ module.exports = class gopax extends Exchange {
             'tag': tag,
             'info': depositAddress,
         };
-    }
-
-    parseDepositAddresses (addresses, codes = undefined) {
-        let result = [];
-        for (let i = 0; i < addresses.length; i++) {
-            const address = this.parseDepositAddress (addresses[i]);
-            result.push (address);
-        }
-        if (codes) {
-            result = this.filterByArray (result, 'currency', codes);
-        }
-        return this.indexBy (result, 'currency');
     }
 
     async fetchDepositAddresses (codes = undefined, params = {}) {

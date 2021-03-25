@@ -2407,16 +2407,6 @@ module.exports = class okex extends Exchange {
         return await this.fetchOrdersByState ('7', symbol, since, limit, params);
     }
 
-    parseDepositAddresses (addresses) {
-        const result = {};
-        for (let i = 0; i < addresses.length; i++) {
-            const address = this.parseDepositAddress (addresses[i]);
-            const code = address['currency'];
-            result[code] = address;
-        }
-        return result;
-    }
-
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
@@ -2444,7 +2434,8 @@ module.exports = class okex extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        const parts = code.split ('-');
+        const currency = this.currency (parts[0]);
         const request = {
             'currency': currency['id'],
         };
@@ -2457,8 +2448,8 @@ module.exports = class okex extends Exchange {
         //         }
         //     ]
         //
-        const addresses = this.parseDepositAddresses (response);
-        const address = this.safeValue (addresses, code);
+        const addressesByCode = this.parseDepositAddresses (response);
+        const address = this.safeValue (addressesByCode, code);
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
         }
@@ -3140,7 +3131,7 @@ module.exports = class okex extends Exchange {
         return response;
     }
 
-    async fetchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let method = undefined;
         const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType');

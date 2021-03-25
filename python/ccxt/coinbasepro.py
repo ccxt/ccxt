@@ -715,10 +715,6 @@ class coinbasepro(Exchange):
         price = self.safe_float(order, 'price')
         filled = self.safe_float(order, 'filled_size')
         amount = self.safe_float(order, 'size', filled)
-        remaining = None
-        if amount is not None:
-            if filled is not None:
-                remaining = amount - filled
         cost = self.safe_float(order, 'executed_value')
         feeCost = self.safe_float(order, 'fill_fees')
         fee = None
@@ -738,7 +734,7 @@ class coinbasepro(Exchange):
         postOnly = self.safe_value(order, 'post_only')
         stopPrice = self.safe_float(order, 'stop_price')
         clientOrderId = self.safe_string(order, 'client_oid')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -756,11 +752,11 @@ class coinbasepro(Exchange):
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'fee': fee,
             'average': None,
             'trades': None,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

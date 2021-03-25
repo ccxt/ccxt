@@ -606,14 +606,6 @@ class currencycom extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_tickers($rawTickers, $symbols = null) {
-        $tickers = array();
-        for ($i = 0; $i < count($rawTickers); $i++) {
-            $tickers[] = $this->parse_ticker($rawTickers[$i]);
-        }
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
-    }
-
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTicker24hr ($params);
@@ -836,61 +828,16 @@ class currencycom extends Exchange {
         $filled = $this->safe_float($order, 'executedQty');
         $remaining = null;
         $cost = $this->safe_float($order, 'cummulativeQuoteQty');
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-                if ($this->options['parseOrderToPrecision']) {
-                    $remaining = floatval($this->amount_to_precision($symbol, $remaining));
-                }
-                $remaining = max ($remaining, 0.0);
-            }
-            if ($price !== null) {
-                if ($cost === null) {
-                    $cost = $price * $filled;
-                }
-            }
-        }
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
-        if ($type === 'market') {
-            if ($price === 0.0) {
-                if (($cost !== null) && ($filled !== null)) {
-                    if (($cost > 0) && ($filled > 0)) {
-                        $price = $cost / $filled;
-                    }
-                }
-            }
-        }
         $side = $this->safe_string_lower($order, 'side');
-        $fee = null;
         $trades = null;
         $fills = $this->safe_value($order, 'fills');
         if ($fills !== null) {
             $trades = $this->parse_trades($fills, $market);
-            $numTrades = is_array($trades) ? count($trades) : 0;
-            if ($numTrades > 0) {
-                $cost = $trades[0]['cost'];
-                $fee = array(
-                    'cost' => $trades[0]['fee']['cost'],
-                    'currency' => $trades[0]['fee']['currency'],
-                );
-                for ($i = 1; $i < count($trades); $i++) {
-                    $cost = $this->sum($cost, $trades[$i]['cost']);
-                    $fee['cost'] = $this->sum($fee['cost'], $trades[$i]['fee']['cost']);
-                }
-            }
-        }
-        $average = null;
-        if ($cost !== null) {
-            if ($filled) {
-                $average = $cost / $filled;
-            }
-            if ($this->options['parseOrderToPrecision']) {
-                $cost = floatval($this->cost_to_precision($symbol, $cost));
-            }
         }
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -904,13 +851,13 @@ class currencycom extends Exchange {
             'stopPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => $average,
+            'average' => null,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
-            'fee' => $fee,
+            'fee' => null,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

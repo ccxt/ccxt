@@ -240,12 +240,6 @@ class independentreserve(Exchange):
         amount = self.safe_float_2(order, 'VolumeOrdered', 'Volume')
         filled = self.safe_float(order, 'VolumeFilled')
         remaining = self.safe_float(order, 'Outstanding')
-        if filled is None:
-            if (remaining is not None) and (amount is not None):
-                filled = max(0, amount - remaining)
-        if remaining is None:
-            if (filled is not None) and (amount is not None):
-                remaining = max(0, amount - filled)
         feeRate = self.safe_float(order, 'FeePercent')
         feeCost = None
         if feeRate is not None:
@@ -259,8 +253,8 @@ class independentreserve(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'Status'))
         cost = self.safe_float(order, 'Value')
         average = self.safe_float(order, 'AvgPrice')
-        price = self.safe_float(order, 'Price', average)
-        return {
+        price = self.safe_float(order, 'Price')
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -282,7 +276,7 @@ class independentreserve(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def parse_order_status(self, status):
         statuses = {

@@ -461,7 +461,6 @@ module.exports = class coinone extends Exchange {
             side = 'buy';
         }
         const remaining = this.safeFloat (order, 'remainQty');
-        let filled = undefined;
         const amount = this.safeFloat (order, 'qty');
         let status = this.safeString (order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
@@ -472,14 +471,7 @@ module.exports = class coinone extends Exchange {
                 }
             }
         }
-        if ((remaining !== undefined) && (amount !== undefined)) {
-            filled = Math.max (amount - remaining);
-        }
         status = this.parseOrderStatus (status);
-        let cost = undefined;
-        if ((price !== undefined) && (filled !== undefined)) {
-            cost = price * filled;
-        }
         let symbol = undefined;
         let base = undefined;
         let quote = undefined;
@@ -508,7 +500,7 @@ module.exports = class coinone extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -522,15 +514,15 @@ module.exports = class coinone extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'average': undefined,
             'amount': amount,
-            'filled': filled,
+            'filled': undefined,
             'remaining': amount,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

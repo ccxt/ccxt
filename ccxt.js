@@ -35,7 +35,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.43.21'
+const version = '1.44.20'
 
 Exchange.ccxtVersion = version
 
@@ -45,6 +45,7 @@ const exchanges = {
     'aax':                     require ('./js/aax.js'),
     'acx':                     require ('./js/acx.js'),
     'aofex':                   require ('./js/aofex.js'),
+    'ascendex':                require ('./js/ascendex.js'),
     'bequant':                 require ('./js/bequant.js'),
     'bibox':                   require ('./js/bibox.js'),
     'bigone':                  require ('./js/bigone.js'),
@@ -104,7 +105,6 @@ const exchanges = {
     'delta':                   require ('./js/delta.js'),
     'deribit':                 require ('./js/deribit.js'),
     'digifinex':               require ('./js/digifinex.js'),
-    'dsx':                     require ('./js/dsx.js'),
     'equos':                   require ('./js/equos.js'),
     'eterbase':                require ('./js/eterbase.js'),
     'exmo':                    require ('./js/exmo.js'),
@@ -122,7 +122,6 @@ const exchanges = {
     'hollaex':                 require ('./js/hollaex.js'),
     'huobijp':                 require ('./js/huobijp.js'),
     'huobipro':                require ('./js/huobipro.js'),
-    'ice3x':                   require ('./js/ice3x.js'),
     'idex':                    require ('./js/idex.js'),
     'independentreserve':      require ('./js/independentreserve.js'),
     'indodax':                 require ('./js/indodax.js'),

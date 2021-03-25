@@ -847,8 +847,7 @@ module.exports = class qtrade extends Exchange {
         }
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'market_amount');
-        let remaining = this.safeFloat (order, 'market_amount_remaining');
-        let filled = undefined;
+        const remaining = this.safeFloat (order, 'market_amount_remaining');
         const open = this.safeValue (order, 'open', false);
         const closeReason = this.safeString (order, 'close_reason');
         let status = undefined;
@@ -860,58 +859,21 @@ module.exports = class qtrade extends Exchange {
             status = 'closed';
         }
         const marketId = this.safeString (order, 'market_string');
-        const symbol = this.safeSymbol (marketId, market, '_');
+        market = this.safeMarket (marketId, market, '_');
+        const symbol = market['symbol'];
         const rawTrades = this.safeValue (order, 'trades', []);
         const parsedTrades = this.parseTrades (rawTrades, market, undefined, undefined, {
             'order': id,
             'side': side,
             'type': orderType,
         });
-        const numTrades = parsedTrades.length;
-        let lastTradeTimestamp = undefined;
-        let feeCost = undefined;
-        let cost = undefined;
-        if (numTrades > 0) {
-            feeCost = 0;
-            cost = 0;
-            filled = 0;
-            remaining = amount;
-            for (let i = 0; i < parsedTrades.length; i++) {
-                const trade = parsedTrades[i];
-                feeCost = this.sum (trade['fee']['cost'], feeCost);
-                lastTradeTimestamp = this.safeInteger (trade, 'timestamp');
-                cost = this.sum (trade['cost'], cost);
-                filled = this.sum (trade['amount'], filled);
-                remaining = Math.max (0, remaining - trade['amount']);
-            }
-        }
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCurrencyCode = (market === undefined) ? undefined : market['quote'];
-            fee = {
-                'currency': feeCurrencyCode,
-                'cost': feeCost,
-            };
-        }
-        if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (0, amount - remaining);
-        }
-        let average = undefined;
-        if (filled !== undefined) {
-            if ((price !== undefined) && (cost === undefined)) {
-                cost = filled * price;
-            }
-            if ((cost !== undefined) && (filled > 0)) {
-                average = cost / filled;
-            }
-        }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
             'timeInForce': undefined,
@@ -919,15 +881,16 @@ module.exports = class qtrade extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'average': average,
+            'average': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': undefined,
             'status': status,
-            'fee': fee,
-            'cost': cost,
+            'fee': undefined,
+            'fees': undefined,
+            'cost': undefined,
             'trades': parsedTrades,
-        };
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

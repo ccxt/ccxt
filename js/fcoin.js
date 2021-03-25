@@ -553,21 +553,8 @@ module.exports = class fcoin extends Exchange {
         const timestamp = this.safeInteger (order, 'created_at');
         const amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat (order, 'filled_amount');
-        let remaining = undefined;
-        let price = this.safeFloat (order, 'price');
-        let cost = this.safeFloat (order, 'executed_value');
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
-            }
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = price * filled;
-                }
-            } else if ((cost > 0) && (filled > 0)) {
-                price = cost / filled;
-            }
-        }
+        const price = this.safeFloat (order, 'price');
+        const cost = this.safeFloat (order, 'executed_value');
         let feeCurrency = undefined;
         let feeCost = undefined;
         const feeRebate = this.safeFloat (order, 'fees_income');
@@ -582,7 +569,7 @@ module.exports = class fcoin extends Exchange {
                 feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             }
         }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -598,7 +585,7 @@ module.exports = class fcoin extends Exchange {
             'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
-            'remaining': remaining,
+            'remaining': undefined,
             'filled': filled,
             'average': undefined,
             'status': status,
@@ -607,7 +594,7 @@ module.exports = class fcoin extends Exchange {
                 'currency': feeCurrency,
             },
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

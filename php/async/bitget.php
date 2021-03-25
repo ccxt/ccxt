@@ -2755,7 +2755,7 @@ class bitget extends Exchange {
         return $response;
     }
 
-    public function fetch_positions($symbols = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_positions($symbols = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->swapGetPositionAllPosition ($params);
         //

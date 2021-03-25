@@ -56,6 +56,7 @@ class hitbtc(Exchange):
                 'fetchTransactions': True,
                 'fetchWithdrawals': False,
                 'withdraw': True,
+                'transfer': True,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -93,10 +94,10 @@ class hitbtc(Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'symbol',  # Available Currency Symbols
-                        'symbol/{symbol}',  # Get symbol info
                         'currency',  # Available Currencies
                         'currency/{currency}',  # Get currency info
+                        'symbol',  # Available Currency Symbols
+                        'symbol/{symbol}',  # Get symbol info
                         'ticker',  # Ticker list for all symbols
                         'ticker/{symbol}',  # Ticker for symbol
                         'trades',
@@ -114,11 +115,20 @@ class hitbtc(Exchange):
                         'order/{clientOrderId}',  # Get a single order by clientOrderId
                         'trading/fee/all',  # Get trading fee rate
                         'trading/fee/{symbol}',  # Get trading fee rate
+                        'margin/account',
+                        'margin/account/{symbol}',
+                        'margin/position',
+                        'margin/position/{symbol}',
+                        'margin/order',
+                        'margin/order/{clientOrderId}',
                         'history/order',  # Get historical orders
                         'history/trades',  # Get historical trades
                         'history/order/{orderId}/trades',  # Get historical trades by specified order
                         'account/balance',  # Get main acccount balance
-                        'account/crypto/address/{currency}',  # Get deposit crypro address
+                        'account/crypto/address/{currency}',  # Get current address
+                        'account/crypto/addresses/{currency}',  # Get last 10 deposit addresses for currency
+                        'account/crypto/used-addresses/{currency}',  # Get last 10 unique addresses used for withdraw by currency
+                        'account/crypto/estimate-withdraw',
                         'account/crypto/is-mine/{address}',
                         'account/transactions',  # Get account transactions
                         'account/transactions/{id}',  # Get account transaction by id
@@ -129,23 +139,33 @@ class hitbtc(Exchange):
                     ],
                     'post': [
                         'order',  # Create new order
-                        'account/crypto/address/{currency}',  # Create new deposit crypro address
-                        'account/crypto/withdraw',  # Withdraw crypro
+                        'margin/order',
+                        'account/crypto/address/{currency}',  # Create new crypto deposit address
+                        'account/crypto/withdraw',  # Withdraw crypto
                         'account/crypto/transfer-convert',
-                        'account/transfer',  # Transfer amount to trading
+                        'account/transfer',  # Transfer amount to trading account or to main account
+                        'account/transfer/internal',
                         'sub-acc/freeze',
                         'sub-acc/activate',
                         'sub-acc/transfer',
                     ],
                     'put': [
                         'order/{clientOrderId}',  # Create new order
-                        'account/crypto/withdraw/{id}',  # Commit withdraw crypro
+                        'margin/account/{symbol}',
+                        'margin/order/{clientOrderId}',
+                        'account/crypto/withdraw/{id}',  # Commit crypto withdrawal
                         'sub-acc/acl/{subAccountUserId}',
                     ],
                     'delete': [
                         'order',  # Cancel all open orders
                         'order/{clientOrderId}',  # Cancel order
-                        'account/crypto/withdraw/{id}',  # Rollback withdraw crypro
+                        'margin/account',
+                        'margin/account/{symbol}',
+                        'margin/position',
+                        'margin/position/{symbol}',
+                        'margin/order',
+                        'margin/order/{clientOrderId}',
+                        'account/crypto/withdraw/{id}',  # Rollback crypto withdrawal
                     ],
                     # outdated?
                     'patch': [
@@ -164,6 +184,17 @@ class hitbtc(Exchange):
             },
             'options': {
                 'defaultTimeInForce': 'FOK',
+                'accountsByType': {
+                    'bank': 'bank',
+                    'exchange': 'exchange',
+                    'main': 'bank',  # alias of the above
+                    'trading': 'exchange',
+                },
+                'fetchBalanceMethod': {
+                    'account': 'account',
+                    'main': 'account',
+                    'trading': 'trading',
+                },
             },
             'commonCurrencies': {
                 'BCC': 'BCC',  # initial symbol for Bitcoin Cash, now inactive
@@ -192,7 +223,6 @@ class hitbtc(Exchange):
                 '20002': OrderNotFound,  # canceling non-existent order
                 '20001': InsufficientFunds,  # {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
             },
-            'orders': {},  # orders cache / emulation
         })
 
     def fee_to_precision(self, symbol, fee):
@@ -265,6 +295,44 @@ class hitbtc(Exchange):
                 },
             }))
         return result
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        # account can be "exchange" or "bank", with aliases "main" or "trading" respectively
+        self.load_markets()
+        currency = self.currency(code)
+        requestAmount = self.currency_to_precision(code, amount)
+        request = {
+            'currency': currency['id'],
+            'amount': requestAmount,
+        }
+        type = self.safe_string(params, 'type')
+        if type is None:
+            accountsByType = self.safe_value(self.options, 'accountsByType', {})
+            fromId = self.safe_string(accountsByType, fromAccount)
+            toId = self.safe_string(accountsByType, toAccount)
+            keys = list(accountsByType.keys())
+            if fromId is None:
+                raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys) + ' instead of ' + fromId)
+            if toId is None:
+                raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys) + ' instead of ' + toId)
+            if fromId == toId:
+                raise ExchangeError(self.id + ' from and to cannot be the same account')
+            type = fromId + 'To' + self.capitalize(toId)
+        request['type'] = type
+        response = self.privatePostAccountTransfer(self.extend(request, params))
+        # {id: '2db6ebab-fb26-4537-9ef8-1a689472d236'}
+        id = self.safe_string(response, 'id')
+        return {
+            'info': response,
+            'id': id,
+            'timestamp': None,
+            'datetime': None,
+            'amount': requestAmount,
+            'currency': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': None,
+        }
 
     def fetch_currencies(self, params={}):
         response = self.publicGetCurrency(params)
@@ -363,7 +431,11 @@ class hitbtc(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         type = self.safe_string(params, 'type', 'trading')
-        method = 'privateGet' + self.capitalize(type) + 'Balance'
+        fetchBalanceAccounts = self.safe_value(self.options, 'fetchBalanceMethod', {})
+        typeId = self.safe_string(fetchBalanceAccounts, type)
+        if typeId is None:
+            raise ExchangeError(self.id + ' fetchBalance account type must be either main or trading')
+        method = 'privateGet' + self.capitalize(typeId) + 'Balance'
         query = self.omit(params, 'type')
         response = getattr(self, method)(query)
         result = {'info': response}
@@ -820,13 +892,6 @@ class hitbtc(Exchange):
         id = self.safe_string(order, 'clientOrderId')
         clientOrderId = id
         price = self.safe_float(order, 'price')
-        remaining = None
-        cost = None
-        if amount is not None:
-            if filled is not None:
-                remaining = amount - filled
-                if price is not None:
-                    cost = filled * price
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
         trades = self.safe_value(order, 'tradesReport')
@@ -834,31 +899,8 @@ class hitbtc(Exchange):
         average = self.safe_value(order, 'avgPrice')
         if trades is not None:
             trades = self.parse_trades(trades, market)
-            feeCost = None
-            numTrades = len(trades)
-            tradesCost = 0
-            for i in range(0, numTrades):
-                if feeCost is None:
-                    feeCost = 0
-                tradesCost = self.sum(tradesCost, trades[i]['cost'])
-                tradeFee = self.safe_value(trades[i], 'fee', {})
-                tradeFeeCost = self.safe_float(tradeFee, 'cost')
-                if tradeFeeCost is not None:
-                    feeCost = self.sum(feeCost, tradeFeeCost)
-            cost = tradesCost
-            if (filled is not None) and (filled > 0):
-                if average is None:
-                    average = cost / filled
-                if type == 'market':
-                    if price is None:
-                        price = average
-            if feeCost is not None:
-                fee = {
-                    'cost': feeCost,
-                    'currency': market['quote'],
-                }
         timeInForce = self.safe_string(order, 'timeInForce')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,  # https://github.com/ccxt/ccxt/issues/5674
             'timestamp': created,
@@ -873,13 +915,13 @@ class hitbtc(Exchange):
             'stopPrice': None,
             'average': average,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'fee': fee,
             'trades': trades,
             'info': order,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

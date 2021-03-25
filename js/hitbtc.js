@@ -44,6 +44,7 @@ module.exports = class hitbtc extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': false,
                 'withdraw': true,
+                'transfer': true,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -81,10 +82,10 @@ module.exports = class hitbtc extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'symbol', // Available Currency Symbols
-                        'symbol/{symbol}', // Get symbol info
                         'currency', // Available Currencies
                         'currency/{currency}', // Get currency info
+                        'symbol', // Available Currency Symbols
+                        'symbol/{symbol}', // Get symbol info
                         'ticker', // Ticker list for all symbols
                         'ticker/{symbol}', // Ticker for symbol
                         'trades',
@@ -102,11 +103,20 @@ module.exports = class hitbtc extends Exchange {
                         'order/{clientOrderId}', // Get a single order by clientOrderId
                         'trading/fee/all', // Get trading fee rate
                         'trading/fee/{symbol}', // Get trading fee rate
+                        'margin/account',
+                        'margin/account/{symbol}',
+                        'margin/position',
+                        'margin/position/{symbol}',
+                        'margin/order',
+                        'margin/order/{clientOrderId}',
                         'history/order', // Get historical orders
                         'history/trades', // Get historical trades
                         'history/order/{orderId}/trades', // Get historical trades by specified order
                         'account/balance', // Get main acccount balance
-                        'account/crypto/address/{currency}', // Get deposit crypro address
+                        'account/crypto/address/{currency}', // Get current address
+                        'account/crypto/addresses/{currency}', // Get last 10 deposit addresses for currency
+                        'account/crypto/used-addresses/{currency}', // Get last 10 unique addresses used for withdraw by currency
+                        'account/crypto/estimate-withdraw',
                         'account/crypto/is-mine/{address}',
                         'account/transactions', // Get account transactions
                         'account/transactions/{id}', // Get account transaction by id
@@ -117,23 +127,33 @@ module.exports = class hitbtc extends Exchange {
                     ],
                     'post': [
                         'order', // Create new order
-                        'account/crypto/address/{currency}', // Create new deposit crypro address
-                        'account/crypto/withdraw', // Withdraw crypro
+                        'margin/order',
+                        'account/crypto/address/{currency}', // Create new crypto deposit address
+                        'account/crypto/withdraw', // Withdraw crypto
                         'account/crypto/transfer-convert',
-                        'account/transfer', // Transfer amount to trading
+                        'account/transfer', // Transfer amount to trading account or to main account
+                        'account/transfer/internal',
                         'sub-acc/freeze',
                         'sub-acc/activate',
                         'sub-acc/transfer',
                     ],
                     'put': [
                         'order/{clientOrderId}', // Create new order
-                        'account/crypto/withdraw/{id}', // Commit withdraw crypro
+                        'margin/account/{symbol}',
+                        'margin/order/{clientOrderId}',
+                        'account/crypto/withdraw/{id}', // Commit crypto withdrawal
                         'sub-acc/acl/{subAccountUserId}',
                     ],
                     'delete': [
                         'order', // Cancel all open orders
                         'order/{clientOrderId}', // Cancel order
-                        'account/crypto/withdraw/{id}', // Rollback withdraw crypro
+                        'margin/account',
+                        'margin/account/{symbol}',
+                        'margin/position',
+                        'margin/position/{symbol}',
+                        'margin/order',
+                        'margin/order/{clientOrderId}',
+                        'account/crypto/withdraw/{id}', // Rollback crypto withdrawal
                     ],
                     // outdated?
                     'patch': [
@@ -152,6 +172,17 @@ module.exports = class hitbtc extends Exchange {
             },
             'options': {
                 'defaultTimeInForce': 'FOK',
+                'accountsByType': {
+                    'bank': 'bank',
+                    'exchange': 'exchange',
+                    'main': 'bank',  // alias of the above
+                    'trading': 'exchange',
+                },
+                'fetchBalanceMethod': {
+                    'account': 'account',
+                    'main': 'account',
+                    'trading': 'trading',
+                },
             },
             'commonCurrencies': {
                 'BCC': 'BCC', // initial symbol for Bitcoin Cash, now inactive
@@ -180,7 +211,6 @@ module.exports = class hitbtc extends Exchange {
                 '20002': OrderNotFound, // canceling non-existent order
                 '20001': InsufficientFunds, // {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
             },
-            'orders': {}, // orders cache / emulation
         });
     }
 
@@ -257,6 +287,49 @@ module.exports = class hitbtc extends Exchange {
             }));
         }
         return result;
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        // account can be "exchange" or "bank", with aliases "main" or "trading" respectively
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const requestAmount = this.currencyToPrecision (code, amount);
+        const request = {
+            'currency': currency['id'],
+            'amount': requestAmount,
+        };
+        let type = this.safeString (params, 'type');
+        if (type === undefined) {
+            const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+            const fromId = this.safeString (accountsByType, fromAccount);
+            const toId = this.safeString (accountsByType, toAccount);
+            const keys = Object.keys (accountsByType);
+            if (fromId === undefined) {
+                throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', ') + ' instead of ' + fromId);
+            }
+            if (toId === undefined) {
+                throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', ') + ' instead of ' + toId);
+            }
+            if (fromId === toId) {
+                throw new ExchangeError (this.id + ' from and to cannot be the same account');
+            }
+            type = fromId + 'To' + this.capitalize (toId);
+        }
+        request['type'] = type;
+        const response = await this.privatePostAccountTransfer (this.extend (request, params));
+        // { id: '2db6ebab-fb26-4537-9ef8-1a689472d236' }
+        const id = this.safeString (response, 'id');
+        return {
+            'info': response,
+            'id': id,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'amount': requestAmount,
+            'currency': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': undefined,
+        };
     }
 
     async fetchCurrencies (params = {}) {
@@ -362,7 +435,12 @@ module.exports = class hitbtc extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', 'trading');
-        const method = 'privateGet' + this.capitalize (type) + 'Balance';
+        const fetchBalanceAccounts = this.safeValue (this.options, 'fetchBalanceMethod', {});
+        const typeId = this.safeString (fetchBalanceAccounts, type);
+        if (typeId === undefined) {
+            throw new ExchangeError (this.id + ' fetchBalance account type must be either main or trading');
+        }
+        const method = 'privateGet' + this.capitalize (typeId) + 'Balance';
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
         const result = { 'info': response };
@@ -854,58 +932,17 @@ module.exports = class hitbtc extends Exchange {
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
         const clientOrderId = id;
-        let price = this.safeFloat (order, 'price');
-        let remaining = undefined;
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = amount - filled;
-                if (price !== undefined) {
-                    cost = filled * price;
-                }
-            }
-        }
+        const price = this.safeFloat (order, 'price');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         let trades = this.safeValue (order, 'tradesReport');
-        let fee = undefined;
-        let average = this.safeValue (order, 'avgPrice');
+        const fee = undefined;
+        const average = this.safeValue (order, 'avgPrice');
         if (trades !== undefined) {
             trades = this.parseTrades (trades, market);
-            let feeCost = undefined;
-            const numTrades = trades.length;
-            let tradesCost = 0;
-            for (let i = 0; i < numTrades; i++) {
-                if (feeCost === undefined) {
-                    feeCost = 0;
-                }
-                tradesCost = this.sum (tradesCost, trades[i]['cost']);
-                const tradeFee = this.safeValue (trades[i], 'fee', {});
-                const tradeFeeCost = this.safeFloat (tradeFee, 'cost');
-                if (tradeFeeCost !== undefined) {
-                    feeCost = this.sum (feeCost, tradeFeeCost);
-                }
-            }
-            cost = tradesCost;
-            if ((filled !== undefined) && (filled > 0)) {
-                if (average === undefined) {
-                    average = cost / filled;
-                }
-                if (type === 'market') {
-                    if (price === undefined) {
-                        price = average;
-                    }
-                }
-            }
-            if (feeCost !== undefined) {
-                fee = {
-                    'cost': feeCost,
-                    'currency': market['quote'],
-                };
-            }
         }
         const timeInForce = this.safeString (order, 'timeInForce');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId, // https://github.com/ccxt/ccxt/issues/5674
             'timestamp': created,
@@ -920,13 +957,13 @@ module.exports = class hitbtc extends Exchange {
             'stopPrice': undefined,
             'average': average,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'fee': fee,
             'trades': trades,
             'info': order,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

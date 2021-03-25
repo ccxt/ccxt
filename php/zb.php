@@ -211,6 +211,16 @@ class zb extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $markets = $this->publicGetMarkets ($params);
+        //
+        //     {
+        //         "zb_qc":array(
+        //             "amountScale":2,
+        //             "minAmount":0.01,
+        //             "minSize":5,
+        //             "priceScale":4,
+        //         ),
+        //     }
+        //
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -325,18 +335,6 @@ class zb extends Exchange {
             'tag' => $tag,
             'info' => $depositAddress,
         );
-    }
-
-    public function parse_deposit_addresses($addresses, $codes = null) {
-        $result = array();
-        for ($i = 0; $i < count($addresses); $i++) {
-            $address = $this->parse_deposit_address($addresses[$i]);
-            $result[] = $address;
-        }
-        if ($codes) {
-            $result = $this->filter_by_array($result, 'currency', $codes);
-        }
-        return $this->index_by($result, 'currency');
     }
 
     public function fetch_deposit_addresses($codes = null, $params = array ()) {
@@ -467,6 +465,17 @@ class zb extends Exchange {
             'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
+        );
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        return array(
+            $this->safe_integer($ohlcv, 0),
+            $this->safe_float($ohlcv, 1),
+            $this->safe_float($ohlcv, 2),
+            $this->safe_float($ohlcv, 3),
+            $this->safe_float($ohlcv, 4),
+            $this->safe_float($ohlcv, 5),
         );
     }
 

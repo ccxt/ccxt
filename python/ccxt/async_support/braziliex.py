@@ -428,19 +428,15 @@ class braziliex(Exchange):
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(order, 'date'))
         price = self.safe_float(order, 'price')
-        cost = self.safe_float(order, 'total', 0.0)
+        cost = self.safe_float(order, 'total')
         amount = self.safe_float(order, 'amount')
         filledPercentage = self.safe_float(order, 'progress')
         filled = amount * filledPercentage
-        remaining = float(self.amount_to_precision(symbol, amount - filled))
-        info = order
-        if 'info' in info:
-            info = order['info']
         id = self.safe_string(order, 'order_number')
         fee = self.safe_value(order, 'fee')  # propagated from createOrder
         status = 'closed' if (filledPercentage == 1.0) else 'open'
         side = self.safe_string(order, 'type')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -457,12 +453,12 @@ class braziliex(Exchange):
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'trades': None,
             'fee': fee,
-            'info': info,
+            'info': order,
             'average': None,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

@@ -407,21 +407,15 @@ class bytetrade(Exchange):
             return self.parse_ticker(ticker, market)
         return self.parse_ticker(response, market)
 
-    def parse_tickers(self, rawTickers, symbols=None):
-        tickers = []
-        for i in range(0, len(rawTickers)):
-            tickers.append(self.parse_ticker(rawTickers[i]))
-        return self.filter_by_array(tickers, 'symbol', symbols)
-
     async def fetch_bids_asks(self, symbols=None, params={}):
         await self.load_markets()
-        rawTickers = await self.marketGetDepth(params)
-        return self.parse_tickers(rawTickers, symbols)
+        response = await self.marketGetDepth(params)
+        return self.parse_tickers(response, symbols)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        rawTickers = await self.marketGetTickers(params)
-        return self.parse_tickers(rawTickers, symbols)
+        response = await self.marketGetTickers(params)
+        return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -904,7 +898,7 @@ class bytetrade(Exchange):
             'average': None,
         }
 
-    async def transfer(self, code, amount, address, message='', params={}):
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.check_required_dependencies()
         if self.apiKey is None:
             raise ArgumentsRequired('transfer() requires self.apiKey')
@@ -921,6 +915,7 @@ class bytetrade(Exchange):
         expirationDatetime = expirationDatetime.split('.')[0]
         feeAmount = '300000000000000'
         defaultDappId = 'Sagittarius'
+        message = self.safe_string(params, 'message', '')
         dappId = self.safe_string(params, 'dappId', defaultDappId)
         eightBytes = self.integer_pow('2', '64')
         byteStringArray = [
@@ -934,8 +929,8 @@ class bytetrade(Exchange):
             self.number_to_le(feeAmount, 8),  # string for 32 bit php
             self.number_to_le(len(self.apiKey), 1),
             self.encode(self.apiKey),
-            self.number_to_le(len(address), 1),
-            self.encode(address),
+            self.number_to_le(len(toAccount), 1),
+            self.encode(toAccount),
             self.number_to_le(assetType, 4),
             self.number_to_le(self.integer_divide(amountChain, eightBytes), 8),
             self.number_to_le(self.integer_modulo(amountChain, eightBytes), 8),
@@ -956,7 +951,7 @@ class bytetrade(Exchange):
         operation = {
             'fee': '300000000000000',
             'from': self.apiKey,
-            'to': address,
+            'to': toAccount,
             'asset_type': int(currency['id']),
             'amount': str(amountChain),
             'message': message,

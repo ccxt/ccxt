@@ -682,18 +682,8 @@ class hollaex extends Exchange {
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'filled');
-        $cost = null;
-        $remaining = null;
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-            }
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-        }
         $status = ($type === 'market') ? 'closed' : 'open';
-        $result = array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -709,14 +699,13 @@ class hollaex extends Exchange {
             'stopPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
-            'cost' => $cost,
+            'remaining' => null,
+            'cost' => null,
             'trades' => null,
             'fee' => null,
             'info' => $order,
             'average' => null,
-        );
-        return $result;
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

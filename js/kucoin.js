@@ -836,16 +836,18 @@ module.exports = class kucoin extends Exchange {
             // 'marginMode': 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
             // 'autoBorrow': false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
         };
-        if (type !== 'market') {
-            request['price'] = this.priceToPrecision (symbol, price);
-            request['size'] = this.amountToPrecision (symbol, amount);
-        } else {
-            if (this.safeValue (params, 'quoteAmount')) {
-                // used to create market order by quote amount - https://github.com/ccxt/ccxt/issues/4876
-                request['funds'] = this.amountToPrecision (symbol, amount);
+        const quoteAmount = this.safeFloat2 (params, 'cost', 'funds');
+        if (type === 'market') {
+            if (quoteAmount !== undefined) {
+                params = this.omit (params, [ 'cost', 'funds' ]);
+                // kucoin uses base precision even for quote values
+                request['funds'] = this.amountToPrecision (symbol, quoteAmount);
             } else {
                 request['size'] = this.amountToPrecision (symbol, amount);
             }
+        } else {
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['size'] = this.amountToPrecision (symbol, amount);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         //
@@ -879,8 +881,10 @@ module.exports = class kucoin extends Exchange {
             'fee': undefined,
             'trades': undefined,
         };
-        if (!this.safeValue (params, 'quoteAmount')) {
+        if (quoteAmount === undefined) {
             order['amount'] = amount;
+        } else {
+            order['cost'] = quoteAmount;
         }
         return order;
     }
@@ -1834,12 +1838,12 @@ module.exports = class kucoin extends Exchange {
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
         if (Object.keys (query).length) {
-            if (method !== 'GET') {
+            if ((method === 'GET') || (method === 'DELETE')) {
+                endpoint += '?' + this.urlencode (query);
+            } else {
                 body = this.json (query);
                 endpart = body;
                 headers['Content-Type'] = 'application/json';
-            } else {
-                endpoint += '?' + this.urlencode (query);
             }
         }
         const url = this.urls['api'][api] + endpoint;

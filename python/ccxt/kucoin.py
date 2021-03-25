@@ -819,15 +819,17 @@ class kucoin(Exchange):
             # 'marginMode': 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
             # 'autoBorrow': False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
         }
-        if type != 'market':
-            request['price'] = self.price_to_precision(symbol, price)
-            request['size'] = self.amount_to_precision(symbol, amount)
-        else:
-            if self.safe_value(params, 'quoteAmount'):
-                # used to create market order by quote amount - https://github.com/ccxt/ccxt/issues/4876
-                request['funds'] = self.amount_to_precision(symbol, amount)
+        quoteAmount = self.safe_float_2(params, 'cost', 'funds')
+        if type == 'market':
+            if quoteAmount is not None:
+                params = self.omit(params, ['cost', 'funds'])
+                # kucoin uses base precision even for quote values
+                request['funds'] = self.amount_to_precision(symbol, quoteAmount)
             else:
                 request['size'] = self.amount_to_precision(symbol, amount)
+        else:
+            request['price'] = self.price_to_precision(symbol, price)
+            request['size'] = self.amount_to_precision(symbol, amount)
         response = self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -860,8 +862,10 @@ class kucoin(Exchange):
             'fee': None,
             'trades': None,
         }
-        if not self.safe_value(params, 'quoteAmount'):
+        if quoteAmount is None:
             order['amount'] = amount
+        else:
+            order['cost'] = quoteAmount
         return order
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -1737,12 +1741,12 @@ class kucoin(Exchange):
         endpart = ''
         headers = headers if (headers is not None) else {}
         if query:
-            if method != 'GET':
+            if (method == 'GET') or (method == 'DELETE'):
+                endpoint += '?' + self.urlencode(query)
+            else:
                 body = self.json(query)
                 endpart = body
                 headers['Content-Type'] = 'application/json'
-            else:
-                endpoint += '?' + self.urlencode(query)
         url = self.urls['api'][api] + endpoint
         if api == 'private':
             self.check_required_credentials()

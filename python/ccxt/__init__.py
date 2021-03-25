@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.43.21'
+__version__ = '1.44.20'
 
 # ----------------------------------------------------------------------------
 
@@ -71,6 +71,7 @@ from ccxt.base.errors import error_hierarchy                # noqa: F401
 from ccxt.aax import aax                                    # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.aofex import aofex                                # noqa: F401
+from ccxt.ascendex import ascendex                          # noqa: F401
 from ccxt.bequant import bequant                            # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
 from ccxt.bigone import bigone                              # noqa: F401
@@ -130,7 +131,6 @@ from ccxt.currencycom import currencycom                    # noqa: F401
 from ccxt.delta import delta                                # noqa: F401
 from ccxt.deribit import deribit                            # noqa: F401
 from ccxt.digifinex import digifinex                        # noqa: F401
-from ccxt.dsx import dsx                                    # noqa: F401
 from ccxt.equos import equos                                # noqa: F401
 from ccxt.eterbase import eterbase                          # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
@@ -148,7 +148,6 @@ from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hollaex import hollaex                            # noqa: F401
 from ccxt.huobijp import huobijp                            # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
-from ccxt.ice3x import ice3x                                # noqa: F401
 from ccxt.idex import idex                                  # noqa: F401
 from ccxt.independentreserve import independentreserve      # noqa: F401
 from ccxt.indodax import indodax                            # noqa: F401
@@ -198,6 +197,7 @@ exchanges = [
     'aax',
     'acx',
     'aofex',
+    'ascendex',
     'bequant',
     'bibox',
     'bigone',
@@ -257,7 +257,6 @@ exchanges = [
     'delta',
     'deribit',
     'digifinex',
-    'dsx',
     'equos',
     'eterbase',
     'exmo',
@@ -275,7 +274,6 @@ exchanges = [
     'hollaex',
     'huobijp',
     'huobipro',
-    'ice3x',
     'idex',
     'independentreserve',
     'indodax',

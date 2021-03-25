@@ -429,12 +429,6 @@ class probit(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    def parse_tickers(self, rawTickers, symbols=None):
-        tickers = []
-        for i in range(0, len(rawTickers)):
-            tickers.append(self.parse_ticker(rawTickers[i]))
-        return self.filter_by_array(tickers, 'symbol', symbols)
-
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -1030,14 +1024,6 @@ class probit(Exchange):
         response = self.privateGetDepositAddress(self.extend(request, params))
         data = self.safe_value(response, 'data', [])
         return self.parse_deposit_addresses(data)
-
-    def parse_deposit_addresses(self, addresses):
-        result = {}
-        for i in range(0, len(addresses)):
-            address = self.parse_deposit_address(addresses[i])
-            code = address['currency']
-            result[code] = address
-        return result
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         # In order to use self method

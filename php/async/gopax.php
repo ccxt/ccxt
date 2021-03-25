@@ -436,14 +436,6 @@ class gopax extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_tickers($rawTickers, $symbols = null) {
-        $tickers = array();
-        for ($i = 0; $i < count($rawTickers); $i++) {
-            $tickers[] = $this->parse_ticker($rawTickers[$i]);
-        }
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
-    }
-
     public function fetch_tickers($symbols = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->publicGetTradingPairsStats ($params);
@@ -798,14 +790,8 @@ class gopax extends Exchange {
             $cost = abs($cost);
         }
         $updated = null;
-        if (($filled === null) && ($amount !== null) && ($remaining !== null)) {
-            $filled = max (0, $amount - $remaining);
-        }
         if (($filled !== null) && ($filled > 0)) {
             $updated = $this->parse8601($this->safe_string($order, 'updatedAt'));
-        }
-        if (($cost === null) && ($price !== null) && ($filled !== null)) {
-            $cost = $filled * $price;
         }
         $fee = null;
         if ($side === 'buy') {
@@ -829,7 +815,7 @@ class gopax extends Exchange {
         if ($timeInForce !== null) {
             $postOnly = ($timeInForce === 'PO');
         }
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'datetime' => $this->iso8601($timestamp),
@@ -851,7 +837,7 @@ class gopax extends Exchange {
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -1126,18 +1112,6 @@ class gopax extends Exchange {
             'tag' => $tag,
             'info' => $depositAddress,
         );
-    }
-
-    public function parse_deposit_addresses($addresses, $codes = null) {
-        $result = array();
-        for ($i = 0; $i < count($addresses); $i++) {
-            $address = $this->parse_deposit_address($addresses[$i]);
-            $result[] = $address;
-        }
-        if ($codes) {
-            $result = $this->filter_by_array($result, 'currency', $codes);
-        }
-        return $this->index_by($result, 'currency');
     }
 
     public function fetch_deposit_addresses($codes = null, $params = array ()) {

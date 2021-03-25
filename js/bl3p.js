@@ -89,9 +89,11 @@ module.exports = class bl3p extends Exchange {
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+        const price = this.safeFloat (bidask, priceKey);
+        const size = this.safeFloat (bidask, amountKey);
         return [
-            bidask[priceKey] / 100000.0,
-            bidask[amountKey] / 100000000.0,
+            price / 100000.0,
+            size / 100000000.0,
         ];
     }
 

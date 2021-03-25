@@ -659,15 +659,8 @@ class hollaex(Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled')
-        cost = None
-        remaining = None
-        if filled is not None:
-            if amount is not None:
-                remaining = amount - filled
-            if price is not None:
-                cost = filled * price
         status = 'closed' if (type == 'market') else 'open'
-        result = {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -683,14 +676,13 @@ class hollaex(Exchange):
             'stopPrice': None,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
-            'cost': cost,
+            'remaining': None,
+            'cost': None,
             'trades': None,
             'fee': None,
             'info': order,
             'average': None,
-        }
-        return result
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

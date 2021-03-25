@@ -115,6 +115,16 @@ module.exports = class bitstamp extends Exchange {
                         'usdc_address/',
                         'omg_withdrawal/',
                         'omg_address/',
+                        'dai_withdrawal/',
+                        'dai_address/',
+                        'knc_withdrawal/',
+                        'knc_address/',
+                        'mkr_withdrawal/',
+                        'mkr_address/',
+                        'zrx_withdrawal/',
+                        'zrx_address/',
+                        'gusd_withdrawal/',
+                        'gusd_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -249,13 +259,15 @@ module.exports = class bitstamp extends Exchange {
             const symbolId = baseId + '_' + quoteId;
             const id = this.safeString (market, 'url_symbol');
             const precision = {
-                'amount': market['base_decimals'],
-                'price': market['counter_decimals'],
+                'amount': this.safeInteger (market, 'base_decimals'),
+                'price': this.safeInteger (market, 'counter_decimals'),
             };
-            const parts = market['minimum_order'].split (' ');
+            const minimumOrder = this.safeString (market, 'minimum_order');
+            const parts = minimumOrder.split (' ');
             const cost = parts[0];
             // let [ cost, currency ] = market['minimum_order'].split (' ');
-            const active = (market['trading'] === 'Enabled');
+            const trading = this.safeString (market, 'trading');
+            const active = (trading === 'Enabled');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -352,13 +364,16 @@ module.exports = class bitstamp extends Exchange {
             quote = this.safeCurrencyCode (quote);
             const description = this.safeString (market, 'description');
             const [ baseDescription, quoteDescription ] = description.split (' / ');
-            const parts = market['minimum_order'].split (' ');
+            const minimumOrder = this.safeString (market, 'minimum_order');
+            const parts = minimumOrder.split (' ');
             const cost = parts[0];
             if (!(base in result)) {
-                result[base] = this.constructCurrencyObject (baseId, base, baseDescription, market['base_decimals'], undefined, market);
+                const baseDecimals = this.safeInteger (market, 'base_decimals');
+                result[base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
             }
             if (!(quote in result)) {
-                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, market['counter_decimals'], parseFloat (cost), market);
+                const counterDecimals = this.safeInteger (market, 'counter_decimals');
+                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, parseFloat (cost), market);
             }
         }
         return result;

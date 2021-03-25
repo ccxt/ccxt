@@ -681,18 +681,8 @@ module.exports = class hollaex extends Exchange {
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'filled');
-        let cost = undefined;
-        let remaining = undefined;
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
-            }
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-        }
         const status = (type === 'market') ? 'closed' : 'open';
-        const result = {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -708,14 +698,13 @@ module.exports = class hollaex extends Exchange {
             'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
-            'cost': cost,
+            'remaining': undefined,
+            'cost': undefined,
             'trades': undefined,
             'fee': undefined,
             'info': order,
             'average': undefined,
-        };
-        return result;
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
