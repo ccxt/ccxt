@@ -520,7 +520,7 @@ module.exports = class Exchange {
     parseJson (jsonString) {
         try {
             if (this.isJsonEncodedObject (jsonString)) {
-                return JSON.parse (jsonString)
+                return JSON.parse (this.onJsonResponse (jsonString))
             }
         } catch (e) {
             // SyntaxError
@@ -599,8 +599,11 @@ module.exports = class Exchange {
     }
 
     onRestResponse (statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
-        const trimmed = responseBody.trim ()
-        return this.quoteJsonNumbers ? trimmed.replace (/":([+.0-9eE-]+),/g, '":"$1",') : trimmed;
+        return responseBody.trim ()
+    }
+    
+    onJsonResponse (responseBody) {
+        return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+),/g, '":"$1",') : responseBody;
     }
 
     setMarkets (markets, currencies = undefined) {
