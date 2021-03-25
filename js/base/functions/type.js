@@ -41,6 +41,7 @@ module.exports = {
     , asInteger
 
     , safeFloat:          (o, k,          $default, n =   asFloat (prop (o, k))) => (isNumber (n)          ? n                         : $default)
+    , safeNumber:         (o, k,          $default, n = this.number (prop (o, k))) => (isNumber (n)          ? n                         : $default)
     , safeInteger:        (o, k,          $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? n                         : $default)
     , safeIntegerProduct: (o, k, $factor, $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? parseInt (n * $factor)    : $default)
     , safeTimestamp:      (o, k,          $default, n =   asFloat (prop (o, k))) => (isNumber (n)          ? parseInt (n * 1000)       : $default)
@@ -53,6 +54,7 @@ module.exports = {
     // we're not using safeFloat3 either because those cases are too rare to deserve their own optimization
 
     , safeFloat2:          (o, k1, k2,          $default, n =   asFloat (prop2 (o, k1, k2))) => (isNumber (n)          ? n                         : $default)
+    , safeNumber2:         (o, k1, k2,          $default, n = this.number (prop2 (o, k1, k2))) => (isNumber (n)          ? n                         : $default)
     , safeInteger2:        (o, k1, k2,          $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n)          ? n                         : $default)
     , safeIntegerProduct2: (o, k1, k2, $factor, $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n)          ? parseInt (n * $factor)    : $default)
     , safeTimestamp2:      (o, k1, k2,          $default, n =   asFloat (prop2 (o, k1, k2))) => (isNumber (n)          ? parseInt (n * 1000)       : $default)
