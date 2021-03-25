@@ -1004,7 +1004,7 @@ class Exchange {
         $this->options = array(); // exchange-specific options if any
 
         $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
-        $this->quoteJsonNumbers = true; // treat numbers in json as quoted precise strings 
+        $this->quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
 
         $this->name = null;
         $this->countries = null;
@@ -1158,6 +1158,7 @@ class Exchange {
 
         $this->precisionMode = DECIMAL_PLACES;
         $this->paddingMode = NO_PADDING;
+        $this->number = \Closure::fromCallable('floatval');
 
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp = 0;

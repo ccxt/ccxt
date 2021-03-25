@@ -302,6 +302,7 @@ class Exchange(object):
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     quoteJsonNumbers = True
+    number = float  # or str (a pointer to a class)
     # whether fees should be summed by currency code
     reduceFees = True
     lastRestRequestTimestamp = 0
