@@ -1134,7 +1134,7 @@ module.exports = class ftx extends Exchange {
             request['price'] = null;
         } else if ((type === 'stop') || (type === 'takeProfit')) {
             method = 'privatePostConditionalOrders';
-            const stopPrice = this.safeFloat2 (params, [ 'stopPrice', 'triggerPrice' ]);
+            const stopPrice = this.safeFloat2 (params, 'stopPrice', 'triggerPrice');
             if (stopPrice === undefined) {
                 params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
                 request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));

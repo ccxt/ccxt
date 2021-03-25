@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.44.27';
+$version = '1.44.29';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.44.27';
+    const VERSION = '1.44.29';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1003,6 +1003,7 @@ class Exchange {
         $this->options = array(); // exchange-specific options if any
 
         $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
+        $this->quoteJsonNumbers = true; // treat numbers in json as quoted precise strings 
 
         $this->name = null;
         $this->countries = null;
@@ -1414,7 +1415,7 @@ class Exchange {
     }
 
     public function parse_json($json_string, $as_associative_array = true) {
-        return json_decode($json_string, $as_associative_array);
+        return json_decode($this->on_json_response($json_string), $as_associative_array);
     }
 
     // public function print() {
@@ -1438,6 +1439,10 @@ class Exchange {
 
     public function on_rest_response($code, $reason, $url, $method, $response_headers, $response_body, $request_headers, $request_body) {
         return is_string($response_body) ? trim($response_body) : $response_body;
+    }
+
+    public function on_json_response($response_body) {
+        return (is_string($response_body) && $this->quoteJsonNumbers) ? preg_replace('/":([+.0-9eE-]+),/', '":"$1",', $response_body) : $response_body;
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {

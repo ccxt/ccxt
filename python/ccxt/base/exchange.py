@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.44.27'
+__version__ = '1.44.29'
 
 # -----------------------------------------------------------------------------
 
@@ -301,7 +301,7 @@ class Exchange(object):
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
-
+    quoteJsonNumbers = True
     number = float  # or str (a pointer to a class)
     # whether fees should be summed by currency code
     reduceFees = True
@@ -547,6 +547,12 @@ class Exchange(object):
     def on_rest_response(self, code, reason, url, method, response_headers, response_body, request_headers, request_body):
         return response_body.strip()
 
+    def on_json_response(self, response_body):
+        if self.quoteJsonNumbers:
+            return json.loads(response_body, parse_float=str, parse_int=str)
+        else:
+            return json.loads(response_body)
+
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
@@ -651,7 +657,7 @@ class Exchange(object):
     def parse_json(self, http_response):
         try:
             if Exchange.is_json_encoded_object(http_response):
-                return json.loads(http_response)
+                return self.on_json_response(http_response)
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
 

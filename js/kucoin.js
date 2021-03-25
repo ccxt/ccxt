@@ -45,6 +45,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
+                'transfer': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
