@@ -1747,9 +1747,14 @@ class Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
+    public function number($number) {
+        $number_function = $this->number;
+        return $number_function($number);
+    }
+
     public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
-        $price = call_user_func($this->number, $bidask[$price_key]);
-        $amount = call_user_func($this->number, $bidask[$amount_key]);
+        $price = $this->number($bidask[$price_key]);
+        $amount = $this->number($bidask[$amount_key]);
         return array($price, $amount);
     }
 
