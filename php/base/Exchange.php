@@ -385,10 +385,6 @@ class Exchange {
         return (isset($object[$key]) && is_numeric($object[$key])) ? floatval($object[$key]) : $default_value;
     }
 
-    public function safe_number($object, $key, $default_value = null) {
-        return (isset($object[$key]) && is_numeric($object[$key])) ? $this->number($object[$key]) : $default_value;
-    }
-
     public static function safe_string($object, $key, $default_value = null) {
         return (isset($object[$key]) && is_scalar($object[$key])) ? strval($object[$key]) : $default_value;
     }
@@ -423,11 +419,6 @@ class Exchange {
     public static function safe_float_2($object, $key1, $key2, $default_value = null) {
         $value = static::safe_float($object, $key1);
         return isset($value) ? $value : static::safe_float($object, $key2, $default_value);
-    }
-
-    public function safe_number_2($object, $key1, $key2, $default_value = null) {
-        $value = $this->safe_number($object, $key1);
-        return isset($value) ? $value : $this->safe_number($object, $key2, $default_value);
     }
 
     public static function safe_string_2($object, $key1, $key2, $default_value = null) {
