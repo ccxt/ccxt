@@ -1570,7 +1570,11 @@ module.exports = class Exchange {
         if (value === undefined) {
             return d
         } else {
-            return this.number (value)
+            try {
+                return this.number (value)
+            } catch (e) {
+                return d
+            }
         }
     }
 
@@ -1579,7 +1583,11 @@ module.exports = class Exchange {
         if (value === undefined) {
             return d
         } else {
-            return this.number (value)
+            try {
+                return this.number (value)
+            } catch (e) {
+                return d
+            }
         }
     }
 }

@@ -35,6 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
+use Exception;
 
 $version = '1.44.34';
 
@@ -2954,16 +2955,24 @@ class Exchange {
         if ($value === null) {
             return $default;
         } else {
-            return $this->number($value);
+            try {
+                return $this->number($value);
+            } catch (Exception $e) {
+                return $default;
+            }
         }
     }
 
     public function safe_number_2($object, $key1, $key2, $default) {
-        $value = $this->safe_string2($object, $key1, $key2);
+        $value = $this->safe_string_2($object, $key1, $key2);
         if ($value === null) {
             return $default;
         } else {
-            return $this->number($value);
+            try {
+                return $this->number($value);
+            } catch (Exception $e) {
+                return $default;
+            }
         }
     }
 }

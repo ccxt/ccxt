@@ -2252,11 +2252,17 @@ class Exchange(object):
         if value is None:
             return default
         else:
-            return self.number(value)
+            try:
+                return self.number(value)
+            except Exception:
+                return default
 
     def safe_number_2(self, dictionary, key1, key2, default):
         value = self.safe_string_2(dictionary, key1, key2)
         if value is None:
             return default
         else:
-            return self.number(value)
+            try:
+                return self.number(value)
+            except Exception:
+                return default
