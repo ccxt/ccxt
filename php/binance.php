@@ -1178,8 +1178,8 @@ class binance extends \ccxt\async\binance {
                         $orderTrades = $this->safe_value($order, 'trades', array());
                         $orderTrades[] = $trade;
                         $order['trades'] = $orderTrades;
-                        // save the $order
-                        $cachedOrders->append ($order);
+                        // don't append twice cause it breaks newUpdates mode
+                        // this $order already exists in the cache
                     }
                 }
             }

@@ -1095,8 +1095,8 @@ class binance(Exchange, ccxt.binance):
                         orderTrades = self.safe_value(order, 'trades', [])
                         orderTrades.append(trade)
                         order['trades'] = orderTrades
-                        # save the order
-                        cachedOrders.append(order)
+                        # don't append twice cause it breaks newUpdates mode
+                        # self order already exists in the cache
             if self.myTrades is None:
                 limit = self.safe_integer(self.options, 'tradesLimit', 1000)
                 self.myTrades = ArrayCacheBySymbolById(limit)
