@@ -1493,7 +1493,7 @@ class Exchange(object):
         return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
     def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
-        return [float(bidask[price_key]), float(bidask[amount_key])]
+        return [self.number(bidask[price_key]), self.number(bidask[amount_key])]
 
     def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
         result = []

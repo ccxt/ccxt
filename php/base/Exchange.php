@@ -1158,7 +1158,7 @@ class Exchange {
 
         $this->precisionMode = DECIMAL_PLACES;
         $this->paddingMode = NO_PADDING;
-        $this->number = \Closure::fromCallable('floatval');
+        $this->number ='floatval';
 
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp = 0;
@@ -1748,7 +1748,9 @@ class Exchange {
     }
 
     public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
-        return array(floatval($bidask[$price_key]), floatval($bidask[$amount_key]));
+        $price = call_user_func($this->number, $bidask[$price_key]);
+        $amount = call_user_func($this->number, $bidask[$amount_key]);
+        return array($price, $amount);
     }
 
     public function parse_bids_asks($bidasks, $price_key = 0, $amount_key = 1) {
