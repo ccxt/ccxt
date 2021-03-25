@@ -224,6 +224,7 @@ module.exports = class Exchange {
 
         this.minFundingAddressLength = 1 // used in checkAddress
         this.substituteCommonCurrencyCodes = true  // reserved
+        this.quoteJsonNumbers = true // treat numbers in json as quoted precise strings
 
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
@@ -598,7 +599,8 @@ module.exports = class Exchange {
     }
 
     onRestResponse (statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
-        return responseBody.trim ().replace (/":([+.0-9eE-]+),/g, '":"$1",');
+        const trimmed = responseBody.trim ()
+        return this.quoteJsonNumbers ? trimmed.replace (/":([+.0-9eE-]+),/g, '":"$1",') : trimmed;
     }
 
     setMarkets (markets, currencies = undefined) {
