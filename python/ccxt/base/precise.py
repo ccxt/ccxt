@@ -36,10 +36,14 @@ class Precise:
         self.reduce()
 
     def mul(self, other):
+        if other is None:
+            return None
         integer_result = self.integer * other.integer
         return Precise(integer_result, self.decimals + other.decimals)
 
     def div(self, other, precision=18):
+        if other is None:
+            return None
         distance = precision - self.decimals
         exponent = self.base ** distance
         numerator = self.integer * exponent
@@ -50,6 +54,8 @@ class Precise:
         return Precise(result, self.decimals + distance)
 
     def add(self, other):
+        if other is None:
+            return None
         if self.decimals == other.decimals:
             integer_result = self.integer + other.integer
             return Precise(integer_result, self.decimals)
@@ -61,6 +67,8 @@ class Precise:
             return Precise(result, bigger.decimals)
 
     def sub(self, other):
+        if other is None:
+            return None
         negative = Precise(-other.integer, other.decimals)
         return self.add(negative)
 

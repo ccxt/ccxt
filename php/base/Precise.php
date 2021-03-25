@@ -38,11 +38,17 @@ class Precise {
     }
 
     public function mul ($other) {
+        if ($other === null) {
+            return null;
+        }
         $integerResult = $this->integer->mul ($other->integer);
         return new Precise ($integerResult, $this->decimals + $other->decimals);
     }
 
     public function div ($other, $precision = 18) {
+        if ($other === null) {
+            return null;
+        }
         $distance = $precision - $this->decimals;
         $exponent = (new BN ($this->base))->pow (new BN ($distance));
         $numerator = $this->integer->mul ($exponent);
@@ -52,6 +58,9 @@ class Precise {
 
 
     public function add ($other) {
+        if ($other === null) {
+            return null;
+        }
         if ($this->decimals === $other->decimals) {
             $integerResult = $this->integer->add ($other->integer);
             return new Precise ($integerResult, $this->decimals);
@@ -68,6 +77,9 @@ class Precise {
 
 
     public function sub ($other) {
+        if ($other === null) {
+            return null;
+        }
         $negative = new Precise ($other->integer->neg (), $other->decimals);
         return $this->add ($negative);
     }
