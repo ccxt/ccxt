@@ -2263,8 +2263,8 @@ class bybit extends Exchange {
         //         time_now => '1583934106.590436'
         //     }
         //
-        $errorCode = $this->safe_value($response, 'ret_code');
-        if ($errorCode !== 0) {
+        $errorCode = $this->safe_string($response, 'ret_code');
+        if ($errorCode !== '0') {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);

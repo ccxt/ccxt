@@ -36,7 +36,7 @@ use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 
-$version = '1.44.29';
+$version = '1.44.30';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.44.29';
+    const VERSION = '1.44.30';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -274,6 +274,7 @@ class Exchange {
         'getResponseHeaders' => 'get_response_headers',
         'handleRestResponse' => 'handle_rest_response',
         'onRestResponse' => 'on_rest_response',
+        'onJsonResponse' => 'on_json_response',
         'setMarkets' => 'set_markets',
         'loadMarketsHelper' => 'load_markets_helper',
         'loadMarkets' => 'load_markets',

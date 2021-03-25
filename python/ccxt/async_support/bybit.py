@@ -2154,8 +2154,8 @@ class bybit(Exchange):
         #         time_now: '1583934106.590436'
         #     }
         #
-        errorCode = self.safe_value(response, 'ret_code')
-        if errorCode != 0:
+        errorCode = self.safe_string(response, 'ret_code')
+        if errorCode != '0':
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
