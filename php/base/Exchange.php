@@ -1406,7 +1406,7 @@ class Exchange {
     }
 
     public function parse_json($json_string, $as_associative_array = true) {
-        return json_decode($this->quoteJsonNumbers ? $this->on_json_response($json_string) : $json_string, $as_associative_array);
+        return json_decode($this->on_json_response($json_string), $as_associative_array);
     }
 
     // public function print() {
