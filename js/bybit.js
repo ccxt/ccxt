@@ -2261,8 +2261,8 @@ module.exports = class bybit extends Exchange {
         //         time_now: '1583934106.590436'
         //     }
         //
-        const errorCode = this.safeValue (response, 'ret_code');
-        if (errorCode !== 0) {
+        const errorCode = this.safeString (response, 'ret_code');
+        if (errorCode !== '0') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
