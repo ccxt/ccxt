@@ -689,6 +689,15 @@ class Exchange(object):
             value = default_value
         return value
 
+    def safe_number(self, dictionary, key, default_value=None):
+        value = default_value
+        try:
+            if Exchange.key_exists(dictionary, key):
+                value = self.number(dictionary[key])
+        except ValueError as e:
+            value = default_value
+        return value
+
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
         return str(dictionary[key]) if Exchange.key_exists(dictionary, key) else default_value
@@ -743,6 +752,9 @@ class Exchange(object):
     @staticmethod
     def safe_float_2(dictionary, key1, key2, default_value=None):
         return Exchange.safe_either(Exchange.safe_float, dictionary, key1, key2, default_value)
+
+    def safe_number_2(self, dictionary, key1, key2, default_value=None):
+        return Exchange.safe_either(self.safe_float, dictionary, key1, key2, default_value)
 
     @staticmethod
     def safe_string_2(dictionary, key1, key2, default_value=None):
