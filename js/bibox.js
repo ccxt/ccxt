@@ -276,17 +276,6 @@ module.exports = class bibox extends Exchange {
         return this.parseTicker (response['result'], market);
     }
 
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            const ticker = this.parseTicker (rawTickers[i]);
-            if ((symbols === undefined) || (this.inArray (ticker['symbol'], symbols))) {
-                tickers.push (ticker);
-            }
-        }
-        return tickers;
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
         const request = {
             'cmd': 'marketAll',
