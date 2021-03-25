@@ -1175,8 +1175,8 @@ module.exports = class binance extends ccxt.binance {
                         const orderTrades = this.safeValue (order, 'trades', []);
                         orderTrades.push (trade);
                         order['trades'] = orderTrades;
-                        // save the order
-                        cachedOrders.append (order);
+                        // don't append twice cause it breaks newUpdates mode
+                        // this order already exists in the cache
                     }
                 }
             }
