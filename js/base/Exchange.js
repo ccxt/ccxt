@@ -225,7 +225,7 @@ module.exports = class Exchange {
         this.minFundingAddressLength = 1 // used in checkAddress
         this.substituteCommonCurrencyCodes = true  // reserved
 
-        this.numberFactory = Number // or String (a pointer to a function)
+        this.number = Number // or String (a pointer to a function)
 
         // whether fees should be summed by currency code
         this.reduceFees = true
