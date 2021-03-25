@@ -252,6 +252,7 @@ module.exports = class huobipro extends Exchange {
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'PNT': 'Penta',
                 'SBTC': 'Super Bitcoin',
+                'BIFI': 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         });
     }
