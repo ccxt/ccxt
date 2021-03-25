@@ -1137,7 +1137,7 @@ class ftx extends Exchange {
             $request['price'] = null;
         } else if (($type === 'stop') || ($type === 'takeProfit')) {
             $method = 'privatePostConditionalOrders';
-            $stopPrice = $this->safe_float_2($params, array( 'stopPrice', 'triggerPrice' ));
+            $stopPrice = $this->safe_float_2($params, 'stopPrice', 'triggerPrice');
             if ($stopPrice === null) {
                 $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
                 $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $stopPrice));
