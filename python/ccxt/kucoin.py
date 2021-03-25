@@ -61,6 +61,7 @@ class kucoin(Exchange):
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
+                'transfer': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',

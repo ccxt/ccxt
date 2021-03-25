@@ -1112,7 +1112,7 @@ class ftx(Exchange):
             request['price'] = None
         elif (type == 'stop') or (type == 'takeProfit'):
             method = 'privatePostConditionalOrders'
-            stopPrice = self.safe_float_2(params, ['stopPrice', 'triggerPrice'])
+            stopPrice = self.safe_float_2(params, 'stopPrice', 'triggerPrice')
             if stopPrice is None:
                 params = self.omit(params, ['stopPrice', 'triggerPrice'])
                 request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))

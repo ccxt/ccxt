@@ -1134,12 +1134,12 @@ module.exports = class ftx extends Exchange {
             request['price'] = null;
         } else if ((type === 'stop') || (type === 'takeProfit')) {
             method = 'privatePostConditionalOrders';
-            const stopPrice = this.safeFloat2 (params, [ 'stopPrice', 'triggerPrice' ]);
-            if (stopPrice !== undefined) {
+            const stopPrice = this.safeFloat2 (params, 'stopPrice', 'triggerPrice');
+            if (stopPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders');
+            } else {
                 params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
                 request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
-            } else {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders');
             }
             if (price !== undefined) {
                 request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
