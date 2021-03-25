@@ -1139,10 +1139,10 @@ class ftx extends Exchange {
             $method = 'privatePostConditionalOrders';
             $stopPrice = $this->safe_float_2($params, 'stopPrice', 'triggerPrice');
             if ($stopPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $stopPrice parameter or a triggerPrice parameter for ' . $type . ' orders');
+            } else {
                 $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
                 $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $stopPrice));
-            } else {
-                throw new ArgumentsRequired($this->id . ' createOrder () requires a $stopPrice parameter or a triggerPrice parameter for ' . $type . ' orders');
             }
             if ($price !== null) {
                 $request['orderPrice'] = floatval($this->price_to_precision($symbol, $price)); // optional, order $type is limit if this is specified, otherwise $market

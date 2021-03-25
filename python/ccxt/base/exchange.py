@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.44.30'
+__version__ = '1.44.33'
 
 # -----------------------------------------------------------------------------
 
@@ -302,6 +302,7 @@ class Exchange(object):
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     quoteJsonNumbers = True
+    number = float  # or str (a pointer to a class)
     # whether fees should be summed by currency code
     reduceFees = True
     lastRestRequestTimestamp = 0
@@ -1232,10 +1233,6 @@ class Exchange(object):
         secret = base64.b16decode(secret, casefold=True)
         signature = eddsa.calculateSignature(random, secret, request)
         return Exchange.binary_to_base58(signature)
-
-    @staticmethod
-    def unjson(input):
-        return json.loads(input)
 
     @staticmethod
     def json(data, params=None):
