@@ -56,6 +56,7 @@ class kucoin extends Exchange {
                 'api' => array(
                     'public' => 'https://openapi-v2.kucoin.com',
                     'private' => 'https://openapi-v2.kucoin.com',
+                    'futuresPrivate' => 'https://api-futures.kucoin.com',
                 ),
                 'test' => array(
                     'public' => 'https://openapi-sandbox.kucoin.com',
@@ -164,6 +165,15 @@ class kucoin extends Exchange {
                         'stop-order/cancel',
                     ),
                 ),
+                'futuresPrivate' => array(
+                    'get' => array(
+                        'account-overview',
+                        'positions',
+                    ),
+                    'post' => array(
+                        'transfer-out',
+                    ),
+                ),
             ),
             'timeframes' => array(
                 '1m' => '1min',
@@ -188,6 +198,7 @@ class kucoin extends Exchange {
                     'order_not_exist_or_not_allow_to_cancel' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"order_not_exist_or_not_allow_to_cancel")
                     'Order size below the minimum requirement.' => '\\ccxt\\InvalidOrder', // array("code":"400100","msg":"Order size below the minimum requirement.")
                     'The withdrawal amount is below the minimum requirement.' => '\\ccxt\\ExchangeError', // array("code":"400100","msg":"The withdrawal amount is below the minimum requirement.")
+                    'Unsuccessful! Exceeded the max. funds out-transfer limit' => '\\ccxt\\InsufficientFunds', // array("code":"200000","msg":"Unsuccessful! Exceeded the max. funds out-transfer limit")
                     '400' => '\\ccxt\\BadRequest',
                     '401' => '\\ccxt\\AuthenticationError',
                     '403' => '\\ccxt\\NotSupported',
@@ -244,9 +255,7 @@ class kucoin extends Exchange {
                 'version' => 'v1',
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
-                'fetchBalance' => array(
-                    'type' => 'trade', // or 'main'
-                ),
+                'fetchBalance' => 'trade',
                 // endpoint versions
                 'versions' => array(
                     'public' => array(
@@ -266,6 +275,25 @@ class kucoin extends Exchange {
                             'accounts/sub-transfer' => 'v2',
                         ),
                     ),
+                    'futuresPrivate' => array(
+                        'GET' => array(
+                            'account-overview' => 'v1',
+                            'positions' => 'v1',
+                        ),
+                        'POST' => array(
+                            'transfer-out' => 'v2',
+                        ),
+                    ),
+                ),
+                'accountsByType' => array(
+                    'trade' => 'trade',
+                    'trading' => 'trade',
+                    'margin' => 'margin',
+                    'main' => 'main',
+                    'futures' => 'contract',
+                    'contract' => 'contract',
+                    'pool' => 'pool',
+                    'pool-x' => 'pool',
                 ),
             ),
         ));
@@ -1646,45 +1674,180 @@ class kucoin extends Exchange {
 
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
-        $type = null;
-        $request = array();
-        if (is_array($params) && array_key_exists('type', $params)) {
-            $type = $params['type'];
-            if ($type !== null) {
-                $request['type'] = $type;
-            }
-            $params = $this->omit($params, 'type');
+        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'trade');
+        $requestedType = $this->safe_string($params, 'type', $defaultType);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType');
+        $type = $this->safe_string($accountsByType, $requestedType);
+        if ($type === null) {
+            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
+            throw new ExchangeError($this->id . ' $type must be one of ' . implode(', ', $keys));
+        }
+        $params = $this->omit($params, 'type');
+        if ($type === 'contract') {
+            // futures api requires a futures apiKey
+            // only fetches one $balance at a time
+            // by default it will only fetch the BTC $balance of the futures $account
+            // you can send 'currency' in $params to fetch other currencies
+            // fetchBalance (array( 'type' => 'futures', 'currency' => 'USDT' ))
+            $response = yield $this->futuresPrivateGetAccountOverview ($params);
+            //
+            //     {
+            //         $code => '200000',
+            //         $data => {
+            //             accountEquity => 0.00005,
+            //             unrealisedPNL => 0,
+            //             marginBalance => 0.00005,
+            //             positionMargin => 0,
+            //             orderMargin => 0,
+            //             frozenFunds => 0,
+            //             availableBalance => 0.00005,
+            //             currency => 'XBT'
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            $currencyId = $this->safe_string($data, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_float($data, 'availableBalance');
+            $account['total'] = $this->safe_float($data, 'accountEquity');
+            $result = array( 'info' => $response );
+            $result[$code] = $account;
+            return $this->parse_balance($result);
         } else {
-            $options = $this->safe_value($this->options, 'fetchBalance', array());
-            $type = $this->safe_string($options, 'type', 'trade');
-        }
-        $response = yield $this->privateGetAccounts (array_merge($request, $params));
-        //
-        //     {
-        //         "$code":"200000",
-        //         "$data":array(
-        //             array("$balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","$type":"trade"),
-        //             array("$balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","$type":"trade"),
-        //             array("$balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","$type":"trade"),
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $result = array( 'info' => $response );
-        for ($i = 0; $i < count($data); $i++) {
-            $balance = $data[$i];
-            $balanceType = $this->safe_string($balance, 'type');
-            if ($balanceType === $type) {
-                $currencyId = $this->safe_string($balance, 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['total'] = $this->safe_float($balance, 'balance');
-                $account['free'] = $this->safe_float($balance, 'available');
-                $account['used'] = $this->safe_float($balance, 'holds');
-                $result[$code] = $account;
+            $request = array(
+                'type' => $type,
+            );
+            $response = yield $this->privateGetAccounts (array_merge($request, $params));
+            //
+            //     {
+            //         "$code":"200000",
+            //         "$data":array(
+            //             array("$balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","$type":"trade"),
+            //             array("$balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","$type":"trade"),
+            //             array("$balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","$type":"trade"),
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $result = array( 'info' => $response );
+            for ($i = 0; $i < count($data); $i++) {
+                $balance = $data[$i];
+                $balanceType = $this->safe_string($balance, 'type');
+                if ($balanceType === $type) {
+                    $currencyId = $this->safe_string($balance, 'currency');
+                    $code = $this->safe_currency_code($currencyId);
+                    $account = $this->account();
+                    $account['total'] = $this->safe_float($balance, 'balance');
+                    $account['free'] = $this->safe_float($balance, 'available');
+                    $account['used'] = $this->safe_float($balance, 'holds');
+                    $result[$code] = $account;
+                }
             }
+            return $this->parse_balance($result);
         }
-        return $this->parse_balance($result);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $requestedAmount = $this->currency_to_precision($code, $amount);
+        $accountsById = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsById, $fromAccount);
+        if ($fromId === null) {
+            $keys = is_array($accountsById) ? array_keys($accountsById) : array();
+            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
+        }
+        $toId = $this->safe_string($accountsById, $toAccount);
+        if ($toId === null) {
+            $keys = is_array($accountsById) ? array_keys($accountsById) : array();
+            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+        }
+        if ($fromId === 'contract') {
+            if ($toId !== 'main') {
+                throw new ExchangeError($this->id . ' only supports transferring from futures account to main account');
+            }
+            $request = array(
+                'currency' => $currency['id'],
+                'amount' => $requestedAmount,
+            );
+            if (!(is_array($params) && array_key_exists('bizNo', $params))) {
+                // it doesn't like more than 24 characters
+                $request['bizNo'] = $this->uuid22();
+            }
+            $response = yield $this->futuresPrivatePostTransferOut (array_merge($request, $params));
+            //
+            //     {
+            //         $code => '200000',
+            //         $data => {
+            //             applyId => '605a87217dff1500063d485d',
+            //             bizNo => 'bcd6e5e1291f4905af84dc',
+            //             payAccountType => 'CONTRACT',
+            //             payTag => 'DEFAULT',
+            //             remark => '',
+            //             recAccountType => 'MAIN',
+            //             recTag => 'DEFAULT',
+            //             recRemark => '',
+            //             recSystem => 'KUCOIN',
+            //             $status => 'PROCESSING',
+            //             $currency => 'XBT',
+            //             $amount => '0.00001',
+            //             fee => '0',
+            //             sn => '573688685663948',
+            //             reason => '',
+            //             createdAt => 1616545569000,
+            //             updatedAt => 1616545569000
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            $timestamp = $this->safe_integer($data, 'createdAt');
+            $id = $this->safe_string($data, 'applyId');
+            $currencyId = $this->safe_string($data, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $amount = $this->safe_float($data, 'amount');
+            $rawStatus = $this->safe_string($data, 'status');
+            $status = null;
+            if ($rawStatus === 'PROCESSING') {
+                $status = 'pending';
+            }
+            return array(
+                'info' => $response,
+                'currency' => $code,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'amount' => $amount,
+                'fromAccount' => $fromId,
+                'toAccount' => $toId,
+                'id' => $id,
+                'status' => $status,
+            );
+        } else {
+            $request = array(
+                'currency' => $currency['id'],
+                'from' => $fromId,
+                'to' => $toId,
+                'amount' => $requestedAmount,
+            );
+            if (!(is_array($params) && array_key_exists('clientOid', $params))) {
+                $request['clientOid'] = $this->uuid();
+            }
+            $response = yield $this->privatePostAccountsInnerTransfer (array_merge($request, $params));
+            // array( $code => '200000', $data => array( orderId => '605a6211e657f00006ad0ad6' ) )
+            $data = $this->safe_value($response, 'data');
+            $id = $this->safe_string($data, 'orderId');
+            return array(
+                'info' => $response,
+                'id' => $id,
+                'timestamp' => null,
+                'datetime' => null,
+                'currency' => $code,
+                'amount' => $requestedAmount,
+                'fromAccount' => $fromId,
+                'toAccount' => $toId,
+                'status' => null,
+            );
+        }
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1826,6 +1989,94 @@ class kucoin extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
+    public function fetch_positions($symbols = null, $params = array ()) {
+        $response = yield $this->futuresPrivateGetPositions ($params);
+        //
+        //     {
+        //         code => '200000',
+        //         data => array(
+        //             array(
+        //                 id => '605a9772a229ab0006408258',
+        //                 symbol => 'XBTUSDTM',
+        //                 autoDeposit => false,
+        //                 maintMarginReq => 0.005,
+        //                 riskLimit => 200,
+        //                 realLeverage => 0,
+        //                 crossMode => false,
+        //                 delevPercentage => 0,
+        //                 currentTimestamp => 1616549746099,
+        //                 currentQty => 0,
+        //                 currentCost => 0,
+        //                 currentComm => 0,
+        //                 unrealisedCost => 0,
+        //                 realisedGrossCost => 0,
+        //                 realisedCost => 0,
+        //                 isOpen => false,
+        //                 markPrice => 54371.92,
+        //                 markValue => 0,
+        //                 posCost => 0,
+        //                 posCross => 0,
+        //                 posInit => 0,
+        //                 posComm => 0,
+        //                 posLoss => 0,
+        //                 posMargin => 0,
+        //                 posMaint => 0,
+        //                 maintMargin => 0,
+        //                 realisedGrossPnl => 0,
+        //                 realisedPnl => 0,
+        //                 unrealisedPnl => 0,
+        //                 unrealisedPnlPcnt => 0,
+        //                 unrealisedRoePcnt => 0,
+        //                 avgEntryPrice => 0,
+        //                 liquidationPrice => 0,
+        //                 bankruptPrice => 0,
+        //                 settleCurrency => 'USDT',
+        //                 isInverse => false
+        //             ),
+        //             {
+        //                 id => '605a9772026ac900066550df',
+        //                 symbol => 'XBTUSDM',
+        //                 autoDeposit => false,
+        //                 maintMarginReq => 0.005,
+        //                 riskLimit => 200,
+        //                 realLeverage => 0,
+        //                 crossMode => false,
+        //                 delevPercentage => 0,
+        //                 currentTimestamp => 1616549746110,
+        //                 currentQty => 0,
+        //                 currentCost => 0,
+        //                 currentComm => 0,
+        //                 unrealisedCost => 0,
+        //                 realisedGrossCost => 0,
+        //                 realisedCost => 0,
+        //                 isOpen => false,
+        //                 markPrice => 54354.76,
+        //                 markValue => 0,
+        //                 posCost => 0,
+        //                 posCross => 0,
+        //                 posInit => 0,
+        //                 posComm => 0,
+        //                 posLoss => 0,
+        //                 posMargin => 0,
+        //                 posMaint => 0,
+        //                 maintMargin => 0,
+        //                 realisedGrossPnl => 0,
+        //                 realisedPnl => 0,
+        //                 unrealisedPnl => 0,
+        //                 unrealisedPnlPcnt => 0,
+        //                 unrealisedRoePcnt => 0,
+        //                 avgEntryPrice => 0,
+        //                 liquidationPrice => 0,
+        //                 bankruptPrice => 0,
+        //                 settleCurrency => 'XBT',
+        //                 isInverse => true
+        //             }
+        //         )
+        //     }
+        //
+        return $this->safe_value($response, 'data', $response);
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
@@ -1851,7 +2102,7 @@ class kucoin extends Exchange {
             }
         }
         $url = $this->urls['api'][$api] . $endpoint;
-        if ($api === 'private') {
+        if (($api === 'private') || ($api === 'futuresPrivate')) {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce();
             $headers = array_merge(array(
@@ -1894,8 +2145,8 @@ class kucoin extends Exchange {
         //     array( $code => '200000', data => array( ... ))
         //
         $errorCode = $this->safe_string($response, 'code');
-        $message = $this->safe_string($response, 'msg');
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $message);
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $message);
+        $message = $this->safe_string($response, 'msg', '');
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $this->id . ' ' . $message);
     }
 }

@@ -131,7 +131,7 @@ class bibox(Exchange):
                 '2015': AuthenticationError,  # Google authenticator is wrong
                 '2021': InsufficientFunds,  # Insufficient balance available for withdrawal
                 '2027': InsufficientFunds,  # Insufficient balance available(for trade)
-                '2033': OrderNotFound,  # operation failednot  Orders have been completed or revoked
+                '2033': OrderNotFound,  # operation failed! Orders have been completed or revoked
                 '2065': InvalidOrder,  # Precatory price is exorbitant, please reset
                 '2066': InvalidOrder,  # Precatory price is low, please reset
                 '2067': InvalidOrder,  # Does not support market orders
