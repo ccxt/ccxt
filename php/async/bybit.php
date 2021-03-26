@@ -2230,7 +2230,8 @@ class bybit extends Exchange {
                 'recv_window' => $this->options['recvWindow'],
                 'timestamp' => $timestamp,
             ));
-            $auth = $this->rawencode($this->keysort($query));
+            $sortedQuery = $this->keysort($query);
+            $auth = $this->rawencode($sortedQuery);
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
             if ($method === 'POST') {
                 $body = $this->json(array_merge($query, array(
@@ -2240,7 +2241,7 @@ class bybit extends Exchange {
                     'Content-Type' => 'application/json',
                 );
             } else {
-                $request .= '?' . $auth . '&sign=' . $signature;
+                $request .= '?' . $this->urlencode($sortedQuery) . '&sign=' . $signature;
             }
         }
         $url .= $request;

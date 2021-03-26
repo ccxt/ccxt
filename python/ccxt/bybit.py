@@ -2125,7 +2125,8 @@ class bybit(Exchange):
                 'recv_window': self.options['recvWindow'],
                 'timestamp': timestamp,
             })
-            auth = self.rawencode(self.keysort(query))
+            sortedQuery = self.keysort(query)
+            auth = self.rawencode(sortedQuery)
             signature = self.hmac(self.encode(auth), self.encode(self.secret))
             if method == 'POST':
                 body = self.json(self.extend(query, {
@@ -2135,7 +2136,7 @@ class bybit(Exchange):
                     'Content-Type': 'application/json',
                 }
             else:
-                request += '?' + auth + '&sign=' + signature
+                request += '?' + self.urlencode(sortedQuery) + '&sign=' + signature
         url += request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
