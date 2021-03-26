@@ -2247,7 +2247,7 @@ class Exchange(object):
             'remaining': remaining,
         })
 
-    def safe_number(self, dictionary, key, default):
+    def safe_number(self, dictionary, key, default=None):
         value = self.safe_string(dictionary, key)
         if value is None:
             return default
@@ -2257,7 +2257,7 @@ class Exchange(object):
             except Exception:
                 return default
 
-    def safe_number_2(self, dictionary, key1, key2, default):
+    def safe_number_2(self, dictionary, key1, key2, default=None):
         value = self.safe_string_2(dictionary, key1, key2)
         if value is None:
             return default

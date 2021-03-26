@@ -2952,7 +2952,7 @@ class Exchange {
         ));
     }
 
-    public function safe_number($object, $key, $default) {
+    public function safe_number($object, $key, $default = null) {
         $value = $this->safe_string($object, $key);
         if ($value === null) {
             return $default;
@@ -2965,7 +2965,7 @@ class Exchange {
         }
     }
 
-    public function safe_number_2($object, $key1, $key2, $default) {
+    public function safe_number_2($object, $key1, $key2, $default = null) {
         $value = $this->safe_string_2($object, $key1, $key2);
         if ($value === null) {
             return $default;
