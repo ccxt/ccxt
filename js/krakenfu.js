@@ -1187,7 +1187,7 @@ module.exports = class krakenfu extends Exchange {
             headers = {
                 'Content-Type': 'application/json',
                 'APIKey': this.apiKey,
-                'Authent': this.decode (signature),
+                'Authent': signature,
             };
             // headers['Nonce'] = nonce;
         }
