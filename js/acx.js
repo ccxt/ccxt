@@ -159,8 +159,8 @@ module.exports = class acx extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'locked');
+            account['free'] = this.safeNumber (balance, 'balance');
+            account['used'] = this.safeNumber (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -187,26 +187,26 @@ module.exports = class acx extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': this.safeNumber (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -265,9 +265,9 @@ module.exports = class acx extends Exchange {
             'side': undefined,
             'order': undefined,
             'takerOrMaker': undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'volume'),
-            'cost': this.safeFloat (trade, 'funds'),
+            'price': this.safeNumber (trade, 'price'),
+            'amount': this.safeNumber (trade, 'volume'),
+            'cost': this.safeNumber (trade, 'funds'),
             'fee': undefined,
         };
     }
@@ -293,11 +293,11 @@ module.exports = class acx extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeTimestamp (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 5),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -348,11 +348,11 @@ module.exports = class acx extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': this.safeFloat (order, 'price'),
+            'price': this.safeNumber (order, 'price'),
             'stopPrice': undefined,
-            'amount': this.safeFloat (order, 'volume'),
-            'filled': this.safeFloat (order, 'executed_volume'),
-            'remaining': this.safeFloat (order, 'remaining_volume'),
+            'amount': this.safeNumber (order, 'volume'),
+            'filled': this.safeNumber (order, 'executed_volume'),
+            'remaining': this.safeNumber (order, 'remaining_volume'),
             'trades': undefined,
             'fee': undefined,
             'info': order,
