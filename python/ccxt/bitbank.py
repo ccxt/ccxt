@@ -148,16 +148,16 @@ class bitbank(Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'timestamp')
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -167,7 +167,7 @@ class bitbank(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -199,8 +199,8 @@ class bitbank(Exchange):
         if market is not None:
             symbol = market['symbol']
             feeCurrency = market['quote']
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
         cost = None
         if price is not None:
             if amount is not None:
@@ -208,7 +208,7 @@ class bitbank(Exchange):
         id = self.safe_string_2(trade, 'transaction_id', 'trade_id')
         takerOrMaker = self.safe_string(trade, 'maker_taker')
         fee = None
-        feeCost = self.safe_float(trade, 'fee_amount_quote')
+        feeCost = self.safe_number(trade, 'fee_amount_quote')
         if feeCost is not None:
             fee = {
                 'currency': feeCurrency,
@@ -257,11 +257,11 @@ class bitbank(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 5),
-            self.safe_float(ohlcv, 0),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
+            self.safe_number(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
@@ -311,9 +311,9 @@ class bitbank(Exchange):
             currencyId = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(currencyId)
             account = {
-                'free': self.safe_float(balance, 'free_amount'),
-                'used': self.safe_float(balance, 'locked_amount'),
-                'total': self.safe_float(balance, 'onhand_amount'),
+                'free': self.safe_number(balance, 'free_amount'),
+                'used': self.safe_number(balance, 'locked_amount'),
+                'total': self.safe_number(balance, 'onhand_amount'),
             }
             result[code] = account
         return self.parse_balance(result)
@@ -337,11 +337,11 @@ class bitbank(Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'ordered_at')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'start_amount')
-        filled = self.safe_float(order, 'executed_amount')
-        remaining = self.safe_float(order, 'remaining_amount')
-        average = self.safe_float(order, 'average_price')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'start_amount')
+        filled = self.safe_number(order, 'executed_amount')
+        remaining = self.safe_number(order, 'remaining_amount')
+        average = self.safe_number(order, 'average_price')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
