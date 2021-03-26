@@ -2784,7 +2784,6 @@ class binance(Exchange):
         url += '/' + path
         if api == 'wapi':
             url += '.html'
-        userDataStream = (path == 'userDataStream') or (path == 'listenKey')
         if path == 'historicalTrades':
             if self.apiKey:
                 headers = {
@@ -2792,17 +2791,19 @@ class binance(Exchange):
                 }
             else:
                 raise AuthenticationError(self.id + ' historicalTrades endpoint requires `apiKey` credential')
-        elif userDataStream:
+        userDataStream = (path == 'userDataStream') or (path == 'listenKey')
+        if userDataStream:
             if self.apiKey:
                 # v1 special case for userDataStream
-                body = self.urlencode(params)
                 headers = {
                     'X-MBX-APIKEY': self.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
+                if method != 'GET':
+                    body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+        elif (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
             recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
@@ -2832,12 +2833,8 @@ class binance(Exchange):
                 body = query
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
         else:
-            # userDataStream endpoints are public, but POST, PUT, DELETE
-            # therefore they don't accept URL query arguments
-            # https://github.com/ccxt/ccxt/issues/5224
-            if not userDataStream:
-                if params:
-                    url += '?' + self.urlencode(params)
+            if params:
+                url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
