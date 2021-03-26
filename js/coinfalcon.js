@@ -16,9 +16,17 @@ module.exports = class coinfalcon extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
-                'fetchTickers': true,
-                'fetchOpenOrders': true,
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
@@ -109,14 +117,8 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        if (market === undefined) {
-            const marketId = this.safeString (ticker, 'name');
-            market = this.safeValue (this.markets_by_id, marketId, market);
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (ticker, 'name');
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.milliseconds ();
         const last = parseFloat (ticker['last_price']);
         return {
@@ -159,7 +161,7 @@ module.exports = class coinfalcon extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -169,7 +171,8 @@ module.exports = class coinfalcon extends Exchange {
             'level': '3',
         };
         const response = await this.publicGetMarketsMarketOrders (this.extend (request, params));
-        return this.parseOrderBook (response['data'], undefined, 'bids', 'asks', 'price', 'size');
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrderBook (data, undefined, 'bids', 'asks', 'price', 'size');
     }
 
     parseTrade (trade, market = undefined) {
@@ -214,7 +217,7 @@ module.exports = class coinfalcon extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -228,7 +231,8 @@ module.exports = class coinfalcon extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetUserTrades (this.extend (request, params));
-        return this.parseTrades (response['data'], market, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -241,7 +245,8 @@ module.exports = class coinfalcon extends Exchange {
             request['since'] = this.iso8601 (since);
         }
         const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
-        return this.parseTrades (response['data'], market, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -292,30 +297,12 @@ module.exports = class coinfalcon extends Exchange {
         //         "created_at":"2018-01-12T21:14:06.747828Z"
         //     }
         //
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'market');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'market');
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'size_filled');
-        let remaining = undefined;
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
-            }
-            if (price !== undefined) {
-                cost = parseFloat (this.priceToPrecision (symbol, filled * price));
-            }
-        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'operation_type');
         if (type !== undefined) {
@@ -323,7 +310,8 @@ module.exports = class coinfalcon extends Exchange {
             type = type[0];
         }
         const side = this.safeString (order, 'order_type');
-        return {
+        const postOnly = this.safeValue (order, 'post_only');
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -331,18 +319,21 @@ module.exports = class coinfalcon extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
-            'cost': cost,
+            'stopPrice': undefined,
+            'cost': undefined,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
             'info': order,
             'lastTradeTimestamp': undefined,
             'average': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -360,10 +351,8 @@ module.exports = class coinfalcon extends Exchange {
         }
         request['operation_type'] = type + '_order';
         const response = await this.privatePostUserOrders (this.extend (request, params));
-        const order = this.parseOrder (response['data'], market);
-        const id = order['id'];
-        this.orders[id] = order;
-        return order;
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -373,7 +362,8 @@ module.exports = class coinfalcon extends Exchange {
         };
         const response = await this.privateDeleteUserOrdersId (this.extend (request, params));
         const market = this.market (symbol);
-        return this.parseOrder (response['data'], market);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -382,21 +372,26 @@ module.exports = class coinfalcon extends Exchange {
             'id': id,
         };
         const response = await this.privateGetUserOrdersId (this.extend (request, params));
-        return this.parseOrder (response['data']);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
+        let market = undefined;
         if (symbol !== undefined) {
-            request['market'] = this.marketId (symbol);
+            market = this.market (symbol);
+            request['market'] = market['id'];
         }
         if (since !== undefined) {
-            request['since_time'] = this.iso8601 (this.milliseconds ());
+            request['since_time'] = this.iso8601 (since);
         }
         // TODO: test status=all if it works for closed orders too
         const response = await this.privateGetUserOrders (this.extend (request, params));
-        return this.parseOrders (response['data']);
+        const data = this.safeValue (response, 'data', []);
+        const orders = this.filterByArray (data, 'status', [ 'pending', 'open', 'partially_filled' ], false);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     nonce () {

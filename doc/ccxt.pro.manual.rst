@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguge support 
 Exchanges
 =========
 
-The CCXT Pro library currently supports the following 21 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 22 cryptocurrency exchange markets and WebSocket trading APIs:
 
 +----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 |        logo                                                                            | id            | name                                                                                   | ver | doc                                                                                             | certified                                                            | pro                             |
@@ -74,6 +74,8 @@ The CCXT Pro library currently supports the following 21 cryptocurrency exchange
 | `bitstamp <https://www.bitstamp.net>`__                                                | bitstamp      | `Bitstamp <https://www.bitstamp.net>`__                                                | 2   | `API <https://www.bitstamp.net/api>`__                                                          |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
 +----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__            | bittrex       | `Bittrex <https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B>`__            | 1.1 | `API <https://bittrex.github.io/api/>`__                                                        | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
++----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
+| `bitvavo <https://bitvavo.com/?a=24F34952F7>`__                                        | bitvavo       | `Bitvavo <https://bitvavo.com/?a=24F34952F7>`__                                        | 2   | `API <https://docs.bitvavo.com/>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
 +----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `coinbaseprime <https://prime.coinbase.com>`__                                         | coinbaseprime | `Coinbase Prime <https://prime.coinbase.com>`__                                        | \*  | `API <https://docs.prime.coinbase.com>`__                                                       |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
 +----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -97,7 +99,7 @@ The CCXT Pro library currently supports the following 21 cryptocurrency exchange
 +----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `okex <https://www.okex.com/join/1888677>`__                                           | okex          | `OKEX <https://www.okex.com/join/1888677>`__                                           | 3   | `API <https://www.okex.com/docs/en/>`__                                                         |                                                                      | `CCXT Pro <https://ccxt.pro>`__ |
 +----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
-| `poloniex <https://www.poloniex.com/?utm_source=ccxt&utm_medium=web>`__                | poloniex      | `Poloniex <https://www.poloniex.com/?utm_source=ccxt&utm_medium=web>`__                | \*  | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
+| `poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__                                  | poloniex      | `Poloniex <https://poloniex.com/signup?c=UBFZJRPJ>`__                                  | \*  | `API <https://docs.poloniex.com>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
 +----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
 | `upbit <https://upbit.com>`__                                                          | upbit         | `Upbit <https://upbit.com>`__                                                          | 1   | `API <https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C>`__           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | `CCXT Pro <https://ccxt.pro>`__ |
 +----------------------------------------------------------------------------------------+---------------+----------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+---------------------------------+
@@ -171,8 +173,8 @@ In CCXT Pro each public and private unified RESTful method having a ``fetch*`` p
    -  ``fetchMyTrades`` → ``watchMyTrades``
    -  ``fetchTransactions`` → ``watchTransactions``
    -  ``fetchLedger`` → ``watchLedger``
-   -  ``createOrder`` → ``watchCreateOrder`` \ *(notice the ``watch`` prefix)*\ 
-   -  ``cancelOrder`` → ``watchCancelOrder`` \ *(notice the ``watch`` prefix)*\ 
+   -  ``createOrder`` → ``watchCreateOrder`` \ *(notice the ``watch`` prefix)*\
+   -  ``cancelOrder`` → ``watchCancelOrder`` \ *(notice the ``watch`` prefix)*\
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 
@@ -506,18 +508,16 @@ The ``limit`` argument does not guarantee that the number of bids or asks will a
 
    // PHP
    if ($exchange->has['watchOrderBook']) {
-       $main = function () use (&$exchange, &$main, $symbol, $limit, $params) {
-           $exchange->watch_order_book($symbol, $limit, $params)->then(function($orderbook) use (&$main, $symbol) {
-               echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
-               $main();
-           })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e), ' ', $e->getMessage (), "\n";
-               $main();
-               // stop the loop on exception or leave it commented to retry
-               // throw $e;
-           });
-       };
-       $loop->futureTick($main);
+       $exchange::execute_and_run(function() use ($exchange, $symbol, $limit, $params) {
+           while (true) {
+               try {
+                   $orderbook = yield $exchange->watch_order_book($symbol, $limit, $params);
+                   echo date('c'), ' ', $symbol, ' ', json_encode(array($orderbook['asks'][0], $orderbook['bids'][0])), "\n";
+               } catch (Exception $e) {
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
+               }
+           }
+       });
    }
 
 watchTicker
@@ -556,18 +556,16 @@ watchTicker
 
    // PHP
    if ($exchange->has['watchTicker']) {
-       $main = function () use (&$exchange, &$main, $symbol, $params) {
-           $exchange->watch_ticker($symbol, $params)->then(function($ticker) use (&$main) {
-               echo date('c'), ' ', json_encode($ticker), "\n";
-               $main();
-           })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e), ' ', $e->getMessage (), "\n";
-               $main();
-               // stop the loop on exception or leave it commented to retry
-               // throw $e;
-           });
-       };
-       $loop->futureTick($main);
+       $exchange::execute_and_run(function() use ($exchange, $symbol, $params) {
+           while (true) {
+               try {
+                   $ticker = yield $exchange->watch_ticker($symbol, $params);
+                   echo date('c'), ' ', json_encode($ticker), "\n";
+               } catch (Exception $e) {
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
+               }
+           }
+       });
    }
 
 watchTickers
@@ -606,19 +604,18 @@ watchTickers
 
    // PHP
    if ($exchange->has['watchTickers']) {
-       $main = function () use (&$exchange, &$main, $symbols, $params) {
-           $exchange->watch_tickers($symbols, $params)->then(function($tickers) use (&$main) {
-               echo date('c'), ' ', json_encode($tickers), "\n";
-               $main();
-           })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e), ' ', $e->getMessage (), "\n";
-               $main();
-               // stop the loop on exception or leave it commented to retry
-               // throw $e;
-           });
-       };
-       $loop->futureTick($main);
+       $exchange::execute_and_run(function() use ($exchange, $symbols, $params) {
+           while (true) {
+               try {
+                   $tickers = yield $exchange->watch_tickers($symbols, $params);
+                   echo date('c'), ' ', json_encode($tickers), "\n";
+               } catch (Exception $e) {
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
+               }
+           }
+       });
    }
+
 
 watchOHLCV
 ''''''''''
@@ -656,20 +653,16 @@ watchOHLCV
 
    // PHP
    if ($exchange->has['watchOHLCV']) {
-       $main = function () use (&$exchange, &$main, $symbol, $timeframe, $since, $limit, $params) {
-           $exchange->watch_ohlcv($symbol, $timeframe, $since, $limit, $params)->then(
-               function($candles) use (&$main, $symbol, $timeframe) {
+       $exchange::execute_and_run(function() use ($exchange, $symbol, $timeframe, $since, $limit, $params) {
+           while (true) {
+               try {
+                   $candles = yield $exchange->watch_ohlcv($symbol, $timeframe, $since, $limit, $params);
                    echo date('c'), ' ', $symbol, ' ', $timeframe, ' ', json_encode($candles), "\n";
-                   $main();
+               } catch (Exception $e) {
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
                }
-           )->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e), ' ', $e->getMessage (), "\n";
-               $main();
-               // stop the loop on exception or leave it commented to retry
-               // throw $e;
-           });
-       };
-       $loop->futureTick($main);
+           }
+       });
    }
 
 watchTrades
@@ -708,18 +701,16 @@ watchTrades
 
    // PHP
    if ($exchange->has['watchTrades']) {
-       $main = function () use (&$exchange, &$main, $symbol, $since, $limit, $params) {
-           $exchange->watch_trades($symbol, $since, $limit, $params)->then(function($trades) use (&$main) {
-               echo date('c'), ' ', json_encode($trades), "\n";
-               $main();
-           })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e), ' ', $e->getMessage (), "\n";
-               $main();
-               // stop the loop on exception or leave it commented to retry
-               // throw $e;
-           });
-       };
-       $loop->futureTick($main);
+       $exchange::execute_and_run(function() use ($exchange, $symbol, $since, $limit, $params) {
+           while (true) {
+               try {
+                   $trades = yield $exchange->watch_trades($symbol, $since, $limit, $params);
+                   echo date('c'), ' ', json_encode($trades), "\n";
+               } catch (Exception $e) {
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
+               }
+           }
+       });
    }
 
 Private Methods
@@ -773,18 +764,16 @@ watchBalance
 
    // PHP
    if ($exchange->has['watchBalance']) {
-       $main = function () use (&$exchange, &$main, $params) {
-           $exchange->watch_balance($params)->then(function($balance) use (&$main) {
-               echo date('c'), ' ', json_encode($balance), "\n";
-               $main();
-           })->otherwise(function (\Exception $e) use (&$main) {
-               echo get_class ($e), ' ', $e->getMessage (), "\n";
-               $main();
-               // stop the loop on exception or leave it commented to retry
-               // throw $e;
-           });
-       };
-       $loop->futureTick($main);
+       $exchange::execute_and_run(function() use ($exchange, $params) {
+           while (true) {
+               try {
+                   $balance = yield $exchange->watch_balance($params);
+                   echo date('c'), ' ', json_encode($balance), "\n";
+               } catch (Exception $e) {
+                   echo get_class($e), ' ', $e->getMessage(), "\n";
+               }
+           }
+       });
    }
 
 watchOrders

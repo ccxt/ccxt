@@ -23,7 +23,7 @@ limit = 20
 
 while since < now:
 
-    end = max(since + week, now)
+    end = min(since + week, now)
     params = {'endAt': end}
     orders = exchange.fetch_closed_orders(symbol, since, limit, params)
     print(exchange.iso8601(since), '-', exchange.iso8601(end), len(orders), 'orders')

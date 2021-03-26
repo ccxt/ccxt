@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
@@ -21,12 +20,19 @@ class coinfloor(Exchange):
             'rateLimit': 1000,
             'countries': ['UK'],
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchLedger': True,
                 'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
-                'api': 'https://webapi.coinfloor.co.uk/bist',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153925-ef265e80-c2c0-11ea-91b5-020c804b90e0.jpg',
+                'api': 'https://webapi.coinfloor.co.uk/v2/bist',
                 'www': 'https://www.coinfloor.co.uk',
                 'doc': [
                     'https://github.com/coinfloor/api',
@@ -86,7 +92,7 @@ class coinfloor(Exchange):
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         if market is None:
-            raise ArgumentsRequired(self.id + ' fetchBalance requires a symbol param')
+            raise ArgumentsRequired(self.id + ' fetchBalance() requires a symbol param')
         request = {
             'id': market['id'],
         }
@@ -207,7 +213,7 @@ class coinfloor(Exchange):
         if code is not None:
             market = self.market(code)
             if market is None:
-                raise ArgumentsRequired(self.id + ' fetchTransactions requires a code argument(a market symbol)')
+                raise ArgumentsRequired(self.id + ' fetchTransactions() requires a code argument(a market symbol)')
         request = {
             'id': market['id'],
             'limit': limit,
@@ -376,11 +382,31 @@ class coinfloor(Exchange):
         else:
             request['price'] = price
             request['amount'] = amount
-        return getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "id":31950584,
+        #         "datetime":"2020-05-21 08:38:18",
+        #         "type":1,
+        #         "price":"9100",
+        #         "amount":"0.0026"
+        #     }
+        #
+        response = getattr(self, method)(self.extend(request, params))
+        timestamp = self.parse8601(self.safe_string(response, 'datetime'))
+        return {
+            'id': self.safe_string(response, 'id'),
+            'clientOrderId': None,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'type': type,
+            'price': self.safe_float(response, 'price'),
+            'remaining': self.safe_float(response, 'amount'),
+            'info': response,
+        }
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -397,21 +423,18 @@ class coinfloor(Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
         side = None
         status = self.safe_string(order, 'status')
-        if order['type'] == 0:
+        rawType = self.safe_string(order, 'type')
+        if rawType == '0':
             side = 'buy'
-        elif order['type'] == 1:
+        elif rawType == '1':
             side = 'sell'
         symbol = None
         if market is not None:
             symbol = market['symbol']
         id = self.safe_string(order, 'id')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -421,20 +444,23 @@ class coinfloor(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
-            'amount': amount,
+            'stopPrice': None,
+            'amount': None,
             'filled': None,
-            'remaining': None,
-            'cost': cost,
+            'remaining': amount,
+            'cost': None,
             'fee': None,
             'average': None,
             'trades': None,
-        }
+        })
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol param')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol param')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -472,7 +498,7 @@ class coinfloor(Exchange):
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             auth = self.uid + '/' + self.apiKey + ':' + self.password
-            signature = self.decode(base64.b64encode(self.encode(auth)))
+            signature = self.decode(self.string_to_base64(auth))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': 'Basic ' + signature,

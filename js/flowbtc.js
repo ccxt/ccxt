@@ -16,10 +16,17 @@ module.exports = class flowbtc extends Exchange {
             'version': 'v1',
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443317-01c0d080-c5fe-11ea-95c2-9ebe1a8fafd9.jpg',
                 'api': 'https://publicapi.flowbtc.com.br',
                 'www': 'https://www.flowbtc.com.br',
                 'doc': 'https://www.flowbtc.com.br/api.html',
@@ -239,7 +246,7 @@ module.exports = class flowbtc extends Exchange {
             };
             return await this.privatePostCancelOrder (this.extend (request, params));
         }
-        throw new ExchangeError (this.id + ' requires `ins` symbol parameter for cancelling an order');
+        throw new ExchangeError (this.id + ' cancelOrder() requires an `ins` symbol parameter for cancelling an order');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

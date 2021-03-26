@@ -4,7 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, RequestTimeout, AuthenticationError } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const { TRUNCATE, DECIMAL_PLACES, TICK_SIZE } = require ('./base/functions/number');
+
 // ---------------------------------------------------------------------------
 
 module.exports = class hitbtc extends Exchange {
@@ -17,24 +18,33 @@ module.exports = class hitbtc extends Exchange {
             'version': '2',
             'pro': true,
             'has': {
-                'createDepositAddress': true,
-                'fetchDepositAddress': true,
+                'cancelOrder': true,
                 'CORS': false,
+                'createDepositAddress': true,
+                'createOrder': true,
                 'editOrder': true,
-                'fetchCurrencies': true,
-                'fetchOHLCV': true,
-                'fetchTickers': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
-                'fetchOpenOrders': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchMyTrades': true,
-                'withdraw': true,
-                'fetchOrderTrades': false, // not implemented yet
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchDeposits': false,
-                'fetchWithdrawals': false,
-                'fetchTransactions': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrder': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchOrderTrades': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': false,
+                'withdraw': true,
+                'transfer': true,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -50,6 +60,10 @@ module.exports = class hitbtc extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
+                'test': {
+                    'public': 'https://api.demo.hitbtc.com',
+                    'private': 'https://api.demo.hitbtc.com',
+                },
                 'api': {
                     'public': 'https://api.hitbtc.com',
                     'private': 'https://api.hitbtc.com',
@@ -68,52 +82,86 @@ module.exports = class hitbtc extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'symbol', // Available Currency Symbols
-                        'symbol/{symbol}', // Get symbol info
                         'currency', // Available Currencies
                         'currency/{currency}', // Get currency info
+                        'symbol', // Available Currency Symbols
+                        'symbol/{symbol}', // Get symbol info
                         'ticker', // Ticker list for all symbols
                         'ticker/{symbol}', // Ticker for symbol
+                        'trades',
                         'trades/{symbol}', // Trades
+                        'orderbook',
                         'orderbook/{symbol}', // Orderbook
+                        'candles',
                         'candles/{symbol}', // Candles
                     ],
                 },
                 'private': {
                     'get': [
+                        'trading/balance', // Get trading balance
                         'order', // List your current open orders
                         'order/{clientOrderId}', // Get a single order by clientOrderId
-                        'trading/balance', // Get trading balance
                         'trading/fee/all', // Get trading fee rate
                         'trading/fee/{symbol}', // Get trading fee rate
-                        'history/trades', // Get historical trades
+                        'margin/account',
+                        'margin/account/{symbol}',
+                        'margin/position',
+                        'margin/position/{symbol}',
+                        'margin/order',
+                        'margin/order/{clientOrderId}',
                         'history/order', // Get historical orders
-                        'history/order/{id}/trades', // Get historical trades by specified order
+                        'history/trades', // Get historical trades
+                        'history/order/{orderId}/trades', // Get historical trades by specified order
                         'account/balance', // Get main acccount balance
+                        'account/crypto/address/{currency}', // Get current address
+                        'account/crypto/addresses/{currency}', // Get last 10 deposit addresses for currency
+                        'account/crypto/used-addresses/{currency}', // Get last 10 unique addresses used for withdraw by currency
+                        'account/crypto/estimate-withdraw',
+                        'account/crypto/is-mine/{address}',
                         'account/transactions', // Get account transactions
                         'account/transactions/{id}', // Get account transaction by id
-                        'account/crypto/address/{currency}', // Get deposit crypro address
+                        'sub-acc',
+                        'sub-acc/acl',
+                        'sub-acc/balance/{subAccountUserID}',
+                        'sub-acc/deposit-address/{subAccountUserId}/{currency}',
                     ],
                     'post': [
                         'order', // Create new order
-                        'account/crypto/withdraw', // Withdraw crypro
-                        'account/crypto/address/{currency}', // Create new deposit crypro address
-                        'account/transfer', // Transfer amount to trading
+                        'margin/order',
+                        'account/crypto/address/{currency}', // Create new crypto deposit address
+                        'account/crypto/withdraw', // Withdraw crypto
+                        'account/crypto/transfer-convert',
+                        'account/transfer', // Transfer amount to trading account or to main account
+                        'account/transfer/internal',
+                        'sub-acc/freeze',
+                        'sub-acc/activate',
+                        'sub-acc/transfer',
                     ],
                     'put': [
                         'order/{clientOrderId}', // Create new order
-                        'account/crypto/withdraw/{id}', // Commit withdraw crypro
+                        'margin/account/{symbol}',
+                        'margin/order/{clientOrderId}',
+                        'account/crypto/withdraw/{id}', // Commit crypto withdrawal
+                        'sub-acc/acl/{subAccountUserId}',
                     ],
                     'delete': [
                         'order', // Cancel all open orders
                         'order/{clientOrderId}', // Cancel order
-                        'account/crypto/withdraw/{id}', // Rollback withdraw crypro
+                        'margin/account',
+                        'margin/account/{symbol}',
+                        'margin/position',
+                        'margin/position/{symbol}',
+                        'margin/order',
+                        'margin/order/{clientOrderId}',
+                        'account/crypto/withdraw/{id}', // Rollback crypto withdrawal
                     ],
+                    // outdated?
                     'patch': [
                         'order/{clientOrderId}', // Cancel Replace order
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -121,444 +169,36 @@ module.exports = class hitbtc extends Exchange {
                     'maker': 0.1 / 100,
                     'taker': 0.2 / 100,
                 },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'BCC': 0.0018,
-                        'ETH': 0.00958,
-                        'BCH': 0.0018,
-                        'USDT': 100,
-                        'DASH': 0.03,
-                        'BTG': 0.0005,
-                        'XRP': 0.509,
-                        'LTC': 0.003,
-                        'ZEC': 0.0001,
-                        'XMR': 0.09,
-                        '1ST': 0.84,
-                        'ADX': 5.7,
-                        'AE': 6.7,
-                        'AEON': 0.01006,
-                        'AIR': 565,
-                        'AMM': 14,
-                        'AMP': 342,
-                        'ANT': 6.7,
-                        'ARDR': 1,
-                        'ARN': 18.5,
-                        'ART': 26,
-                        'ATB': 0.0004,
-                        'ATL': 27,
-                        'ATM': 504,
-                        'ATS': 860,
-                        'AVT': 1.9,
-                        'BAS': 113,
-                        'BCN': 0.1,
-                        'BET': 124,
-                        'BKB': 46,
-                        'BMC': 32,
-                        'BMT': 100,
-                        'BNT': 2.57,
-                        'BQX': 4.7,
-                        'BTCA': 351.21,
-                        'BTM': 40,
-                        'BTX': 0.04,
-                        'BUS': 0.004,
-                        'CAPP': 97,
-                        'CCT': 6,
-                        'CDT': 100,
-                        'CDX': 30,
-                        'CFI': 61,
-                        'CL': 13.85,
-                        'CLD': 0.88,
-                        'CND': 574,
-                        'CNX': 0.04,
-                        'COSS': 65,
-                        'CPAY': 5.487,
-                        'CSNO': 16,
-                        'CTR': 15,
-                        'CTX': 146,
-                        'CVC': 8.46,
-                        'DATA': 12.949,
-                        'DBIX': 0.0168,
-                        'DCN': 1280,
-                        'DCT': 0.02,
-                        'DDF': 342,
-                        'DENT': 1000,
-                        'DGB': 0.4,
-                        'DGD': 0.01,
-                        'DICE': 0.32,
-                        'DLT': 0.26,
-                        'DNT': 0.21,
-                        'DOGE': 2,
-                        'DOV': 34,
-                        'DRPU': 24,
-                        'DRT': 240,
-                        'DSH': 0.017,
-                        'EBET': 84,
-                        'EBTC': 20,
-                        'EBTCOLD': 6.6,
-                        'ECAT': 14,
-                        'EDG': 2,
-                        'EDO': 2.9,
-                        'EKO': 1136.36,
-                        'ELE': 0.00172,
-                        'ELM': 0.004,
-                        'EMC': 0.03,
-                        'MGO': 14,
-                        'ENJ': 163,
-                        'EOS': 1.5,
-                        'ERO': 34,
-                        'ETBS': 15,
-                        'ETC': 0.002,
-                        'ETP': 0.004,
-                        'EVX': 5.4,
-                        'EXN': 456,
-                        'FCN': 0.000005,
-                        'FRD': 65,
-                        'FUEL': 123.00105,
-                        'FUN': 202.9598309,
-                        'FYN': 1.849,
-                        'FYP': 66.13,
-                        'GAME': 0.004,
-                        'GNO': 0.0034,
-                        'GUP': 4,
-                        'GVT': 1.2,
-                        'HSR': 0.04,
-                        'HAC': 144,
-                        'HDG': 7,
-                        'HGT': 1082,
-                        'HPC': 0.4,
-                        'HVN': 120,
-                        'ICN': 0.55,
-                        'ICO': 34,
-                        'ICOS': 0.35,
-                        'IND': 76,
-                        'INDI': 790,
-                        'ITS': 15.0012,
-                        'IXT': 11,
-                        'KBR': 143,
-                        'KICK': 112,
-                        'KMD': 4,
-                        'LA': 41,
-                        'LEND': 388,
-                        'LAT': 1.44,
-                        'LIFE': 13000,
-                        'LRC': 27,
-                        'LSK': 0.3,
-                        'LOC': 11.076,
-                        'LUN': 0.34,
-                        'MAID': 5,
-                        'MANA': 143,
-                        'MCAP': 5.44,
-                        'MIPS': 43,
-                        'MNE': 1.33,
-                        'MSP': 121,
-                        'MCO': 0.357,
-                        'MTH': 92,
-                        'MYB': 3.9,
-                        'NDC': 165,
-                        'NEBL': 0.04,
-                        'NET': 3.96,
-                        'NTO': 998,
-                        'NGC': 2.368,
-                        'NXC': 13.39,
-                        'NXT': 3,
-                        'OAX': 15,
-                        'ODN': 0.004,
-                        'OMG': 2,
-                        'OPT': 335,
-                        'ORME': 2.8,
-                        'OTN': 0.57,
-                        'PAY': 3.1,
-                        'PIX': 96,
-                        'PLBT': 0.33,
-                        'PLR': 114,
-                        'PLU': 0.87,
-                        'POE': 784,
-                        'POLL': 3.5,
-                        'PPT': 2,
-                        'PRE': 32,
-                        'PRG': 39,
-                        'PRO': 41,
-                        'PRS': 60,
-                        'PTOY': 0.5,
-                        'QAU': 63,
-                        'QCN': 0.03,
-                        'QTUM': 0.04,
-                        'QVT': 64,
-                        'REP': 0.02,
-                        'RKC': 15,
-                        'RLC': 1.21,
-                        'RVT': 14,
-                        'SC': 30,
-                        'SAN': 2.24,
-                        'SBD': 0.03,
-                        'SCL': 2.6,
-                        'SISA': 1640,
-                        'SKIN': 407,
-                        'SWFTC': 352.94,
-                        'SMART': 0.4,
-                        'SMS': 0.0375,
-                        'SNC': 36,
-                        'SNGLS': 4,
-                        'SNM': 48,
-                        'SNT': 233,
-                        'STAR': 0.144,
-                        'STORM': 153.19,
-                        'STEEM': 0.01,
-                        'STRAT': 0.01,
-                        'SPF': 14.4,
-                        'STU': 14,
-                        'STX': 11,
-                        'SUB': 17,
-                        'SUR': 3,
-                        'SWT': 0.51,
-                        'TAAS': 0.91,
-                        'TBT': 2.37,
-                        'TFL': 15,
-                        'TIME': 0.03,
-                        'TIX': 7.1,
-                        'TKN': 1,
-                        'TGT': 173,
-                        'TKR': 84,
-                        'TNT': 90,
-                        'TRST': 1.6,
-                        'TRX': 270,
-                        'UET': 480,
-                        'UGT': 15,
-                        'UTT': 3,
-                        'VEN': 14,
-                        'VERI': 0.037,
-                        'VIB': 50,
-                        'VIBE': 145,
-                        'VOISE': 618,
-                        'WEALTH': 0.0168,
-                        'WINGS': 2.4,
-                        'WTC': 0.75,
-                        'WRC': 48,
-                        'XAUR': 3.23,
-                        'XDN': 0.01,
-                        'XEM': 15,
-                        'XUC': 0.9,
-                        'YOYOW': 140,
-                        'ZAP': 24,
-                        'ZRX': 23,
-                        'ZSC': 191,
-                    },
-                    'deposit': {
-                        'BTC': 0,
-                        'ETH': 0,
-                        'BCH': 0,
-                        'USDT': 0,
-                        'BTG': 0,
-                        'LTC': 0,
-                        'ZEC': 0,
-                        'XMR': 0,
-                        '1ST': 0,
-                        'ADX': 0,
-                        'AE': 0,
-                        'AEON': 0,
-                        'AIR': 0,
-                        'AMP': 0,
-                        'ANT': 0,
-                        'ARDR': 0,
-                        'ARN': 0,
-                        'ART': 0,
-                        'ATB': 0,
-                        'ATL': 0,
-                        'ATM': 0,
-                        'ATS': 0,
-                        'AVT': 0,
-                        'BAS': 0,
-                        'BCN': 0,
-                        'BET': 0,
-                        'BKB': 0,
-                        'BMC': 0,
-                        'BMT': 0,
-                        'BNT': 0,
-                        'BQX': 0,
-                        'BTM': 0,
-                        'BTX': 0,
-                        'BUS': 0,
-                        'CCT': 0,
-                        'CDT': 0,
-                        'CDX': 0,
-                        'CFI': 0,
-                        'CLD': 0,
-                        'CND': 0,
-                        'CNX': 0,
-                        'COSS': 0,
-                        'CSNO': 0,
-                        'CTR': 0,
-                        'CTX': 0,
-                        'CVC': 0,
-                        'DBIX': 0,
-                        'DCN': 0,
-                        'DCT': 0,
-                        'DDF': 0,
-                        'DENT': 0,
-                        'DGB': 0,
-                        'DGD': 0,
-                        'DICE': 0,
-                        'DLT': 0,
-                        'DNT': 0,
-                        'DOGE': 0,
-                        'DOV': 0,
-                        'DRPU': 0,
-                        'DRT': 0,
-                        'DSH': 0,
-                        'EBET': 0,
-                        'EBTC': 0,
-                        'EBTCOLD': 0,
-                        'ECAT': 0,
-                        'EDG': 0,
-                        'EDO': 0,
-                        'ELE': 0,
-                        'ELM': 0,
-                        'EMC': 0,
-                        'EMGO': 0,
-                        'ENJ': 0,
-                        'EOS': 0,
-                        'ERO': 0,
-                        'ETBS': 0,
-                        'ETC': 0,
-                        'ETP': 0,
-                        'EVX': 0,
-                        'EXN': 0,
-                        'FRD': 0,
-                        'FUEL': 0,
-                        'FUN': 0,
-                        'FYN': 0,
-                        'FYP': 0,
-                        'GNO': 0,
-                        'GUP': 0,
-                        'GVT': 0,
-                        'HAC': 0,
-                        'HDG': 0,
-                        'HGT': 0,
-                        'HPC': 0,
-                        'HVN': 0,
-                        'ICN': 0,
-                        'ICO': 0,
-                        'ICOS': 0,
-                        'IND': 0,
-                        'INDI': 0,
-                        'ITS': 0,
-                        'IXT': 0,
-                        'KBR': 0,
-                        'KICK': 0,
-                        'LA': 0,
-                        'LAT': 0,
-                        'LIFE': 0,
-                        'LRC': 0,
-                        'LSK': 0,
-                        'LUN': 0,
-                        'MAID': 0,
-                        'MANA': 0,
-                        'MCAP': 0,
-                        'MIPS': 0,
-                        'MNE': 0,
-                        'MSP': 0,
-                        'MTH': 0,
-                        'MYB': 0,
-                        'NDC': 0,
-                        'NEBL': 0,
-                        'NET': 0,
-                        'NTO': 0,
-                        'NXC': 0,
-                        'NXT': 0,
-                        'OAX': 0,
-                        'ODN': 0,
-                        'OMG': 0,
-                        'OPT': 0,
-                        'ORME': 0,
-                        'OTN': 0,
-                        'PAY': 0,
-                        'PIX': 0,
-                        'PLBT': 0,
-                        'PLR': 0,
-                        'PLU': 0,
-                        'POE': 0,
-                        'POLL': 0,
-                        'PPT': 0,
-                        'PRE': 0,
-                        'PRG': 0,
-                        'PRO': 0,
-                        'PRS': 0,
-                        'PTOY': 0,
-                        'QAU': 0,
-                        'QCN': 0,
-                        'QTUM': 0,
-                        'QVT': 0,
-                        'REP': 0,
-                        'RKC': 0,
-                        'RVT': 0,
-                        'SAN': 0,
-                        'SBD': 0,
-                        'SCL': 0,
-                        'SISA': 0,
-                        'SKIN': 0,
-                        'SMART': 0,
-                        'SMS': 0,
-                        'SNC': 0,
-                        'SNGLS': 0,
-                        'SNM': 0,
-                        'SNT': 0,
-                        'STEEM': 0,
-                        'STRAT': 0,
-                        'STU': 0,
-                        'STX': 0,
-                        'SUB': 0,
-                        'SUR': 0,
-                        'SWT': 0,
-                        'TAAS': 0,
-                        'TBT': 0,
-                        'TFL': 0,
-                        'TIME': 0,
-                        'TIX': 0,
-                        'TKN': 0,
-                        'TKR': 0,
-                        'TNT': 0,
-                        'TRST': 0,
-                        'TRX': 0,
-                        'UET': 0,
-                        'UGT': 0,
-                        'VEN': 0,
-                        'VERI': 0,
-                        'VIB': 0,
-                        'VIBE': 0,
-                        'VOISE': 0,
-                        'WEALTH': 0,
-                        'WINGS': 0,
-                        'WTC': 0,
-                        'XAUR': 0,
-                        'XDN': 0,
-                        'XEM': 0,
-                        'XUC': 0,
-                        'YOYOW': 0,
-                        'ZAP': 0,
-                        'ZRX': 0,
-                        'ZSC': 0,
-                    },
-                },
             },
             'options': {
                 'defaultTimeInForce': 'FOK',
+                'accountsByType': {
+                    'bank': 'bank',
+                    'exchange': 'exchange',
+                    'main': 'bank',  // alias of the above
+                    'trading': 'exchange',
+                },
+                'fetchBalanceMethod': {
+                    'account': 'account',
+                    'main': 'account',
+                    'trading': 'trading',
+                },
             },
             'commonCurrencies': {
+                'BCC': 'BCC', // initial symbol for Bitcoin Cash, now inactive
                 'BET': 'DAO.Casino',
-                'CAT': 'BitClave',
+                'BOX': 'BOX Token',
                 'CPT': 'Cryptaur', // conflict with CPT = Contents Protocol https://github.com/ccxt/ccxt/issues/4920 and https://github.com/ccxt/ccxt/issues/6081
-                'DRK': 'DASH',
-                'EMGO': 'MGO',
                 'GET': 'Themis',
                 'HSR': 'HC',
+                'IQ': 'IQ.Cash',
                 'LNC': 'LinkerCoin',
                 'PLA': 'PlayChip',
-                'UNC': 'Unigame',
+                'PNT': 'Penta',
+                'SBTC': 'Super Bitcoin',
+                'TV': 'Tokenville',
                 'USD': 'USDT',
-                'XBT': 'BTC',
+                'XPNT': 'PNT',
             },
             'exceptions': {
                 '504': RequestTimeout, // {"error":{"code":504,"message":"Gateway Timeout"}}
@@ -569,7 +209,7 @@ module.exports = class hitbtc extends Exchange {
                 '2011': InvalidOrder, // "Quantity too low"
                 '2020': InvalidOrder, // "Price not a valid number"
                 '20002': OrderNotFound, // canceling non-existent order
-                '20001': InsufficientFunds,
+                '20001': InsufficientFunds, // {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
             },
         });
     }
@@ -580,6 +220,20 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetSymbol (params);
+        //
+        //     [
+        //         {
+        //             "id":"BCNBTC",
+        //             "baseCurrency":"BCN",
+        //             "quoteCurrency":"BTC",
+        //             "quantityIncrement":"100",
+        //             "tickSize":"0.00000000001",
+        //             "takeLiquidityRate":"0.002",
+        //             "provideLiquidityRate":"0.001",
+        //             "feeCurrency":"BTC"
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -588,17 +242,21 @@ module.exports = class hitbtc extends Exchange {
             const quoteId = this.safeString (market, 'quoteCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let symbol = base + '/' + quote;
+            // bequant fix
+            if (id.indexOf ('_') >= 0) {
+                symbol = id;
+            }
             const lot = this.safeFloat (market, 'quantityIncrement');
             const step = this.safeFloat (market, 'tickSize');
             const precision = {
-                'price': this.precisionFromString (market['tickSize']),
-                // FIXME: for lots > 1 the following line returns 0
-                // 'amount': this.precisionFromString (market['quantityIncrement']),
-                'amount': -1 * parseInt (Math.log10 (lot)),
+                'price': step,
+                'amount': lot,
             };
             const taker = this.safeFloat (market, 'takeLiquidityRate');
             const maker = this.safeFloat (market, 'provideLiquidityRate');
+            const feeCurrencyId = this.safeString (market, 'feeCurrency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             result.push (this.extend (this.fees['trading'], {
                 'info': market,
                 'id': id,
@@ -611,6 +269,7 @@ module.exports = class hitbtc extends Exchange {
                 'taker': taker,
                 'maker': maker,
                 'precision': precision,
+                'feeCurrency': feeCurrencyCode,
                 'limits': {
                     'amount': {
                         'min': lot,
@@ -630,8 +289,70 @@ module.exports = class hitbtc extends Exchange {
         return result;
     }
 
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        // account can be "exchange" or "bank", with aliases "main" or "trading" respectively
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const requestAmount = this.currencyToPrecision (code, amount);
+        const request = {
+            'currency': currency['id'],
+            'amount': requestAmount,
+        };
+        let type = this.safeString (params, 'type');
+        if (type === undefined) {
+            const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+            const fromId = this.safeString (accountsByType, fromAccount);
+            const toId = this.safeString (accountsByType, toAccount);
+            const keys = Object.keys (accountsByType);
+            if (fromId === undefined) {
+                throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', ') + ' instead of ' + fromId);
+            }
+            if (toId === undefined) {
+                throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', ') + ' instead of ' + toId);
+            }
+            if (fromId === toId) {
+                throw new ExchangeError (this.id + ' from and to cannot be the same account');
+            }
+            type = fromId + 'To' + this.capitalize (toId);
+        }
+        request['type'] = type;
+        const response = await this.privatePostAccountTransfer (this.extend (request, params));
+        // { id: '2db6ebab-fb26-4537-9ef8-1a689472d236' }
+        const id = this.safeString (response, 'id');
+        return {
+            'info': response,
+            'id': id,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'amount': requestAmount,
+            'currency': code,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': undefined,
+        };
+    }
+
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCurrency (params);
+        //
+        //     [
+        //         {
+        //             "id":"XPNT",
+        //             "fullName":"pToken",
+        //             "crypto":true,
+        //             "payinEnabled":true,
+        //             "payinPaymentId":false,
+        //             "payinConfirmations":9,
+        //             "payoutEnabled":true,
+        //             "payoutIsPaymentId":false,
+        //             "transferEnabled":true,
+        //             "delisted":false,
+        //             "payoutFee":"26.510000000000",
+        //             "precisionPayout":18,
+        //             "precisionTransfer":8
+        //         }
+        //     ]
+        //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
@@ -639,7 +360,8 @@ module.exports = class hitbtc extends Exchange {
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            const precision = 8; // default precision, todo: fix "magic constants"
+            const decimals = this.safeInteger (currency, 'precisionTransfer', 8);
+            const precision = 1 / Math.pow (10, decimals);
             const code = this.safeCurrencyCode (id);
             const payin = this.safeValue (currency, 'payinEnabled');
             const payout = this.safeValue (currency, 'payoutEnabled');
@@ -669,12 +391,12 @@ module.exports = class hitbtc extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': 1 / Math.pow (10, decimals),
+                        'max': Math.pow (10, decimals),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': 1 / Math.pow (10, decimals),
+                        'max': Math.pow (10, decimals),
                     },
                     'cost': {
                         'min': undefined,
@@ -713,7 +435,12 @@ module.exports = class hitbtc extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', 'trading');
-        const method = 'privateGet' + this.capitalize (type) + 'Balance';
+        const fetchBalanceAccounts = this.safeValue (this.options, 'fetchBalanceMethod', {});
+        const typeId = this.safeString (fetchBalanceAccounts, type);
+        if (typeId === undefined) {
+            throw new ExchangeError (this.id + ' fetchBalance account type must be either main or trading');
+        }
+        const method = 'privateGet' + this.capitalize (typeId) + 'Balance';
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
         const result = { 'info': response };
@@ -729,7 +456,18 @@ module.exports = class hitbtc extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "timestamp":"2015-08-20T19:01:00.000Z",
+        //         "open":"0.006",
+        //         "close":"0.006",
+        //         "min":"0.006",
+        //         "max":"0.006",
+        //         "volume":"0.003",
+        //         "volumeQuote":"0.000018"
+        //     }
+        //
         return [
             this.parse8601 (this.safeString (ohlcv, 'timestamp')),
             this.safeFloat (ohlcv, 'open'),
@@ -754,6 +492,13 @@ module.exports = class hitbtc extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetCandlesSymbol (this.extend (request, params));
+        //
+        //     [
+        //         {"timestamp":"2015-08-20T19:01:00.000Z","open":"0.006","close":"0.006","min":"0.006","max":"0.006","volume":"0.003","volumeQuote":"0.000018"},
+        //         {"timestamp":"2015-08-20T19:03:00.000Z","open":"0.006","close":"0.006","min":"0.006","max":"0.006","volume":"0.013","volumeQuote":"0.000078"},
+        //         {"timestamp":"2015-08-20T19:06:00.000Z","open":"0.0055","close":"0.005","min":"0.005","max":"0.0055","volume":"0.003","volumeQuote":"0.0000155"},
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -789,14 +534,7 @@ module.exports = class hitbtc extends Exchange {
                 percentage = change / open * 100;
             }
         }
-        let vwap = undefined;
-        if (quoteVolume !== undefined) {
-            if (baseVolume !== undefined) {
-                if (baseVolume > 0) {
-                    vwap = quoteVolume / baseVolume;
-                }
-            }
-        }
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -828,17 +566,11 @@ module.exports = class hitbtc extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const ticker = response[i];
             const marketId = this.safeString (ticker, 'symbol');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    const market = this.markets_by_id[marketId];
-                    const symbol = market['symbol'];
-                    result[symbol] = this.parseTicker (ticker, market);
-                } else {
-                    result[marketId] = this.parseTicker (ticker);
-                }
-            }
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -855,7 +587,6 @@ module.exports = class hitbtc extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        //
         // createMarketOrder
         //
         //  {       fee: "0.0004644",
@@ -864,36 +595,39 @@ module.exports = class hitbtc extends Exchange {
         //     quantity: "1",
         //    timestamp: "2018-10-25T16:41:44.780Z" }
         //
-        // fetchTrades ...
+        // fetchTrades
         //
-        // fetchMyTrades ...
+        // { id: 974786185,
+        //   price: '0.032462',
+        //   quantity: '0.3673',
+        //   side: 'buy',
+        //   timestamp: '2020-10-16T12:57:39.846Z' }
         //
+        // fetchMyTrades
+        //
+        // { id: 277210397,
+        //   clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
+        //   orderId: 28102855393,
+        //   symbol: 'ETHBTC',
+        //   side: 'sell',
+        //   quantity: '0.002',
+        //   price: '0.073365',
+        //   fee: '0.000000147',
+        //   timestamp: '2018-04-28T18:39:55.345Z' }
         const timestamp = this.parse8601 (trade['timestamp']);
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = marketId;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
-            const feeCurrency = market ? market['quote'] : undefined;
+            const feeCurrencyCode = market ? market['feeCurrency'] : undefined;
             fee = {
                 'cost': feeCost,
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
             };
         }
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const orderId = this.safeString (trade, 'clientOrderId');
@@ -1065,7 +799,7 @@ module.exports = class hitbtc extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
@@ -1091,14 +825,12 @@ module.exports = class hitbtc extends Exchange {
         if (order['status'] === 'rejected') {
             throw new InvalidOrder (this.id + ' order was rejected by the exchange ' + this.json (order));
         }
-        const id = order['id'];
-        this.orders[id] = order;
         return order;
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
@@ -1117,14 +849,12 @@ module.exports = class hitbtc extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePatchOrderClientOrderId (this.extend (request, params));
-        const order = this.parseOrder (response);
-        this.orders[order['id']] = order;
-        return order;
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
@@ -1150,102 +880,69 @@ module.exports = class hitbtc extends Exchange {
         //
         // createMarketOrder
         //
-        //   { clientOrderId:   "fe36aa5e190149bf9985fb673bbb2ea0",
-        //         createdAt:   "2018-10-25T16:41:44.780Z",
-        //       cumQuantity:   "1",
-        //                id:   "66799540063",
-        //          quantity:   "1",
-        //              side:   "sell",
-        //            status:   "filled",
-        //            symbol:   "XRPUSDT",
-        //       timeInForce:   "FOK",
-        //      tradesReport: [ {       fee: "0.0004644",
-        //                               id:  386394956,
-        //                            price: "0.4644",
-        //                         quantity: "1",
-        //                        timestamp: "2018-10-25T16:41:44.780Z" } ],
-        //              type:   "market",
-        //         updatedAt:   "2018-10-25T16:41:44.780Z"                   }
+        //     {
+        //         clientOrderId: "fe36aa5e190149bf9985fb673bbb2ea0",
+        //         createdAt: "2018-10-25T16:41:44.780Z",
+        //         cumQuantity: "1",
+        //         id: "66799540063",
+        //         quantity: "1",
+        //         side: "sell",
+        //         status: "filled",
+        //         symbol: "XRPUSDT",
+        //         timeInForce: "FOK",
+        //         tradesReport: [
+        //             {
+        //                 fee: "0.0004644",
+        //                 id:  386394956,
+        //                 price: "0.4644",
+        //                 quantity: "1",
+        //                 timestamp: "2018-10-25T16:41:44.780Z"
+        //             }
+        //         ],
+        //         type: "market",
+        //         updatedAt: "2018-10-25T16:41:44.780Z"
+        //     }
+        //
+        //     {
+        //         "id": 119499457455,
+        //         "clientOrderId": "87baab109d58401b9202fa0749cb8288",
+        //         "symbol": "ETHUSD",
+        //         "side": "buy",
+        //         "status": "filled",
+        //         "type": "market",
+        //         "timeInForce": "FOK",
+        //         "quantity": "0.0007",
+        //         "price": "181.487",
+        //         "avgPrice": "164.989",
+        //         "cumQuantity": "0.0007",
+        //         "createdAt": "2019-04-17T13:27:38.062Z",
+        //         "updatedAt": "2019-04-17T13:27:38.062Z"
+        //     }
         //
         const created = this.parse8601 (this.safeString (order, 'createdAt'));
         const updated = this.parse8601 (this.safeString (order, 'updatedAt'));
         const marketId = this.safeString (order, 'symbol');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = marketId;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['id'];
-            }
-        }
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const amount = this.safeFloat (order, 'quantity');
         const filled = this.safeFloat (order, 'cumQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
         const clientOrderId = id;
-        let price = this.safeFloat (order, 'price');
-        if (price === undefined) {
-            if (id in this.orders) {
-                price = this.orders[id]['price'];
-            }
-        }
-        let remaining = undefined;
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = amount - filled;
-                if (price !== undefined) {
-                    cost = filled * price;
-                }
-            }
-        }
+        const price = this.safeFloat (order, 'price');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         let trades = this.safeValue (order, 'tradesReport');
-        let fee = undefined;
-        let average = undefined;
+        const fee = undefined;
+        const average = this.safeValue (order, 'avgPrice');
         if (trades !== undefined) {
             trades = this.parseTrades (trades, market);
-            let feeCost = undefined;
-            const numTrades = trades.length;
-            let tradesCost = 0;
-            for (let i = 0; i < numTrades; i++) {
-                if (feeCost === undefined) {
-                    feeCost = 0;
-                }
-                tradesCost = this.sum (tradesCost, trades[i]['cost']);
-                const tradeFee = this.safeValue (trades[i], 'fee', {});
-                const tradeFeeCost = this.safeFloat (tradeFee, 'cost');
-                if (tradeFeeCost !== undefined) {
-                    feeCost = this.sum (feeCost, tradeFeeCost);
-                }
-            }
-            cost = tradesCost;
-            if ((filled !== undefined) && (filled > 0)) {
-                average = cost / filled;
-                if (type === 'market') {
-                    if (price === undefined) {
-                        price = average;
-                    }
-                }
-            }
-            if (feeCost !== undefined) {
-                fee = {
-                    'cost': feeCost,
-                    'currency': market['quote'],
-                };
-            }
         }
-        return {
+        const timeInForce = this.safeString (order, 'timeInForce');
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId, // https://github.com/ccxt/ccxt/issues/5674
             'timestamp': created,
@@ -1254,22 +951,24 @@ module.exports = class hitbtc extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'average': average,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'fee': fee,
             'trades': trades,
             'info': order,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
@@ -1285,7 +984,7 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        // we use clientOrderId as the order id with HitBTC intentionally
+        // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
@@ -1396,9 +1095,9 @@ module.exports = class hitbtc extends Exchange {
             market = this.market (symbol);
         }
         const request = {
-            'id': id,
+            'orderId': id,
         };
-        const response = await this.privateGetHistoryOrderIdTrades (this.extend (request, params));
+        const response = await this.privateGetHistoryOrderOrderIdTrades (this.extend (request, params));
         const numOrders = response.length;
         if (numOrders > 0) {
             return this.parseTrades (response, market, since, limit);

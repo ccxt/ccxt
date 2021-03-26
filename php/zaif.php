@@ -18,10 +18,17 @@ class zaif extends Exchange {
             'rateLimit' => 2000,
             'version' => '1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => false,
-                'fetchOpenOrders' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchMarkets' => true,
+                'fetchOrderBook' => true,
+                'fetchOpenOrders' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -122,6 +129,27 @@ class zaif extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $markets = $this->publicGetCurrencyPairsAll ($params);
+        //
+        //     array(
+        //         {
+        //             "aux_unit_point" => 0,
+        //             "item_japanese" => "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3",
+        //             "aux_unit_step" => 5.0,
+        //             "description" => "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3\u30fb\u65e5\u672c\u5186\u306e\u53d6\u5f15\u3092\u884c\u3046\u3053\u3068\u304c\u3067\u304d\u307e\u3059",
+        //             "item_unit_min" => 0.001,
+        //             "event_number" => 0,
+        //             "currency_pair" => "btc_jpy",
+        //             "is_token" => false,
+        //             "aux_unit_min" => 5.0,
+        //             "aux_japanese" => "\u65e5\u672c\u5186",
+        //             "$id" => 1,
+        //             "item_unit_step" => 0.0001,
+        //             "$name" => "BTC/JPY",
+        //             "seq" => 0,
+        //             "title" => "BTC/JPY"
+        //         }
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -132,8 +160,8 @@ class zaif extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array(
-                'amount' => -log10 ($market['item_unit_step']),
-                'price' => $market['aux_unit_point'],
+                'amount' => -log10 ($this->safe_float($market, 'item_unit_step')),
+                'price' => $this->safe_integer($market, 'aux_unit_point'),
             );
             $fees = $this->safe_value($this->options['fees'], $symbol, $this->fees['trading']);
             $taker = $fees['taker'];
@@ -256,16 +284,8 @@ class zaif extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'currency_pair');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($trade, 'currency_pair');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         return array(
             'id' => $id,
             'info' => $trade,
@@ -339,26 +359,12 @@ class zaif extends Exchange {
         $side = $this->safe_string($order, 'action');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $timestamp = $this->safe_timestamp($order, 'timestamp');
-        if (!$market) {
-            $marketId = $this->safe_string($order, 'currency_pair');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
+        $marketId = $this->safe_string($order, 'currency_pair');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
         $id = $this->safe_string($order, 'id');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -367,32 +373,20 @@ class zaif extends Exchange {
             'status' => 'open',
             'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'cost' => $cost,
+            'stopPrice' => null,
+            'cost' => null,
             'amount' => $amount,
             'filled' => null,
             'remaining' => null,
             'trades' => null,
             'fee' => null,
-            'info' => null,
+            'info' => $order,
             'average' => null,
-        );
-    }
-
-    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
-        $result = array();
-        $ids = is_array($orders) ? array_keys($orders) : array();
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $order = array_merge(array( 'id' => $id ), $orders[$id]);
-            $result[] = array_merge($this->parse_order($order, $market), $params);
-        }
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        ));
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -457,7 +451,7 @@ class zaif extends Exchange {
     }
 
     public function nonce() {
-        $nonce = floatval ($this->milliseconds() / 1000);
+        $nonce = floatval($this->milliseconds() / 1000);
         return sprintf('%.8f', $nonce);
     }
 

@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 import hashlib
 
 
@@ -20,14 +19,17 @@ class bl3p(Exchange):
             'comment': 'An exchange market by BitonicNL',
             'has': {
                 'CORS': False,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
                 'api': 'https://api.bl3p.eu',
-                'www': [
-                    'https://bl3p.eu',
-                    'https://bitonic.nl',
-                ],
+                'www': 'https://bl3p.eu',  # 'https://bitonic.nl'
                 'doc': [
                     'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
                     'https://bl3p.eu/api',
@@ -86,9 +88,11 @@ class bl3p(Exchange):
         return self.parse_balance(result)
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+        price = self.safe_float(bidask, priceKey)
+        size = self.safe_float(bidask, amountKey)
         return [
-            bidask[priceKey] / 100000.0,
-            bidask[amountKey] / 100000000.0,
+            price / 100000.0,
+            size / 100000000.0,
         ]
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -204,13 +208,13 @@ class bl3p(Exchange):
             self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
-            secret = base64.b64decode(self.secret)
+            secret = self.base64_to_binary(self.secret)
             # eslint-disable-next-line quotes
             auth = request + "\0" + body
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': self.apiKey,
-                'Rest-Sign': self.decode(signature),
+                'Rest-Sign': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

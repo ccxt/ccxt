@@ -350,14 +350,8 @@ module.exports = class latoken extends Exchange {
         //         "priceChange":-0.1500
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const open = this.safeFloat (ticker, 'open');
         const close = this.safeFloat (ticker, 'close');
         let change = undefined;
@@ -433,11 +427,9 @@ module.exports = class latoken extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
             const symbol = ticker['symbol'];
-            if (symbols === undefined || this.inArray (symbol, symbols)) {
-                result[symbol] = ticker;
-            }
+            result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTrade (trade, market = undefined) {
@@ -542,7 +534,7 @@ module.exports = class latoken extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -618,38 +610,20 @@ module.exports = class latoken extends Exchange {
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeTimestamp (order, 'timeCreated');
         const marketId = this.safeString (order, 'symbol');
-        let symbol = marketId;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat (order, 'executedAmount');
-        let remaining = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = amount - filled;
-            }
-        }
         const status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
-        let cost = undefined;
-        if (filled !== undefined) {
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-        }
         const timeFilled = this.safeTimestamp (order, 'timeFilled');
         let lastTradeTimestamp = undefined;
         if ((timeFilled !== undefined) && (timeFilled > 0)) {
             lastTradeTimestamp = timeFilled;
         }
         const clientOrderId = this.safeString (order, 'cliOrdId');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -659,16 +633,19 @@ module.exports = class latoken extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
-            'cost': cost,
+            'stopPrice': undefined,
+            'cost': undefined,
             'amount': amount,
             'filled': filled,
             'average': undefined,
-            'remaining': remaining,
+            'remaining': undefined,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -692,7 +669,7 @@ module.exports = class latoken extends Exchange {
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersWithMethod requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersWithMethod() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -808,7 +785,7 @@ module.exports = class latoken extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);

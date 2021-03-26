@@ -19,36 +19,36 @@ class bleutrade extends Exchange {
             'rateLimit' => 1000,
             'certified' => false,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
-                'cancelOrder' => false, // todo
-                'createLimitOrder' => false, // todo
-                'createMarketOrder' => false, // todo
-                'createOrder' => false, // todo
-                'editOrder' => false, // todo
-                'withdraw' => false, // todo
-                'fetchTrades' => false,
-                'fetchTickers' => true,
-                'fetchTicker' => true,
-                'fetchOrders' => false,
+                'createLimitOrder' => false,
+                'createMarketOrder' => false,
+                'createOrder' => true,
+                'editOrder' => false,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchWithdrawals' => true,
-                'fetchOrderTrades' => false,
-                'fetchLedger' => true,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchLedger' => true,
+                'fetchMarkets' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => false,
+                'fetchOrderTrades' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => false,
+                'fetchWithdrawals' => true,
+                'withdraw' => false,
             ),
             'timeframes' => array(
-                '15m' => '15m',
-                '20m' => '20m',
-                '30m' => '30m',
                 '1h' => '1h',
-                '2h' => '2h',
-                '3h' => '3h',
                 '4h' => '4h',
-                '6h' => '6h',
                 '8h' => '8h',
-                '12h' => '12h',
                 '1d' => '1d',
+                '1w' => '1w',
             ),
             'hostname' => 'bleutrade.com',
             'urls' => array(
@@ -57,7 +57,7 @@ class bleutrade extends Exchange {
                     'v3Private' => 'https://{hostname}/api/v3/private',
                     'v3Public' => 'https://{hostname}/api/v3/public',
                 ),
-                'www' => ['https://bleutrade.com'],
+                'www' => 'https://bleutrade.com',
                 'doc' => array(
                     'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
                 ),
@@ -109,6 +109,7 @@ class bleutrade extends Exchange {
                 'exact' => array(
                     'ERR_INSUFICIENT_BALANCE' => '\\ccxt\\InsufficientFunds',
                     'ERR_LOW_VOLUME' => '\\ccxt\\BadRequest',
+                    'Invalid form' => '\\ccxt\\BadRequest',
                 ),
                 'broad' => array(
                     'Order is not open' => '\\ccxt\\InvalidOrder',
@@ -125,7 +126,6 @@ class bleutrade extends Exchange {
             ),
             'options' => array(
                 'parseOrderStatus' => true,
-                'symbolSeparator' => '_',
             ),
         ));
         // undocumented api calls
@@ -257,7 +257,7 @@ class bleutrade extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->v3PublicGetGetmarketsummary (array_merge($request, $params));
-        $ticker = $response['result'][0];
+        $ticker = $this->safe_value($response, 'result', array());
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -294,18 +294,8 @@ class bleutrade extends Exchange {
         //     MarketCurrency => 'Litecoin',
         //     BaseCurrency => 'Tether' }
         $timestamp = $this->parse8601($this->safe_string($ticker, 'TimeStamp'));
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'MarketName');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $symbol = $this->parse_symbol($marketId);
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $previous = $this->safe_float($ticker, 'PrevDay');
         $last = $this->safe_float($ticker, 'Last');
         $change = null;
@@ -342,16 +332,15 @@ class bleutrade extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
-        $timestamp = $this->parse8601($ohlcv['TimeStamp'] . '+00:00');
-        return array(
-            $timestamp,
+    public function parse_ohlcv($ohlcv, $market = null) {
+        return [
+            $this->parse8601($ohlcv['TimeStamp'] . '+00:00'),
             $this->safe_float($ohlcv, 'Open'),
             $this->safe_float($ohlcv, 'High'),
             $this->safe_float($ohlcv, 'Low'),
             $this->safe_float($ohlcv, 'Close'),
             $this->safe_float($ohlcv, 'Volume'),
-        );
+        ];
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
@@ -363,7 +352,8 @@ class bleutrade extends Exchange {
             'count' => $limit,
         );
         $response = $this->v3PublicGetGetcandles (array_merge($request, $params));
-        return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -413,13 +403,6 @@ class bleutrade extends Exchange {
         $response = $this->v3PrivatePostGetopenorders (array_merge($request, $params));
         $items = $this->safe_value($response, 'result', array());
         return $this->parse_orders($items, $market, $since, $limit);
-    }
-
-    public function parse_symbol($id) {
-        list($base, $quote) = explode($this->options['symbolSeparator'], $id);
-        $base = $this->safe_currency_code($base);
-        $quote = $this->safe_currency_code($quote);
-        return $base . '/' . $quote;
     }
 
     public function fetch_balance($params = array ()) {
@@ -557,7 +540,7 @@ class bleutrade extends Exchange {
             $part = $parts[$i];
             if (mb_strpos($part, 'fee') === 0) {
                 $part = str_replace('fee ', '', $part);
-                $feeCost = floatval ($part);
+                $feeCost = floatval($part);
                 if ($feeCost < 0) {
                     $feeCost = -$feeCost;
                 }
@@ -647,45 +630,18 @@ class bleutrade extends Exchange {
         //     Comments => array( String => '', Valid => true )
         $side = strtolower($this->safe_string($order, 'Type'));
         $status = $this->parse_order_status($this->safe_string($order, 'Status'));
-        $symbol = null;
         $marketId = $this->safe_string($order, 'Exchange');
-        if ($marketId === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
-        } else {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                $symbol = $this->parse_symbol($marketId);
-            }
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = null;
         if (is_array($order) && array_key_exists('Created', $order)) {
             $timestamp = $this->parse8601($order['Created'] . '+00:00');
         }
         $price = $this->safe_float($order, 'Price');
-        $cost = null;
         $amount = $this->safe_float($order, 'Quantity');
         $remaining = $this->safe_float($order, 'QuantityRemaining');
-        $filled = null;
-        if ($amount !== null && $remaining !== null) {
-            $filled = $amount - $remaining;
-        }
-        if (!$cost) {
-            if ($price && $filled) {
-                $cost = $price * $filled;
-            }
-        }
-        if (!$price) {
-            if ($cost && $filled) {
-                $price = $cost / $filled;
-            }
-        }
         $average = $this->safe_float($order, 'PricePerUnit');
         $id = $this->safe_string($order, 'OrderID');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -694,17 +650,20 @@ class bleutrade extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'cost' => $cost,
+            'stopPrice' => null,
+            'cost' => null,
             'average' => $average,
             'amount' => $amount,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {
@@ -756,9 +715,9 @@ class bleutrade extends Exchange {
         $feeCost = null;
         $labelParts = explode(';', $label);
         if (strlen($labelParts) === 3) {
-            $amount = floatval ($labelParts[0]);
+            $amount = floatval($labelParts[0]);
             $address = $labelParts[1];
-            $feeCost = floatval ($labelParts[2]);
+            $feeCost = floatval($labelParts[2]);
         } else {
             $address = $label;
         }
@@ -822,22 +781,23 @@ class bleutrade extends Exchange {
         //    array("$success":false,"message":"Erro => Order is not open.","result":"") <-- 'error' is spelt wrong
         //    array("$success":false,"message":"Error => Very low volume.","result":"ERR_LOW_VOLUME")
         //    array("$success":false,"message":"Error => Insuficient Balance","result":"ERR_INSUFICIENT_BALANCE")
+        //    array("$success":false,"message":"Invalid form","result":null)
         //
-        if ($body[0] === '{') {
-            $success = $this->safe_value($response, 'success');
-            if ($success === null) {
-                throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json($response));
-            }
-            if (!$success) {
-                $feedback = $this->id . ' ' . $body;
-                $errorCode = $this->safe_string($response, 'result');
+        $success = $this->safe_value($response, 'success');
+        if ($success === null) {
+            throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json($response));
+        }
+        if (!$success) {
+            $feedback = $this->id . ' ' . $body;
+            $errorCode = $this->safe_string($response, 'result');
+            if ($errorCode !== null) {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCode, $feedback);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
-                $errorMessage = $this->safe_string($response, 'message');
-                $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorMessage, $feedback);
-                throw new ExchangeError($feedback);
             }
+            $errorMessage = $this->safe_string($response, 'message');
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorMessage, $feedback);
+            throw new ExchangeError($feedback);
         }
     }
 }

@@ -7,9 +7,11 @@
 "use strict";
 
 const fs           = require ('fs')
-const log          = require ('ololog')
-const ansi         = require ('ansicolor').nice
-const { execSync } = require ('child_process')
+    , log          = require ('ololog')
+    , ansi         = require ('ansicolor').nice
+    , { execSync } = require ('child_process')
+    , { copyFile } = require ('./fs.js')
+
 
 //-----------------------------------------------------------------------------
 
@@ -50,6 +52,8 @@ function vssEverything () {
 
     vss ('./ccxt.js',                                    "const version = '{version}'", version)
     vss ('./php/base/Exchange.php',                      "$version = '{version}'",      version)
+    vss ('./php/async/base/Exchange.php',                "VERSION = '{version}'",       version)
+    vss ('./php/async/base/Exchange.php',                "$version = '{version}'",      version)
     vss ('./php/base/Exchange.php',                      "VERSION = '{version}'",       version)
     vss ('./python/ccxt/__init__.py',                    "__version__ = '{version}'",   version)
     vss ('./python/ccxt/base/exchange.py',               "__version__ = '{version}'",   version)
@@ -59,7 +63,14 @@ function vssEverything () {
     vss ('./README.md',       "ccxt@{version}", version)
     vss ('./wiki/Install.md', "ccxt@{version}", version)
 
-    execSync ('cp ./package.json ./LICENSE.txt ./keys.json ./python/')
+    const pythonFiles = [
+        'package.json',
+        'LICENSE.txt',
+        'keys.json',
+        'README.md',
+    ]
+
+    pythonFiles.forEach ((fileName) => copyFile ('./' + fileName, './python/' + fileName))
 
     log.bright.green ('Version single-sourced successfully.')
 }

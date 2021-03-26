@@ -17,10 +17,17 @@ class flowbtc(Exchange):
             'version': 'v1',
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87443317-01c0d080-c5fe-11ea-95c2-9ebe1a8fafd9.jpg',
                 'api': 'https://publicapi.flowbtc.com.br',
                 'www': 'https://www.flowbtc.com.br',
                 'doc': 'https://www.flowbtc.com.br/api.html',
@@ -227,7 +234,7 @@ class flowbtc(Exchange):
                 'serverOrderId': id,
             }
             return self.privatePostCancelOrder(self.extend(request, params))
-        raise ExchangeError(self.id + ' requires `ins` symbol parameter for cancelling an order')
+        raise ExchangeError(self.id + ' cancelOrder() requires an `ins` symbol parameter for cancelling an order')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path

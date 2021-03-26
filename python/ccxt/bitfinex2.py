@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
@@ -33,28 +34,30 @@ class bitfinex2(bitfinex):
             'has': {
                 'CORS': False,
                 'cancelAllOrders': True,
+                'cancelOrder': True,
                 'createDepositAddress': True,
                 'createLimitOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
-                'cancelOrder': True,
                 'deposit': False,
                 'editOrder': False,
-                'fetchDepositAddress': True,
+                'fetchBalance': True,
+                'fetchClosedOrder': True,
                 'fetchClosedOrders': False,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchFundingFees': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': False,
-                'fetchOpenOrder': True,
-                'fetchClosedOrder': True,
                 'fetchOrderTrades': True,
                 'fetchStatus': True,
                 'fetchTickers': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
-                'fetchTransactions': False,
+                'fetchTransactions': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -64,6 +67,7 @@ class bitfinex2(bitfinex):
                 '30m': '30m',
                 '1h': '1h',
                 '3h': '3h',
+                '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '1D',
@@ -107,12 +111,14 @@ class bitfinex2(bitfinex):
                         'conf/pub:map:currency:undl',  # maps derivatives symbols to their underlying currency
                         'conf/pub:map:currency:pool',  # maps symbols to underlying network/protocol they operate on
                         'conf/pub:map:currency:explorer',  # maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee',  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
                         'conf/pub:map:tx:method',
                         'conf/pub:list:{object}',
                         'conf/pub:list:{object}:{detail}',
                         'conf/pub:list:currency',
                         'conf/pub:list:pair:exchange',
                         'conf/pub:list:pair:margin',
+                        'conf/pub:list:pair:futures',
                         'conf/pub:list:competitions',
                         'conf/pub:info:{object}',
                         'conf/pub:info:{object}:{detail}',
@@ -180,7 +186,9 @@ class bitfinex2(bitfinex):
                         'auth/w/position/claim',
                         'auth/r/positions/hist',
                         'auth/r/positions/audit',
+                        'auth/r/positions/snap',
                         'auth/w/deriv/collateral/set',
+                        'auth/w/deriv/collateral/limits',
                         'auth/r/funding/offers',
                         'auth/r/funding/offers/{symbol}',
                         'auth/w/funding/offer/submit',
@@ -292,6 +300,15 @@ class bitfinex2(bitfinex):
                     'JPY': 'JPY',
                     'GBP': 'GBP',
                 },
+                # actually the correct names unlike the v1
+                # we don't want to self.extend self with accountsByType in v1
+                'v2AccountsByType': {
+                    'spot': 'exchange',
+                    'exchange': 'exchange',
+                    'funding': 'funding',
+                    'margin': 'margin',
+                    'derivatives': 'margin',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -332,11 +349,20 @@ class bitfinex2(bitfinex):
         return self.status
 
     def fetch_markets(self, params={}):
-        response = self.v1GetSymbolsDetails(params)
+        # todo drop v1 in favor of v2 configs
+        # pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
+        v2response = self.publicGetConfPubListPairFutures(params)
+        v1response = self.v1GetSymbolsDetails(params)
+        futuresMarketIds = self.safe_value(v2response, 0, [])
         result = []
-        for i in range(0, len(response)):
-            market = response[i]
+        for i in range(0, len(v1response)):
+            market = v1response[i]
             id = self.safe_string_upper(market, 'pair')
+            spot = True
+            if self.in_array(id, futuresMarketIds):
+                spot = False
+            futures = not spot
+            type = 'spot' if spot else 'futures'
             baseId = None
             quoteId = None
             if id.find(':') >= 0:
@@ -354,7 +380,7 @@ class bitfinex2(bitfinex):
             quoteId = self.get_currency_id(quoteId)
             precision = {
                 'price': self.safe_integer(market, 'price_precision'),
-                'amount': self.safe_integer(market, 'price_precision'),
+                'amount': 8,  # https://github.com/ccxt/ccxt/issues/7310
             }
             limits = {
                 'amount': {
@@ -370,6 +396,7 @@ class bitfinex2(bitfinex):
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': None,
             }
+            margin = self.safe_value(market, 'margin')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -381,43 +408,268 @@ class bitfinex2(bitfinex):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
+                'type': type,
                 'swap': False,
-                'spot': False,
-                'futures': False,
+                'spot': spot,
+                'margin': margin,
+                'futures': futures,
             })
+        return result
+
+    def fetch_currencies(self, params={}):
+        labels = [
+            'pub:list:currency',
+            'pub:map:currency:sym',  # maps symbols to their API symbols, BAB > BCH
+            'pub:map:currency:label',  # verbose friendly names, BNT > Bancor
+            'pub:map:currency:unit',  # maps symbols to unit of measure where applicable
+            'pub:map:currency:undl',  # maps derivatives symbols to their underlying currency
+            'pub:map:currency:pool',  # maps symbols to underlying network/protocol they operate on
+            'pub:map:currency:explorer',  # maps symbols to their recognised block explorer URLs
+            'pub:map:currency:tx:fee',  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
+        ]
+        config = ','.join(labels)
+        request = {
+            'config': config,
+        }
+        response = self.publicGetConfConfig(self.extend(request, params))
+        #
+        #     [
+        #
+        #         a list of symbols
+        #         ["AAA","ABS","ADA"],
+        #
+        #         # sym
+        #         # maps symbols to their API symbols, BAB > BCH
+        #         [
+        #             ['BAB', 'BCH'],
+        #             ['CNHT', 'CNHt'],
+        #             ['DSH', 'DASH'],
+        #             ['IOT', 'IOTA'],
+        #             ['LES', 'LEO-EOS'],
+        #             ['LET', 'LEO-ERC20'],
+        #             ['STJ', 'STORJ'],
+        #             ['TSD', 'TUSD'],
+        #             ['UDC', 'USDC'],
+        #             ['USK', 'USDK'],
+        #             ['UST', 'USDt'],
+        #             ['USTF0', 'USDt0'],
+        #             ['XCH', 'XCHF'],
+        #             ['YYW', 'YOYOW'],
+        #             # ...
+        #         ],
+        #         # label
+        #         # verbose friendly names, BNT > Bancor
+        #         [
+        #             ['BAB', 'Bitcoin Cash'],
+        #             ['BCH', 'Bitcoin Cash'],
+        #             ['LEO', 'Unus Sed LEO'],
+        #             ['LES', 'Unus Sed LEO(EOS)'],
+        #             ['LET', 'Unus Sed LEO(ERC20)'],
+        #             # ...
+        #         ],
+        #         # unit
+        #         # maps symbols to unit of measure where applicable
+        #         [
+        #             ['IOT', 'Mi|MegaIOTA'],
+        #         ],
+        #         # undl
+        #         # maps derivatives symbols to their underlying currency
+        #         [
+        #             ['USTF0', 'UST'],
+        #             ['BTCF0', 'BTC'],
+        #             ['ETHF0', 'ETH'],
+        #         ],
+        #         # pool
+        #         # maps symbols to underlying network/protocol they operate on
+        #         [
+        #             ['SAN', 'ETH'], ['OMG', 'ETH'], ['AVT', 'ETH'], ['EDO', 'ETH'],
+        #             ['ESS', 'ETH'], ['ATD', 'EOS'], ['ADD', 'EOS'], ['MTO', 'EOS'],
+        #             ['PNK', 'ETH'], ['BAB', 'BCH'], ['WLO', 'XLM'], ['VLD', 'ETH'],
+        #             ['BTT', 'TRX'], ['IMP', 'ETH'], ['SCR', 'ETH'], ['GNO', 'ETH'],
+        #             # ...
+        #         ],
+        #         # explorer
+        #         # maps symbols to their recognised block explorer URLs
+        #         [
+        #             [
+        #                 'AIO',
+        #                 [
+        #                     "https://mainnet.aion.network",
+        #                     "https://mainnet.aion.network/#/account/VAL",
+        #                     "https://mainnet.aion.network/#/transaction/VAL"
+        #                 ]
+        #             ],
+        #             # ...
+        #         ],
+        #         # fee
+        #         # maps currencies to their withdrawal fees
+        #         [
+        #             ["AAA",[0,0]],
+        #             ["ABS",[0,131.3]],
+        #             ["ADA",[0,0.3]],
+        #         ],
+        #     ]
+        #
+        indexed = {
+            'sym': self.index_by(self.safe_value(response, 1, []), 0),
+            'label': self.index_by(self.safe_value(response, 2, []), 0),
+            'unit': self.index_by(self.safe_value(response, 3, []), 0),
+            'undl': self.index_by(self.safe_value(response, 4, []), 0),
+            'pool': self.index_by(self.safe_value(response, 5, []), 0),
+            'explorer': self.index_by(self.safe_value(response, 6, []), 0),
+            'fees': self.index_by(self.safe_value(response, 7, []), 0),
+        }
+        ids = self.safe_value(response, 0, [])
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = self.safe_currency_code(id)
+            label = self.safe_value(indexed['label'], id, [])
+            name = self.safe_string(label, 1)
+            pool = self.safe_value(indexed['pool'], id, [])
+            type = self.safe_string(pool, 1)
+            feeValues = self.safe_value(indexed['fees'], id, [])
+            fees = self.safe_value(feeValues, 1, [])
+            fee = self.safe_float(fees, 1)
+            undl = self.safe_value(indexed['undl'], id, [])
+            precision = 8  # default precision, todo: fix "magic constants"
+            fid = 'f' + id
+            result[code] = {
+                'id': fid,
+                'code': code,
+                'info': [id, label, pool, feeValues, undl],
+                'type': type,
+                'name': name,
+                'active': True,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': 1 / math.pow(10, precision),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': 1 / math.pow(10, precision),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': fee,
+                        'max': None,
+                    },
+                },
+            }
         return result
 
     def fetch_balance(self, params={}):
         # self api call does not return the 'used' amount - use the v1 version instead(which also returns zero balances)
+        # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
         self.load_markets()
-        response = self.privatePostAuthRWallets(params)
-        balanceType = self.safe_string(params, 'type', 'exchange')
+        accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
+        requestedType = self.safe_string(params, 'type', 'exchange')
+        accountType = self.safe_string(accountsByType, requestedType)
+        if accountType is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' fetchBalance type parameter must be one of ' + ', '.join(keys))
+        isDerivative = requestedType == 'derivatives'
+        query = self.omit(params, 'type')
+        response = self.privatePostAuthRWallets(query)
         result = {'info': response}
-        for b in range(0, len(response)):
-            balance = response[b]
-            accountType = balance[0]
-            currency = balance[1]
-            total = balance[2]
-            available = balance[4]
-            if accountType == balanceType:
-                if currency[0] == 't':
-                    currency = currency[1:]
-                code = self.safe_currency_code(currency)
+        for i in range(0, len(response)):
+            balance = response[i]
+            type = self.safe_string(balance, 0)
+            currencyId = self.safe_string_lower(balance, 1, '')
+            start = len(currencyId) - 2
+            isDerivativeCode = currencyId[start:] == 'f0'
+            # self will only filter the derivative codes if the requestedType is 'derivatives'
+            derivativeCondition = (not isDerivative or isDerivativeCode)
+            if (accountType == type) and derivativeCondition:
+                code = self.safe_currency_code(currencyId)
                 account = self.account()
-                # do not fill in zeroes and missing values in the parser
-                # rewrite and unify the following to use the unified parseBalance
-                account['total'] = total
-                if not available:
-                    if available == 0:
-                        account['free'] = 0
-                        account['used'] = total
-                    else:
-                        account['free'] = total
-                else:
-                    account['free'] = available
-                    account['used'] = account['total'] - account['free']
+                account['total'] = self.safe_float(balance, 2)
+                account['free'] = self.safe_float(balance, 4)
                 result[code] = account
         return self.parse_balance(result)
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        # transferring between derivatives wallet and regular wallet is not documented in their API
+        # however we support it in CCXT(from just looking at web inspector)
+        self.load_markets()
+        accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount)
+        if fromId is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' transfer fromAccount must be one of ' + ', '.join(keys))
+        toId = self.safe_string(accountsByType, toAccount)
+        if toId is None:
+            keys = list(accountsByType.keys())
+            raise ExchangeError(self.id + ' transfer toAccount must be one of ' + ', '.join(keys))
+        currency = self.currency(code)
+        fromCurrencyId = self.convert_derivatives_id(currency, fromAccount)
+        toCurrencyId = self.convert_derivatives_id(currency, toAccount)
+        requestedAmount = self.currency_to_precision(code, amount)
+        # self request is slightly different from v1 fromAccount -> from
+        request = {
+            'amount': requestedAmount,
+            'currency': fromCurrencyId,
+            'currency_to': toCurrencyId,
+            'from': fromId,
+            'to': toId,
+        }
+        response = self.privatePostAuthWTransfer(self.extend(request, params))
+        #  [1616451183763,"acc_tf",null,null,[1616451183763,"exchange","margin",null,"UST","UST",null,1],null,"SUCCESS","1.0 Tether USDt transfered from Exchange to Margin"]
+        timestamp = self.safe_integer(response, 0)
+        #  ["error",10001,"Momentary balance check. Please wait few seconds and try the transfer again."]
+        error = self.safe_string(response, 0)
+        if error == 'error':
+            message = self.safe_string(response, 2, '')
+            # same message as in v1
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
+            raise ExchangeError(self.id + ' ' + message)
+        info = self.safe_value(response, 4)
+        fromResponse = self.safe_string(info, 1)
+        toResponse = self.safe_string(info, 2)
+        toCode = self.safe_currency_code(self.safe_string(info, 5))
+        success = self.safe_string(response, 6)
+        status = 'ok' if (success == 'SUCCESS') else None
+        return {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': status,
+            'amount': requestedAmount,
+            'code': toCode,
+            'fromAccount': fromResponse,
+            'toAccount': toResponse,
+        }
+
+    def convert_derivatives_id(self, currency, type):
+        # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
+        # {
+        #   id: 'fUSTF0',
+        #   code: 'USTF0',
+        #   info: ['USTF0', [], [], [], ['USTF0', 'UST']],
+        info = self.safe_value(currency, 'info')
+        transferId = self.safe_string(info, 0)
+        underlying = self.safe_value(info, 4, [])
+        currencyId = None
+        if type == 'derivatives':
+            currencyId = self.safe_string(underlying, 0, transferId)
+            start = len(currencyId) - 2
+            isDerivativeCode = currencyId[start:] == 'F0'
+            if not isDerivativeCode:
+                currencyId = currencyId + 'F0'
+        elif type != 'margin':
+            currencyId = self.safe_string(underlying, 1, transferId)
+        else:
+            currencyId = transferId
+        return currencyId
+
+    def fetch_order(self, id, symbol=None, params={}):
+        raise NotSupported(self.id + ' fetchOrder is not implemented yet')
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -441,9 +693,10 @@ class bitfinex2(bitfinex):
         priceIndex = 1 if (fullRequest['precision'] == 'R0') else 0
         for i in range(0, len(orderbook)):
             order = orderbook[i]
-            price = order[priceIndex]
-            amount = abs(order[2])
-            side = 'bids' if (order[2] > 0) else 'asks'
+            price = self.safe_float(order, priceIndex)
+            signedAmount = self.safe_float(order, 2)
+            amount = abs(signedAmount)
+            side = 'bids' if (signedAmount > 0) else 'asks'
             result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
@@ -496,7 +749,7 @@ class bitfinex2(bitfinex):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
                 result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -554,12 +807,12 @@ class bitfinex2(bitfinex):
         #
         tradeLength = len(trade)
         isPrivate = (tradeLength > 5)
-        id = str(trade[0])
+        id = self.safe_string(trade, 0)
         amountIndex = 4 if isPrivate else 2
-        amount = trade[amountIndex]
+        amount = self.safe_float(trade, amountIndex)
         cost = None
         priceIndex = 5 if isPrivate else 3
-        price = trade[priceIndex]
+        price = self.safe_float(trade, priceIndex)
         side = None
         orderId = None
         takerOrMaker = None
@@ -567,7 +820,7 @@ class bitfinex2(bitfinex):
         fee = None
         symbol = None
         timestampIndex = 2 if isPrivate else 1
-        timestamp = trade[timestampIndex]
+        timestamp = self.safe_integer(trade, timestampIndex)
         if isPrivate:
             marketId = trade[1]
             if marketId in self.markets_by_id:
@@ -575,10 +828,12 @@ class bitfinex2(bitfinex):
                 symbol = market['symbol']
             else:
                 symbol = self.parse_symbol(marketId)
-            orderId = str(trade[3])
-            takerOrMaker = 'maker' if (trade[8] == 1) else 'taker'
-            feeCost = trade[9]
-            feeCurrency = self.safe_currency_code(trade[10])
+            orderId = self.safe_string(trade, 3)
+            maker = self.safe_integer(trade, 8)
+            takerOrMaker = 'maker' if (maker == 1) else 'taker'
+            feeCost = self.safe_float(trade, 9)
+            feeCurrencyId = self.safe_string(trade, 10)
+            feeCurrency = self.safe_currency_code(feeCurrencyId)
             if feeCost is not None:
                 feeCost = -feeCost
                 if symbol in self.markets:
@@ -661,21 +916,30 @@ class bitfinex2(bitfinex):
             'limit': limit,
         }
         response = self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
+        #
+        #     [
+        #         [1591503840000,0.025069,0.025068,0.025069,0.025068,1.97828998],
+        #         [1591504500000,0.025065,0.025065,0.025065,0.025065,1.0164],
+        #         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
+        #     ]
+        #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
+        if status is None:
+            return status
+        parts = status.split(' ')
+        state = self.safe_string(parts, 0)
         statuses = {
             'ACTIVE': 'open',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
-            'CANCELED was: PARTIALLY FILLED': 'canceled',
-            'INSUFFICIENT MARGIN': 'canceled',
-            'INSUFFICIENT BALANCE(G1) was: PARTIALLY FILLED': 'canceled',
+            'INSUFFICIENT': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         }
-        return self.safe_string(statuses, status, status)
+        return self.safe_string(statuses, state, status)
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 0)
@@ -714,8 +978,11 @@ class bitfinex2(bitfinex):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -730,15 +997,43 @@ class bitfinex2(bitfinex):
         self.load_markets()
         market = self.market(symbol)
         orderTypes = self.safe_value(self.options, 'orderTypes', {})
-        orderType = self.safe_string(orderTypes, type, type)
+        orderType = self.safe_string_upper(orderTypes, type, type)
         amount = -amount if (side == 'sell') else amount
         request = {
             'symbol': market['id'],
             'type': orderType,
             'amount': self.number_to_string(amount),
         }
-        if type != 'market':
+        if (orderType == 'LIMIT') or (orderType == 'EXCHANGE LIMIT'):
             request['price'] = self.number_to_string(price)
+        elif (orderType == 'STOP') or (orderType == 'EXCHANGE STOP'):
+            stopPrice = self.safe_float(params, 'stopPrice', price)
+            request['price'] = self.number_to_string(stopPrice)
+        elif (orderType == 'STOP LIMIT') or (orderType == 'EXCHANGE STOP LIMIT'):
+            priceAuxLimit = self.safe_float(params, 'price_aux_limit')
+            stopPrice = self.safe_float(params, 'stopPrice')
+            if priceAuxLimit is None:
+                if stopPrice is None:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a price_aux_limit parameter for a ' + orderType + ' order')
+                else:
+                    request['price_aux_limit'] = self.number_to_string(price)
+            else:
+                request['price_aux_limit'] = self.number_to_string(priceAuxLimit)
+                if stopPrice is None:
+                    stopPrice = price
+            request['price'] = self.number_to_string(stopPrice)
+        elif (orderType == 'TRAILING STOP') or (orderType == 'EXCHANGE TRAILING STOP'):
+            priceTrailing = self.safe_float(params, 'price_trailing')
+            request['price_trailing'] = self.number_to_string(priceTrailing)
+            stopPrice = self.safe_float(params, 'stopPrice', price)
+            request['price'] = self.number_to_string(stopPrice)
+        elif (orderType == 'FOK') or (orderType == 'EXCHANGE FOK') or (orderType == 'IOC') or (orderType == 'EXCHANGE IOC'):
+            request['price'] = self.number_to_string(price)
+        params = self.omit(params, ['stopPrice', 'price_aux_limit', 'price_trailing'])
+        clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
+        if clientOrderId is not None:
+            request['cid'] = clientOrderId
+            params = self.omit(params, ['cid', 'clientOrderId'])
         response = self.privatePostAuthWOrderSubmit(self.extend(request, params))
         #
         #     [
@@ -805,16 +1100,17 @@ class bitfinex2(bitfinex):
         return self.parse_orders(orders)
 
     def cancel_order(self, id, symbol=None, params={}):
-        cid = self.safe_value(params, 'cid')  # client order id
+        cid = self.safe_value_2(params, 'cid', 'clientOrderId')  # client order id
         request = None
         if cid is not None:
             cidDate = self.safe_value(params, 'cidDate')  # client order id date
             if cidDate is None:
-                raise InvalidOrder(self.id + " canceling an order by client order id('cid') requires both 'cid' and 'cid_date'('YYYY-MM-DD')")
+                raise InvalidOrder(self.id + " canceling an order by clientOrderId('cid') requires both 'cid' and 'cid_date'('YYYY-MM-DD')")
             request = {
                 'cid': cid,
                 'cid_date': cidDate,
             }
+            params = self.omit(params, ['cid', 'clientOrderId'])
         else:
             request = {
                 'id': int(id),
@@ -955,6 +1251,15 @@ class bitfinex2(bitfinex):
             'info': response,
         }
 
+    def parse_transaction_status(self, status):
+        statuses = {
+            'SUCCESS': 'ok',
+            'ERROR': 'failed',
+            'FAILURE': 'failed',
+            'CANCELED': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_transaction(self, transaction, currency=None):
         #
         # withdraw
@@ -980,41 +1285,144 @@ class bitfinex2(bitfinex):
         #         "Invalid bitcoin address(abcdef)",  # TEXT Text of the notification
         #     ]
         #
-        # todo add support for all movements, deposits and withdrawals
+        # fetchTransactions
         #
-        data = self.safe_value(transaction, 4, [])
-        timestamp = self.safe_integer(transaction, 0)
+        #     [
+        #         13293039,  # ID
+        #         'ETH',  # CURRENCY
+        #         'ETHEREUM',  # CURRENCY_NAME
+        #         null,
+        #         null,
+        #         1574175052000,  # MTS_STARTED
+        #         1574181326000,  # MTS_UPDATED
+        #         null,
+        #         null,
+        #         'CANCELED',  # STATUS
+        #         null,
+        #         null,
+        #         -0.24,  # AMOUNT, negative for withdrawals
+        #         -0.00135,  # FEES
+        #         null,
+        #         null,
+        #         'DESTINATION_ADDRESS',
+        #         null,
+        #         null,
+        #         null,
+        #         'TRANSACTION_ID',
+        #         "Purchase of 100 pizzas",  # WITHDRAW_TRANSACTION_NOTE
+        #     ]
+        #
+        transactionLength = len(transaction)
+        timestamp = None
+        updated = None
         code = None
-        if currency is not None:
-            code = currency['code']
-        feeCost = self.safe_float(data, 8)
-        if feeCost is not None:
-            feeCost = abs(feeCost)
-        amount = self.safe_float(data, 5)
-        id = self.safe_value(data, 0)
-        status = 'ok'
-        if id == 0:
-            id = None
-            status = 'failed'
+        amount = None
+        id = None
+        status = None
+        tag = None
+        type = None
+        feeCost = None
+        txid = None
+        addressTo = None
+        if transactionLength < 9:
+            data = self.safe_value(transaction, 4, [])
+            timestamp = self.safe_integer(transaction, 0)
+            if currency is not None:
+                code = currency['code']
+            feeCost = self.safe_float(data, 8)
+            if feeCost is not None:
+                feeCost = -feeCost
+            amount = self.safe_float(data, 5)
+            id = self.safe_value(data, 0)
+            status = 'ok'
+            if id == 0:
+                id = None
+                status = 'failed'
+            tag = self.safe_string(data, 3)
+            type = 'withdrawal'
+        else:
+            id = self.safe_string(transaction, 0)
+            timestamp = self.safe_integer(transaction, 5)
+            updated = self.safe_integer(transaction, 6)
+            status = self.parse_transaction_status(self.safe_string(transaction, 9))
+            amount = self.safe_float(transaction, 12)
+            if amount is not None:
+                if amount < 0:
+                    type = 'withdrawal'
+                else:
+                    type = 'deposit'
+            feeCost = self.safe_float(transaction, 13)
+            if feeCost is not None:
+                feeCost = -feeCost
+            addressTo = self.safe_string(transaction, 16)
+            txid = self.safe_string(transaction, 20)
         return {
             'info': transaction,
             'id': id,
-            'txid': None,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': None,  # self is actually the tag for XRP transfers(the address is missing)
-            'tag': self.safe_string(data, 3),  # refix it properly for the tag from description
-            'type': 'withdrawal',
+            'addressFrom': None,
+            'address': addressTo,  # self is actually the tag for XRP transfers(the address is missing)
+            'addressTo': addressTo,
+            'tagFrom': None,
+            'tag': tag,  # refix it properly for the tag from description
+            'tagTo': tag,
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': None,
+            'updated': updated,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
                 'rate': None,
             },
         }
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {}
+        method = 'privatePostAuthRMovementsHist'
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+            method = 'privatePostAuthRMovementsCurrencyHist'
+        if since is not None:
+            request['start'] = since
+        if limit is not None:
+            request['limit'] = limit  # max 1000
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     [
+        #         [
+        #             13293039,  # ID
+        #             'ETH',  # CURRENCY
+        #             'ETHEREUM',  # CURRENCY_NAME
+        #             null,
+        #             null,
+        #             1574175052000,  # MTS_STARTED
+        #             1574181326000,  # MTS_UPDATED
+        #             null,
+        #             null,
+        #             'CANCELED',  # STATUS
+        #             null,
+        #             null,
+        #             -0.24,  # AMOUNT, negative for withdrawals
+        #             -0.00135,  # FEES
+        #             null,
+        #             null,
+        #             'DESTINATION_ADDRESS',
+        #             null,
+        #             null,
+        #             null,
+        #             'TRANSACTION_ID',
+        #             "Purchase of 100 pizzas",  # WITHDRAW_TRANSACTION_NOTE
+        #         ]
+        #     ]
+        #
+        return self.parse_transactions(response, currency, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -1060,6 +1468,46 @@ class bitfinex2(bitfinex):
         return self.extend(transaction, {
             'address': address,
         })
+
+    def fetch_positions(self, symbols=None, params={}):
+        self.load_markets()
+        response = self.privatePostPositions(params)
+        #
+        #     [
+        #         [
+        #             "tBTCUSD",  # SYMBOL
+        #             "ACTIVE",  # STATUS
+        #             0.0195,  # AMOUNT
+        #             8565.0267019,  # BASE_PRICE
+        #             0,  # MARGIN_FUNDING
+        #             0,  # MARGIN_FUNDING_TYPE
+        #             -0.33455568705000516,  # PL
+        #             -0.0003117550117425625,  # PL_PERC
+        #             7045.876419249083,  # PRICE_LIQ
+        #             3.0673001895895604,  # LEVERAGE
+        #             null,  # _PLACEHOLDER
+        #             142355652,  # POSITION_ID
+        #             1574002216000,  # MTS_CREATE
+        #             1574002216000,  # MTS_UPDATE
+        #             null,  # _PLACEHOLDER
+        #             0,  # TYPE
+        #             null,  # _PLACEHOLDER
+        #             0,  # COLLATERAL
+        #             0,  # COLLATERAL_MIN
+        #             # META
+        #             {
+        #                 "reason":"TRADE",
+        #                 "order_id":34271018124,
+        #                 "liq_stage":null,
+        #                 "trade_price":"8565.0267019",
+        #                 "trade_amount":"0.0195",
+        #                 "order_id_oppo":34277498022
+        #             }
+        #         ]
+        #     ]
+        #
+        # todo unify parsePosition/parsePositions
+        return response
 
     def nonce(self):
         return self.milliseconds()

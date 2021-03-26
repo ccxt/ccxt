@@ -20,9 +20,20 @@ class itbit(Exchange):
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
+                'cancelOrder': True,
                 'CORS': True,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
                 'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
+                'fetchTransactions': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -71,6 +82,9 @@ class itbit(Exchange):
                 'ETH/USD': {'id': 'ETHUSD', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'ETH', 'quoteId': 'USD'},
                 'ETH/EUR': {'id': 'ETHEUR', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR', 'baseId': 'ETH', 'quoteId': 'EUR'},
                 'ETH/SGD': {'id': 'ETHSGD', 'symbol': 'ETH/SGD', 'base': 'ETH', 'quote': 'SGD', 'baseId': 'ETH', 'quoteId': 'SGD'},
+                'PAXGUSD': {'id': 'PAXGUSD', 'symbol': 'PAXG/USD', 'base': 'PAXG', 'quote': 'USD', 'baseId': 'PAXG', 'quoteId': 'USD'},
+                'BCHUSD': {'id': 'BCHUSD', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD', 'baseId': 'BCH', 'quoteId': 'USD'},
+                'LTCUSD': {'id': 'LTCUSD', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'baseId': 'LTC', 'quoteId': 'USD'},
             },
             'fees': {
                 'trading': {
@@ -240,7 +254,7 @@ class itbit(Exchange):
         self.load_markets()
         walletId = self.safe_string(params, 'walletId')
         if walletId is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a walletId parameter')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a walletId parameter')
         request = {
             'walletId': walletId,
         }
@@ -304,7 +318,7 @@ class itbit(Exchange):
         self.load_markets()
         walletId = self.safe_string(params, 'walletId')
         if walletId is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a walletId parameter')
+            raise ExchangeError(self.id + ' fetchMyTrades() requires a walletId parameter')
         request = {
             'walletId': walletId,
         }
@@ -386,7 +400,7 @@ class itbit(Exchange):
     def fetch_wallets(self, params={}):
         self.load_markets()
         if not self.uid:
-            raise AuthenticationError(self.id + ' fetchWallets requires uid API credential')
+            raise AuthenticationError(self.id + ' fetchWallets() requires uid API credential')
         request = {
             'userId': self.uid,
         }
@@ -418,7 +432,7 @@ class itbit(Exchange):
             market = self.market(symbol)
         walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
-            raise ExchangeError(self.id + ' fetchOrders requires a walletId parameter')
+            raise ExchangeError(self.id + ' fetchOrders() requires a walletId parameter')
         walletId = params['walletId']
         request = {
             'walletId': walletId,
@@ -464,19 +478,14 @@ class itbit(Exchange):
         timestamp = self.parse8601(order['createdTime'])
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'amountFilled')
-        remaining = None
-        cost = None
         fee = None
         price = self.safe_float(order, 'price')
         average = self.safe_float(order, 'volumeWeightedAveragePrice')
-        if filled is not None:
-            if amount is not None:
-                remaining = amount - filled
-            if average is not None:
-                cost = filled * average
         clientOrderId = self.safe_string(order, 'clientOrderIdentifier')
         id = self.safe_string(order, 'id')
-        return {
+        postOnlyString = self.safe_string(order, 'postOnly')
+        postOnly = (postOnlyString == 'True')
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -486,17 +495,20 @@ class itbit(Exchange):
             'status': self.parse_order_status(self.safe_string(order, 'status')),
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
-            'cost': cost,
+            'stopPrice': None,
+            'cost': None,
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'fee': fee,
             # 'trades': self.parse_trades(order['trades'], market),
             'trades': None,
-        }
+        })
 
     def nonce(self):
         return self.milliseconds()
@@ -507,7 +519,7 @@ class itbit(Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
-            raise ExchangeError(self.id + ' createOrder requires a walletId parameter')
+            raise ExchangeError(self.id + ' createOrder() requires a walletId parameter')
         amount = str(amount)
         price = str(price)
         market = self.market(symbol)
@@ -530,7 +542,7 @@ class itbit(Exchange):
         self.load_markets()
         walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
-            raise ExchangeError(self.id + ' fetchOrder requires a walletId parameter')
+            raise ExchangeError(self.id + ' fetchOrder() requires a walletId parameter')
         request = {
             'id': id,
         }
@@ -540,7 +552,7 @@ class itbit(Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
-            raise ExchangeError(self.id + ' cancelOrder requires a walletId parameter')
+            raise ExchangeError(self.id + ' cancelOrder() requires a walletId parameter')
         request = {
             'id': id,
         }
@@ -565,7 +577,7 @@ class itbit(Exchange):
             binhash = self.binary_concat(binaryUrl, hash)
             signature = self.hmac(binhash, self.encode(self.secret), hashlib.sha512, 'base64')
             headers = {
-                'Authorization': self.apiKey + ':' + self.decode(signature),
+                'Authorization': self.apiKey + ':' + signature,
                 'Content-Type': 'application/json',
                 'X-Auth-Timestamp': timestamp,
                 'X-Auth-Nonce': nonce,

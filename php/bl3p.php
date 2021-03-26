@@ -19,14 +19,17 @@ class bl3p extends Exchange {
             'comment' => 'An exchange market by BitonicNL',
             'has' => array(
                 'CORS' => false,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
                 'api' => 'https://api.bl3p.eu',
-                'www' => array(
-                    'https://bl3p.eu',
-                    'https://bitonic.nl',
-                ),
+                'www' => 'https://bl3p.eu', // 'https://bitonic.nl'
                 'doc' => array(
                     'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
                     'https://bl3p.eu/api',
@@ -88,10 +91,12 @@ class bl3p extends Exchange {
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
-        return [
-            $bidask[$priceKey] / 100000.0,
-            $bidask[$amountKey] / 100000000.0,
-        ];
+        $price = $this->safe_float($bidask, $priceKey);
+        $size = $this->safe_float($bidask, $amountKey);
+        return array(
+            $price / 100000.0,
+            $size / 100000000.0,
+        );
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -186,12 +191,12 @@ class bl3p extends Exchange {
         $market = $this->market($symbol);
         $order = array(
             'market' => $market['id'],
-            'amount_int' => intval ($amount * 100000000),
+            'amount_int' => intval($amount * 100000000),
             'fee_currency' => $market['quote'],
             'type' => ($side === 'buy') ? 'bid' : 'ask',
         );
         if ($type === 'limit') {
-            $order['price_int'] = intval ($price * 100000.0);
+            $order['price_int'] = intval($price * 100000.0);
         }
         $response = $this->privatePostMarketMoneyOrderAdd (array_merge($order, $params));
         $orderId = $this->safe_string($response['data'], 'order_id');
@@ -227,7 +232,7 @@ class bl3p extends Exchange {
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Rest-Key' => $this->apiKey,
-                'Rest-Sign' => $this->decode($signature),
+                'Rest-Sign' => $signature,
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

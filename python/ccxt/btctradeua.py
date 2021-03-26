@@ -17,9 +17,15 @@ class btctradeua(Exchange):
             'countries': ['UA'],  # Ukraine,
             'rateLimit': 3000,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
                 'signIn': True,
             },
             'urls': {
@@ -297,8 +303,11 @@ class btctradeua(Exchange):
             'status': 'open',
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
+            'postOnly': None,
             'side': self.safe_string(order, 'type'),
             'price': self.safe_float(order, 'price'),
+            'stopPrice': None,
             'amount': self.safe_float(order, 'amnt_trade'),
             'filled': 0,
             'remaining': self.safe_float(order, 'amnt_trade'),
@@ -311,7 +320,7 @@ class btctradeua(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

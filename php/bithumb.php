@@ -19,13 +19,19 @@ class bithumb extends Exchange {
             'countries' => array( 'KR' ), // South Korea
             'rateLimit' => 500,
             'has' => array(
-                'CORS' => true,
-                'createOrder' => true,
                 'cancelOrder' => true,
+                'CORS' => true,
                 'createMarketOrder' => true,
-                'fetchTickers' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -43,10 +49,13 @@ class bithumb extends Exchange {
                     'get' => array(
                         'ticker/{currency}',
                         'ticker/all',
+                        'ticker/ALL_BTC',
+                        'ticker/ALL_KRW',
                         'orderbook/{currency}',
                         'orderbook/all',
                         'transaction_history/{currency}',
                         'transaction_history/all',
+                        'candlestick/{currency}/{interval}',
                     ),
                 ),
                 'private' => array(
@@ -74,6 +83,7 @@ class bithumb extends Exchange {
                     'taker' => 0.25 / 100,
                 ),
             ),
+            'precisionMode' => SIGNIFICANT_DIGITS,
             'exceptions' => array(
                 'Bad Request(SSL)' => '\\ccxt\\BadRequest',
                 'Bad Request(Bad Method)' => '\\ccxt\\BadRequest',
@@ -89,58 +99,90 @@ class bithumb extends Exchange {
                 'Unknown Error' => '\\ccxt\\ExchangeError',
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions' => '\\ccxt\\ExchangeError', // array("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
             ),
+            'timeframes' => array(
+                '1m' => '1m',
+                '3m' => '3m',
+                '5m' => '5m',
+                '10m' => '10m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '6h' => '6h',
+                '12h' => '12h',
+                '1d' => '24h',
+            ),
+            'options' => array(
+                'quoteCurrencies' => array(
+                    'BTC' => array(
+                        'precision' => array(
+                            'price' => 8,
+                        ),
+                    ),
+                    'KRW' => array(),
+                ),
+            ),
         ));
     }
 
+    public function amount_to_precision($symbol, $amount) {
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
+    }
+
     public function fetch_markets($params = array ()) {
-        $response = $this->publicGetTickerAll ($params);
-        $data = $this->safe_value($response, 'data');
-        $currencyIds = is_array($data) ? array_keys($data) : array();
         $result = array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            if ($currencyId === 'date') {
-                continue;
-            }
-            $market = $data[$currencyId];
-            $base = $currencyId;
-            $quote = 'KRW';
-            $symbol = $currencyId . '/' . $quote;
-            $active = true;
-            if (gettype($market) === 'array' && count(array_filter(array_keys($market), 'is_string')) == 0) {
-                $numElements = is_array($market) ? count($market) : 0;
-                if ($numElements === 0) {
-                    $active = false;
+        $quoteCurrencies = $this->safe_value($this->options, 'quoteCurrencies', array());
+        $quotes = is_array($quoteCurrencies) ? array_keys($quoteCurrencies) : array();
+        for ($i = 0; $i < count($quotes); $i++) {
+            $quote = $quotes[$i];
+            $extension = $this->safe_value($quoteCurrencies, $quote, array());
+            $method = 'publicGetTickerALL' . $quote;
+            $response = $this->$method ($params);
+            $data = $this->safe_value($response, 'data');
+            $currencyIds = is_array($data) ? array_keys($data) : array();
+            for ($j = 0; $j < count($currencyIds); $j++) {
+                $currencyId = $currencyIds[$j];
+                if ($currencyId === 'date') {
+                    continue;
                 }
+                $market = $data[$currencyId];
+                $base = $this->safe_currency_code($currencyId);
+                $symbol = $currencyId . '/' . $quote;
+                $active = true;
+                if (gettype($market) === 'array' && count(array_filter(array_keys($market), 'is_string')) == 0) {
+                    $numElements = is_array($market) ? count($market) : 0;
+                    if ($numElements === 0) {
+                        $active = false;
+                    }
+                }
+                $entry = $this->deep_extend(array(
+                    'id' => $currencyId,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'info' => $market,
+                    'active' => $active,
+                    'precision' => array(
+                        'amount' => 4,
+                        'price' => 4,
+                    ),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => 500,
+                            'max' => 5000000000,
+                        ),
+                    ),
+                    'baseId' => null,
+                    'quoteId' => null,
+                ), $extension);
+                $result[] = $entry;
             }
-            $result[] = array(
-                'id' => $currencyId,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'info' => $market,
-                'active' => $active,
-                'precision' => array(
-                    'amount' => null,
-                    'price' => null,
-                ),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'baseId' => null,
-                'quoteId' => null,
-            );
         }
         return $result;
     }
@@ -240,10 +282,7 @@ class bithumb extends Exchange {
         }
         $baseVolume = $this->safe_float($ticker, 'units_traded_24H');
         $quoteVolume = $this->safe_float($ticker, 'acc_trade_value_24H');
-        $vwap = null;
-        if ($quoteVolume !== null && $baseVolume !== null) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -312,7 +351,7 @@ class bithumb extends Exchange {
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -343,6 +382,62 @@ class bithumb extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ticker($data, $market);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     array(
+        //         1576823400000, // 기준 시간
+        //         '8284000', // 시가
+        //         '8286000', // 종가
+        //         '8289000', // 고가
+        //         '8276000', // 저가
+        //         '15.41503692' // 거래량
+        //     )
+        //
+        return array(
+            $this->safe_integer($ohlcv, 0),
+            $this->safe_float($ohlcv, 1),
+            $this->safe_float($ohlcv, 3),
+            $this->safe_float($ohlcv, 4),
+            $this->safe_float($ohlcv, 2),
+            $this->safe_float($ohlcv, 5),
+        );
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'currency' => $market['base'],
+            'interval' => $this->timeframes[$timeframe],
+        );
+        $response = $this->publicGetCandlestickCurrencyInterval (array_merge($request, $params));
+        //
+        //     {
+        //         'status' => '0000',
+        //         'data' => {
+        //             array(
+        //                 1576823400000, // 기준 시간
+        //                 '8284000', // 시가
+        //                 '8286000', // 종가
+        //                 '8289000', // 고가
+        //                 '8276000', // 저가
+        //                 '15.41503692' // 거래량
+        //             ),
+        //             array(
+        //                 1576824000000, // 기준 시간
+        //                 '8284000', // 시가
+        //                 '8281000', // 종가
+        //                 '8289000', // 고가
+        //                 '8275000', // 저가
+        //                 '6.19584467' // 거래량
+        //             ),
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -386,7 +481,7 @@ class bithumb extends Exchange {
             }
         }
         if ($timestamp !== null) {
-            $timestamp -= 9 * 3600000; // they report UTC . 9 hours, server in Korean timezone
+            $timestamp -= 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
         }
         $type = null;
         $side = $this->safe_string($trade, 'type');
@@ -397,7 +492,7 @@ class bithumb extends Exchange {
             $symbol = $market['symbol'];
         }
         $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'units_traded');
+        $amount = $this->safe_float_2($trade, 'units_traded', 'units');
         $cost = $this->safe_float($trade, 'total');
         if ($cost === null) {
             if ($amount !== null) {
@@ -466,7 +561,7 @@ class bithumb extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'order_currency' => $market['id'],
-            'Payment_currency' => $market['quote'],
+            'payment_currency' => $market['quote'],
             'units' => $amount,
         );
         $method = 'privatePostTradePlace';
@@ -479,7 +574,7 @@ class bithumb extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         $id = $this->safe_string($response, 'order_id');
         if ($id === null) {
-            throw new InvalidOrder($this->id . ' createOrder did not return an order id');
+            throw new InvalidOrder($this->id . ' createOrder() did not return an order id');
         }
         return array(
             'info' => $response,
@@ -492,7 +587,7 @@ class bithumb extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -507,25 +602,26 @@ class bithumb extends Exchange {
         //     {
         //         "status" => "0000",
         //         "$data" => {
-        //             "transaction_date" => "1572497603668315",
-        //             "type" => "bid",
-        //             "order_status" => "Completed",
-        //             "order_currency" => "BTC",
-        //             "payment_currency" => "KRW",
-        //             "order_price" => "8601000",
-        //             "order_qty" => "0.007",
-        //             "cancel_date" => "",
-        //             "cancel_type" => "",
-        //             "contract" => array(
-        //                 array(
-        //                     "transaction_date" => "1572497603902030",
-        //                     "price" => "8601000",
-        //                     "units" => "0.005",
-        //                     "fee_currency" => "KRW",
-        //                     "fee" => "107.51",
-        //                     "total" => "43005"
-        //                 ),
-        //             )
+        //             order_date => '1603161798539254',
+        //             type => 'ask',
+        //             order_status => 'Cancel',
+        //             order_currency => 'BTC',
+        //             payment_currency => 'KRW',
+        //             watch_price => '0',
+        //             order_price => '13344000',
+        //             order_qty => '0.0125',
+        //             cancel_date => '1603161803809993',
+        //             cancel_type => '사용자취소',
+        //             contract => array(
+        //                 {
+        //                     transaction_date => '1603161799976383',
+        //                     price => '13344000',
+        //                     units => '0.0015',
+        //                     fee_currency => 'KRW',
+        //                     fee => '0',
+        //                     total => '20016'
+        //                 }
+        //             ),
         //         }
         //     }
         //
@@ -543,6 +639,7 @@ class bithumb extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
         //
         // fetchOrder
         //
@@ -562,10 +659,33 @@ class bithumb extends Exchange {
         //                 "$price" => "8601000",
         //                 "units" => "0.005",
         //                 "fee_currency" => "KRW",
-        //                 "fee" => "107.51",
+        //                 "$fee" => "107.51",
         //                 "total" => "43005"
         //             ),
         //         )
+        //     }
+        //
+        //     {
+        //         order_date => '1603161798539254',
+        //         $type => 'ask',
+        //         order_status => 'Cancel',
+        //         order_currency => 'BTC',
+        //         payment_currency => 'KRW',
+        //         watch_price => '0',
+        //         order_price => '13344000',
+        //         order_qty => '0.0125',
+        //         cancel_date => '1603161803809993',
+        //         cancel_type => '사용자취소',
+        //         contract => array(
+        //             {
+        //                 transaction_date => '1603161799976383',
+        //                 $price => '13344000',
+        //                 units => '0.0015',
+        //                 fee_currency => 'KRW',
+        //                 $fee => '0',
+        //                 total => '20016'
+        //             }
+        //         ),
         //     }
         //
         // fetchOpenOrders
@@ -596,13 +716,9 @@ class bithumb extends Exchange {
         if ($remaining === null) {
             if ($status === 'closed') {
                 $remaining = 0;
-            } else {
+            } else if ($status !== 'canceled') {
                 $remaining = $amount;
             }
-        }
-        $filled = null;
-        if (($amount !== null) && ($remaining !== null)) {
-            $filled = $amount - $remaining;
         }
         $symbol = null;
         $baseId = $this->safe_string($order, 'order_currency');
@@ -615,40 +731,98 @@ class bithumb extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
+        $filled = null;
+        $cost = null;
+        $average = null;
+        $id = $this->safe_string($order, 'order_id');
         $rawTrades = $this->safe_value($order, 'contract');
         $trades = null;
-        $id = $this->safe_string($order, 'order_id');
+        $fee = null;
+        $fees = null;
+        $feesByCurrency = null;
         if ($rawTrades !== null) {
             $trades = $this->parse_trades($rawTrades, $market, null, null, array(
                 'side' => $side,
                 'symbol' => $symbol,
                 'order' => $id,
             ));
+            $filled = 0;
+            $feesByCurrency = array();
+            for ($i = 0; $i < count($trades); $i++) {
+                $trade = $trades[$i];
+                $filled = $this->sum($filled, $trade['amount']);
+                $cost = $this->sum($cost, $trade['cost']);
+                $tradeFee = $trade['fee'];
+                $feeCurrency = $tradeFee['currency'];
+                if (is_array($feesByCurrency) && array_key_exists($feeCurrency, $feesByCurrency)) {
+                    $feesByCurrency[$feeCurrency] = array(
+                        'currency' => $feeCurrency,
+                        'cost' => $this->sum($feesByCurrency[$feeCurrency]['cost'], $tradeFee['cost']),
+                    );
+                } else {
+                    $feesByCurrency[$feeCurrency] = array(
+                        'currency' => $feeCurrency,
+                        'cost' => $tradeFee['cost'],
+                    );
+                }
+            }
+            $feeCurrencies = is_array($feesByCurrency) ? array_keys($feesByCurrency) : array();
+            $feeCurrenciesLength = is_array($feeCurrencies) ? count($feeCurrencies) : 0;
+            if ($feeCurrenciesLength > 1) {
+                $fees = array();
+                for ($i = 0; $i < count($feeCurrencies); $i++) {
+                    $feeCurrency = $feeCurrencies[$i];
+                    $fees[] = $feesByCurrency[$feeCurrency];
+                }
+            } else {
+                $fee = $this->safe_value($feesByCurrency, $feeCurrencies[0]);
+            }
+            if ($filled !== 0) {
+                $average = $cost / $filled;
+            }
         }
-        return array(
+        if ($amount !== null) {
+            if (($filled === null) && ($remaining !== null)) {
+                $filled = max (0, $amount - $remaining);
+            }
+            if (($remaining === null) && ($filled !== null)) {
+                $remaining = max (0, $amount - $filled);
+            }
+        }
+        $result = array(
             'info' => $order,
             'id' => $id,
+            'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
-            'cost' => null,
-            'average' => null,
+            'cost' => $cost,
+            'average' => $average,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
             'trades' => $trades,
         );
+        if ($fee !== null) {
+            $result['fee'] = $fee;
+        } else if ($fees !== null) {
+            $result['fees'] = $fees;
+        }
+        return $result;
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -688,10 +862,10 @@ class bithumb extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $side_in_params = (is_array($params) && array_key_exists('side', $params));
         if (!$side_in_params) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a `$symbol` argument and a `$side` parameter (sell or buy)');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument and a `$side` parameter (sell or buy)');
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a `$symbol` argument and a `$side` parameter (sell or buy)');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument and a `$side` parameter (sell or buy)');
         }
         $market = $this->market($symbol);
         $side = ($params['side'] === 'buy') ? 'bid' : 'ask';
@@ -722,7 +896,7 @@ class bithumb extends Exchange {
             'address' => $address,
             'currency' => $currency['id'],
         );
-        if ($currency === 'XRP' || $currency === 'XMR') {
+        if ($currency === 'XRP' || $currency === 'XMR' || $currency === 'EOS' || $currency === 'STEEM') {
             $destination = $this->safe_string($params, 'destination');
             if (($tag === null) && ($destination === null)) {
                 throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
@@ -757,12 +931,12 @@ class bithumb extends Exchange {
             $nonce = (string) $this->nonce();
             $auth = $endpoint . "\0" . $body . "\0" . $nonce; // eslint-disable-line quotes
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
-            $signature64 = $this->decode(base64_encode($this->encode($signature)));
+            $signature64 = $this->decode(base64_encode($signature));
             $headers = array(
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Api-Key' => $this->apiKey,
-                'Api-Sign' => (string) $signature64,
+                'Api-Sign' => $signature64,
                 'Api-Nonce' => $nonce,
             );
         }

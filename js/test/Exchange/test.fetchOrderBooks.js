@@ -13,12 +13,13 @@ const log       = require ('ololog')
 
 module.exports = async (exchange) => {
 
-    const randomSymbols = exchange.symbols.sort (() => 0.5 - Math.random ()).slice (0, 2)
+    const randomSymbols = exchange.symbols.slice ().sort (() => 0.5 - Math.random ()).slice (0, 2)
     const customExchangeParams = ([
         'yobit',
         'tidex',
         'ccex',
         'liqui',
+        'dsx',
     ]).reduce ((params, id) => ({ ...params, [id]: [randomSymbols], }), {})
 
     const args = (exchange.id in customExchangeParams) ? customExchangeParams[exchange.id] : []

@@ -19,12 +19,19 @@ class coinfloor extends Exchange {
             'rateLimit' => 1000,
             'countries' => array( 'UK' ),
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchLedger' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
-                'api' => 'https://webapi.coinfloor.co.uk/bist',
+                'logo' => 'https://user-images.githubusercontent.com/51840849/87153925-ef265e80-c2c0-11ea-91b5-020c804b90e0.jpg',
+                'api' => 'https://webapi.coinfloor.co.uk/v2/bist',
                 'www' => 'https://www.coinfloor.co.uk',
                 'doc' => array(
                     'https://github.com/coinfloor/api',
@@ -87,7 +94,7 @@ class coinfloor extends Exchange {
             $market = $this->markets_by_id[$marketId];
         }
         if ($market === null) {
-            throw new ArgumentsRequired($this->id . ' fetchBalance requires a $symbol param');
+            throw new ArgumentsRequired($this->id . ' fetchBalance() requires a $symbol param');
         }
         $request = array(
             'id' => $market['id'],
@@ -220,7 +227,7 @@ class coinfloor extends Exchange {
         if ($code !== null) {
             $market = $this->market($code);
             if ($market === null) {
-                throw new ArgumentsRequired($this->id . ' fetchTransactions requires a $code argument (a $market symbol)');
+                throw new ArgumentsRequired($this->id . ' fetchTransactions() requires a $code argument (a $market symbol)');
             }
         }
         $request = array(
@@ -403,12 +410,32 @@ class coinfloor extends Exchange {
             $request['price'] = $price;
             $request['amount'] = $amount;
         }
-        return $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "id":31950584,
+        //         "datetime":"2020-05-21 08:38:18",
+        //         "$type":1,
+        //         "$price":"9100",
+        //         "$amount":"0.0026"
+        //     }
+        //
+        $response = $this->$method (array_merge($request, $params));
+        $timestamp = $this->parse8601($this->safe_string($response, 'datetime'));
+        return array(
+            'id' => $this->safe_string($response, 'id'),
+            'clientOrderId' => null,
+            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => $timestamp,
+            'type' => $type,
+            'price' => $this->safe_float($response, 'price'),
+            'remaining' => $this->safe_float($response, 'amount'),
+            'info' => $response,
+        );
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -428,17 +455,12 @@ class coinfloor extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($order, 'datetime'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
         $side = null;
         $status = $this->safe_string($order, 'status');
-        if ($order['type'] === 0) {
+        $rawType = $this->safe_string($order, 'type');
+        if ($rawType === '0') {
             $side = 'buy';
-        } else if ($order['type'] === 1) {
+        } else if ($rawType === '1') {
             $side = 'sell';
         }
         $symbol = null;
@@ -446,7 +468,7 @@ class coinfloor extends Exchange {
             $symbol = $market['symbol'];
         }
         $id = $this->safe_string($order, 'id');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -456,21 +478,24 @@ class coinfloor extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'amount' => $amount,
+            'stopPrice' => null,
+            'amount' => null,
             'filled' => null,
-            'remaining' => null,
-            'cost' => $cost,
+            'remaining' => $amount,
+            'cost' => null,
             'fee' => null,
             'average' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol param');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol param');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -514,7 +539,7 @@ class coinfloor extends Exchange {
             $nonce = $this->nonce();
             $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $query));
             $auth = $this->uid . '/' . $this->apiKey . ':' . $this->password;
-            $signature = $this->decode(base64_encode($this->encode($auth)));
+            $signature = $this->decode(base64_encode($auth));
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Authorization' => 'Basic ' . $signature,

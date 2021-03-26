@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance } = require ('./base/errors');
+const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -20,28 +20,30 @@ module.exports = class bitfinex2 extends bitfinex {
             'has': {
                 'CORS': false,
                 'cancelAllOrders': true,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
-                'cancelOrder': true,
                 'deposit': false,
                 'editOrder': false,
-                'fetchDepositAddress': true,
+                'fetchBalance': true,
+                'fetchClosedOrder': true,
                 'fetchClosedOrders': false,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchFundingFees': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
-                'fetchOpenOrder': true,
-                'fetchClosedOrder': true,
                 'fetchOrderTrades': true,
                 'fetchStatus': true,
                 'fetchTickers': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTransactions': false,
+                'fetchTransactions': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -51,6 +53,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 '30m': '30m',
                 '1h': '1h',
                 '3h': '3h',
+                '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '1D',
@@ -94,12 +97,14 @@ module.exports = class bitfinex2 extends bitfinex {
                         'conf/pub:map:currency:undl', // maps derivatives symbols to their underlying currency
                         'conf/pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
                         'conf/pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
                         'conf/pub:map:tx:method',
                         'conf/pub:list:{object}',
                         'conf/pub:list:{object}:{detail}',
                         'conf/pub:list:currency',
                         'conf/pub:list:pair:exchange',
                         'conf/pub:list:pair:margin',
+                        'conf/pub:list:pair:futures',
                         'conf/pub:list:competitions',
                         'conf/pub:info:{object}',
                         'conf/pub:info:{object}:{detail}',
@@ -167,7 +172,9 @@ module.exports = class bitfinex2 extends bitfinex {
                         'auth/w/position/claim',
                         'auth/r/positions/hist',
                         'auth/r/positions/audit',
+                        'auth/r/positions/snap',
                         'auth/w/deriv/collateral/set',
+                        'auth/w/deriv/collateral/limits',
                         'auth/r/funding/offers',
                         'auth/r/funding/offers/{symbol}',
                         'auth/w/funding/offer/submit',
@@ -279,6 +286,15 @@ module.exports = class bitfinex2 extends bitfinex {
                     'JPY': 'JPY',
                     'GBP': 'GBP',
                 },
+                // actually the correct names unlike the v1
+                // we don't want to extend this with accountsByType in v1
+                'v2AccountsByType': {
+                    'spot': 'exchange',
+                    'exchange': 'exchange',
+                    'funding': 'funding',
+                    'margin': 'margin',
+                    'derivatives': 'margin',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -323,11 +339,21 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.v1GetSymbolsDetails (params);
+        // todo drop v1 in favor of v2 configs
+        // pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
+        const v2response = await this.publicGetConfPubListPairFutures (params);
+        const v1response = await this.v1GetSymbolsDetails (params);
+        const futuresMarketIds = this.safeValue (v2response, 0, []);
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        for (let i = 0; i < v1response.length; i++) {
+            const market = v1response[i];
             let id = this.safeStringUpper (market, 'pair');
+            let spot = true;
+            if (this.inArray (id, futuresMarketIds)) {
+                spot = false;
+            }
+            const futures = !spot;
+            const type = spot ? 'spot' : 'futures';
             let baseId = undefined;
             let quoteId = undefined;
             if (id.indexOf (':') >= 0) {
@@ -346,7 +372,7 @@ module.exports = class bitfinex2 extends bitfinex {
             quoteId = this.getCurrencyId (quoteId);
             const precision = {
                 'price': this.safeInteger (market, 'price_precision'),
-                'amount': this.safeInteger (market, 'price_precision'),
+                'amount': 8, // https://github.com/ccxt/ccxt/issues/7310
             };
             const limits = {
                 'amount': {
@@ -362,6 +388,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': undefined,
             };
+            const margin = this.safeValue (market, 'margin');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -373,50 +400,283 @@ module.exports = class bitfinex2 extends bitfinex {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
+                'type': type,
                 'swap': false,
-                'spot': false,
-                'futures': false,
+                'spot': spot,
+                'margin': margin,
+                'futures': futures,
             });
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        const labels = [
+            'pub:list:currency',
+            'pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH
+            'pub:map:currency:label', // verbose friendly names, BNT > Bancor
+            'pub:map:currency:unit', // maps symbols to unit of measure where applicable
+            'pub:map:currency:undl', // maps derivatives symbols to their underlying currency
+            'pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
+            'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+            'pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
+        ];
+        const config = labels.join (',');
+        const request = {
+            'config': config,
+        };
+        const response = await this.publicGetConfConfig (this.extend (request, params));
+        //
+        //     [
+        //
+        //         a list of symbols
+        //         ["AAA","ABS","ADA"],
+        //
+        //         // sym
+        //         // maps symbols to their API symbols, BAB > BCH
+        //         [
+        //             [ 'BAB', 'BCH' ],
+        //             [ 'CNHT', 'CNHt' ],
+        //             [ 'DSH', 'DASH' ],
+        //             [ 'IOT', 'IOTA' ],
+        //             [ 'LES', 'LEO-EOS' ],
+        //             [ 'LET', 'LEO-ERC20' ],
+        //             [ 'STJ', 'STORJ' ],
+        //             [ 'TSD', 'TUSD' ],
+        //             [ 'UDC', 'USDC' ],
+        //             [ 'USK', 'USDK' ],
+        //             [ 'UST', 'USDt' ],
+        //             [ 'USTF0', 'USDt0' ],
+        //             [ 'XCH', 'XCHF' ],
+        //             [ 'YYW', 'YOYOW' ],
+        //             // ...
+        //         ],
+        //         // label
+        //         // verbose friendly names, BNT > Bancor
+        //         [
+        //             [ 'BAB', 'Bitcoin Cash' ],
+        //             [ 'BCH', 'Bitcoin Cash' ],
+        //             [ 'LEO', 'Unus Sed LEO' ],
+        //             [ 'LES', 'Unus Sed LEO (EOS)' ],
+        //             [ 'LET', 'Unus Sed LEO (ERC20)' ],
+        //             // ...
+        //         ],
+        //         // unit
+        //         // maps symbols to unit of measure where applicable
+        //         [
+        //             [ 'IOT', 'Mi|MegaIOTA' ],
+        //         ],
+        //         // undl
+        //         // maps derivatives symbols to their underlying currency
+        //         [
+        //             [ 'USTF0', 'UST' ],
+        //             [ 'BTCF0', 'BTC' ],
+        //             [ 'ETHF0', 'ETH' ],
+        //         ],
+        //         // pool
+        //         // maps symbols to underlying network/protocol they operate on
+        //         [
+        //             [ 'SAN', 'ETH' ], [ 'OMG', 'ETH' ], [ 'AVT', 'ETH' ], [ 'EDO', 'ETH' ],
+        //             [ 'ESS', 'ETH' ], [ 'ATD', 'EOS' ], [ 'ADD', 'EOS' ], [ 'MTO', 'EOS' ],
+        //             [ 'PNK', 'ETH' ], [ 'BAB', 'BCH' ], [ 'WLO', 'XLM' ], [ 'VLD', 'ETH' ],
+        //             [ 'BTT', 'TRX' ], [ 'IMP', 'ETH' ], [ 'SCR', 'ETH' ], [ 'GNO', 'ETH' ],
+        //             // ...
+        //         ],
+        //         // explorer
+        //         // maps symbols to their recognised block explorer URLs
+        //         [
+        //             [
+        //                 'AIO',
+        //                 [
+        //                     "https://mainnet.aion.network",
+        //                     "https://mainnet.aion.network/#/account/VAL",
+        //                     "https://mainnet.aion.network/#/transaction/VAL"
+        //                 ]
+        //             ],
+        //             // ...
+        //         ],
+        //         // fee
+        //         // maps currencies to their withdrawal fees
+        //         [
+        //             ["AAA",[0,0]],
+        //             ["ABS",[0,131.3]],
+        //             ["ADA",[0,0.3]],
+        //         ],
+        //     ]
+        //
+        const indexed = {
+            'sym': this.indexBy (this.safeValue (response, 1, []), 0),
+            'label': this.indexBy (this.safeValue (response, 2, []), 0),
+            'unit': this.indexBy (this.safeValue (response, 3, []), 0),
+            'undl': this.indexBy (this.safeValue (response, 4, []), 0),
+            'pool': this.indexBy (this.safeValue (response, 5, []), 0),
+            'explorer': this.indexBy (this.safeValue (response, 6, []), 0),
+            'fees': this.indexBy (this.safeValue (response, 7, []), 0),
+        };
+        const ids = this.safeValue (response, 0, []);
+        const result = {};
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const code = this.safeCurrencyCode (id);
+            const label = this.safeValue (indexed['label'], id, []);
+            const name = this.safeString (label, 1);
+            const pool = this.safeValue (indexed['pool'], id, []);
+            const type = this.safeString (pool, 1);
+            const feeValues = this.safeValue (indexed['fees'], id, []);
+            const fees = this.safeValue (feeValues, 1, []);
+            const fee = this.safeFloat (fees, 1);
+            const undl = this.safeValue (indexed['undl'], id, []);
+            const precision = 8; // default precision, todo: fix "magic constants"
+            const fid = 'f' + id;
+            result[code] = {
+                'id': fid,
+                'code': code,
+                'info': [ id, label, pool, feeValues, undl ],
+                'type': type,
+                'name': name,
+                'active': true,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': 1 / Math.pow (10, precision),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': 1 / Math.pow (10, precision),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': fee,
+                        'max': undefined,
+                    },
+                },
+            };
         }
         return result;
     }
 
     async fetchBalance (params = {}) {
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
+        // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         await this.loadMarkets ();
-        const response = await this.privatePostAuthRWallets (params);
-        const balanceType = this.safeString (params, 'type', 'exchange');
+        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const requestedType = this.safeString (params, 'type', 'exchange');
+        const accountType = this.safeString (accountsByType, requestedType);
+        if (accountType === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' fetchBalance type parameter must be one of ' + keys.join (', '));
+        }
+        const isDerivative = requestedType === 'derivatives';
+        const query = this.omit (params, 'type');
+        const response = await this.privatePostAuthRWallets (query);
         const result = { 'info': response };
-        for (let b = 0; b < response.length; b++) {
-            const balance = response[b];
-            const accountType = balance[0];
-            let currency = balance[1];
-            const total = balance[2];
-            const available = balance[4];
-            if (accountType === balanceType) {
-                if (currency[0] === 't') {
-                    currency = currency.slice (1);
-                }
-                const code = this.safeCurrencyCode (currency);
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const type = this.safeString (balance, 0);
+            const currencyId = this.safeStringLower (balance, 1, '');
+            const start = currencyId.length - 2;
+            const isDerivativeCode = currencyId.slice (start) === 'f0';
+            // this will only filter the derivative codes if the requestedType is 'derivatives'
+            const derivativeCondition = (!isDerivative || isDerivativeCode);
+            if ((accountType === type) && derivativeCondition) {
+                const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                // do not fill in zeroes and missing values in the parser
-                // rewrite and unify the following to use the unified parseBalance
-                account['total'] = total;
-                if (!available) {
-                    if (available === 0) {
-                        account['free'] = 0;
-                        account['used'] = total;
-                    } else {
-                        account['free'] = total;
-                    }
-                } else {
-                    account['free'] = available;
-                    account['used'] = account['total'] - account['free'];
-                }
+                account['total'] = this.safeFloat (balance, 2);
+                account['free'] = this.safeFloat (balance, 4);
                 result[code] = account;
             }
         }
         return this.parseBalance (result);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        // transferring between derivatives wallet and regular wallet is not documented in their API
+        // however we support it in CCXT (from just looking at web inspector)
+        await this.loadMarkets ();
+        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount);
+        if (fromId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' transfer fromAccount must be one of ' + keys.join (', '));
+        }
+        const toId = this.safeString (accountsByType, toAccount);
+        if (toId === undefined) {
+            const keys = Object.keys (accountsByType);
+            throw new ExchangeError (this.id + ' transfer toAccount must be one of ' + keys.join (', '));
+        }
+        const currency = this.currency (code);
+        const fromCurrencyId = this.convertDerivativesId (currency, fromAccount);
+        const toCurrencyId = this.convertDerivativesId (currency, toAccount);
+        const requestedAmount = this.currencyToPrecision (code, amount);
+        // this request is slightly different from v1 fromAccount -> from
+        const request = {
+            'amount': requestedAmount,
+            'currency': fromCurrencyId,
+            'currency_to': toCurrencyId,
+            'from': fromId,
+            'to': toId,
+        };
+        const response = await this.privatePostAuthWTransfer (this.extend (request, params));
+        //  [1616451183763,"acc_tf",null,null,[1616451183763,"exchange","margin",null,"UST","UST",null,1],null,"SUCCESS","1.0 Tether USDt transfered from Exchange to Margin"]
+        const timestamp = this.safeInteger (response, 0);
+        //  ["error",10001,"Momentary balance check. Please wait few seconds and try the transfer again."]
+        const error = this.safeString (response, 0);
+        if (error === 'error') {
+            const message = this.safeString (response, 2, '');
+            // same message as in v1
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
+            throw new ExchangeError (this.id + ' ' + message);
+        }
+        const info = this.safeValue (response, 4);
+        const fromResponse = this.safeString (info, 1);
+        const toResponse = this.safeString (info, 2);
+        const toCode = this.safeCurrencyCode (this.safeString (info, 5));
+        const success = this.safeString (response, 6);
+        const status = (success === 'SUCCESS') ? 'ok' : undefined;
+        return {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': status,
+            'amount': requestedAmount,
+            'code': toCode,
+            'fromAccount': fromResponse,
+            'toAccount': toResponse,
+        };
+    }
+
+    convertDerivativesId (currency, type) {
+        // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
+        // {
+        //   id: 'fUSTF0',
+        //   code: 'USTF0',
+        //   info: [ 'USTF0', [], [], [], [ 'USTF0', 'UST' ] ],
+        const info = this.safeValue (currency, 'info');
+        const transferId = this.safeString (info, 0);
+        const underlying = this.safeValue (info, 4, []);
+        let currencyId = undefined;
+        if (type === 'derivatives') {
+            currencyId = this.safeString (underlying, 0, transferId);
+            const start = currencyId.length - 2;
+            const isDerivativeCode = currencyId.slice (start) === 'F0';
+            if (!isDerivativeCode) {
+                currencyId = currencyId + 'F0';
+            }
+        } else if (type !== 'margin') {
+            currencyId = this.safeString (underlying, 1, transferId);
+        } else {
+            currencyId = transferId;
+        }
+        return currencyId;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchOrder is not implemented yet');
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -442,9 +702,10 @@ module.exports = class bitfinex2 extends bitfinex {
         const priceIndex = (fullRequest['precision'] === 'R0') ? 1 : 0;
         for (let i = 0; i < orderbook.length; i++) {
             const order = orderbook[i];
-            const price = order[priceIndex];
-            const amount = Math.abs (order[2]);
-            const side = (order[2] > 0) ? 'bids' : 'asks';
+            const price = this.safeFloat (order, priceIndex);
+            const signedAmount = this.safeFloat (order, 2);
+            const amount = Math.abs (signedAmount);
+            const side = (signedAmount > 0) ? 'bids' : 'asks';
             result[side].push ([ price, amount ]);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
@@ -504,7 +765,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 result[symbol] = this.parseTicker (ticker, market);
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -567,12 +828,12 @@ module.exports = class bitfinex2 extends bitfinex {
         //
         const tradeLength = trade.length;
         const isPrivate = (tradeLength > 5);
-        const id = trade[0].toString ();
+        const id = this.safeString (trade, 0);
         const amountIndex = isPrivate ? 4 : 2;
-        let amount = trade[amountIndex];
+        let amount = this.safeFloat (trade, amountIndex);
         let cost = undefined;
         const priceIndex = isPrivate ? 5 : 3;
-        const price = trade[priceIndex];
+        const price = this.safeFloat (trade, priceIndex);
         let side = undefined;
         let orderId = undefined;
         let takerOrMaker = undefined;
@@ -580,7 +841,7 @@ module.exports = class bitfinex2 extends bitfinex {
         let fee = undefined;
         let symbol = undefined;
         const timestampIndex = isPrivate ? 2 : 1;
-        const timestamp = trade[timestampIndex];
+        const timestamp = this.safeInteger (trade, timestampIndex);
         if (isPrivate) {
             const marketId = trade[1];
             if (marketId in this.markets_by_id) {
@@ -589,10 +850,12 @@ module.exports = class bitfinex2 extends bitfinex {
             } else {
                 symbol = this.parseSymbol (marketId);
             }
-            orderId = trade[3].toString ();
-            takerOrMaker = (trade[8] === 1) ? 'maker' : 'taker';
-            let feeCost = trade[9];
-            const feeCurrency = this.safeCurrencyCode (trade[10]);
+            orderId = this.safeString (trade, 3);
+            const maker = this.safeInteger (trade, 8);
+            takerOrMaker = (maker === 1) ? 'maker' : 'taker';
+            let feeCost = this.safeFloat (trade, 9);
+            const feeCurrencyId = this.safeString (trade, 10);
+            const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             if (feeCost !== undefined) {
                 feeCost = -feeCost;
                 if (symbol in this.markets) {
@@ -690,22 +953,32 @@ module.exports = class bitfinex2 extends bitfinex {
             'limit': limit,
         };
         const response = await this.publicGetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
+        //
+        //     [
+        //         [1591503840000,0.025069,0.025068,0.025069,0.025068,1.97828998],
+        //         [1591504500000,0.025065,0.025065,0.025065,0.025065,1.0164],
+        //         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseOrderStatus (status) {
+        if (status === undefined) {
+            return status;
+        }
+        const parts = status.split (' ');
+        const state = this.safeString (parts, 0);
         const statuses = {
             'ACTIVE': 'open',
-            'PARTIALLY FILLED': 'open',
+            'PARTIALLY': 'open',
             'EXECUTED': 'closed',
             'CANCELED': 'canceled',
-            'CANCELED was: PARTIALLY FILLED': 'canceled',
-            'INSUFFICIENT MARGIN': 'canceled',
-            'INSUFFICIENT BALANCE (G1) was: PARTIALLY FILLED': 'canceled',
+            'INSUFFICIENT': 'canceled',
             'RSN_DUST': 'rejected',
             'RSN_PAUSE': 'rejected',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, state, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -748,8 +1021,11 @@ module.exports = class bitfinex2 extends bitfinex {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -765,15 +1041,47 @@ module.exports = class bitfinex2 extends bitfinex {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderTypes = this.safeValue (this.options, 'orderTypes', {});
-        const orderType = this.safeString (orderTypes, type, type);
+        const orderType = this.safeStringUpper (orderTypes, type, type);
         amount = (side === 'sell') ? -amount : amount;
         const request = {
             'symbol': market['id'],
             'type': orderType,
             'amount': this.numberToString (amount),
         };
-        if (type !== 'market') {
+        if ((orderType === 'LIMIT') || (orderType === 'EXCHANGE LIMIT')) {
             request['price'] = this.numberToString (price);
+        } else if ((orderType === 'STOP') || (orderType === 'EXCHANGE STOP')) {
+            const stopPrice = this.safeFloat (params, 'stopPrice', price);
+            request['price'] = this.numberToString (stopPrice);
+        } else if ((orderType === 'STOP LIMIT') || (orderType === 'EXCHANGE STOP LIMIT')) {
+            const priceAuxLimit = this.safeFloat (params, 'price_aux_limit');
+            let stopPrice = this.safeFloat (params, 'stopPrice');
+            if (priceAuxLimit === undefined) {
+                if (stopPrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter or a price_aux_limit parameter for a ' + orderType + ' order');
+                } else {
+                    request['price_aux_limit'] = this.numberToString (price);
+                }
+            } else {
+                request['price_aux_limit'] = this.numberToString (priceAuxLimit);
+                if (stopPrice === undefined) {
+                    stopPrice = price;
+                }
+            }
+            request['price'] = this.numberToString (stopPrice);
+        } else if ((orderType === 'TRAILING STOP') || (orderType === 'EXCHANGE TRAILING STOP')) {
+            const priceTrailing = this.safeFloat (params, 'price_trailing');
+            request['price_trailing'] = this.numberToString (priceTrailing);
+            const stopPrice = this.safeFloat (params, 'stopPrice', price);
+            request['price'] = this.numberToString (stopPrice);
+        } else if ((orderType === 'FOK') || (orderType === 'EXCHANGE FOK') || (orderType === 'IOC') || (orderType === 'EXCHANGE IOC')) {
+            request['price'] = this.numberToString (price);
+        }
+        params = this.omit (params, [ 'stopPrice', 'price_aux_limit', 'price_trailing' ]);
+        const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['cid'] = clientOrderId;
+            params = this.omit (params, [ 'cid', 'clientOrderId' ]);
         }
         const response = await this.privatePostAuthWOrderSubmit (this.extend (request, params));
         //
@@ -844,17 +1152,18 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        const cid = this.safeValue (params, 'cid'); // client order id
+        const cid = this.safeValue2 (params, 'cid', 'clientOrderId'); // client order id
         let request = undefined;
         if (cid !== undefined) {
             const cidDate = this.safeValue (params, 'cidDate'); // client order id date
             if (cidDate === undefined) {
-                throw new InvalidOrder (this.id + " canceling an order by client order id ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
+                throw new InvalidOrder (this.id + " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
             }
             request = {
                 'cid': cid,
                 'cid_date': cidDate,
             };
+            params = this.omit (params, [ 'cid', 'clientOrderId' ]);
         } else {
             request = {
                 'id': parseInt (id),
@@ -1015,6 +1324,16 @@ module.exports = class bitfinex2 extends bitfinex {
         };
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            'SUCCESS': 'ok',
+            'ERROR': 'failed',
+            'FAILURE': 'failed',
+            'CANCELED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         //
         // withdraw
@@ -1040,44 +1359,155 @@ module.exports = class bitfinex2 extends bitfinex {
         //         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
         //     ]
         //
-        // todo add support for all movements, deposits and withdrawals
+        // fetchTransactions
         //
-        const data = this.safeValue (transaction, 4, []);
-        const timestamp = this.safeInteger (transaction, 0);
+        //     [
+        //         13293039, // ID
+        //         'ETH', // CURRENCY
+        //         'ETHEREUM', // CURRENCY_NAME
+        //         null,
+        //         null,
+        //         1574175052000, // MTS_STARTED
+        //         1574181326000, // MTS_UPDATED
+        //         null,
+        //         null,
+        //         'CANCELED', // STATUS
+        //         null,
+        //         null,
+        //         -0.24, // AMOUNT, negative for withdrawals
+        //         -0.00135, // FEES
+        //         null,
+        //         null,
+        //         'DESTINATION_ADDRESS',
+        //         null,
+        //         null,
+        //         null,
+        //         'TRANSACTION_ID',
+        //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE
+        //     ]
+        //
+        const transactionLength = transaction.length;
+        let timestamp = undefined;
+        let updated = undefined;
         let code = undefined;
-        if (currency !== undefined) {
-            code = currency['code'];
-        }
-        let feeCost = this.safeFloat (data, 8);
-        if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
-        }
-        const amount = this.safeFloat (data, 5);
-        let id = this.safeValue (data, 0);
-        let status = 'ok';
-        if (id === 0) {
-            id = undefined;
-            status = 'failed';
+        let amount = undefined;
+        let id = undefined;
+        let status = undefined;
+        let tag = undefined;
+        let type = undefined;
+        let feeCost = undefined;
+        let txid = undefined;
+        let addressTo = undefined;
+        if (transactionLength < 9) {
+            const data = this.safeValue (transaction, 4, []);
+            timestamp = this.safeInteger (transaction, 0);
+            if (currency !== undefined) {
+                code = currency['code'];
+            }
+            feeCost = this.safeFloat (data, 8);
+            if (feeCost !== undefined) {
+                feeCost = -feeCost;
+            }
+            amount = this.safeFloat (data, 5);
+            id = this.safeValue (data, 0);
+            status = 'ok';
+            if (id === 0) {
+                id = undefined;
+                status = 'failed';
+            }
+            tag = this.safeString (data, 3);
+            type = 'withdrawal';
+        } else {
+            id = this.safeString (transaction, 0);
+            timestamp = this.safeInteger (transaction, 5);
+            updated = this.safeInteger (transaction, 6);
+            status = this.parseTransactionStatus (this.safeString (transaction, 9));
+            amount = this.safeFloat (transaction, 12);
+            if (amount !== undefined) {
+                if (amount < 0) {
+                    type = 'withdrawal';
+                } else {
+                    type = 'deposit';
+                }
+            }
+            feeCost = this.safeFloat (transaction, 13);
+            if (feeCost !== undefined) {
+                feeCost = -feeCost;
+            }
+            addressTo = this.safeString (transaction, 16);
+            txid = this.safeString (transaction, 20);
         }
         return {
             'info': transaction,
             'id': id,
-            'txid': undefined,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': undefined, // this is actually the tag for XRP transfers (the address is missing)
-            'tag': this.safeString (data, 3), // refix it properly for the tag from description
-            'type': 'withdrawal',
+            'addressFrom': undefined,
+            'address': addressTo, // this is actually the tag for XRP transfers (the address is missing)
+            'addressTo': addressTo,
+            'tagFrom': undefined,
+            'tag': tag, // refix it properly for the tag from description
+            'tagTo': tag,
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': undefined,
+            'updated': updated,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
                 'rate': undefined,
             },
         };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        let method = 'privatePostAuthRMovementsHist';
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+            method = 'privatePostAuthRMovementsCurrencyHist';
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // max 1000
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             13293039, // ID
+        //             'ETH', // CURRENCY
+        //             'ETHEREUM', // CURRENCY_NAME
+        //             null,
+        //             null,
+        //             1574175052000, // MTS_STARTED
+        //             1574181326000, // MTS_UPDATED
+        //             null,
+        //             null,
+        //             'CANCELED', // STATUS
+        //             null,
+        //             null,
+        //             -0.24, // AMOUNT, negative for withdrawals
+        //             -0.00135, // FEES
+        //             null,
+        //             null,
+        //             'DESTINATION_ADDRESS',
+        //             null,
+        //             null,
+        //             null,
+        //             'TRANSACTION_ID',
+        //             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE
+        //         ]
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -1126,6 +1556,47 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.extend (transaction, {
             'address': address,
         });
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostPositions (params);
+        //
+        //     [
+        //         [
+        //             "tBTCUSD", // SYMBOL
+        //             "ACTIVE", // STATUS
+        //             0.0195, // AMOUNT
+        //             8565.0267019, // BASE_PRICE
+        //             0, // MARGIN_FUNDING
+        //             0, // MARGIN_FUNDING_TYPE
+        //             -0.33455568705000516, // PL
+        //             -0.0003117550117425625, // PL_PERC
+        //             7045.876419249083, // PRICE_LIQ
+        //             3.0673001895895604, // LEVERAGE
+        //             null, // _PLACEHOLDER
+        //             142355652, // POSITION_ID
+        //             1574002216000, // MTS_CREATE
+        //             1574002216000, // MTS_UPDATE
+        //             null, // _PLACEHOLDER
+        //             0, // TYPE
+        //             null, // _PLACEHOLDER
+        //             0, // COLLATERAL
+        //             0, // COLLATERAL_MIN
+        //             // META
+        //             {
+        //                 "reason":"TRADE",
+        //                 "order_id":34271018124,
+        //                 "liq_stage":null,
+        //                 "trade_price":"8565.0267019",
+        //                 "trade_amount":"0.0195",
+        //                 "order_id_oppo":34277498022
+        //             }
+        //         ]
+        //     ]
+        //
+        // todo unify parsePosition/parsePositions
+        return response;
     }
 
     nonce () {

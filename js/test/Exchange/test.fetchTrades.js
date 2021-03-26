@@ -26,10 +26,10 @@ module.exports = async (exchange, symbol) => {
 
         // log (symbol.green, 'fetching trades...')
 
-        let trades = await exchange.fetchTrades (symbol)
+        const trades = await exchange.fetchTrades (symbol)
         assert (trades instanceof Array)
         log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
-        let now = Date.now ()
+        const now = Date.now ()
         for (let i = 0; i < trades.length; i++) {
             testTrade (exchange, trades[i], symbol, now)
             if (i > 0) {

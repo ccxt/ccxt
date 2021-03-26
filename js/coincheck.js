@@ -15,12 +15,18 @@ module.exports = class coincheck extends Exchange {
             'countries': [ 'JP', 'ID' ],
             'rateLimit': 1500,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchOpenOrders': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchMyTrades': true,
+                'fetchOrderBook': true,
+                'fetchOpenOrders': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg',
                 'api': 'https://coincheck.com/api',
                 'www': 'https://coincheck.com',
                 'doc': 'https://coincheck.com/documents/exchange/api',
@@ -75,10 +81,11 @@ module.exports = class coincheck extends Exchange {
             'markets': {
                 'BTC/JPY': { 'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy' }, // the only real pair
                 // 'ETH/JPY': { 'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy' },
-                // 'ETC/JPY': { 'id': 'etc_jpy', 'symbol': 'ETC/JPY', 'base': 'ETC', 'quote': 'JPY', 'baseId': 'etc', 'quoteId': 'jpy' },
+                'ETC/JPY': { 'id': 'etc_jpy', 'symbol': 'ETC/JPY', 'base': 'ETC', 'quote': 'JPY', 'baseId': 'etc', 'quoteId': 'jpy' },
                 // 'DAO/JPY': { 'id': 'dao_jpy', 'symbol': 'DAO/JPY', 'base': 'DAO', 'quote': 'JPY', 'baseId': 'dao', 'quoteId': 'jpy' },
                 // 'LSK/JPY': { 'id': 'lsk_jpy', 'symbol': 'LSK/JPY', 'base': 'LSK', 'quote': 'JPY', 'baseId': 'lsk', 'quoteId': 'jpy' },
-                // 'FCT/JPY': { 'id': 'fct_jpy', 'symbol': 'FCT/JPY', 'base': 'FCT', 'quote': 'JPY', 'baseId': 'fct', 'quoteId': 'jpy' },
+                'FCT/JPY': { 'id': 'fct_jpy', 'symbol': 'FCT/JPY', 'base': 'FCT', 'quote': 'JPY', 'baseId': 'fct', 'quoteId': 'jpy' },
+                'MONA/JPY': { 'id': 'mona_jpy', 'symbol': 'MONA/JPY', 'base': 'MONA', 'quote': 'JPY', 'baseId': 'mona', 'quoteId': 'jpy' },
                 // 'XMR/JPY': { 'id': 'xmr_jpy', 'symbol': 'XMR/JPY', 'base': 'XMR', 'quote': 'JPY', 'baseId': 'xmr', 'quoteId': 'jpy' },
                 // 'REP/JPY': { 'id': 'rep_jpy', 'symbol': 'REP/JPY', 'base': 'REP', 'quote': 'JPY', 'baseId': 'rep', 'quoteId': 'jpy' },
                 // 'XRP/JPY': { 'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy' },
@@ -87,7 +94,7 @@ module.exports = class coincheck extends Exchange {
                 // 'LTC/JPY': { 'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy' },
                 // 'DASH/JPY': { 'id': 'dash_jpy', 'symbol': 'DASH/JPY', 'base': 'DASH', 'quote': 'JPY', 'baseId': 'dash', 'quoteId': 'jpy' },
                 // 'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc' },
-                // 'ETC/BTC': { 'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'baseId': 'etc', 'quoteId': 'btc' },
+                'ETC/BTC': { 'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'baseId': 'etc', 'quoteId': 'btc' },
                 // 'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'baseId': 'lsk', 'quoteId': 'btc' },
                 // 'FCT/BTC': { 'id': 'fct_btc', 'symbol': 'FCT/BTC', 'base': 'FCT', 'quote': 'BTC', 'baseId': 'fct', 'quoteId': 'btc' },
                 // 'XMR/BTC': { 'id': 'xmr_btc', 'symbol': 'XMR/BTC', 'base': 'XMR', 'quote': 'BTC', 'baseId': 'xmr', 'quoteId': 'btc' },
@@ -166,31 +173,10 @@ module.exports = class coincheck extends Exchange {
         const amount = this.safeFloat (order, 'pending_amount');
         const remaining = this.safeFloat (order, 'pending_amount');
         const price = this.safeFloat (order, 'rate');
-        let filled = undefined;
-        let cost = undefined;
-        if (remaining !== undefined) {
-            if (amount !== undefined) {
-                filled = Math.max (amount - remaining, 0);
-                if (price !== undefined) {
-                    cost = filled * price;
-                }
-            }
-        }
         const status = undefined;
         const marketId = this.safeString (order, 'pair');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        return {
+        const symbol = this.safeSymbol (marketId, market, '_');
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -198,26 +184,30 @@ module.exports = class coincheck extends Exchange {
             'lastTradeTimestamp': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': undefined,
             'side': side,
             'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'status': status,
             'symbol': symbol,
             'price': price,
-            'cost': cost,
+            'stopPrice': undefined,
+            'cost': undefined,
             'fee': undefined,
             'info': order,
             'average': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        if (symbol !== 'BTC/JPY') {
-            throw new BadSymbol (this.id + ' fetchOrderBook () supports BTC/JPY only');
-        }
         await this.loadMarkets ();
-        const response = await this.publicGetOrderBooks (params);
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+        };
+        const response = await this.publicGetOrderBooks (this.extend (request, params));
         return this.parseOrderBook (response);
     }
 
@@ -226,7 +216,11 @@ module.exports = class coincheck extends Exchange {
             throw new BadSymbol (this.id + ' fetchTicker () supports BTC/JPY only');
         }
         await this.loadMarkets ();
-        const ticker = await this.publicGetTicker (params);
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+        };
+        const ticker = await this.publicGetTicker (this.extend (request, params));
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeFloat (ticker, 'last');
         return {
@@ -340,9 +334,6 @@ module.exports = class coincheck extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        if (symbol !== 'BTC/JPY') {
-            throw new BadSymbol (this.id + ' fetchTrades () supports BTC/JPY only');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -384,6 +375,10 @@ module.exports = class coincheck extends Exchange {
             'id': id,
         };
         return await this.privateDeleteExchangeOrdersId (this.extend (request, params));
+    }
+
+    nonce () {
+        return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

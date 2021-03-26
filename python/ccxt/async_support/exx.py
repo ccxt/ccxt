@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -21,9 +22,16 @@ class exx(Exchange):
             'rateLimit': 1000 / 10,
             'userAgent': self.userAgents['chrome'],
             'has': {
-                'fetchOrder': True,
-                'fetchTickers': True,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/37770292-fbf613d0-2de4-11e8-9f79-f2dc451b8ccb.jpg',
@@ -88,6 +96,7 @@ class exx(Exchange):
                 },
             },
             'commonCurrencies': {
+                'DOS': 'DEMOS',
                 'TV': 'TIV',  # Ti-Value
             },
             'exceptions': {
@@ -192,7 +201,7 @@ class exx(Exchange):
                 'ticker': response[id],
             }
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -281,7 +290,6 @@ class exx(Exchange):
         cost = self.safe_float(order, 'trade_money')
         amount = self.safe_float(order, 'total_amount')
         filled = self.safe_float(order, 'trade_amount', 0.0)
-        remaining = float(self.amount_to_precision(symbol, amount - filled))
         status = self.safe_integer(order, 'status')
         if status == 1:
             status = 'canceled'
@@ -295,7 +303,7 @@ class exx(Exchange):
                 'cost': self.safe_float(order, 'fees'),
                 'currency': market['quote'],
             }
-        return {
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -304,17 +312,20 @@ class exx(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': order['type'],
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'trades': None,
             'fee': fee,
             'info': order,
             'average': None,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -335,7 +346,6 @@ class exx(Exchange):
             'type': side,
             'info': response,
         }, market)
-        self.orders[id] = order
         return order
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -360,6 +370,8 @@ class exx(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         market = self.market(symbol)
         request = {
             'currency': market['id'],

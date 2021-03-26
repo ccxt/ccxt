@@ -15,9 +15,15 @@ module.exports = class btctradeua extends Exchange {
             'countries': [ 'UA' ], // Ukraine,
             'rateLimit': 3000,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
                 'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchOpenOrders': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
                 'signIn': true,
             },
             'urls': {
@@ -328,8 +334,11 @@ module.exports = class btctradeua extends Exchange {
             'status': 'open',
             'symbol': symbol,
             'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': this.safeString (order, 'type'),
             'price': this.safeFloat (order, 'price'),
+            'stopPrice': undefined,
             'amount': this.safeFloat (order, 'amnt_trade'),
             'filled': 0,
             'remaining': this.safeFloat (order, 'amnt_trade'),
@@ -343,7 +352,7 @@ module.exports = class btctradeua extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

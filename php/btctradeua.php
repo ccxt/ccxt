@@ -18,9 +18,15 @@ class btctradeua extends Exchange {
             'countries' => array( 'UA' ), // Ukraine,
             'rateLimit' => 3000,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
                 'signIn' => true,
             ),
             'urls' => array(
@@ -231,7 +237,7 @@ class btctradeua extends Exchange {
         $timestamp = $this->parse8601($ymdhms);
         // server reports local time, adjust to UTC
         $md = implode('', array($month, $day));
-        $md = intval ($md);
+        $md = intval($md);
         // a special case for DST
         // subtract 2 hours during winter
         if ($md < 325 || $md > 1028) {
@@ -331,8 +337,11 @@ class btctradeua extends Exchange {
             'status' => 'open',
             'symbol' => $symbol,
             'type' => null,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $this->safe_string($order, 'type'),
             'price' => $this->safe_float($order, 'price'),
+            'stopPrice' => null,
             'amount' => $this->safe_float($order, 'amnt_trade'),
             'filled' => 0,
             'remaining' => $this->safe_float($order, 'amnt_trade'),
@@ -346,7 +355,7 @@ class btctradeua extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

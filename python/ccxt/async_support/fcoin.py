@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -33,18 +32,25 @@ class fcoin(Exchange):
             'accountsById': None,
             'hostname': 'fcoin.com',
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': False,
+                'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchTradingLimits': False,
                 'withdraw': False,
-                'fetchCurrencies': False,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -373,12 +379,9 @@ class fcoin(Exchange):
             if tickerType is not None:
                 parts = tickerType.split('.')
                 id = parts[1]
-                if id in self.markets_by_id:
-                    market = self.markets_by_id[id]
+                symbol = self.safe_symbol(id, market)
         values = ticker['ticker']
         last = self.safe_float(values, 0)
-        if market is not None:
-            symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -431,6 +434,16 @@ class fcoin(Exchange):
             'cost': cost,
             'fee': fee,
         }
+
+    async def fetch_time(self, params={}):
+        response = await self.publicGetServerTime(params)
+        #
+        #     {
+        #         "status": 0,
+        #         "data": 1523430502977
+        #     }
+        #
+        return self.safe_integer(response, 'data')
 
     async def fetch_trades(self, symbol, since=None, limit=50, params={}):
         await self.load_markets()
@@ -513,40 +526,27 @@ class fcoin(Exchange):
         id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'state'))
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'symbol')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        marketId = self.safe_string(order, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         orderType = self.safe_string(order, 'type')
         timestamp = self.safe_integer(order, 'created_at')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'filled_amount')
-        remaining = None
         price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'executed_value')
-        if filled is not None:
-            if amount is not None:
-                remaining = amount - filled
-            if cost is None:
-                if price is not None:
-                    cost = price * filled
-            elif (cost > 0) and (filled > 0):
-                price = cost / filled
         feeCurrency = None
         feeCost = None
         feeRebate = self.safe_float(order, 'fees_income')
         if (feeRebate is not None) and (feeRebate > 0):
             if market is not None:
-                symbol = market['symbol']
                 feeCurrency = market['quote'] if (side == 'buy') else market['base']
             feeCost = -feeRebate
         else:
             feeCost = self.safe_float(order, 'fill_fees')
             if market is not None:
-                symbol = market['symbol']
                 feeCurrency = market['base'] if (side == 'buy') else market['quote']
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -555,11 +555,14 @@ class fcoin(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
-            'remaining': remaining,
+            'remaining': None,
             'filled': filled,
             'average': None,
             'status': status,
@@ -568,7 +571,7 @@ class fcoin(Exchange):
                 'currency': feeCurrency,
             },
             'trades': None,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -600,7 +603,7 @@ class fcoin(Exchange):
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response['data'], market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_timestamp(ohlcv, 'id'),
             self.safe_float(ohlcv, 'open'),
@@ -625,7 +628,8 @@ class fcoin(Exchange):
             timerange = limit * self.parse_timeframe(timeframe)
             request['before'] = self.sum(sinceInSeconds, timerange) - 1
         response = await self.marketGetCandlesTimeframeSymbol(self.extend(request, params))
-        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def nonce(self):
         return self.milliseconds()
@@ -656,9 +660,9 @@ class fcoin(Exchange):
                 if query:
                     body = self.json(query)
                     auth += self.urlencode(query)
-            payload = base64.b64encode(self.encode(auth))
+            payload = self.string_to_base64(auth)
             signature = self.hmac(payload, self.encode(self.secret), hashlib.sha1, 'binary')
-            signature = self.decode(base64.b64encode(signature))
+            signature = self.decode(self.string_to_base64(signature))
             headers = {
                 'FC-ACCESS-KEY': self.apiKey,
                 'FC-ACCESS-SIGNATURE': signature,

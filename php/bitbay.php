@@ -17,11 +17,19 @@ class bitbay extends Exchange {
             'countries' => array( 'MT', 'EU' ), // Malta
             'rateLimit' => 1000,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
-                'withdraw' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchLedger' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => true,
-                'fetchOpenOrders' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '60',
@@ -120,8 +128,60 @@ class bitbay extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'maker' => 0.0,
+                    'taker' => 0.1 / 100,
+                    'percentage' => true,
+                    'tierBased' => false,
+                ),
+                'fiat' => array(
                     'maker' => 0.30 / 100,
                     'taker' => 0.43 / 100,
+                    'percentage' => true,
+                    'tierBased' => true,
+                    'tiers' => array(
+                        'taker' => array(
+                            array( 0.0043, 0 ),
+                            array( 0.0042, 1250 ),
+                            array( 0.0041, 3750 ),
+                            array( 0.0040, 7500 ),
+                            array( 0.0039, 10000 ),
+                            array( 0.0038, 15000 ),
+                            array( 0.0037, 20000 ),
+                            array( 0.0036, 25000 ),
+                            array( 0.0035, 37500 ),
+                            array( 0.0034, 50000 ),
+                            array( 0.0033, 75000 ),
+                            array( 0.0032, 100000 ),
+                            array( 0.0031, 150000 ),
+                            array( 0.0030, 200000 ),
+                            array( 0.0029, 250000 ),
+                            array( 0.0028, 375000 ),
+                            array( 0.0027, 500000 ),
+                            array( 0.0026, 625000 ),
+                            array( 0.0025, 875000 ),
+                        ),
+                        'maker' => array(
+                            array( 0.0030, 0 ),
+                            array( 0.0029, 1250 ),
+                            array( 0.0028, 3750 ),
+                            array( 0.0028, 7500 ),
+                            array( 0.0027, 10000 ),
+                            array( 0.0026, 15000 ),
+                            array( 0.0025, 20000 ),
+                            array( 0.0025, 25000 ),
+                            array( 0.0024, 37500 ),
+                            array( 0.0023, 50000 ),
+                            array( 0.0023, 75000 ),
+                            array( 0.0022, 100000 ),
+                            array( 0.0021, 150000 ),
+                            array( 0.0021, 200000 ),
+                            array( 0.0020, 250000 ),
+                            array( 0.0019, 375000 ),
+                            array( 0.0018, 500000 ),
+                            array( 0.0018, 625000 ),
+                            array( 0.0017, 875000 ),
+                        ),
+                    ),
                 ),
                 'funding' => array(
                     'withdraw' => array(
@@ -137,6 +197,9 @@ class bitbay extends Exchange {
                         'EUR' => 1.5,
                     ),
                 ),
+            ),
+            'options' => array(
+                'fiatCurrencies' => array( 'EUR', 'USD', 'GBP', 'PLN' ),
             ),
             'exceptions' => array(
                 '400' => '\\ccxt\\ExchangeError', // At least one parameter wasn't set
@@ -162,12 +225,19 @@ class bitbay extends Exchange {
                 'OFFER_NOT_FOUND' => '\\ccxt\\OrderNotFound',
                 'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED' => '\\ccxt\\OrderImmediatelyFillable',
                 'ACTION_LIMIT_EXCEEDED' => '\\ccxt\\RateLimitExceeded',
+                'UNDER_MAINTENANCE' => '\\ccxt\\OnMaintenance',
+                'REQUEST_TIMESTAMP_TOO_OLD' => '\\ccxt\\InvalidNonce',
+                'PERMISSIONS_NOT_SUFFICIENT' => '\\ccxt\\PermissionDenied',
+            ),
+            'commonCurrencies' => array(
+                'GGC' => 'Global Game Coin',
             ),
         ));
     }
 
     public function fetch_markets($params = array ()) {
         $response = $this->v1_01PublicGetTradingTicker ($params);
+        $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
         //
         //     {
         //         status => 'Ok',
@@ -206,8 +276,14 @@ class bitbay extends Exchange {
                 'amount' => $this->safe_integer($first, 'scale'),
                 'price' => $this->safe_integer($second, 'scale'),
             );
+            $fees = $this->safe_value($this->fees, 'trading', array());
+            if ($this->in_array($base, $fiatCurrencies) || $this->in_array($quote, $fiatCurrencies)) {
+                $fees = $this->safe_value($this->fees, 'fiat', array());
+            }
+            $maker = $this->safe_float($fees, 'maker');
+            $taker = $this->safe_float($fees, 'taker');
             // todo => check that the limits have ben interpreted correctly
-            // todo => parse the fees page
+            // todo => parse the $fees page
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -217,7 +293,8 @@ class bitbay extends Exchange {
                 'quoteId' => $quoteId,
                 'precision' => $precision,
                 'active' => null,
-                'fee' => null,
+                'maker' => $maker,
+                'taker' => $taker,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_float($first, 'minOffer'),
@@ -257,7 +334,7 @@ class bitbay extends Exchange {
         //         rate => '280',
         //         startAmount => '0.04',
         //         time => '1568372806924',
-        //         postOnly => false,
+        //         $postOnly => false,
         //         hidden => false,
         //         mode => 'limit',
         //         receivedAmount => '0.0',
@@ -266,32 +343,12 @@ class bitbay extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'market');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->safe_integer($order, 'time');
         $amount = $this->safe_float($order, 'startAmount');
         $remaining = $this->safe_float($order, 'currentAmount');
-        $filled = null;
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                $filled = max (0, $amount - $remaining);
-            }
-        }
-        return array(
+        $postOnly = $this->safe_value($order, 'postOnly');
+        return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'info' => $order,
@@ -301,16 +358,19 @@ class bitbay extends Exchange {
             'status' => null,
             'symbol' => $symbol,
             'type' => $this->safe_string($order, 'mode'),
+            'timeInForce' => null,
+            'postOnly' => $postOnly,
             'side' => $this->safe_string_lower($order, 'offerType'),
             'price' => $this->safe_float($order, 'rate'),
+            'stopPrice' => null,
             'amount' => $amount,
             'cost' => null,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'average' => null,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -765,26 +825,29 @@ class bitbay extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        // array(
-        //     '1582399800000',
-        //     {
-        //         o => '0.0001428',
-        //         c => '0.0001428',
-        //         h => '0.0001428',
-        //         l => '0.0001428',
-        //         v => '4',
-        //         co => '1'
-        //     }
-        // )
-        return [
-            intval ($ohlcv[0]),
-            $this->safe_float($ohlcv[1], 'o'),
-            $this->safe_float($ohlcv[1], 'h'),
-            $this->safe_float($ohlcv[1], 'l'),
-            $this->safe_float($ohlcv[1], 'c'),
-            $this->safe_float($ohlcv[1], 'v'),
-        ];
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     array(
+        //         '1582399800000',
+        //         {
+        //             o => '0.0001428',
+        //             c => '0.0001428',
+        //             h => '0.0001428',
+        //             l => '0.0001428',
+        //             v => '4',
+        //             co => '1'
+        //         }
+        //     )
+        //
+        $first = $this->safe_value($ohlcv, 1, array());
+        return array(
+            $this->safe_integer($ohlcv, 0),
+            $this->safe_float($first, 'o'),
+            $this->safe_float($first, 'h'),
+            $this->safe_float($first, 'l'),
+            $this->safe_float($first, 'c'),
+            $this->safe_float($first, 'v'),
+        );
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -806,12 +869,22 @@ class bitbay extends Exchange {
             $request['to'] = $this->milliseconds();
             $request['from'] = $request['to'] - $timerange;
         } else {
-            $request['from'] = intval ($since);
+            $request['from'] = intval($since);
             $request['to'] = $this->sum($request['from'], $timerange);
         }
         $response = $this->v1_01PublicGetTradingCandleHistorySymbolResolution (array_merge($request, $params));
-        $ohlcvs = $this->safe_value($response, 'items', array());
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        //
+        //     {
+        //         "status":"Ok",
+        //         "$items":[
+        //             ["1591503060000",array("o":"0.02509572","c":"0.02509438","h":"0.02509664","l":"0.02509438","v":"0.02082165","co":"17")],
+        //             ["1591503120000",array("o":"0.02509606","c":"0.02509515","h":"0.02509606","l":"0.02509487","v":"0.04971703","co":"13")],
+        //             ["1591503180000",array("o":"0.02509532","c":"0.02509589","h":"0.02509589","l":"0.02509454","v":"0.01332236","co":"7")],
+        //         ]
+        //     }
+        //
+        $items = $this->safe_value($response, 'items', array());
+        return $this->parse_ohlcvs($items, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -866,33 +939,11 @@ class bitbay extends Exchange {
         }
         $feeCost = $this->safe_float($trade, 'commissionValue');
         $marketId = $this->safe_string($trade, 'market');
-        $base = null;
-        $quote = null;
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-                $base = $market['base'];
-                $quote = $market['quote'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if ($market !== null) {
-            if ($symbol === null) {
-                $symbol = $market['symbol'];
-            }
-            if ($base === null) {
-                $base = $market['base'];
-            }
-        }
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $fee = null;
         if ($feeCost !== null) {
-            $feeCcy = ($side === 'buy') ? $base : $quote;
+            $feeCcy = ($side === 'buy') ? $market['base'] : $market['quote'];
             $fee = array(
                 'currency' => $feeCcy,
                 'cost' => $feeCost,
@@ -936,7 +987,7 @@ class bitbay extends Exchange {
         }
         $response = $this->v1_01PublicGetTradingTransactionsSymbol (array_merge($request, $params));
         $items = $this->safe_value($response, 'items');
-        return $this->parse_trades($items, $symbol, $since, $limit);
+        return $this->parse_trades($items, $market, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -951,7 +1002,9 @@ class bitbay extends Exchange {
         );
         if ($type === 'limit') {
             $request['rate'] = $price;
+            $price = floatval($price);
         }
+        $amount = floatval($amount);
         $response = $this->v1_01PrivatePostTradingOfferSymbol (array_merge($request, $params));
         //
         // unfilled (open order)
@@ -1041,8 +1094,8 @@ class bitbay extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => floatval ($price),
-            'amount' => floatval ($amount),
+            'price' => $price,
+            'amount' => $amount,
             'cost' => $cost,
             'filled' => $filled,
             'remaining' => $remaining,

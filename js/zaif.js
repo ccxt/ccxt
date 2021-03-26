@@ -16,10 +16,17 @@ module.exports = class zaif extends Exchange {
             'rateLimit': 2000,
             'version': '1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
                 'createMarketOrder': false,
-                'fetchOpenOrders': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchMarkets': true,
+                'fetchOrderBook': true,
+                'fetchOpenOrders': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
                 'withdraw': true,
             },
             'urls': {
@@ -120,6 +127,27 @@ module.exports = class zaif extends Exchange {
 
     async fetchMarkets (params = {}) {
         const markets = await this.publicGetCurrencyPairsAll (params);
+        //
+        //     [
+        //         {
+        //             "aux_unit_point": 0,
+        //             "item_japanese": "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3",
+        //             "aux_unit_step": 5.0,
+        //             "description": "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3\u30fb\u65e5\u672c\u5186\u306e\u53d6\u5f15\u3092\u884c\u3046\u3053\u3068\u304c\u3067\u304d\u307e\u3059",
+        //             "item_unit_min": 0.001,
+        //             "event_number": 0,
+        //             "currency_pair": "btc_jpy",
+        //             "is_token": false,
+        //             "aux_unit_min": 5.0,
+        //             "aux_japanese": "\u65e5\u672c\u5186",
+        //             "id": 1,
+        //             "item_unit_step": 0.0001,
+        //             "name": "BTC/JPY",
+        //             "seq": 0,
+        //             "title": "BTC/JPY"
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -130,8 +158,8 @@ module.exports = class zaif extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': -Math.log10 (market['item_unit_step']),
-                'price': market['aux_unit_point'],
+                'amount': -Math.log10 (this.safeFloat (market, 'item_unit_step')),
+                'price': this.safeInteger (market, 'aux_unit_point'),
             };
             const fees = this.safeValue (this.options['fees'], symbol, this.fees['trading']);
             const taker = fees['taker'];
@@ -254,16 +282,8 @@ module.exports = class zaif extends Exchange {
                 cost = amount * price;
             }
         }
-        if (market === undefined) {
-            const marketId = this.safeString (trade, 'currency_pair');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (trade, 'currency_pair');
+        const symbol = this.safeSymbol (marketId, market, '_');
         return {
             'id': id,
             'info': trade,
@@ -337,26 +357,12 @@ module.exports = class zaif extends Exchange {
         let side = this.safeString (order, 'action');
         side = (side === 'bid') ? 'buy' : 'sell';
         const timestamp = this.safeTimestamp (order, 'timestamp');
-        if (!market) {
-            const marketId = this.safeString (order, 'currency_pair');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
+        const marketId = this.safeString (order, 'currency_pair');
+        const symbol = this.safeSymbol (marketId, market, '_');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
         const id = this.safeString (order, 'id');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -365,32 +371,20 @@ module.exports = class zaif extends Exchange {
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
-            'cost': cost,
+            'stopPrice': undefined,
+            'cost': undefined,
             'amount': amount,
             'filled': undefined,
             'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
-            'info': undefined,
+            'info': order,
             'average': undefined,
-        };
-    }
-
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        const result = [];
-        const ids = Object.keys (orders);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const order = this.extend ({ 'id': id }, orders[id]);
-            result.push (this.extend (this.parseOrder (order, market), params));
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

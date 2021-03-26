@@ -24,18 +24,25 @@ class fcoin extends Exchange {
             'accountsById' => null,
             'hostname' => 'fcoin.com',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => true,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => false,
+                'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
                 'fetchTradingLimits' => false,
                 'withdraw' => false,
-                'fetchCurrencies' => false,
             ),
             'timeframes' => array(
                 '1m' => 'M1',
@@ -327,8 +334,8 @@ class fcoin extends Exchange {
     public function parse_bids_asks($orders, $priceKey = 0, $amountKey = 1) {
         $result = array();
         $length = is_array($orders) ? count($orders) : 0;
-        $halfLength = intval ($length / 2);
-        // .= 2 in the for loop below won't transpile
+        $halfLength = intval($length / 2);
+        // += 2 in the for loop below won't transpile
         for ($i = 0; $i < $halfLength; $i++) {
             $index = $i * 2;
             $priceField = $this->sum($index, $priceKey);
@@ -379,16 +386,11 @@ class fcoin extends Exchange {
             if ($tickerType !== null) {
                 $parts = explode('.', $tickerType);
                 $id = $parts[1];
-                if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$id];
-                }
+                $symbol = $this->safe_symbol($id, $market);
             }
         }
         $values = $ticker['ticker'];
         $last = $this->safe_float($values, 0);
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -447,6 +449,17 @@ class fcoin extends Exchange {
         );
     }
 
+    public function fetch_time($params = array ()) {
+        $response = $this->publicGetServerTime ($params);
+        //
+        //     {
+        //         "status" => 0,
+        //         "data" => 1523430502977
+        //     }
+        //
+        return $this->safe_integer($response, 'data');
+    }
+
     public function fetch_trades($symbol, $since = null, $limit = 50, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -455,7 +468,7 @@ class fcoin extends Exchange {
             'limit' => $limit,
         );
         if ($since !== null) {
-            $request['timestamp'] = intval ($since / 1000);
+            $request['timestamp'] = intval($since / 1000);
         }
         $response = $this->marketGetTradesSymbol (array_merge($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
@@ -537,49 +550,30 @@ class fcoin extends Exchange {
         $id = $this->safe_string($order, 'id');
         $side = $this->safe_string($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'symbol');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
+        $marketId = $this->safe_string($order, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $orderType = $this->safe_string($order, 'type');
         $timestamp = $this->safe_integer($order, 'created_at');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'filled_amount');
-        $remaining = null;
         $price = $this->safe_float($order, 'price');
         $cost = $this->safe_float($order, 'executed_value');
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-            }
-            if ($cost === null) {
-                if ($price !== null) {
-                    $cost = $price * $filled;
-                }
-            } else if (($cost > 0) && ($filled > 0)) {
-                $price = $cost / $filled;
-            }
-        }
         $feeCurrency = null;
         $feeCost = null;
         $feeRebate = $this->safe_float($order, 'fees_income');
         if (($feeRebate !== null) && ($feeRebate > 0)) {
             if ($market !== null) {
-                $symbol = $market['symbol'];
                 $feeCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
             }
             $feeCost = -$feeRebate;
         } else {
             $feeCost = $this->safe_float($order, 'fill_fees');
             if ($market !== null) {
-                $symbol = $market['symbol'];
                 $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
             }
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -588,11 +582,14 @@ class fcoin extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
-            'remaining' => $remaining,
+            'remaining' => null,
             'filled' => $filled,
             'average' => null,
             'status' => $status,
@@ -601,7 +598,7 @@ class fcoin extends Exchange {
                 'currency' => $feeCurrency,
             ),
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -640,7 +637,7 @@ class fcoin extends Exchange {
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->safe_timestamp($ohlcv, 'id'),
             $this->safe_float($ohlcv, 'open'),
@@ -663,12 +660,13 @@ class fcoin extends Exchange {
             'limit' => $limit,
         );
         if ($since !== null) {
-            $sinceInSeconds = intval ($since / 1000);
+            $sinceInSeconds = intval($since / 1000);
             $timerange = $limit * $this->parse_timeframe($timeframe);
             $request['before'] = $this->sum($sinceInSeconds, $timerange) - 1;
         }
         $response = $this->marketGetCandlesTimeframeSymbol (array_merge($request, $params));
-        return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function nonce() {
@@ -705,7 +703,7 @@ class fcoin extends Exchange {
                     $auth .= $this->urlencode($query);
                 }
             }
-            $payload = base64_encode($this->encode($auth));
+            $payload = base64_encode($auth);
             $signature = $this->hmac($payload, $this->encode($this->secret), 'sha1', 'binary');
             $signature = $this->decode(base64_encode($signature));
             $headers = array(

@@ -15,12 +15,19 @@ module.exports = class coinfloor extends Exchange {
             'rateLimit': 1000,
             'countries': [ 'UK' ],
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchLedger': true,
                 'fetchOpenOrders': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
-                'api': 'https://webapi.coinfloor.co.uk/bist',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87153925-ef265e80-c2c0-11ea-91b5-020c804b90e0.jpg',
+                'api': 'https://webapi.coinfloor.co.uk/v2/bist',
                 'www': 'https://www.coinfloor.co.uk',
                 'doc': [
                     'https://github.com/coinfloor/api',
@@ -83,7 +90,7 @@ module.exports = class coinfloor extends Exchange {
             market = this.markets_by_id[marketId];
         }
         if (market === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBalance requires a symbol param');
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a symbol param');
         }
         const request = {
             'id': market['id'],
@@ -216,7 +223,7 @@ module.exports = class coinfloor extends Exchange {
         if (code !== undefined) {
             market = this.market (code);
             if (market === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTransactions requires a code argument (a market symbol)');
+                throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a code argument (a market symbol)');
             }
         }
         const request = {
@@ -399,12 +406,32 @@ module.exports = class coinfloor extends Exchange {
             request['price'] = price;
             request['amount'] = amount;
         }
-        return await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "id":31950584,
+        //         "datetime":"2020-05-21 08:38:18",
+        //         "type":1,
+        //         "price":"9100",
+        //         "amount":"0.0026"
+        //     }
+        //
+        const response = await this[method] (this.extend (request, params));
+        const timestamp = this.parse8601 (this.safeString (response, 'datetime'));
+        return {
+            'id': this.safeString (response, 'id'),
+            'clientOrderId': undefined,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'type': type,
+            'price': this.safeFloat (response, 'price'),
+            'remaining': this.safeFloat (response, 'amount'),
+            'info': response,
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -424,17 +451,12 @@ module.exports = class coinfloor extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
         let side = undefined;
         const status = this.safeString (order, 'status');
-        if (order['type'] === 0) {
+        const rawType = this.safeString (order, 'type');
+        if (rawType === '0') {
             side = 'buy';
-        } else if (order['type'] === 1) {
+        } else if (rawType === '1') {
             side = 'sell';
         }
         let symbol = undefined;
@@ -442,7 +464,7 @@ module.exports = class coinfloor extends Exchange {
             symbol = market['symbol'];
         }
         const id = this.safeString (order, 'id');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -452,21 +474,24 @@ module.exports = class coinfloor extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
-            'amount': amount,
+            'stopPrice': undefined,
+            'amount': undefined,
             'filled': undefined,
-            'remaining': undefined,
-            'cost': cost,
+            'remaining': amount,
+            'cost': undefined,
             'fee': undefined,
             'average': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol param');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol param');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -510,7 +535,7 @@ module.exports = class coinfloor extends Exchange {
             const nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             const auth = this.uid + '/' + this.apiKey + ':' + this.password;
-            const signature = this.decode (this.stringToBase64 (this.encode (auth)));
+            const signature = this.decode (this.stringToBase64 (auth));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': 'Basic ' + signature,
