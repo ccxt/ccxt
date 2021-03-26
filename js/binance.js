@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, AuthenticationError, BaseError } = require ('ccxt/js/base/errors');
+const { ExchangeError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 // ----------------------------------------------------------------------------
