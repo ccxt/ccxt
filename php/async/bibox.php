@@ -234,9 +234,9 @@ class bibox extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
         }
-        $last = $this->safe_float($ticker, 'last');
-        $change = $this->safe_float($ticker, 'change');
-        $baseVolume = $this->safe_float_2($ticker, 'vol', 'vol24H');
+        $last = $this->safe_number($ticker, 'last');
+        $change = $this->safe_number($ticker, 'change');
+        $baseVolume = $this->safe_number_2($ticker, 'vol', 'vol24H');
         $open = null;
         if (($last !== null) && ($change !== null)) {
             $open = $last - $change;
@@ -250,11 +250,11 @@ class bibox extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -265,7 +265,7 @@ class bibox extends Exchange {
             'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $baseVolume,
-            'quoteVolume' => $this->safe_float($ticker, 'amount'),
+            'quoteVolume' => $this->safe_number($ticker, 'amount'),
             'info' => $ticker,
         );
     }
@@ -313,7 +313,7 @@ class bibox extends Exchange {
             $symbol = $market['symbol'];
         }
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         $feeCurrency = $this->safe_string($trade, 'fee_symbol');
         if ($feeCurrency !== null) {
             if (is_array($this->currencies_by_id) && array_key_exists($feeCurrency, $this->currencies_by_id)) {
@@ -323,8 +323,8 @@ class bibox extends Exchange {
             }
         }
         $feeRate = null; // todo => deduce from $market if $market is defined
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $cost = null;
         if ($price !== null && $amount !== null) {
             $cost = $price * $amount;
@@ -379,7 +379,7 @@ class bibox extends Exchange {
             $request['size'] = $limit; // default = 200
         }
         $response = yield $this->publicGetMdata (array_merge($request, $params));
-        return $this->parse_order_book($response['result'], $this->safe_float($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
+        return $this->parse_order_book($response['result'], $this->safe_number($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -395,11 +395,11 @@ class bibox extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 'time'),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'vol'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'vol'),
         );
     }
 
@@ -491,7 +491,7 @@ class bibox extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'withdraw_min'),
+                        'min' => $this->safe_number($currency, 'withdraw_min'),
                         'max' => null,
                     ),
                 ),
@@ -630,8 +630,8 @@ class bibox extends Exchange {
                 $account['used'] = 0.0;
                 $account['total'] = $balance;
             } else {
-                $account['free'] = $this->safe_float($balance, 'balance');
-                $account['used'] = $this->safe_float($balance, 'freeze');
+                $account['free'] = $this->safe_number($balance, 'balance');
+                $account['used'] = $this->safe_number($balance, 'freeze');
             }
             $result[$code] = $account;
         }
@@ -726,8 +726,8 @@ class bibox extends Exchange {
         $tag = $this->safe_string($transaction, 'addr_remark');
         $type = $this->safe_string($transaction, 'type');
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
-        $amount = $this->safe_float($transaction, 'amount');
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $amount = $this->safe_number($transaction, 'amount');
+        $feeCost = $this->safe_number($transaction, 'fee');
         if ($type === 'deposit') {
             $feeCost = 0;
             $tag = null;
@@ -838,16 +838,16 @@ class bibox extends Exchange {
         $rawType = $this->safe_string($order, 'order_type');
         $type = ($rawType === '1') ? 'market' : 'limit';
         $timestamp = $this->safe_integer($order, 'createdAt');
-        $price = $this->safe_float($order, 'price');
-        $average = $this->safe_float($order, 'deal_price');
-        $filled = $this->safe_float($order, 'deal_amount');
-        $amount = $this->safe_float($order, 'amount');
-        $cost = $this->safe_float_2($order, 'deal_money', 'money');
+        $price = $this->safe_number($order, 'price');
+        $average = $this->safe_number($order, 'deal_price');
+        $filled = $this->safe_number($order, 'deal_amount');
+        $amount = $this->safe_number($order, 'amount');
+        $cost = $this->safe_number_2($order, 'deal_money', 'money');
         $rawSide = $this->safe_string($order, 'order_side');
         $side = ($rawSide === '1') ? 'buy' : 'sell';
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'id');
-        $feeCost = $this->safe_float($order, 'fee');
+        $feeCost = $this->safe_number($order, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
@@ -1045,7 +1045,7 @@ class bibox extends Exchange {
             );
             $response = yield $this->privatePostTransfer ($request);
             $info[$code] = $response;
-            $withdrawFees[$code] = $this->safe_float($response['result'], 'withdraw_fee');
+            $withdrawFees[$code] = $this->safe_number($response['result'], 'withdraw_fee');
         }
         return array(
             'info' => $info,
