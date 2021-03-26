@@ -1493,7 +1493,7 @@ class Exchange(object):
         return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
     def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
-        return [float(bidask[price_key]), float(bidask[amount_key])]
+        return [self.number(bidask[price_key]), self.number(bidask[amount_key])]
 
     def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
         result = []
@@ -2246,3 +2246,23 @@ class Exchange(object):
             'filled': filled,
             'remaining': remaining,
         })
+
+    def safe_number(self, dictionary, key, default):
+        value = self.safe_string(dictionary, key)
+        if value is None:
+            return default
+        else:
+            try:
+                return self.number(value)
+            except Exception:
+                return default
+
+    def safe_number_2(self, dictionary, key1, key2, default):
+        value = self.safe_string_2(dictionary, key1, key2)
+        if value is None:
+            return default
+        else:
+            try:
+                return self.number(value)
+            except Exception:
+                return default

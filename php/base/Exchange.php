@@ -35,6 +35,7 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
+use Exception;
 
 $version = '1.44.34';
 
@@ -1158,7 +1159,7 @@ class Exchange {
 
         $this->precisionMode = DECIMAL_PLACES;
         $this->paddingMode = NO_PADDING;
-        $this->number = \Closure::fromCallable('floatval');
+        $this->number = 'floatval';
 
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp = 0;
@@ -1747,8 +1748,14 @@ class Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
+    public function number($n) {
+        return call_user_func($this->number, $n);
+    }
+
     public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
-        return array(floatval($bidask[$price_key]), floatval($bidask[$amount_key]));
+        $price = $this->number($bidask[$price_key]);
+        $amount = $this->number($bidask[$amount_key]);
+        return array($price, $amount);
     }
 
     public function parse_bids_asks($bidasks, $price_key = 0, $amount_key = 1) {
@@ -2941,5 +2948,31 @@ class Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
         ));
+    }
+
+    public function safe_number($object, $key, $default) {
+        $value = $this->safe_string($object, $key);
+        if ($value === null) {
+            return $default;
+        } else {
+            try {
+                return $this->number($value);
+            } catch (Exception $e) {
+                return $default;
+            }
+        }
+    }
+
+    public function safe_number_2($object, $key1, $key2, $default) {
+        $value = $this->safe_string_2($object, $key1, $key2);
+        if ($value === null) {
+            return $default;
+        } else {
+            try {
+                return $this->number($value);
+            } catch (Exception $e) {
+                return $default;
+            }
+        }
     }
 }
