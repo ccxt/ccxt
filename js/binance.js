@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError, BaseError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 // ----------------------------------------------------------------------------
@@ -777,13 +777,12 @@ module.exports = class binance extends ccxt.binance {
         const sendParams = this.omit (params, 'type');
         try {
             await this[method] (this.extend (request, sendParams));
-        } catch (e) {
+        } catch (error) {
             const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
             const client = this.client (url);
             const messageHashes = Object.keys (client.futures);
             for (let i = 0; i < messageHashes.length; i++) {
                 const messageHash = messageHashes[i];
-                const error = new AuthenticationError (this.id + ' listen key expired ' + listenKey);
                 client.reject (error, messageHash);
             }
             return;
