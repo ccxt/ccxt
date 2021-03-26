@@ -2997,6 +2997,10 @@ module.exports = class binance extends Exchange {
                 body = query;
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
+        } else {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
