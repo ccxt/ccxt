@@ -297,7 +297,7 @@ class ascendex extends Exchange {
             $code = $this->safe_currency_code($id);
             $precision = $this->safe_integer_2($currency, 'precisionScale', 'nativeScale');
             // why would the exchange API have different names for the same field
-            $fee = $this->safe_float_2($currency, 'withdrawFee', 'withdrawalFee');
+            $fee = $this->safe_number_2($currency, 'withdrawFee', 'withdrawalFee');
             $status = $this->safe_string_2($currency, 'status', 'statusCode');
             $active = ($status === 'Normal');
             $margin = (is_array($currency) && array_key_exists('borrowAssetCode', $currency));
@@ -325,7 +325,7 @@ class ascendex extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'minWithdrawalAmt'),
+                        'min' => $this->safe_number($currency, 'minWithdrawalAmt'),
                         'max' => null,
                     ),
                 ),
@@ -426,8 +426,8 @@ class ascendex extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $precision = array(
-                'amount' => $this->safe_float($market, 'lotSize'),
-                'price' => $this->safe_float($market, 'tickSize'),
+                'amount' => $this->safe_number($market, 'lotSize'),
+                'price' => $this->safe_number($market, 'tickSize'),
             );
             $status = $this->safe_string($market, 'status');
             $active = ($status === 'Normal');
@@ -453,16 +453,16 @@ class ascendex extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'minQty'),
-                        'max' => $this->safe_float($market, 'maxQty'),
+                        'min' => $this->safe_number($market, 'minQty'),
+                        'max' => $this->safe_number($market, 'maxQty'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($market, 'tickSize'),
+                        'min' => $this->safe_number($market, 'tickSize'),
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $this->safe_float($market, 'minNotional'),
-                        'max' => $this->safe_float($market, 'maxNotional'),
+                        'min' => $this->safe_number($market, 'minNotional'),
+                        'max' => $this->safe_number($market, 'maxNotional'),
                     ),
                 ),
             );
@@ -596,8 +596,8 @@ class ascendex extends Exchange {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'asset'));
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'availableBalance');
-            $account['total'] = $this->safe_float($balance, 'totalBalance');
+            $account['free'] = $this->safe_number($balance, 'availableBalance');
+            $account['total'] = $this->safe_number($balance, 'totalBalance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -672,10 +672,10 @@ class ascendex extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $close = $this->safe_float($ticker, 'close');
+        $close = $this->safe_number($ticker, 'close');
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
-        $open = $this->safe_float($ticker, 'open');
+        $open = $this->safe_number($ticker, 'open');
         $change = null;
         $percentage = null;
         $average = null;
@@ -690,12 +690,12 @@ class ascendex extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($bid, 0),
-            'bidVolume' => $this->safe_float($bid, 1),
-            'ask' => $this->safe_float($ask, 0),
-            'askVolume' => $this->safe_float($ask, 1),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($bid, 0),
+            'bidVolume' => $this->safe_number($bid, 1),
+            'ask' => $this->safe_number($ask, 0),
+            'askVolume' => $this->safe_number($ask, 1),
             'vwap' => null,
             'open' => $open,
             'close' => $close,
@@ -704,7 +704,7 @@ class ascendex extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
+            'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -786,11 +786,11 @@ class ascendex extends Exchange {
         $data = $this->safe_value($ohlcv, 'data', array());
         return array(
             $this->safe_integer($data, 'ts'),
-            $this->safe_float($data, 'o'),
-            $this->safe_float($data, 'h'),
-            $this->safe_float($data, 'l'),
-            $this->safe_float($data, 'c'),
-            $this->safe_float($data, 'v'),
+            $this->safe_number($data, 'o'),
+            $this->safe_number($data, 'h'),
+            $this->safe_number($data, 'l'),
+            $this->safe_number($data, 'c'),
+            $this->safe_number($data, 'v'),
         );
     }
 
@@ -855,8 +855,8 @@ class ascendex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'ts');
-        $price = $this->safe_float_2($trade, 'price', 'p');
-        $amount = $this->safe_float($trade, 'q');
+        $price = $this->safe_number_2($trade, 'price', 'p');
+        $amount = $this->safe_number($trade, 'q');
         $cost = null;
         if (($price !== null) && ($amount !== null)) {
             $cost = $price * $amount;
@@ -986,10 +986,10 @@ class ascendex extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '/');
         $timestamp = $this->safe_integer_2($order, 'timestamp', 'sendingTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'lastExecTime');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'orderQty');
-        $average = $this->safe_float($order, 'avgPx');
-        $filled = $this->safe_float_2($order, 'cumFilledQty', 'cumQty');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'orderQty');
+        $average = $this->safe_number($order, 'avgPx');
+        $filled = $this->safe_number_2($order, 'cumFilledQty', 'cumQty');
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'id');
         if ($clientOrderId !== null) {
@@ -999,7 +999,7 @@ class ascendex extends Exchange {
         }
         $type = $this->safe_string_lower($order, 'orderType');
         $side = $this->safe_string_lower($order, 'side');
-        $feeCost = $this->safe_float($order, 'cumFee');
+        $feeCost = $this->safe_number($order, 'cumFee');
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($order, 'feeAsset');
@@ -1009,7 +1009,7 @@ class ascendex extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        $stopPrice = $this->safe_float($order, 'stopPrice');
+        $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1069,7 +1069,7 @@ class ascendex extends Exchange {
             $request['orderPrice'] = $this->price_to_precision($symbol, $price);
         }
         if (($type === 'stop_limit') || ($type === 'stop_market')) {
-            $stopPrice = $this->safe_float($params, 'stopPrice');
+            $stopPrice = $this->safe_number($params, 'stopPrice');
             if ($stopPrice === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice parameter for ' . $type . ' orders');
             } else {
@@ -1605,7 +1605,7 @@ class ascendex extends Exchange {
         //     }
         //
         $id = $this->safe_string($transaction, 'requestId');
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $destAddress = $this->safe_value($transaction, 'destAddress', array());
         $address = $this->safe_string($destAddress, 'address');
         $tag = $this->safe_string($destAddress, 'destTag');
@@ -1615,7 +1615,7 @@ class ascendex extends Exchange {
         $currencyId = $this->safe_string($transaction, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_float($transaction, 'commission');
+        $feeCost = $this->safe_number($transaction, 'commission');
         return array(
             'info' => $transaction,
             'id' => $id,

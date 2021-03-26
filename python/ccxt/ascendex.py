@@ -303,7 +303,7 @@ class ascendex(Exchange):
             code = self.safe_currency_code(id)
             precision = self.safe_integer_2(currency, 'precisionScale', 'nativeScale')
             # why would the exchange API have different names for the same field
-            fee = self.safe_float_2(currency, 'withdrawFee', 'withdrawalFee')
+            fee = self.safe_number_2(currency, 'withdrawFee', 'withdrawalFee')
             status = self.safe_string_2(currency, 'status', 'statusCode')
             active = (status == 'Normal')
             margin = ('borrowAssetCode' in currency)
@@ -331,7 +331,7 @@ class ascendex(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_float(currency, 'minWithdrawalAmt'),
+                        'min': self.safe_number(currency, 'minWithdrawalAmt'),
                         'max': None,
                     },
                 },
@@ -430,8 +430,8 @@ class ascendex(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             precision = {
-                'amount': self.safe_float(market, 'lotSize'),
-                'price': self.safe_float(market, 'tickSize'),
+                'amount': self.safe_number(market, 'lotSize'),
+                'price': self.safe_number(market, 'tickSize'),
             }
             status = self.safe_string(market, 'status')
             active = (status == 'Normal')
@@ -456,16 +456,16 @@ class ascendex(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'minQty'),
-                        'max': self.safe_float(market, 'maxQty'),
+                        'min': self.safe_number(market, 'minQty'),
+                        'max': self.safe_number(market, 'maxQty'),
                     },
                     'price': {
-                        'min': self.safe_float(market, 'tickSize'),
+                        'min': self.safe_number(market, 'tickSize'),
                         'max': None,
                     },
                     'cost': {
-                        'min': self.safe_float(market, 'minNotional'),
-                        'max': self.safe_float(market, 'maxNotional'),
+                        'min': self.safe_number(market, 'minNotional'),
+                        'max': self.safe_number(market, 'maxNotional'),
                     },
                 },
             })
@@ -592,8 +592,8 @@ class ascendex(Exchange):
             balance = balances[i]
             code = self.safe_currency_code(self.safe_string(balance, 'asset'))
             account = self.account()
-            account['free'] = self.safe_float(balance, 'availableBalance')
-            account['total'] = self.safe_float(balance, 'totalBalance')
+            account['free'] = self.safe_number(balance, 'availableBalance')
+            account['total'] = self.safe_number(balance, 'totalBalance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -662,10 +662,10 @@ class ascendex(Exchange):
                 symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        close = self.safe_float(ticker, 'close')
+        close = self.safe_number(ticker, 'close')
         bid = self.safe_value(ticker, 'bid', [])
         ask = self.safe_value(ticker, 'ask', [])
-        open = self.safe_float(ticker, 'open')
+        open = self.safe_number(ticker, 'open')
         change = None
         percentage = None
         average = None
@@ -678,12 +678,12 @@ class ascendex(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(bid, 0),
-            'bidVolume': self.safe_float(bid, 1),
-            'ask': self.safe_float(ask, 0),
-            'askVolume': self.safe_float(ask, 1),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(bid, 0),
+            'bidVolume': self.safe_number(bid, 1),
+            'ask': self.safe_number(ask, 0),
+            'askVolume': self.safe_number(ask, 1),
             'vwap': None,
             'open': open,
             'close': close,
@@ -692,7 +692,7 @@ class ascendex(Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -770,11 +770,11 @@ class ascendex(Exchange):
         data = self.safe_value(ohlcv, 'data', {})
         return [
             self.safe_integer(data, 'ts'),
-            self.safe_float(data, 'o'),
-            self.safe_float(data, 'h'),
-            self.safe_float(data, 'l'),
-            self.safe_float(data, 'c'),
-            self.safe_float(data, 'v'),
+            self.safe_number(data, 'o'),
+            self.safe_number(data, 'h'),
+            self.safe_number(data, 'l'),
+            self.safe_number(data, 'c'),
+            self.safe_number(data, 'v'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -835,8 +835,8 @@ class ascendex(Exchange):
         #     }
         #
         timestamp = self.safe_integer(trade, 'ts')
-        price = self.safe_float_2(trade, 'price', 'p')
-        amount = self.safe_float(trade, 'q')
+        price = self.safe_number_2(trade, 'price', 'p')
+        amount = self.safe_number(trade, 'q')
         cost = None
         if (price is not None) and (amount is not None):
             cost = price * amount
@@ -960,10 +960,10 @@ class ascendex(Exchange):
         symbol = self.safe_symbol(marketId, market, '/')
         timestamp = self.safe_integer_2(order, 'timestamp', 'sendingTime')
         lastTradeTimestamp = self.safe_integer(order, 'lastExecTime')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'orderQty')
-        average = self.safe_float(order, 'avgPx')
-        filled = self.safe_float_2(order, 'cumFilledQty', 'cumQty')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'orderQty')
+        average = self.safe_number(order, 'avgPx')
+        filled = self.safe_number_2(order, 'cumFilledQty', 'cumQty')
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'id')
         if clientOrderId is not None:
@@ -971,7 +971,7 @@ class ascendex(Exchange):
                 clientOrderId = None
         type = self.safe_string_lower(order, 'orderType')
         side = self.safe_string_lower(order, 'side')
-        feeCost = self.safe_float(order, 'cumFee')
+        feeCost = self.safe_number(order, 'cumFee')
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'feeAsset')
@@ -980,7 +980,7 @@ class ascendex(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        stopPrice = self.safe_float(order, 'stopPrice')
+        stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1037,7 +1037,7 @@ class ascendex(Exchange):
         if (type == 'limit') or (type == 'stop_limit'):
             request['orderPrice'] = self.price_to_precision(symbol, price)
         if (type == 'stop_limit') or (type == 'stop_market'):
-            stopPrice = self.safe_float(params, 'stopPrice')
+            stopPrice = self.safe_number(params, 'stopPrice')
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a stopPrice parameter for ' + type + ' orders')
             else:
@@ -1541,7 +1541,7 @@ class ascendex(Exchange):
         #     }
         #
         id = self.safe_string(transaction, 'requestId')
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         destAddress = self.safe_value(transaction, 'destAddress', {})
         address = self.safe_string(destAddress, 'address')
         tag = self.safe_string(destAddress, 'destTag')
@@ -1551,7 +1551,7 @@ class ascendex(Exchange):
         currencyId = self.safe_string(transaction, 'asset')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_float(transaction, 'commission')
+        feeCost = self.safe_number(transaction, 'commission')
         return {
             'info': transaction,
             'id': id,
