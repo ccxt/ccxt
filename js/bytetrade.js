@@ -421,24 +421,16 @@ module.exports = class bytetrade extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
-    }
-
     async fetchBidsAsks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const rawTickers = await this.marketGetDepth (params);
-        return this.parseTickers (rawTickers, symbols);
+        const response = await this.marketGetDepth (params);
+        return this.parseTickers (response, symbols);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const rawTickers = await this.marketGetTickers (params);
-        return this.parseTickers (rawTickers, symbols);
+        const response = await this.marketGetTickers (params);
+        return this.parseTickers (response, symbols);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

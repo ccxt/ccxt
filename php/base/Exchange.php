@@ -35,8 +35,9 @@ use kornrunner\Solidity;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
+use Exception;
 
-$version = '1.44.4';
+$version = '1.44.51';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +56,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.44.4';
+    const VERSION = '1.44.51';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -63,7 +64,6 @@ class Exchange {
 
     public static $exchanges = array(
         'aax',
-        'acx',
         'aofex',
         'ascendex',
         'bequant',
@@ -274,6 +274,7 @@ class Exchange {
         'getResponseHeaders' => 'get_response_headers',
         'handleRestResponse' => 'handle_rest_response',
         'onRestResponse' => 'on_rest_response',
+        'onJsonResponse' => 'on_json_response',
         'setMarkets' => 'set_markets',
         'loadMarketsHelper' => 'load_markets_helper',
         'loadMarkets' => 'load_markets',
@@ -324,6 +325,7 @@ class Exchange {
         'filterBySymbolSinceLimit' => 'filter_by_symbol_since_limit',
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
         'filterByArray' => 'filter_by_array',
+        'parseTickers' => 'parse_tickers',
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
@@ -365,6 +367,8 @@ class Exchange {
         'integerPow' => 'integer_pow',
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeOrder' => 'safe_order',
+        'safeNumber' => 'safe_number',
+        'safeNumber2' => 'safe_number2',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1002,6 +1006,7 @@ class Exchange {
         $this->options = array(); // exchange-specific options if any
 
         $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
+        $this->quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
 
         $this->name = null;
         $this->countries = null;
@@ -1155,6 +1160,7 @@ class Exchange {
 
         $this->precisionMode = DECIMAL_PLACES;
         $this->paddingMode = NO_PADDING;
+        $this->number = 'floatval';
 
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp = 0;
@@ -1411,7 +1417,7 @@ class Exchange {
     }
 
     public function parse_json($json_string, $as_associative_array = true) {
-        return json_decode($json_string, $as_associative_array);
+        return json_decode($this->on_json_response($json_string), $as_associative_array);
     }
 
     // public function print() {
@@ -1435,6 +1441,10 @@ class Exchange {
 
     public function on_rest_response($code, $reason, $url, $method, $response_headers, $response_body, $request_headers, $request_body) {
         return is_string($response_body) ? trim($response_body) : $response_body;
+    }
+
+    public function on_json_response($response_body) {
+        return (is_string($response_body) && $this->quoteJsonNumbers) ? preg_replace('/":([+.0-9eE-]+),/', '":"$1",', $response_body) : $response_body;
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
@@ -1739,8 +1749,14 @@ class Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
+    public function number($n) {
+        return call_user_func($this->number, $n);
+    }
+
     public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
-        return array(floatval($bidask[$price_key]), floatval($bidask[$amount_key]));
+        $price = $this->number($bidask[$price_key]);
+        $amount = $this->number($bidask[$amount_key]);
+        return array($price, $amount);
     }
 
     public function parse_bids_asks($bidasks, $price_key = 0, $amount_key = 1) {
@@ -1881,6 +1897,14 @@ class Exchange {
             }
         }
         return $result;
+    }
+
+    public function parse_tickers($tickers, $symbols = null) {
+        $result = array();
+        for ($i = 0; $i < count($tickers); $i++) {
+            $result[] = $this->parse_ticker($tickers[$i]);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_deposit_addresses($addresses, $codes = null) {
@@ -2925,5 +2949,31 @@ class Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
         ));
+    }
+
+    public function safe_number($object, $key, $default = null) {
+        $value = $this->safe_string($object, $key);
+        if ($value === null) {
+            return $default;
+        } else {
+            try {
+                return $this->number($value);
+            } catch (Exception $e) {
+                return $default;
+            }
+        }
+    }
+
+    public function safe_number_2($object, $key1, $key2, $default = null) {
+        $value = $this->safe_string_2($object, $key1, $key2);
+        if ($value === null) {
+            return $default;
+        } else {
+            try {
+                return $this->number($value);
+            } catch (Exception $e) {
+                return $default;
+            }
+        }
     }
 }

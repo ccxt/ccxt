@@ -143,16 +143,16 @@ module.exports = class bitbank extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -162,7 +162,7 @@ module.exports = class bitbank extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -198,8 +198,8 @@ module.exports = class bitbank extends Exchange {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -209,7 +209,7 @@ module.exports = class bitbank extends Exchange {
         const id = this.safeString2 (trade, 'transaction_id', 'trade_id');
         const takerOrMaker = this.safeString (trade, 'maker_taker');
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee_amount_quote');
+        const feeCost = this.safeNumber (trade, 'fee_amount_quote');
         if (feeCost !== undefined) {
             fee = {
                 'currency': feeCurrency,
@@ -261,11 +261,11 @@ module.exports = class bitbank extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 5),
-            this.safeFloat (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
+            this.safeNumber (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
         ];
     }
 
@@ -317,9 +317,9 @@ module.exports = class bitbank extends Exchange {
             const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = {
-                'free': this.safeFloat (balance, 'free_amount'),
-                'used': this.safeFloat (balance, 'locked_amount'),
-                'total': this.safeFloat (balance, 'onhand_amount'),
+                'free': this.safeNumber (balance, 'free_amount'),
+                'used': this.safeNumber (balance, 'locked_amount'),
+                'total': this.safeNumber (balance, 'onhand_amount'),
             };
             result[code] = account;
         }
@@ -348,11 +348,11 @@ module.exports = class bitbank extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeInteger (order, 'ordered_at');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'start_amount');
-        const filled = this.safeFloat (order, 'executed_amount');
-        const remaining = this.safeFloat (order, 'remaining_amount');
-        const average = this.safeFloat (order, 'average_price');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'start_amount');
+        const filled = this.safeNumber (order, 'executed_amount');
+        const remaining = this.safeNumber (order, 'remaining_amount');
+        const average = this.safeNumber (order, 'average_price');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');

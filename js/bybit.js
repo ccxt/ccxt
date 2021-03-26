@@ -2228,7 +2228,8 @@ module.exports = class bybit extends Exchange {
                 'recv_window': this.options['recvWindow'],
                 'timestamp': timestamp,
             });
-            const auth = this.rawencode (this.keysort (query));
+            const sortedQuery = this.keysort (query);
+            const auth = this.rawencode (sortedQuery);
             const signature = this.hmac (this.encode (auth), this.encode (this.secret));
             if (method === 'POST') {
                 body = this.json (this.extend (query, {
@@ -2238,7 +2239,7 @@ module.exports = class bybit extends Exchange {
                     'Content-Type': 'application/json',
                 };
             } else {
-                request += '?' + auth + '&sign=' + signature;
+                request += '?' + this.urlencode (sortedQuery) + '&sign=' + signature;
             }
         }
         url += request;
@@ -2261,8 +2262,8 @@ module.exports = class bybit extends Exchange {
         //         time_now: '1583934106.590436'
         //     }
         //
-        const errorCode = this.safeValue (response, 'ret_code');
-        if (errorCode !== 0) {
+        const errorCode = this.safeString (response, 'ret_code');
+        if (errorCode !== '0') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);

@@ -167,8 +167,8 @@ class bit2c(Exchange):
             currencyId = self.currency_id(code)
             uppercase = currencyId.upper()
             if uppercase in balance:
-                account['free'] = self.safe_float(balance, 'AVAILABLE_' + uppercase)
-                account['total'] = self.safe_float(balance, uppercase)
+                account['free'] = self.safe_number(balance, 'AVAILABLE_' + uppercase)
+                account['total'] = self.safe_number(balance, uppercase)
             result[code] = account
         return self.parse_balance(result)
 
@@ -187,21 +187,21 @@ class bit2c(Exchange):
         }
         ticker = await self.publicGetExchangesPairTicker(self.extend(request, params))
         timestamp = self.milliseconds()
-        averagePrice = self.safe_float(ticker, 'av')
-        baseVolume = self.safe_float(ticker, 'a')
+        averagePrice = self.safe_number(ticker, 'av')
+        baseVolume = self.safe_number(ticker, 'a')
         quoteVolume = None
         if baseVolume is not None and averagePrice is not None:
             quoteVolume = baseVolume * averagePrice
-        last = self.safe_float(ticker, 'll')
+        last = self.safe_number(ticker, 'll')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_float(ticker, 'h'),
+            'bid': self.safe_number(ticker, 'h'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'l'),
+            'ask': self.safe_number(ticker, 'l'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -273,8 +273,8 @@ class bit2c(Exchange):
 
     def parse_order(self, order, market=None):
         timestamp = self.safe_integer(order, 'created')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -336,8 +336,8 @@ class bit2c(Exchange):
         reference = self.safe_string(trade, 'reference')
         if reference is not None:
             timestamp = self.safe_timestamp(trade, 'ticks')
-            price = self.safe_float(trade, 'price')
-            amount = self.safe_float(trade, 'firstAmount')
+            price = self.safe_number(trade, 'price')
+            amount = self.safe_number(trade, 'firstAmount')
             reference_parts = reference.split('|')  # reference contains 'pair|orderId|tradeId'
             if market is None:
                 marketId = self.safe_string(trade, 'pair')
@@ -352,12 +352,12 @@ class bit2c(Exchange):
                 side = 'buy'
             elif side == 1:
                 side = 'sell'
-            feeCost = self.safe_float(trade, 'feeAmount')
+            feeCost = self.safe_number(trade, 'feeAmount')
         else:
             timestamp = self.safe_timestamp(trade, 'date')
             id = self.safe_string(trade, 'tid')
-            price = self.safe_float(trade, 'price')
-            amount = self.safe_float(trade, 'amount')
+            price = self.safe_number(trade, 'price')
+            amount = self.safe_number(trade, 'amount')
             side = self.safe_value(trade, 'isBid')
             if side is not None:
                 if side:

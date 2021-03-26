@@ -484,14 +484,6 @@ module.exports = class crex24 extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTickers (tickers, symbols = undefined) {
-        const result = [];
-        for (let i = 0; i < tickers.length; i++) {
-            result.push (this.parseTicker (tickers[i]));
-        }
-        return this.filterByArray (result, 'symbol', symbols);
-    }
-
     parseTrade (trade, market = undefined) {
         //
         // public fetchTrades
