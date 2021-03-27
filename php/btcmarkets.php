@@ -249,11 +249,11 @@ class btcmarkets extends Exchange {
         $tagTo = $tag;
         $addressFrom = null;
         $tagFrom = null;
-        $fee = $this->safe_float($transaction, 'fee');
+        $fee = $this->safe_number($transaction, 'fee');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $currencyId = $this->safe_string($transaction, 'assetName');
         $code = $this->safe_currency_code($currencyId);
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         if ($fee) {
             $amount -= $fee;
         }
@@ -306,10 +306,10 @@ class btcmarkets extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $fees = $this->safe_value($this->safe_value($this->options, 'fees', array()), $quote, $this->fees);
-            $pricePrecision = $this->safe_float($market, 'priceDecimals');
-            $amountPrecision = $this->safe_float($market, 'amountDecimals');
-            $minAmount = $this->safe_float($market, 'minOrderAmount');
-            $maxAmount = $this->safe_float($market, 'maxOrderAmount');
+            $pricePrecision = $this->safe_number($market, 'priceDecimals');
+            $amountPrecision = $this->safe_number($market, 'amountDecimals');
+            $minAmount = $this->safe_number($market, 'minOrderAmount');
+            $maxAmount = $this->safe_number($market, 'maxOrderAmount');
             $minPrice = null;
             if ($quote === 'AUD') {
                 $minPrice = pow(10, -$pricePrecision);
@@ -368,8 +368,8 @@ class btcmarkets extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'assetName');
             $code = $this->safe_currency_code($currencyId);
-            $total = $this->safe_float($balance, 'balance');
-            $used = $this->safe_float($balance, 'locked');
+            $total = $this->safe_number($balance, 'balance');
+            $used = $this->safe_number($balance, 'locked');
             $account = $this->account();
             $account['used'] = $used;
             $account['total'] = $total;
@@ -391,11 +391,11 @@ class btcmarkets extends Exchange {
         //
         return array(
             $this->parse8601($this->safe_string($ohlcv, 0)),
-            $this->safe_float($ohlcv, 1), // open
-            $this->safe_float($ohlcv, 2), // high
-            $this->safe_float($ohlcv, 3), // low
-            $this->safe_float($ohlcv, 4), // close
-            $this->safe_float($ohlcv, 5), // volume
+            $this->safe_number($ohlcv, 1), // open
+            $this->safe_number($ohlcv, 2), // high
+            $this->safe_number($ohlcv, 3), // low
+            $this->safe_number($ohlcv, 4), // close
+            $this->safe_number($ohlcv, 5), // volume
         );
     }
 
@@ -491,21 +491,21 @@ class btcmarkets extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
-        $last = $this->safe_float($ticker, 'lastPrice');
-        $baseVolume = $this->safe_float($ticker, 'volume24h');
-        $quoteVolume = $this->safe_float($ticker, 'volumeQte24h');
+        $last = $this->safe_number($ticker, 'lastPrice');
+        $baseVolume = $this->safe_number($ticker, 'volume24h');
+        $quoteVolume = $this->safe_number($ticker, 'volumeQte24h');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        $change = $this->safe_float($ticker, 'price24h');
-        $percentage = $this->safe_float($ticker, 'pricePct24h');
+        $change = $this->safe_number($ticker, 'price24h');
+        $percentage = $this->safe_number($ticker, 'pricePct24h');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high24h'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bestBid'),
+            'high' => $this->safe_number($ticker, 'high24h'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bestBid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'bestAsk'),
+            'ask' => $this->safe_number($ticker, 'bestAsk'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
@@ -616,8 +616,8 @@ class btcmarkets extends Exchange {
             $side = 'sell';
         }
         $id = $this->safe_string($trade, 'id');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $cost = null;
         if ($amount !== null) {
             if ($price !== null) {
@@ -626,7 +626,7 @@ class btcmarkets extends Exchange {
         }
         $orderId = $this->safe_string($trade, 'orderId');
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
@@ -717,7 +717,7 @@ class btcmarkets extends Exchange {
             }
         }
         if ($triggerPriceIsRequired) {
-            $triggerPrice = $this->safe_float($params, 'triggerPrice');
+            $triggerPrice = $this->safe_number($params, 'triggerPrice');
             $params = $this->omit($params, 'triggerPrice');
             if ($triggerPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter for a ' . $type . 'order');
@@ -850,9 +850,9 @@ class btcmarkets extends Exchange {
             $side = 'sell';
         }
         $type = $this->safe_string_lower($order, 'type');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount');
-        $remaining = $this->safe_float($order, 'openAmount');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'amount');
+        $remaining = $this->safe_number($order, 'openAmount');
         $filled = null;
         if (($amount !== null) && ($remaining !== null)) {
             $filled = max (0, $amount - $remaining);
@@ -867,7 +867,7 @@ class btcmarkets extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        $stopPrice = $this->safe_float($order, 'triggerPrice');
+        $stopPrice = $this->safe_number($order, 'triggerPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
         return array(
             'info' => $order,
