@@ -1285,19 +1285,19 @@ module.exports = class Exchange {
         return this.createOrder (symbol, ...args)
     }
 
-    createLimitOrder (symbol, side, amount, price = undefined, params = {}) {
+    createLimitOrder (symbol, side, amount, price, params = {}) {
         return this.createOrder (symbol, 'limit', side, amount, price, params)
     }
 
-    createMarketOrder (symbol, side, amount, price = undefined, params = {}) {
+    createMarketOrder (symbol, side, amount, price, params = {}) {
         return this.createOrder (symbol, 'market', side, amount, price, params)
     }
 
-    createLimitBuyOrder (symbol, amount, price = undefined, params = {}) {
+    createLimitBuyOrder (symbol, amount, price, params = {}) {
         return this.createOrder  (symbol, 'limit', 'buy', amount, price, params)
     }
 
-    createLimitSellOrder (symbol, amount, price = undefined, params = {}) {
+    createLimitSellOrder (symbol, amount, price, params = {}) {
         return this.createOrder (symbol, 'limit', 'sell', amount, price, params)
     }
 
