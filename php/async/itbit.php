@@ -118,25 +118,25 @@ class itbit extends Exchange {
             throw new ExchangeError($this->id . ' fetchTicker returned a bad response => ' . $this->json($ticker));
         }
         $timestamp = $this->parse8601($serverTimeUTC);
-        $vwap = $this->safe_float($ticker, 'vwap24h');
-        $baseVolume = $this->safe_float($ticker, 'volume24h');
+        $vwap = $this->safe_number($ticker, 'vwap24h');
+        $baseVolume = $this->safe_number($ticker, 'volume24h');
         $quoteVolume = null;
         if ($baseVolume !== null && $vwap !== null) {
             $quoteVolume = $baseVolume * $vwap;
         }
-        $last = $this->safe_float($ticker, 'lastPrice');
+        $last = $this->safe_number($ticker, 'lastPrice');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high24h'),
-            'low' => $this->safe_float($ticker, 'low24h'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high24h'),
+            'low' => $this->safe_number($ticker, 'low24h'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => $this->safe_float($ticker, 'openToday'),
+            'open' => $this->safe_number($ticker, 'openToday'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -183,17 +183,17 @@ class itbit extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
         $side = $this->safe_string($trade, 'direction');
         $orderId = $this->safe_string($trade, 'orderId');
-        $feeCost = $this->safe_float($trade, 'commissionPaid');
+        $feeCost = $this->safe_number($trade, 'commissionPaid');
         $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
-        $rebatesApplied = $this->safe_float($trade, 'rebatesApplied');
+        $rebatesApplied = $this->safe_number($trade, 'rebatesApplied');
         if ($rebatesApplied !== null) {
             $rebatesApplied = -$rebatesApplied;
         }
         $rebateCurrencyId = $this->safe_string($trade, 'rebateCurrency');
         $rebateCurrency = $this->safe_currency_code($rebateCurrencyId);
-        $price = $this->safe_float_2($trade, 'price', 'rate');
-        $amount = $this->safe_float_2($trade, 'currency1Amount', 'amount');
+        $price = $this->safe_number_2($trade, 'price', 'rate');
+        $amount = $this->safe_number_2($trade, 'currency1Amount', 'amount');
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
@@ -321,7 +321,7 @@ class itbit extends Exchange {
                 'txid' => $txnHash,
                 'type' => $transactionType,
                 'status' => $status,
-                'amount' => $this->safe_float($item, 'amount'),
+                'amount' => $this->safe_number($item, 'amount'),
                 'fee' => null,
                 'info' => $item,
             );
@@ -421,8 +421,8 @@ class itbit extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'availableBalance');
-            $account['total'] = $this->safe_float($balance, 'totalBalance');
+            $account['free'] = $this->safe_number($balance, 'availableBalance');
+            $account['total'] = $this->safe_number($balance, 'totalBalance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -516,11 +516,11 @@ class itbit extends Exchange {
         $type = $this->safe_string($order, 'type');
         $symbol = $this->markets_by_id[$order['instrument']]['symbol'];
         $timestamp = $this->parse8601($order['createdTime']);
-        $amount = $this->safe_float($order, 'amount');
-        $filled = $this->safe_float($order, 'amountFilled');
+        $amount = $this->safe_number($order, 'amount');
+        $filled = $this->safe_number($order, 'amountFilled');
         $fee = null;
-        $price = $this->safe_float($order, 'price');
-        $average = $this->safe_float($order, 'volumeWeightedAveragePrice');
+        $price = $this->safe_number($order, 'price');
+        $average = $this->safe_number($order, 'volumeWeightedAveragePrice');
         $clientOrderId = $this->safe_string($order, 'clientOrderIdentifier');
         $id = $this->safe_string($order, 'id');
         $postOnlyString = $this->safe_string($order, 'postOnly');
