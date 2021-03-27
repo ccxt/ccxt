@@ -184,8 +184,8 @@ module.exports = class lykke extends Exchange {
         const id = this.safeString2 (trade, 'id', 'Id');
         const orderId = this.safeString (trade, 'OrderId');
         const timestamp = this.parse8601 (this.safeString2 (trade, 'dateTime', 'DateTime'));
-        const price = this.safeFloat2 (trade, 'price', 'Price');
-        let amount = this.safeFloat2 (trade, 'volume', 'Amount');
+        const price = this.safeNumber2 (trade, 'price', 'Price');
+        let amount = this.safeNumber2 (trade, 'volume', 'Amount');
         let side = this.safeStringLower (trade, 'action');
         if (side === undefined) {
             if (amount < 0) {
@@ -256,8 +256,8 @@ module.exports = class lykke extends Exchange {
             const currencyId = this.safeString (balance, 'AssetId');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'Balance');
-            account['used'] = this.safeFloat (balance, 'Reserved');
+            account['total'] = this.safeNumber (balance, 'Balance');
+            account['used'] = this.safeNumber (balance, 'Reserved');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -307,7 +307,7 @@ module.exports = class lykke extends Exchange {
         //     }
         //
         const id = this.safeString (result, 'Id');
-        price = this.safeFloat (result, 'Price');
+        price = this.safeNumber (result, 'Price');
         return {
             'id': id,
             'info': result,
@@ -398,16 +398,16 @@ module.exports = class lykke extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        const close = this.safeFloat (ticker, 'lastPrice');
+        const close = this.safeNumber (ticker, 'lastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeFloat (ticker, 'bid'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -418,7 +418,7 @@ module.exports = class lykke extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'volume24H'),
+            'quoteVolume': this.safeNumber (ticker, 'volume24H'),
             'info': ticker,
         };
     }
@@ -476,16 +476,16 @@ module.exports = class lykke extends Exchange {
         } else if (('CreatedAt' in order) && (order['CreatedAt'])) {
             timestamp = this.parse8601 (order['CreatedAt']);
         }
-        const price = this.safeFloat (order, 'Price');
+        const price = this.safeNumber (order, 'Price');
         let side = undefined;
-        let amount = this.safeFloat (order, 'Volume');
+        let amount = this.safeNumber (order, 'Volume');
         if (amount < 0) {
             side = 'sell';
             amount = Math.abs (amount);
         } else {
             side = 'buy';
         }
-        const remaining = Math.abs (this.safeFloat (order, 'RemainingVolume'));
+        const remaining = Math.abs (this.safeNumber (order, 'RemainingVolume'));
         const id = this.safeString (order, 'Id');
         return this.safeOrder ({
             'info': order,
@@ -570,8 +570,8 @@ module.exports = class lykke extends Exchange {
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        const price = this.safeFloat (bidask, priceKey);
-        let amount = this.safeFloat (bidask, amountKey);
+        const price = this.safeNumber (bidask, priceKey);
+        let amount = this.safeNumber (bidask, amountKey);
         if (amount < 0) {
             amount = -amount;
         }
