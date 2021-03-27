@@ -153,12 +153,12 @@ module.exports = class luno extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'min_volume'),
-                        'max': this.safeFloat (market, 'max_volume'),
+                        'min': this.safeNumber (market, 'min_volume'),
+                        'max': this.safeNumber (market, 'max_volume'),
                     },
                     'price': {
-                        'min': this.safeFloat (market, 'min_price'),
-                        'max': this.safeFloat (market, 'max_price'),
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
                         'min': undefined,
@@ -209,9 +209,9 @@ module.exports = class luno extends Exchange {
             const wallet = wallets[i];
             const currencyId = this.safeString (wallet, 'asset');
             const code = this.safeCurrencyCode (currencyId);
-            const reserved = this.safeFloat (wallet, 'reserved');
-            const unconfirmed = this.safeFloat (wallet, 'unconfirmed');
-            const balance = this.safeFloat (wallet, 'balance');
+            const reserved = this.safeNumber (wallet, 'reserved');
+            const unconfirmed = this.safeNumber (wallet, 'unconfirmed');
+            const balance = this.safeNumber (wallet, 'balance');
             if (code in result) {
                 result[code]['used'] = this.sum (result[code]['used'], reserved, unconfirmed);
                 result[code]['total'] = this.sum (result[code]['total'], balance, unconfirmed);
@@ -273,12 +273,12 @@ module.exports = class luno extends Exchange {
         const side = (order['type'] === 'ASK') ? 'sell' : 'buy';
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const price = this.safeFloat (order, 'limit_price');
-        const amount = this.safeFloat (order, 'limit_volume');
-        const quoteFee = this.safeFloat (order, 'fee_counter');
-        const baseFee = this.safeFloat (order, 'fee_base');
-        const filled = this.safeFloat (order, 'base');
-        const cost = this.safeFloat (order, 'counter');
+        const price = this.safeNumber (order, 'limit_price');
+        const amount = this.safeNumber (order, 'limit_volume');
+        const quoteFee = this.safeNumber (order, 'fee_counter');
+        const baseFee = this.safeNumber (order, 'fee_base');
+        const filled = this.safeNumber (order, 'base');
+        const cost = this.safeNumber (order, 'counter');
         const fee = { 'currency': undefined };
         if (quoteFee) {
             fee['cost'] = quoteFee;
@@ -360,16 +360,16 @@ module.exports = class luno extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last_trade');
+        const last = this.safeNumber (ticker, 'last_trade');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeFloat (ticker, 'bid'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -379,7 +379,7 @@ module.exports = class luno extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'rolling_24_hour_volume'),
+            'baseVolume': this.safeNumber (ticker, 'rolling_24_hour_volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -430,8 +430,8 @@ module.exports = class luno extends Exchange {
         } else {
             side = trade['is_buy'] ? 'buy' : 'sell';
         }
-        const feeBase = this.safeFloat (trade, 'fee_base');
-        const feeCounter = this.safeFloat (trade, 'fee_counter');
+        const feeBase = this.safeNumber (trade, 'fee_base');
+        const feeCounter = this.safeNumber (trade, 'fee_counter');
         let feeCurrency = undefined;
         let feeCost = undefined;
         if (feeBase !== undefined) {
@@ -456,10 +456,10 @@ module.exports = class luno extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'volume'),
+            'price': this.safeNumber (trade, 'price'),
+            'amount': this.safeNumber (trade, 'volume'),
             // Does not include potential fee costs
-            'cost': this.safeFloat (trade, 'counter'),
+            'cost': this.safeNumber (trade, 'counter'),
             'fee': {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -506,8 +506,8 @@ module.exports = class luno extends Exchange {
         const response = await this.privateGetFeeInfo (params);
         return {
             'info': response,
-            'maker': this.safeFloat (response, 'maker_fee'),
-            'taker': this.safeFloat (response, 'taker_fee'),
+            'maker': this.safeNumber (response, 'maker_fee'),
+            'taker': this.safeNumber (response, 'taker_fee'),
         };
     }
 
@@ -641,9 +641,9 @@ module.exports = class luno extends Exchange {
         const timestamp = this.safeValue (entry, 'timestamp');
         const currencyId = this.safeString (entry, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const available_delta = this.safeFloat (entry, 'available_delta');
-        const balance_delta = this.safeFloat (entry, 'balance_delta');
-        const after = this.safeFloat (entry, 'balance');
+        const available_delta = this.safeNumber (entry, 'available_delta');
+        const balance_delta = this.safeNumber (entry, 'balance_delta');
+        const after = this.safeNumber (entry, 'balance');
         const comment = this.safeString (entry, 'description');
         let before = after;
         let amount = 0.0;
