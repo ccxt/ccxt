@@ -236,7 +236,7 @@ module.exports = class liquid extends Exchange {
                 'info': currency,
                 'name': code,
                 'active': active,
-                'fee': this.safeFloat (currency, 'withdrawal_fee'),
+                'fee': this.safeNumber (currency, 'withdrawal_fee'),
                 'precision': decimalPrecision,
                 'limits': {
                     'amount': {
@@ -252,7 +252,7 @@ module.exports = class liquid extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'minimum_withdrawal'),
+                        'min': this.safeNumber (currency, 'minimum_withdrawal'),
                         'max': undefined,
                     },
                 },
@@ -377,19 +377,19 @@ module.exports = class liquid extends Exchange {
             let maker = this.fees['trading']['maker'];
             let taker = this.fees['trading']['taker'];
             if (type === 'swap') {
-                maker = this.safeFloat (market, 'maker_fee', this.fees['trading']['maker']);
-                taker = this.safeFloat (market, 'taker_fee', this.fees['trading']['taker']);
+                maker = this.safeNumber (market, 'maker_fee', this.fees['trading']['maker']);
+                taker = this.safeNumber (market, 'taker_fee', this.fees['trading']['taker']);
             }
             const disabled = this.safeValue (market, 'disabled', false);
             const active = !disabled;
             const baseCurrency = this.safeValue (currenciesByCode, base);
             const precision = {
                 'amount': 0.00000001,
-                'price': this.safeFloat (market, 'tick_size'),
+                'price': this.safeNumber (market, 'tick_size'),
             };
             let minAmount = undefined;
             if (baseCurrency !== undefined) {
-                minAmount = this.safeFloat (baseCurrency['info'], 'minimum_order_quantity');
+                minAmount = this.safeNumber (baseCurrency['info'], 'minimum_order_quantity');
             }
             const limits = {
                 'amount': {
@@ -471,8 +471,8 @@ module.exports = class liquid extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'reserved_balance');
+            account['total'] = this.safeNumber (balance, 'balance');
+            account['used'] = this.safeNumber (balance, 'reserved_balance');
             result[code] = account;
         }
         for (let i = 0; i < fiat.length; i++) {
@@ -480,8 +480,8 @@ module.exports = class liquid extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'reserved_balance');
+            account['total'] = this.safeNumber (balance, 'balance');
+            account['used'] = this.safeNumber (balance, 'reserved_balance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -503,7 +503,7 @@ module.exports = class liquid extends Exchange {
             if (ticker['last_traded_price']) {
                 const length = ticker['last_traded_price'].length;
                 if (length > 0) {
-                    last = this.safeFloat (ticker, 'last_traded_price');
+                    last = this.safeNumber (ticker, 'last_traded_price');
                 }
             }
         }
@@ -528,7 +528,7 @@ module.exports = class liquid extends Exchange {
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
-        const open = this.safeFloat (ticker, 'last_price_24h');
+        const open = this.safeNumber (ticker, 'last_price_24h');
         if (open !== undefined && last !== undefined) {
             change = last - open;
             average = this.sum (last, open) / 2;
@@ -540,11 +540,11 @@ module.exports = class liquid extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high_market_ask'),
-            'low': this.safeFloat (ticker, 'low_market_bid'),
-            'bid': this.safeFloat (ticker, 'market_bid'),
+            'high': this.safeNumber (ticker, 'high_market_ask'),
+            'low': this.safeNumber (ticker, 'low_market_bid'),
+            'bid': this.safeNumber (ticker, 'market_bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'market_ask'),
+            'ask': this.safeNumber (ticker, 'market_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -554,7 +554,7 @@ module.exports = class liquid extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'volume_24h'),
+            'baseVolume': this.safeNumber (ticker, 'volume_24h'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -601,8 +601,8 @@ module.exports = class liquid extends Exchange {
             takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
         }
         let cost = undefined;
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'quantity');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'quantity');
         if (price !== undefined) {
             if (amount !== undefined) {
                 cost = price * amount;
@@ -810,9 +810,9 @@ module.exports = class liquid extends Exchange {
         const marketId = this.safeString (order, 'product_id');
         market = this.safeValue (this.markets_by_id, marketId);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const amount = this.safeFloat (order, 'quantity');
-        let filled = this.safeFloat (order, 'filled_quantity');
-        const price = this.safeFloat (order, 'price');
+        const amount = this.safeNumber (order, 'quantity');
+        let filled = this.safeNumber (order, 'filled_quantity');
+        const price = this.safeNumber (order, 'price');
         let symbol = undefined;
         let feeCurrency = undefined;
         if (market !== undefined) {
@@ -822,7 +822,7 @@ module.exports = class liquid extends Exchange {
         const type = this.safeString (order, 'order_type');
         let tradeCost = 0;
         let tradeFilled = 0;
-        let average = this.safeFloat (order, 'average_price');
+        let average = this.safeNumber (order, 'average_price');
         const trades = this.parseTrades (this.safeValue (order, 'executions', []), market, undefined, undefined, {
             'order': orderId,
             'type': type,
@@ -879,7 +879,7 @@ module.exports = class liquid extends Exchange {
             'trades': trades,
             'fee': {
                 'currency': feeCurrency,
-                'cost': this.safeFloat (order, 'order_fee'),
+                'cost': this.safeNumber (order, 'order_fee'),
             },
             'info': order,
         };
@@ -1034,7 +1034,7 @@ module.exports = class liquid extends Exchange {
         const updated = this.safeTimestamp (transaction, 'updated_at');
         const type = 'withdrawal';
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const amount = this.safeFloat (transaction, 'amount');
+        const amount = this.safeNumber (transaction, 'amount');
         return {
             'info': transaction,
             'id': id,
