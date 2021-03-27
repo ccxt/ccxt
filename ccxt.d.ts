@@ -356,7 +356,9 @@ declare module 'ccxt' {
         checkRequiredCredentials (): void;
         commonCurrencyCode (currency: string): string;
         createDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
-        createLimitOrder (symbol: string, side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
+        createLimitOrder (symbol: string, side: Order['side'], amount: number, price: number, params?: Params): Promise<Order>;
+        createLimitBuyOrder (symbol: string, amount: number, price: number, params?: Params): Promise<Order>;
+        createLimitSellOrder (symbol: string, amount: number, price: number, params?: Params): Promise<Order>;
         createMarketOrder (symbol: string, side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
         createOrder (symbol: string, type: Order['type'], side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
         decode (str: string): string;
