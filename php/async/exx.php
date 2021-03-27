@@ -152,26 +152,26 @@ class exx extends Exchange {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 'date');
         $ticker = $ticker['ticker'];
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'riseRate'),
+            'change' => $this->safe_number($ticker, 'riseRate'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -221,8 +221,8 @@ class exx extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'date');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
@@ -274,9 +274,9 @@ class exx extends Exchange {
             $balance = $balances[$currencyId];
             $code = $this->safe_currency_code($currencyId);
             $account = array(
-                'free' => $this->safe_float($balance, 'balance'),
-                'used' => $this->safe_float($balance, 'freeze'),
-                'total' => $this->safe_float($balance, 'total'),
+                'free' => $this->safe_number($balance, 'balance'),
+                'used' => $this->safe_number($balance, 'freeze'),
+                'total' => $this->safe_number($balance, 'total'),
             );
             $result[$code] = $account;
         }
@@ -300,10 +300,10 @@ class exx extends Exchange {
         //
         $symbol = $market['symbol'];
         $timestamp = intval($order['trade_date']);
-        $price = $this->safe_float($order, 'price');
-        $cost = $this->safe_float($order, 'trade_money');
-        $amount = $this->safe_float($order, 'total_amount');
-        $filled = $this->safe_float($order, 'trade_amount', 0.0);
+        $price = $this->safe_number($order, 'price');
+        $cost = $this->safe_number($order, 'trade_money');
+        $amount = $this->safe_number($order, 'total_amount');
+        $filled = $this->safe_number($order, 'trade_amount', 0.0);
         $status = $this->safe_integer($order, 'status');
         if ($status === 1) {
             $status = 'canceled';
@@ -315,7 +315,7 @@ class exx extends Exchange {
         $fee = null;
         if (is_array($order) && array_key_exists('fees', $order)) {
             $fee = array(
-                'cost' => $this->safe_float($order, 'fees'),
+                'cost' => $this->safe_number($order, 'fees'),
                 'currency' => $market['quote'],
             );
         }
