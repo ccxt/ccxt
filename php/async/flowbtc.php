@@ -133,8 +133,8 @@ class flowbtc extends Exchange {
             $currencyId = $balance['name'];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'balance');
-            $account['total'] = $this->safe_float($balance, 'hold');
+            $account['free'] = $this->safe_number($balance, 'balance');
+            $account['total'] = $this->safe_number($balance, 'hold');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -158,16 +158,16 @@ class flowbtc extends Exchange {
         );
         $ticker = yield $this->publicPostGetTicker (array_merge($request, $params));
         $timestamp = $this->milliseconds();
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -177,8 +177,8 @@ class flowbtc extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume24hr'),
-            'quoteVolume' => $this->safe_float($ticker, 'volume24hrProduct2'),
+            'baseVolume' => $this->safe_number($ticker, 'volume24hr'),
+            'quoteVolume' => $this->safe_number($ticker, 'volume24hrProduct2'),
             'info' => $ticker,
         );
     }
@@ -187,8 +187,8 @@ class flowbtc extends Exchange {
         $timestamp = $this->safe_timestamp($trade, 'unixtime');
         $side = ($trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
         $id = $this->safe_string($trade, 'tid');
-        $price = $this->safe_float($trade, 'px');
-        $amount = $this->safe_float($trade, 'qty');
+        $price = $this->safe_number($trade, 'px');
+        $amount = $this->safe_number($trade, 'qty');
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
