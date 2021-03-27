@@ -190,6 +190,7 @@ class stex extends Exchange {
                 'BITSW' => 'BITS',
                 'BHD' => 'Bithold',
                 'BTH' => 'Bithereum',
+                'MPH' => 'Chasyr Token',
                 'SBTC' => 'SBTCT', // SiamBitcoin
             ),
             'options' => array(

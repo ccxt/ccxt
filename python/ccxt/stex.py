@@ -195,6 +195,7 @@ class stex(Exchange):
                 'BITSW': 'BITS',
                 'BHD': 'Bithold',
                 'BTH': 'Bithereum',
+                'MPH': 'Chasyr Token',
                 'SBTC': 'SBTCT',  # SiamBitcoin
             },
             'options': {
