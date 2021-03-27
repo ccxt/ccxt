@@ -806,7 +806,7 @@ class bitget(Exchange):
         swap = False
         baseId = self.safe_string_2(market, 'base_currency', 'coin')
         quoteId = self.safe_string(market, 'quote_currency')
-        contractVal = self.safe_float(market, 'contract_val')
+        contractVal = self.safe_number(market, 'contract_val')
         if contractVal is not None:
             marketType = 'swap'
             spot = False
@@ -822,7 +822,7 @@ class bitget(Exchange):
             'amount': float('1e-' + sizeIncrement),
             'price': float('1e-' + tickSize),
         }
-        minAmount = self.safe_float_2(market, 'min_size', 'base_min_size')
+        minAmount = self.safe_number_2(market, 'min_size', 'base_min_size')
         status = self.safe_string(market, 'status')
         active = None
         if status is not None:
@@ -1068,24 +1068,24 @@ class bitget(Exchange):
                 symbol = marketId
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        last = self.safe_float_2(ticker, 'last', 'close')
-        open = self.safe_float(ticker, 'open')
+        last = self.safe_number_2(ticker, 'last', 'close')
+        open = self.safe_number(ticker, 'open')
         bidVolume = None
         askVolume = None
         bid = self.safe_value(ticker, 'bid')
         if bid is None:
-            bid = self.safe_float(ticker, 'best_bid')
+            bid = self.safe_number(ticker, 'best_bid')
         else:
-            bidVolume = self.safe_float(bid, 1)
-            bid = self.safe_float(bid, 0)
+            bidVolume = self.safe_number(bid, 1)
+            bid = self.safe_number(bid, 0)
         ask = self.safe_value(ticker, 'ask')
         if ask is None:
-            ask = self.safe_float(ticker, 'best_ask')
+            ask = self.safe_number(ticker, 'best_ask')
         else:
-            askVolume = self.safe_float(ask, 1)
-            ask = self.safe_float(ask, 0)
-        baseVolume = self.safe_float_2(ticker, 'amount', 'volume_24h')
-        quoteVolume = self.safe_float(ticker, 'vol')
+            askVolume = self.safe_number(ask, 1)
+            ask = self.safe_number(ask, 0)
+        baseVolume = self.safe_number_2(ticker, 'amount', 'volume_24h')
+        quoteVolume = self.safe_number(ticker, 'vol')
         vwap = self.vwap(baseVolume, quoteVolume)
         change = None
         percentage = None
@@ -1098,8 +1098,8 @@ class bitget(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float_2(ticker, 'high', 'high_24h'),
-            'low': self.safe_float_2(ticker, 'low', 'low_24h'),
+            'high': self.safe_number_2(ticker, 'high', 'high_24h'),
+            'low': self.safe_number_2(ticker, 'low', 'low_24h'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
@@ -1323,9 +1323,9 @@ class bitget(Exchange):
             quote = market['quote']
         timestamp = self.safe_integer(trade, 'created_at')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'ts', timestamp)
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float_2(trade, 'filled_amount', 'order_qty')
-        amount = self.safe_float_2(trade, 'size', 'amount', amount)
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number_2(trade, 'filled_amount', 'order_qty')
+        amount = self.safe_number_2(trade, 'size', 'amount', amount)
         takerOrMaker = self.safe_string_2(trade, 'exec_type', 'liquidity')
         if takerOrMaker == 'M':
             takerOrMaker = 'maker'
@@ -1346,9 +1346,9 @@ class bitget(Exchange):
         if amount is not None:
             if price is not None:
                 cost = amount * price
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         if feeCost is None:
-            feeCost = self.safe_float(trade, 'filled_fees')
+            feeCost = self.safe_number(trade, 'filled_fees')
         else:
             feeCost = -feeCost
         fee = None
@@ -1465,23 +1465,23 @@ class bitget(Exchange):
             volumeIndex = self.safe_string(volume, market['type'], 'amount')
             return [
                 self.safe_integer(ohlcv, 0),         # timestamp
-                self.safe_float(ohlcv, 1),           # Open
-                self.safe_float(ohlcv, 2),           # High
-                self.safe_float(ohlcv, 3),           # Low
-                self.safe_float(ohlcv, 4),           # Close
-                # self.safe_float(ohlcv, 5),        # Quote Volume
-                # self.safe_float(ohlcv, 6),        # Base Volume
-                self.safe_float(ohlcv, volumeIndex),  # Volume, bitget will return base volume in the 7th element for future markets
+                self.safe_number(ohlcv, 1),           # Open
+                self.safe_number(ohlcv, 2),           # High
+                self.safe_number(ohlcv, 3),           # Low
+                self.safe_number(ohlcv, 4),           # Close
+                # self.safe_number(ohlcv, 5),        # Quote Volume
+                # self.safe_number(ohlcv, 6),        # Base Volume
+                self.safe_number(ohlcv, volumeIndex),  # Volume, bitget will return base volume in the 7th element for future markets
             ]
         else:
             volumeIndex = self.safe_value(volume, market['type'], 6)
             return [
                 self.safe_integer(ohlcv, 'id'),
-                self.safe_float(ohlcv, 'open'),      # Open
-                self.safe_float(ohlcv, 'high'),      # High
-                self.safe_float(ohlcv, 'low'),       # Low
-                self.safe_float(ohlcv, 'close'),     # Close
-                self.safe_float(ohlcv, volumeIndex),  # Base Volume
+                self.safe_number(ohlcv, 'open'),      # Open
+                self.safe_number(ohlcv, 'high'),      # High
+                self.safe_number(ohlcv, 'low'),       # Low
+                self.safe_number(ohlcv, 'close'),     # Close
+                self.safe_number(ohlcv, volumeIndex),  # Base Volume
             ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -1573,10 +1573,10 @@ class bitget(Exchange):
                 result[code] = account
             type = self.safe_value(balance, 'type')
             if type == 'trade':
-                result[code]['free'] = self.safe_float(balance, 'balance')
+                result[code]['free'] = self.safe_number(balance, 'balance')
             elif (type == 'frozen') or (type == 'lock'):
-                used = self.safe_float(result[code], 'used')
-                result[code]['used'] = self.sum(used, self.safe_float(balance, 'balance'))
+                used = self.safe_number(result[code], 'used')
+                result[code]['used'] = self.sum(used, self.safe_number(balance, 'balance'))
         return self.parse_balance(result)
 
     def parse_swap_balance(self, response):
@@ -1599,8 +1599,8 @@ class bitget(Exchange):
                 symbol = self.markets_by_id[marketId]['symbol']
             account = self.account()
             # it may be incorrect to use total, free and used for swap accounts
-            account['total'] = self.safe_float(balance, 'equity')
-            account['free'] = self.safe_float(balance, 'total_avail_balance')
+            account['total'] = self.safe_number(balance, 'equity')
+            account['free'] = self.safe_number(balance, 'total_avail_balance')
             result[symbol] = account
         return self.parse_balance(result)
 
@@ -1859,13 +1859,13 @@ class bitget(Exchange):
                 symbol = marketId.upper()
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        amount = self.safe_float_2(order, 'amount', 'size')
-        filled = self.safe_float_2(order, 'filled_amount', 'filled_qty')
-        cost = self.safe_float(order, 'filled_cash_amount')
-        price = self.safe_float(order, 'price')
-        average = self.safe_float(order, 'price_avg')
+        amount = self.safe_number_2(order, 'amount', 'size')
+        filled = self.safe_number_2(order, 'filled_amount', 'filled_qty')
+        cost = self.safe_number(order, 'filled_cash_amount')
+        price = self.safe_number(order, 'price')
+        average = self.safe_number(order, 'price_avg')
         status = self.parse_order_status(self.safe_string_2(order, 'state', 'status'))
-        feeCost = self.safe_float_2(order, 'filled_fees', 'fee')
+        feeCost = self.safe_number_2(order, 'filled_fees', 'fee')
         fee = None
         if feeCost is not None:
             feeCurrency = None
@@ -1942,7 +1942,7 @@ class bitget(Exchange):
             elif type == 'market':
                 # for market buy it requires the amount of quote currency to spend
                 if side == 'buy':
-                    cost = self.safe_float(params, 'amount')
+                    cost = self.safe_number(params, 'amount')
                     createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
                     if createMarketBuyOrderRequiresPrice:
                         if price is not None:
@@ -2450,12 +2450,12 @@ class bitget(Exchange):
             type = 'deposit'
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         txid = self.safe_string(transaction, 'tx_hash')
         timestamp = self.safe_integer(transaction, 'created_at')
         updated = self.safe_integer(transaction, 'updated_at')
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         fee = None
         if feeCost is not None:
             fee = {
