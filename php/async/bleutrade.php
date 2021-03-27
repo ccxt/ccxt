@@ -167,8 +167,8 @@ class bleutrade extends Exchange {
                 'code' => $code,
                 'name' => $this->safe_string($item, 'AssetLong'),
                 'active' => $this->safe_value($item, 'IsActive') && !$this->safe_value($item, 'MaintenanceMode'),
-                'fee' => $this->safe_float($item, 'WithdrawTxFee'),
-                'precision' => $this->safe_float($item, 'DecimalPlaces'),
+                'fee' => $this->safe_number($item, 'WithdrawTxFee'),
+                'precision' => $this->safe_number($item, 'DecimalPlaces'),
                 'info' => $item,
                 'limits' => $this->limits,
             );
@@ -220,7 +220,7 @@ class bleutrade extends Exchange {
                 'taker' => $this->fees['trading']['taker'],
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'MinTradeSize'),
+                        'min' => $this->safe_number($market, 'MinTradeSize'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -296,8 +296,8 @@ class bleutrade extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($ticker, 'TimeStamp'));
         $marketId = $this->safe_string($ticker, 'MarketName');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $previous = $this->safe_float($ticker, 'PrevDay');
-        $last = $this->safe_float($ticker, 'Last');
+        $previous = $this->safe_number($ticker, 'PrevDay');
+        $last = $this->safe_number($ticker, 'Last');
         $change = null;
         $percentage = null;
         if ($last !== null) {
@@ -312,11 +312,11 @@ class bleutrade extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'High'),
-            'low' => $this->safe_float($ticker, 'Low'),
-            'bid' => $this->safe_float($ticker, 'Bid'),
+            'high' => $this->safe_number($ticker, 'High'),
+            'low' => $this->safe_number($ticker, 'Low'),
+            'bid' => $this->safe_number($ticker, 'Bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'Ask'),
+            'ask' => $this->safe_number($ticker, 'Ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $previous,
@@ -326,8 +326,8 @@ class bleutrade extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'Volume'),
-            'quoteVolume' => $this->safe_float($ticker, 'BaseVolume'),
+            'baseVolume' => $this->safe_number($ticker, 'Volume'),
+            'quoteVolume' => $this->safe_number($ticker, 'BaseVolume'),
             'info' => $ticker,
         );
     }
@@ -335,11 +335,11 @@ class bleutrade extends Exchange {
     public function parse_ohlcv($ohlcv, $market = null) {
         return [
             $this->parse8601($ohlcv['TimeStamp'] . '+00:00'),
-            $this->safe_float($ohlcv, 'Open'),
-            $this->safe_float($ohlcv, 'High'),
-            $this->safe_float($ohlcv, 'Low'),
-            $this->safe_float($ohlcv, 'Close'),
-            $this->safe_float($ohlcv, 'Volume'),
+            $this->safe_number($ohlcv, 'Open'),
+            $this->safe_number($ohlcv, 'High'),
+            $this->safe_number($ohlcv, 'Low'),
+            $this->safe_number($ohlcv, 'Close'),
+            $this->safe_number($ohlcv, 'Volume'),
         ];
     }
 
@@ -415,8 +415,8 @@ class bleutrade extends Exchange {
             $currencyId = $this->safe_string($item, 'Asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($item, 'Available');
-            $account['total'] = $this->safe_float($item, 'Balance');
+            $account['free'] = $this->safe_number($item, 'Available');
+            $account['total'] = $this->safe_number($item, 'Balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -562,7 +562,7 @@ class bleutrade extends Exchange {
             //
         }
         $timestamp = $this->parse8601($this->safe_string($item, 'TimeStamp'));
-        $amount = $this->safe_float($item, 'Amount');
+        $amount = $this->safe_number($item, 'Amount');
         $direction = null;
         if ($amount !== null) {
             $direction = 'in';
@@ -636,10 +636,10 @@ class bleutrade extends Exchange {
         if (is_array($order) && array_key_exists('Created', $order)) {
             $timestamp = $this->parse8601($order['Created'] . '+00:00');
         }
-        $price = $this->safe_float($order, 'Price');
-        $amount = $this->safe_float($order, 'Quantity');
-        $remaining = $this->safe_float($order, 'QuantityRemaining');
-        $average = $this->safe_float($order, 'PricePerUnit');
+        $price = $this->safe_number($order, 'Price');
+        $amount = $this->safe_number($order, 'Quantity');
+        $remaining = $this->safe_number($order, 'QuantityRemaining');
+        $average = $this->safe_number($order, 'PricePerUnit');
         $id = $this->safe_string($order, 'OrderID');
         return $this->safe_order(array(
             'info' => $order,
@@ -700,7 +700,7 @@ class bleutrade extends Exchange {
         //     Symbol => 'BTC' }
         //
         $id = $this->safe_string($transaction, 'ID');
-        $amount = $this->safe_float($transaction, 'Amount');
+        $amount = $this->safe_number($transaction, 'Amount');
         $type = 'deposit';
         if ($amount < 0) {
             $amount = abs($amount);

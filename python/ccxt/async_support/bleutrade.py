@@ -170,8 +170,8 @@ class bleutrade(Exchange):
                 'code': code,
                 'name': self.safe_string(item, 'AssetLong'),
                 'active': self.safe_value(item, 'IsActive') and not self.safe_value(item, 'MaintenanceMode'),
-                'fee': self.safe_float(item, 'WithdrawTxFee'),
-                'precision': self.safe_float(item, 'DecimalPlaces'),
+                'fee': self.safe_number(item, 'WithdrawTxFee'),
+                'precision': self.safe_number(item, 'DecimalPlaces'),
                 'info': item,
                 'limits': self.limits,
             }
@@ -221,7 +221,7 @@ class bleutrade(Exchange):
                 'taker': self.fees['trading']['taker'],
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'MinTradeSize'),
+                        'min': self.safe_number(market, 'MinTradeSize'),
                         'max': None,
                     },
                     'price': {
@@ -289,8 +289,8 @@ class bleutrade(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'TimeStamp'))
         marketId = self.safe_string(ticker, 'MarketName')
         symbol = self.safe_symbol(marketId, market, '_')
-        previous = self.safe_float(ticker, 'PrevDay')
-        last = self.safe_float(ticker, 'Last')
+        previous = self.safe_number(ticker, 'PrevDay')
+        last = self.safe_number(ticker, 'Last')
         change = None
         percentage = None
         if last is not None:
@@ -302,11 +302,11 @@ class bleutrade(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'High'),
-            'low': self.safe_float(ticker, 'Low'),
-            'bid': self.safe_float(ticker, 'Bid'),
+            'high': self.safe_number(ticker, 'High'),
+            'low': self.safe_number(ticker, 'Low'),
+            'bid': self.safe_number(ticker, 'Bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'Ask'),
+            'ask': self.safe_number(ticker, 'Ask'),
             'askVolume': None,
             'vwap': None,
             'open': previous,
@@ -316,19 +316,19 @@ class bleutrade(Exchange):
             'change': change,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'Volume'),
-            'quoteVolume': self.safe_float(ticker, 'BaseVolume'),
+            'baseVolume': self.safe_number(ticker, 'Volume'),
+            'quoteVolume': self.safe_number(ticker, 'BaseVolume'),
             'info': ticker,
         }
 
     def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.parse8601(ohlcv['TimeStamp'] + '+00:00'),
-            self.safe_float(ohlcv, 'Open'),
-            self.safe_float(ohlcv, 'High'),
-            self.safe_float(ohlcv, 'Low'),
-            self.safe_float(ohlcv, 'Close'),
-            self.safe_float(ohlcv, 'Volume'),
+            self.safe_number(ohlcv, 'Open'),
+            self.safe_number(ohlcv, 'High'),
+            self.safe_number(ohlcv, 'Low'),
+            self.safe_number(ohlcv, 'Close'),
+            self.safe_number(ohlcv, 'Volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
@@ -396,8 +396,8 @@ class bleutrade(Exchange):
             currencyId = self.safe_string(item, 'Asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(item, 'Available')
-            account['total'] = self.safe_float(item, 'Balance')
+            account['free'] = self.safe_number(item, 'Available')
+            account['total'] = self.safe_number(item, 'Balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -531,7 +531,7 @@ class bleutrade(Exchange):
             #     }
             #
         timestamp = self.parse8601(self.safe_string(item, 'TimeStamp'))
-        amount = self.safe_float(item, 'Amount')
+        amount = self.safe_number(item, 'Amount')
         direction = None
         if amount is not None:
             direction = 'in'
@@ -600,10 +600,10 @@ class bleutrade(Exchange):
         timestamp = None
         if 'Created' in order:
             timestamp = self.parse8601(order['Created'] + '+00:00')
-        price = self.safe_float(order, 'Price')
-        amount = self.safe_float(order, 'Quantity')
-        remaining = self.safe_float(order, 'QuantityRemaining')
-        average = self.safe_float(order, 'PricePerUnit')
+        price = self.safe_number(order, 'Price')
+        amount = self.safe_number(order, 'Quantity')
+        remaining = self.safe_number(order, 'QuantityRemaining')
+        average = self.safe_number(order, 'PricePerUnit')
         id = self.safe_string(order, 'OrderID')
         return self.safe_order({
             'info': order,
@@ -662,7 +662,7 @@ class bleutrade(Exchange):
         #     Symbol: 'BTC'}
         #
         id = self.safe_string(transaction, 'ID')
-        amount = self.safe_float(transaction, 'Amount')
+        amount = self.safe_number(transaction, 'Amount')
         type = 'deposit'
         if amount < 0:
             amount = abs(amount)
