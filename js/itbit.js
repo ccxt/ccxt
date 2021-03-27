@@ -114,25 +114,25 @@ module.exports = class itbit extends Exchange {
             throw new ExchangeError (this.id + ' fetchTicker returned a bad response: ' + this.json (ticker));
         }
         const timestamp = this.parse8601 (serverTimeUTC);
-        const vwap = this.safeFloat (ticker, 'vwap24h');
-        const baseVolume = this.safeFloat (ticker, 'volume24h');
+        const vwap = this.safeNumber (ticker, 'vwap24h');
+        const baseVolume = this.safeNumber (ticker, 'volume24h');
         let quoteVolume = undefined;
         if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
         }
-        const last = this.safeFloat (ticker, 'lastPrice');
+        const last = this.safeNumber (ticker, 'lastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high24h'),
-            'low': this.safeFloat (ticker, 'low24h'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high24h'),
+            'low': this.safeNumber (ticker, 'low24h'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
-            'open': this.safeFloat (ticker, 'openToday'),
+            'open': this.safeNumber (ticker, 'openToday'),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -179,17 +179,17 @@ module.exports = class itbit extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const side = this.safeString (trade, 'direction');
         const orderId = this.safeString (trade, 'orderId');
-        let feeCost = this.safeFloat (trade, 'commissionPaid');
+        let feeCost = this.safeNumber (trade, 'commissionPaid');
         const feeCurrencyId = this.safeString (trade, 'commissionCurrency');
         const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-        let rebatesApplied = this.safeFloat (trade, 'rebatesApplied');
+        let rebatesApplied = this.safeNumber (trade, 'rebatesApplied');
         if (rebatesApplied !== undefined) {
             rebatesApplied = -rebatesApplied;
         }
         const rebateCurrencyId = this.safeString (trade, 'rebateCurrency');
         const rebateCurrency = this.safeCurrencyCode (rebateCurrencyId);
-        const price = this.safeFloat2 (trade, 'price', 'rate');
-        const amount = this.safeFloat2 (trade, 'currency1Amount', 'amount');
+        const price = this.safeNumber2 (trade, 'price', 'rate');
+        const amount = this.safeNumber2 (trade, 'currency1Amount', 'amount');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -317,7 +317,7 @@ module.exports = class itbit extends Exchange {
                 'txid': txnHash,
                 'type': transactionType,
                 'status': status,
-                'amount': this.safeFloat (item, 'amount'),
+                'amount': this.safeNumber (item, 'amount'),
                 'fee': undefined,
                 'info': item,
             });
@@ -417,8 +417,8 @@ module.exports = class itbit extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'availableBalance');
-            account['total'] = this.safeFloat (balance, 'totalBalance');
+            account['free'] = this.safeNumber (balance, 'availableBalance');
+            account['total'] = this.safeNumber (balance, 'totalBalance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -512,11 +512,11 @@ module.exports = class itbit extends Exchange {
         const type = this.safeString (order, 'type');
         const symbol = this.markets_by_id[order['instrument']]['symbol'];
         const timestamp = this.parse8601 (order['createdTime']);
-        const amount = this.safeFloat (order, 'amount');
-        const filled = this.safeFloat (order, 'amountFilled');
+        const amount = this.safeNumber (order, 'amount');
+        const filled = this.safeNumber (order, 'amountFilled');
         const fee = undefined;
-        const price = this.safeFloat (order, 'price');
-        const average = this.safeFloat (order, 'volumeWeightedAveragePrice');
+        const price = this.safeNumber (order, 'price');
+        const average = this.safeNumber (order, 'volumeWeightedAveragePrice');
         const clientOrderId = this.safeString (order, 'clientOrderIdentifier');
         const id = this.safeString (order, 'id');
         const postOnlyString = this.safeString (order, 'postOnly');
