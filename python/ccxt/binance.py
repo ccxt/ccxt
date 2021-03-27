@@ -1297,9 +1297,9 @@ class binance(Exchange):
 
     def fetch_status(self, params={}):
         response = self.wapiGetSystemStatus(params)
-        status = self.safe_value(response, 'status')
+        status = self.safe_string(response, 'status')
         if status is not None:
-            status = 'ok' if (status == 0) else 'maintenance'
+            status = 'ok' if (status == '0') else 'maintenance'
             self.status = self.extend(self.status, {
                 'status': status,
                 'updated': self.milliseconds(),
