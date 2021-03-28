@@ -737,7 +737,9 @@ module.exports = class binance extends ccxt.binance {
         type = this.safeString (params, 'type', type);
         const options = this.safeValue (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
-        if (time - lastAuthenticatedTime > 1800) {
+        const refreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
+        const delay = this.sum (refreshRate, 10000);
+        if (time - lastAuthenticatedTime > delay) {
             let method = 'publicPostUserDataStream';
             if (type === 'future') {
                 method = 'fapiPrivatePostListenKey';
@@ -785,6 +787,10 @@ module.exports = class binance extends ccxt.binance {
                 const messageHash = messageHashes[i];
                 client.reject (error, messageHash);
             }
+            this.options[type] = this.extend (options, {
+                'listenKey': undefined,
+                'lastAuthenticatedTime': 0,
+            });
             return;
         }
         this.options[type] = this.extend (options, {
