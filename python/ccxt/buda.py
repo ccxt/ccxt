@@ -220,7 +220,7 @@ class buda(Exchange):
                 continue
             id = self.safe_string(currency, 'id')
             code = self.safe_currency_code(id)
-            precision = self.safe_float(currency, 'input_decimals')
+            precision = self.safe_number(currency, 'input_decimals')
             minimum = math.pow(10, -precision)
             result[code] = {
                 'id': id,
@@ -535,15 +535,15 @@ class buda(Exchange):
         side = self.safe_string_lower(order, 'type')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         originalAmount = self.safe_value(order, 'original_amount', [])
-        amount = self.safe_float(originalAmount, 0)
+        amount = self.safe_number(originalAmount, 0)
         remainingAmount = self.safe_value(order, 'amount', [])
-        remaining = self.safe_float(remainingAmount, 0)
+        remaining = self.safe_number(remainingAmount, 0)
         tradedAmount = self.safe_value(order, 'traded_amount', [])
-        filled = self.safe_float(tradedAmount, 0)
+        filled = self.safe_number(tradedAmount, 0)
         totalExchanged = self.safe_value(order, 'totalExchanged', [])
-        cost = self.safe_float(totalExchanged, 0)
+        cost = self.safe_number(totalExchanged, 0)
         limitPrice = self.safe_value(order, 'limit', [])
-        price = self.safe_float(limitPrice, 0)
+        price = self.safe_number(limitPrice, 0)
         if price is None:
             if limitPrice is not None:
                 price = limitPrice
@@ -551,7 +551,7 @@ class buda(Exchange):
         if (cost is not None) and (filled is not None) and (filled > 0):
             average = self.price_to_precision(symbol, cost / filled)
         paidFee = self.safe_value(order, 'paid_fee', [])
-        feeCost = self.safe_float(paidFee, 0)
+        feeCost = self.safe_number(paidFee, 0)
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(paidFee, 1)
