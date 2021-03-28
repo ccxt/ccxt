@@ -482,7 +482,7 @@ class bitfinex(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             code = self.safe_currency_code(id)
-            withdraw[code] = self.safe_float(fees, id)
+            withdraw[code] = self.safe_number(fees, id)
         return {
             'info': response,
             'withdraw': withdraw,
@@ -516,8 +516,8 @@ class bitfinex(Exchange):
         #
         return {
             'info': response,
-            'maker': self.safe_float(response, 'maker_fee'),
-            'taker': self.safe_float(response, 'taker_fee'),
+            'maker': self.safe_number(response, 'maker_fee'),
+            'taker': self.safe_number(response, 'taker_fee'),
         }
 
     async def fetch_markets(self, params={}):
@@ -568,8 +568,8 @@ class bitfinex(Exchange):
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'minimum_order_size'),
-                    'max': self.safe_float(market, 'maximum_order_size'),
+                    'min': self.safe_number(market, 'minimum_order_size'),
+                    'max': self.safe_number(market, 'maximum_order_size'),
                 },
                 'price': {
                     'min': math.pow(10, -precision['price']),
@@ -674,8 +674,8 @@ class bitfinex(Exchange):
                 # https://github.com/ccxt/ccxt/issues/4989
                 if not (code in result):
                     account = self.account()
-                    account['free'] = self.safe_float(balance, 'available')
-                    account['total'] = self.safe_float(balance, 'amount')
+                    account['free'] = self.safe_number(balance, 'available')
+                    account['total'] = self.safe_number(balance, 'amount')
                     result[code] = account
         return self.parse_balance(result)
 
@@ -770,7 +770,7 @@ class bitfinex(Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_float(ticker, 'timestamp')
+        timestamp = self.safe_number(ticker, 'timestamp')
         if timestamp is not None:
             timestamp *= 1000
         timestamp = int(timestamp)
@@ -789,16 +789,16 @@ class bitfinex(Exchange):
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
-        last = self.safe_float(ticker, 'last_price')
+        last = self.safe_number(ticker, 'last_price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -807,29 +807,29 @@ class bitfinex(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_float(ticker, 'mid'),
-            'baseVolume': self.safe_float(ticker, 'volume'),
+            'average': self.safe_number(ticker, 'mid'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
 
     def parse_trade(self, trade, market):
         id = self.safe_string(trade, 'tid')
-        timestamp = self.safe_float(trade, 'timestamp')
+        timestamp = self.safe_number(trade, 'timestamp')
         if timestamp is not None:
             timestamp = int(timestamp) * 1000
         type = None
         side = self.safe_string_lower(trade, 'type')
         orderId = self.safe_string(trade, 'order_id')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
         cost = None
         if price is not None:
             if amount is not None:
                 cost = price * amount
         fee = None
         if 'fee_amount' in trade:
-            feeCost = -self.safe_float(trade, 'fee_amount')
+            feeCost = -self.safe_number(trade, 'fee_amount')
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
@@ -981,12 +981,12 @@ class bitfinex(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': self.safe_float(order, 'price'),
+            'price': self.safe_number(order, 'price'),
             'stopPrice': None,
-            'average': self.safe_float(order, 'avg_execution_price'),
-            'amount': self.safe_float(order, 'original_amount'),
-            'remaining': self.safe_float(order, 'remaining_amount'),
-            'filled': self.safe_float(order, 'executed_amount'),
+            'average': self.safe_number(order, 'avg_execution_price'),
+            'amount': self.safe_number(order, 'original_amount'),
+            'remaining': self.safe_number(order, 'remaining_amount'),
+            'filled': self.safe_number(order, 'executed_amount'),
             'status': status,
             'fee': None,
             'cost': None,
@@ -1037,11 +1037,11 @@ class bitfinex(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 0),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 5),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -1176,17 +1176,17 @@ class bitfinex(Exchange):
         #         "timestamp_created": "1561716066.0"
         #     }
         #
-        timestamp = self.safe_float(transaction, 'timestamp_created')
+        timestamp = self.safe_number(transaction, 'timestamp_created')
         if timestamp is not None:
             timestamp = int(timestamp * 1000)
-        updated = self.safe_float(transaction, 'timestamp')
+        updated = self.safe_number(transaction, 'timestamp')
         if updated is not None:
             updated = int(updated * 1000)
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         type = self.safe_string_lower(transaction, 'type')  # DEPOSIT or WITHDRAWAL
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             feeCost = abs(feeCost)
         return {
@@ -1198,7 +1198,7 @@ class bitfinex(Exchange):
             'address': self.safe_string(transaction, 'address'),  # todo: self is actually the tag for XRP transfers(the address is missing)
             'tag': None,  # refix it properly for the tag from description
             'type': type,
-            'amount': self.safe_float(transaction, 'amount'),
+            'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
             'status': status,
             'updated': updated,
