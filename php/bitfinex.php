@@ -469,7 +469,7 @@ class bitfinex extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $code = $this->safe_currency_code($id);
-            $withdraw[$code] = $this->safe_float($fees, $id);
+            $withdraw[$code] = $this->safe_number($fees, $id);
         }
         return array(
             'info' => $response,
@@ -505,8 +505,8 @@ class bitfinex extends Exchange {
         //
         return array(
             'info' => $response,
-            'maker' => $this->safe_float($response, 'maker_fee'),
-            'taker' => $this->safe_float($response, 'taker_fee'),
+            'maker' => $this->safe_number($response, 'maker_fee'),
+            'taker' => $this->safe_number($response, 'taker_fee'),
         );
     }
 
@@ -560,8 +560,8 @@ class bitfinex extends Exchange {
             );
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_float($market, 'minimum_order_size'),
-                    'max' => $this->safe_float($market, 'maximum_order_size'),
+                    'min' => $this->safe_number($market, 'minimum_order_size'),
+                    'max' => $this->safe_number($market, 'maximum_order_size'),
                 ),
                 'price' => array(
                     'min' => pow(10, -$precision['price']),
@@ -675,8 +675,8 @@ class bitfinex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4989
                 if (!(is_array($result) && array_key_exists($code, $result))) {
                     $account = $this->account();
-                    $account['free'] = $this->safe_float($balance, 'available');
-                    $account['total'] = $this->safe_float($balance, 'amount');
+                    $account['free'] = $this->safe_number($balance, 'available');
+                    $account['total'] = $this->safe_number($balance, 'amount');
                     $result[$code] = $account;
                 }
             }
@@ -787,7 +787,7 @@ class bitfinex extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $timestamp = $this->safe_float($ticker, 'timestamp');
+        $timestamp = $this->safe_number($ticker, 'timestamp');
         if ($timestamp !== null) {
             $timestamp *= 1000;
         }
@@ -810,16 +810,16 @@ class bitfinex extends Exchange {
                 }
             }
         }
-        $last = $this->safe_float($ticker, 'last_price');
+        $last = $this->safe_number($ticker, 'last_price');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -828,8 +828,8 @@ class bitfinex extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_float($ticker, 'mid'),
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
+            'average' => $this->safe_number($ticker, 'mid'),
+            'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -837,15 +837,15 @@ class bitfinex extends Exchange {
 
     public function parse_trade($trade, $market) {
         $id = $this->safe_string($trade, 'tid');
-        $timestamp = $this->safe_float($trade, 'timestamp');
+        $timestamp = $this->safe_number($trade, 'timestamp');
         if ($timestamp !== null) {
             $timestamp = intval($timestamp) * 1000;
         }
         $type = null;
         $side = $this->safe_string_lower($trade, 'type');
         $orderId = $this->safe_string($trade, 'order_id');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
@@ -854,7 +854,7 @@ class bitfinex extends Exchange {
         }
         $fee = null;
         if (is_array($trade) && array_key_exists('fee_amount', $trade)) {
-            $feeCost = -$this->safe_float($trade, 'fee_amount');
+            $feeCost = -$this->safe_number($trade, 'fee_amount');
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
@@ -1026,12 +1026,12 @@ class bitfinex extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $this->safe_float($order, 'price'),
+            'price' => $this->safe_number($order, 'price'),
             'stopPrice' => null,
-            'average' => $this->safe_float($order, 'avg_execution_price'),
-            'amount' => $this->safe_float($order, 'original_amount'),
-            'remaining' => $this->safe_float($order, 'remaining_amount'),
-            'filled' => $this->safe_float($order, 'executed_amount'),
+            'average' => $this->safe_number($order, 'avg_execution_price'),
+            'amount' => $this->safe_number($order, 'original_amount'),
+            'remaining' => $this->safe_number($order, 'remaining_amount'),
+            'filled' => $this->safe_number($order, 'executed_amount'),
             'status' => $status,
             'fee' => null,
             'cost' => null,
@@ -1091,11 +1091,11 @@ class bitfinex extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 0),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 4),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 5),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -1243,11 +1243,11 @@ class bitfinex extends Exchange {
         //         "timestamp_created" => "1561716066.0"
         //     }
         //
-        $timestamp = $this->safe_float($transaction, 'timestamp_created');
+        $timestamp = $this->safe_number($transaction, 'timestamp_created');
         if ($timestamp !== null) {
             $timestamp = intval($timestamp * 1000);
         }
-        $updated = $this->safe_float($transaction, 'timestamp');
+        $updated = $this->safe_number($transaction, 'timestamp');
         if ($updated !== null) {
             $updated = intval($updated * 1000);
         }
@@ -1255,7 +1255,7 @@ class bitfinex extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $type = $this->safe_string_lower($transaction, 'type'); // DEPOSIT or WITHDRAWAL
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {
             $feeCost = abs($feeCost);
         }
@@ -1268,7 +1268,7 @@ class bitfinex extends Exchange {
             'address' => $this->safe_string($transaction, 'address'), // todo => this is actually the tag for XRP transfers (the address is missing)
             'tag' => null, // refix it properly for the tag from description
             'type' => $type,
-            'amount' => $this->safe_float($transaction, 'amount'),
+            'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
