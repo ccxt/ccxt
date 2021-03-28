@@ -59,6 +59,7 @@ class binance(Exchange, ccxt.binance):
                 },
                 'wallet': 'wb',  # wb = wallet balance, cb = cross balance
                 'futureBalance': {},
+                'listenKeyRefreshRate': 12000,  # 20 mins
             },
         })
 
@@ -681,12 +682,14 @@ class binance(Exchange, ccxt.binance):
         client.resolve(result, messageHash)
 
     async def authenticate(self, params={}):
-        time = self.seconds()
+        time = self.milliseconds()
         type = self.safe_string_2(self.options, 'defaultType', 'authenticate', 'spot')
         type = self.safe_string(params, 'type', type)
         options = self.safe_value(self.options, type, {})
         lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
-        if time - lastAuthenticatedTime > 1800:
+        listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
+        delay = self.sum(listenKeyRefreshRate, 10000)
+        if time - lastAuthenticatedTime > delay:
             method = 'publicPostUserDataStream'
             if type == 'future':
                 method = 'fapiPrivatePostListenKey'
@@ -699,6 +702,54 @@ class binance(Exchange, ccxt.binance):
                 'listenKey': self.safe_string(response, 'listenKey'),
                 'lastAuthenticatedTime': time,
             })
+            self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+
+    async def keep_alive_listen_key(self, params={}):
+        # https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
+        type = self.safe_string_2(self.options, 'defaultType', 'authenticate', 'spot')
+        type = self.safe_string(params, 'type', type)
+        options = self.safe_value(self.options, type, {})
+        listenKey = self.safe_string(options, 'listenKey')
+        method = 'publicPutUserDataStream'
+        if type == 'future':
+            method = 'fapiPrivatePutListenKey'
+        elif type == 'delivery':
+            method = 'dapiPrivatePutListenKey'
+        elif type == 'margin':
+            method = 'sapiPutUserDataStream'
+        request = {
+            'listenKey': listenKey,
+        }
+        time = self.milliseconds()
+        sendParams = self.omit(params, 'type')
+        try:
+            await getattr(self, method)(self.extend(request, sendParams))
+        except Exception as error:
+            url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
+            client = self.client(url)
+            messageHashes = list(client.futures.keys())
+            for i in range(0, len(messageHashes)):
+                messageHash = messageHashes[i]
+                client.reject(error, messageHash)
+            self.options[type] = self.extend(options, {
+                'listenKey': None,
+                'lastAuthenticatedTime': 0,
+            })
+            return
+        self.options[type] = self.extend(options, {
+            'listenKey': listenKey,
+            'lastAuthenticatedTime': time,
+        })
+        # whether or not to schedule another listenKey keepAlive request
+        clients = list(self.clients.values())
+        listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
+        for i in range(0, len(clients)):
+            client = clients[i]
+            subscriptionKeys = list(client.subscriptions.keys())
+            for j in range(0, len(subscriptionKeys)):
+                subscribeType = subscriptionKeys[j]
+                if subscribeType == type:
+                    return self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
 
     async def watch_balance(self, params={}):
         await self.load_markets()
@@ -709,8 +760,7 @@ class binance(Exchange, ccxt.binance):
         isSpotBalance = (type == 'spot') or (type == 'margin')
         messageHash = 'spotBalance' if isSpotBalance else 'futureBalance'
         message = None
-        subscriptionHash = type + 'Private'
-        return await self.watch(url, messageHash, message, subscriptionHash)
+        return await self.watch(url, messageHash, message, type)
 
     def handle_balance(self, client, message):
         #
@@ -794,11 +844,10 @@ class binance(Exchange, ccxt.binance):
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'orders'
-        subscriptionHash = type + 'Private'
         if symbol is not None:
             messageHash += ':' + symbol
         message = None
-        orders = await self.watch(url, messageHash, message, subscriptionHash)
+        orders = await self.watch(url, messageHash, message, type)
         if self.newUpdates:
             limit = orders.getLimit(limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
@@ -1043,11 +1092,10 @@ class binance(Exchange, ccxt.binance):
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'myTrades'
-        subscriptionHash = type + 'Private'
         if symbol is not None:
             messageHash += ':' + symbol
         message = None
-        trades = await self.watch(url, messageHash, message, subscriptionHash)
+        trades = await self.watch(url, messageHash, message, type)
         if self.newUpdates:
             limit = trades.getLimit(limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)

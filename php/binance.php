@@ -60,6 +60,7 @@ class binance extends \ccxt\async\binance {
                 ),
                 'wallet' => 'wb', // wb = wallet balance, cb = cross balance
                 'futureBalance' => array(),
+                'listenKeyRefreshRate' => 12000, // 20 mins
             ),
         ));
     }
@@ -734,12 +735,14 @@ class binance extends \ccxt\async\binance {
     }
 
     public function authenticate($params = array ()) {
-        $time = $this->seconds();
+        $time = $this->milliseconds();
         $type = $this->safe_string_2($this->options, 'defaultType', 'authenticate', 'spot');
         $type = $this->safe_string($params, 'type', $type);
         $options = $this->safe_value($this->options, $type, array());
         $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
-        if ($time - $lastAuthenticatedTime > 1800) {
+        $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
+        $delay = $this->sum($listenKeyRefreshRate, 10000);
+        if ($time - $lastAuthenticatedTime > $delay) {
             $method = 'publicPostUserDataStream';
             if ($type === 'future') {
                 $method = 'fapiPrivatePostListenKey';
@@ -753,6 +756,61 @@ class binance extends \ccxt\async\binance {
                 'listenKey' => $this->safe_string($response, 'listenKey'),
                 'lastAuthenticatedTime' => $time,
             ));
+            $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+        }
+    }
+
+    public function keep_alive_listen_key($params = array ()) {
+        // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
+        $type = $this->safe_string_2($this->options, 'defaultType', 'authenticate', 'spot');
+        $type = $this->safe_string($params, 'type', $type);
+        $options = $this->safe_value($this->options, $type, array());
+        $listenKey = $this->safe_string($options, 'listenKey');
+        $method = 'publicPutUserDataStream';
+        if ($type === 'future') {
+            $method = 'fapiPrivatePutListenKey';
+        } else if ($type === 'delivery') {
+            $method = 'dapiPrivatePutListenKey';
+        } else if ($type === 'margin') {
+            $method = 'sapiPutUserDataStream';
+        }
+        $request = array(
+            'listenKey' => $listenKey,
+        );
+        $time = $this->milliseconds();
+        $sendParams = $this->omit($params, 'type');
+        try {
+            yield $this->$method (array_merge($request, $sendParams));
+        } catch (Exception $error) {
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
+            $client = $this->client($url);
+            $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
+            for ($i = 0; $i < count($messageHashes); $i++) {
+                $messageHash = $messageHashes[$i];
+                $client->reject ($error, $messageHash);
+            }
+            $this->options[$type] = array_merge($options, array(
+                'listenKey' => null,
+                'lastAuthenticatedTime' => 0,
+            ));
+            return;
+        }
+        $this->options[$type] = array_merge($options, array(
+            'listenKey' => $listenKey,
+            'lastAuthenticatedTime' => $time,
+        ));
+        // whether or not to schedule another $listenKey keepAlive $request
+        $clients = is_array($this->clients) ? array_values($this->clients) : array();
+        $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
+        for ($i = 0; $i < count($clients); $i++) {
+            $client = $clients[$i];
+            $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+            for ($j = 0; $j < count($subscriptionKeys); $j++) {
+                $subscribeType = $subscriptionKeys[$j];
+                if ($subscribeType === $type) {
+                    return $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+                }
+            }
         }
     }
 
@@ -765,8 +823,7 @@ class binance extends \ccxt\async\binance {
         $isSpotBalance = ($type === 'spot') || ($type === 'margin');
         $messageHash = $isSpotBalance ? 'spotBalance' : 'futureBalance';
         $message = null;
-        $subscriptionHash = $type . 'Private';
-        return yield $this->watch($url, $messageHash, $message, $subscriptionHash);
+        return yield $this->watch($url, $messageHash, $message, $type);
     }
 
     public function handle_balance($client, $message) {
@@ -855,12 +912,11 @@ class binance extends \ccxt\async\binance {
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
         $messageHash = 'orders';
-        $subscriptionHash = $type . 'Private';
         if ($symbol !== null) {
             $messageHash .= ':' . $symbol;
         }
         $message = null;
-        $orders = yield $this->watch($url, $messageHash, $message, $subscriptionHash);
+        $orders = yield $this->watch($url, $messageHash, $message, $type);
         if ($this->newUpdates) {
             $limit = $orders->getLimit ($limit);
         }
@@ -1118,12 +1174,11 @@ class binance extends \ccxt\async\binance {
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
         $messageHash = 'myTrades';
-        $subscriptionHash = $type . 'Private';
         if ($symbol !== null) {
             $messageHash .= ':' . $symbol;
         }
         $message = null;
-        $trades = yield $this->watch($url, $messageHash, $message, $subscriptionHash);
+        $trades = yield $this->watch($url, $messageHash, $message, $type);
         if ($this->newUpdates) {
             $limit = $trades->getLimit ($limit);
         }
