@@ -210,16 +210,16 @@ class coinmarketcap extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->milliseconds();
         }
-        $change = $this->safe_float($ticker, 'percent_change_24h');
+        $change = $this->safe_number($ticker, 'percent_change_24h');
         $last = null;
         $symbol = null;
         $volume = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
             $priceKey = 'price_' . $market['quoteId'];
-            $last = $this->safe_float($ticker, $priceKey);
+            $last = $this->safe_number($ticker, $priceKey);
             $volumeKey = '24h_volume_' . $market['quoteId'];
-            $volume = $this->safe_float($ticker, $volumeKey);
+            $volume = $this->safe_number($ticker, $volumeKey);
         }
         return array(
             'symbol' => $symbol,
