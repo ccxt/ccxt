@@ -191,7 +191,7 @@ class bw(Exchange):
             symbol = base + '/' + quote
             state = self.safe_integer(market, 'state')
             active = (state == 1)
-            fee = self.safe_float(market, 'defaultFee')
+            fee = self.safe_number(market, 'defaultFee')
             result.append({
                 'id': id,
                 'active': active,
@@ -212,7 +212,7 @@ class bw(Exchange):
                 },
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'minAmount'),
+                        'min': self.safe_number(market, 'minAmount'),
                         'max': None,
                     },
                     'price': {
@@ -296,11 +296,11 @@ class bw(Exchange):
                 'info': currency,
                 'name': code,
                 'active': active,
-                'fee': self.safe_float(currency, 'drawFee'),
+                'fee': self.safe_number(currency, 'drawFee'),
                 'precision': None,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(currency, 'limitAmount', 0),
+                        'min': self.safe_number(currency, 'limitAmount', 0),
                         'max': None,
                     },
                     'price': {
@@ -313,7 +313,7 @@ class bw(Exchange):
                     },
                     'withdraw': {
                         'min': None,
-                        'max': self.safe_float(currency, 'onceDrawLimit'),
+                        'max': self.safe_number(currency, 'onceDrawLimit'),
                     },
                 },
             }
@@ -348,9 +348,9 @@ class bw(Exchange):
             'high': float(self.safe_value(ticker, 2)),
             'low': float(self.safe_value(ticker, 3)),
             'bid': float(self.safe_value(ticker, 7)),
-            'bidVolume': self.safe_float(bid, 'quantity'),
+            'bidVolume': self.safe_number(bid, 'quantity'),
             'ask': float(self.safe_value(ticker, 8)),
-            'askVolume': self.safe_float(ask, 'quantity'),
+            'askVolume': self.safe_number(ask, 'quantity'),
             'vwap': None,
             'open': None,
             'close': close,
@@ -472,8 +472,8 @@ class bw(Exchange):
         #     ...
         #
         timestamp = self.safe_timestamp(trade, 2)
-        price = self.safe_float(trade, 5)
-        amount = self.safe_float(trade, 6)
+        price = self.safe_number(trade, 5)
+        amount = self.safe_number(trade, 6)
         marketId = self.safe_string(trade, 1)
         symbol = None
         if marketId is not None:
@@ -558,11 +558,11 @@ class bw(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 5),
-            self.safe_float(ohlcv, 6),
-            self.safe_float(ohlcv, 7),
-            self.safe_float(ohlcv, 8),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
+            self.safe_number(ohlcv, 6),
+            self.safe_number(ohlcv, 7),
+            self.safe_number(ohlcv, 8),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -617,8 +617,8 @@ class bw(Exchange):
             currencyId = self.safe_string(balance, 'currencyTypeId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'amount')
-            account['used'] = self.safe_float(balance, 'freeze')
+            account['free'] = self.safe_number(balance, 'amount')
+            account['used'] = self.safe_number(balance, 'freeze')
             result[code] = account
         return self.parse_balance(result)
 
@@ -711,11 +711,11 @@ class bw(Exchange):
             side = 'sell'
         elif side == '1':
             side = 'buy'
-        amount = self.safe_float(order, 'amount')
-        price = self.safe_float(order, 'price')
-        filled = self.safe_float(order, 'completeAmount')
-        remaining = self.safe_float_2(order, 'availabelAmount', 'availableAmount')  # typo in the docs or in the API, availabel vs available
-        cost = self.safe_float(order, 'totalMoney')
+        amount = self.safe_number(order, 'amount')
+        price = self.safe_number(order, 'price')
+        filled = self.safe_number(order, 'completeAmount')
+        remaining = self.safe_number_2(order, 'availabelAmount', 'availableAmount')  # typo in the docs or in the API, availabel vs available
+        cost = self.safe_number(order, 'totalMoney')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         return self.safe_order({
             'info': order,
@@ -1007,12 +1007,12 @@ class bw(Exchange):
         if (code is None) and (currency is not None):
             code = currency['code']
         type = 'deposit' if ('depositId' in transaction) else 'withdrawal'
-        amount = self.safe_float_2(transaction, 'actuallyAmount', 'amount')
+        amount = self.safe_number_2(transaction, 'actuallyAmount', 'amount')
         status = self.parse_transaction_status(self.safe_string_2(transaction, 'verifyStatus', 'state'))
         timestamp = self.safe_integer(transaction, 'createTime')
         txid = self.safe_string(transaction, 'txId')
         fee = None
-        feeCost = self.safe_float(transaction, 'fees')
+        feeCost = self.safe_number(transaction, 'fees')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
