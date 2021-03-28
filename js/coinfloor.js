@@ -105,14 +105,14 @@ module.exports = class coinfloor extends Exchange {
         const baseIdLower = this.safeStringLower (market, 'baseId');
         const quoteIdLower = this.safeStringLower (market, 'quoteId');
         result[base] = {
-            'free': this.safeFloat (response, baseIdLower + '_available'),
-            'used': this.safeFloat (response, baseIdLower + '_reserved'),
-            'total': this.safeFloat (response, baseIdLower + '_balance'),
+            'free': this.safeNumber (response, baseIdLower + '_available'),
+            'used': this.safeNumber (response, baseIdLower + '_reserved'),
+            'total': this.safeNumber (response, baseIdLower + '_balance'),
         };
         result[quote] = {
-            'free': this.safeFloat (response, quoteIdLower + '_available'),
-            'used': this.safeFloat (response, quoteIdLower + '_reserved'),
-            'total': this.safeFloat (response, quoteIdLower + '_balance'),
+            'free': this.safeNumber (response, quoteIdLower + '_available'),
+            'used': this.safeNumber (response, quoteIdLower + '_reserved'),
+            'total': this.safeNumber (response, quoteIdLower + '_balance'),
         };
         return this.parseBalance (result);
     }
@@ -133,22 +133,22 @@ module.exports = class coinfloor extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const vwap = this.safeFloat (ticker, 'vwap');
-        const baseVolume = this.safeFloat (ticker, 'volume');
+        const vwap = this.safeNumber (ticker, 'vwap');
+        const baseVolume = this.safeNumber (ticker, 'volume');
         let quoteVolume = undefined;
         if (vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
@@ -177,8 +177,8 @@ module.exports = class coinfloor extends Exchange {
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString (trade, 'tid');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -302,8 +302,8 @@ module.exports = class coinfloor extends Exchange {
                 const parts = key.split ('_');
                 const numParts = parts.length;
                 if (numParts === 2) {
-                    const tmpBaseAmount = this.safeFloat (item, parts[0]);
-                    const tmpQuoteAmount = this.safeFloat (item, parts[1]);
+                    const tmpBaseAmount = this.safeNumber (item, parts[0]);
+                    const tmpQuoteAmount = this.safeNumber (item, parts[1]);
                     if (tmpBaseAmount !== undefined && tmpQuoteAmount !== undefined) {
                         baseId = parts[0];
                         quoteId = parts[1];
@@ -319,7 +319,7 @@ module.exports = class coinfloor extends Exchange {
         const referenceId = this.safeString (item, 'id');
         const timestamp = this.parse8601 (this.safeString (item, 'datetime'));
         let fee = undefined;
-        const feeCost = this.safeFloat (item, 'fee');
+        const feeCost = this.safeNumber (item, 'fee');
         const result = {
             'id': undefined,
             'timestamp': timestamp,
@@ -423,8 +423,8 @@ module.exports = class coinfloor extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'type': type,
-            'price': this.safeFloat (response, 'price'),
-            'remaining': this.safeFloat (response, 'amount'),
+            'price': this.safeNumber (response, 'price'),
+            'remaining': this.safeNumber (response, 'amount'),
             'info': response,
         };
     }
@@ -449,8 +449,8 @@ module.exports = class coinfloor extends Exchange {
 
     parseOrder (order, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'amount');
         let side = undefined;
         const status = this.safeString (order, 'status');
         const rawType = this.safeString (order, 'type');
