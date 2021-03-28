@@ -127,7 +127,7 @@ class coinspot extends Exchange {
                     $balance = $currencies[$currencyId];
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
-                    $account['total'] = $this->safe_float($balance, 'balance');
+                    $account['total'] = $this->safe_number($balance, 'balance');
                     $result[$code] = $account;
                 }
             }
@@ -137,7 +137,7 @@ class coinspot extends Exchange {
                 $currencyId = $currencyIds[$i];
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                $account['total'] = $this->safe_float($balances, $currencyId);
+                $account['total'] = $this->safe_number($balances, $currencyId);
                 $result[$code] = $account;
             }
         }
@@ -161,16 +161,16 @@ class coinspot extends Exchange {
         $id = strtolower($id);
         $ticker = $response['prices'][$id];
         $timestamp = $this->milliseconds();
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -218,9 +218,9 @@ class coinspot extends Exchange {
         //         "$market":"BTC/AUD"
         //     }
         //
-        $price = $this->safe_float($trade, 'rate');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = $this->safe_float($trade, 'total');
+        $price = $this->safe_number($trade, 'rate');
+        $amount = $this->safe_number($trade, 'amount');
+        $cost = $this->safe_number($trade, 'total');
         if (($cost === null) && ($price !== null) && ($amount !== null)) {
             $cost = $price * $amount;
         }

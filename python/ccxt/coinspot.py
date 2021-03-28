@@ -126,7 +126,7 @@ class coinspot(Exchange):
                     balance = currencies[currencyId]
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
-                    account['total'] = self.safe_float(balance, 'balance')
+                    account['total'] = self.safe_number(balance, 'balance')
                     result[code] = account
         else:
             currencyIds = list(balances.keys())
@@ -134,7 +134,7 @@ class coinspot(Exchange):
                 currencyId = currencyIds[i]
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['total'] = self.safe_float(balances, currencyId)
+                account['total'] = self.safe_number(balances, currencyId)
                 result[code] = account
         return self.parse_balance(result)
 
@@ -154,16 +154,16 @@ class coinspot(Exchange):
         id = id.lower()
         ticker = response['prices'][id]
         timestamp = self.milliseconds()
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_float(ticker, 'bid'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -209,9 +209,9 @@ class coinspot(Exchange):
         #         "market":"BTC/AUD"
         #     }
         #
-        price = self.safe_float(trade, 'rate')
-        amount = self.safe_float(trade, 'amount')
-        cost = self.safe_float(trade, 'total')
+        price = self.safe_number(trade, 'rate')
+        amount = self.safe_number(trade, 'amount')
+        cost = self.safe_number(trade, 'total')
         if (cost is None) and (price is not None) and (amount is not None):
             cost = price * amount
         timestamp = self.safe_integer(trade, 'solddate')
