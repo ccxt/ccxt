@@ -207,15 +207,15 @@ class vcc(Exchange):
                 },
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(amountLimits, 'min'),
+                        'min': self.safe_number(amountLimits, 'min'),
                         'max': None,
                     },
                     'price': {
-                        'min': self.safe_float(priceLimits, 'min'),
+                        'min': self.safe_number(priceLimits, 'min'),
                         'max': None,
                     },
                     'cost': {
-                        'min': self.safe_float(costLimits, 'min'),
+                        'min': self.safe_number(costLimits, 'min'),
                         'max': None,
                     },
                 },
@@ -260,12 +260,12 @@ class vcc(Exchange):
                 'code': code,
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
-                'fee': self.safe_float(currency, 'withdrawal_fee'),
+                'fee': self.safe_number(currency, 'withdrawal_fee'),
                 'precision': self.safe_integer(currency, 'decimal'),
                 'limits': {
                     'withdraw': {
-                        'min': self.safe_float(currency, 'min_withdraw'),
-                        'max': self.safe_float(currency, 'max_withdraw'),
+                        'min': self.safe_number(currency, 'min_withdraw'),
+                        'max': self.safe_number(currency, 'max_withdraw'),
                     },
                 },
             }
@@ -286,8 +286,8 @@ class vcc(Exchange):
         #
         return {
             'info': response,
-            'maker': self.safe_float(response, 'provideLiquidityRate'),
-            'taker': self.safe_float(response, 'takeLiquidityRate'),
+            'maker': self.safe_number(response, 'provideLiquidityRate'),
+            'taker': self.safe_number(response, 'takeLiquidityRate'),
         }
 
     async def fetch_balance(self, params={}):
@@ -312,8 +312,8 @@ class vcc(Exchange):
             code = self.safe_currency_code(currencyId)
             balance = self.safe_value(data, currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available_balance')
-            account['total'] = self.safe_float(balance, 'balance')
+            account['free'] = self.safe_number(balance, 'available_balance')
+            account['total'] = self.safe_number(balance, 'balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -332,11 +332,11 @@ class vcc(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 'time'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -419,10 +419,10 @@ class vcc(Exchange):
         #     }
         #
         timestamp = self.milliseconds()
-        baseVolume = self.safe_float(ticker, 'base_volume')
-        quoteVolume = self.safe_float(ticker, 'quote_volume')
-        open = self.safe_float(ticker, 'open_price')
-        last = self.safe_float(ticker, 'last_price')
+        baseVolume = self.safe_number(ticker, 'base_volume')
+        quoteVolume = self.safe_number(ticker, 'quote_volume')
+        open = self.safe_number(ticker, 'open_price')
+        last = self.safe_number(ticker, 'last_price')
         change = None
         percentage = None
         average = None
@@ -437,11 +437,11 @@ class vcc(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'max_price'),
-            'low': self.safe_float(ticker, 'min_price'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'max_price'),
+            'low': self.safe_number(ticker, 'min_price'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': open,
@@ -550,15 +550,15 @@ class vcc(Exchange):
             marketId = baseId + '_' + quoteId
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float_2(trade, 'base_volume', 'quantity')
-        cost = self.safe_float_2(trade, 'quote_volume', 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number_2(trade, 'base_volume', 'quantity')
+        cost = self.safe_number_2(trade, 'quote_volume', 'amount')
         if cost is None:
             if (price is not None) and (amount is not None):
                 cost = price * amount
         side = self.safe_string_2(trade, 'type', 'trade_type')
         id = self.safe_string_2(trade, 'trade_id', 'id')
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
             fee = {
@@ -733,14 +733,14 @@ class vcc(Exchange):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         if amount is not None:
             amount = abs(amount)
         address = self.safe_string(transaction, 'blockchain_address')
         txid = self.safe_string(transaction, 'transaction_id')
         tag = self.safe_string(transaction, 'destination_tag')
         fee = None
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -971,25 +971,25 @@ class vcc(Exchange):
         marketId = baseId + '_' + quoteId
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        amount = self.safe_float(order, 'quantity')
-        filled = self.safe_float(order, 'executed_quantity')
+        amount = self.safe_number(order, 'quantity')
+        filled = self.safe_number(order, 'executed_quantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        cost = self.safe_float(order, 'ceiling')
+        cost = self.safe_number(order, 'ceiling')
         id = self.safe_string(order, 'id')
-        price = self.safe_float(order, 'price')
-        average = self.safe_float(order, 'executed_price')
-        remaining = self.safe_float(order, 'remaining')
+        price = self.safe_number(order, 'price')
+        average = self.safe_number(order, 'executed_price')
+        remaining = self.safe_number(order, 'remaining')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'trade_type')
         fee = {
             'currency': market['quote'],
-            'cost': self.safe_float(order, 'fee'),
-            'rate': self.safe_float(order, 'fee_rate'),
+            'cost': self.safe_number(order, 'fee'),
+            'rate': self.safe_number(order, 'fee_rate'),
         }
         lastTradeTimestamp = None
         if updated != created:
             lastTradeTimestamp = updated
-        stopPrice = self.safe_float(order, 'stopPrice')
+        stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'id': id,
             'clientOrderId': id,
