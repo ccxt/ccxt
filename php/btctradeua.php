@@ -109,7 +109,7 @@ class btctradeua extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['total'] = $this->safe_number($balance, 'balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -252,8 +252,8 @@ class btctradeua extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $type = 'limit';
         $side = $this->safe_string($trade, 'type');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amnt_trade');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amnt_trade');
         $cost = null;
         if ($amount !== null) {
             if ($price !== null) {
@@ -340,11 +340,11 @@ class btctradeua extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $this->safe_string($order, 'type'),
-            'price' => $this->safe_float($order, 'price'),
+            'price' => $this->safe_number($order, 'price'),
             'stopPrice' => null,
-            'amount' => $this->safe_float($order, 'amnt_trade'),
+            'amount' => $this->safe_number($order, 'amnt_trade'),
             'filled' => 0,
-            'remaining' => $this->safe_float($order, 'amnt_trade'),
+            'remaining' => $this->safe_number($order, 'amnt_trade'),
             'trades' => null,
             'info' => $order,
             'cost' => null,
