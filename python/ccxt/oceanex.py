@@ -257,21 +257,21 @@ class oceanex(Exchange):
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': self.safe_float(ticker, 'last'),
-            'last': self.safe_float(ticker, 'last'),
+            'close': self.safe_number(ticker, 'last'),
+            'last': self.safe_number(ticker, 'last'),
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -385,8 +385,8 @@ class oceanex(Exchange):
             'type': 'limit',
             'takerOrMaker': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'volume'),
+            'price': self.safe_number(trade, 'price'),
+            'amount': self.safe_number(trade, 'volume'),
             'cost': None,
             'fee': None,
         }
@@ -411,8 +411,8 @@ class oceanex(Exchange):
             result[symbol] = {
                 'info': group,
                 'symbol': symbol,
-                'maker': self.safe_float(maker, 'value'),
-                'taker': self.safe_float(taker, 'value'),
+                'maker': self.safe_number(maker, 'value'),
+                'taker': self.safe_number(taker, 'value'),
             }
         return result
 
@@ -431,8 +431,8 @@ class oceanex(Exchange):
             currencyId = self.safe_value(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'locked')
+            account['free'] = self.safe_number(balance, 'balance')
+            account['used'] = self.safe_number(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 
@@ -543,12 +543,12 @@ class oceanex(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': self.safe_value(order, 'side'),
-            'price': self.safe_float(order, 'price'),
+            'price': self.safe_number(order, 'price'),
             'stopPrice': None,
-            'average': self.safe_float(order, 'avg_price'),
-            'amount': self.safe_float(order, 'volume'),
-            'remaining': self.safe_float(order, 'remaining_volume'),
-            'filled': self.safe_float(order, 'executed_volume'),
+            'average': self.safe_number(order, 'avg_price'),
+            'amount': self.safe_number(order, 'volume'),
+            'remaining': self.safe_number(order, 'remaining_volume'),
+            'filled': self.safe_number(order, 'executed_volume'),
             'status': status,
             'cost': None,
             'trades': None,
