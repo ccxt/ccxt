@@ -480,7 +480,7 @@ class bitstamp extends Exchange {
         $ids = is_array($transaction) ? array_keys($transaction) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            if (mb_strpos($id, '_') < 0) {
+            if (mb_strpos($id, '_') === false) {
                 $value = $this->safe_number($transaction, $id);
                 if (($value !== null) && ($value !== 0)) {
                     return $id;
