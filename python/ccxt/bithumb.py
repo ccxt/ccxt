@@ -201,9 +201,9 @@ class bithumb(Exchange):
             account = self.account()
             currency = self.currency(code)
             lowerCurrencyId = self.safe_string_lower(currency, 'id')
-            account['total'] = self.safe_float(balances, 'total_' + lowerCurrencyId)
-            account['used'] = self.safe_float(balances, 'in_use_' + lowerCurrencyId)
-            account['free'] = self.safe_float(balances, 'available_' + lowerCurrencyId)
+            account['total'] = self.safe_number(balances, 'total_' + lowerCurrencyId)
+            account['used'] = self.safe_number(balances, 'in_use_' + lowerCurrencyId)
+            account['free'] = self.safe_number(balances, 'available_' + lowerCurrencyId)
             result[code] = account
         return self.parse_balance(result)
 
@@ -263,8 +263,8 @@ class bithumb(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        open = self.safe_float(ticker, 'opening_price')
-        close = self.safe_float(ticker, 'closing_price')
+        open = self.safe_number(ticker, 'opening_price')
+        close = self.safe_number(ticker, 'closing_price')
         change = None
         percentage = None
         average = None
@@ -273,18 +273,18 @@ class bithumb(Exchange):
             if open > 0:
                 percentage = change / open * 100
             average = self.sum(open, close) / 2
-        baseVolume = self.safe_float(ticker, 'units_traded_24H')
-        quoteVolume = self.safe_float(ticker, 'acc_trade_value_24H')
+        baseVolume = self.safe_number(ticker, 'units_traded_24H')
+        quoteVolume = self.safe_number(ticker, 'acc_trade_value_24H')
         vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'max_price'),
-            'low': self.safe_float(ticker, 'min_price'),
-            'bid': self.safe_float(ticker, 'buy_price'),
+            'high': self.safe_number(ticker, 'max_price'),
+            'low': self.safe_number(ticker, 'min_price'),
+            'bid': self.safe_number(ticker, 'buy_price'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell_price'),
+            'ask': self.safe_number(ticker, 'sell_price'),
             'askVolume': None,
             'vwap': vwap,
             'open': open,
@@ -384,11 +384,11 @@ class bithumb(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 0),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 5),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 5),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -471,15 +471,15 @@ class bithumb(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float_2(trade, 'units_traded', 'units')
-        cost = self.safe_float(trade, 'total')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number_2(trade, 'units_traded', 'units')
+        cost = self.safe_number(trade, 'total')
         if cost is None:
             if amount is not None:
                 if price is not None:
                     cost = price * amount
         fee = None
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
             feeCurrencyCode = self.common_currency_code(feeCurrencyId)
@@ -672,13 +672,13 @@ class bithumb(Exchange):
         sideProperty = self.safe_value_2(order, 'type', 'side')
         side = 'buy' if (sideProperty == 'bid') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'order_status'))
-        price = self.safe_float_2(order, 'order_price', 'price')
+        price = self.safe_number_2(order, 'order_price', 'price')
         type = 'limit'
         if price == 0:
             price = None
             type = 'market'
-        amount = self.safe_float_2(order, 'order_qty', 'units')
-        remaining = self.safe_float(order, 'units_remaining')
+        amount = self.safe_number_2(order, 'order_qty', 'units')
+        remaining = self.safe_number(order, 'units_remaining')
         if remaining is None:
             if status == 'closed':
                 remaining = 0
