@@ -376,8 +376,8 @@ module.exports = class bitfinex2 extends bitfinex {
             };
             const limits = {
                 'amount': {
-                    'min': this.safeFloat (market, 'minimum_order_size'),
-                    'max': this.safeFloat (market, 'maximum_order_size'),
+                    'min': this.safeNumber (market, 'minimum_order_size'),
+                    'max': this.safeNumber (market, 'maximum_order_size'),
                 },
                 'price': {
                     'min': Math.pow (10, -precision['price']),
@@ -524,7 +524,7 @@ module.exports = class bitfinex2 extends bitfinex {
             const type = this.safeString (pool, 1);
             const feeValues = this.safeValue (indexed['fees'], id, []);
             const fees = this.safeValue (feeValues, 1, []);
-            const fee = this.safeFloat (fees, 1);
+            const fee = this.safeNumber (fees, 1);
             const undl = this.safeValue (indexed['undl'], id, []);
             const precision = 8; // default precision, todo: fix "magic constants"
             const fid = 'f' + id;
@@ -586,8 +586,8 @@ module.exports = class bitfinex2 extends bitfinex {
             if ((accountType === type) && derivativeCondition) {
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['total'] = this.safeFloat (balance, 2);
-                account['free'] = this.safeFloat (balance, 4);
+                account['total'] = this.safeNumber (balance, 2);
+                account['free'] = this.safeNumber (balance, 4);
                 result[code] = account;
             }
         }
@@ -702,8 +702,8 @@ module.exports = class bitfinex2 extends bitfinex {
         const priceIndex = (fullRequest['precision'] === 'R0') ? 1 : 0;
         for (let i = 0; i < orderbook.length; i++) {
             const order = orderbook[i];
-            const price = this.safeFloat (order, priceIndex);
-            const signedAmount = this.safeFloat (order, 2);
+            const price = this.safeNumber (order, priceIndex);
+            const signedAmount = this.safeNumber (order, 2);
             const amount = Math.abs (signedAmount);
             const side = (signedAmount > 0) ? 'bids' : 'asks';
             result[side].push ([ price, amount ]);
@@ -830,10 +830,10 @@ module.exports = class bitfinex2 extends bitfinex {
         const isPrivate = (tradeLength > 5);
         const id = this.safeString (trade, 0);
         const amountIndex = isPrivate ? 4 : 2;
-        let amount = this.safeFloat (trade, amountIndex);
+        let amount = this.safeNumber (trade, amountIndex);
         let cost = undefined;
         const priceIndex = isPrivate ? 5 : 3;
-        const price = this.safeFloat (trade, priceIndex);
+        const price = this.safeNumber (trade, priceIndex);
         let side = undefined;
         let orderId = undefined;
         let takerOrMaker = undefined;
@@ -853,7 +853,7 @@ module.exports = class bitfinex2 extends bitfinex {
             orderId = this.safeString (trade, 3);
             const maker = this.safeInteger (trade, 8);
             takerOrMaker = (maker === 1) ? 'maker' : 'taker';
-            let feeCost = this.safeFloat (trade, 9);
+            let feeCost = this.safeNumber (trade, 9);
             const feeCurrencyId = this.safeString (trade, 10);
             const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             if (feeCost !== undefined) {
@@ -996,8 +996,8 @@ module.exports = class bitfinex2 extends bitfinex {
         // https://github.com/ccxt/ccxt/issues/6686
         // const timestamp = this.safeTimestamp (order, 5);
         const timestamp = this.safeInteger (order, 5);
-        const remaining = Math.abs (this.safeFloat (order, 6));
-        const amount = Math.abs (this.safeFloat (order, 7));
+        const remaining = Math.abs (this.safeNumber (order, 6));
+        const amount = Math.abs (this.safeNumber (order, 7));
         const filled = amount - remaining;
         const side = (order[7] < 0) ? 'sell' : 'buy';
         const orderType = this.safeString (order, 8);
@@ -1008,8 +1008,8 @@ module.exports = class bitfinex2 extends bitfinex {
             const parts = statusString.split (' @ ');
             status = this.parseOrderStatus (this.safeString (parts, 0));
         }
-        const price = this.safeFloat (order, 16);
-        const average = this.safeFloat (order, 17);
+        const price = this.safeNumber (order, 16);
+        const average = this.safeNumber (order, 17);
         const cost = price * filled;
         const clientOrderId = this.safeString (order, 2);
         return {
@@ -1051,11 +1051,11 @@ module.exports = class bitfinex2 extends bitfinex {
         if ((orderType === 'LIMIT') || (orderType === 'EXCHANGE LIMIT')) {
             request['price'] = this.numberToString (price);
         } else if ((orderType === 'STOP') || (orderType === 'EXCHANGE STOP')) {
-            const stopPrice = this.safeFloat (params, 'stopPrice', price);
+            const stopPrice = this.safeNumber (params, 'stopPrice', price);
             request['price'] = this.numberToString (stopPrice);
         } else if ((orderType === 'STOP LIMIT') || (orderType === 'EXCHANGE STOP LIMIT')) {
-            const priceAuxLimit = this.safeFloat (params, 'price_aux_limit');
-            let stopPrice = this.safeFloat (params, 'stopPrice');
+            const priceAuxLimit = this.safeNumber (params, 'price_aux_limit');
+            let stopPrice = this.safeNumber (params, 'stopPrice');
             if (priceAuxLimit === undefined) {
                 if (stopPrice === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter or a price_aux_limit parameter for a ' + orderType + ' order');
@@ -1070,9 +1070,9 @@ module.exports = class bitfinex2 extends bitfinex {
             }
             request['price'] = this.numberToString (stopPrice);
         } else if ((orderType === 'TRAILING STOP') || (orderType === 'EXCHANGE TRAILING STOP')) {
-            const priceTrailing = this.safeFloat (params, 'price_trailing');
+            const priceTrailing = this.safeNumber (params, 'price_trailing');
             request['price_trailing'] = this.numberToString (priceTrailing);
-            const stopPrice = this.safeFloat (params, 'stopPrice', price);
+            const stopPrice = this.safeNumber (params, 'stopPrice', price);
             request['price'] = this.numberToString (stopPrice);
         } else if ((orderType === 'FOK') || (orderType === 'EXCHANGE FOK') || (orderType === 'IOC') || (orderType === 'EXCHANGE IOC')) {
             request['price'] = this.numberToString (price);
@@ -1404,11 +1404,11 @@ module.exports = class bitfinex2 extends bitfinex {
             if (currency !== undefined) {
                 code = currency['code'];
             }
-            feeCost = this.safeFloat (data, 8);
+            feeCost = this.safeNumber (data, 8);
             if (feeCost !== undefined) {
                 feeCost = -feeCost;
             }
-            amount = this.safeFloat (data, 5);
+            amount = this.safeNumber (data, 5);
             id = this.safeValue (data, 0);
             status = 'ok';
             if (id === 0) {
@@ -1422,7 +1422,7 @@ module.exports = class bitfinex2 extends bitfinex {
             timestamp = this.safeInteger (transaction, 5);
             updated = this.safeInteger (transaction, 6);
             status = this.parseTransactionStatus (this.safeString (transaction, 9));
-            amount = this.safeFloat (transaction, 12);
+            amount = this.safeNumber (transaction, 12);
             if (amount !== undefined) {
                 if (amount < 0) {
                     type = 'withdrawal';
@@ -1430,7 +1430,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     type = 'deposit';
                 }
             }
-            feeCost = this.safeFloat (transaction, 13);
+            feeCost = this.safeNumber (transaction, 13);
             if (feeCost !== undefined) {
                 feeCost = -feeCost;
             }
