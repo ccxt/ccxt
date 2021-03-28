@@ -128,8 +128,8 @@ class coincheck(Exchange):
             if currencyId in balances:
                 account = self.account()
                 reserved = currencyId + '_reserved'
-                account['free'] = self.safe_float(balances, currencyId)
-                account['used'] = self.safe_float(balances, reserved)
+                account['free'] = self.safe_number(balances, currencyId)
+                account['used'] = self.safe_number(balances, reserved)
                 result[code] = account
         return self.parse_balance(result)
 
@@ -165,9 +165,9 @@ class coincheck(Exchange):
         id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'order_type')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        amount = self.safe_float(order, 'pending_amount')
-        remaining = self.safe_float(order, 'pending_amount')
-        price = self.safe_float(order, 'rate')
+        amount = self.safe_number(order, 'pending_amount')
+        remaining = self.safe_number(order, 'pending_amount')
+        price = self.safe_number(order, 'rate')
         status = None
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market, '_')
@@ -214,16 +214,16 @@ class coincheck(Exchange):
         }
         ticker = await self.publicGetTicker(self.extend(request, params))
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -233,7 +233,7 @@ class coincheck(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -241,7 +241,7 @@ class coincheck(Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         id = self.safe_string(trade, 'id')
-        price = self.safe_float(trade, 'rate')
+        price = self.safe_number(trade, 'rate')
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_value(self.markets_by_id, marketId, market)
         symbol = None
@@ -275,16 +275,16 @@ class coincheck(Exchange):
             elif self.safe_string(trade, 'liquidity') == 'M':
                 takerOrMaker = 'maker'
             funds = self.safe_value(trade, 'funds', {})
-            amount = self.safe_float(funds, baseId)
-            cost = self.safe_float(funds, quoteId)
+            amount = self.safe_number(funds, baseId)
+            cost = self.safe_number(funds, quoteId)
             fee = {
                 'currency': self.safe_string(trade, 'fee_currency'),
-                'cost': self.safe_float(trade, 'fee'),
+                'cost': self.safe_number(trade, 'fee'),
             }
             side = self.safe_string(trade, 'side')
             orderId = self.safe_string(trade, 'order_id')
         else:
-            amount = self.safe_float(trade, 'amount')
+            amount = self.safe_number(trade, 'amount')
             side = self.safe_string(trade, 'order_type')
         if cost is None:
             if amount is not None:
