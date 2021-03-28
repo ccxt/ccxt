@@ -244,7 +244,7 @@ module.exports = class ndax extends Exchange {
             const name = this.safeString (currency, 'ProductFullName');
             const type = this.safeString (currency, 'ProductType');
             const code = this.safeCurrencyCode (this.safeString (currency, 'Product'));
-            const precision = this.safeFloat (currency, 'TickSize');
+            const precision = this.safeNumber (currency, 'TickSize');
             const isDisabled = this.safeValue (currency, 'IsDisabled');
             const active = !isDisabled;
             result[code] = {
@@ -325,8 +325,8 @@ module.exports = class ndax extends Exchange {
             const quote = this.safeCurrencyCode (this.safeString (market, 'Product2Symbol'));
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': this.safeFloat (market, 'QuantityIncrement'),
-                'price': this.safeFloat (market, 'PriceIncrement'),
+                'amount': this.safeNumber (market, 'QuantityIncrement'),
+                'price': this.safeNumber (market, 'PriceIncrement'),
             };
             const sessionStatus = this.safeString (market, 'SessionStatus');
             const isDisable = this.safeValue (market, 'IsDisable');
@@ -344,11 +344,11 @@ module.exports = class ndax extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'MinimumQuantity'),
+                        'min': this.safeNumber (market, 'MinimumQuantity'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.safeFloat (market, 'MinimumPrice'),
+                        'min': this.safeNumber (market, 'MinimumPrice'),
                         'max': undefined,
                     },
                     'cost': {
@@ -469,27 +469,27 @@ module.exports = class ndax extends Exchange {
         const timestamp = this.safeInteger (ticker, 'TimeStamp');
         const marketId = this.safeString (ticker, 'InstrumentId');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeFloat (ticker, 'LastTradedPx');
-        const percentage = this.safeFloat (ticker, 'Rolling24HrPxChangePercent');
-        const change = this.safeFloat (ticker, 'Rolling24HrPxChange');
-        const open = this.safeFloat (ticker, 'SessionOpen');
+        const last = this.safeNumber (ticker, 'LastTradedPx');
+        const percentage = this.safeNumber (ticker, 'Rolling24HrPxChangePercent');
+        const change = this.safeNumber (ticker, 'Rolling24HrPxChange');
+        const open = this.safeNumber (ticker, 'SessionOpen');
         let average = undefined;
         if ((last !== undefined) && (change !== undefined)) {
             average = this.sum (last, open) / 2;
         }
-        const baseVolume = this.safeFloat (ticker, 'Rolling24HrVolume');
-        const quoteVolume = this.safeFloat (ticker, 'Rolling24HrNotional');
+        const baseVolume = this.safeNumber (ticker, 'Rolling24HrVolume');
+        const quoteVolume = this.safeNumber (ticker, 'Rolling24HrNotional');
         const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'SessionHigh'),
-            'low': this.safeFloat (ticker, 'SessionLow'),
-            'bid': this.safeFloat (ticker, 'BestBid'),
-            'bidVolume': undefined, // this.safeFloat (ticker, 'BidQty'), always shows 0
-            'ask': this.safeFloat (ticker, 'BestOffer'),
-            'askVolume': undefined, // this.safeFloat (ticker, 'AskQty'), always shows 0
+            'high': this.safeNumber (ticker, 'SessionHigh'),
+            'low': this.safeNumber (ticker, 'SessionLow'),
+            'bid': this.safeNumber (ticker, 'BestBid'),
+            'bidVolume': undefined, // this.safeNumber (ticker, 'BidQty'), always shows 0
+            'ask': this.safeNumber (ticker, 'BestOffer'),
+            'askVolume': undefined, // this.safeNumber (ticker, 'AskQty'), always shows 0
             'vwap': vwap,
             'open': open,
             'close': last,
@@ -562,11 +562,11 @@ module.exports = class ndax extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 0),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 5),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -726,8 +726,8 @@ module.exports = class ndax extends Exchange {
         let fee = undefined;
         let type = undefined;
         if (Array.isArray (trade)) {
-            price = this.safeFloat (trade, 3);
-            amount = this.safeFloat (trade, 2);
+            price = this.safeNumber (trade, 3);
+            amount = this.safeNumber (trade, 2);
             if ((price !== undefined) && (amount !== undefined)) {
                 cost = price * amount;
             }
@@ -742,13 +742,13 @@ module.exports = class ndax extends Exchange {
             id = this.safeString (trade, 'TradeId');
             orderId = this.safeString2 (trade, 'OrderId', 'OrigOrderId');
             marketId = this.safeString2 (trade, 'InstrumentId', 'Instrument');
-            price = this.safeFloat (trade, 'Price');
-            amount = this.safeFloat (trade, 'Quantity');
-            cost = this.safeFloat2 (trade, 'Value', 'GrossValueExecuted');
+            price = this.safeNumber (trade, 'Price');
+            amount = this.safeNumber (trade, 'Quantity');
+            cost = this.safeNumber2 (trade, 'Value', 'GrossValueExecuted');
             takerOrMaker = this.safeStringLower (trade, 'MakerTaker');
             side = this.safeStringLower (trade, 'Side');
             type = this.safeStringLower (trade, 'OrderType');
-            const feeCost = this.safeFloat (trade, 'Fee');
+            const feeCost = this.safeNumber (trade, 'Fee');
             if (feeCost !== undefined) {
                 const feeCurrencyId = this.safeString (trade, 'FeeProductId');
                 const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -872,8 +872,8 @@ module.exports = class ndax extends Exchange {
             const currencyId = this.safeString (balance, 'ProductId');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'Amount');
-            account['used'] = this.safeFloat (balance, 'Hold');
+            account['total'] = this.safeNumber (balance, 'Amount');
+            account['used'] = this.safeNumber (balance, 'Hold');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -922,8 +922,8 @@ module.exports = class ndax extends Exchange {
         const type = this.parseLedgerEntryType (this.safeString (item, 'ReferenceType'));
         const currencyId = this.safeString (item, 'ProductId');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const credit = this.safeFloat (item, 'CR');
-        const debit = this.safeFloat (item, 'DR');
+        const credit = this.safeNumber (item, 'CR');
+        const debit = this.safeNumber (item, 'DR');
         let amount = undefined;
         let direction = undefined;
         if (credit > 0) {
@@ -935,7 +935,7 @@ module.exports = class ndax extends Exchange {
         }
         const timestamp = this.safeInteger (item, 'TimeStamp');
         let before = undefined;
-        const after = this.safeFloat (item, 'Balance');
+        const after = this.safeNumber (item, 'Balance');
         if (direction === 'out') {
             before = this.sum (after, amount);
         } else if (direction === 'in') {
@@ -1089,14 +1089,14 @@ module.exports = class ndax extends Exchange {
         const side = this.safeStringLower (order, 'Side');
         const type = this.safeStringLower (order, 'OrderType');
         const clientOrderId = this.safeString2 (order, 'ReplacementClOrdId', 'ClientOrderId');
-        let price = this.safeFloat (order, 'Price', 0.0);
+        let price = this.safeNumber (order, 'Price', 0.0);
         price = (price > 0.0) ? price : undefined;
-        const amount = this.safeFloat (order, 'OrigQuantity');
-        const filled = this.safeFloat (order, 'QuantityExecuted');
-        const cost = this.safeFloat (order, 'GrossValueExecuted');
-        let average = this.safeFloat (order, 'AvgPrice', 0.0);
+        const amount = this.safeNumber (order, 'OrigQuantity');
+        const filled = this.safeNumber (order, 'QuantityExecuted');
+        const cost = this.safeNumber (order, 'GrossValueExecuted');
+        let average = this.safeNumber (order, 'AvgPrice', 0.0);
         average = (average > 0) ? average : undefined;
-        let stopPrice = this.safeFloat (order, 'StopPrice', 0.0);
+        let stopPrice = this.safeNumber (order, 'StopPrice', 0.0);
         stopPrice = (stopPrice > 0.0) ? stopPrice : undefined;
         const timeInForce = undefined;
         const status = this.parseOrderStatus (this.safeString (order, 'OrderState'));
@@ -1922,8 +1922,8 @@ module.exports = class ndax extends Exchange {
         }
         const addressTo = address;
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'TicketStatus'), type);
-        const amount = this.safeFloat (transaction, 'Amount');
-        const feeCost = this.safeFloat (transaction, 'FeeAmount');
+        const amount = this.safeNumber (transaction, 'Amount');
+        const feeCost = this.safeNumber (transaction, 'FeeAmount');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
