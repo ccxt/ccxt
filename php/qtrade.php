@@ -182,11 +182,11 @@ class qtrade extends Exchange {
                 'quote' => $quote,
                 'active' => $active,
                 'precision' => $precision,
-                'taker' => $this->safe_float($market, 'taker_fee'),
-                'maker' => $this->safe_float($market, 'maker_fee'),
+                'taker' => $this->safe_number($market, 'taker_fee'),
+                'maker' => $this->safe_number($market, 'maker_fee'),
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'minimum_buy_value'),
+                        'min' => $this->safe_number($market, 'minimum_buy_value'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -267,12 +267,12 @@ class qtrade extends Exchange {
                 'info' => $currency,
                 'type' => $type,
                 'name' => $name,
-                'fee' => $this->safe_float($config, 'withdraw_fee'),
+                'fee' => $this->safe_number($config, 'withdraw_fee'),
                 'precision' => $this->safe_integer($currency, 'precision'),
                 'active' => $active,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($currency, 'minimum_order'),
+                        'min' => $this->safe_number($currency, 'minimum_order'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -307,11 +307,11 @@ class qtrade extends Exchange {
         //
         return array(
             $this->parse8601($this->safe_string($ohlcv, 'time')),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'market_volume'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'market_volume'),
         );
     }
 
@@ -373,8 +373,8 @@ class qtrade extends Exchange {
             $result = array();
             for ($j = 0; $j < count($prices); $j++) {
                 $priceAsString = $prices[$j];
-                $price = $this->safe_float($prices, $j);
-                $amount = $this->safe_float($bidasks, $priceAsString);
+                $price = $this->safe_number($prices, $j);
+                $amount = $this->safe_number($bidasks, $priceAsString);
                 $result[] = array( $price, $amount );
             }
             $orderbook[$side] = $result;
@@ -406,12 +406,12 @@ class qtrade extends Exchange {
         $marketId = $this->safe_string($ticker, 'id_hr');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_integer_product($ticker, 'last_change', 0.001);
-        $previous = $this->safe_float($ticker, 'day_open');
-        $last = $this->safe_float($ticker, 'last');
-        $day_change = $this->safe_float($ticker, 'day_change');
+        $previous = $this->safe_number($ticker, 'day_open');
+        $last = $this->safe_number($ticker, 'last');
+        $day_change = $this->safe_number($ticker, 'day_change');
         $percentage = null;
         $change = null;
-        $average = $this->safe_float($ticker, 'day_avg_price');
+        $average = $this->safe_number($ticker, 'day_avg_price');
         if ($day_change !== null) {
             $percentage = $day_change * 100;
             if ($previous !== null) {
@@ -421,18 +421,18 @@ class qtrade extends Exchange {
         if (($average === null) && ($last !== null) && ($previous !== null)) {
             $average = $this->sum($last, $previous) / 2;
         }
-        $baseVolume = $this->safe_float($ticker, 'day_volume_market');
-        $quoteVolume = $this->safe_float($ticker, 'day_volume_base');
+        $baseVolume = $this->safe_number($ticker, 'day_volume_market');
+        $quoteVolume = $this->safe_number($ticker, 'day_volume_base');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'day_high'),
-            'low' => $this->safe_float($ticker, 'day_low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'day_high'),
+            'low' => $this->safe_number($ticker, 'day_low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => $previous,
@@ -640,16 +640,16 @@ class qtrade extends Exchange {
         $side = $this->safe_string($trade, 'side');
         $marketId = $this->safe_string($trade, 'market_string');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $cost = $this->safe_float_2($trade, 'base_volume', 'base_amount');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float_2($trade, 'market_amount', 'amount');
+        $cost = $this->safe_number_2($trade, 'base_volume', 'base_amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number_2($trade, 'market_amount', 'amount');
         if (($cost === null) && ($amount !== null) && ($price !== null)) {
             if ($price !== null) {
                 $cost = $price * $amount;
             }
         }
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'base_fee');
+        $feeCost = $this->safe_number($trade, 'base_fee');
         if ($feeCost !== null) {
             $feeCurrencyCode = ($market === null) ? null : $market['quote'];
             $fee = array(
@@ -706,7 +706,7 @@ class qtrade extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = (is_array($result) && array_key_exists($code, $result)) ? $result[$code] : $this->account();
-            $account['free'] = $this->safe_float($balance, 'balance');
+            $account['free'] = $this->safe_number($balance, 'balance');
             $account['used'] = 0;
             $result[$code] = $account;
         }
@@ -716,7 +716,7 @@ class qtrade extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = (is_array($result) && array_key_exists($code, $result)) ? $result[$code] : $this->account();
-            $account['used'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_number($balance, 'balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -848,9 +848,9 @@ class qtrade extends Exchange {
             $side = $this->safe_string($parts, 0);
             $orderType = $this->safe_string($parts, 1);
         }
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'market_amount');
-        $remaining = $this->safe_float($order, 'market_amount_remaining');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'market_amount');
+        $remaining = $this->safe_number($order, 'market_amount_remaining');
         $open = $this->safe_value($order, 'open', false);
         $closeReason = $this->safe_string($order, 'close_reason');
         $status = null;
@@ -1362,7 +1362,7 @@ class qtrade extends Exchange {
         $tagTo = $tag;
         $cancelRequested = $this->safe_value($transaction, 'cancel_requested');
         $type = ($cancelRequested === null) ? 'deposit' : 'withdrawal';
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
