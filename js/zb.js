@@ -278,8 +278,8 @@ module.exports = class zb extends Exchange {
             const account = this.account ();
             const currencyId = this.safeString (balance, 'key');
             const code = this.safeCurrencyCode (currencyId);
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'freez');
+            account['free'] = this.safeNumber (balance, 'available');
+            account['used'] = this.safeNumber (balance, 'freez');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -437,16 +437,16 @@ module.exports = class zb extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -456,7 +456,7 @@ module.exports = class zb extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -465,11 +465,11 @@ module.exports = class zb extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeInteger (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 5),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -497,8 +497,8 @@ module.exports = class zb extends Exchange {
         let side = this.safeString (trade, 'trade_type');
         side = (side === 'bid') ? 'buy' : 'sell';
         const id = this.safeString (trade, 'tid');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -683,13 +683,13 @@ module.exports = class zb extends Exchange {
         const timestamp = this.safeInteger (order, 'trade_date');
         const marketId = this.safeString (order, 'currency');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const price = this.safeFloat (order, 'price');
-        const filled = this.safeFloat (order, 'trade_amount');
-        const amount = this.safeFloat (order, 'total_amount');
-        const cost = this.safeFloat (order, 'trade_money');
+        const price = this.safeNumber (order, 'price');
+        const filled = this.safeNumber (order, 'trade_amount');
+        const amount = this.safeNumber (order, 'total_amount');
+        const cost = this.safeNumber (order, 'trade_money');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'id');
-        const feeCost = this.safeFloat (order, 'fees');
+        const feeCost = this.safeNumber (order, 'fees');
         let fee = undefined;
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
@@ -789,7 +789,7 @@ module.exports = class zb extends Exchange {
         //
         const id = this.safeString (transaction, 'id');
         const txid = this.safeString (transaction, 'hash');
-        const amount = this.safeFloat (transaction, 'amount');
+        const amount = this.safeNumber (transaction, 'amount');
         let timestamp = this.parse8601 (this.safeString (transaction, 'submit_time'));
         timestamp = this.safeInteger (transaction, 'submitTime', timestamp);
         let address = this.safeString2 (transaction, 'toAddress', 'address');
@@ -809,7 +809,7 @@ module.exports = class zb extends Exchange {
         }
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         let fee = undefined;
-        const feeCost = this.safeFloat (transaction, 'fees');
+        const feeCost = this.safeNumber (transaction, 'fees');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -842,7 +842,7 @@ module.exports = class zb extends Exchange {
         if (password === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires exchange.password or a safePwd parameter');
         }
-        const fees = this.safeFloat (params, 'fees');
+        const fees = this.safeNumber (params, 'fees');
         if (fees === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a fees parameter');
         }
