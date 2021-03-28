@@ -220,7 +220,7 @@ module.exports = class buda extends Exchange {
             }
             const id = this.safeString (currency, 'id');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeFloat (currency, 'input_decimals');
+            const precision = this.safeNumber (currency, 'input_decimals');
             const minimum = Math.pow (10, -precision);
             result[code] = {
                 'id': id,
@@ -565,15 +565,15 @@ module.exports = class buda extends Exchange {
         const side = this.safeStringLower (order, 'type');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const originalAmount = this.safeValue (order, 'original_amount', []);
-        const amount = this.safeFloat (originalAmount, 0);
+        const amount = this.safeNumber (originalAmount, 0);
         const remainingAmount = this.safeValue (order, 'amount', []);
-        const remaining = this.safeFloat (remainingAmount, 0);
+        const remaining = this.safeNumber (remainingAmount, 0);
         const tradedAmount = this.safeValue (order, 'traded_amount', []);
-        const filled = this.safeFloat (tradedAmount, 0);
+        const filled = this.safeNumber (tradedAmount, 0);
         const totalExchanged = this.safeValue (order, 'totalExchanged', []);
-        const cost = this.safeFloat (totalExchanged, 0);
+        const cost = this.safeNumber (totalExchanged, 0);
         const limitPrice = this.safeValue (order, 'limit', []);
-        let price = this.safeFloat (limitPrice, 0);
+        let price = this.safeNumber (limitPrice, 0);
         if (price === undefined) {
             if (limitPrice !== undefined) {
                 price = limitPrice;
@@ -584,7 +584,7 @@ module.exports = class buda extends Exchange {
             average = this.priceToPrecision (symbol, cost / filled);
         }
         const paidFee = this.safeValue (order, 'paid_fee', []);
-        const feeCost = this.safeFloat (paidFee, 0);
+        const feeCost = this.safeNumber (paidFee, 0);
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (paidFee, 1);
