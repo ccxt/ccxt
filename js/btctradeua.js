@@ -106,7 +106,7 @@ module.exports = class btctradeua extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
+            account['total'] = this.safeNumber (balance, 'balance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -249,8 +249,8 @@ module.exports = class btctradeua extends Exchange {
         const id = this.safeString (trade, 'id');
         const type = 'limit';
         const side = this.safeString (trade, 'type');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amnt_trade');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amnt_trade');
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
@@ -337,11 +337,11 @@ module.exports = class btctradeua extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': this.safeString (order, 'type'),
-            'price': this.safeFloat (order, 'price'),
+            'price': this.safeNumber (order, 'price'),
             'stopPrice': undefined,
-            'amount': this.safeFloat (order, 'amnt_trade'),
+            'amount': this.safeNumber (order, 'amnt_trade'),
             'filled': 0,
-            'remaining': this.safeFloat (order, 'amnt_trade'),
+            'remaining': this.safeNumber (order, 'amnt_trade'),
             'trades': undefined,
             'info': order,
             'cost': undefined,
