@@ -581,18 +581,18 @@ module.exports = class exmo extends Exchange {
             const [ baseId, quoteId ] = marketId.split ('/');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const maxAmount = this.safeFloat (limit, 'max_q');
-            const maxPrice = this.safeFloat (limit, 'max_p');
-            const maxCost = this.safeFloat (limit, 'max_a');
-            const minAmount = this.safeFloat (limit, 'min_q');
-            const minPrice = this.safeFloat (limit, 'min_p');
-            const minCost = this.safeFloat (limit, 'min_a');
-            minAmounts[base] = Math.min (this.safeFloat (minAmounts, base, minAmount), minAmount);
-            maxAmounts[base] = Math.max (this.safeFloat (maxAmounts, base, maxAmount), maxAmount);
-            minPrices[quote] = Math.min (this.safeFloat (minPrices, quote, minPrice), minPrice);
-            minCosts[quote] = Math.min (this.safeFloat (minCosts, quote, minCost), minCost);
-            maxPrices[quote] = Math.max (this.safeFloat (maxPrices, quote, maxPrice), maxPrice);
-            maxCosts[quote] = Math.max (this.safeFloat (maxCosts, quote, maxCost), maxCost);
+            const maxAmount = this.safeNumber (limit, 'max_q');
+            const maxPrice = this.safeNumber (limit, 'max_p');
+            const maxCost = this.safeNumber (limit, 'max_a');
+            const minAmount = this.safeNumber (limit, 'min_q');
+            const minPrice = this.safeNumber (limit, 'min_p');
+            const minCost = this.safeNumber (limit, 'min_a');
+            minAmounts[base] = Math.min (this.safeNumber (minAmounts, base, minAmount), minAmount);
+            maxAmounts[base] = Math.max (this.safeNumber (maxAmounts, base, maxAmount), maxAmount);
+            minPrices[quote] = Math.min (this.safeNumber (minPrices, quote, minPrice), minPrice);
+            minCosts[quote] = Math.min (this.safeNumber (minCosts, quote, minCost), minCost);
+            maxPrices[quote] = Math.max (this.safeNumber (maxPrices, quote, maxPrice), maxPrice);
+            maxCosts[quote] = Math.max (this.safeNumber (maxCosts, quote, maxCost), maxCost);
         }
         const result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -609,16 +609,16 @@ module.exports = class exmo extends Exchange {
                 'precision': 8,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (minAmounts, code),
-                        'max': this.safeFloat (maxAmounts, code),
+                        'min': this.safeNumber (minAmounts, code),
+                        'max': this.safeNumber (maxAmounts, code),
                     },
                     'price': {
-                        'min': this.safeFloat (minPrices, code),
-                        'max': this.safeFloat (maxPrices, code),
+                        'min': this.safeNumber (minPrices, code),
+                        'max': this.safeNumber (maxPrices, code),
                     },
                     'cost': {
-                        'min': this.safeFloat (minCosts, code),
-                        'max': this.safeFloat (maxCosts, code),
+                        'min': this.safeNumber (minCosts, code),
+                        'max': this.safeNumber (maxCosts, code),
                     },
                 },
                 'info': id,
@@ -653,8 +653,8 @@ module.exports = class exmo extends Exchange {
             const [ baseId, quoteId ] = symbol.split ('/');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const taker = this.safeFloat (market, 'commission_taker_percent');
-            const maker = this.safeFloat (market, 'commission_maker_percent');
+            const taker = this.safeNumber (market, 'commission_taker_percent');
+            const maker = this.safeNumber (market, 'commission_maker_percent');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -667,16 +667,16 @@ module.exports = class exmo extends Exchange {
                 'maker': maker / 100,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'min_quantity'),
-                        'max': this.safeFloat (market, 'max_quantity'),
+                        'min': this.safeNumber (market, 'min_quantity'),
+                        'max': this.safeNumber (market, 'max_quantity'),
                     },
                     'price': {
-                        'min': this.safeFloat (market, 'min_price'),
-                        'max': this.safeFloat (market, 'max_price'),
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
-                        'min': this.safeFloat (market, 'min_amount'),
-                        'max': this.safeFloat (market, 'max_amount'),
+                        'min': this.safeNumber (market, 'min_amount'),
+                        'max': this.safeNumber (market, 'max_amount'),
                     },
                 },
                 'precision': {
@@ -749,11 +749,11 @@ module.exports = class exmo extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 't'),
-            this.safeFloat (ohlcv, 'o'),
-            this.safeFloat (ohlcv, 'h'),
-            this.safeFloat (ohlcv, 'l'),
-            this.safeFloat (ohlcv, 'c'),
-            this.safeFloat (ohlcv, 'v'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
         ];
     }
 
@@ -769,10 +769,10 @@ module.exports = class exmo extends Exchange {
             const currencyId = this.currencyId (code);
             const account = this.account ();
             if (currencyId in free) {
-                account['free'] = this.safeFloat (free, currencyId);
+                account['free'] = this.safeNumber (free, currencyId);
             }
             if (currencyId in used) {
-                account['used'] = this.safeFloat (used, currencyId);
+                account['used'] = this.safeNumber (used, currencyId);
             }
             result[code] = account;
         }
@@ -834,16 +834,16 @@ module.exports = class exmo extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last_trade');
+        const last = this.safeNumber (ticker, 'last_trade');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy_price'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy_price'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell_price'),
+            'ask': this.safeNumber (ticker, 'sell_price'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -852,9 +852,9 @@ module.exports = class exmo extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeFloat (ticker, 'avg'),
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'vol_curr'),
+            'average': this.safeNumber (ticker, 'avg'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'quoteVolume': this.safeNumber (ticker, 'vol_curr'),
             'info': ticker,
         };
     }
@@ -915,9 +915,9 @@ module.exports = class exmo extends Exchange {
         let symbol = undefined;
         const id = this.safeString (trade, 'trade_id');
         const orderId = this.safeString (trade, 'order_id');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'quantity');
-        const cost = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'quantity');
+        const cost = this.safeNumber (trade, 'amount');
         const side = this.safeString (trade, 'type');
         const type = undefined;
         const marketId = this.safeString (trade, 'pair');
@@ -936,11 +936,11 @@ module.exports = class exmo extends Exchange {
         }
         const takerOrMaker = this.safeString (trade, 'exec_type');
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'commission_amount');
+        const feeCost = this.safeNumber (trade, 'commission_amount');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commission_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            let feeRate = this.safeFloat (trade, 'commission_percent');
+            let feeRate = this.safeNumber (trade, 'commission_percent');
             if (feeRate !== undefined) {
                 feeRate /= 1000;
             }
@@ -1239,13 +1239,13 @@ module.exports = class exmo extends Exchange {
                 market = this.markets_by_id[marketId];
             }
         }
-        let amount = this.safeFloat (order, 'quantity');
+        let amount = this.safeNumber (order, 'quantity');
         if (amount === undefined) {
             const amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
-            amount = this.safeFloat (order, amountField);
+            amount = this.safeNumber (order, amountField);
         }
-        let price = this.safeFloat (order, 'price');
-        let cost = this.safeFloat (order, 'amount');
+        let price = this.safeNumber (order, 'price');
+        let cost = this.safeNumber (order, 'amount');
         let filled = 0.0;
         const trades = [];
         const transactions = this.safeValue (order, 'trades', []);
@@ -1428,7 +1428,7 @@ module.exports = class exmo extends Exchange {
         //          }
         //
         const timestamp = this.safeTimestamp (transaction, 'dt');
-        let amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeNumber (transaction, 'amount');
         if (amount !== undefined) {
             amount = Math.abs (amount);
         }
@@ -1458,7 +1458,7 @@ module.exports = class exmo extends Exchange {
         // fixed funding fees only (for now)
         if (!this.fees['funding']['percentage']) {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
-            let feeCost = this.safeFloat (this.options['fundingFees'][key], code);
+            let feeCost = this.safeNumber (this.options['fundingFees'][key], code);
             // users don't pay for cashbacks, no fees for that
             const provider = this.safeString (transaction, 'provider');
             if (provider === 'cashback') {
