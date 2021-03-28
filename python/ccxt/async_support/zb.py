@@ -287,8 +287,8 @@ class zb(Exchange):
             account = self.account()
             currencyId = self.safe_string(balance, 'key')
             code = self.safe_currency_code(currencyId)
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'freez')
+            account['free'] = self.safe_number(balance, 'available')
+            account['used'] = self.safe_number(balance, 'freez')
             result[code] = account
         return self.parse_balance(result)
 
@@ -433,16 +433,16 @@ class zb(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -452,7 +452,7 @@ class zb(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -460,11 +460,11 @@ class zb(Exchange):
     def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_integer(ohlcv, 0),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 5),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -488,8 +488,8 @@ class zb(Exchange):
         side = self.safe_string(trade, 'trade_type')
         side = 'buy' if (side == 'bid') else 'sell'
         id = self.safe_string(trade, 'tid')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
         cost = None
         if price is not None:
             if amount is not None:
@@ -652,13 +652,13 @@ class zb(Exchange):
         timestamp = self.safe_integer(order, 'trade_date')
         marketId = self.safe_string(order, 'currency')
         symbol = self.safe_symbol(marketId, market, '_')
-        price = self.safe_float(order, 'price')
-        filled = self.safe_float(order, 'trade_amount')
-        amount = self.safe_float(order, 'total_amount')
-        cost = self.safe_float(order, 'trade_money')
+        price = self.safe_number(order, 'price')
+        filled = self.safe_number(order, 'trade_amount')
+        amount = self.safe_number(order, 'total_amount')
+        cost = self.safe_number(order, 'trade_money')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
-        feeCost = self.safe_float(order, 'fees')
+        feeCost = self.safe_number(order, 'fees')
         fee = None
         if feeCost is not None:
             feeCurrency = None
@@ -753,7 +753,7 @@ class zb(Exchange):
         #
         id = self.safe_string(transaction, 'id')
         txid = self.safe_string(transaction, 'hash')
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         timestamp = self.parse8601(self.safe_string(transaction, 'submit_time'))
         timestamp = self.safe_integer(transaction, 'submitTime', timestamp)
         address = self.safe_string_2(transaction, 'toAddress', 'address')
@@ -771,7 +771,7 @@ class zb(Exchange):
             type = 'withdrawal' if (confirmTimes is None) else 'deposit'
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         fee = None
-        feeCost = self.safe_float(transaction, 'fees')
+        feeCost = self.safe_number(transaction, 'fees')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -801,7 +801,7 @@ class zb(Exchange):
         password = self.safe_string(params, 'safePwd', self.password)
         if password is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires exchange.password or a safePwd parameter')
-        fees = self.safe_float(params, 'fees')
+        fees = self.safe_number(params, 'fees')
         if fees is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires a fees parameter')
         self.check_address(address)
