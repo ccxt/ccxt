@@ -57,6 +57,7 @@ module.exports = class binance extends ccxt.binance {
                 },
                 'wallet': 'wb', // wb = wallet balance, cb = cross balance
                 'futureBalance': {},
+                'listenKeyRefreshRate': 12000, // 20 mins
             },
         });
     }
@@ -731,12 +732,14 @@ module.exports = class binance extends ccxt.binance {
     }
 
     async authenticate (params = {}) {
-        const time = this.seconds ();
+        const time = this.milliseconds ();
         let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
         type = this.safeString (params, 'type', type);
         const options = this.safeValue (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
-        if (time - lastAuthenticatedTime > 1800) {
+        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
+        const delay = this.sum (listenKeyRefreshRate, 10000);
+        if (time - lastAuthenticatedTime > delay) {
             let method = 'publicPostUserDataStream';
             if (type === 'future') {
                 method = 'fapiPrivatePostListenKey';
@@ -750,6 +753,61 @@ module.exports = class binance extends ccxt.binance {
                 'listenKey': this.safeString (response, 'listenKey'),
                 'lastAuthenticatedTime': time,
             });
+            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+        }
+    }
+
+    async keepAliveListenKey (params = {}) {
+        // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
+        let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
+        type = this.safeString (params, 'type', type);
+        const options = this.safeValue (this.options, type, {});
+        const listenKey = this.safeString (options, 'listenKey');
+        let method = 'publicPutUserDataStream';
+        if (type === 'future') {
+            method = 'fapiPrivatePutListenKey';
+        } else if (type === 'delivery') {
+            method = 'dapiPrivatePutListenKey';
+        } else if (type === 'margin') {
+            method = 'sapiPutUserDataStream';
+        }
+        const request = {
+            'listenKey': listenKey,
+        };
+        const time = this.milliseconds ();
+        const sendParams = this.omit (params, 'type');
+        try {
+            await this[method] (this.extend (request, sendParams));
+        } catch (error) {
+            const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+            const client = this.client (url);
+            const messageHashes = Object.keys (client.futures);
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                client.reject (error, messageHash);
+            }
+            this.options[type] = this.extend (options, {
+                'listenKey': undefined,
+                'lastAuthenticatedTime': 0,
+            });
+            return;
+        }
+        this.options[type] = this.extend (options, {
+            'listenKey': listenKey,
+            'lastAuthenticatedTime': time,
+        });
+        // whether or not to schedule another listenKey keepAlive request
+        const clients = Object.values (this.clients);
+        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i];
+            const subscriptionKeys = Object.keys (client.subscriptions);
+            for (let j = 0; j < subscriptionKeys.length; j++) {
+                const subscribeType = subscriptionKeys[j];
+                if (subscribeType === type) {
+                    return this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                }
+            }
         }
     }
 
@@ -762,8 +820,7 @@ module.exports = class binance extends ccxt.binance {
         const isSpotBalance = (type === 'spot') || (type === 'margin');
         const messageHash = isSpotBalance ? 'spotBalance' : 'futureBalance';
         const message = undefined;
-        const subscriptionHash = type + 'Private';
-        return await this.watch (url, messageHash, message, subscriptionHash);
+        return await this.watch (url, messageHash, message, type);
     }
 
     handleBalance (client, message) {
@@ -852,12 +909,11 @@ module.exports = class binance extends ccxt.binance {
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         let messageHash = 'orders';
-        const subscriptionHash = type + 'Private';
         if (symbol !== undefined) {
             messageHash += ':' + symbol;
         }
         const message = undefined;
-        const orders = await this.watch (url, messageHash, message, subscriptionHash);
+        const orders = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
             limit = orders.getLimit (limit);
         }
@@ -1115,12 +1171,11 @@ module.exports = class binance extends ccxt.binance {
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         let messageHash = 'myTrades';
-        const subscriptionHash = type + 'Private';
         if (symbol !== undefined) {
             messageHash += ':' + symbol;
         }
         const message = undefined;
-        const trades = await this.watch (url, messageHash, message, subscriptionHash);
+        const trades = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
             limit = trades.getLimit (limit);
         }
