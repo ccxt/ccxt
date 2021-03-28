@@ -59,7 +59,7 @@ class binance(Exchange, ccxt.binance):
                 },
                 'wallet': 'wb',  # wb = wallet balance, cb = cross balance
                 'futureBalance': {},
-                'listenKeyRefreshRate': 12000,  # 20 mins
+                'listenKeyRefreshRate': 1200000,  # 20 mins
             },
         })
 
