@@ -57,7 +57,7 @@ module.exports = class binance extends ccxt.binance {
                 },
                 'wallet': 'wb', // wb = wallet balance, cb = cross balance
                 'futureBalance': {},
-                'listenKeyRefreshRate': 1200000, // 20 mins
+                'listenKeyRefreshRate': 12000, // 20 mins
             },
         });
     }
@@ -737,8 +737,8 @@ module.exports = class binance extends ccxt.binance {
         type = this.safeString (params, 'type', type);
         const options = this.safeValue (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
-        const refreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
-        const delay = this.sum (refreshRate, 10000);
+        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
+        const delay = this.sum (listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
             let method = 'publicPostUserDataStream';
             if (type === 'future') {
@@ -753,7 +753,6 @@ module.exports = class binance extends ccxt.binance {
                 'listenKey': this.safeString (response, 'listenKey'),
                 'lastAuthenticatedTime': time,
             });
-            const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
     }
