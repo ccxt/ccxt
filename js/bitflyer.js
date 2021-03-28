@@ -185,8 +185,8 @@ module.exports = class bitflyer extends Exchange {
             const currencyId = this.safeString (balance, 'currency_code');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'amount');
-            account['free'] = this.safeFloat (balance, 'available');
+            account['total'] = this.safeNumber (balance, 'amount');
+            account['free'] = this.safeNumber (balance, 'available');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -208,16 +208,16 @@ module.exports = class bitflyer extends Exchange {
         };
         const ticker = await this.publicGetGetticker (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        const last = this.safeFloat (ticker, 'ltp');
+        const last = this.safeNumber (ticker, 'ltp');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeFloat (ticker, 'best_bid'),
+            'bid': this.safeNumber (ticker, 'best_bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'best_ask'),
+            'ask': this.safeNumber (ticker, 'best_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -227,7 +227,7 @@ module.exports = class bitflyer extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume_by_product'),
+            'baseVolume': this.safeNumber (ticker, 'volume_by_product'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -251,8 +251,8 @@ module.exports = class bitflyer extends Exchange {
             order = this.safeString (trade, 'child_order_acceptance_id');
         }
         const timestamp = this.parse8601 (this.safeString (trade, 'exec_date'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'size');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'size');
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
@@ -334,17 +334,17 @@ module.exports = class bitflyer extends Exchange {
 
     parseOrder (order, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (order, 'child_order_date'));
-        const amount = this.safeFloat (order, 'size');
-        const remaining = this.safeFloat (order, 'outstanding_size');
-        const filled = this.safeFloat (order, 'executed_size');
-        const price = this.safeFloat (order, 'price');
+        const amount = this.safeNumber (order, 'size');
+        const remaining = this.safeNumber (order, 'outstanding_size');
+        const filled = this.safeNumber (order, 'executed_size');
+        const price = this.safeNumber (order, 'price');
         const status = this.parseOrderStatus (this.safeString (order, 'child_order_state'));
         const type = this.safeStringLower (order, 'child_order_type');
         const side = this.safeStringLower (order, 'side');
         const marketId = this.safeString (order, 'product_code');
         const symbol = this.safeSymbol (marketId, market);
         let fee = undefined;
-        const feeCost = this.safeFloat (order, 'total_commission');
+        const feeCost = this.safeNumber (order, 'total_commission');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
