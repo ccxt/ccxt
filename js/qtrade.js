@@ -179,11 +179,11 @@ module.exports = class qtrade extends Exchange {
                 'quote': quote,
                 'active': active,
                 'precision': precision,
-                'taker': this.safeFloat (market, 'taker_fee'),
-                'maker': this.safeFloat (market, 'maker_fee'),
+                'taker': this.safeNumber (market, 'taker_fee'),
+                'maker': this.safeNumber (market, 'maker_fee'),
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'minimum_buy_value'),
+                        'min': this.safeNumber (market, 'minimum_buy_value'),
                         'max': undefined,
                     },
                     'price': {
@@ -264,12 +264,12 @@ module.exports = class qtrade extends Exchange {
                 'info': currency,
                 'type': type,
                 'name': name,
-                'fee': this.safeFloat (config, 'withdraw_fee'),
+                'fee': this.safeNumber (config, 'withdraw_fee'),
                 'precision': this.safeInteger (currency, 'precision'),
                 'active': active,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (currency, 'minimum_order'),
+                        'min': this.safeNumber (currency, 'minimum_order'),
                         'max': undefined,
                     },
                     'price': {
@@ -304,11 +304,11 @@ module.exports = class qtrade extends Exchange {
         //
         return [
             this.parse8601 (this.safeString (ohlcv, 'time')),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'market_volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'market_volume'),
         ];
     }
 
@@ -370,8 +370,8 @@ module.exports = class qtrade extends Exchange {
             const result = [];
             for (let j = 0; j < prices.length; j++) {
                 const priceAsString = prices[j];
-                const price = this.safeFloat (prices, j);
-                const amount = this.safeFloat (bidasks, priceAsString);
+                const price = this.safeNumber (prices, j);
+                const amount = this.safeNumber (bidasks, priceAsString);
                 result.push ([ price, amount ]);
             }
             orderbook[side] = result;
@@ -403,12 +403,12 @@ module.exports = class qtrade extends Exchange {
         const marketId = this.safeString (ticker, 'id_hr');
         const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeIntegerProduct (ticker, 'last_change', 0.001);
-        const previous = this.safeFloat (ticker, 'day_open');
-        const last = this.safeFloat (ticker, 'last');
-        const day_change = this.safeFloat (ticker, 'day_change');
+        const previous = this.safeNumber (ticker, 'day_open');
+        const last = this.safeNumber (ticker, 'last');
+        const day_change = this.safeNumber (ticker, 'day_change');
         let percentage = undefined;
         let change = undefined;
-        let average = this.safeFloat (ticker, 'day_avg_price');
+        let average = this.safeNumber (ticker, 'day_avg_price');
         if (day_change !== undefined) {
             percentage = day_change * 100;
             if (previous !== undefined) {
@@ -418,18 +418,18 @@ module.exports = class qtrade extends Exchange {
         if ((average === undefined) && (last !== undefined) && (previous !== undefined)) {
             average = this.sum (last, previous) / 2;
         }
-        const baseVolume = this.safeFloat (ticker, 'day_volume_market');
-        const quoteVolume = this.safeFloat (ticker, 'day_volume_base');
+        const baseVolume = this.safeNumber (ticker, 'day_volume_market');
+        const quoteVolume = this.safeNumber (ticker, 'day_volume_base');
         const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'day_high'),
-            'low': this.safeFloat (ticker, 'day_low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'day_high'),
+            'low': this.safeNumber (ticker, 'day_low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': previous,
@@ -637,16 +637,16 @@ module.exports = class qtrade extends Exchange {
         const side = this.safeString (trade, 'side');
         const marketId = this.safeString (trade, 'market_string');
         const symbol = this.safeSymbol (marketId, market, '_');
-        let cost = this.safeFloat2 (trade, 'base_volume', 'base_amount');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'market_amount', 'amount');
+        let cost = this.safeNumber2 (trade, 'base_volume', 'base_amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber2 (trade, 'market_amount', 'amount');
         if ((cost === undefined) && (amount !== undefined) && (price !== undefined)) {
             if (price !== undefined) {
                 cost = price * amount;
             }
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'base_fee');
+        const feeCost = this.safeNumber (trade, 'base_fee');
         if (feeCost !== undefined) {
             const feeCurrencyCode = (market === undefined) ? undefined : market['quote'];
             fee = {
@@ -703,7 +703,7 @@ module.exports = class qtrade extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in result) ? result[code] : this.account ();
-            account['free'] = this.safeFloat (balance, 'balance');
+            account['free'] = this.safeNumber (balance, 'balance');
             account['used'] = 0;
             result[code] = account;
         }
@@ -713,7 +713,7 @@ module.exports = class qtrade extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in result) ? result[code] : this.account ();
-            account['used'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeNumber (balance, 'balance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -845,9 +845,9 @@ module.exports = class qtrade extends Exchange {
             side = this.safeString (parts, 0);
             orderType = this.safeString (parts, 1);
         }
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'market_amount');
-        const remaining = this.safeFloat (order, 'market_amount_remaining');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'market_amount');
+        const remaining = this.safeNumber (order, 'market_amount_remaining');
         const open = this.safeValue (order, 'open', false);
         const closeReason = this.safeString (order, 'close_reason');
         let status = undefined;
@@ -1359,7 +1359,7 @@ module.exports = class qtrade extends Exchange {
         const tagTo = tag;
         const cancelRequested = this.safeValue (transaction, 'cancel_requested');
         const type = (cancelRequested === undefined) ? 'deposit' : 'withdrawal';
-        const amount = this.safeFloat (transaction, 'amount');
+        const amount = this.safeNumber (transaction, 'amount');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
