@@ -224,9 +224,9 @@ class gateio(Exchange):
                 currency = coin[id]
                 code = self.safe_currency_code(id)
                 delisted = self.safe_value(currency, 'delisted', 0)
-                withdrawDisabled = self.safe_value(currency, 'withdraw_disabled', 0)
-                depositDisabled = self.safe_value(currency, 'deposit_disabled', 0)
-                tradeDisabled = self.safe_value(currency, 'trade_disabled', 0)
+                withdrawDisabled = self.safe_integer_2(currency, 'withdraw_disabled', 0)
+                depositDisabled = self.safe_integer_2(currency, 'deposit_disabled', 0)
+                tradeDisabled = self.safe_integer_2(currency, 'trade_disabled', 0)
                 listed = (delisted == 0)
                 withdrawEnabled = (withdrawDisabled == 0)
                 depositEnabled = (depositDisabled == 0)
@@ -328,7 +328,7 @@ class gateio(Exchange):
                 'price': priceLimits,
                 'cost': costLimits,
             }
-            disabled = self.safe_value(details, 'trade_disabled')
+            disabled = self.safe_integer(details, 'trade_disabled')
             active = not disabled
             uppercaseId = id.upper()
             fee = self.safe_float(details, 'fee')

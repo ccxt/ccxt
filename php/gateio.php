@@ -219,9 +219,9 @@ class gateio extends Exchange {
                 $currency = $coin[$id];
                 $code = $this->safe_currency_code($id);
                 $delisted = $this->safe_value($currency, 'delisted', 0);
-                $withdrawDisabled = $this->safe_value($currency, 'withdraw_disabled', 0);
-                $depositDisabled = $this->safe_value($currency, 'deposit_disabled', 0);
-                $tradeDisabled = $this->safe_value($currency, 'trade_disabled', 0);
+                $withdrawDisabled = $this->safe_integer_2($currency, 'withdraw_disabled', 0);
+                $depositDisabled = $this->safe_integer_2($currency, 'deposit_disabled', 0);
+                $tradeDisabled = $this->safe_integer_2($currency, 'trade_disabled', 0);
                 $listed = ($delisted === 0);
                 $withdrawEnabled = ($withdrawDisabled === 0);
                 $depositEnabled = ($depositDisabled === 0);
@@ -328,7 +328,7 @@ class gateio extends Exchange {
                 'price' => $priceLimits,
                 'cost' => $costLimits,
             );
-            $disabled = $this->safe_value($details, 'trade_disabled');
+            $disabled = $this->safe_integer($details, 'trade_disabled');
             $active = !$disabled;
             $uppercaseId = strtoupper($id);
             $fee = $this->safe_float($details, 'fee');
