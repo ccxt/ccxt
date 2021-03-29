@@ -327,8 +327,8 @@ class huobipro(Exchange):
             'info': limits,
             'limits': {
                 'amount': {
-                    'min': self.safe_float(limits, 'limit-order-must-greater-than'),
-                    'max': self.safe_float(limits, 'limit-order-must-less-than'),
+                    'min': self.safe_number(limits, 'limit-order-must-greater-than'),
+                    'max': self.safe_number(limits, 'limit-order-must-less-than'),
                 },
             },
         }
@@ -359,9 +359,9 @@ class huobipro(Exchange):
             }
             maker = 0 if (base == 'OMG') else 0.2 / 100
             taker = 0 if (base == 'OMG') else 0.2 / 100
-            minAmount = self.safe_float(market, 'min-order-amt', math.pow(10, -precision['amount']))
-            maxAmount = self.safe_float(market, 'max-order-amt')
-            minCost = self.safe_float(market, 'min-order-value', 0)
+            minAmount = self.safe_number(market, 'min-order-amt', math.pow(10, -precision['amount']))
+            maxAmount = self.safe_number(market, 'max-order-amt')
+            minCost = self.safe_number(market, 'min-order-value', 0)
             state = self.safe_string(market, 'state')
             active = (state == 'online')
             result.append({
@@ -437,20 +437,20 @@ class huobipro(Exchange):
         askVolume = None
         if 'bid' in ticker:
             if isinstance(ticker['bid'], list):
-                bid = self.safe_float(ticker['bid'], 0)
-                bidVolume = self.safe_float(ticker['bid'], 1)
+                bid = self.safe_number(ticker['bid'], 0)
+                bidVolume = self.safe_number(ticker['bid'], 1)
             else:
-                bid = self.safe_float(ticker, 'bid')
+                bid = self.safe_number(ticker, 'bid')
                 bidVolume = self.safe_value(ticker, 'bidSize')
         if 'ask' in ticker:
             if isinstance(ticker['ask'], list):
-                ask = self.safe_float(ticker['ask'], 0)
-                askVolume = self.safe_float(ticker['ask'], 1)
+                ask = self.safe_number(ticker['ask'], 0)
+                askVolume = self.safe_number(ticker['ask'], 1)
             else:
-                ask = self.safe_float(ticker, 'ask')
+                ask = self.safe_number(ticker, 'ask')
                 askVolume = self.safe_value(ticker, 'askSize')
-        open = self.safe_float(ticker, 'open')
-        close = self.safe_float(ticker, 'close')
+        open = self.safe_number(ticker, 'open')
+        close = self.safe_number(ticker, 'close')
         change = None
         percentage = None
         average = None
@@ -459,15 +459,15 @@ class huobipro(Exchange):
             average = self.sum(open, close) / 2
             if (close is not None) and (close > 0):
                 percentage = (change / open) * 100
-        baseVolume = self.safe_float(ticker, 'amount')
-        quoteVolume = self.safe_float(ticker, 'vol')
+        baseVolume = self.safe_number(ticker, 'amount')
+        quoteVolume = self.safe_number(ticker, 'vol')
         vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
@@ -617,18 +617,18 @@ class huobipro(Exchange):
             side = typeParts[0]
             type = typeParts[1]
         takerOrMaker = self.safe_string(trade, 'role')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float_2(trade, 'filled-amount', 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number_2(trade, 'filled-amount', 'amount')
         cost = None
         if price is not None:
             if amount is not None:
                 cost = amount * price
         fee = None
-        feeCost = self.safe_float(trade, 'filled-fees')
+        feeCost = self.safe_number(trade, 'filled-fees')
         feeCurrency = None
         if market is not None:
             feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
-        filledPoints = self.safe_float(trade, 'filled-points')
+        filledPoints = self.safe_number(trade, 'filled-points')
         if filledPoints is not None:
             if (feeCost is None) or (feeCost == 0.0):
                 feeCost = filledPoints
@@ -730,11 +730,11 @@ class huobipro(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 'id'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'amount'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'amount'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
@@ -827,11 +827,11 @@ class huobipro(Exchange):
                         'max': None,
                     },
                     'deposit': {
-                        'min': self.safe_float(currency, 'deposit-min-amount'),
+                        'min': self.safe_number(currency, 'deposit-min-amount'),
                         'max': math.pow(10, precision),
                     },
                     'withdraw': {
-                        'min': self.safe_float(currency, 'withdraw-min-amount'),
+                        'min': self.safe_number(currency, 'withdraw-min-amount'),
                         'max': math.pow(10, precision),
                     },
                 },
@@ -859,9 +859,9 @@ class huobipro(Exchange):
             else:
                 account = self.account()
             if balance['type'] == 'trade':
-                account['free'] = self.safe_float(balance, 'balance')
+                account['free'] = self.safe_number(balance, 'balance')
             if balance['type'] == 'frozen':
-                account['used'] = self.safe_float(balance, 'balance')
+                account['used'] = self.safe_number(balance, 'balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -1020,14 +1020,14 @@ class huobipro(Exchange):
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(order, 'created-at')
-        amount = self.safe_float(order, 'amount')
-        filled = self.safe_float_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
+        amount = self.safe_number(order, 'amount')
+        filled = self.safe_number_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
         if (type == 'market') and (side == 'buy'):
             amount = filled if (status == 'closed') else None
-        price = self.safe_float(order, 'price')
+        price = self.safe_number(order, 'price')
         if price == 0.0:
             price = None
-        cost = self.safe_float_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
+        cost = self.safe_number_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
         remaining = None
         average = None
         if filled is not None:
@@ -1036,7 +1036,7 @@ class huobipro(Exchange):
             # if cost is defined and filled is not zero
             if (cost is not None) and (filled > 0):
                 average = cost / filled
-        feeCost = self.safe_float_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
+        feeCost = self.safe_number_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
         fee = None
         if feeCost is not None:
             feeCurrency = None
@@ -1280,7 +1280,7 @@ class huobipro(Exchange):
             type = 'withdrawal'
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         tag = self.safe_string(transaction, 'address-tag')
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             feeCost = abs(feeCost)
         return {
@@ -1292,7 +1292,7 @@ class huobipro(Exchange):
             'address': self.safe_string(transaction, 'address'),
             'tag': tag,
             'type': type,
-            'amount': self.safe_float(transaction, 'amount'),
+            'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
             'status': status,
             'updated': updated,
