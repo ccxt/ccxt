@@ -256,7 +256,7 @@ class currencycom(Exchange):
             filtersByType = self.index_by(filters, 'filterType')
             precision = {
                 'amount': 1 / math.pow(1, self.safe_integer(market, 'baseAssetPrecision')),
-                'price': self.safe_float(market, 'tickSize'),
+                'price': self.safe_number(market, 'tickSize'),
             }
             status = self.safe_string(market, 'status')
             active = (status == 'TRADING')
@@ -293,43 +293,43 @@ class currencycom(Exchange):
                     },
                 },
             }
-            exchangeFee = self.safe_float_2(market, 'exchangeFee', 'tradingFee')
-            makerFee = self.safe_float(market, 'makerFee', exchangeFee)
-            takerFee = self.safe_float(market, 'takerFee', exchangeFee)
+            exchangeFee = self.safe_number_2(market, 'exchangeFee', 'tradingFee')
+            makerFee = self.safe_number(market, 'makerFee', exchangeFee)
+            takerFee = self.safe_number(market, 'takerFee', exchangeFee)
             if makerFee is not None:
                 entry['maker'] = makerFee / 100
             if takerFee is not None:
                 entry['taker'] = takerFee / 100
             if 'PRICE_FILTER' in filtersByType:
                 filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
-                entry['precision']['price'] = self.safe_float(filter, 'tickSize')
+                entry['precision']['price'] = self.safe_number(filter, 'tickSize')
                 # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
                 # therefore limits['price']['max'] doesn't have any meaningful value except None
                 entry['limits']['price'] = {
-                    'min': self.safe_float(filter, 'minPrice'),
+                    'min': self.safe_number(filter, 'minPrice'),
                     'max': None,
                 }
-                maxPrice = self.safe_float(filter, 'maxPrice')
+                maxPrice = self.safe_number(filter, 'maxPrice')
                 if (maxPrice is not None) and (maxPrice > 0):
                     entry['limits']['price']['max'] = maxPrice
             if 'LOT_SIZE' in filtersByType:
                 filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
-                entry['precision']['amount'] = self.safe_float(filter, 'stepSize')
+                entry['precision']['amount'] = self.safe_number(filter, 'stepSize')
                 entry['limits']['amount'] = {
-                    'min': self.safe_float(filter, 'minQty'),
-                    'max': self.safe_float(filter, 'maxQty'),
+                    'min': self.safe_number(filter, 'minQty'),
+                    'max': self.safe_number(filter, 'maxQty'),
                 }
             if 'MARKET_LOT_SIZE' in filtersByType:
                 filter = self.safe_value(filtersByType, 'MARKET_LOT_SIZE', {})
                 entry['limits']['market'] = {
-                    'min': self.safe_float(filter, 'minQty'),
-                    'max': self.safe_float(filter, 'maxQty'),
+                    'min': self.safe_number(filter, 'minQty'),
+                    'max': self.safe_number(filter, 'maxQty'),
                 }
             if 'MIN_NOTIONAL' in filtersByType:
                 filter = self.safe_value(filtersByType, 'MIN_NOTIONAL', {})
-                entry['limits']['cost']['min'] = self.safe_float(filter, 'minNotional')
+                entry['limits']['cost']['min'] = self.safe_number(filter, 'minNotional')
             result.append(entry)
         return result
 
@@ -396,8 +396,8 @@ class currencycom(Exchange):
         response = await self.privateGetAccount(params)
         return {
             'info': response,
-            'maker': self.safe_float(response, 'makerCommission'),
-            'taker': self.safe_float(response, 'takerCommission'),
+            'maker': self.safe_number(response, 'makerCommission'),
+            'taker': self.safe_number(response, 'takerCommission'),
         }
 
     def parse_balance_response(self, response):
@@ -430,8 +430,8 @@ class currencycom(Exchange):
             currencyId = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'free')
-            account['used'] = self.safe_float(balance, 'locked')
+            account['free'] = self.safe_number(balance, 'free')
+            account['used'] = self.safe_number(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 
@@ -528,8 +528,8 @@ class currencycom(Exchange):
         timestamp = self.safe_integer(ticker, 'closeTime')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_float(ticker, 'lastPrice')
-        open = self.safe_float(ticker, 'openPrice')
+        last = self.safe_number(ticker, 'lastPrice')
+        open = self.safe_number(ticker, 'openPrice')
         average = None
         if (open is not None) and (last is not None):
             average = self.sum(open, last) / 2
@@ -537,22 +537,22 @@ class currencycom(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'highPrice'),
-            'low': self.safe_float(ticker, 'lowPrice'),
-            'bid': self.safe_float(ticker, 'bidPrice'),
-            'bidVolume': self.safe_float(ticker, 'bidQty'),
-            'ask': self.safe_float(ticker, 'askPrice'),
-            'askVolume': self.safe_float(ticker, 'askQty'),
-            'vwap': self.safe_float(ticker, 'weightedAvgPrice'),
+            'high': self.safe_number(ticker, 'highPrice'),
+            'low': self.safe_number(ticker, 'lowPrice'),
+            'bid': self.safe_number(ticker, 'bidPrice'),
+            'bidVolume': self.safe_number(ticker, 'bidQty'),
+            'ask': self.safe_number(ticker, 'askPrice'),
+            'askVolume': self.safe_number(ticker, 'askQty'),
+            'vwap': self.safe_number(ticker, 'weightedAvgPrice'),
             'open': open,
             'close': last,
             'last': last,
-            'previousClose': self.safe_float(ticker, 'prevClosePrice'),  # previous day close
-            'change': self.safe_float(ticker, 'priceChange'),
-            'percentage': self.safe_float(ticker, 'priceChangePercent'),
+            'previousClose': self.safe_number(ticker, 'prevClosePrice'),  # previous day close
+            'change': self.safe_number(ticker, 'priceChange'),
+            'percentage': self.safe_number(ticker, 'priceChangePercent'),
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
+            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
@@ -616,11 +616,11 @@ class currencycom(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 0),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 5),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -682,8 +682,8 @@ class currencycom(Exchange):
         #     }
         #
         timestamp = self.safe_integer_2(trade, 'T', 'time')
-        price = self.safe_float_2(trade, 'p', 'price')
-        amount = self.safe_float_2(trade, 'q', 'qty')
+        price = self.safe_number_2(trade, 'p', 'price')
+        amount = self.safe_number_2(trade, 'q', 'qty')
         id = self.safe_string_2(trade, 'a', 'id')
         side = None
         orderId = self.safe_string(trade, 'orderId')
@@ -697,7 +697,7 @@ class currencycom(Exchange):
         fee = None
         if 'commission' in trade:
             fee = {
-                'cost': self.safe_float(trade, 'commission'),
+                'cost': self.safe_number(trade, 'commission'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
         takerOrMaker = None
@@ -788,11 +788,11 @@ class currencycom(Exchange):
             timestamp = self.safe_integer(order, 'time')
         elif 'transactTime' in order:
             timestamp = self.safe_integer(order, 'transactTime')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'origQty')
-        filled = self.safe_float(order, 'executedQty')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'origQty')
+        filled = self.safe_number(order, 'executedQty')
         remaining = None
-        cost = self.safe_float(order, 'cummulativeQuoteQty')
+        cost = self.safe_number(order, 'cummulativeQuoteQty')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
