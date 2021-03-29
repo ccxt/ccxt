@@ -284,8 +284,8 @@ class xena(Exchange):
                 'price': pricePrecision,
                 'amount': 0,
             }
-            maxCost = self.safe_float(market, 'maxOrderQty')
-            minCost = self.safe_float(market, 'minOrderQuantity')
+            maxCost = self.safe_number(market, 'maxOrderQty')
+            minCost = self.safe_number(market, 'minOrderQuantity')
             limits = {
                 'amount': {
                     'min': None,
@@ -368,7 +368,7 @@ class xena(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
-                'fee': self.safe_float(withdraw, 'commission'),
+                'fee': self.safe_number(withdraw, 'commission'),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -384,7 +384,7 @@ class xena(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_float(withdraw, 'minAmount'),
+                        'min': self.safe_number(withdraw, 'minAmount'),
                         'max': None,
                     },
                 },
@@ -410,8 +410,8 @@ class xena(Exchange):
         timestamp = self.milliseconds()
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_float(ticker, 'lastPx')
-        open = self.safe_float(ticker, 'firstPx')
+        last = self.safe_number(ticker, 'lastPx')
+        open = self.safe_number(ticker, 'firstPx')
         percentage = None
         change = None
         average = None
@@ -420,18 +420,18 @@ class xena(Exchange):
             average = self.sum(last, open) / 2
             if open > 0:
                 percentage = change / open * 100
-        buyVolume = self.safe_float(ticker, 'buyVolume')
-        sellVolume = self.safe_float(ticker, 'sellVolume')
+        buyVolume = self.safe_number(ticker, 'buyVolume')
+        sellVolume = self.safe_number(ticker, 'sellVolume')
         baseVolume = self.sum(buyVolume, sellVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'highPx'),
-            'low': self.safe_float(ticker, 'lowPx'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'highPx'),
+            'low': self.safe_number(ticker, 'lowPx'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -593,8 +593,8 @@ class xena(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'onHold')
+            account['free'] = self.safe_number(balance, 'available')
+            account['used'] = self.safe_number(balance, 'onHold')
             result[code] = account
         return self.parse_balance(result)
 
@@ -647,18 +647,18 @@ class xena(Exchange):
         orderId = self.safe_string(trade, 'orderId')
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        price = self.safe_float_2(trade, 'lastPx', 'mdEntryPx')
-        amount = self.safe_float_2(trade, 'lastQty', 'mdEntrySize')
+        price = self.safe_number_2(trade, 'lastPx', 'mdEntryPx')
+        amount = self.safe_number_2(trade, 'lastQty', 'mdEntrySize')
         cost = None
         if price is not None:
             if amount is not None:
                 cost = price * amount
         fee = None
-        feeCost = self.safe_float(trade, 'commission')
+        feeCost = self.safe_number(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            feeRate = self.safe_float(trade, 'commRate')
+            feeRate = self.safe_number(trade, 'commRate')
             fee = {
                 'cost': feeCost,
                 'rate': feeRate,
@@ -767,15 +767,15 @@ class xena(Exchange):
         #
         transactTime = self.safe_integer(ohlcv, 'transactTime')
         timestamp = int(transactTime / 1000000)
-        buyVolume = self.safe_float(ohlcv, 'buyVolume')
-        sellVolume = self.safe_float(ohlcv, 'sellVolume')
+        buyVolume = self.safe_number(ohlcv, 'buyVolume')
+        sellVolume = self.safe_number(ohlcv, 'sellVolume')
         volume = self.sum(buyVolume, sellVolume)
         return [
             timestamp,
-            self.safe_float(ohlcv, 'firstPx'),
-            self.safe_float(ohlcv, 'highPx'),
-            self.safe_float(ohlcv, 'lowPx'),
-            self.safe_float(ohlcv, 'lastPx'),
+            self.safe_number(ohlcv, 'firstPx'),
+            self.safe_number(ohlcv, 'highPx'),
+            self.safe_number(ohlcv, 'lowPx'),
+            self.safe_number(ohlcv, 'lastPx'),
             volume,
         ]
 
@@ -891,10 +891,10 @@ class xena(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'orderQty')
-        filled = self.safe_float(order, 'cumQty')
-        remaining = self.safe_float(order, 'leavesQty')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'orderQty')
+        filled = self.safe_number(order, 'cumQty')
+        remaining = self.safe_number(order, 'leavesQty')
         side = self.safe_string_lower(order, 'side')
         if side == '1':
             side = 'buy'
@@ -979,7 +979,7 @@ class xena(Exchange):
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for order type ' + type)
             request['price'] = self.price_to_precision(symbol, price)
         if (type == 'stop') or (type == 'stop-limit'):
-            stopPx = self.safe_float(params, 'stopPx')
+            stopPx = self.safe_number(params, 'stopPx')
             if stopPx is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a stopPx param for order type ' + type)
             request['stopPx'] = self.price_to_precision(symbol, stopPx)
@@ -1050,11 +1050,11 @@ class xena(Exchange):
             request['orderQty'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        stopPx = self.safe_float(params, 'stopPx')
+        stopPx = self.safe_number(params, 'stopPx')
         if stopPx is not None:
             request['stopPx'] = self.price_to_precision(symbol, stopPx)
             params = self.omit(params, 'stopPx')
-        capPrice = self.safe_float(params, 'capPrice')
+        capPrice = self.safe_number(params, 'capPrice')
         if capPrice is not None:
             request['capPrice'] = self.price_to_precision(symbol, capPrice)
             params = self.omit(params, 'capPrice')
@@ -1388,7 +1388,7 @@ class xena(Exchange):
         address = self.safe_string(transaction, 'address')
         addressFrom = None
         addressTo = address
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         fee = None
         return {
@@ -1481,7 +1481,7 @@ class xena(Exchange):
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'kind'))
         code = self.safe_currency_code(self.safe_string(item, 'currency'), currency)
-        amount = self.safe_float(item, 'amount')
+        amount = self.safe_number(item, 'amount')
         if amount < 0:
             direction = 'out'
             amount = abs(amount)
@@ -1491,11 +1491,11 @@ class xena(Exchange):
         if timestamp is not None:
             timestamp = int(timestamp / 1000000)
         fee = {
-            'cost': self.safe_float(item, 'commission'),
+            'cost': self.safe_number(item, 'commission'),
             'currency': code,
         }
         before = None
-        after = self.safe_float(item, 'balance')
+        after = self.safe_number(item, 'balance')
         status = 'ok'
         return {
             'info': item,
