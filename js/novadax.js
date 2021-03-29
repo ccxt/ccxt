@@ -197,7 +197,7 @@ module.exports = class novadax extends Exchange {
             };
             const limits = {
                 'amount': {
-                    'min': this.safeFloat (market, 'minOrderAmount'),
+                    'min': this.safeNumber (market, 'minOrderAmount'),
                     'max': undefined,
                 },
                 'price': {
@@ -205,7 +205,7 @@ module.exports = class novadax extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.safeFloat (market, 'minOrderValue'),
+                    'min': this.safeNumber (market, 'minOrderValue'),
                     'max': undefined,
                 },
             };
@@ -247,8 +247,8 @@ module.exports = class novadax extends Exchange {
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const open = this.safeFloat (ticker, 'open24h');
-        const last = this.safeFloat (ticker, 'lastPrice');
+        const open = this.safeNumber (ticker, 'open24h');
+        const last = this.safeNumber (ticker, 'lastPrice');
         let percentage = undefined;
         let change = undefined;
         let average = undefined;
@@ -257,18 +257,18 @@ module.exports = class novadax extends Exchange {
             percentage = change / open * 100;
             average = this.sum (last, open) / 2;
         }
-        const baseVolume = this.safeFloat (ticker, 'baseVolume24h');
-        const quoteVolume = this.safeFloat (ticker, 'quoteVolume24h');
+        const baseVolume = this.safeNumber (ticker, 'baseVolume24h');
+        const quoteVolume = this.safeNumber (ticker, 'quoteVolume24h');
         const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high24h'),
-            'low': this.safeFloat (ticker, 'low24h'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high24h'),
+            'low': this.safeNumber (ticker, 'low24h'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
@@ -424,9 +424,9 @@ module.exports = class novadax extends Exchange {
         const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'timestamp');
         const side = this.safeStringLower (trade, 'side');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = this.safeFloat (trade, 'volume');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
+        let cost = this.safeNumber (trade, 'volume');
         if ((cost === undefined) && (amount !== undefined) && (price !== undefined)) {
             cost = amount * price;
         }
@@ -440,7 +440,7 @@ module.exports = class novadax extends Exchange {
             const feeCurrencyId = this.safeString (parts, 1);
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': this.safeFloat (parts, 0),
+                'cost': this.safeNumber (parts, 0),
                 'currency': feeCurrencyCode,
             };
         }
@@ -548,11 +548,11 @@ module.exports = class novadax extends Exchange {
         const volumeField = this.safeString (options, 'volume', 'amount'); // or vol
         return [
             this.safeTimestamp (ohlcv, 'score'),
-            this.safeFloat (ohlcv, 'openPrice'),
-            this.safeFloat (ohlcv, 'highPrice'),
-            this.safeFloat (ohlcv, 'lowPrice'),
-            this.safeFloat (ohlcv, 'closePrice'),
-            this.safeFloat (ohlcv, volumeField),
+            this.safeNumber (ohlcv, 'openPrice'),
+            this.safeNumber (ohlcv, 'highPrice'),
+            this.safeNumber (ohlcv, 'lowPrice'),
+            this.safeNumber (ohlcv, 'closePrice'),
+            this.safeNumber (ohlcv, volumeField),
         ];
     }
 
@@ -580,9 +580,9 @@ module.exports = class novadax extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'available');
-            account['free'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'hold');
+            account['total'] = this.safeNumber (balance, 'available');
+            account['free'] = this.safeNumber (balance, 'balance');
+            account['used'] = this.safeNumber (balance, 'hold');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -608,7 +608,7 @@ module.exports = class novadax extends Exchange {
             if (uppercaseSide === 'SELL') {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             } else if (uppercaseSide === 'BUY') {
-                let value = this.safeFloat (params, 'value');
+                let value = this.safeNumber (params, 'value');
                 const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
                 if (createMarketBuyOrderRequiresPrice) {
                     if (price !== undefined) {
@@ -838,17 +838,17 @@ module.exports = class novadax extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'id');
-        const amount = this.safeFloat (order, 'amount');
-        const price = this.safeFloat (order, 'price');
-        const cost = this.safeFloat (order, 'filledValue');
+        const amount = this.safeNumber (order, 'amount');
+        const price = this.safeNumber (order, 'price');
+        const cost = this.safeNumber (order, 'filledValue');
         const type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeInteger (order, 'timestamp');
-        const average = this.safeFloat (order, 'averagePrice');
-        const filled = this.safeFloat (order, 'filledAmount');
+        const average = this.safeNumber (order, 'averagePrice');
+        const filled = this.safeNumber (order, 'filledAmount');
         let fee = undefined;
-        const feeCost = this.safeFloat (order, 'filledFee');
+        const feeCost = this.safeNumber (order, 'filledFee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -1042,7 +1042,7 @@ module.exports = class novadax extends Exchange {
         } else if (type === 'COIN_OUT') {
             type = 'withdraw';
         }
-        const amount = this.safeFloat (transaction, 'amount');
+        const amount = this.safeNumber (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'addressTag');
         const txid = this.safeString (transaction, 'txHash');
