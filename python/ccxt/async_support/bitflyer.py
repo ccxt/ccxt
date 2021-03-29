@@ -183,8 +183,8 @@ class bitflyer(Exchange):
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'amount')
-            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_number(balance, 'amount')
+            account['free'] = self.safe_number(balance, 'available')
             result[code] = account
         return self.parse_balance(result)
 
@@ -203,16 +203,16 @@ class bitflyer(Exchange):
         }
         ticker = await self.publicGetGetticker(self.extend(request, params))
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        last = self.safe_float(ticker, 'ltp')
+        last = self.safe_number(ticker, 'ltp')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_float(ticker, 'best_bid'),
+            'bid': self.safe_number(ticker, 'best_bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'best_ask'),
+            'ask': self.safe_number(ticker, 'best_ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -222,7 +222,7 @@ class bitflyer(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume_by_product'),
+            'baseVolume': self.safe_number(ticker, 'volume_by_product'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -240,8 +240,8 @@ class bitflyer(Exchange):
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(self.safe_string(trade, 'exec_date'))
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'size')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'size')
         cost = None
         if amount is not None:
             if price is not None:
@@ -314,17 +314,17 @@ class bitflyer(Exchange):
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(self.safe_string(order, 'child_order_date'))
-        amount = self.safe_float(order, 'size')
-        remaining = self.safe_float(order, 'outstanding_size')
-        filled = self.safe_float(order, 'executed_size')
-        price = self.safe_float(order, 'price')
+        amount = self.safe_number(order, 'size')
+        remaining = self.safe_number(order, 'outstanding_size')
+        filled = self.safe_number(order, 'executed_size')
+        price = self.safe_number(order, 'price')
         status = self.parse_order_status(self.safe_string(order, 'child_order_state'))
         type = self.safe_string_lower(order, 'child_order_type')
         side = self.safe_string_lower(order, 'side')
         marketId = self.safe_string(order, 'product_code')
         symbol = self.safe_symbol(marketId, market)
         fee = None
-        feeCost = self.safe_float(order, 'total_commission')
+        feeCost = self.safe_number(order, 'total_commission')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,

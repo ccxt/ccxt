@@ -168,28 +168,28 @@ class bitso(Exchange):
             symbol = base + '/' + quote
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'minimum_amount'),
-                    'max': self.safe_float(market, 'maximum_amount'),
+                    'min': self.safe_number(market, 'minimum_amount'),
+                    'max': self.safe_number(market, 'maximum_amount'),
                 },
                 'price': {
-                    'min': self.safe_float(market, 'minimum_price'),
-                    'max': self.safe_float(market, 'maximum_price'),
+                    'min': self.safe_number(market, 'minimum_price'),
+                    'max': self.safe_number(market, 'maximum_price'),
                 },
                 'cost': {
-                    'min': self.safe_float(market, 'minimum_value'),
-                    'max': self.safe_float(market, 'maximum_value'),
+                    'min': self.safe_number(market, 'minimum_value'),
+                    'max': self.safe_number(market, 'maximum_value'),
                 },
             }
-            defaultPricePrecision = self.safe_float(self.options['precision'], quote, self.options['defaultPrecision'])
-            pricePrecision = self.safe_float(market, 'tick_size', defaultPricePrecision)
+            defaultPricePrecision = self.safe_number(self.options['precision'], quote, self.options['defaultPrecision'])
+            pricePrecision = self.safe_number(market, 'tick_size', defaultPricePrecision)
             precision = {
-                'amount': self.safe_float(self.options['precision'], base, self.options['defaultPrecision']),
+                'amount': self.safe_number(self.options['precision'], base, self.options['defaultPrecision']),
                 'price': pricePrecision,
             }
             fees = self.safe_value(market, 'fees', {})
             flatRate = self.safe_value(fees, 'flat_rate', {})
-            maker = self.safe_float(flatRate, 'maker')
-            taker = self.safe_float(flatRate, 'taker')
+            maker = self.safe_number(flatRate, 'maker')
+            taker = self.safe_number(flatRate, 'taker')
             feeTiers = self.safe_value(fees, 'structure', [])
             fee = {
                 'taker': float(self.decimal_to_precision(taker / 100, ROUND, 0.00000001, TICK_SIZE)),
@@ -201,9 +201,9 @@ class bitso(Exchange):
             makerFees = []
             for j in range(0, len(feeTiers)):
                 tier = feeTiers[j]
-                volume = self.safe_float(tier, 'volume')
-                takerFee = self.safe_float(tier, 'taker')
-                makerFee = self.safe_float(tier, 'maker')
+                volume = self.safe_number(tier, 'volume')
+                takerFee = self.safe_number(tier, 'taker')
+                makerFee = self.safe_number(tier, 'maker')
                 takerFeeToPrecision = float(self.decimal_to_precision(takerFee / 100, ROUND, 0.00000001, TICK_SIZE))
                 makerFeeToPrecision = float(self.decimal_to_precision(makerFee / 100, ROUND, 0.00000001, TICK_SIZE))
                 takerFees.append([volume, takerFeeToPrecision])
@@ -240,9 +240,9 @@ class bitso(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = {
-                'free': self.safe_float(balance, 'available'),
-                'used': self.safe_float(balance, 'locked'),
-                'total': self.safe_float(balance, 'total'),
+                'free': self.safe_number(balance, 'available'),
+                'used': self.safe_number(balance, 'locked'),
+                'total': self.safe_number(balance, 'total'),
             }
             result[code] = account
         return self.parse_balance(result)
@@ -265,21 +265,21 @@ class bitso(Exchange):
         response = await self.publicGetTicker(self.extend(request, params))
         ticker = self.safe_value(response, 'payload')
         timestamp = self.parse8601(self.safe_string(ticker, 'created_at'))
-        vwap = self.safe_float(ticker, 'vwap')
-        baseVolume = self.safe_float(ticker, 'volume')
+        vwap = self.safe_number(ticker, 'vwap')
+        baseVolume = self.safe_number(ticker, 'volume')
         quoteVolume = None
         if baseVolume is not None and vwap is not None:
             quoteVolume = baseVolume * vwap
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -299,11 +299,11 @@ class bitso(Exchange):
         marketId = self.safe_string(trade, 'book')
         symbol = self.safe_symbol(marketId, market, '_')
         side = self.safe_string_2(trade, 'side', 'maker_side')
-        amount = self.safe_float_2(trade, 'amount', 'major')
+        amount = self.safe_number_2(trade, 'amount', 'major')
         if amount is not None:
             amount = abs(amount)
         fee = None
-        feeCost = self.safe_float(trade, 'fees_amount')
+        feeCost = self.safe_number(trade, 'fees_amount')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fees_currency')
             feeCurrency = self.safe_currency_code(feeCurrencyId)
@@ -311,10 +311,10 @@ class bitso(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        cost = self.safe_float(trade, 'minor')
+        cost = self.safe_number(trade, 'minor')
         if cost is not None:
             cost = abs(cost)
-        price = self.safe_float(trade, 'price')
+        price = self.safe_number(trade, 'price')
         orderId = self.safe_string(trade, 'oid')
         id = self.safe_string(trade, 'tid')
         return {
@@ -406,9 +406,9 @@ class bitso(Exchange):
         symbol = self.safe_symbol(marketId, market, '_')
         orderType = self.safe_string(order, 'type')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'original_amount')
-        remaining = self.safe_float(order, 'unfilled_amount')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'original_amount')
+        remaining = self.safe_number(order, 'unfilled_amount')
         clientOrderId = self.safe_string(order, 'client_id')
         return self.safe_order({
             'info': order,

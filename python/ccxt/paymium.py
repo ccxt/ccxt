@@ -96,8 +96,8 @@ class paymium(Exchange):
             if free in response:
                 account = self.account()
                 used = 'locked_' + currencyId
-                account['free'] = self.safe_float(response, free)
-                account['used'] = self.safe_float(response, used)
+                account['free'] = self.safe_number(response, free)
+                account['used'] = self.safe_number(response, used)
                 result[code] = account
         return self.parse_balance(result)
 
@@ -116,29 +116,29 @@ class paymium(Exchange):
         }
         ticker = self.publicGetDataCurrencyTicker(self.extend(request, params))
         timestamp = self.safe_timestamp(ticker, 'at')
-        vwap = self.safe_float(ticker, 'vwap')
-        baseVolume = self.safe_float(ticker, 'volume')
+        vwap = self.safe_number(ticker, 'vwap')
+        baseVolume = self.safe_number(ticker, 'volume')
         quoteVolume = None
         if baseVolume is not None and vwap is not None:
             quoteVolume = baseVolume * vwap
-        last = self.safe_float(ticker, 'price')
+        last = self.safe_number(ticker, 'price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': self.safe_float(ticker, 'open'),
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_float(ticker, 'variation'),
+            'percentage': self.safe_number(ticker, 'variation'),
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -152,9 +152,9 @@ class paymium(Exchange):
         if market is not None:
             symbol = market['symbol']
         side = self.safe_string(trade, 'side')
-        price = self.safe_float(trade, 'price')
+        price = self.safe_number(trade, 'price')
         amountField = 'traded_' + market['base'].lower()
-        amount = self.safe_float(trade, amountField)
+        amount = self.safe_number(trade, amountField)
         cost = None
         if price is not None:
             if amount is not None:

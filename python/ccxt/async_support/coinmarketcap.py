@@ -201,16 +201,16 @@ class coinmarketcap(Exchange):
         timestamp = self.safe_timestamp(ticker, 'last_updated')
         if timestamp is None:
             timestamp = self.milliseconds()
-        change = self.safe_float(ticker, 'percent_change_24h')
+        change = self.safe_number(ticker, 'percent_change_24h')
         last = None
         symbol = None
         volume = None
         if market is not None:
             symbol = market['symbol']
             priceKey = 'price_' + market['quoteId']
-            last = self.safe_float(ticker, priceKey)
+            last = self.safe_number(ticker, priceKey)
             volumeKey = '24h_volume_' + market['quoteId']
-            volume = self.safe_float(ticker, volumeKey)
+            volume = self.safe_number(ticker, volumeKey)
         return {
             'symbol': symbol,
             'timestamp': timestamp,

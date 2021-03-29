@@ -431,8 +431,8 @@ module.exports = class bybit extends Exchange {
             const lotSizeFilter = this.safeValue (market, 'lot_size_filter', {});
             const priceFilter = this.safeValue (market, 'price_filter', {});
             const precision = {
-                'amount': this.safeFloat (lotSizeFilter, 'qty_step'),
-                'price': this.safeFloat (priceFilter, 'tick_size'),
+                'amount': this.safeNumber (lotSizeFilter, 'qty_step'),
+                'price': this.safeNumber (priceFilter, 'tick_size'),
             };
             const status = this.safeString (market, 'status');
             let active = undefined;
@@ -446,8 +446,8 @@ module.exports = class bybit extends Exchange {
                 'quote': quote,
                 'active': active,
                 'precision': precision,
-                'taker': this.safeFloat (market, 'taker_fee'),
-                'maker': this.safeFloat (market, 'maker_fee'),
+                'taker': this.safeNumber (market, 'taker_fee'),
+                'maker': this.safeNumber (market, 'maker_fee'),
                 'type': 'future',
                 'spot': false,
                 'future': true,
@@ -456,12 +456,12 @@ module.exports = class bybit extends Exchange {
                 'inverse': inverse,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (lotSizeFilter, 'min_trading_qty'),
-                        'max': this.safeFloat (lotSizeFilter, 'max_trading_qty'),
+                        'min': this.safeNumber (lotSizeFilter, 'min_trading_qty'),
+                        'max': this.safeNumber (lotSizeFilter, 'max_trading_qty'),
                     },
                     'price': {
-                        'min': this.safeFloat (priceFilter, 'min_price'),
-                        'max': this.safeFloat (priceFilter, 'max_price'),
+                        'min': this.safeNumber (priceFilter, 'min_price'),
+                        'max': this.safeNumber (priceFilter, 'max_price'),
                     },
                     'cost': {
                         'min': undefined,
@@ -507,9 +507,9 @@ module.exports = class bybit extends Exchange {
         const timestamp = undefined;
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeFloat (ticker, 'last_price');
-        const open = this.safeFloat (ticker, 'prev_price_24h');
-        let percentage = this.safeFloat (ticker, 'price_24h_pcnt');
+        const last = this.safeNumber (ticker, 'last_price');
+        const open = this.safeNumber (ticker, 'prev_price_24h');
+        let percentage = this.safeNumber (ticker, 'price_24h_pcnt');
         if (percentage !== undefined) {
             percentage *= 100;
         }
@@ -519,18 +519,18 @@ module.exports = class bybit extends Exchange {
             change = last - open;
             average = this.sum (open, last) / 2;
         }
-        const baseVolume = this.safeFloat (ticker, 'turnover_24h');
-        const quoteVolume = this.safeFloat (ticker, 'volume_24h');
+        const baseVolume = this.safeNumber (ticker, 'turnover_24h');
+        const quoteVolume = this.safeNumber (ticker, 'volume_24h');
         const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high_price_24h'),
-            'low': this.safeFloat (ticker, 'low_price_24h'),
-            'bid': this.safeFloat (ticker, 'bid_price'),
+            'high': this.safeNumber (ticker, 'high_price_24h'),
+            'low': this.safeNumber (ticker, 'low_price_24h'),
+            'bid': this.safeNumber (ticker, 'bid_price'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask_price'),
+            'ask': this.safeNumber (ticker, 'ask_price'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
@@ -679,11 +679,11 @@ module.exports = class bybit extends Exchange {
         //
         return [
             this.safeTimestamp2 (ohlcv, 'open_time', 'start_at'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat2 (ohlcv, 'turnover', 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber2 (ohlcv, 'turnover', 'volume'),
         ];
     }
 
@@ -809,9 +809,9 @@ module.exports = class bybit extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const amount = this.safeFloat2 (trade, 'qty', 'exec_qty');
-        let cost = this.safeFloat (trade, 'exec_value');
-        const price = this.safeFloat2 (trade, 'exec_price', 'price');
+        const amount = this.safeNumber2 (trade, 'qty', 'exec_qty');
+        let cost = this.safeNumber (trade, 'exec_value');
+        const price = this.safeNumber2 (trade, 'exec_price', 'price');
         if (cost === undefined) {
             if (amount !== undefined) {
                 if (price !== undefined) {
@@ -826,14 +826,14 @@ module.exports = class bybit extends Exchange {
         const side = this.safeStringLower (trade, 'side');
         const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
         const takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
-        const feeCost = this.safeFloat (trade, 'exec_fee');
+        const feeCost = this.safeNumber (trade, 'exec_fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyCode = market['inverse'] ? market['base'] : market['quote'];
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
-                'rate': this.safeFloat (trade, 'fee_rate'),
+                'rate': this.safeNumber (trade, 'fee_rate'),
             };
         }
         return {
@@ -993,9 +993,9 @@ module.exports = class bybit extends Exchange {
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available_balance');
-            account['used'] = this.safeFloat (balance, 'used_margin');
-            account['total'] = this.safeFloat (balance, 'equity');
+            account['free'] = this.safeNumber (balance, 'available_balance');
+            account['used'] = this.safeNumber (balance, 'used_margin');
+            account['total'] = this.safeNumber (balance, 'equity');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -1130,15 +1130,15 @@ module.exports = class bybit extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const id = this.safeString2 (order, 'order_id', 'stop_order_id');
         const type = this.safeStringLower (order, 'order_type');
-        let price = this.safeFloat (order, 'price');
+        let price = this.safeNumber (order, 'price');
         if (price === 0.0) {
             price = undefined;
         }
-        let average = this.safeFloat (order, 'average_price');
-        const amount = this.safeFloat (order, 'qty');
-        let cost = this.safeFloat (order, 'cum_exec_value');
-        let filled = this.safeFloat (order, 'cum_exec_qty');
-        let remaining = this.safeFloat (order, 'leaves_qty');
+        let average = this.safeNumber (order, 'average_price');
+        const amount = this.safeNumber (order, 'qty');
+        let cost = this.safeNumber (order, 'cum_exec_value');
+        let filled = this.safeNumber (order, 'cum_exec_qty');
+        let remaining = this.safeNumber (order, 'leaves_qty');
         if (market !== undefined) {
             symbol = market['symbol'];
             base = market['base'];
@@ -1168,7 +1168,7 @@ module.exports = class bybit extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'stop_order_status'));
         const side = this.safeStringLower (order, 'side');
-        let feeCost = this.safeFloat (order, 'cum_exec_fee');
+        let feeCost = this.safeNumber (order, 'cum_exec_fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
@@ -1182,7 +1182,7 @@ module.exports = class bybit extends Exchange {
             clientOrderId = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
-        const stopPrice = this.safeFloat (order, 'stop_px');
+        const stopPrice = this.safeNumber (order, 'stop_px');
         const postOnly = (timeInForce === 'PO');
         return {
             'info': order,
@@ -2057,7 +2057,7 @@ module.exports = class bybit extends Exchange {
         const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const address = this.safeString (transaction, 'address');
-        const feeCost = this.safeFloat (transaction, 'fee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -2078,7 +2078,7 @@ module.exports = class bybit extends Exchange {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': 'withdrawal',
-            'amount': this.safeFloat (transaction, 'amount'),
+            'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
             'status': status,
             'updated': updated,
@@ -2161,8 +2161,8 @@ module.exports = class bybit extends Exchange {
         //
         const currencyId = this.safeString (item, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const amount = this.safeFloat (item, 'amount');
-        const after = this.safeFloat (item, 'wallet_balance');
+        const amount = this.safeNumber (item, 'amount');
+        const after = this.safeNumber (item, 'wallet_balance');
         const direction = (amount < 0) ? 'out' : 'in';
         let before = undefined;
         if (after !== undefined && amount !== undefined) {

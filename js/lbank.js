@@ -201,8 +201,8 @@ module.exports = class lbank extends Exchange {
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const info = ticker;
         ticker = info['ticker'];
-        const last = this.safeFloat (ticker, 'latest');
-        const percentage = this.safeFloat (ticker, 'change');
+        const last = this.safeNumber (ticker, 'latest');
+        const percentage = this.safeNumber (ticker, 'change');
         let open = undefined;
         if (percentage !== undefined) {
             const relativeChange = this.sum (1, percentage / 100);
@@ -223,8 +223,8 @@ module.exports = class lbank extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -237,8 +237,8 @@ module.exports = class lbank extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'turnover'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'quoteVolume': this.safeNumber (ticker, 'turnover'),
             'info': info,
         };
     }
@@ -288,8 +288,8 @@ module.exports = class lbank extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeInteger (trade, 'date_ms');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -347,11 +347,11 @@ module.exports = class lbank extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 5),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -416,9 +416,9 @@ module.exports = class lbank extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (free, currencyId);
-            account['used'] = this.safeFloat (freeze, currencyId);
-            account['total'] = this.safeFloat (asset, currencyId);
+            account['free'] = this.safeNumber (free, currencyId);
+            account['used'] = this.safeNumber (freeze, currencyId);
+            account['total'] = this.safeNumber (asset, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -454,10 +454,10 @@ module.exports = class lbank extends Exchange {
         const timestamp = this.safeInteger (order, 'create_time');
         // Limit Order Request Returns: Order Price
         // Market Order Returns: cny amount of market order
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount', 0.0);
-        const filled = this.safeFloat (order, 'deal_amount', 0.0);
-        const average = this.safeFloat (order, 'avg_price');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'amount', 0.0);
+        const filled = this.safeNumber (order, 'deal_amount', 0.0);
+        const average = this.safeNumber (order, 'avg_price');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'order_id');
         const type = this.safeString (order, 'order_type');

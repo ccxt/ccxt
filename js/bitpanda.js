@@ -328,7 +328,7 @@ module.exports = class bitpanda extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.safeFloat (market, 'min_size'),
+                    'min': this.safeNumber (market, 'min_size'),
                     'max': undefined,
                 },
             };
@@ -401,9 +401,9 @@ module.exports = class bitpanda extends Exchange {
             const makerFees = [];
             for (let i = 0; i < feeTiers.length; i++) {
                 const tier = feeTiers[i];
-                const volume = this.safeFloat (tier, 'volume');
-                let taker = this.safeFloat (tier, 'taker_fee');
-                let maker = this.safeFloat (tier, 'maker_fee');
+                const volume = this.safeNumber (tier, 'volume');
+                let taker = this.safeNumber (tier, 'taker_fee');
+                let maker = this.safeNumber (tier, 'maker_fee');
                 taker /= 100;
                 maker /= 100;
                 takerFees.push ([ volume, taker ]);
@@ -450,8 +450,8 @@ module.exports = class bitpanda extends Exchange {
         const activeFeeTier = this.safeValue (response, 'active_fee_tier', {});
         const result = {
             'info': response,
-            'maker': this.safeFloat (activeFeeTier, 'maker_fee'),
-            'taker': this.safeFloat (activeFeeTier, 'taker_fee'),
+            'maker': this.safeNumber (activeFeeTier, 'maker_fee'),
+            'taker': this.safeNumber (activeFeeTier, 'taker_fee'),
             'percentage': true,
             'tierBased': true,
         };
@@ -460,9 +460,9 @@ module.exports = class bitpanda extends Exchange {
         const makerFees = [];
         for (let i = 0; i < feeTiers.length; i++) {
             const tier = feeTiers[i];
-            const volume = this.safeFloat (tier, 'volume');
-            let taker = this.safeFloat (tier, 'taker_fee');
-            let maker = this.safeFloat (tier, 'maker_fee');
+            const volume = this.safeNumber (tier, 'volume');
+            let taker = this.safeNumber (tier, 'taker_fee');
+            let maker = this.safeNumber (tier, 'maker_fee');
             taker /= 100;
             maker /= 100;
             takerFees.push ([ volume, taker ]);
@@ -500,27 +500,27 @@ module.exports = class bitpanda extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
         const marketId = this.safeString (ticker, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const last = this.safeFloat (ticker, 'last_price');
-        const percentage = this.safeFloat (ticker, 'price_change_percentage');
-        const change = this.safeFloat (ticker, 'price_change');
+        const last = this.safeNumber (ticker, 'last_price');
+        const percentage = this.safeNumber (ticker, 'price_change_percentage');
+        const change = this.safeNumber (ticker, 'price_change');
         let open = undefined;
         let average = undefined;
         if ((last !== undefined) && (change !== undefined)) {
             open = last - change;
             average = this.sum (last, open) / 2;
         }
-        const baseVolume = this.safeFloat (ticker, 'base_volume');
-        const quoteVolume = this.safeFloat (ticker, 'quote_volume');
+        const baseVolume = this.safeNumber (ticker, 'base_volume');
+        const quoteVolume = this.safeNumber (ticker, 'quote_volume');
         const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'best_bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'best_bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'best_ask'),
+            'ask': this.safeNumber (ticker, 'best_ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
@@ -705,11 +705,11 @@ module.exports = class bitpanda extends Exchange {
         const volumeField = this.safeString (options, 'volume', 'total_amount');
         return [
             alignedTimestamp,
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, volumeField),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, volumeField),
         ];
     }
 
@@ -795,21 +795,21 @@ module.exports = class bitpanda extends Exchange {
             timestamp = this.parse8601 (this.safeString (trade, 'time'));
         }
         const side = this.safeStringLower2 (trade, 'side', 'taker_side');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = this.safeFloat (trade, 'volume');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
+        let cost = this.safeNumber (trade, 'volume');
         if ((cost === undefined) && (amount !== undefined) && (price !== undefined)) {
             cost = amount * price;
         }
         const marketId = this.safeString (trade, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const feeCost = this.safeFloat (feeInfo, 'fee_amount');
+        const feeCost = this.safeNumber (feeInfo, 'fee_amount');
         let takerOrMaker = undefined;
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (feeInfo, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            const feeRate = this.safeFloat (feeInfo, 'fee_percentage');
+            const feeRate = this.safeNumber (feeInfo, 'fee_percentage');
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -892,8 +892,8 @@ module.exports = class bitpanda extends Exchange {
             const currencyId = this.safeString (balance, 'currency_code');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'locked');
+            account['free'] = this.safeNumber (balance, 'available');
+            account['used'] = this.safeNumber (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -1150,12 +1150,12 @@ module.exports = class bitpanda extends Exchange {
         //     }
         //
         const id = this.safeString (transaction, 'transaction_id');
-        const amount = this.safeFloat (transaction, 'amount');
+        const amount = this.safeNumber (transaction, 'amount');
         const timestamp = this.parse8601 (this.safeString (transaction, 'time'));
         const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const status = 'ok'; // the exchange returns cleared transactions only
-        const feeCost = this.safeFloat2 (transaction, 'fee_amount', 'fee');
+        const feeCost = this.safeNumber2 (transaction, 'fee_amount', 'fee');
         let fee = undefined;
         const addressTo = this.safeString (transaction, 'recipient');
         const tagTo = this.safeString (transaction, 'destination_tag');
@@ -1278,10 +1278,10 @@ module.exports = class bitpanda extends Exchange {
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'amount');
         let cost = undefined;
-        const filled = this.safeFloat (order, 'filled_amount');
+        const filled = this.safeNumber (order, 'filled_amount');
         let remaining = undefined;
         if (filled !== undefined) {
             if (amount !== undefined) {
@@ -1315,7 +1315,7 @@ module.exports = class bitpanda extends Exchange {
                 tradeAmount = this.sum (tradeAmount, trade['amount']);
             }
         }
-        let average = this.safeFloat (order, 'average_price');
+        let average = this.safeNumber (order, 'average_price');
         if (average === undefined) {
             if ((tradeCost !== undefined) && (tradeAmount !== undefined) && (tradeAmount !== 0)) {
                 average = tradeCost / tradeAmount;
@@ -1327,7 +1327,7 @@ module.exports = class bitpanda extends Exchange {
             }
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
-        const stopPrice = this.safeFloat (order, 'trigger_price');
+        const stopPrice = this.safeNumber (order, 'trigger_price');
         const postOnly = this.safeValue (order, 'is_post_only');
         const result = {
             'id': id,
@@ -1412,7 +1412,7 @@ module.exports = class bitpanda extends Exchange {
             priceIsRequired = true;
         }
         if (uppercaseType === 'STOP') {
-            const triggerPrice = this.safeFloat (params, 'trigger_price');
+            const triggerPrice = this.safeNumber (params, 'trigger_price');
             if (triggerPrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a trigger_price param for ' + type + ' orders');
             }

@@ -180,8 +180,8 @@ class tidebit(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'locked')
+            account['free'] = self.safe_number(balance, 'balance')
+            account['used'] = self.safe_number(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 
@@ -204,15 +204,15 @@ class tidebit(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
-            'ask': self.safe_float(ticker, 'sell'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
+            'ask': self.safe_number(ticker, 'sell'),
             'bidVolume': None,
             'askVolume': None,
             'vwap': None,
@@ -223,7 +223,7 @@ class tidebit(Exchange):
             'percentage': None,
             'previousClose': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -253,9 +253,9 @@ class tidebit(Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         id = self.safe_string(trade, 'id')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'volume')
-        cost = self.safe_float(trade, 'funds')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'volume')
+        cost = self.safe_number(trade, 'funds')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -297,11 +297,11 @@ class tidebit(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 0),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 5),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -381,11 +381,11 @@ class tidebit(Exchange):
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'ord_type')
         side = self.safe_string(order, 'side')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'volume')
-        filled = self.safe_float(order, 'executed_volume')
-        remaining = self.safe_float(order, 'remaining_volume')
-        average = self.safe_float(order, 'avg_price')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'volume')
+        filled = self.safe_number(order, 'executed_volume')
+        remaining = self.safe_number(order, 'remaining_volume')
+        average = self.safe_number(order, 'avg_price')
         return self.safe_order({
             'id': id,
             'clientOrderId': None,

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.44.51'
+__version__ = '1.45.44'
 
 # -----------------------------------------------------------------------------
 
@@ -1904,16 +1904,16 @@ class Exchange(object):
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
 
-    def create_limit_order(self, symbol, side, amount, price=None, params={}) -> dict:
+    def create_limit_order(self, symbol, side, amount, price, params={}) -> dict:
         return self.create_order(symbol, 'limit', side, amount, price, params)
 
     def create_market_order(self, symbol, side, amount, price=None, params={}) -> dict:
         return self.create_order(symbol, 'market', side, amount, price, params)
 
-    def create_limit_buy_order(self, symbol, amount, price=None, params={}) -> dict:
+    def create_limit_buy_order(self, symbol, amount, price, params={}) -> dict:
         return self.create_order(symbol, 'limit', 'buy', amount, price, params)
 
-    def create_limit_sell_order(self, symbol, amount, price=None, params={}) -> dict:
+    def create_limit_sell_order(self, symbol, amount, price, params={}) -> dict:
         return self.create_order(symbol, 'limit', 'sell', amount, price, params)
 
     def create_market_buy_order(self, symbol, amount, params={}) -> dict:

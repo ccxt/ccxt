@@ -138,11 +138,11 @@ class coinfalcon(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'change_in_24h'),
+            'change': self.safe_number(ticker, 'change_in_24h'),
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'volume'),
+            'quoteVolume': self.safe_number(ticker, 'volume'),
             'info': ticker,
         }
 
@@ -174,8 +174,8 @@ class coinfalcon(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'size')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'size')
         symbol = market['symbol']
         cost = None
         if price is not None:
@@ -185,7 +185,7 @@ class coinfalcon(Exchange):
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'order_id')
         fee = None
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
             feeCurrencyCode = self.safe_string(trade, 'fee_currency_code')
             fee = {
@@ -246,9 +246,9 @@ class coinfalcon(Exchange):
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
             account = {
-                'free': self.safe_float(balance, 'available_balance'),
-                'used': self.safe_float(balance, 'hold_balance'),
-                'total': self.safe_float(balance, 'balance'),
+                'free': self.safe_number(balance, 'available_balance'),
+                'used': self.safe_number(balance, 'hold_balance'),
+                'total': self.safe_number(balance, 'balance'),
             }
             result[code] = account
         return self.parse_balance(result)
@@ -284,9 +284,9 @@ class coinfalcon(Exchange):
         marketId = self.safe_string(order, 'market')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'size')
-        filled = self.safe_float(order, 'size_filled')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'size')
+        filled = self.safe_number(order, 'size_filled')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'operation_type')
         if type is not None:

@@ -246,7 +246,7 @@ class ndax extends Exchange {
             $name = $this->safe_string($currency, 'ProductFullName');
             $type = $this->safe_string($currency, 'ProductType');
             $code = $this->safe_currency_code($this->safe_string($currency, 'Product'));
-            $precision = $this->safe_float($currency, 'TickSize');
+            $precision = $this->safe_number($currency, 'TickSize');
             $isDisabled = $this->safe_value($currency, 'IsDisabled');
             $active = !$isDisabled;
             $result[$code] = array(
@@ -327,8 +327,8 @@ class ndax extends Exchange {
             $quote = $this->safe_currency_code($this->safe_string($market, 'Product2Symbol'));
             $symbol = $base . '/' . $quote;
             $precision = array(
-                'amount' => $this->safe_float($market, 'QuantityIncrement'),
-                'price' => $this->safe_float($market, 'PriceIncrement'),
+                'amount' => $this->safe_number($market, 'QuantityIncrement'),
+                'price' => $this->safe_number($market, 'PriceIncrement'),
             );
             $sessionStatus = $this->safe_string($market, 'SessionStatus');
             $isDisable = $this->safe_value($market, 'IsDisable');
@@ -346,11 +346,11 @@ class ndax extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'MinimumQuantity'),
+                        'min' => $this->safe_number($market, 'MinimumQuantity'),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($market, 'MinimumPrice'),
+                        'min' => $this->safe_number($market, 'MinimumPrice'),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -471,27 +471,27 @@ class ndax extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'TimeStamp');
         $marketId = $this->safe_string($ticker, 'InstrumentId');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_float($ticker, 'LastTradedPx');
-        $percentage = $this->safe_float($ticker, 'Rolling24HrPxChangePercent');
-        $change = $this->safe_float($ticker, 'Rolling24HrPxChange');
-        $open = $this->safe_float($ticker, 'SessionOpen');
+        $last = $this->safe_number($ticker, 'LastTradedPx');
+        $percentage = $this->safe_number($ticker, 'Rolling24HrPxChangePercent');
+        $change = $this->safe_number($ticker, 'Rolling24HrPxChange');
+        $open = $this->safe_number($ticker, 'SessionOpen');
         $average = null;
         if (($last !== null) && ($change !== null)) {
             $average = $this->sum($last, $open) / 2;
         }
-        $baseVolume = $this->safe_float($ticker, 'Rolling24HrVolume');
-        $quoteVolume = $this->safe_float($ticker, 'Rolling24HrNotional');
+        $baseVolume = $this->safe_number($ticker, 'Rolling24HrVolume');
+        $quoteVolume = $this->safe_number($ticker, 'Rolling24HrNotional');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'SessionHigh'),
-            'low' => $this->safe_float($ticker, 'SessionLow'),
-            'bid' => $this->safe_float($ticker, 'BestBid'),
-            'bidVolume' => null, // $this->safe_float($ticker, 'BidQty'), always shows 0
-            'ask' => $this->safe_float($ticker, 'BestOffer'),
-            'askVolume' => null, // $this->safe_float($ticker, 'AskQty'), always shows 0
+            'high' => $this->safe_number($ticker, 'SessionHigh'),
+            'low' => $this->safe_number($ticker, 'SessionLow'),
+            'bid' => $this->safe_number($ticker, 'BestBid'),
+            'bidVolume' => null, // $this->safe_number($ticker, 'BidQty'), always shows 0
+            'ask' => $this->safe_number($ticker, 'BestOffer'),
+            'askVolume' => null, // $this->safe_number($ticker, 'AskQty'), always shows 0
             'vwap' => $vwap,
             'open' => $open,
             'close' => $last,
@@ -564,11 +564,11 @@ class ndax extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 0),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 4),
-            $this->safe_float($ohlcv, 5),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -728,8 +728,8 @@ class ndax extends Exchange {
         $fee = null;
         $type = null;
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
-            $price = $this->safe_float($trade, 3);
-            $amount = $this->safe_float($trade, 2);
+            $price = $this->safe_number($trade, 3);
+            $amount = $this->safe_number($trade, 2);
             if (($price !== null) && ($amount !== null)) {
                 $cost = $price * $amount;
             }
@@ -744,13 +744,13 @@ class ndax extends Exchange {
             $id = $this->safe_string($trade, 'TradeId');
             $orderId = $this->safe_string_2($trade, 'OrderId', 'OrigOrderId');
             $marketId = $this->safe_string_2($trade, 'InstrumentId', 'Instrument');
-            $price = $this->safe_float($trade, 'Price');
-            $amount = $this->safe_float($trade, 'Quantity');
-            $cost = $this->safe_float_2($trade, 'Value', 'GrossValueExecuted');
+            $price = $this->safe_number($trade, 'Price');
+            $amount = $this->safe_number($trade, 'Quantity');
+            $cost = $this->safe_number_2($trade, 'Value', 'GrossValueExecuted');
             $takerOrMaker = $this->safe_string_lower($trade, 'MakerTaker');
             $side = $this->safe_string_lower($trade, 'Side');
             $type = $this->safe_string_lower($trade, 'OrderType');
-            $feeCost = $this->safe_float($trade, 'Fee');
+            $feeCost = $this->safe_number($trade, 'Fee');
             if ($feeCost !== null) {
                 $feeCurrencyId = $this->safe_string($trade, 'FeeProductId');
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
@@ -874,8 +874,8 @@ class ndax extends Exchange {
             $currencyId = $this->safe_string($balance, 'ProductId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_float($balance, 'Amount');
-            $account['used'] = $this->safe_float($balance, 'Hold');
+            $account['total'] = $this->safe_number($balance, 'Amount');
+            $account['used'] = $this->safe_number($balance, 'Hold');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -924,8 +924,8 @@ class ndax extends Exchange {
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'ReferenceType'));
         $currencyId = $this->safe_string($item, 'ProductId');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $credit = $this->safe_float($item, 'CR');
-        $debit = $this->safe_float($item, 'DR');
+        $credit = $this->safe_number($item, 'CR');
+        $debit = $this->safe_number($item, 'DR');
         $amount = null;
         $direction = null;
         if ($credit > 0) {
@@ -937,7 +937,7 @@ class ndax extends Exchange {
         }
         $timestamp = $this->safe_integer($item, 'TimeStamp');
         $before = null;
-        $after = $this->safe_float($item, 'Balance');
+        $after = $this->safe_number($item, 'Balance');
         if ($direction === 'out') {
             $before = $this->sum($after, $amount);
         } else if ($direction === 'in') {
@@ -1091,14 +1091,14 @@ class ndax extends Exchange {
         $side = $this->safe_string_lower($order, 'Side');
         $type = $this->safe_string_lower($order, 'OrderType');
         $clientOrderId = $this->safe_string_2($order, 'ReplacementClOrdId', 'ClientOrderId');
-        $price = $this->safe_float($order, 'Price', 0.0);
+        $price = $this->safe_number($order, 'Price', 0.0);
         $price = ($price > 0.0) ? $price : null;
-        $amount = $this->safe_float($order, 'OrigQuantity');
-        $filled = $this->safe_float($order, 'QuantityExecuted');
-        $cost = $this->safe_float($order, 'GrossValueExecuted');
-        $average = $this->safe_float($order, 'AvgPrice', 0.0);
+        $amount = $this->safe_number($order, 'OrigQuantity');
+        $filled = $this->safe_number($order, 'QuantityExecuted');
+        $cost = $this->safe_number($order, 'GrossValueExecuted');
+        $average = $this->safe_number($order, 'AvgPrice', 0.0);
         $average = ($average > 0) ? $average : null;
-        $stopPrice = $this->safe_float($order, 'StopPrice', 0.0);
+        $stopPrice = $this->safe_number($order, 'StopPrice', 0.0);
         $stopPrice = ($stopPrice > 0.0) ? $stopPrice : null;
         $timeInForce = null;
         $status = $this->parse_order_status($this->safe_string($order, 'OrderState'));
@@ -1924,8 +1924,8 @@ class ndax extends Exchange {
         }
         $addressTo = $address;
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'TicketStatus'), $type);
-        $amount = $this->safe_float($transaction, 'Amount');
-        $feeCost = $this->safe_float($transaction, 'FeeAmount');
+        $amount = $this->safe_number($transaction, 'Amount');
+        $feeCost = $this->safe_number($transaction, 'FeeAmount');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );

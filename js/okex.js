@@ -798,7 +798,7 @@ module.exports = class okex extends Exchange {
         let option = false;
         let baseId = this.safeString (market, 'base_currency');
         let quoteId = this.safeString (market, 'quote_currency');
-        const contractVal = this.safeFloat (market, 'contract_val');
+        const contractVal = this.safeNumber (market, 'contract_val');
         if (contractVal !== undefined) {
             if ('option_type' in market) {
                 marketType = 'option';
@@ -824,12 +824,12 @@ module.exports = class okex extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = spot ? (base + '/' + quote) : id;
-        const lotSize = this.safeFloat2 (market, 'lot_size', 'trade_increment');
+        const lotSize = this.safeNumber2 (market, 'lot_size', 'trade_increment');
         const precision = {
-            'amount': this.safeFloat (market, 'size_increment', lotSize),
-            'price': this.safeFloat (market, 'tick_size'),
+            'amount': this.safeNumber (market, 'size_increment', lotSize),
+            'price': this.safeNumber (market, 'tick_size'),
         };
-        const minAmount = this.safeFloat2 (market, 'min_size', 'base_min_size');
+        const minAmount = this.safeNumber2 (market, 'min_size', 'base_min_size');
         const active = true;
         const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
         return this.extend (fees, {
@@ -1004,7 +1004,7 @@ module.exports = class okex extends Exchange {
                     'price': { 'min': undefined, 'max': undefined },
                     'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'min_withdrawal'),
+                        'min': this.safeNumber (currency, 'min_withdrawal'),
                         'max': undefined,
                     },
                 },
@@ -1079,18 +1079,18 @@ module.exports = class okex extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
-        const open = this.safeFloat (ticker, 'open_24h');
+        const last = this.safeNumber (ticker, 'last');
+        const open = this.safeNumber (ticker, 'open_24h');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high_24h'),
-            'low': this.safeFloat (ticker, 'low_24h'),
-            'bid': this.safeFloat (ticker, 'best_bid'),
-            'bidVolume': this.safeFloat (ticker, 'best_bid_size'),
-            'ask': this.safeFloat (ticker, 'best_ask'),
-            'askVolume': this.safeFloat (ticker, 'best_ask_size'),
+            'high': this.safeNumber (ticker, 'high_24h'),
+            'low': this.safeNumber (ticker, 'low_24h'),
+            'bid': this.safeNumber (ticker, 'best_bid'),
+            'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
+            'ask': this.safeNumber (ticker, 'best_ask'),
+            'askVolume': this.safeNumber (ticker, 'best_ask_size'),
             'vwap': undefined,
             'open': open,
             'close': last,
@@ -1099,8 +1099,8 @@ module.exports = class okex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'base_volume_24h'),
-            'quoteVolume': this.safeFloat (ticker, 'quote_volume_24h'),
+            'baseVolume': this.safeNumber (ticker, 'base_volume_24h'),
+            'quoteVolume': this.safeNumber (ticker, 'quote_volume_24h'),
             'info': ticker,
         };
     }
@@ -1237,9 +1237,9 @@ module.exports = class okex extends Exchange {
             quote = market['quote'];
         }
         const timestamp = this.parse8601 (this.safeString2 (trade, 'timestamp', 'created_at'));
-        const price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat2 (trade, 'size', 'qty');
-        amount = this.safeFloat (trade, 'order_qty', amount);
+        const price = this.safeNumber (trade, 'price');
+        let amount = this.safeNumber2 (trade, 'size', 'qty');
+        amount = this.safeNumber (trade, 'order_qty', amount);
         let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
         if (takerOrMaker === 'M') {
             takerOrMaker = 'maker';
@@ -1253,7 +1253,7 @@ module.exports = class okex extends Exchange {
                 cost = amount * price;
             }
         }
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrency = (side === 'buy') ? base : quote;
@@ -1362,22 +1362,22 @@ module.exports = class okex extends Exchange {
             }
             return [
                 timestamp, // timestamp
-                this.safeFloat (ohlcv, 1),            // Open
-                this.safeFloat (ohlcv, 2),            // High
-                this.safeFloat (ohlcv, 3),            // Low
-                this.safeFloat (ohlcv, 4),            // Close
-                // this.safeFloat (ohlcv, 5),         // Quote Volume
-                // this.safeFloat (ohlcv, 6),         // Base Volume
-                this.safeFloat (ohlcv, volumeIndex),  // Volume, okex will return base volume in the 7th element for future markets
+                this.safeNumber (ohlcv, 1),            // Open
+                this.safeNumber (ohlcv, 2),            // High
+                this.safeNumber (ohlcv, 3),            // Low
+                this.safeNumber (ohlcv, 4),            // Close
+                // this.safeNumber (ohlcv, 5),         // Quote Volume
+                // this.safeNumber (ohlcv, 6),         // Base Volume
+                this.safeNumber (ohlcv, volumeIndex),  // Volume, okex will return base volume in the 7th element for future markets
             ];
         } else {
             return [
                 this.parse8601 (this.safeString (ohlcv, 'time')),
-                this.safeFloat (ohlcv, 'open'),    // Open
-                this.safeFloat (ohlcv, 'high'),    // High
-                this.safeFloat (ohlcv, 'low'),     // Low
-                this.safeFloat (ohlcv, 'close'),   // Close
-                this.safeFloat (ohlcv, 'volume'),  // Base Volume
+                this.safeNumber (ohlcv, 'open'),    // Open
+                this.safeNumber (ohlcv, 'high'),    // High
+                this.safeNumber (ohlcv, 'low'),     // Low
+                this.safeNumber (ohlcv, 'close'),   // Close
+                this.safeNumber (ohlcv, 'volume'),  // Base Volume
             ];
         }
     }
@@ -1523,9 +1523,9 @@ module.exports = class okex extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'hold');
-            account['free'] = this.safeFloat (balance, 'available');
+            account['total'] = this.safeNumber (balance, 'balance');
+            account['used'] = this.safeNumber (balance, 'hold');
+            account['free'] = this.safeNumber (balance, 'available');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -1595,9 +1595,9 @@ module.exports = class okex extends Exchange {
                     const currencyId = parts[1];
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
-                    account['total'] = this.safeFloat (marketBalance, 'balance');
-                    account['used'] = this.safeFloat (marketBalance, 'hold');
-                    account['free'] = this.safeFloat (marketBalance, 'available');
+                    account['total'] = this.safeNumber (marketBalance, 'balance');
+                    account['used'] = this.safeNumber (marketBalance, 'hold');
+                    account['free'] = this.safeNumber (marketBalance, 'available');
                     accounts[code] = account;
                 } else {
                     throw new NotSupported (this.id + ' margin balance response format has changed!');
@@ -1650,29 +1650,29 @@ module.exports = class okex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const balance = this.safeValue (info, id, {});
             const account = this.account ();
-            const totalAvailBalance = this.safeFloat (balance, 'total_avail_balance');
+            const totalAvailBalance = this.safeNumber (balance, 'total_avail_balance');
             if (this.safeString (balance, 'margin_mode') === 'fixed') {
                 const contracts = this.safeValue (balance, 'contracts', []);
                 let free = totalAvailBalance;
                 for (let i = 0; i < contracts.length; i++) {
                     const contract = contracts[i];
-                    const fixedBalance = this.safeFloat (contract, 'fixed_balance');
-                    const realizedPnl = this.safeFloat (contract, 'realized_pnl');
-                    const marginFrozen = this.safeFloat (contract, 'margin_frozen');
-                    const marginForUnfilled = this.safeFloat (contract, 'margin_for_unfilled');
+                    const fixedBalance = this.safeNumber (contract, 'fixed_balance');
+                    const realizedPnl = this.safeNumber (contract, 'realized_pnl');
+                    const marginFrozen = this.safeNumber (contract, 'margin_frozen');
+                    const marginForUnfilled = this.safeNumber (contract, 'margin_for_unfilled');
                     const margin = this.sum (fixedBalance, realizedPnl) - marginFrozen - marginForUnfilled;
                     free = this.sum (free, margin);
                 }
                 account['free'] = free;
             } else {
-                const realizedPnl = this.safeFloat (balance, 'realized_pnl');
-                const unrealizedPnl = this.safeFloat (balance, 'unrealized_pnl');
-                const marginFrozen = this.safeFloat (balance, 'margin_frozen');
-                const marginForUnfilled = this.safeFloat (balance, 'margin_for_unfilled');
+                const realizedPnl = this.safeNumber (balance, 'realized_pnl');
+                const unrealizedPnl = this.safeNumber (balance, 'unrealized_pnl');
+                const marginFrozen = this.safeNumber (balance, 'margin_frozen');
+                const marginForUnfilled = this.safeNumber (balance, 'margin_for_unfilled');
                 account['free'] = this.sum (totalAvailBalance, realizedPnl, unrealizedPnl) - marginFrozen - marginForUnfilled;
             }
             // it may be incorrect to use total, free and used for swap accounts
-            account['total'] = this.safeFloat (balance, 'equity');
+            account['total'] = this.safeNumber (balance, 'equity');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -1710,8 +1710,8 @@ module.exports = class okex extends Exchange {
             }
             const account = this.account ();
             // it may be incorrect to use total, free and used for swap accounts
-            account['total'] = this.safeFloat (balance, 'equity');
-            account['free'] = this.safeFloat (balance, 'total_avail_balance');
+            account['total'] = this.safeNumber (balance, 'equity');
+            account['free'] = this.safeNumber (balance, 'total_avail_balance');
             result[symbol] = account;
         }
         return this.parseBalance (result);
@@ -1915,7 +1915,7 @@ module.exports = class okex extends Exchange {
             } else if (type === 'market') {
                 // for market buy it requires the amount of quote currency to spend
                 if (side === 'buy') {
-                    let notional = this.safeFloat (params, 'notional');
+                    let notional = this.safeNumber (params, 'notional');
                     const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
                     if (createMarketBuyOrderRequiresPrice) {
                         if (price !== undefined) {
@@ -2125,8 +2125,8 @@ module.exports = class okex extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let amount = this.safeFloat (order, 'size');
-        const filled = this.safeFloat2 (order, 'filled_size', 'filled_qty');
+        let amount = this.safeNumber (order, 'size');
+        const filled = this.safeNumber2 (order, 'filled_size', 'filled_qty');
         let remaining = undefined;
         if (amount !== undefined) {
             if (filled !== undefined) {
@@ -2137,9 +2137,9 @@ module.exports = class okex extends Exchange {
         if (type === 'market') {
             remaining = 0;
         }
-        let cost = this.safeFloat2 (order, 'filled_notional', 'funds');
-        const price = this.safeFloat (order, 'price');
-        let average = this.safeFloat (order, 'price_avg');
+        let cost = this.safeNumber2 (order, 'filled_notional', 'funds');
+        const price = this.safeNumber (order, 'price');
+        let average = this.safeNumber (order, 'price_avg');
         if (cost === undefined) {
             if (filled !== undefined && average !== undefined) {
                 cost = average * filled;
@@ -2150,7 +2150,7 @@ module.exports = class okex extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        const feeCost = this.safeFloat (order, 'fee');
+        const feeCost = this.safeNumber (order, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrency = undefined;
@@ -2163,7 +2163,7 @@ module.exports = class okex extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopPrice = this.safeFloat (order, 'trigger_price');
+        const stopPrice = this.safeNumber (order, 'trigger_price');
         return {
             'info': order,
             'id': id,
@@ -2624,7 +2624,7 @@ module.exports = class okex extends Exchange {
         }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeFloat (transaction, 'amount');
+        const amount = this.safeNumber (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const txid = this.safeString (transaction, 'txid');
         const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
@@ -2687,19 +2687,19 @@ module.exports = class okex extends Exchange {
         let feeCurrencyId = undefined;
         if (receivedCurrencyId === quoteId) {
             side = this.safeString (otherTrade, 'side');
-            amount = this.safeFloat (otherTrade, 'size');
-            cost = this.safeFloat (userTrade, 'size');
+            amount = this.safeNumber (otherTrade, 'size');
+            cost = this.safeNumber (userTrade, 'size');
             feeCurrencyId = this.safeString (otherTrade, 'currency');
         } else {
             side = this.safeString (userTrade, 'side');
-            amount = this.safeFloat (userTrade, 'size');
-            cost = this.safeFloat (otherTrade, 'size');
+            amount = this.safeNumber (userTrade, 'size');
+            cost = this.safeNumber (otherTrade, 'size');
             feeCurrencyId = this.safeString (userTrade, 'currency');
         }
         const id = this.safeString (userTrade, 'trade_id');
-        const price = this.safeFloat (userTrade, 'price');
-        const feeCostFirst = this.safeFloat (otherTrade, 'fee');
-        const feeCostSecond = this.safeFloat (userTrade, 'fee');
+        const price = this.safeNumber (userTrade, 'price');
+        const feeCostFirst = this.safeNumber (otherTrade, 'fee');
+        const feeCostSecond = this.safeNumber (userTrade, 'fee');
         const feeCurrencyCodeFirst = this.safeCurrencyCode (this.safeString (otherTrade, 'currency'));
         const feeCurrencyCodeSecond = this.safeCurrencyCode (this.safeString (userTrade, 'currency'));
         let fee = undefined;
@@ -3513,14 +3513,14 @@ module.exports = class okex extends Exchange {
         const referenceAccount = undefined;
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const code = this.safeCurrencyCode (this.safeString (item, 'currency'), currency);
-        const amount = this.safeFloat (item, 'amount');
+        const amount = this.safeNumber (item, 'amount');
         const timestamp = this.parse8601 (this.safeString (item, 'timestamp'));
         const fee = {
-            'cost': this.safeFloat (item, 'fee'),
+            'cost': this.safeNumber (item, 'fee'),
             'currency': code,
         };
         const before = undefined;
-        const after = this.safeFloat (item, 'balance');
+        const after = this.safeNumber (item, 'balance');
         const status = 'ok';
         const marketId = this.safeString (item, 'instrument_id');
         let symbol = undefined;

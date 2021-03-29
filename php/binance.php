@@ -203,6 +203,26 @@ class binance extends Exchange {
                         'apiReferral/rebate/historicalRecord',
                         'apiReferral/kickback/recentRecord',
                         'apiReferral/kickback/historicalRecord',
+                        // brokerage API
+                        'broker/subAccountApi',
+                        'broker/subAccount',
+                        'broker/subAccountApi/commission/futures',
+                        'broker/subAccountApi/commission/coinFutures',
+                        'broker/info',
+                        'broker/transfer',
+                        'broker/transfer/futures',
+                        'broker/rebate/recentRecord',
+                        'broker/rebate/historicalRecord',
+                        'broker/subAccount/bnbBurn/status',
+                        'broker/subAccount/depositHist',
+                        'broker/subAccount/spotSummary',
+                        'broker/subAccount/marginSummary',
+                        'broker/subAccount/futuresSummary',
+                        'broker/rebate/futures/recentRecord',
+                        'broker/subAccountApi/ipRestriction',
+                        'broker/universalTransfer',
+                        // v2 not supported yet
+                        // GET /sapi/v2/broker/subAccount/futuresSummary
                     ),
                     'post' => array(
                         'asset/dust',
@@ -242,11 +262,30 @@ class binance extends Exchange {
                         // leveraged token endpoints
                         'blvt/subscribe',
                         'blvt/redeem',
-                        // broker api
+                        // brokerage API
                         'apiReferral/customization',
                         'apiReferral/userCustomization',
                         'apiReferral/rebate/historicalRecord',
                         'apiReferral/kickback/historicalRecord',
+                        'broker/subAccount',
+                        'broker/subAccount/margin',
+                        'broker/subAccount/futures',
+                        'broker/subAccountApi',
+                        'broker/subAccountApi/permission',
+                        'broker/subAccountApi/commission',
+                        'broker/subAccountApi/commission/futures',
+                        'broker/subAccountApi/commission/coinFutures',
+                        'broker/transfer',
+                        'broker/transfer/futures',
+                        'broker/rebate/historicalRecord',
+                        'broker/subAccount/bnbBurn/spot',
+                        'broker/subAccount/bnbBurn/marginInterest',
+                        'broker/subAccount/blvt',
+                        'broker/subAccountApi/ipRestriction',
+                        'broker/subAccountApi/ipRestriction/ipList',
+                        'broker/universalTransfer',
+                        'broker/subAccountApi/permission/universalTransfer',
+                        'broker/subAccountApi/permission/vanillaOptions',
                     ),
                     'put' => array(
                         'userDataStream',
@@ -257,6 +296,9 @@ class binance extends Exchange {
                         'margin/order',
                         'userDataStream',
                         'userDataStream/isolated',
+                        // brokerage API
+                        'broker/subAccountApi',
+                        'broker/subAccountApi/ipRestriction/ipList',
                     ),
                 ),
                 'wapi' => array(
@@ -1319,9 +1361,9 @@ class binance extends Exchange {
 
     public function fetch_status($params = array ()) {
         $response = $this->wapiGetSystemStatus ($params);
-        $status = $this->safe_value($response, 'status');
+        $status = $this->safe_string($response, 'status');
         if ($status !== null) {
-            $status = ($status === 0) ? 'ok' : 'maintenance';
+            $status = ($status === '0') ? 'ok' : 'maintenance';
             $this->status = array_merge($this->status, array(
                 'status' => $status,
                 'updated' => $this->milliseconds(),

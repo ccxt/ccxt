@@ -115,24 +115,24 @@ class itbit(Exchange):
         if not serverTimeUTC:
             raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
         timestamp = self.parse8601(serverTimeUTC)
-        vwap = self.safe_float(ticker, 'vwap24h')
-        baseVolume = self.safe_float(ticker, 'volume24h')
+        vwap = self.safe_number(ticker, 'vwap24h')
+        baseVolume = self.safe_number(ticker, 'volume24h')
         quoteVolume = None
         if baseVolume is not None and vwap is not None:
             quoteVolume = baseVolume * vwap
-        last = self.safe_float(ticker, 'lastPrice')
+        last = self.safe_number(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high24h'),
-            'low': self.safe_float(ticker, 'low24h'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high24h'),
+            'low': self.safe_number(ticker, 'low24h'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': self.safe_float(ticker, 'openToday'),
+            'open': self.safe_number(ticker, 'openToday'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -178,16 +178,16 @@ class itbit(Exchange):
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
         side = self.safe_string(trade, 'direction')
         orderId = self.safe_string(trade, 'orderId')
-        feeCost = self.safe_float(trade, 'commissionPaid')
+        feeCost = self.safe_number(trade, 'commissionPaid')
         feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
-        rebatesApplied = self.safe_float(trade, 'rebatesApplied')
+        rebatesApplied = self.safe_number(trade, 'rebatesApplied')
         if rebatesApplied is not None:
             rebatesApplied = -rebatesApplied
         rebateCurrencyId = self.safe_string(trade, 'rebateCurrency')
         rebateCurrency = self.safe_currency_code(rebateCurrencyId)
-        price = self.safe_float_2(trade, 'price', 'rate')
-        amount = self.safe_float_2(trade, 'currency1Amount', 'amount')
+        price = self.safe_number_2(trade, 'price', 'rate')
+        amount = self.safe_number_2(trade, 'currency1Amount', 'amount')
         cost = None
         if price is not None:
             if amount is not None:
@@ -301,7 +301,7 @@ class itbit(Exchange):
                 'txid': txnHash,
                 'type': transactionType,
                 'status': status,
-                'amount': self.safe_float(item, 'amount'),
+                'amount': self.safe_number(item, 'amount'),
                 'fee': None,
                 'info': item,
             })
@@ -392,8 +392,8 @@ class itbit(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'availableBalance')
-            account['total'] = self.safe_float(balance, 'totalBalance')
+            account['free'] = self.safe_number(balance, 'availableBalance')
+            account['total'] = self.safe_number(balance, 'totalBalance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -476,11 +476,11 @@ class itbit(Exchange):
         type = self.safe_string(order, 'type')
         symbol = self.markets_by_id[order['instrument']]['symbol']
         timestamp = self.parse8601(order['createdTime'])
-        amount = self.safe_float(order, 'amount')
-        filled = self.safe_float(order, 'amountFilled')
+        amount = self.safe_number(order, 'amount')
+        filled = self.safe_number(order, 'amountFilled')
         fee = None
-        price = self.safe_float(order, 'price')
-        average = self.safe_float(order, 'volumeWeightedAveragePrice')
+        price = self.safe_number(order, 'price')
+        average = self.safe_number(order, 'volumeWeightedAveragePrice')
         clientOrderId = self.safe_string(order, 'clientOrderIdentifier')
         id = self.safe_string(order, 'id')
         postOnlyString = self.safe_string(order, 'postOnly')

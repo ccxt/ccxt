@@ -160,7 +160,7 @@ module.exports = class mercado extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (amountLimits, baseId),
+                        'min': this.safeNumber (amountLimits, baseId),
                         'max': undefined,
                     },
                     'price': {
@@ -196,16 +196,16 @@ module.exports = class mercado extends Exchange {
         const response = await this.publicGetCoinTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'ticker', {});
         const timestamp = this.safeTimestamp (ticker, 'date');
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -215,7 +215,7 @@ module.exports = class mercado extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -230,15 +230,15 @@ module.exports = class mercado extends Exchange {
         const id = this.safeString2 (trade, 'tid', 'operation_id');
         const type = undefined;
         const side = this.safeString (trade, 'type');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'amount', 'quantity');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber2 (trade, 'amount', 'quantity');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
                 cost = price * amount;
             }
         }
-        const feeCost = this.safeFloat (trade, 'fee_rate');
+        const feeCost = this.safeNumber (trade, 'fee_rate');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -295,8 +295,8 @@ module.exports = class mercado extends Exchange {
             if (currencyId in balances) {
                 const balance = this.safeValue (balances, currencyId, {});
                 const account = this.account ();
-                account['free'] = this.safeFloat (balance, 'available');
-                account['total'] = this.safeFloat (balance, 'total');
+                account['free'] = this.safeNumber (balance, 'available');
+                account['total'] = this.safeNumber (balance, 'total');
                 result[code] = account;
             }
         }
@@ -416,14 +416,14 @@ module.exports = class mercado extends Exchange {
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (order, 'created_timestamp');
         const fee = {
-            'cost': this.safeFloat (order, 'fee'),
+            'cost': this.safeNumber (order, 'fee'),
             'currency': market['quote'],
         };
-        const price = this.safeFloat (order, 'limit_price');
-        // price = this.safeFloat (order, 'executed_price_avg', price);
-        const average = this.safeFloat (order, 'executed_price_avg');
-        const amount = this.safeFloat (order, 'quantity');
-        const filled = this.safeFloat (order, 'executed_quantity');
+        const price = this.safeNumber (order, 'limit_price');
+        // price = this.safeNumber (order, 'executed_price_avg', price);
+        const average = this.safeNumber (order, 'executed_price_avg');
+        const amount = this.safeNumber (order, 'quantity');
+        const filled = this.safeNumber (order, 'executed_quantity');
         const remaining = amount - filled;
         const cost = filled * average;
         const lastTradeTimestamp = this.safeTimestamp (order, 'updated_timestamp');
@@ -512,11 +512,11 @@ module.exports = class mercado extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeTimestamp (ohlcv, 'timestamp'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 

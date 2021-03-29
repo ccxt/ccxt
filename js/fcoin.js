@@ -223,8 +223,8 @@ module.exports = class fcoin extends Exchange {
             };
             const limits = {
                 'amount': {
-                    'min': this.safeFloat (market, 'limit_amount_min'),
-                    'max': this.safeFloat (market, 'limit_amount_max'),
+                    'min': this.safeNumber (market, 'limit_amount_min'),
+                    'max': this.safeNumber (market, 'limit_amount_max'),
                 },
                 'price': {
                     'min': Math.pow (10, -precision['price']),
@@ -319,9 +319,9 @@ module.exports = class fcoin extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['total'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'frozen');
+            account['free'] = this.safeNumber (balance, 'available');
+            account['total'] = this.safeNumber (balance, 'balance');
+            account['used'] = this.safeNumber (balance, 'frozen');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -337,8 +337,8 @@ module.exports = class fcoin extends Exchange {
             const priceField = this.sum (index, priceKey);
             const amountField = this.sum (index, amountKey);
             result.push ([
-                this.safeFloat (orders, priceField),
-                this.safeFloat (orders, amountField),
+                this.safeNumber (orders, priceField),
+                this.safeNumber (orders, amountField),
             ]);
         }
         return result;
@@ -386,17 +386,17 @@ module.exports = class fcoin extends Exchange {
             }
         }
         const values = ticker['ticker'];
-        const last = this.safeFloat (values, 0);
+        const last = this.safeNumber (values, 0);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (values, 7),
-            'low': this.safeFloat (values, 8),
-            'bid': this.safeFloat (values, 2),
-            'bidVolume': this.safeFloat (values, 3),
-            'ask': this.safeFloat (values, 4),
-            'askVolume': this.safeFloat (values, 5),
+            'high': this.safeNumber (values, 7),
+            'low': this.safeNumber (values, 8),
+            'bid': this.safeNumber (values, 2),
+            'bidVolume': this.safeNumber (values, 3),
+            'ask': this.safeNumber (values, 4),
+            'askVolume': this.safeNumber (values, 5),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -405,8 +405,8 @@ module.exports = class fcoin extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (values, 9),
-            'quoteVolume': this.safeFloat (values, 10),
+            'baseVolume': this.safeNumber (values, 9),
+            'quoteVolume': this.safeNumber (values, 10),
             'info': ticker,
         };
     }
@@ -419,8 +419,8 @@ module.exports = class fcoin extends Exchange {
         const timestamp = this.safeInteger (trade, 'ts');
         const side = this.safeStringLower (trade, 'side');
         const id = this.safeString (trade, 'id');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -551,20 +551,20 @@ module.exports = class fcoin extends Exchange {
         const symbol = market['symbol'];
         const orderType = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'created_at');
-        const amount = this.safeFloat (order, 'amount');
-        const filled = this.safeFloat (order, 'filled_amount');
-        const price = this.safeFloat (order, 'price');
-        const cost = this.safeFloat (order, 'executed_value');
+        const amount = this.safeNumber (order, 'amount');
+        const filled = this.safeNumber (order, 'filled_amount');
+        const price = this.safeNumber (order, 'price');
+        const cost = this.safeNumber (order, 'executed_value');
         let feeCurrency = undefined;
         let feeCost = undefined;
-        const feeRebate = this.safeFloat (order, 'fees_income');
+        const feeRebate = this.safeNumber (order, 'fees_income');
         if ((feeRebate !== undefined) && (feeRebate > 0)) {
             if (market !== undefined) {
                 feeCurrency = (side === 'buy') ? market['quote'] : market['base'];
             }
             feeCost = -feeRebate;
         } else {
-            feeCost = this.safeFloat (order, 'fill_fees');
+            feeCost = this.safeNumber (order, 'fill_fees');
             if (market !== undefined) {
                 feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             }
@@ -636,11 +636,11 @@ module.exports = class fcoin extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeTimestamp (ohlcv, 'id'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'base_vol'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'base_vol'),
         ];
     }
 

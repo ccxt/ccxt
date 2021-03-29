@@ -154,9 +154,9 @@ class xbtce(Exchange):
             currencyId = self.safe_string(balance, 'Currency')
             code = self.safe_currency_code(currencyId)
             account = {
-                'free': self.safe_float(balance, 'FreeAmount'),
-                'used': self.safe_float(balance, 'LockedAmount'),
-                'total': self.safe_float(balance, 'Amount'),
+                'free': self.safe_number(balance, 'FreeAmount'),
+                'used': self.safe_number(balance, 'LockedAmount'),
+                'total': self.safe_number(balance, 'Amount'),
             }
             result[code] = account
         return self.parse_balance(result)
@@ -256,11 +256,11 @@ class xbtce(Exchange):
     def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_integer(ohlcv, 'Timestamp'),
-            self.safe_float(ohlcv, 'Open'),
-            self.safe_float(ohlcv, 'High'),
-            self.safe_float(ohlcv, 'Low'),
-            self.safe_float(ohlcv, 'Close'),
-            self.safe_float(ohlcv, 'Volume'),
+            self.safe_number(ohlcv, 'Open'),
+            self.safe_number(ohlcv, 'High'),
+            self.safe_number(ohlcv, 'Low'),
+            self.safe_number(ohlcv, 'Close'),
+            self.safe_number(ohlcv, 'Volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

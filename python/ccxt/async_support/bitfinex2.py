@@ -384,8 +384,8 @@ class bitfinex2(bitfinex):
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'minimum_order_size'),
-                    'max': self.safe_float(market, 'maximum_order_size'),
+                    'min': self.safe_number(market, 'minimum_order_size'),
+                    'max': self.safe_number(market, 'maximum_order_size'),
                 },
                 'price': {
                     'min': math.pow(10, -precision['price']),
@@ -530,7 +530,7 @@ class bitfinex2(bitfinex):
             type = self.safe_string(pool, 1)
             feeValues = self.safe_value(indexed['fees'], id, [])
             fees = self.safe_value(feeValues, 1, [])
-            fee = self.safe_float(fees, 1)
+            fee = self.safe_number(fees, 1)
             undl = self.safe_value(indexed['undl'], id, [])
             precision = 8  # default precision, todo: fix "magic constants"
             fid = 'f' + id
@@ -589,8 +589,8 @@ class bitfinex2(bitfinex):
             if (accountType == type) and derivativeCondition:
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['total'] = self.safe_float(balance, 2)
-                account['free'] = self.safe_float(balance, 4)
+                account['total'] = self.safe_number(balance, 2)
+                account['free'] = self.safe_number(balance, 4)
                 result[code] = account
         return self.parse_balance(result)
 
@@ -693,8 +693,8 @@ class bitfinex2(bitfinex):
         priceIndex = 1 if (fullRequest['precision'] == 'R0') else 0
         for i in range(0, len(orderbook)):
             order = orderbook[i]
-            price = self.safe_float(order, priceIndex)
-            signedAmount = self.safe_float(order, 2)
+            price = self.safe_number(order, priceIndex)
+            signedAmount = self.safe_number(order, 2)
             amount = abs(signedAmount)
             side = 'bids' if (signedAmount > 0) else 'asks'
             result[side].append([price, amount])
@@ -809,10 +809,10 @@ class bitfinex2(bitfinex):
         isPrivate = (tradeLength > 5)
         id = self.safe_string(trade, 0)
         amountIndex = 4 if isPrivate else 2
-        amount = self.safe_float(trade, amountIndex)
+        amount = self.safe_number(trade, amountIndex)
         cost = None
         priceIndex = 5 if isPrivate else 3
-        price = self.safe_float(trade, priceIndex)
+        price = self.safe_number(trade, priceIndex)
         side = None
         orderId = None
         takerOrMaker = None
@@ -831,7 +831,7 @@ class bitfinex2(bitfinex):
             orderId = self.safe_string(trade, 3)
             maker = self.safe_integer(trade, 8)
             takerOrMaker = 'maker' if (maker == 1) else 'taker'
-            feeCost = self.safe_float(trade, 9)
+            feeCost = self.safe_number(trade, 9)
             feeCurrencyId = self.safe_string(trade, 10)
             feeCurrency = self.safe_currency_code(feeCurrencyId)
             if feeCost is not None:
@@ -954,8 +954,8 @@ class bitfinex2(bitfinex):
         # https://github.com/ccxt/ccxt/issues/6686
         # timestamp = self.safe_timestamp(order, 5)
         timestamp = self.safe_integer(order, 5)
-        remaining = abs(self.safe_float(order, 6))
-        amount = abs(self.safe_float(order, 7))
+        remaining = abs(self.safe_number(order, 6))
+        amount = abs(self.safe_number(order, 7))
         filled = amount - remaining
         side = 'sell' if (order[7] < 0) else 'buy'
         orderType = self.safe_string(order, 8)
@@ -965,8 +965,8 @@ class bitfinex2(bitfinex):
         if statusString is not None:
             parts = statusString.split(' @ ')
             status = self.parse_order_status(self.safe_string(parts, 0))
-        price = self.safe_float(order, 16)
-        average = self.safe_float(order, 17)
+        price = self.safe_number(order, 16)
+        average = self.safe_number(order, 17)
         cost = price * filled
         clientOrderId = self.safe_string(order, 2)
         return {
@@ -1007,11 +1007,11 @@ class bitfinex2(bitfinex):
         if (orderType == 'LIMIT') or (orderType == 'EXCHANGE LIMIT'):
             request['price'] = self.number_to_string(price)
         elif (orderType == 'STOP') or (orderType == 'EXCHANGE STOP'):
-            stopPrice = self.safe_float(params, 'stopPrice', price)
+            stopPrice = self.safe_number(params, 'stopPrice', price)
             request['price'] = self.number_to_string(stopPrice)
         elif (orderType == 'STOP LIMIT') or (orderType == 'EXCHANGE STOP LIMIT'):
-            priceAuxLimit = self.safe_float(params, 'price_aux_limit')
-            stopPrice = self.safe_float(params, 'stopPrice')
+            priceAuxLimit = self.safe_number(params, 'price_aux_limit')
+            stopPrice = self.safe_number(params, 'stopPrice')
             if priceAuxLimit is None:
                 if stopPrice is None:
                     raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a price_aux_limit parameter for a ' + orderType + ' order')
@@ -1023,9 +1023,9 @@ class bitfinex2(bitfinex):
                     stopPrice = price
             request['price'] = self.number_to_string(stopPrice)
         elif (orderType == 'TRAILING STOP') or (orderType == 'EXCHANGE TRAILING STOP'):
-            priceTrailing = self.safe_float(params, 'price_trailing')
+            priceTrailing = self.safe_number(params, 'price_trailing')
             request['price_trailing'] = self.number_to_string(priceTrailing)
-            stopPrice = self.safe_float(params, 'stopPrice', price)
+            stopPrice = self.safe_number(params, 'stopPrice', price)
             request['price'] = self.number_to_string(stopPrice)
         elif (orderType == 'FOK') or (orderType == 'EXCHANGE FOK') or (orderType == 'IOC') or (orderType == 'EXCHANGE IOC'):
             request['price'] = self.number_to_string(price)
@@ -1329,10 +1329,10 @@ class bitfinex2(bitfinex):
             timestamp = self.safe_integer(transaction, 0)
             if currency is not None:
                 code = currency['code']
-            feeCost = self.safe_float(data, 8)
+            feeCost = self.safe_number(data, 8)
             if feeCost is not None:
                 feeCost = -feeCost
-            amount = self.safe_float(data, 5)
+            amount = self.safe_number(data, 5)
             id = self.safe_value(data, 0)
             status = 'ok'
             if id == 0:
@@ -1345,13 +1345,13 @@ class bitfinex2(bitfinex):
             timestamp = self.safe_integer(transaction, 5)
             updated = self.safe_integer(transaction, 6)
             status = self.parse_transaction_status(self.safe_string(transaction, 9))
-            amount = self.safe_float(transaction, 12)
+            amount = self.safe_number(transaction, 12)
             if amount is not None:
                 if amount < 0:
                     type = 'withdrawal'
                 else:
                     type = 'deposit'
-            feeCost = self.safe_float(transaction, 13)
+            feeCost = self.safe_number(transaction, 13)
             if feeCost is not None:
                 feeCost = -feeCost
             addressTo = self.safe_string(transaction, 16)

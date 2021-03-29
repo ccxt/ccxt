@@ -253,8 +253,8 @@ class yobit(Exchange):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(free, currencyId)
-            account['total'] = self.safe_float(total, currencyId)
+            account['free'] = self.safe_number(free, currencyId)
+            account['total'] = self.safe_number(total, currencyId)
             result[code] = account
         return self.parse_balance(result)
 
@@ -295,15 +295,15 @@ class yobit(Exchange):
                 'price': self.safe_integer(market, 'decimal_places'),
             }
             amountLimits = {
-                'min': self.safe_float(market, 'min_amount'),
-                'max': self.safe_float(market, 'max_amount'),
+                'min': self.safe_number(market, 'min_amount'),
+                'max': self.safe_number(market, 'max_amount'),
             }
             priceLimits = {
-                'min': self.safe_float(market, 'min_price'),
-                'max': self.safe_float(market, 'max_price'),
+                'min': self.safe_number(market, 'min_price'),
+                'max': self.safe_number(market, 'max_price'),
             }
             costLimits = {
-                'min': self.safe_float(market, 'min_total'),
+                'min': self.safe_number(market, 'min_total'),
             }
             limits = {
                 'amount': amountLimits,
@@ -312,7 +312,7 @@ class yobit(Exchange):
             }
             hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
-            takerFee = self.safe_float(market, 'fee')
+            takerFee = self.safe_number(market, 'fee')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -386,16 +386,16 @@ class yobit(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -404,9 +404,9 @@ class yobit(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_float(ticker, 'avg'),
-            'baseVolume': self.safe_float(ticker, 'vol_cur'),
-            'quoteVolume': self.safe_float(ticker, 'vol'),
+            'average': self.safe_number(ticker, 'avg'),
+            'baseVolume': self.safe_number(ticker, 'vol_cur'),
+            'quoteVolume': self.safe_number(ticker, 'vol'),
             'info': ticker,
         }
 
@@ -448,15 +448,15 @@ class yobit(Exchange):
             side = 'sell'
         elif side == 'bid':
             side = 'buy'
-        price = self.safe_float_2(trade, 'rate', 'price')
+        price = self.safe_number_2(trade, 'rate', 'price')
         id = self.safe_string_2(trade, 'trade_id', 'tid')
         order = self.safe_string(trade, 'order_id')
         marketId = self.safe_string(trade, 'pair')
         symbol = self.safe_symbol(marketId, market)
-        amount = self.safe_float(trade, 'amount')
+        amount = self.safe_number(trade, 'amount')
         type = 'limit'  # all trades are still limit trades
         fee = None
-        feeCost = self.safe_float(trade, 'commission')
+        feeCost = self.safe_number(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -526,8 +526,8 @@ class yobit(Exchange):
             if id == '0':
                 id = self.safe_string(response['return'], 'init_order_id')
                 status = 'closed'
-            filled = self.safe_float(response['return'], 'received', 0.0)
-            remaining = self.safe_float(response['return'], 'remains', amount)
+            filled = self.safe_number(response['return'], 'received', 0.0)
+            remaining = self.safe_number(response['return'], 'remains', amount)
         timestamp = self.milliseconds()
         return {
             'id': id,
@@ -573,9 +573,9 @@ class yobit(Exchange):
         timestamp = self.safe_timestamp(order, 'timestamp_created')
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market)
-        remaining = self.safe_float(order, 'amount')
-        amount = self.safe_float(order, 'start_amount')
-        price = self.safe_float(order, 'rate')
+        remaining = self.safe_number(order, 'amount')
+        amount = self.safe_number(order, 'start_amount')
+        price = self.safe_number(order, 'rate')
         fee = None
         type = 'limit'
         side = self.safe_string(order, 'type')

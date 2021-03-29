@@ -171,7 +171,7 @@ class latoken extends Exchange {
             );
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_float($market, 'minQty'),
+                    'min' => $this->safe_number($market, 'minQty'),
                     'max' => null,
                 ),
                 'price' => array(
@@ -221,7 +221,7 @@ class latoken extends Exchange {
             $numericId = $this->safe_integer($currency, 'currencyId');
             $code = $this->safe_currency_code($id);
             $precision = $this->safe_integer($currency, 'precission');
-            $fee = $this->safe_float($currency, 'fee');
+            $fee = $this->safe_number($currency, 'fee');
             $active = null;
             $result[$code] = array(
                 'id' => $id,
@@ -299,13 +299,13 @@ class latoken extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'symbol');
             $code = $this->safe_currency_code($currencyId);
-            $frozen = $this->safe_float($balance, 'frozen');
-            $pending = $this->safe_float($balance, 'pending');
+            $frozen = $this->safe_number($balance, 'frozen');
+            $pending = $this->safe_number($balance, 'pending');
             $used = $this->sum($frozen, $pending);
             $account = array(
-                'free' => $this->safe_float($balance, 'available'),
+                'free' => $this->safe_number($balance, 'available'),
                 'used' => $used,
-                'total' => $this->safe_float($balance, 'amount'),
+                'total' => $this->safe_number($balance, 'amount'),
             );
             $result[$code] = $account;
         }
@@ -354,20 +354,20 @@ class latoken extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $open = $this->safe_float($ticker, 'open');
-        $close = $this->safe_float($ticker, 'close');
+        $open = $this->safe_number($ticker, 'open');
+        $close = $this->safe_number($ticker, 'close');
         $change = null;
         if ($open !== null && $close !== null) {
             $change = $close - $open;
         }
-        $percentage = $this->safe_float($ticker, 'priceChange');
+        $percentage = $this->safe_number($ticker, 'priceChange');
         $timestamp = $this->nonce();
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'low' => $this->safe_float($ticker, 'low'),
-            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'high' => $this->safe_number($ticker, 'high'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -381,7 +381,7 @@ class latoken extends Exchange {
             'percentage' => $percentage,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, 'volume'),
+            'quoteVolume' => $this->safe_number($ticker, 'volume'),
             'info' => $ticker,
         );
     }
@@ -465,8 +465,8 @@ class latoken extends Exchange {
                 $timestamp *= 1000;
             }
         }
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $side = $this->safe_string($trade, 'side');
         $cost = null;
         if ($amount !== null) {
@@ -480,7 +480,7 @@ class latoken extends Exchange {
         }
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'orderId');
-        $feeCost = $this->safe_float($trade, 'commission');
+        $feeCost = $this->safe_number($trade, 'commission');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
@@ -615,9 +615,9 @@ class latoken extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'orderType');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount');
-        $filled = $this->safe_float($order, 'executedAmount');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'amount');
+        $filled = $this->safe_number($order, 'executedAmount');
         $status = $this->parse_order_status($this->safe_string($order, 'orderStatus'));
         $timeFilled = $this->safe_timestamp($order, 'timeFilled');
         $lastTradeTimestamp = null;

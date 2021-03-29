@@ -258,14 +258,14 @@ module.exports = class delta extends Exchange {
                 'name': this.safeString (currency, 'name'),
                 'info': currency, // the original payload
                 'active': active,
-                'fee': this.safeFloat (currency, 'base_withdrawal_fee'),
+                'fee': this.safeNumber (currency, 'base_withdrawal_fee'),
                 'precision': 1 / Math.pow (10, precision),
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'price': { 'min': undefined, 'max': undefined },
                     'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'min_withdrawal_amount'),
+                        'min': this.safeNumber (currency, 'min_withdrawal_amount'),
                         'max': undefined,
                     },
                 },
@@ -399,26 +399,26 @@ module.exports = class delta extends Exchange {
             }
             const precision = {
                 'amount': 1.0, // number of contracts
-                'price': this.safeFloat (market, 'tick_size'),
+                'price': this.safeNumber (market, 'tick_size'),
             };
             const limits = {
                 'amount': {
                     'min': 1.0,
-                    'max': this.safeFloat (market, 'position_size_limit'),
+                    'max': this.safeNumber (market, 'position_size_limit'),
                 },
                 'price': {
                     'min': precision['price'],
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.safeFloat (market, 'min_size'),
+                    'min': this.safeNumber (market, 'min_size'),
                     'max': undefined,
                 },
             };
             const state = this.safeString (market, 'state');
             const active = (state === 'live');
-            const maker = this.safeFloat (market, 'maker_commission_rate');
-            const taker = this.safeFloat (market, 'taker_commission_rate');
+            const maker = this.safeNumber (market, 'maker_commission_rate');
+            const taker = this.safeNumber (market, 'taker_commission_rate');
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -466,8 +466,8 @@ module.exports = class delta extends Exchange {
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.001);
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeFloat (ticker, 'close');
-        const open = this.safeFloat (ticker, 'open');
+        const last = this.safeNumber (ticker, 'close');
+        const open = this.safeNumber (ticker, 'open');
         let change = undefined;
         let average = undefined;
         let percentage = undefined;
@@ -478,15 +478,15 @@ module.exports = class delta extends Exchange {
                 percentage = (change / open) * 100;
             }
         }
-        const baseVolume = this.safeFloat (ticker, 'volume');
-        const quoteVolume = this.safeFloat (ticker, 'turnover');
+        const baseVolume = this.safeNumber (ticker, 'volume');
+        const quoteVolume = this.safeNumber (ticker, 'turnover');
         const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -656,8 +656,8 @@ module.exports = class delta extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         let timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         timestamp = this.safeIntegerProduct (trade, 'timestamp', 0.001, timestamp);
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'size');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'size');
         let cost = undefined;
         if ((amount !== undefined) && (price !== undefined)) {
             cost = amount * price;
@@ -680,7 +680,7 @@ module.exports = class delta extends Exchange {
         if (type !== undefined) {
             type = type.replace ('_order', '');
         }
-        const feeCost = this.safeFloat (trade, 'commission');
+        const feeCost = this.safeNumber (trade, 'commission');
         let fee = undefined;
         if (feeCost !== undefined) {
             const settlingAsset = this.safeValue (product, 'settling_asset', {});
@@ -747,11 +747,11 @@ module.exports = class delta extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 'time'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -821,8 +821,8 @@ module.exports = class delta extends Exchange {
             const currency = this.safeValue (currenciesByNumericId, currencyId);
             const code = (currency === undefined) ? currencyId : currency['code'];
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
-            account['free'] = this.safeFloat (balance, 'available_balance');
+            account['total'] = this.safeNumber (balance, 'balance');
+            account['free'] = this.safeNumber (balance, 'available_balance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -930,12 +930,12 @@ module.exports = class delta extends Exchange {
         const side = this.safeString (order, 'side');
         let type = this.safeString (order, 'order_type');
         type = type.replace ('_order', '');
-        const price = this.safeFloat (order, 'limit_price');
-        const amount = this.safeFloat (order, 'size');
-        const remaining = this.safeFloat (order, 'unfilled_size');
-        const average = this.safeFloat (order, 'average_fill_price');
+        const price = this.safeNumber (order, 'limit_price');
+        const amount = this.safeNumber (order, 'size');
+        const remaining = this.safeNumber (order, 'unfilled_size');
+        const average = this.safeNumber (order, 'average_fill_price');
         let fee = undefined;
-        const feeCost = this.safeFloat (order, 'paid_commission');
+        const feeCost = this.safeNumber (order, 'paid_commission');
         if (feeCost !== undefined) {
             let feeCurrencyCode = undefined;
             if (market !== undefined) {
@@ -1366,9 +1366,9 @@ module.exports = class delta extends Exchange {
         const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId');
         currency = this.safeValue (currenciesByNumericId, currencyId, currency);
         const code = (currency === undefined) ? undefined : currency['code'];
-        const amount = this.safeFloat (item, 'amount');
+        const amount = this.safeNumber (item, 'amount');
         const timestamp = this.parse8601 (this.safeString (item, 'created_at'));
-        const after = this.safeFloat (item, 'balance');
+        const after = this.safeNumber (item, 'balance');
         const before = Math.max (0, after - amount);
         const status = 'ok';
         return {

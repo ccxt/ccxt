@@ -198,17 +198,17 @@ class hollaex extends Exchange {
                 'quoteId' => $quoteId,
                 'active' => $active,
                 'precision' => array(
-                    'price' => $this->safe_float($market, 'increment_price'),
-                    'amount' => $this->safe_float($market, 'increment_size'),
+                    'price' => $this->safe_number($market, 'increment_price'),
+                    'amount' => $this->safe_number($market, 'increment_size'),
                 ),
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'min_size'),
-                        'max' => $this->safe_float($market, 'max_size'),
+                        'min' => $this->safe_number($market, 'min_size'),
+                        'max' => $this->safe_number($market, 'max_size'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($market, 'min_price'),
-                        'max' => $this->safe_float($market, 'max_price'),
+                        'min' => $this->safe_number($market, 'min_price'),
+                        'max' => $this->safe_number($market, 'max_price'),
                     ),
                     'cost' => array( 'min' => null, 'max' => null ),
                 ),
@@ -231,8 +231,8 @@ class hollaex extends Exchange {
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'fullname');
             $active = $this->safe_value($currency, 'active');
-            $fee = $this->safe_float($currency, 'withdrawal_fee');
-            $precision = $this->safe_float($currency, 'increment_unit');
+            $fee = $this->safe_number($currency, 'withdrawal_fee');
+            $precision = $this->safe_number($currency, 'increment_unit');
             $withdrawalLimits = $this->safe_value($currency, 'withdrawal_limits', array());
             $result[$code] = array(
                 'id' => $id,
@@ -245,8 +245,8 @@ class hollaex extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($currency, 'min'),
-                        'max' => $this->safe_float($currency, 'max'),
+                        'min' => $this->safe_number($currency, 'min'),
+                        'max' => $this->safe_number($currency, 'max'),
                     ),
                     'price' => array(
                         'min' => null,
@@ -398,27 +398,27 @@ class hollaex extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string_2($ticker, 'time', 'timestamp'));
-        $close = $this->safe_float($ticker, 'close');
+        $close = $this->safe_number($ticker, 'close');
         $result = array(
             'symbol' => $symbol,
             'info' => $ticker,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($ticker, 'open'),
+            'open' => $this->safe_number($ticker, 'open'),
             'close' => $close,
-            'last' => $this->safe_float($ticker, 'last', $close),
+            'last' => $this->safe_number($ticker, 'last', $close),
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
+            'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
         );
         return $result;
@@ -476,15 +476,15 @@ class hollaex extends Exchange {
         $datetime = $this->safe_string($trade, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $side = $this->safe_string($trade, 'side');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'size');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'size');
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
                 $cost = $price * $amount;
             }
         }
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $quote = $market['quote'];
@@ -569,11 +569,11 @@ class hollaex extends Exchange {
         //
         return array(
             $this->parse8601($this->safe_string($response, 'time')),
-            $this->safe_float($response, 'open'),
-            $this->safe_float($response, 'high'),
-            $this->safe_float($response, 'low'),
-            $this->safe_float($response, 'close'),
-            $this->safe_float($response, 'volume'),
+            $this->safe_number($response, 'open'),
+            $this->safe_number($response, 'high'),
+            $this->safe_number($response, 'low'),
+            $this->safe_number($response, 'close'),
+            $this->safe_number($response, 'volume'),
         );
     }
 
@@ -598,8 +598,8 @@ class hollaex extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($response, $currencyId . '_available');
-            $account['total'] = $this->safe_float($response, $currencyId . '_balance');
+            $account['free'] = $this->safe_number($response, $currencyId . '_available');
+            $account['total'] = $this->safe_number($response, $currencyId . '_balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -679,9 +679,9 @@ class hollaex extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'size');
-        $filled = $this->safe_float($order, 'filled');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'size');
+        $filled = $this->safe_number($order, 'filled');
         $status = ($type === 'market') ? 'closed' : 'open';
         return $this->safe_order(array(
             'id' => $id,
@@ -1033,7 +1033,7 @@ class hollaex extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at'));
         $updated = $this->parse8601($this->safe_string($transaction, 'updated_at'));
         $type = $this->safe_string($transaction, 'type');
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $addressTo = null;
         $addressFrom = null;
@@ -1063,7 +1063,7 @@ class hollaex extends Exchange {
         }
         $fee = array(
             'currency' => $code,
-            'cost' => $this->safe_float($transaction, 'fee'),
+            'cost' => $this->safe_number($transaction, 'fee'),
         );
         return array(
             'info' => $transaction,

@@ -450,8 +450,8 @@ module.exports = class timex extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'totalBalance');
-            account['used'] = this.safeFloat (balance, 'lockedBalance');
+            account['total'] = this.safeNumber (balance, 'totalBalance');
+            account['used'] = this.safeNumber (balance, 'lockedBalance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -815,7 +815,7 @@ module.exports = class timex extends Exchange {
         const result = this.safeValue (response, 0, {});
         return {
             'info': response,
-            'maker': this.safeFloat (result, 'fee'),
+            'maker': this.safeNumber (result, 'fee'),
             'taker': undefined,
         };
     }
@@ -852,18 +852,18 @@ module.exports = class timex extends Exchange {
             'amount': this.precisionFromString (this.safeString (market, 'quantityIncrement')),
             'price': this.precisionFromString (this.safeString (market, 'tickSize')),
         };
-        const amountIncrement = this.safeFloat (market, 'quantityIncrement');
-        const minBase = this.safeFloat (market, 'baseMinSize');
+        const amountIncrement = this.safeNumber (market, 'quantityIncrement');
+        const minBase = this.safeNumber (market, 'baseMinSize');
         const minAmount = Math.max (amountIncrement, minBase);
-        const priceIncrement = this.safeFloat (market, 'tickSize');
-        const minCost = this.safeFloat (market, 'quoteMinSize');
+        const priceIncrement = this.safeNumber (market, 'tickSize');
+        const minCost = this.safeNumber (market, 'quoteMinSize');
         const limits = {
             'amount': { 'min': minAmount, 'max': undefined },
             'price': { 'min': priceIncrement, 'max': undefined },
             'cost': { 'min': Math.max (minCost, minAmount * priceIncrement), 'max': undefined },
         };
-        const taker = this.safeFloat (market, 'takerFee');
-        const maker = this.safeFloat (market, 'makerFee');
+        const taker = this.safeNumber (market, 'takerFee');
+        const maker = this.safeNumber (market, 'makerFee');
         return {
             'id': id,
             'symbol': symbol,
@@ -924,7 +924,7 @@ module.exports = class timex extends Exchange {
         const name = this.safeString (currency, 'name');
         const precision = this.safeInteger (currency, 'decimals');
         const active = this.safeValue (currency, 'active');
-        // const fee = this.safeFloat (currency, 'withdrawalFee');
+        // const fee = this.safeNumber (currency, 'withdrawalFee');
         const feeString = this.safeString (currency, 'withdrawalFee');
         const tradeDecimals = this.safeInteger (currency, 'tradeDecimals');
         let fee = undefined;
@@ -980,8 +980,8 @@ module.exports = class timex extends Exchange {
         const marketId = this.safeString (ticker, 'market');
         const symbol = this.safeSymbol (marketId, market, '/');
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        const last = this.safeFloat (ticker, 'last');
-        const open = this.safeFloat (ticker, 'open');
+        const last = this.safeNumber (ticker, 'last');
+        const open = this.safeNumber (ticker, 'open');
         let change = undefined;
         let average = undefined;
         if (last !== undefined && open !== undefined) {
@@ -997,11 +997,11 @@ module.exports = class timex extends Exchange {
             'info': ticker,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -1011,8 +1011,8 @@ module.exports = class timex extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'volumeQuote'),
+            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'quoteVolume': this.safeNumber (ticker, 'volumeQuote'),
         };
     }
 
@@ -1046,8 +1046,8 @@ module.exports = class timex extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'quantity');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'quantity');
         const id = this.safeString (trade, 'id');
         const side = this.safeStringLower2 (trade, 'direction', 'side');
         const takerOrMaker = this.safeStringLower (trade, 'makerOrTaker');
@@ -1056,7 +1056,7 @@ module.exports = class timex extends Exchange {
             orderId = this.safeString (trade, takerOrMaker + 'OrderId');
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrency = (market === undefined) ? undefined : market['quote'];
             fee = {
@@ -1099,11 +1099,11 @@ module.exports = class timex extends Exchange {
         //
         return [
             this.parse8601 (this.safeString (ohlcv, 'timestamp')),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -1134,10 +1134,10 @@ module.exports = class timex extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'quantity');
-        const filled = this.safeFloat (order, 'filledQuantity');
-        const canceledQuantity = this.safeFloat (order, 'cancelledQuantity');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'quantity');
+        const filled = this.safeNumber (order, 'filledQuantity');
+        const canceledQuantity = this.safeNumber (order, 'cancelledQuantity');
         let remaining = undefined;
         let status = undefined;
         if ((amount !== undefined) && (filled !== undefined)) {

@@ -284,8 +284,8 @@ class bitz extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'minTrade'),
-                        'max' => $this->safe_float($market, 'maxTrade'),
+                        'min' => $this->safe_number($market, 'minTrade'),
+                        'max' => $this->safe_number($market, 'maxTrade'),
                     ),
                     'price' => array(
                         'min' => pow(10, -$precision['price']),
@@ -334,9 +334,9 @@ class bitz extends Exchange {
             $currencyId = $this->safe_string($balance, 'name');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['used'] = $this->safe_float($balance, 'lock');
-            $account['total'] = $this->safe_float($balance, 'num');
-            $account['free'] = $this->safe_float($balance, 'over');
+            $account['used'] = $this->safe_number($balance, 'lock');
+            $account['total'] = $this->safe_number($balance, 'num');
+            $account['free'] = $this->safe_number($balance, 'over');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -369,8 +369,8 @@ class bitz extends Exchange {
         $timestamp = null;
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $last = $this->safe_float($ticker, 'now');
-        $open = $this->safe_float($ticker, 'open');
+        $last = $this->safe_number($ticker, 'now');
+        $open = $this->safe_number($ticker, 'open');
         $change = null;
         $average = null;
         if ($last !== null && $open !== null) {
@@ -381,22 +381,22 @@ class bitz extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bidPrice'),
-            'bidVolume' => $this->safe_float($ticker, 'bidQty'),
-            'ask' => $this->safe_float($ticker, 'askPrice'),
-            'askVolume' => $this->safe_float($ticker, 'askQty'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bidPrice'),
+            'bidVolume' => $this->safe_number($ticker, 'bidQty'),
+            'ask' => $this->safe_number($ticker, 'askPrice'),
+            'askVolume' => $this->safe_number($ticker, 'askQty'),
             'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => $change,
-            'percentage' => $this->safe_float($ticker, 'priceChange24h'),
+            'percentage' => $this->safe_number($ticker, 'priceChange24h'),
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
-            'quoteVolume' => $this->safe_float($ticker, 'quoteVolume'),
+            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
             'info' => $ticker,
         );
     }
@@ -586,8 +586,8 @@ class bitz extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $price = $this->safe_float($trade, 'p');
-        $amount = $this->safe_float($trade, 'n');
+        $price = $this->safe_number($trade, 'p');
+        $amount = $this->safe_number($trade, 'n');
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
@@ -655,11 +655,11 @@ class bitz extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 'time'),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volume'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
         );
     }
 
@@ -757,15 +757,15 @@ class bitz extends Exchange {
         if ($side !== null) {
             $side = ($side === 'sale') ? 'sell' : 'buy';
         }
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'number');
-        $remaining = $this->safe_float($order, 'numberOver');
-        $filled = $this->safe_float($order, 'numberDeal');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'number');
+        $remaining = $this->safe_number($order, 'numberOver');
+        $filled = $this->safe_number($order, 'numberDeal');
         $timestamp = $this->safe_integer($order, 'timestamp');
         if ($timestamp === null) {
             $timestamp = $this->safe_timestamp($order, 'created');
         }
-        $cost = $this->safe_float($order, 'orderTotalPrice');
+        $cost = $this->safe_number($order, 'orderTotalPrice');
         if ($price !== null) {
             if ($filled !== null) {
                 $cost = $filled * $price;
@@ -1121,7 +1121,7 @@ class bitz extends Exchange {
         $type = $this->safe_string_lower($transaction, 'type');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $fee = null;
-        $feeCost = $this->safe_float($transaction, 'network_fee');
+        $feeCost = $this->safe_number($transaction, 'network_fee');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
@@ -1136,7 +1136,7 @@ class bitz extends Exchange {
             'address' => $this->safe_string($transaction, 'wallet'),
             'tag' => $this->safe_string($transaction, 'memo'),
             'type' => $type,
-            'amount' => $this->safe_float($transaction, 'number'),
+            'amount' => $this->safe_number($transaction, 'number'),
             'currency' => $code,
             'status' => $status,
             'updated' => $timestamp,

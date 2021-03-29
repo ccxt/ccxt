@@ -221,7 +221,7 @@ module.exports = class equos extends Exchange {
             'precision': precision,
             'limits': {
                 'amount': {
-                    'min': this.safeFloat (market, 'minTradeVol'),
+                    'min': this.safeNumber (market, 'minTradeVol'),
                     'max': undefined,
                 },
                 'price': {
@@ -287,7 +287,7 @@ module.exports = class equos extends Exchange {
         const name = this.safeString (currency, 6);
         const status = this.safeInteger (currency, 4);
         const active = (status === 1);
-        const fee = this.safeFloat (currency, 5); // withdraw_fee
+        const fee = this.safeNumber (currency, 5); // withdraw_fee
         return {
             'id': id,
             'info': currency,
@@ -379,8 +379,8 @@ module.exports = class equos extends Exchange {
         if (market === undefined) {
             throw new ArgumentsRequired (this.id + ' parseBidAsk() requires a market argument');
         }
-        const price = this.safeFloat (bidask, priceKey);
-        const amount = this.safeFloat (bidask, amountKey);
+        const price = this.safeNumber (bidask, priceKey);
+        const amount = this.safeNumber (bidask, amountKey);
         return [
             this.convertFromScale (price, market['precision']['price']),
             this.convertFromScale (amount, market['precision']['amount']),
@@ -526,9 +526,9 @@ module.exports = class equos extends Exchange {
             orderId = this.safeString (trade, 'orderId');
             side = this.safeStringLower (trade, 'side');
             type = this.parseOrderType (this.safeString (trade, 'ordType'));
-            price = this.safeFloat (trade, 'lastPx');
-            amount = this.safeFloat (trade, 'quoteQty');
-            let feeCost = this.safeFloat (trade, 'commission');
+            price = this.safeNumber (trade, 'lastPx');
+            amount = this.safeNumber (trade, 'quoteQty');
+            let feeCost = this.safeNumber (trade, 'commission');
             if (feeCost !== undefined) {
                 feeCost = -feeCost;
                 const feeCurrencyId = this.safeString (trade, 'commCurrency');
@@ -599,8 +599,8 @@ module.exports = class equos extends Exchange {
             if (assetType === 'ASSET') {
                 const currencyId = this.safeString (position, 'symbol');
                 const code = this.safeCurrencyCode (currencyId);
-                const quantity = this.safeFloat (position, 'quantity');
-                const availableQuantity = this.safeFloat (position, 'availableQuantity');
+                const quantity = this.safeNumber (position, 'quantity');
+                const availableQuantity = this.safeNumber (position, 'availableQuantity');
                 const scale = this.safeInteger (position, 'quantity_scale');
                 const account = this.account ();
                 account['free'] = this.convertFromScale (availableQuantity, scale);
@@ -646,7 +646,7 @@ module.exports = class equos extends Exchange {
             request['ordType'] = 2;
             request['price'] = this.convertToScale (price, this.getScale (price));
         } else {
-            const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stopPx');
+            const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stopPx');
             params = this.omit (params, [ 'stopPrice', 'stopPx' ]);
             if (stopPrice === undefined) {
                 if (type === 'stop') {
@@ -743,7 +743,7 @@ module.exports = class equos extends Exchange {
             request['ordType'] = 2;
             request['price'] = this.convertToScale (price, this.getScale (price));
         } else {
-            const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stopPx');
+            const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stopPx');
             params = this.omit (params, [ 'stopPrice', 'stopPx' ]);
             if (stopPrice === undefined) {
                 if (type === 'stop') {
@@ -1116,7 +1116,7 @@ module.exports = class equos extends Exchange {
             address = undefined;
         }
         const type = this.safeString (transaction, 'type');
-        let amount = this.safeFloat (transaction, 'balance_change');
+        let amount = this.safeNumber (transaction, 'balance_change');
         if (amount === undefined) {
             amount = this.safeInteger (transaction, 'quantity');
             const amountScale = this.safeInteger (transaction, 'quantity_scale');
@@ -1199,8 +1199,8 @@ module.exports = class equos extends Exchange {
         for (let i = 0; i < tradingFees.length; i++) {
             const tradingFee = tradingFees[i];
             if (this.safeString (tradingFee, 'tier') !== undefined) {
-                taker[tradingFee['tier']] = this.safeFloat (tradingFee, 'taker');
-                maker[tradingFee['tier']] = this.safeFloat (tradingFee, 'maker');
+                taker[tradingFee['tier']] = this.safeNumber (tradingFee, 'taker');
+                maker[tradingFee['tier']] = this.safeNumber (tradingFee, 'maker');
             }
         }
         return {

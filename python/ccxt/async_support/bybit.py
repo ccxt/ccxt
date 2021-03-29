@@ -435,8 +435,8 @@ class bybit(Exchange):
             lotSizeFilter = self.safe_value(market, 'lot_size_filter', {})
             priceFilter = self.safe_value(market, 'price_filter', {})
             precision = {
-                'amount': self.safe_float(lotSizeFilter, 'qty_step'),
-                'price': self.safe_float(priceFilter, 'tick_size'),
+                'amount': self.safe_number(lotSizeFilter, 'qty_step'),
+                'price': self.safe_number(priceFilter, 'tick_size'),
             }
             status = self.safe_string(market, 'status')
             active = None
@@ -449,8 +449,8 @@ class bybit(Exchange):
                 'quote': quote,
                 'active': active,
                 'precision': precision,
-                'taker': self.safe_float(market, 'taker_fee'),
-                'maker': self.safe_float(market, 'maker_fee'),
+                'taker': self.safe_number(market, 'taker_fee'),
+                'maker': self.safe_number(market, 'maker_fee'),
                 'type': 'future',
                 'spot': False,
                 'future': True,
@@ -459,12 +459,12 @@ class bybit(Exchange):
                 'inverse': inverse,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(lotSizeFilter, 'min_trading_qty'),
-                        'max': self.safe_float(lotSizeFilter, 'max_trading_qty'),
+                        'min': self.safe_number(lotSizeFilter, 'min_trading_qty'),
+                        'max': self.safe_number(lotSizeFilter, 'max_trading_qty'),
                     },
                     'price': {
-                        'min': self.safe_float(priceFilter, 'min_price'),
-                        'max': self.safe_float(priceFilter, 'max_price'),
+                        'min': self.safe_number(priceFilter, 'min_price'),
+                        'max': self.safe_number(priceFilter, 'max_price'),
                     },
                     'cost': {
                         'min': None,
@@ -508,9 +508,9 @@ class bybit(Exchange):
         timestamp = None
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_float(ticker, 'last_price')
-        open = self.safe_float(ticker, 'prev_price_24h')
-        percentage = self.safe_float(ticker, 'price_24h_pcnt')
+        last = self.safe_number(ticker, 'last_price')
+        open = self.safe_number(ticker, 'prev_price_24h')
+        percentage = self.safe_number(ticker, 'price_24h_pcnt')
         if percentage is not None:
             percentage *= 100
         change = None
@@ -518,18 +518,18 @@ class bybit(Exchange):
         if (last is not None) and (open is not None):
             change = last - open
             average = self.sum(open, last) / 2
-        baseVolume = self.safe_float(ticker, 'turnover_24h')
-        quoteVolume = self.safe_float(ticker, 'volume_24h')
+        baseVolume = self.safe_number(ticker, 'turnover_24h')
+        quoteVolume = self.safe_number(ticker, 'volume_24h')
         vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high_price_24h'),
-            'low': self.safe_float(ticker, 'low_price_24h'),
-            'bid': self.safe_float(ticker, 'bid_price'),
+            'high': self.safe_number(ticker, 'high_price_24h'),
+            'low': self.safe_number(ticker, 'low_price_24h'),
+            'bid': self.safe_number(ticker, 'bid_price'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask_price'),
+            'ask': self.safe_number(ticker, 'ask_price'),
             'askVolume': None,
             'vwap': vwap,
             'open': open,
@@ -674,11 +674,11 @@ class bybit(Exchange):
         #
         return [
             self.safe_timestamp_2(ohlcv, 'open_time', 'start_at'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float_2(ohlcv, 'turnover', 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number_2(ohlcv, 'turnover', 'volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -799,9 +799,9 @@ class bybit(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        amount = self.safe_float_2(trade, 'qty', 'exec_qty')
-        cost = self.safe_float(trade, 'exec_value')
-        price = self.safe_float_2(trade, 'exec_price', 'price')
+        amount = self.safe_number_2(trade, 'qty', 'exec_qty')
+        cost = self.safe_number(trade, 'exec_value')
+        price = self.safe_number_2(trade, 'exec_price', 'price')
         if cost is None:
             if amount is not None:
                 if price is not None:
@@ -812,14 +812,14 @@ class bybit(Exchange):
         side = self.safe_string_lower(trade, 'side')
         lastLiquidityInd = self.safe_string(trade, 'last_liquidity_ind')
         takerOrMaker = 'maker' if (lastLiquidityInd == 'AddedLiquidity') else 'taker'
-        feeCost = self.safe_float(trade, 'exec_fee')
+        feeCost = self.safe_number(trade, 'exec_fee')
         fee = None
         if feeCost is not None:
             feeCurrencyCode = market['base'] if market['inverse'] else market['quote']
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
-                'rate': self.safe_float(trade, 'fee_rate'),
+                'rate': self.safe_number(trade, 'fee_rate'),
             }
         return {
             'id': id,
@@ -970,9 +970,9 @@ class bybit(Exchange):
             balance = balances[currencyId]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available_balance')
-            account['used'] = self.safe_float(balance, 'used_margin')
-            account['total'] = self.safe_float(balance, 'equity')
+            account['free'] = self.safe_number(balance, 'available_balance')
+            account['used'] = self.safe_number(balance, 'used_margin')
+            account['total'] = self.safe_number(balance, 'equity')
             result[code] = account
         return self.parse_balance(result)
 
@@ -1103,14 +1103,14 @@ class bybit(Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         type = self.safe_string_lower(order, 'order_type')
-        price = self.safe_float(order, 'price')
+        price = self.safe_number(order, 'price')
         if price == 0.0:
             price = None
-        average = self.safe_float(order, 'average_price')
-        amount = self.safe_float(order, 'qty')
-        cost = self.safe_float(order, 'cum_exec_value')
-        filled = self.safe_float(order, 'cum_exec_qty')
-        remaining = self.safe_float(order, 'leaves_qty')
+        average = self.safe_number(order, 'average_price')
+        amount = self.safe_number(order, 'qty')
+        cost = self.safe_number(order, 'cum_exec_value')
+        filled = self.safe_number(order, 'cum_exec_qty')
+        remaining = self.safe_number(order, 'leaves_qty')
         if market is not None:
             symbol = market['symbol']
             base = market['base']
@@ -1131,7 +1131,7 @@ class bybit(Exchange):
                     average = filled / cost
         status = self.parse_order_status(self.safe_string_2(order, 'order_status', 'stop_order_status'))
         side = self.safe_string_lower(order, 'side')
-        feeCost = self.safe_float(order, 'cum_exec_fee')
+        feeCost = self.safe_number(order, 'cum_exec_fee')
         fee = None
         if feeCost is not None:
             feeCost = abs(feeCost)
@@ -1143,7 +1143,7 @@ class bybit(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        stopPrice = self.safe_float(order, 'stop_px')
+        stopPrice = self.safe_number(order, 'stop_px')
         postOnly = (timeInForce == 'PO')
         return {
             'info': order,
@@ -1965,7 +1965,7 @@ class bybit(Exchange):
         updated = self.parse8601(self.safe_string(transaction, 'updated_at'))
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         address = self.safe_string(transaction, 'address')
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         fee = None
         if feeCost is not None:
             fee = {
@@ -1985,7 +1985,7 @@ class bybit(Exchange):
             'tagTo': None,
             'tagFrom': None,
             'type': 'withdrawal',
-            'amount': self.safe_float(transaction, 'amount'),
+            'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
             'status': status,
             'updated': updated,
@@ -2063,8 +2063,8 @@ class bybit(Exchange):
         #
         currencyId = self.safe_string(item, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        amount = self.safe_float(item, 'amount')
-        after = self.safe_float(item, 'wallet_balance')
+        amount = self.safe_number(item, 'amount')
+        after = self.safe_number(item, 'wallet_balance')
         direction = 'out' if (amount < 0) else 'in'
         before = None
         if after is not None and amount is not None:

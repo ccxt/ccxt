@@ -199,26 +199,26 @@ module.exports = class kuna extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': this.safeNumber (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -288,9 +288,9 @@ module.exports = class kuna extends Exchange {
             };
             side = this.safeString (sideMap, side, side);
         }
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'volume');
-        const cost = this.safeFloat (trade, 'funds');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'volume');
+        const cost = this.safeNumber (trade, 'funds');
         const orderId = this.safeString (trade, 'order_id');
         const id = this.safeString (trade, 'id');
         return {
@@ -339,8 +339,8 @@ module.exports = class kuna extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'locked');
+            account['free'] = this.safeNumber (balance, 'balance');
+            account['used'] = this.safeNumber (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -406,11 +406,11 @@ module.exports = class kuna extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': this.safeFloat (order, 'price'),
+            'price': this.safeNumber (order, 'price'),
             'stopPrice': undefined,
-            'amount': this.safeFloat (order, 'volume'),
-            'filled': this.safeFloat (order, 'executed_volume'),
-            'remaining': this.safeFloat (order, 'remaining_volume'),
+            'amount': this.safeNumber (order, 'volume'),
+            'filled': this.safeNumber (order, 'executed_volume'),
+            'remaining': this.safeNumber (order, 'remaining_volume'),
             'trades': undefined,
             'fee': undefined,
             'info': order,

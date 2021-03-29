@@ -157,28 +157,28 @@ module.exports = class bitso extends Exchange {
             const symbol = base + '/' + quote;
             const limits = {
                 'amount': {
-                    'min': this.safeFloat (market, 'minimum_amount'),
-                    'max': this.safeFloat (market, 'maximum_amount'),
+                    'min': this.safeNumber (market, 'minimum_amount'),
+                    'max': this.safeNumber (market, 'maximum_amount'),
                 },
                 'price': {
-                    'min': this.safeFloat (market, 'minimum_price'),
-                    'max': this.safeFloat (market, 'maximum_price'),
+                    'min': this.safeNumber (market, 'minimum_price'),
+                    'max': this.safeNumber (market, 'maximum_price'),
                 },
                 'cost': {
-                    'min': this.safeFloat (market, 'minimum_value'),
-                    'max': this.safeFloat (market, 'maximum_value'),
+                    'min': this.safeNumber (market, 'minimum_value'),
+                    'max': this.safeNumber (market, 'maximum_value'),
                 },
             };
-            const defaultPricePrecision = this.safeFloat (this.options['precision'], quote, this.options['defaultPrecision']);
-            const pricePrecision = this.safeFloat (market, 'tick_size', defaultPricePrecision);
+            const defaultPricePrecision = this.safeNumber (this.options['precision'], quote, this.options['defaultPrecision']);
+            const pricePrecision = this.safeNumber (market, 'tick_size', defaultPricePrecision);
             const precision = {
-                'amount': this.safeFloat (this.options['precision'], base, this.options['defaultPrecision']),
+                'amount': this.safeNumber (this.options['precision'], base, this.options['defaultPrecision']),
                 'price': pricePrecision,
             };
             const fees = this.safeValue (market, 'fees', {});
             const flatRate = this.safeValue (fees, 'flat_rate', {});
-            const maker = this.safeFloat (flatRate, 'maker');
-            const taker = this.safeFloat (flatRate, 'taker');
+            const maker = this.safeNumber (flatRate, 'maker');
+            const taker = this.safeNumber (flatRate, 'taker');
             const feeTiers = this.safeValue (fees, 'structure', []);
             const fee = {
                 'taker': parseFloat (this.decimalToPrecision (taker / 100, ROUND, 0.00000001, TICK_SIZE)),
@@ -190,9 +190,9 @@ module.exports = class bitso extends Exchange {
             const makerFees = [];
             for (let j = 0; j < feeTiers.length; j++) {
                 const tier = feeTiers[j];
-                const volume = this.safeFloat (tier, 'volume');
-                const takerFee = this.safeFloat (tier, 'taker');
-                const makerFee = this.safeFloat (tier, 'maker');
+                const volume = this.safeNumber (tier, 'volume');
+                const takerFee = this.safeNumber (tier, 'taker');
+                const makerFee = this.safeNumber (tier, 'maker');
                 const takerFeeToPrecision = parseFloat (this.decimalToPrecision (takerFee / 100, ROUND, 0.00000001, TICK_SIZE));
                 const makerFeeToPrecision = parseFloat (this.decimalToPrecision (makerFee / 100, ROUND, 0.00000001, TICK_SIZE));
                 takerFees.push ([ volume, takerFeeToPrecision ]);
@@ -233,9 +233,9 @@ module.exports = class bitso extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': this.safeFloat (balance, 'locked'),
-                'total': this.safeFloat (balance, 'total'),
+                'free': this.safeNumber (balance, 'available'),
+                'used': this.safeNumber (balance, 'locked'),
+                'total': this.safeNumber (balance, 'total'),
             };
             result[code] = account;
         }
@@ -261,22 +261,22 @@ module.exports = class bitso extends Exchange {
         const response = await this.publicGetTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'payload');
         const timestamp = this.parse8601 (this.safeString (ticker, 'created_at'));
-        const vwap = this.safeFloat (ticker, 'vwap');
-        const baseVolume = this.safeFloat (ticker, 'volume');
+        const vwap = this.safeNumber (ticker, 'vwap');
+        const baseVolume = this.safeNumber (ticker, 'volume');
         let quoteVolume = undefined;
         if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
@@ -297,12 +297,12 @@ module.exports = class bitso extends Exchange {
         const marketId = this.safeString (trade, 'book');
         const symbol = this.safeSymbol (marketId, market, '_');
         const side = this.safeString2 (trade, 'side', 'maker_side');
-        let amount = this.safeFloat2 (trade, 'amount', 'major');
+        let amount = this.safeNumber2 (trade, 'amount', 'major');
         if (amount !== undefined) {
             amount = Math.abs (amount);
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fees_amount');
+        const feeCost = this.safeNumber (trade, 'fees_amount');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fees_currency');
             const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
@@ -311,11 +311,11 @@ module.exports = class bitso extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        let cost = this.safeFloat (trade, 'minor');
+        let cost = this.safeNumber (trade, 'minor');
         if (cost !== undefined) {
             cost = Math.abs (cost);
         }
-        const price = this.safeFloat (trade, 'price');
+        const price = this.safeNumber (trade, 'price');
         const orderId = this.safeString (trade, 'oid');
         const id = this.safeString (trade, 'tid');
         return {
@@ -416,9 +416,9 @@ module.exports = class bitso extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '_');
         const orderType = this.safeString (order, 'type');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'original_amount');
-        const remaining = this.safeFloat (order, 'unfilled_amount');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'original_amount');
+        const remaining = this.safeNumber (order, 'unfilled_amount');
         const clientOrderId = this.safeString (order, 'client_id');
         return this.safeOrder ({
             'info': order,

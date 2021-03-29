@@ -127,8 +127,8 @@ module.exports = class coincheck extends Exchange {
             if (currencyId in balances) {
                 const account = this.account ();
                 const reserved = currencyId + '_reserved';
-                account['free'] = this.safeFloat (balances, currencyId);
-                account['used'] = this.safeFloat (balances, reserved);
+                account['free'] = this.safeNumber (balances, currencyId);
+                account['used'] = this.safeNumber (balances, reserved);
                 result[code] = account;
             }
         }
@@ -170,9 +170,9 @@ module.exports = class coincheck extends Exchange {
         const id = this.safeString (order, 'id');
         const side = this.safeString (order, 'order_type');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const amount = this.safeFloat (order, 'pending_amount');
-        const remaining = this.safeFloat (order, 'pending_amount');
-        const price = this.safeFloat (order, 'rate');
+        const amount = this.safeNumber (order, 'pending_amount');
+        const remaining = this.safeNumber (order, 'pending_amount');
+        const price = this.safeNumber (order, 'rate');
         const status = undefined;
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market, '_');
@@ -222,16 +222,16 @@ module.exports = class coincheck extends Exchange {
         };
         const ticker = await this.publicGetTicker (this.extend (request, params));
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -241,7 +241,7 @@ module.exports = class coincheck extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -250,7 +250,7 @@ module.exports = class coincheck extends Exchange {
     parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         const id = this.safeString (trade, 'id');
-        const price = this.safeFloat (trade, 'rate');
+        const price = this.safeNumber (trade, 'rate');
         const marketId = this.safeString (trade, 'pair');
         market = this.safeValue (this.markets_by_id, marketId, market);
         let symbol = undefined;
@@ -289,16 +289,16 @@ module.exports = class coincheck extends Exchange {
                 takerOrMaker = 'maker';
             }
             const funds = this.safeValue (trade, 'funds', {});
-            amount = this.safeFloat (funds, baseId);
-            cost = this.safeFloat (funds, quoteId);
+            amount = this.safeNumber (funds, baseId);
+            cost = this.safeNumber (funds, quoteId);
             fee = {
                 'currency': this.safeString (trade, 'fee_currency'),
-                'cost': this.safeFloat (trade, 'fee'),
+                'cost': this.safeNumber (trade, 'fee'),
             };
             side = this.safeString (trade, 'side');
             orderId = this.safeString (trade, 'order_id');
         } else {
-            amount = this.safeFloat (trade, 'amount');
+            amount = this.safeNumber (trade, 'amount');
             side = this.safeString (trade, 'order_type');
         }
         if (cost === undefined) {

@@ -194,26 +194,26 @@ class kuna(Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -274,9 +274,9 @@ class kuna(Exchange):
                 'bid': 'buy',
             }
             side = self.safe_string(sideMap, side, side)
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'volume')
-        cost = self.safe_float(trade, 'funds')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'volume')
+        cost = self.safe_number(trade, 'funds')
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string(trade, 'id')
         return {
@@ -322,8 +322,8 @@ class kuna(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'locked')
+            account['free'] = self.safe_number(balance, 'balance')
+            account['used'] = self.safe_number(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 
@@ -382,11 +382,11 @@ class kuna(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': self.safe_float(order, 'price'),
+            'price': self.safe_number(order, 'price'),
             'stopPrice': None,
-            'amount': self.safe_float(order, 'volume'),
-            'filled': self.safe_float(order, 'executed_volume'),
-            'remaining': self.safe_float(order, 'remaining_volume'),
+            'amount': self.safe_number(order, 'volume'),
+            'filled': self.safe_number(order, 'executed_volume'),
+            'remaining': self.safe_number(order, 'remaining_volume'),
             'trades': None,
             'fee': None,
             'info': order,

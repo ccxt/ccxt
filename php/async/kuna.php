@@ -202,26 +202,26 @@ class kuna extends Exchange {
         if ($market) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($ticker, 'open'),
+            'open' => $this->safe_number($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -291,9 +291,9 @@ class kuna extends Exchange {
             );
             $side = $this->safe_string($sideMap, $side, $side);
         }
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'volume');
-        $cost = $this->safe_float($trade, 'funds');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'volume');
+        $cost = $this->safe_number($trade, 'funds');
         $orderId = $this->safe_string($trade, 'order_id');
         $id = $this->safe_string($trade, 'id');
         return array(
@@ -342,8 +342,8 @@ class kuna extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'balance');
-            $account['used'] = $this->safe_float($balance, 'locked');
+            $account['free'] = $this->safe_number($balance, 'balance');
+            $account['used'] = $this->safe_number($balance, 'locked');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -409,11 +409,11 @@ class kuna extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $this->safe_float($order, 'price'),
+            'price' => $this->safe_number($order, 'price'),
             'stopPrice' => null,
-            'amount' => $this->safe_float($order, 'volume'),
-            'filled' => $this->safe_float($order, 'executed_volume'),
-            'remaining' => $this->safe_float($order, 'remaining_volume'),
+            'amount' => $this->safe_number($order, 'volume'),
+            'filled' => $this->safe_number($order, 'executed_volume'),
+            'remaining' => $this->safe_number($order, 'remaining_volume'),
             'trades' => null,
             'fee' => null,
             'info' => $order,

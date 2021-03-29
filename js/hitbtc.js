@@ -247,14 +247,14 @@ module.exports = class hitbtc extends Exchange {
             if (id.indexOf ('_') >= 0) {
                 symbol = id;
             }
-            const lot = this.safeFloat (market, 'quantityIncrement');
-            const step = this.safeFloat (market, 'tickSize');
+            const lot = this.safeNumber (market, 'quantityIncrement');
+            const step = this.safeNumber (market, 'tickSize');
             const precision = {
                 'price': step,
                 'amount': lot,
             };
-            const taker = this.safeFloat (market, 'takeLiquidityRate');
-            const maker = this.safeFloat (market, 'provideLiquidityRate');
+            const taker = this.safeNumber (market, 'takeLiquidityRate');
+            const maker = this.safeNumber (market, 'provideLiquidityRate');
             const feeCurrencyId = this.safeString (market, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             result.push (this.extend (this.fees['trading'], {
@@ -387,7 +387,7 @@ module.exports = class hitbtc extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
-                'fee': this.safeFloat (currency, 'payoutFee'), // todo: redesign
+                'fee': this.safeNumber (currency, 'payoutFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -427,8 +427,8 @@ module.exports = class hitbtc extends Exchange {
         //
         return {
             'info': response,
-            'maker': this.safeFloat (response, 'provideLiquidityRate'),
-            'taker': this.safeFloat (response, 'takeLiquidityRate'),
+            'maker': this.safeNumber (response, 'provideLiquidityRate'),
+            'taker': this.safeNumber (response, 'takeLiquidityRate'),
         };
     }
 
@@ -449,8 +449,8 @@ module.exports = class hitbtc extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'reserved');
+            account['free'] = this.safeNumber (balance, 'available');
+            account['used'] = this.safeNumber (balance, 'reserved');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -470,11 +470,11 @@ module.exports = class hitbtc extends Exchange {
         //
         return [
             this.parse8601 (this.safeString (ohlcv, 'timestamp')),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'max'),
-            this.safeFloat (ohlcv, 'min'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'max'),
+            this.safeNumber (ohlcv, 'min'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -520,10 +520,10 @@ module.exports = class hitbtc extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const baseVolume = this.safeFloat (ticker, 'volume');
-        const quoteVolume = this.safeFloat (ticker, 'volumeQuote');
-        const open = this.safeFloat (ticker, 'open');
-        const last = this.safeFloat (ticker, 'last');
+        const baseVolume = this.safeNumber (ticker, 'volume');
+        const quoteVolume = this.safeNumber (ticker, 'volumeQuote');
+        const open = this.safeNumber (ticker, 'open');
+        const last = this.safeNumber (ticker, 'last');
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
@@ -539,11 +539,11 @@ module.exports = class hitbtc extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
@@ -619,7 +619,7 @@ module.exports = class hitbtc extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyCode = market ? market['feeCurrency'] : undefined;
             fee = {
@@ -631,8 +631,8 @@ module.exports = class hitbtc extends Exchange {
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const orderId = this.safeString (trade, 'clientOrderId');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'quantity');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'quantity');
         const cost = price * amount;
         const side = this.safeString (trade, 'side');
         const id = this.safeString (trade, 'id');
@@ -732,11 +732,11 @@ module.exports = class hitbtc extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const amount = this.safeFloat (transaction, 'amount');
+        const amount = this.safeNumber (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'hash');
         let fee = undefined;
-        const feeCost = this.safeFloat (transaction, 'fee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -924,15 +924,15 @@ module.exports = class hitbtc extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const amount = this.safeFloat (order, 'quantity');
-        const filled = this.safeFloat (order, 'cumQuantity');
+        const amount = this.safeNumber (order, 'quantity');
+        const filled = this.safeNumber (order, 'cumQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
         const clientOrderId = id;
-        const price = this.safeFloat (order, 'price');
+        const price = this.safeNumber (order, 'price');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         let trades = this.safeValue (order, 'tradesReport');

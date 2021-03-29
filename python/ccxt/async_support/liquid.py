@@ -245,7 +245,7 @@ class liquid(Exchange):
                 'info': currency,
                 'name': code,
                 'active': active,
-                'fee': self.safe_float(currency, 'withdrawal_fee'),
+                'fee': self.safe_number(currency, 'withdrawal_fee'),
                 'precision': decimalPrecision,
                 'limits': {
                     'amount': {
@@ -261,7 +261,7 @@ class liquid(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_float(currency, 'minimum_withdrawal'),
+                        'min': self.safe_number(currency, 'minimum_withdrawal'),
                         'max': None,
                     },
                 },
@@ -382,18 +382,18 @@ class liquid(Exchange):
             maker = self.fees['trading']['maker']
             taker = self.fees['trading']['taker']
             if type == 'swap':
-                maker = self.safe_float(market, 'maker_fee', self.fees['trading']['maker'])
-                taker = self.safe_float(market, 'taker_fee', self.fees['trading']['taker'])
+                maker = self.safe_number(market, 'maker_fee', self.fees['trading']['maker'])
+                taker = self.safe_number(market, 'taker_fee', self.fees['trading']['taker'])
             disabled = self.safe_value(market, 'disabled', False)
             active = not disabled
             baseCurrency = self.safe_value(currenciesByCode, base)
             precision = {
                 'amount': 0.00000001,
-                'price': self.safe_float(market, 'tick_size'),
+                'price': self.safe_number(market, 'tick_size'),
             }
             minAmount = None
             if baseCurrency is not None:
-                minAmount = self.safe_float(baseCurrency['info'], 'minimum_order_quantity')
+                minAmount = self.safe_number(baseCurrency['info'], 'minimum_order_quantity')
             limits = {
                 'amount': {
                     'min': minAmount,
@@ -472,16 +472,16 @@ class liquid(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'reserved_balance')
+            account['total'] = self.safe_number(balance, 'balance')
+            account['used'] = self.safe_number(balance, 'reserved_balance')
             result[code] = account
         for i in range(0, len(fiat)):
             balance = fiat[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'reserved_balance')
+            account['total'] = self.safe_number(balance, 'balance')
+            account['used'] = self.safe_number(balance, 'reserved_balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -500,7 +500,7 @@ class liquid(Exchange):
             if ticker['last_traded_price']:
                 length = len(ticker['last_traded_price'])
                 if length > 0:
-                    last = self.safe_float(ticker, 'last_traded_price')
+                    last = self.safe_number(ticker, 'last_traded_price')
         symbol = None
         if market is None:
             marketId = self.safe_string(ticker, 'id')
@@ -518,7 +518,7 @@ class liquid(Exchange):
         change = None
         percentage = None
         average = None
-        open = self.safe_float(ticker, 'last_price_24h')
+        open = self.safe_number(ticker, 'last_price_24h')
         if open is not None and last is not None:
             change = last - open
             average = self.sum(last, open) / 2
@@ -528,11 +528,11 @@ class liquid(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high_market_ask'),
-            'low': self.safe_float(ticker, 'low_market_bid'),
-            'bid': self.safe_float(ticker, 'market_bid'),
+            'high': self.safe_number(ticker, 'high_market_ask'),
+            'low': self.safe_number(ticker, 'low_market_bid'),
+            'bid': self.safe_number(ticker, 'market_bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'market_ask'),
+            'ask': self.safe_number(ticker, 'market_ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -542,7 +542,7 @@ class liquid(Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'volume_24h'),
+            'baseVolume': self.safe_number(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -584,8 +584,8 @@ class liquid(Exchange):
         if mySide is not None:
             takerOrMaker = 'taker' if (takerSide == mySide) else 'maker'
         cost = None
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'quantity')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'quantity')
         if price is not None:
             if amount is not None:
                 cost = price * amount
@@ -775,9 +775,9 @@ class liquid(Exchange):
         marketId = self.safe_string(order, 'product_id')
         market = self.safe_value(self.markets_by_id, marketId)
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        amount = self.safe_float(order, 'quantity')
-        filled = self.safe_float(order, 'filled_quantity')
-        price = self.safe_float(order, 'price')
+        amount = self.safe_number(order, 'quantity')
+        filled = self.safe_number(order, 'filled_quantity')
+        price = self.safe_number(order, 'price')
         symbol = None
         feeCurrency = None
         if market is not None:
@@ -786,7 +786,7 @@ class liquid(Exchange):
         type = self.safe_string(order, 'order_type')
         tradeCost = 0
         tradeFilled = 0
-        average = self.safe_float(order, 'average_price')
+        average = self.safe_number(order, 'average_price')
         trades = self.parse_trades(self.safe_value(order, 'executions', []), market, None, None, {
             'order': orderId,
             'type': type,
@@ -837,7 +837,7 @@ class liquid(Exchange):
             'trades': trades,
             'fee': {
                 'currency': feeCurrency,
-                'cost': self.safe_float(order, 'order_fee'),
+                'cost': self.safe_number(order, 'order_fee'),
             },
             'info': order,
         }
@@ -981,7 +981,7 @@ class liquid(Exchange):
         updated = self.safe_timestamp(transaction, 'updated_at')
         type = 'withdrawal'
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         return {
             'info': transaction,
             'id': id,

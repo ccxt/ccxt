@@ -222,7 +222,7 @@ class equos(Exchange):
             'precision': precision,
             'limits': {
                 'amount': {
-                    'min': self.safe_float(market, 'minTradeVol'),
+                    'min': self.safe_number(market, 'minTradeVol'),
                     'max': None,
                 },
                 'price': {
@@ -285,7 +285,7 @@ class equos(Exchange):
         name = self.safe_string(currency, 6)
         status = self.safe_integer(currency, 4)
         active = (status == 1)
-        fee = self.safe_float(currency, 5)  # withdraw_fee
+        fee = self.safe_number(currency, 5)  # withdraw_fee
         return {
             'id': id,
             'info': currency,
@@ -372,8 +372,8 @@ class equos(Exchange):
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market=None):
         if market is None:
             raise ArgumentsRequired(self.id + ' parseBidAsk() requires a market argument')
-        price = self.safe_float(bidask, priceKey)
-        amount = self.safe_float(bidask, amountKey)
+        price = self.safe_number(bidask, priceKey)
+        amount = self.safe_number(bidask, amountKey)
         return [
             self.convert_from_scale(price, market['precision']['price']),
             self.convert_from_scale(amount, market['precision']['amount']),
@@ -512,9 +512,9 @@ class equos(Exchange):
             orderId = self.safe_string(trade, 'orderId')
             side = self.safe_string_lower(trade, 'side')
             type = self.parse_order_type(self.safe_string(trade, 'ordType'))
-            price = self.safe_float(trade, 'lastPx')
-            amount = self.safe_float(trade, 'quoteQty')
-            feeCost = self.safe_float(trade, 'commission')
+            price = self.safe_number(trade, 'lastPx')
+            amount = self.safe_number(trade, 'quoteQty')
+            feeCost = self.safe_number(trade, 'commission')
             if feeCost is not None:
                 feeCost = -feeCost
                 feeCurrencyId = self.safe_string(trade, 'commCurrency')
@@ -579,8 +579,8 @@ class equos(Exchange):
             if assetType == 'ASSET':
                 currencyId = self.safe_string(position, 'symbol')
                 code = self.safe_currency_code(currencyId)
-                quantity = self.safe_float(position, 'quantity')
-                availableQuantity = self.safe_float(position, 'availableQuantity')
+                quantity = self.safe_number(position, 'quantity')
+                availableQuantity = self.safe_number(position, 'availableQuantity')
                 scale = self.safe_integer(position, 'quantity_scale')
                 account = self.account()
                 account['free'] = self.convert_from_scale(availableQuantity, scale)
@@ -623,7 +623,7 @@ class equos(Exchange):
             request['ordType'] = 2
             request['price'] = self.convert_to_scale(price, self.get_scale(price))
         else:
-            stopPrice = self.safe_float_2(params, 'stopPrice', 'stopPx')
+            stopPrice = self.safe_number_2(params, 'stopPrice', 'stopPx')
             params = self.omit(params, ['stopPrice', 'stopPx'])
             if stopPrice is None:
                 if type == 'stop':
@@ -712,7 +712,7 @@ class equos(Exchange):
             request['ordType'] = 2
             request['price'] = self.convert_to_scale(price, self.get_scale(price))
         else:
-            stopPrice = self.safe_float_2(params, 'stopPrice', 'stopPx')
+            stopPrice = self.safe_number_2(params, 'stopPrice', 'stopPx')
             params = self.omit(params, ['stopPrice', 'stopPx'])
             if stopPrice is None:
                 if type == 'stop':
@@ -1063,7 +1063,7 @@ class equos(Exchange):
         if address == 'None':
             address = None
         type = self.safe_string(transaction, 'type')
-        amount = self.safe_float(transaction, 'balance_change')
+        amount = self.safe_number(transaction, 'balance_change')
         if amount is None:
             amount = self.safe_integer(transaction, 'quantity')
             amountScale = self.safe_integer(transaction, 'quantity_scale')
@@ -1142,8 +1142,8 @@ class equos(Exchange):
         for i in range(0, len(tradingFees)):
             tradingFee = tradingFees[i]
             if self.safe_string(tradingFee, 'tier') is not None:
-                taker[tradingFee['tier']] = self.safe_float(tradingFee, 'taker')
-                maker[tradingFee['tier']] = self.safe_float(tradingFee, 'maker')
+                taker[tradingFee['tier']] = self.safe_number(tradingFee, 'taker')
+                maker[tradingFee['tier']] = self.safe_number(tradingFee, 'maker')
         return {
             'info': tradingFees,
             'tierBased': True,

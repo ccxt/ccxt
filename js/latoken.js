@@ -169,7 +169,7 @@ module.exports = class latoken extends Exchange {
             };
             const limits = {
                 'amount': {
-                    'min': this.safeFloat (market, 'minQty'),
+                    'min': this.safeNumber (market, 'minQty'),
                     'max': undefined,
                 },
                 'price': {
@@ -219,7 +219,7 @@ module.exports = class latoken extends Exchange {
             const numericId = this.safeInteger (currency, 'currencyId');
             const code = this.safeCurrencyCode (id);
             const precision = this.safeInteger (currency, 'precission');
-            const fee = this.safeFloat (currency, 'fee');
+            const fee = this.safeNumber (currency, 'fee');
             const active = undefined;
             result[code] = {
                 'id': id,
@@ -297,13 +297,13 @@ module.exports = class latoken extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'symbol');
             const code = this.safeCurrencyCode (currencyId);
-            const frozen = this.safeFloat (balance, 'frozen');
-            const pending = this.safeFloat (balance, 'pending');
+            const frozen = this.safeNumber (balance, 'frozen');
+            const pending = this.safeNumber (balance, 'pending');
             const used = this.sum (frozen, pending);
             const account = {
-                'free': this.safeFloat (balance, 'available'),
+                'free': this.safeNumber (balance, 'available'),
                 'used': used,
-                'total': this.safeFloat (balance, 'amount'),
+                'total': this.safeNumber (balance, 'amount'),
             };
             result[code] = account;
         }
@@ -352,20 +352,20 @@ module.exports = class latoken extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const open = this.safeFloat (ticker, 'open');
-        const close = this.safeFloat (ticker, 'close');
+        const open = this.safeNumber (ticker, 'open');
+        const close = this.safeNumber (ticker, 'close');
         let change = undefined;
         if (open !== undefined && close !== undefined) {
             change = close - open;
         }
-        const percentage = this.safeFloat (ticker, 'priceChange');
+        const percentage = this.safeNumber (ticker, 'priceChange');
         const timestamp = this.nonce ();
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'low': this.safeFloat (ticker, 'low'),
-            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'high': this.safeNumber (ticker, 'high'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -379,7 +379,7 @@ module.exports = class latoken extends Exchange {
             'percentage': percentage,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
         };
     }
@@ -463,8 +463,8 @@ module.exports = class latoken extends Exchange {
                 timestamp *= 1000;
             }
         }
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         const side = this.safeString (trade, 'side');
         let cost = undefined;
         if (amount !== undefined) {
@@ -478,7 +478,7 @@ module.exports = class latoken extends Exchange {
         }
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'orderId');
-        const feeCost = this.safeFloat (trade, 'commission');
+        const feeCost = this.safeNumber (trade, 'commission');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -613,9 +613,9 @@ module.exports = class latoken extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount');
-        const filled = this.safeFloat (order, 'executedAmount');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'amount');
+        const filled = this.safeNumber (order, 'executedAmount');
         const status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
         const timeFilled = this.safeTimestamp (order, 'timeFilled');
         let lastTradeTimestamp = undefined;

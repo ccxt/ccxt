@@ -207,7 +207,7 @@ class novadax(Exchange):
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'minOrderAmount'),
+                    'min': self.safe_number(market, 'minOrderAmount'),
                     'max': None,
                 },
                 'price': {
@@ -215,7 +215,7 @@ class novadax(Exchange):
                     'max': None,
                 },
                 'cost': {
-                    'min': self.safe_float(market, 'minOrderValue'),
+                    'min': self.safe_number(market, 'minOrderValue'),
                     'max': None,
                 },
             }
@@ -255,8 +255,8 @@ class novadax(Exchange):
         timestamp = self.safe_integer(ticker, 'timestamp')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        open = self.safe_float(ticker, 'open24h')
-        last = self.safe_float(ticker, 'lastPrice')
+        open = self.safe_number(ticker, 'open24h')
+        last = self.safe_number(ticker, 'lastPrice')
         percentage = None
         change = None
         average = None
@@ -264,18 +264,18 @@ class novadax(Exchange):
             change = last - open
             percentage = change / open * 100
             average = self.sum(last, open) / 2
-        baseVolume = self.safe_float(ticker, 'baseVolume24h')
-        quoteVolume = self.safe_float(ticker, 'quoteVolume24h')
+        baseVolume = self.safe_number(ticker, 'baseVolume24h')
+        quoteVolume = self.safe_number(ticker, 'quoteVolume24h')
         vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high24h'),
-            'low': self.safe_float(ticker, 'low24h'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high24h'),
+            'low': self.safe_number(ticker, 'low24h'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': open,
@@ -425,9 +425,9 @@ class novadax(Exchange):
         orderId = self.safe_string(trade, 'orderId')
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string_lower(trade, 'side')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = self.safe_float(trade, 'volume')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
+        cost = self.safe_number(trade, 'volume')
         if (cost is None) and (amount is not None) and (price is not None):
             cost = amount * price
         marketId = self.safe_string(trade, 'symbol')
@@ -440,7 +440,7 @@ class novadax(Exchange):
             feeCurrencyId = self.safe_string(parts, 1)
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': self.safe_float(parts, 0),
+                'cost': self.safe_number(parts, 0),
                 'currency': feeCurrencyCode,
             }
         return {
@@ -541,11 +541,11 @@ class novadax(Exchange):
         volumeField = self.safe_string(options, 'volume', 'amount')  # or vol
         return [
             self.safe_timestamp(ohlcv, 'score'),
-            self.safe_float(ohlcv, 'openPrice'),
-            self.safe_float(ohlcv, 'highPrice'),
-            self.safe_float(ohlcv, 'lowPrice'),
-            self.safe_float(ohlcv, 'closePrice'),
-            self.safe_float(ohlcv, volumeField),
+            self.safe_number(ohlcv, 'openPrice'),
+            self.safe_number(ohlcv, 'highPrice'),
+            self.safe_number(ohlcv, 'lowPrice'),
+            self.safe_number(ohlcv, 'closePrice'),
+            self.safe_number(ohlcv, volumeField),
         ]
 
     async def fetch_balance(self, params={}):
@@ -572,9 +572,9 @@ class novadax(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'available')
-            account['free'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'hold')
+            account['total'] = self.safe_number(balance, 'available')
+            account['free'] = self.safe_number(balance, 'balance')
+            account['used'] = self.safe_number(balance, 'hold')
             result[code] = account
         return self.parse_balance(result)
 
@@ -598,7 +598,7 @@ class novadax(Exchange):
             if uppercaseSide == 'SELL':
                 request['amount'] = self.amount_to_precision(symbol, amount)
             elif uppercaseSide == 'BUY':
-                value = self.safe_float(params, 'value')
+                value = self.safe_number(params, 'value')
                 createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
                 if createMarketBuyOrderRequiresPrice:
                     if price is not None:
@@ -811,17 +811,17 @@ class novadax(Exchange):
         #     }
         #
         id = self.safe_string(order, 'id')
-        amount = self.safe_float(order, 'amount')
-        price = self.safe_float(order, 'price')
-        cost = self.safe_float(order, 'filledValue')
+        amount = self.safe_number(order, 'amount')
+        price = self.safe_number(order, 'price')
+        cost = self.safe_number(order, 'filledValue')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.safe_integer(order, 'timestamp')
-        average = self.safe_float(order, 'averagePrice')
-        filled = self.safe_float(order, 'filledAmount')
+        average = self.safe_number(order, 'averagePrice')
+        filled = self.safe_number(order, 'filledAmount')
         fee = None
-        feeCost = self.safe_float(order, 'filledFee')
+        feeCost = self.safe_number(order, 'filledFee')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -1002,7 +1002,7 @@ class novadax(Exchange):
             type = 'deposit'
         elif type == 'COIN_OUT':
             type = 'withdraw'
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')
         txid = self.safe_string(transaction, 'txHash')

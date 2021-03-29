@@ -156,12 +156,12 @@ class luno extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'min_volume'),
-                        'max' => $this->safe_float($market, 'max_volume'),
+                        'min' => $this->safe_number($market, 'min_volume'),
+                        'max' => $this->safe_number($market, 'max_volume'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($market, 'min_price'),
-                        'max' => $this->safe_float($market, 'max_price'),
+                        'min' => $this->safe_number($market, 'min_price'),
+                        'max' => $this->safe_number($market, 'max_price'),
                     ),
                     'cost' => array(
                         'min' => null,
@@ -212,9 +212,9 @@ class luno extends Exchange {
             $wallet = $wallets[$i];
             $currencyId = $this->safe_string($wallet, 'asset');
             $code = $this->safe_currency_code($currencyId);
-            $reserved = $this->safe_float($wallet, 'reserved');
-            $unconfirmed = $this->safe_float($wallet, 'unconfirmed');
-            $balance = $this->safe_float($wallet, 'balance');
+            $reserved = $this->safe_number($wallet, 'reserved');
+            $unconfirmed = $this->safe_number($wallet, 'unconfirmed');
+            $balance = $this->safe_number($wallet, 'balance');
             if (is_array($result) && array_key_exists($code, $result)) {
                 $result[$code]['used'] = $this->sum($result[$code]['used'], $reserved, $unconfirmed);
                 $result[$code]['total'] = $this->sum($result[$code]['total'], $balance, $unconfirmed);
@@ -276,12 +276,12 @@ class luno extends Exchange {
         $side = ($order['type'] === 'ASK') ? 'sell' : 'buy';
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $price = $this->safe_float($order, 'limit_price');
-        $amount = $this->safe_float($order, 'limit_volume');
-        $quoteFee = $this->safe_float($order, 'fee_counter');
-        $baseFee = $this->safe_float($order, 'fee_base');
-        $filled = $this->safe_float($order, 'base');
-        $cost = $this->safe_float($order, 'counter');
+        $price = $this->safe_number($order, 'limit_price');
+        $amount = $this->safe_number($order, 'limit_volume');
+        $quoteFee = $this->safe_number($order, 'fee_counter');
+        $baseFee = $this->safe_number($order, 'fee_base');
+        $filled = $this->safe_number($order, 'base');
+        $cost = $this->safe_number($order, 'counter');
         $fee = array( 'currency' => null );
         if ($quoteFee) {
             $fee['cost'] = $quoteFee;
@@ -363,16 +363,16 @@ class luno extends Exchange {
         if ($market) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last_trade');
+        $last = $this->safe_number($ticker, 'last_trade');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -382,7 +382,7 @@ class luno extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'rolling_24_hour_volume'),
+            'baseVolume' => $this->safe_number($ticker, 'rolling_24_hour_volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -433,8 +433,8 @@ class luno extends Exchange {
         } else {
             $side = $trade['is_buy'] ? 'buy' : 'sell';
         }
-        $feeBase = $this->safe_float($trade, 'fee_base');
-        $feeCounter = $this->safe_float($trade, 'fee_counter');
+        $feeBase = $this->safe_number($trade, 'fee_base');
+        $feeCounter = $this->safe_number($trade, 'fee_counter');
         $feeCurrency = null;
         $feeCost = null;
         if ($feeBase !== null) {
@@ -459,10 +459,10 @@ class luno extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'volume'),
+            'price' => $this->safe_number($trade, 'price'),
+            'amount' => $this->safe_number($trade, 'volume'),
             // Does not include potential fee costs
-            'cost' => $this->safe_float($trade, 'counter'),
+            'cost' => $this->safe_number($trade, 'counter'),
             'fee' => array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
@@ -509,8 +509,8 @@ class luno extends Exchange {
         $response = yield $this->privateGetFeeInfo ($params);
         return array(
             'info' => $response,
-            'maker' => $this->safe_float($response, 'maker_fee'),
-            'taker' => $this->safe_float($response, 'taker_fee'),
+            'maker' => $this->safe_number($response, 'maker_fee'),
+            'taker' => $this->safe_number($response, 'taker_fee'),
         );
     }
 
@@ -644,9 +644,9 @@ class luno extends Exchange {
         $timestamp = $this->safe_value($entry, 'timestamp');
         $currencyId = $this->safe_string($entry, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $available_delta = $this->safe_float($entry, 'available_delta');
-        $balance_delta = $this->safe_float($entry, 'balance_delta');
-        $after = $this->safe_float($entry, 'balance');
+        $available_delta = $this->safe_number($entry, 'available_delta');
+        $balance_delta = $this->safe_number($entry, 'balance_delta');
+        $after = $this->safe_number($entry, 'balance');
         $comment = $this->safe_string($entry, 'description');
         $before = $after;
         $amount = 0.0;

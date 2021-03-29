@@ -130,8 +130,8 @@ class coincheck extends Exchange {
             if (is_array($balances) && array_key_exists($currencyId, $balances)) {
                 $account = $this->account();
                 $reserved = $currencyId . '_reserved';
-                $account['free'] = $this->safe_float($balances, $currencyId);
-                $account['used'] = $this->safe_float($balances, $reserved);
+                $account['free'] = $this->safe_number($balances, $currencyId);
+                $account['used'] = $this->safe_number($balances, $reserved);
                 $result[$code] = $account;
             }
         }
@@ -173,9 +173,9 @@ class coincheck extends Exchange {
         $id = $this->safe_string($order, 'id');
         $side = $this->safe_string($order, 'order_type');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $amount = $this->safe_float($order, 'pending_amount');
-        $remaining = $this->safe_float($order, 'pending_amount');
-        $price = $this->safe_float($order, 'rate');
+        $amount = $this->safe_number($order, 'pending_amount');
+        $remaining = $this->safe_number($order, 'pending_amount');
+        $price = $this->safe_number($order, 'rate');
         $status = null;
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
@@ -225,16 +225,16 @@ class coincheck extends Exchange {
         );
         $ticker = $this->publicGetTicker (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -244,7 +244,7 @@ class coincheck extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
+            'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -253,7 +253,7 @@ class coincheck extends Exchange {
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $id = $this->safe_string($trade, 'id');
-        $price = $this->safe_float($trade, 'rate');
+        $price = $this->safe_number($trade, 'rate');
         $marketId = $this->safe_string($trade, 'pair');
         $market = $this->safe_value($this->markets_by_id, $marketId, $market);
         $symbol = null;
@@ -292,16 +292,16 @@ class coincheck extends Exchange {
                 $takerOrMaker = 'maker';
             }
             $funds = $this->safe_value($trade, 'funds', array());
-            $amount = $this->safe_float($funds, $baseId);
-            $cost = $this->safe_float($funds, $quoteId);
+            $amount = $this->safe_number($funds, $baseId);
+            $cost = $this->safe_number($funds, $quoteId);
             $fee = array(
                 'currency' => $this->safe_string($trade, 'fee_currency'),
-                'cost' => $this->safe_float($trade, 'fee'),
+                'cost' => $this->safe_number($trade, 'fee'),
             );
             $side = $this->safe_string($trade, 'side');
             $orderId = $this->safe_string($trade, 'order_id');
         } else {
-            $amount = $this->safe_float($trade, 'amount');
+            $amount = $this->safe_number($trade, 'amount');
             $side = $this->safe_string($trade, 'order_type');
         }
         if ($cost === null) {

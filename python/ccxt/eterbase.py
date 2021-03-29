@@ -221,7 +221,7 @@ class eterbase(Exchange):
             rule = rules[i]
             attribute = self.safe_string(rule, 'attribute')
             condition = self.safe_string(rule, 'condition')
-            value = self.safe_float(rule, 'value')
+            value = self.safe_number(rule, 'value')
             if (attribute == 'Qty') and (condition == 'Min'):
                 minAmount = value
             elif (attribute == 'Qty') and (condition == 'Max'):
@@ -308,7 +308,7 @@ class eterbase(Exchange):
                 'type': type,
                 'name': name,
                 'active': active,
-                'fee': self.safe_float(currency, 'withdrawalFee'),
+                'fee': self.safe_number(currency, 'withdrawalFee'),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -324,8 +324,8 @@ class eterbase(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_float(currency, 'withdrawalMin'),
-                        'max': self.safe_float(currency, 'withdrawalMax'),
+                        'min': self.safe_number(currency, 'withdrawalMin'),
+                        'max': self.safe_number(currency, 'withdrawalMax'),
                     },
                 },
             }
@@ -350,17 +350,17 @@ class eterbase(Exchange):
         marketId = self.safe_string(ticker, 'marketId')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(ticker, 'time')
-        last = self.safe_float(ticker, 'price')
-        baseVolume = self.safe_float(ticker, 'volumeBase')
-        quoteVolume = self.safe_float(ticker, 'volume')
+        last = self.safe_number(ticker, 'price')
+        baseVolume = self.safe_number(ticker, 'volumeBase')
+        quoteVolume = self.safe_number(ticker, 'volume')
         vwap = self.vwap(baseVolume, quoteVolume)
-        percentage = self.safe_float(ticker, 'change')
+        percentage = self.safe_number(ticker, 'change')
         result = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -453,10 +453,10 @@ class eterbase(Exchange):
         #         "filledAt": 1556355722341
         #     }
         #
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'qty')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'qty')
         fee = None
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'feeAsset')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -464,7 +464,7 @@ class eterbase(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        cost = self.safe_float(trade, 'qty')
+        cost = self.safe_number(trade, 'qty')
         if (cost is None) and (price is not None) and (amount is not None):
             cost = price * amount
         timestamp = self.safe_integer_2(trade, 'executedAt', 'filledAt')
@@ -558,11 +558,11 @@ class eterbase(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 'time'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -622,9 +622,9 @@ class eterbase(Exchange):
             currencyId = self.safe_string(balance, 'assetId')
             code = self.safe_currency_code(currencyId)
             account = {
-                'free': self.safe_float(balance, 'available'),
-                'used': self.safe_float(balance, 'reserved'),
-                'total': self.safe_float(balance, 'balance'),
+                'free': self.safe_number(balance, 'available'),
+                'used': self.safe_number(balance, 'reserved'),
+                'total': self.safe_number(balance, 'balance'),
             }
             result[code] = account
         return self.parse_balance(result)
@@ -749,16 +749,16 @@ class eterbase(Exchange):
             type = 'stopmarket'
         else:
             type = 'stoplimit'
-        price = self.safe_float(order, 'limitPrice')
-        amount = self.safe_float(order, 'qty')
-        remaining = self.safe_float(order, 'remainingQty')
+        price = self.safe_number(order, 'limitPrice')
+        amount = self.safe_number(order, 'qty')
+        remaining = self.safe_number(order, 'remainingQty')
         filled = None
-        remainingCost = self.safe_float(order, 'remainingCost')
+        remainingCost = self.safe_number(order, 'remainingCost')
         if (remainingCost is not None) and (remainingCost == 0.0):
             remaining = 0
         if (amount is not None) and (remaining is not None):
             filled = max(0, amount - remaining)
-        cost = self.safe_float(order, 'cost')
+        cost = self.safe_number(order, 'cost')
         if type == 'market':
             if price == 0.0:
                 if (cost is not None) and (filled is not None):
@@ -769,7 +769,7 @@ class eterbase(Exchange):
             if filled:
                 average = cost / filled
         timeInForce = self.safe_string(order, 'timeInForce')
-        stopPrice = self.safe_float(order, 'stopPrice')
+        stopPrice = self.safe_number(order, 'stopPrice')
         postOnly = self.safe_value(order, 'postOnly')
         return {
             'info': order,
@@ -928,7 +928,7 @@ class eterbase(Exchange):
             query = self.omit(params, ['refId', 'clientOrderId'])
         if (uppercaseType == 'MARKET') and (uppercaseSide == 'BUY'):
             # for market buy it requires the amount of quote currency to spend
-            cost = self.safe_float(params, 'cost')
+            cost = self.safe_number(params, 'cost')
             if self.options['createMarketBuyOrderRequiresPrice']:
                 if cost is None:
                     if price is not None:

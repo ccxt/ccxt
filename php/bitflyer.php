@@ -189,8 +189,8 @@ class bitflyer extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_float($balance, 'amount');
-            $account['free'] = $this->safe_float($balance, 'available');
+            $account['total'] = $this->safe_number($balance, 'amount');
+            $account['free'] = $this->safe_number($balance, 'available');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -212,16 +212,16 @@ class bitflyer extends Exchange {
         );
         $ticker = $this->publicGetGetticker (array_merge($request, $params));
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
-        $last = $this->safe_float($ticker, 'ltp');
+        $last = $this->safe_number($ticker, 'ltp');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_float($ticker, 'best_bid'),
+            'bid' => $this->safe_number($ticker, 'best_bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'best_ask'),
+            'ask' => $this->safe_number($ticker, 'best_ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -231,7 +231,7 @@ class bitflyer extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume_by_product'),
+            'baseVolume' => $this->safe_number($ticker, 'volume_by_product'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -255,8 +255,8 @@ class bitflyer extends Exchange {
             $order = $this->safe_string($trade, 'child_order_acceptance_id');
         }
         $timestamp = $this->parse8601($this->safe_string($trade, 'exec_date'));
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'size');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'size');
         $cost = null;
         if ($amount !== null) {
             if ($price !== null) {
@@ -338,17 +338,17 @@ class bitflyer extends Exchange {
 
     public function parse_order($order, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($order, 'child_order_date'));
-        $amount = $this->safe_float($order, 'size');
-        $remaining = $this->safe_float($order, 'outstanding_size');
-        $filled = $this->safe_float($order, 'executed_size');
-        $price = $this->safe_float($order, 'price');
+        $amount = $this->safe_number($order, 'size');
+        $remaining = $this->safe_number($order, 'outstanding_size');
+        $filled = $this->safe_number($order, 'executed_size');
+        $price = $this->safe_number($order, 'price');
         $status = $this->parse_order_status($this->safe_string($order, 'child_order_state'));
         $type = $this->safe_string_lower($order, 'child_order_type');
         $side = $this->safe_string_lower($order, 'side');
         $marketId = $this->safe_string($order, 'product_code');
         $symbol = $this->safe_symbol($marketId, $market);
         $fee = null;
-        $feeCost = $this->safe_float($order, 'total_commission');
+        $feeCost = $this->safe_number($order, 'total_commission');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,

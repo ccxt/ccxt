@@ -149,12 +149,12 @@ module.exports = class ripio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': this.safeFloat (market, 'min_amount'),
-                'price': this.safeFloat (market, 'price_tick'),
+                'amount': this.safeNumber (market, 'min_amount'),
+                'price': this.safeNumber (market, 'price_tick'),
             };
             const limits = {
                 'amount': {
-                    'min': this.safeFloat (market, 'min_amount'),
+                    'min': this.safeNumber (market, 'min_amount'),
                     'max': undefined,
                 },
                 'price': {
@@ -162,15 +162,15 @@ module.exports = class ripio extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.safeFloat (market, 'min_value'),
+                    'min': this.safeNumber (market, 'min_value'),
                     'max': undefined,
                 },
             };
             const active = this.safeValue (market, 'enabled', true);
             const fees = this.safeValue (market, 'fees', []);
             const firstFee = this.safeValue (fees, 0, {});
-            const maker = this.safeFloat (firstFee, 'maker_fee', 0.0);
-            const taker = this.safeFloat (firstFee, 'taker_fee', 0.0);
+            const maker = this.safeNumber (firstFee, 'maker_fee', 0.0);
+            const taker = this.safeNumber (firstFee, 'taker_fee', 0.0);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -277,18 +277,18 @@ module.exports = class ripio extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'created_at'));
         const marketId = this.safeString (ticker, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeFloat (ticker, 'last_price');
-        const average = this.safeFloat (ticker, 'avg');
+        const last = this.safeNumber (ticker, 'last_price');
+        const average = this.safeNumber (ticker, 'avg');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': this.safeFloat (ticker, 'bid_volume'),
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': this.safeFloat (ticker, 'ask_volume'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
+            'bidVolume': this.safeNumber (ticker, 'bid_volume'),
+            'ask': this.safeNumber (ticker, 'ask'),
+            'askVolume': this.safeNumber (ticker, 'ask_volume'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -430,15 +430,15 @@ module.exports = class ripio extends Exchange {
         if (side !== undefined) {
             side = side.toLowerCase ();
         }
-        const price = this.safeFloat2 (trade, 'price', 'match_price');
-        const amount = this.safeFloat2 (trade, 'amount', 'exchanged');
+        const price = this.safeNumber2 (trade, 'price', 'match_price');
+        const amount = this.safeNumber2 (trade, 'amount', 'exchanged');
         let cost = undefined;
         if ((amount !== undefined) && (price !== undefined)) {
             cost = amount * price;
         }
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market);
-        const feeCost = this.safeFloat (trade, takerOrMaker + '_fee');
+        const feeCost = this.safeNumber (trade, takerOrMaker + '_fee');
         const orderId = this.safeString (trade, takerOrMaker);
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -512,8 +512,8 @@ module.exports = class ripio extends Exchange {
             const currencyId = this.safeString (balance, 'symbol');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'locked');
+            account['free'] = this.safeNumber (balance, 'available');
+            account['used'] = this.safeNumber (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -775,16 +775,16 @@ module.exports = class ripio extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'order_id');
-        const amount = this.safeFloat (order, 'amount');
-        let cost = this.safeFloat (order, 'notional');
+        const amount = this.safeNumber (order, 'amount');
+        let cost = this.safeNumber (order, 'notional');
         const type = this.safeStringLower (order, 'order_type');
         const priceField = (type === 'market') ? 'fill_price' : 'limit_price';
-        const price = this.safeFloat (order, priceField);
+        const price = this.safeNumber (order, priceField);
         const side = this.safeStringLower (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeTimestamp (order, 'created_at');
         let average = this.safeValue (order, 'fill_price');
-        let filled = this.safeFloat (order, 'filled');
+        let filled = this.safeNumber (order, 'filled');
         let remaining = undefined;
         const fills = this.safeValue (order, 'fills');
         let trades = undefined;
@@ -819,7 +819,7 @@ module.exports = class ripio extends Exchange {
         }
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const stopPrice = this.safeFloat (order, 'stop_price');
+        const stopPrice = this.safeNumber (order, 'stop_price');
         return {
             'id': id,
             'clientOrderId': undefined,

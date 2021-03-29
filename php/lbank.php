@@ -203,8 +203,8 @@ class lbank extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $info = $ticker;
         $ticker = $info['ticker'];
-        $last = $this->safe_float($ticker, 'latest');
-        $percentage = $this->safe_float($ticker, 'change');
+        $last = $this->safe_number($ticker, 'latest');
+        $percentage = $this->safe_number($ticker, 'change');
         $open = null;
         if ($percentage !== null) {
             $relativeChange = $this->sum(1, $percentage / 100);
@@ -225,8 +225,8 @@ class lbank extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -239,8 +239,8 @@ class lbank extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
-            'quoteVolume' => $this->safe_float($ticker, 'turnover'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'quoteVolume' => $this->safe_number($ticker, 'turnover'),
             'info' => $info,
         );
     }
@@ -290,8 +290,8 @@ class lbank extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_integer($trade, 'date_ms');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
@@ -349,11 +349,11 @@ class lbank extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 0),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 4),
-            $this->safe_float($ohlcv, 5),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -418,9 +418,9 @@ class lbank extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($free, $currencyId);
-            $account['used'] = $this->safe_float($freeze, $currencyId);
-            $account['total'] = $this->safe_float($asset, $currencyId);
+            $account['free'] = $this->safe_number($free, $currencyId);
+            $account['used'] = $this->safe_number($freeze, $currencyId);
+            $account['total'] = $this->safe_number($asset, $currencyId);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -456,10 +456,10 @@ class lbank extends Exchange {
         $timestamp = $this->safe_integer($order, 'create_time');
         // Limit Order Request Returns => Order Price
         // Market Order Returns => cny $amount of $market $order
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount', 0.0);
-        $filled = $this->safe_float($order, 'deal_amount', 0.0);
-        $average = $this->safe_float($order, 'avg_price');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'amount', 0.0);
+        $filled = $this->safe_number($order, 'deal_amount', 0.0);
+        $average = $this->safe_number($order, 'avg_price');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'order_id');
         $type = $this->safe_string($order, 'order_type');

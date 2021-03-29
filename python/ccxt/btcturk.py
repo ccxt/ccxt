@@ -125,9 +125,9 @@ class btcturk(Exchange):
             used = currency['id'] + '_reserved'
             if free in response:
                 account = self.account()
-                account['free'] = self.safe_float(response, free)
-                account['total'] = self.safe_float(response, total)
-                account['used'] = self.safe_float(response, used)
+                account['free'] = self.safe_number(response, free)
+                account['total'] = self.safe_number(response, total)
+                account['used'] = self.safe_number(response, used)
                 result[code] = account
         return self.parse_balance(result)
 
@@ -146,26 +146,26 @@ class btcturk(Exchange):
         if market:
             symbol = market['symbol']
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_float(ticker, 'average'),
-            'baseVolume': self.safe_float(ticker, 'volume'),
+            'average': self.safe_number(ticker, 'average'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -194,8 +194,8 @@ class btcturk(Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string(trade, 'tid')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
         cost = None
         if amount is not None:
             if price is not None:
@@ -232,11 +232,11 @@ class btcturk(Exchange):
     def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.parse8601(self.safe_string(ohlcv, 'Time')),
-            self.safe_float(ohlcv, 'Open'),
-            self.safe_float(ohlcv, 'High'),
-            self.safe_float(ohlcv, 'Low'),
-            self.safe_float(ohlcv, 'Close'),
-            self.safe_float(ohlcv, 'Volume'),
+            self.safe_number(ohlcv, 'Open'),
+            self.safe_number(ohlcv, 'High'),
+            self.safe_number(ohlcv, 'Low'),
+            self.safe_number(ohlcv, 'Close'),
+            self.safe_number(ohlcv, 'Volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1d', since=None, limit=None, params={}):

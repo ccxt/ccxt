@@ -466,7 +466,7 @@ module.exports = class bitfinex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const code = this.safeCurrencyCode (id);
-            withdraw[code] = this.safeFloat (fees, id);
+            withdraw[code] = this.safeNumber (fees, id);
         }
         return {
             'info': response,
@@ -502,8 +502,8 @@ module.exports = class bitfinex extends Exchange {
         //
         return {
             'info': response,
-            'maker': this.safeFloat (response, 'maker_fee'),
-            'taker': this.safeFloat (response, 'taker_fee'),
+            'maker': this.safeNumber (response, 'maker_fee'),
+            'taker': this.safeNumber (response, 'taker_fee'),
         };
     }
 
@@ -557,8 +557,8 @@ module.exports = class bitfinex extends Exchange {
             };
             const limits = {
                 'amount': {
-                    'min': this.safeFloat (market, 'minimum_order_size'),
-                    'max': this.safeFloat (market, 'maximum_order_size'),
+                    'min': this.safeNumber (market, 'minimum_order_size'),
+                    'max': this.safeNumber (market, 'maximum_order_size'),
                 },
                 'price': {
                     'min': Math.pow (10, -precision['price']),
@@ -672,8 +672,8 @@ module.exports = class bitfinex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4989
                 if (!(code in result)) {
                     const account = this.account ();
-                    account['free'] = this.safeFloat (balance, 'available');
-                    account['total'] = this.safeFloat (balance, 'amount');
+                    account['free'] = this.safeNumber (balance, 'available');
+                    account['total'] = this.safeNumber (balance, 'amount');
                     result[code] = account;
                 }
             }
@@ -784,7 +784,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeFloat (ticker, 'timestamp');
+        let timestamp = this.safeNumber (ticker, 'timestamp');
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
@@ -807,16 +807,16 @@ module.exports = class bitfinex extends Exchange {
                 }
             }
         }
-        const last = this.safeFloat (ticker, 'last_price');
+        const last = this.safeNumber (ticker, 'last_price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -825,8 +825,8 @@ module.exports = class bitfinex extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeFloat (ticker, 'mid'),
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'average': this.safeNumber (ticker, 'mid'),
+            'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -834,15 +834,15 @@ module.exports = class bitfinex extends Exchange {
 
     parseTrade (trade, market) {
         const id = this.safeString (trade, 'tid');
-        let timestamp = this.safeFloat (trade, 'timestamp');
+        let timestamp = this.safeNumber (trade, 'timestamp');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp) * 1000;
         }
         const type = undefined;
         const side = this.safeStringLower (trade, 'type');
         const orderId = this.safeString (trade, 'order_id');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -851,7 +851,7 @@ module.exports = class bitfinex extends Exchange {
         }
         let fee = undefined;
         if ('fee_amount' in trade) {
-            const feeCost = -this.safeFloat (trade, 'fee_amount');
+            const feeCost = -this.safeNumber (trade, 'fee_amount');
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
@@ -1023,12 +1023,12 @@ module.exports = class bitfinex extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': this.safeFloat (order, 'price'),
+            'price': this.safeNumber (order, 'price'),
             'stopPrice': undefined,
-            'average': this.safeFloat (order, 'avg_execution_price'),
-            'amount': this.safeFloat (order, 'original_amount'),
-            'remaining': this.safeFloat (order, 'remaining_amount'),
-            'filled': this.safeFloat (order, 'executed_amount'),
+            'average': this.safeNumber (order, 'avg_execution_price'),
+            'amount': this.safeNumber (order, 'original_amount'),
+            'remaining': this.safeNumber (order, 'remaining_amount'),
+            'filled': this.safeNumber (order, 'executed_amount'),
             'status': status,
             'fee': undefined,
             'cost': undefined,
@@ -1088,11 +1088,11 @@ module.exports = class bitfinex extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 5),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -1240,11 +1240,11 @@ module.exports = class bitfinex extends Exchange {
         //         "timestamp_created": "1561716066.0"
         //     }
         //
-        let timestamp = this.safeFloat (transaction, 'timestamp_created');
+        let timestamp = this.safeNumber (transaction, 'timestamp_created');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp * 1000);
         }
-        let updated = this.safeFloat (transaction, 'timestamp');
+        let updated = this.safeNumber (transaction, 'timestamp');
         if (updated !== undefined) {
             updated = parseInt (updated * 1000);
         }
@@ -1252,7 +1252,7 @@ module.exports = class bitfinex extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const type = this.safeStringLower (transaction, 'type'); // DEPOSIT or WITHDRAWAL
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        let feeCost = this.safeFloat (transaction, 'fee');
+        let feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
         }
@@ -1265,7 +1265,7 @@ module.exports = class bitfinex extends Exchange {
             'address': this.safeString (transaction, 'address'), // todo: this is actually the tag for XRP transfers (the address is missing)
             'tag': undefined, // refix it properly for the tag from description
             'type': type,
-            'amount': this.safeFloat (transaction, 'amount'),
+            'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
             'status': status,
             'updated': updated,

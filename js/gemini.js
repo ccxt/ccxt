@@ -221,16 +221,16 @@ module.exports = class gemini extends Exchange {
             // const base = this.safeCurrencyCode (baseId);
             const minAmountString = cells[1].replace ('<td>', '');
             const minAmountParts = minAmountString.split (' ');
-            const minAmount = this.safeFloat (minAmountParts, 0);
+            const minAmount = this.safeNumber (minAmountParts, 0);
             const amountPrecisionString = cells[2].replace ('<td>', '');
             const amountPrecisionParts = amountPrecisionString.split (' ');
-            const amountPrecision = this.safeFloat (amountPrecisionParts, 0);
+            const amountPrecision = this.safeNumber (amountPrecisionParts, 0);
             const idLength = marketId.length - 0;
             const quoteId = marketId.slice (idLength - 3, idLength);
             const quote = this.safeCurrencyCode (quoteId);
             const pricePrecisionString = cells[3].replace ('<td>', '');
             const pricePrecisionParts = pricePrecisionString.split (' ');
-            const pricePrecision = this.safeFloat (pricePrecisionParts, 0);
+            const pricePrecision = this.safeNumber (pricePrecisionParts, 0);
             const baseId = marketId.replace (quoteId, '');
             const base = this.safeCurrencyCode (baseId);
             const symbol = base + '/' + quote;
@@ -458,11 +458,11 @@ module.exports = class gemini extends Exchange {
             base = market['base'];
             quote = market['quote'];
         }
-        const price = this.safeFloat (ticker, 'price');
-        const last = this.safeFloat2 (ticker, 'last', 'close', price);
-        let percentage = this.safeFloat (ticker, 'percentChange24h');
+        const price = this.safeNumber (ticker, 'price');
+        const last = this.safeNumber2 (ticker, 'last', 'close', price);
+        let percentage = this.safeNumber (ticker, 'percentChange24h');
         let change = undefined;
-        let open = this.safeFloat (ticker, 'open');
+        let open = this.safeNumber (ticker, 'open');
         let average = undefined;
         if (last !== undefined) {
             if (open !== undefined) {
@@ -479,18 +479,18 @@ module.exports = class gemini extends Exchange {
                 average = this.sum (last, open) / 2;
             }
         }
-        const baseVolume = this.safeFloat (volume, baseId);
-        const quoteVolume = this.safeFloat (volume, quoteId);
+        const baseVolume = this.safeNumber (volume, baseId);
+        const quoteVolume = this.safeNumber (volume, quoteId);
         const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
@@ -546,11 +546,11 @@ module.exports = class gemini extends Exchange {
         const feeCurrencyId = this.safeString (trade, 'fee_currency');
         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
         const fee = {
-            'cost': this.safeFloat (trade, 'fee_amount'),
+            'cost': this.safeNumber (trade, 'fee_amount'),
             'currency': feeCurrencyCode,
         };
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -609,8 +609,8 @@ module.exports = class gemini extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['total'] = this.safeFloat (balance, 'amount');
+            account['free'] = this.safeNumber (balance, 'available');
+            account['total'] = this.safeNumber (balance, 'amount');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -618,9 +618,9 @@ module.exports = class gemini extends Exchange {
 
     parseOrder (order, market = undefined) {
         const timestamp = this.safeInteger (order, 'timestampms');
-        const amount = this.safeFloat (order, 'original_amount');
-        const remaining = this.safeFloat (order, 'remaining_amount');
-        const filled = this.safeFloat (order, 'executed_amount');
+        const amount = this.safeNumber (order, 'original_amount');
+        const remaining = this.safeNumber (order, 'remaining_amount');
+        const filled = this.safeNumber (order, 'executed_amount');
         let status = 'closed';
         if (order['is_live']) {
             status = 'open';
@@ -628,8 +628,8 @@ module.exports = class gemini extends Exchange {
         if (order['is_cancelled']) {
             status = 'canceled';
         }
-        const price = this.safeFloat (order, 'price');
-        const average = this.safeFloat (order, 'avg_execution_price');
+        const price = this.safeNumber (order, 'price');
+        const average = this.safeNumber (order, 'avg_execution_price');
         let type = this.safeString (order, 'type');
         if (type === 'exchange limit') {
             type = 'limit';
@@ -781,7 +781,7 @@ module.exports = class gemini extends Exchange {
             status = 'ok';
         }
         let fee = undefined;
-        const feeAmount = this.safeFloat (transaction, 'feeAmount');
+        const feeAmount = this.safeNumber (transaction, 'feeAmount');
         if (feeAmount !== undefined) {
             fee = {
                 'cost': feeAmount,
@@ -797,7 +797,7 @@ module.exports = class gemini extends Exchange {
             'address': address,
             'tag': undefined, // or is it defined?
             'type': type, // direction of the transaction, ('deposit' | 'withdraw')
-            'amount': this.safeFloat (transaction, 'amount'),
+            'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
             'status': status,
             'updated': undefined,

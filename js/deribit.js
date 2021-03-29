@@ -435,8 +435,8 @@ module.exports = class deribit extends Exchange {
                 const future = (type === 'future');
                 const option = (type === 'option');
                 const active = this.safeValue (market, 'is_active');
-                const minTradeAmount = this.safeFloat (market, 'min_trade_amount');
-                const tickSize = this.safeFloat (market, 'tick_size');
+                const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
+                const tickSize = this.safeNumber (market, 'tick_size');
                 const precision = {
                     'amount': minTradeAmount,
                     'price': tickSize,
@@ -448,8 +448,8 @@ module.exports = class deribit extends Exchange {
                     'quote': quote,
                     'active': active,
                     'precision': precision,
-                    'taker': this.safeFloat (market, 'taker_commission'),
-                    'maker': this.safeFloat (market, 'maker_commission'),
+                    'taker': this.safeNumber (market, 'taker_commission'),
+                    'maker': this.safeNumber (market, 'maker_commission'),
                     'limits': {
                         'amount': {
                             'min': minTradeAmount,
@@ -532,9 +532,9 @@ module.exports = class deribit extends Exchange {
         const currencyId = this.safeString (balance, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        account['free'] = this.safeFloat (balance, 'availableFunds');
-        account['used'] = this.safeFloat (balance, 'maintenanceMargin');
-        account['total'] = this.safeFloat (balance, 'equity');
+        account['free'] = this.safeNumber (balance, 'availableFunds');
+        account['used'] = this.safeNumber (balance, 'maintenanceMargin');
+        account['total'] = this.safeNumber (balance, 'equity');
         result[currencyCode] = account;
         return this.parseBalance (result);
     }
@@ -654,18 +654,18 @@ module.exports = class deribit extends Exchange {
         const timestamp = this.safeInteger2 (ticker, 'timestamp', 'creation_timestamp');
         const marketId = this.safeString (ticker, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeFloat2 (ticker, 'last_price', 'last');
+        const last = this.safeNumber2 (ticker, 'last_price', 'last');
         const stats = this.safeValue (ticker, 'stats', ticker);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat2 (stats, 'high', 'max_price'),
-            'low': this.safeFloat2 (stats, 'low', 'min_price'),
-            'bid': this.safeFloat2 (ticker, 'best_bid_price', 'bid_price'),
-            'bidVolume': this.safeFloat (ticker, 'best_bid_amount'),
-            'ask': this.safeFloat2 (ticker, 'best_ask_price', 'ask_price'),
-            'askVolume': this.safeFloat (ticker, 'best_ask_amount'),
+            'high': this.safeNumber2 (stats, 'high', 'max_price'),
+            'low': this.safeNumber2 (stats, 'low', 'min_price'),
+            'bid': this.safeNumber2 (ticker, 'best_bid_price', 'bid_price'),
+            'bidVolume': this.safeNumber (ticker, 'best_bid_amount'),
+            'ask': this.safeNumber2 (ticker, 'best_ask_price', 'ask_price'),
+            'askVolume': this.safeNumber (ticker, 'best_ask_amount'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -675,7 +675,7 @@ module.exports = class deribit extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (stats, 'volume'),
+            'quoteVolume': this.safeNumber (stats, 'volume'),
             'info': ticker,
         };
     }
@@ -862,8 +862,8 @@ module.exports = class deribit extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (trade, 'timestamp');
         const side = this.safeString (trade, 'direction');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
@@ -876,7 +876,7 @@ module.exports = class deribit extends Exchange {
             // M = maker, T = taker, MT = both
             takerOrMaker = (liquidity === 'M') ? 'maker' : 'taker';
         }
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
@@ -1056,10 +1056,10 @@ module.exports = class deribit extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         const lastUpdate = this.safeInteger (order, 'last_update_timestamp');
         const id = this.safeString (order, 'order_id');
-        const price = this.safeFloat (order, 'price');
-        const average = this.safeFloat (order, 'average_price');
-        const amount = this.safeFloat (order, 'amount');
-        const filled = this.safeFloat (order, 'filled_amount');
+        const price = this.safeNumber (order, 'price');
+        const average = this.safeNumber (order, 'average_price');
+        const amount = this.safeNumber (order, 'amount');
+        const filled = this.safeNumber (order, 'filled_amount');
         let lastTradeTimestamp = undefined;
         if (filled !== undefined) {
             if (filled > 0) {
@@ -1070,7 +1070,7 @@ module.exports = class deribit extends Exchange {
         const marketId = this.safeString (order, 'instrument_name');
         market = this.safeMarket (marketId, market);
         const side = this.safeStringLower (order, 'direction');
-        let feeCost = this.safeFloat (order, 'commission');
+        let feeCost = this.safeNumber (order, 'commission');
         let fee = undefined;
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
@@ -1187,7 +1187,7 @@ module.exports = class deribit extends Exchange {
             }
         }
         if (stopPriceIsRequired) {
-            const stopPrice = this.safeFloat2 (params, 'stop_price', 'stopPrice');
+            const stopPrice = this.safeNumber2 (params, 'stop_price', 'stopPrice');
             if (stopPrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stop_price or stopPrice param for a ' + type + ' order');
             } else {
@@ -1586,7 +1586,7 @@ module.exports = class deribit extends Exchange {
         const updated = this.safeInteger (transaction, 'updated_timestamp');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         const address = this.safeString (transaction, 'address');
-        const feeCost = this.safeFloat (transaction, 'fee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         let type = 'deposit';
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -1609,7 +1609,7 @@ module.exports = class deribit extends Exchange {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
-            'amount': this.safeFloat (transaction, 'amount'),
+            'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
             'status': status,
             'updated': updated,

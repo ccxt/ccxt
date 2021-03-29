@@ -131,8 +131,8 @@ module.exports = class flowbtc extends Exchange {
             const currencyId = balance['name'];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'balance');
-            account['total'] = this.safeFloat (balance, 'hold');
+            account['free'] = this.safeNumber (balance, 'balance');
+            account['total'] = this.safeNumber (balance, 'hold');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -156,16 +156,16 @@ module.exports = class flowbtc extends Exchange {
         };
         const ticker = await this.publicPostGetTicker (this.extend (request, params));
         const timestamp = this.milliseconds ();
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -175,8 +175,8 @@ module.exports = class flowbtc extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume24hr'),
-            'quoteVolume': this.safeFloat (ticker, 'volume24hrProduct2'),
+            'baseVolume': this.safeNumber (ticker, 'volume24hr'),
+            'quoteVolume': this.safeNumber (ticker, 'volume24hrProduct2'),
             'info': ticker,
         };
     }
@@ -185,8 +185,8 @@ module.exports = class flowbtc extends Exchange {
         const timestamp = this.safeTimestamp (trade, 'unixtime');
         const side = (trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
         const id = this.safeString (trade, 'tid');
-        const price = this.safeFloat (trade, 'px');
-        const amount = this.safeFloat (trade, 'qty');
+        const price = this.safeNumber (trade, 'px');
+        const amount = this.safeNumber (trade, 'qty');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {

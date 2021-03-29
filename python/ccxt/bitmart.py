@@ -454,16 +454,16 @@ class bitmart(Exchange):
             #
             pricePrecision = self.safe_integer(market, 'price_max_precision')
             precision = {
-                'amount': self.safe_float(market, 'base_min_size'),
+                'amount': self.safe_number(market, 'base_min_size'),
                 'price': float(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 10)),
             }
-            minBuyCost = self.safe_float(market, 'min_buy_amount')
-            minSellCost = self.safe_float(market, 'min_sell_amount')
+            minBuyCost = self.safe_number(market, 'min_buy_amount')
+            minSellCost = self.safe_number(market, 'min_sell_amount')
             minCost = max(minBuyCost, minSellCost)
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'base_min_size'),
-                    'max': self.safe_float(market, 'base_max_size'),
+                    'min': self.safe_number(market, 'base_min_size'),
+                    'max': self.safe_number(market, 'base_max_size'),
                 },
                 'price': {
                     'min': None,
@@ -571,16 +571,16 @@ class bitmart(Exchange):
             #
             # the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
             #
-            amountPrecision = self.safe_float(contract, 'vol_unit')
-            pricePrecision = self.safe_float(contract, 'price_unit')
+            amountPrecision = self.safe_number(contract, 'vol_unit')
+            pricePrecision = self.safe_number(contract, 'price_unit')
             precision = {
                 'amount': amountPrecision,
                 'price': pricePrecision,
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(contract, 'min_vol'),
-                    'max': self.safe_float(contract, 'max_vol'),
+                    'min': self.safe_number(contract, 'min_vol'),
+                    'max': self.safe_number(contract, 'max_vol'),
                 },
                 'price': {
                     'min': None,
@@ -602,8 +602,8 @@ class bitmart(Exchange):
                 type = 'future'
                 future = True
             feeConfig = self.safe_value(market, 'fee_config', {})
-            maker = self.safe_float(feeConfig, 'maker_fee')
-            taker = self.safe_float(feeConfig, 'taker_fee')
+            maker = self.safe_number(feeConfig, 'maker_fee')
+            taker = self.safe_number(feeConfig, 'taker_fee')
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -688,31 +688,31 @@ class bitmart(Exchange):
         timestamp = self.safe_timestamp(ticker, 'timestamp', self.milliseconds())
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_id')
         symbol = self.safe_symbol(marketId, market, '_')
-        last = self.safe_float_2(ticker, 'close_24h', 'last_price')
-        percentage = self.safe_float(ticker, 'fluctuation', 'rise_fall_rate')
+        last = self.safe_number_2(ticker, 'close_24h', 'last_price')
+        percentage = self.safe_number(ticker, 'fluctuation', 'rise_fall_rate')
         if percentage is not None:
             percentage *= 100
-        baseVolume = self.safe_float_2(ticker, 'base_volume_24h', 'base_coin_volume')
-        quoteVolume = self.safe_float_2(ticker, 'quote_volume_24h', 'quote_coin_volume')
+        baseVolume = self.safe_number_2(ticker, 'base_volume_24h', 'base_coin_volume')
+        quoteVolume = self.safe_number_2(ticker, 'quote_volume_24h', 'quote_coin_volume')
         vwap = self.vwap(baseVolume, quoteVolume)
-        open = self.safe_float_2(ticker, 'open_24h', 'open')
+        open = self.safe_number_2(ticker, 'open_24h', 'open')
         average = None
         if (last is not None) and (open is not None):
             average = self.sum(last, open) / 2
-        average = self.safe_float(ticker, 'avg_price', average)
+        average = self.safe_number(ticker, 'avg_price', average)
         price = self.safe_value(ticker, 'depth_price', ticker)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float_2(ticker, 'high', 'high_24h'),
-            'low': self.safe_float_2(ticker, 'low', 'low_24h'),
-            'bid': self.safe_float(price, 'best_bid', 'bid_price'),
-            'bidVolume': self.safe_float(ticker, 'best_bid_size'),
-            'ask': self.safe_float(price, 'best_ask', 'ask_price'),
-            'askVolume': self.safe_float(ticker, 'best_ask_size'),
+            'high': self.safe_number_2(ticker, 'high', 'high_24h'),
+            'low': self.safe_number_2(ticker, 'low', 'low_24h'),
+            'bid': self.safe_number(price, 'best_bid', 'bid_price'),
+            'bidVolume': self.safe_number(ticker, 'best_bid_size'),
+            'ask': self.safe_number(price, 'best_ask', 'ask_price'),
+            'askVolume': self.safe_number(ticker, 'best_ask_size'),
             'vwap': vwap,
-            'open': self.safe_float(ticker, 'open_24h'),
+            'open': self.safe_number(ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -1000,17 +1000,17 @@ class bitmart(Exchange):
         execType = self.safe_string(trade, 'exec_type')
         if execType is not None:
             takerOrMaker = 'maker' if (execType == 'M') else 'taker'
-        price = self.safe_float_2(trade, 'price', 'deal_price')
-        price = self.safe_float(trade, 'price_avg', price)
-        amount = self.safe_float_2(trade, 'amount', 'deal_vol')
-        amount = self.safe_float(trade, 'size', amount)
-        cost = self.safe_float_2(trade, 'count', 'notional')
+        price = self.safe_number_2(trade, 'price', 'deal_price')
+        price = self.safe_number(trade, 'price_avg', price)
+        amount = self.safe_number_2(trade, 'amount', 'deal_vol')
+        amount = self.safe_number(trade, 'size', amount)
+        cost = self.safe_number_2(trade, 'count', 'notional')
         if (cost is None) and (price is not None) and (amount is not None):
             cost = amount * price
         orderId = self.safe_integer(trade, 'order_id')
         marketId = self.safe_string_2(trade, 'contract_id', 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        feeCost = self.safe_float(trade, 'fees')
+        feeCost = self.safe_number(trade, 'fees')
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_coin_name')
@@ -1133,11 +1133,11 @@ class bitmart(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 'timestamp'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -1447,8 +1447,8 @@ class bitmart(Exchange):
             currencyId = self.safe_string(balance, 'coind_code', currencyId)
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float_2(balance, 'available', 'available_vol')
-            account['used'] = self.safe_float_2(balance, 'frozen', 'freeze_vol')
+            account['free'] = self.safe_number_2(balance, 'available', 'available_vol')
+            account['used'] = self.safe_number_2(balance, 'frozen', 'freeze_vol')
             result[code] = account
         return self.parse_balance(result)
 
@@ -1516,10 +1516,10 @@ class bitmart(Exchange):
         status = None
         if market is not None:
             status = self.parse_order_status_by_type(market['type'], self.safe_string(order, 'status'))
-        price = self.safe_float(order, 'price')
-        average = self.safe_float_2(order, 'price_avg', 'done_avg_price')
-        amount = self.safe_float_2(order, 'size', 'vol')
-        filled = self.safe_float_2(order, 'filled_size', 'done_vol')
+        price = self.safe_number(order, 'price')
+        average = self.safe_number_2(order, 'price_avg', 'done_avg_price')
+        amount = self.safe_number_2(order, 'size', 'vol')
+        filled = self.safe_number_2(order, 'filled_size', 'done_vol')
         side = self.safe_string(order, 'side')
         # 1 = Open long
         # 2 = Close short
@@ -1598,7 +1598,7 @@ class bitmart(Exchange):
             elif type == 'market':
                 # for market buy it requires the amount of quote currency to spend
                 if side == 'buy':
-                    notional = self.safe_float(params, 'notional')
+                    notional = self.safe_number(params, 'notional')
                     createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
                     if createMarketBuyOrderRequiresPrice:
                         if price is not None:
@@ -2134,12 +2134,12 @@ class bitmart(Exchange):
         elif (depositId is not None) and (depositId != ''):
             type = 'deposit'
             id = depositId
-        amount = self.safe_float(transaction, 'arrival_amount')
+        amount = self.safe_number(transaction, 'arrival_amount')
         timestamp = self.safe_integer(transaction, 'tapply_timeime')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         fee = None
         if feeCost is not None:
             fee = {

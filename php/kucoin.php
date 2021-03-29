@@ -375,11 +375,11 @@ class kucoin extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $active = $this->safe_value($market, 'enableTrading');
-            $baseMaxSize = $this->safe_float($market, 'baseMaxSize');
-            $baseMinSize = $this->safe_float($market, 'baseMinSize');
-            $quoteMaxSize = $this->safe_float($market, 'quoteMaxSize');
-            $quoteMinSize = $this->safe_float($market, 'quoteMinSize');
-            // $quoteIncrement = $this->safe_float($market, 'quoteIncrement');
+            $baseMaxSize = $this->safe_number($market, 'baseMaxSize');
+            $baseMinSize = $this->safe_number($market, 'baseMinSize');
+            $quoteMaxSize = $this->safe_number($market, 'quoteMaxSize');
+            $quoteMinSize = $this->safe_number($market, 'quoteMinSize');
+            // $quoteIncrement = $this->safe_number($market, 'quoteIncrement');
             $precision = array(
                 'amount' => $this->precision_from_string($this->safe_string($market, 'baseIncrement')),
                 'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
@@ -390,7 +390,7 @@ class kucoin extends Exchange {
                     'max' => $baseMaxSize,
                 ),
                 'price' => array(
-                    'min' => $this->safe_float($market, 'priceIncrement'),
+                    'min' => $this->safe_number($market, 'priceIncrement'),
                     'max' => $quoteMaxSize / $baseMinSize,
                 ),
                 'cost' => array(
@@ -441,7 +441,7 @@ class kucoin extends Exchange {
             $precision = $this->safe_integer($entry, 'precision');
             $isWithdrawEnabled = $this->safe_value($entry, 'isWithdrawEnabled', false);
             $isDepositEnabled = $this->safe_value($entry, 'isDepositEnabled', false);
-            $fee = $this->safe_float($entry, 'withdrawalMinFee');
+            $fee = $this->safe_number($entry, 'withdrawalMinFee');
             $active = ($isWithdrawEnabled && $isDepositEnabled);
             $result[$code] = array(
                 'id' => $id,
@@ -508,7 +508,7 @@ class kucoin extends Exchange {
         $response = $this->privateGetWithdrawalsQuotas (array_merge($request, $params));
         $data = $response['data'];
         $withdrawFees = array();
-        $withdrawFees[$code] = $this->safe_float($data, 'withdrawMinFee');
+        $withdrawFees[$code] = $this->safe_number($data, 'withdrawMinFee');
         return array(
             'info' => $response,
             'withdraw' => $withdrawFees,
@@ -555,35 +555,35 @@ class kucoin extends Exchange {
         //         "mark" => 0
         //     }
         //
-        $percentage = $this->safe_float($ticker, 'changeRate');
+        $percentage = $this->safe_number($ticker, 'changeRate');
         if ($percentage !== null) {
             $percentage = $percentage * 100;
         }
-        $last = $this->safe_float_2($ticker, 'last', 'lastTradedPrice');
+        $last = $this->safe_number_2($ticker, 'last', 'lastTradedPrice');
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '-');
-        $baseVolume = $this->safe_float($ticker, 'vol');
-        $quoteVolume = $this->safe_float($ticker, 'volValue');
+        $baseVolume = $this->safe_number($ticker, 'vol');
+        $quoteVolume = $this->safe_number($ticker, 'volValue');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         $timestamp = $this->safe_integer_2($ticker, 'time', 'datetime');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => $this->safe_float($ticker, 'open'),
+            'open' => $this->safe_number($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'changePrice'),
+            'change' => $this->safe_number($ticker, 'changePrice'),
             'percentage' => $percentage,
-            'average' => $this->safe_float($ticker, 'averagePrice'),
+            'average' => $this->safe_number($ticker, 'averagePrice'),
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
@@ -667,11 +667,11 @@ class kucoin extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 0),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 4),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 5),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -869,7 +869,7 @@ class kucoin extends Exchange {
             // 'marginMode' => 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
             // 'autoBorrow' => false, // The system will first borrow you funds at the optimal interest rate and then place an $order for you
         );
-        $quoteAmount = $this->safe_float_2($params, 'cost', 'funds');
+        $quoteAmount = $this->safe_number_2($params, 'cost', 'funds');
         if ($type === 'market') {
             if ($quoteAmount !== null) {
                 $params = $this->omit($params, array( 'cost', 'funds' ));
@@ -1093,7 +1093,7 @@ class kucoin extends Exchange {
         $type = $this->safe_string($order, 'type');
         $timestamp = $this->safe_integer($order, 'createdAt');
         $datetime = $this->iso8601($timestamp);
-        $price = $this->safe_float($order, 'price');
+        $price = $this->safe_number($order, 'price');
         if ($price === 0.0) {
             // $market orders
             $price = null;
@@ -1101,10 +1101,10 @@ class kucoin extends Exchange {
         $side = $this->safe_string($order, 'side');
         $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
-        $feeCost = $this->safe_float($order, 'fee');
-        $amount = $this->safe_float($order, 'size');
-        $filled = $this->safe_float($order, 'dealSize');
-        $cost = $this->safe_float($order, 'dealFunds');
+        $feeCost = $this->safe_number($order, 'fee');
+        $amount = $this->safe_number($order, 'size');
+        $filled = $this->safe_number($order, 'dealSize');
+        $cost = $this->safe_number($order, 'dealFunds');
         // bool
         $isActive = $this->safe_value($order, 'isActive', false);
         $cancelExist = $this->safe_value($order, 'cancelExist', false);
@@ -1116,7 +1116,7 @@ class kucoin extends Exchange {
         );
         $clientOrderId = $this->safe_string($order, 'clientOid');
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        $stopPrice = $this->safe_float($order, 'stopPrice');
+        $stopPrice = $this->safe_number($order, 'stopPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
         return $this->safe_order(array(
             'id' => $orderId,
@@ -1341,7 +1341,7 @@ class kucoin extends Exchange {
         $id = $this->safe_string_2($trade, 'tradeId', 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
-        $amount = $this->safe_float_2($trade, 'size', 'amount');
+        $amount = $this->safe_number_2($trade, 'size', 'amount');
         $timestamp = $this->safe_integer($trade, 'time');
         if ($timestamp !== null) {
             $timestamp = intval($timestamp / 1000000);
@@ -1352,10 +1352,10 @@ class kucoin extends Exchange {
                 $timestamp = $timestamp * 1000;
             }
         }
-        $price = $this->safe_float_2($trade, 'price', 'dealPrice');
+        $price = $this->safe_number_2($trade, 'price', 'dealPrice');
         $side = $this->safe_string($trade, 'side');
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
@@ -1367,14 +1367,14 @@ class kucoin extends Exchange {
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
-                'rate' => $this->safe_float($trade, 'feeRate'),
+                'rate' => $this->safe_number($trade, 'feeRate'),
             );
         }
         $type = $this->safe_string($trade, 'type');
         if ($type === 'match') {
             $type = null;
         }
-        $cost = $this->safe_float_2($trade, 'funds', 'dealValue');
+        $cost = $this->safe_number_2($trade, 'funds', 'dealValue');
         if ($cost === null) {
             if ($amount !== null) {
                 if ($price !== null) {
@@ -1476,7 +1476,7 @@ class kucoin extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'address');
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $txid = $this->safe_string($transaction, 'walletTxId');
         if ($txid !== null) {
             $txidParts = explode('@', $txid);
@@ -1494,7 +1494,7 @@ class kucoin extends Exchange {
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = $this->parse_transaction_status($rawStatus);
         $fee = null;
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {
             $rate = null;
             if ($amount !== null) {
@@ -1710,8 +1710,8 @@ class kucoin extends Exchange {
             $currencyId = $this->safe_string($data, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($data, 'availableBalance');
-            $account['total'] = $this->safe_float($data, 'accountEquity');
+            $account['free'] = $this->safe_number($data, 'availableBalance');
+            $account['total'] = $this->safe_number($data, 'accountEquity');
             $result = array( 'info' => $response );
             $result[$code] = $account;
             return $this->parse_balance($result);
@@ -1739,9 +1739,9 @@ class kucoin extends Exchange {
                     $currencyId = $this->safe_string($balance, 'currency');
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
-                    $account['total'] = $this->safe_float($balance, 'balance');
-                    $account['free'] = $this->safe_float($balance, 'available');
-                    $account['used'] = $this->safe_float($balance, 'holds');
+                    $account['total'] = $this->safe_number($balance, 'balance');
+                    $account['free'] = $this->safe_number($balance, 'available');
+                    $account['used'] = $this->safe_number($balance, 'holds');
                     $result[$code] = $account;
                 }
             }
@@ -1806,7 +1806,7 @@ class kucoin extends Exchange {
             $id = $this->safe_string($data, 'applyId');
             $currencyId = $this->safe_string($data, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $amount = $this->safe_float($data, 'amount');
+            $amount = $this->safe_number($data, 'amount');
             $rawStatus = $this->safe_string($data, 'status');
             $status = null;
             if ($rawStatus === 'PROCESSING') {
@@ -1936,11 +1936,11 @@ class kucoin extends Exchange {
         $currencyId = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $fee = array(
-            'cost' => $this->safe_float($item, 'fee'),
+            'cost' => $this->safe_number($item, 'fee'),
             'code' => $code,
         );
-        $amount = $this->safe_float($item, 'amount');
-        $after = $this->safe_float($item, 'balance');
+        $amount = $this->safe_number($item, 'amount');
+        $after = $this->safe_number($item, 'balance');
         $direction = $this->safe_string($item, 'direction');
         $before = null;
         if ($after !== null && $amount !== null) {

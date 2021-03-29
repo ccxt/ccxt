@@ -187,7 +187,7 @@ class tidex(Exchange):
             if not canWithdraw or not canDeposit:
                 active = False
             name = self.safe_string(currency, 'name')
-            fee = self.safe_float(currency, 'withdrawFee')
+            fee = self.safe_number(currency, 'withdrawFee')
             result[code] = {
                 'id': id,
                 'code': code,
@@ -218,11 +218,11 @@ class tidex(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_float(currency, 'withdrawMinAmount'),
+                        'min': self.safe_number(currency, 'withdrawMinAmount'),
                         'max': None,
                     },
                     'deposit': {
-                        'min': self.safe_float(currency, 'depositMinAmount'),
+                        'min': self.safe_number(currency, 'depositMinAmount'),
                         'max': None,
                     },
                 },
@@ -281,20 +281,20 @@ class tidex(Exchange):
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'min_amount'),
-                    'max': self.safe_float(market, 'max_amount'),
+                    'min': self.safe_number(market, 'min_amount'),
+                    'max': self.safe_number(market, 'max_amount'),
                 },
                 'price': {
-                    'min': self.safe_float(market, 'min_price'),
-                    'max': self.safe_float(market, 'max_price'),
+                    'min': self.safe_number(market, 'min_price'),
+                    'max': self.safe_number(market, 'max_price'),
                 },
                 'cost': {
-                    'min': self.safe_float(market, 'min_total'),
+                    'min': self.safe_number(market, 'min_total'),
                 },
             }
             hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
-            takerFee = self.safe_float(market, 'fee')
+            takerFee = self.safe_number(market, 'fee')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -322,8 +322,8 @@ class tidex(Exchange):
             code = self.safe_currency_code(currencyId)
             balance = self.safe_value(funds, currencyId, {})
             account = self.account()
-            account['free'] = self.safe_float(balance, 'value')
-            account['used'] = self.safe_float(balance, 'inOrders')
+            account['free'] = self.safe_number(balance, 'value')
+            account['used'] = self.safe_number(balance, 'inOrders')
             result[code] = account
         return self.parse_balance(result)
 
@@ -386,16 +386,16 @@ class tidex(Exchange):
             symbol = market['symbol']
             if not market['active']:
                 timestamp = None
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -404,9 +404,9 @@ class tidex(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_float(ticker, 'avg'),
-            'baseVolume': self.safe_float(ticker, 'vol_cur'),
-            'quoteVolume': self.safe_float(ticker, 'vol'),
+            'average': self.safe_number(ticker, 'avg'),
+            'baseVolume': self.safe_number(ticker, 'vol_cur'),
+            'quoteVolume': self.safe_number(ticker, 'vol'),
             'info': ticker,
         }
 
@@ -447,16 +447,16 @@ class tidex(Exchange):
             side = 'sell'
         elif side == 'bid':
             side = 'buy'
-        price = self.safe_float_2(trade, 'rate', 'price')
+        price = self.safe_number_2(trade, 'rate', 'price')
         id = self.safe_string_2(trade, 'trade_id', 'tid')
         orderId = self.safe_string(trade, 'order_id')
         marketId = self.safe_string(trade, 'pair')
         symbol = self.safe_symbol(marketId, market)
-        amount = self.safe_float(trade, 'amount')
+        amount = self.safe_number(trade, 'amount')
         type = 'limit'  # all trades are still limit trades
         takerOrMaker = None
         fee = None
-        feeCost = self.safe_float(trade, 'commission')
+        feeCost = self.safe_number(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -529,8 +529,8 @@ class tidex(Exchange):
             if id == '0':
                 id = self.safe_string(response['return'], 'init_order_id')
                 status = 'closed'
-            filled = self.safe_float(response['return'], 'received', 0.0)
-            remaining = self.safe_float(response['return'], 'remains', amount)
+            filled = self.safe_number(response['return'], 'received', 0.0)
+            remaining = self.safe_number(response['return'], 'remains', amount)
         timestamp = self.milliseconds()
         return {
             'id': id,
@@ -578,12 +578,12 @@ class tidex(Exchange):
         symbol = self.safe_symbol(marketId, market)
         remaining = None
         amount = None
-        price = self.safe_float(order, 'rate')
+        price = self.safe_number(order, 'rate')
         if 'start_amount' in order:
-            amount = self.safe_float(order, 'start_amount')
-            remaining = self.safe_float(order, 'amount')
+            amount = self.safe_number(order, 'start_amount')
+            remaining = self.safe_number(order, 'amount')
         else:
-            remaining = self.safe_float(order, 'amount')
+            remaining = self.safe_number(order, 'amount')
         fee = None
         return self.safe_order({
             'info': order,
