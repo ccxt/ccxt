@@ -91,22 +91,22 @@ class Precise:
     def string_mul(string1, string2):
         if string1 is None or string2 is None:
             return None
-        return Precise(string1).mul(Precise(string2))
+        return str(Precise(string1).mul(Precise(string2)))
 
     @staticmethod
     def string_div(string1, string2):
         if string1 is None or string2 is None:
             return None
-        return Precise(string1).div(Precise(string2))
+        return str(Precise(string1).div(Precise(string2)))
 
     @staticmethod
     def string_add(string1, string2):
         if string1 is None or string2 is None:
             return None
-        return Precise(string1).add(Precise(string2))
+        return str(Precise(string1).add(Precise(string2)))
 
     @staticmethod
     def string_sub(string1, string2):
         if string1 is None or string2 is None:
             return None
-        return Precise(string1).sub(Precise(string2))
+        return str(Precise(string1).sub(Precise(string2)))

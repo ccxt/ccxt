@@ -99,28 +99,28 @@ class Precise {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined
         }
-        return (new Precise (string1)).mul (new Precise (string2))
+        return (new Precise (string1)).mul (new Precise (string2)).toString ()
     }
 
     static stringDiv (string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined
         }
-        return (new Precise (string1)).div (new Precise (string2))
+        return (new Precise (string1)).div (new Precise (string2)).toString ()
     }
 
     static stringAdd (string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined
         }
-        return (new Precise (string1)).add (new Precise (string2))
+        return (new Precise (string1)).add (new Precise (string2)).toString ()
     }
 
     static stringSub (string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined
         }
-        return (new Precise (string1)).sub (new Precise (string2))
+        return (new Precise (string1)).sub (new Precise (string2)).toString ()
     }
 }
 
