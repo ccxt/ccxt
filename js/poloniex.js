@@ -240,11 +240,11 @@ module.exports = class poloniex extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 'date'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'quoteVolume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'quoteVolume'),
         ];
     }
 
@@ -337,8 +337,8 @@ module.exports = class poloniex extends Exchange {
             const balance = this.safeValue (response, currencyId, {});
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'onOrders');
+            account['free'] = this.safeNumber (balance, 'available');
+            account['used'] = this.safeNumber (balance, 'onOrders');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -359,8 +359,8 @@ module.exports = class poloniex extends Exchange {
         //
         return {
             'info': fees,
-            'maker': this.safeFloat (fees, 'makerFee'),
-            'taker': this.safeFloat (fees, 'takerFee'),
+            'maker': this.safeNumber (fees, 'makerFee'),
+            'taker': this.safeNumber (fees, 'takerFee'),
             'withdraw': {},
             'deposit': {},
         };
@@ -418,8 +418,8 @@ module.exports = class poloniex extends Exchange {
         let open = undefined;
         let change = undefined;
         let average = undefined;
-        const last = this.safeFloat (ticker, 'last');
-        const relativeChange = this.safeFloat (ticker, 'percentChange');
+        const last = this.safeNumber (ticker, 'last');
+        const relativeChange = this.safeNumber (ticker, 'percentChange');
         if (relativeChange !== -1) {
             open = last / this.sum (1, relativeChange);
             change = last - open;
@@ -429,11 +429,11 @@ module.exports = class poloniex extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high24hr'),
-            'low': this.safeFloat (ticker, 'low24hr'),
-            'bid': this.safeFloat (ticker, 'highestBid'),
+            'high': this.safeNumber (ticker, 'high24hr'),
+            'low': this.safeNumber (ticker, 'low24hr'),
+            'bid': this.safeNumber (ticker, 'highestBid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'lowestAsk'),
+            'ask': this.safeNumber (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -443,8 +443,8 @@ module.exports = class poloniex extends Exchange {
             'change': change,
             'percentage': relativeChange * 100,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'quoteVolume'),
-            'quoteVolume': this.safeFloat (ticker, 'baseVolume'),
+            'baseVolume': this.safeNumber (ticker, 'quoteVolume'),
+            'quoteVolume': this.safeNumber (ticker, 'baseVolume'),
             'info': ticker,
         };
     }
@@ -485,7 +485,7 @@ module.exports = class poloniex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const active = (currency['delisted'] === 0) && !currency['disabled'];
             const numericId = this.safeInteger (currency, 'id');
-            const fee = this.safeFloat (currency, 'txFee');
+            const fee = this.safeNumber (currency, 'txFee');
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -576,13 +576,13 @@ module.exports = class poloniex extends Exchange {
         }
         const side = this.safeString (trade, 'type');
         let fee = undefined;
-        const price = this.safeFloat (trade, 'rate');
-        const cost = this.safeFloat (trade, 'total');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'rate');
+        const cost = this.safeNumber (trade, 'total');
+        const amount = this.safeNumber (trade, 'amount');
         const feeDisplay = this.safeString (trade, 'feeDisplay');
         if (feeDisplay !== undefined) {
             const parts = feeDisplay.split (' ');
-            const feeCost = this.safeFloat (parts, 0);
+            const feeCost = this.safeNumber (parts, 0);
             if (feeCost !== undefined) {
                 const feeCurrencyId = this.safeString (parts, 1);
                 const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -601,7 +601,7 @@ module.exports = class poloniex extends Exchange {
             }
         }
         let takerOrMaker = undefined;
-        const takerAdjustment = this.safeFloat (trade, 'takerAdjustment');
+        const takerAdjustment = this.safeNumber (trade, 'takerAdjustment');
         if (takerAdjustment !== undefined) {
             takerOrMaker = 'taker';
         }
@@ -847,9 +847,9 @@ module.exports = class poloniex extends Exchange {
         if (resultingTrades !== undefined) {
             trades = this.parseTrades (resultingTrades, market);
         }
-        const price = this.safeFloat2 (order, 'price', 'rate');
-        let remaining = this.safeFloat (order, 'amount');
-        let amount = this.safeFloat (order, 'startingAmount');
+        const price = this.safeNumber2 (order, 'price', 'rate');
+        let remaining = this.safeNumber (order, 'amount');
+        let amount = this.safeNumber (order, 'startingAmount');
         let filled = undefined;
         let cost = 0;
         if (amount !== undefined) {
@@ -899,7 +899,7 @@ module.exports = class poloniex extends Exchange {
         }
         const id = this.safeString (order, 'orderNumber');
         let fee = undefined;
-        const feeCost = this.safeFloat (order, 'fee');
+        const feeCost = this.safeNumber (order, 'fee');
         if (feeCost !== undefined) {
             let feeCurrencyCode = undefined;
             if (market !== undefined) {
@@ -1396,11 +1396,11 @@ module.exports = class poloniex extends Exchange {
         const defaultType = ('withdrawalNumber' in transaction) ? 'withdrawal' : 'deposit';
         const type = this.safeString (transaction, 'type', defaultType);
         const id = this.safeString2 (transaction, 'withdrawalNumber', 'depositNumber');
-        let amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeNumber (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'paymentID');
         // according to https://poloniex.com/fees/
-        const feeCost = this.safeFloat (transaction, 'fee', 0);
+        const feeCost = this.safeNumber (transaction, 'fee', 0);
         if (type === 'withdrawal') {
             // poloniex withdrawal amount includes the fee
             amount = amount - feeCost;
