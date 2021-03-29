@@ -331,7 +331,7 @@ class bitpanda extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $this->safe_float($market, 'min_size'),
+                    'min' => $this->safe_number($market, 'min_size'),
                     'max' => null,
                 ),
             );
@@ -404,9 +404,9 @@ class bitpanda extends Exchange {
             $makerFees = array();
             for ($i = 0; $i < count($feeTiers); $i++) {
                 $tier = $feeTiers[$i];
-                $volume = $this->safe_float($tier, 'volume');
-                $taker = $this->safe_float($tier, 'taker_fee');
-                $maker = $this->safe_float($tier, 'maker_fee');
+                $volume = $this->safe_number($tier, 'volume');
+                $taker = $this->safe_number($tier, 'taker_fee');
+                $maker = $this->safe_number($tier, 'maker_fee');
                 $taker /= 100;
                 $maker /= 100;
                 $takerFees[] = array( $volume, $taker );
@@ -453,8 +453,8 @@ class bitpanda extends Exchange {
         $activeFeeTier = $this->safe_value($response, 'active_fee_tier', array());
         $result = array(
             'info' => $response,
-            'maker' => $this->safe_float($activeFeeTier, 'maker_fee'),
-            'taker' => $this->safe_float($activeFeeTier, 'taker_fee'),
+            'maker' => $this->safe_number($activeFeeTier, 'maker_fee'),
+            'taker' => $this->safe_number($activeFeeTier, 'taker_fee'),
             'percentage' => true,
             'tierBased' => true,
         );
@@ -463,9 +463,9 @@ class bitpanda extends Exchange {
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
             $tier = $feeTiers[$i];
-            $volume = $this->safe_float($tier, 'volume');
-            $taker = $this->safe_float($tier, 'taker_fee');
-            $maker = $this->safe_float($tier, 'maker_fee');
+            $volume = $this->safe_number($tier, 'volume');
+            $taker = $this->safe_number($tier, 'taker_fee');
+            $maker = $this->safe_number($tier, 'maker_fee');
             $taker /= 100;
             $maker /= 100;
             $takerFees[] = array( $volume, $taker );
@@ -503,27 +503,27 @@ class bitpanda extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($ticker, 'time'));
         $marketId = $this->safe_string($ticker, 'instrument_code');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $last = $this->safe_float($ticker, 'last_price');
-        $percentage = $this->safe_float($ticker, 'price_change_percentage');
-        $change = $this->safe_float($ticker, 'price_change');
+        $last = $this->safe_number($ticker, 'last_price');
+        $percentage = $this->safe_number($ticker, 'price_change_percentage');
+        $change = $this->safe_number($ticker, 'price_change');
         $open = null;
         $average = null;
         if (($last !== null) && ($change !== null)) {
             $open = $last - $change;
             $average = $this->sum($last, $open) / 2;
         }
-        $baseVolume = $this->safe_float($ticker, 'base_volume');
-        $quoteVolume = $this->safe_float($ticker, 'quote_volume');
+        $baseVolume = $this->safe_number($ticker, 'base_volume');
+        $quoteVolume = $this->safe_number($ticker, 'quote_volume');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'best_bid'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'best_bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'best_ask'),
+            'ask' => $this->safe_number($ticker, 'best_ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => $open,
@@ -708,11 +708,11 @@ class bitpanda extends Exchange {
         $volumeField = $this->safe_string($options, 'volume', 'total_amount');
         return array(
             $alignedTimestamp,
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, $volumeField),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, $volumeField),
         );
     }
 
@@ -798,21 +798,21 @@ class bitpanda extends Exchange {
             $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         }
         $side = $this->safe_string_lower_2($trade, 'side', 'taker_side');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = $this->safe_float($trade, 'volume');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
+        $cost = $this->safe_number($trade, 'volume');
         if (($cost === null) && ($amount !== null) && ($price !== null)) {
             $cost = $amount * $price;
         }
         $marketId = $this->safe_string($trade, 'instrument_code');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $feeCost = $this->safe_float($feeInfo, 'fee_amount');
+        $feeCost = $this->safe_number($feeInfo, 'fee_amount');
         $takerOrMaker = null;
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($feeInfo, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $feeRate = $this->safe_float($feeInfo, 'fee_percentage');
+            $feeRate = $this->safe_number($feeInfo, 'fee_percentage');
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
@@ -895,8 +895,8 @@ class bitpanda extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'available');
-            $account['used'] = $this->safe_float($balance, 'locked');
+            $account['free'] = $this->safe_number($balance, 'available');
+            $account['used'] = $this->safe_number($balance, 'locked');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -1153,12 +1153,12 @@ class bitpanda extends Exchange {
         //     }
         //
         $id = $this->safe_string($transaction, 'transaction_id');
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $timestamp = $this->parse8601($this->safe_string($transaction, 'time'));
         $currencyId = $this->safe_string($transaction, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
         $status = 'ok'; // the exchange returns cleared transactions only
-        $feeCost = $this->safe_float_2($transaction, 'fee_amount', 'fee');
+        $feeCost = $this->safe_number_2($transaction, 'fee_amount', 'fee');
         $fee = null;
         $addressTo = $this->safe_string($transaction, 'recipient');
         $tagTo = $this->safe_string($transaction, 'destination_tag');
@@ -1281,10 +1281,10 @@ class bitpanda extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'instrument_code');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'amount');
         $cost = null;
-        $filled = $this->safe_float($order, 'filled_amount');
+        $filled = $this->safe_number($order, 'filled_amount');
         $remaining = null;
         if ($filled !== null) {
             if ($amount !== null) {
@@ -1318,7 +1318,7 @@ class bitpanda extends Exchange {
                 $tradeAmount = $this->sum($tradeAmount, $trade['amount']);
             }
         }
-        $average = $this->safe_float($order, 'average_price');
+        $average = $this->safe_number($order, 'average_price');
         if ($average === null) {
             if (($tradeCost !== null) && ($tradeAmount !== null) && ($tradeAmount !== 0)) {
                 $average = $tradeCost / $tradeAmount;
@@ -1330,7 +1330,7 @@ class bitpanda extends Exchange {
             }
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
-        $stopPrice = $this->safe_float($order, 'trigger_price');
+        $stopPrice = $this->safe_number($order, 'trigger_price');
         $postOnly = $this->safe_value($order, 'is_post_only');
         $result = array(
             'id' => $id,
@@ -1415,7 +1415,7 @@ class bitpanda extends Exchange {
             $priceIsRequired = true;
         }
         if ($uppercaseType === 'STOP') {
-            $triggerPrice = $this->safe_float($params, 'trigger_price');
+            $triggerPrice = $this->safe_number($params, 'trigger_price');
             if ($triggerPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a trigger_price param for ' . $type . ' orders');
             }

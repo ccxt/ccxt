@@ -335,7 +335,7 @@ class bitpanda(Exchange):
                     'max': None,
                 },
                 'cost': {
-                    'min': self.safe_float(market, 'min_size'),
+                    'min': self.safe_number(market, 'min_size'),
                     'max': None,
                 },
             }
@@ -404,9 +404,9 @@ class bitpanda(Exchange):
             makerFees = []
             for i in range(0, len(feeTiers)):
                 tier = feeTiers[i]
-                volume = self.safe_float(tier, 'volume')
-                taker = self.safe_float(tier, 'taker_fee')
-                maker = self.safe_float(tier, 'maker_fee')
+                volume = self.safe_number(tier, 'volume')
+                taker = self.safe_number(tier, 'taker_fee')
+                maker = self.safe_number(tier, 'maker_fee')
                 taker /= 100
                 maker /= 100
                 takerFees.append([volume, taker])
@@ -449,8 +449,8 @@ class bitpanda(Exchange):
         activeFeeTier = self.safe_value(response, 'active_fee_tier', {})
         result = {
             'info': response,
-            'maker': self.safe_float(activeFeeTier, 'maker_fee'),
-            'taker': self.safe_float(activeFeeTier, 'taker_fee'),
+            'maker': self.safe_number(activeFeeTier, 'maker_fee'),
+            'taker': self.safe_number(activeFeeTier, 'taker_fee'),
             'percentage': True,
             'tierBased': True,
         }
@@ -459,9 +459,9 @@ class bitpanda(Exchange):
         makerFees = []
         for i in range(0, len(feeTiers)):
             tier = feeTiers[i]
-            volume = self.safe_float(tier, 'volume')
-            taker = self.safe_float(tier, 'taker_fee')
-            maker = self.safe_float(tier, 'maker_fee')
+            volume = self.safe_number(tier, 'volume')
+            taker = self.safe_number(tier, 'taker_fee')
+            maker = self.safe_number(tier, 'maker_fee')
             taker /= 100
             maker /= 100
             takerFees.append([volume, taker])
@@ -497,26 +497,26 @@ class bitpanda(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
         marketId = self.safe_string(ticker, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        last = self.safe_float(ticker, 'last_price')
-        percentage = self.safe_float(ticker, 'price_change_percentage')
-        change = self.safe_float(ticker, 'price_change')
+        last = self.safe_number(ticker, 'last_price')
+        percentage = self.safe_number(ticker, 'price_change_percentage')
+        change = self.safe_number(ticker, 'price_change')
         open = None
         average = None
         if (last is not None) and (change is not None):
             open = last - change
             average = self.sum(last, open) / 2
-        baseVolume = self.safe_float(ticker, 'base_volume')
-        quoteVolume = self.safe_float(ticker, 'quote_volume')
+        baseVolume = self.safe_number(ticker, 'base_volume')
+        quoteVolume = self.safe_number(ticker, 'quote_volume')
         vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'best_bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'best_bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'best_ask'),
+            'ask': self.safe_number(ticker, 'best_ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': open,
@@ -695,11 +695,11 @@ class bitpanda(Exchange):
         volumeField = self.safe_string(options, 'volume', 'total_amount')
         return [
             alignedTimestamp,
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, volumeField),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, volumeField),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -780,20 +780,20 @@ class bitpanda(Exchange):
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'time'))
         side = self.safe_string_lower_2(trade, 'side', 'taker_side')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = self.safe_float(trade, 'volume')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
+        cost = self.safe_number(trade, 'volume')
         if (cost is None) and (amount is not None) and (price is not None):
             cost = amount * price
         marketId = self.safe_string(trade, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        feeCost = self.safe_float(feeInfo, 'fee_amount')
+        feeCost = self.safe_number(feeInfo, 'fee_amount')
         takerOrMaker = None
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(feeInfo, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            feeRate = self.safe_float(feeInfo, 'fee_percentage')
+            feeRate = self.safe_number(feeInfo, 'fee_percentage')
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -872,8 +872,8 @@ class bitpanda(Exchange):
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'locked')
+            account['free'] = self.safe_number(balance, 'available')
+            account['used'] = self.safe_number(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 
@@ -1110,12 +1110,12 @@ class bitpanda(Exchange):
         #     }
         #
         id = self.safe_string(transaction, 'transaction_id')
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         timestamp = self.parse8601(self.safe_string(transaction, 'time'))
         currencyId = self.safe_string(transaction, 'currency')
         currency = self.safe_currency(currencyId, currency)
         status = 'ok'  # the exchange returns cleared transactions only
-        feeCost = self.safe_float_2(transaction, 'fee_amount', 'fee')
+        feeCost = self.safe_number_2(transaction, 'fee_amount', 'fee')
         fee = None
         addressTo = self.safe_string(transaction, 'recipient')
         tagTo = self.safe_string(transaction, 'destination_tag')
@@ -1235,10 +1235,10 @@ class bitpanda(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount')
         cost = None
-        filled = self.safe_float(order, 'filled_amount')
+        filled = self.safe_number(order, 'filled_amount')
         remaining = None
         if filled is not None:
             if amount is not None:
@@ -1266,7 +1266,7 @@ class bitpanda(Exchange):
                 lastTradeTimestamp = max(lastTradeTimestamp, trade['timestamp'])
                 tradeCost = self.sum(tradeCost, trade['cost'])
                 tradeAmount = self.sum(tradeAmount, trade['amount'])
-        average = self.safe_float(order, 'average_price')
+        average = self.safe_number(order, 'average_price')
         if average is None:
             if (tradeCost is not None) and (tradeAmount is not None) and (tradeAmount != 0):
                 average = tradeCost / tradeAmount
@@ -1274,7 +1274,7 @@ class bitpanda(Exchange):
             if (average is not None) and (filled is not None):
                 cost = average * filled
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        stopPrice = self.safe_float(order, 'trigger_price')
+        stopPrice = self.safe_number(order, 'trigger_price')
         postOnly = self.safe_value(order, 'is_post_only')
         result = {
             'id': id,
@@ -1352,7 +1352,7 @@ class bitpanda(Exchange):
         if uppercaseType == 'LIMIT' or uppercaseType == 'STOP':
             priceIsRequired = True
         if uppercaseType == 'STOP':
-            triggerPrice = self.safe_float(params, 'trigger_price')
+            triggerPrice = self.safe_number(params, 'trigger_price')
             if triggerPrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a trigger_price param for ' + type + ' orders')
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
