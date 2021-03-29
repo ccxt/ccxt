@@ -820,7 +820,7 @@ class okex(Exchange):
         option = False
         baseId = self.safe_string(market, 'base_currency')
         quoteId = self.safe_string(market, 'quote_currency')
-        contractVal = self.safe_float(market, 'contract_val')
+        contractVal = self.safe_number(market, 'contract_val')
         if contractVal is not None:
             if 'option_type' in market:
                 marketType = 'option'
@@ -843,12 +843,12 @@ class okex(Exchange):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = (base + '/' + quote) if spot else id
-        lotSize = self.safe_float_2(market, 'lot_size', 'trade_increment')
+        lotSize = self.safe_number_2(market, 'lot_size', 'trade_increment')
         precision = {
-            'amount': self.safe_float(market, 'size_increment', lotSize),
-            'price': self.safe_float(market, 'tick_size'),
+            'amount': self.safe_number(market, 'size_increment', lotSize),
+            'price': self.safe_number(market, 'tick_size'),
         }
-        minAmount = self.safe_float_2(market, 'min_size', 'base_min_size')
+        minAmount = self.safe_number_2(market, 'min_size', 'base_min_size')
         active = True
         fees = self.safe_value_2(self.fees, marketType, 'trading', {})
         return self.extend(fees, {
@@ -1019,7 +1019,7 @@ class okex(Exchange):
                     'price': {'min': None, 'max': None},
                     'cost': {'min': None, 'max': None},
                     'withdraw': {
-                        'min': self.safe_float(currency, 'min_withdrawal'),
+                        'min': self.safe_number(currency, 'min_withdrawal'),
                         'max': None,
                     },
                 },
@@ -1087,18 +1087,18 @@ class okex(Exchange):
                 symbol = marketId
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
-        open = self.safe_float(ticker, 'open_24h')
+        last = self.safe_number(ticker, 'last')
+        open = self.safe_number(ticker, 'open_24h')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high_24h'),
-            'low': self.safe_float(ticker, 'low_24h'),
-            'bid': self.safe_float(ticker, 'best_bid'),
-            'bidVolume': self.safe_float(ticker, 'best_bid_size'),
-            'ask': self.safe_float(ticker, 'best_ask'),
-            'askVolume': self.safe_float(ticker, 'best_ask_size'),
+            'high': self.safe_number(ticker, 'high_24h'),
+            'low': self.safe_number(ticker, 'low_24h'),
+            'bid': self.safe_number(ticker, 'best_bid'),
+            'bidVolume': self.safe_number(ticker, 'best_bid_size'),
+            'ask': self.safe_number(ticker, 'best_ask'),
+            'askVolume': self.safe_number(ticker, 'best_ask_size'),
             'vwap': None,
             'open': open,
             'close': last,
@@ -1107,8 +1107,8 @@ class okex(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'base_volume_24h'),
-            'quoteVolume': self.safe_float(ticker, 'quote_volume_24h'),
+            'baseVolume': self.safe_number(ticker, 'base_volume_24h'),
+            'quoteVolume': self.safe_number(ticker, 'quote_volume_24h'),
             'info': ticker,
         }
 
@@ -1237,9 +1237,9 @@ class okex(Exchange):
             base = market['base']
             quote = market['quote']
         timestamp = self.parse8601(self.safe_string_2(trade, 'timestamp', 'created_at'))
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float_2(trade, 'size', 'qty')
-        amount = self.safe_float(trade, 'order_qty', amount)
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number_2(trade, 'size', 'qty')
+        amount = self.safe_number(trade, 'order_qty', amount)
         takerOrMaker = self.safe_string_2(trade, 'exec_type', 'liquidity')
         if takerOrMaker == 'M':
             takerOrMaker = 'maker'
@@ -1250,7 +1250,7 @@ class okex(Exchange):
         if amount is not None:
             if price is not None:
                 cost = amount * price
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
             feeCurrency = base if (side == 'buy') else quote
@@ -1354,22 +1354,22 @@ class okex(Exchange):
                 timestamp = self.parse8601(timestamp)
             return [
                 timestamp,  # timestamp
-                self.safe_float(ohlcv, 1),            # Open
-                self.safe_float(ohlcv, 2),            # High
-                self.safe_float(ohlcv, 3),            # Low
-                self.safe_float(ohlcv, 4),            # Close
-                # self.safe_float(ohlcv, 5),         # Quote Volume
-                # self.safe_float(ohlcv, 6),         # Base Volume
-                self.safe_float(ohlcv, volumeIndex),  # Volume, okex will return base volume in the 7th element for future markets
+                self.safe_number(ohlcv, 1),            # Open
+                self.safe_number(ohlcv, 2),            # High
+                self.safe_number(ohlcv, 3),            # Low
+                self.safe_number(ohlcv, 4),            # Close
+                # self.safe_number(ohlcv, 5),         # Quote Volume
+                # self.safe_number(ohlcv, 6),         # Base Volume
+                self.safe_number(ohlcv, volumeIndex),  # Volume, okex will return base volume in the 7th element for future markets
             ]
         else:
             return [
                 self.parse8601(self.safe_string(ohlcv, 'time')),
-                self.safe_float(ohlcv, 'open'),    # Open
-                self.safe_float(ohlcv, 'high'),    # High
-                self.safe_float(ohlcv, 'low'),     # Low
-                self.safe_float(ohlcv, 'close'),   # Close
-                self.safe_float(ohlcv, 'volume'),  # Base Volume
+                self.safe_number(ohlcv, 'open'),    # Open
+                self.safe_number(ohlcv, 'high'),    # High
+                self.safe_number(ohlcv, 'low'),     # Low
+                self.safe_number(ohlcv, 'close'),   # Close
+                self.safe_number(ohlcv, 'volume'),  # Base Volume
             ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -1504,9 +1504,9 @@ class okex(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'hold')
-            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_number(balance, 'balance')
+            account['used'] = self.safe_number(balance, 'hold')
+            account['free'] = self.safe_number(balance, 'available')
             result[code] = account
         return self.parse_balance(result)
 
@@ -1573,9 +1573,9 @@ class okex(Exchange):
                     currencyId = parts[1]
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
-                    account['total'] = self.safe_float(marketBalance, 'balance')
-                    account['used'] = self.safe_float(marketBalance, 'hold')
-                    account['free'] = self.safe_float(marketBalance, 'available')
+                    account['total'] = self.safe_number(marketBalance, 'balance')
+                    account['used'] = self.safe_number(marketBalance, 'hold')
+                    account['free'] = self.safe_number(marketBalance, 'available')
                     accounts[code] = account
                 else:
                     raise NotSupported(self.id + ' margin balance response format has changed!')
@@ -1624,27 +1624,27 @@ class okex(Exchange):
             code = self.safe_currency_code(id)
             balance = self.safe_value(info, id, {})
             account = self.account()
-            totalAvailBalance = self.safe_float(balance, 'total_avail_balance')
+            totalAvailBalance = self.safe_number(balance, 'total_avail_balance')
             if self.safe_string(balance, 'margin_mode') == 'fixed':
                 contracts = self.safe_value(balance, 'contracts', [])
                 free = totalAvailBalance
                 for i in range(0, len(contracts)):
                     contract = contracts[i]
-                    fixedBalance = self.safe_float(contract, 'fixed_balance')
-                    realizedPnl = self.safe_float(contract, 'realized_pnl')
-                    marginFrozen = self.safe_float(contract, 'margin_frozen')
-                    marginForUnfilled = self.safe_float(contract, 'margin_for_unfilled')
+                    fixedBalance = self.safe_number(contract, 'fixed_balance')
+                    realizedPnl = self.safe_number(contract, 'realized_pnl')
+                    marginFrozen = self.safe_number(contract, 'margin_frozen')
+                    marginForUnfilled = self.safe_number(contract, 'margin_for_unfilled')
                     margin = self.sum(fixedBalance, realizedPnl) - marginFrozen - marginForUnfilled
                     free = self.sum(free, margin)
                 account['free'] = free
             else:
-                realizedPnl = self.safe_float(balance, 'realized_pnl')
-                unrealizedPnl = self.safe_float(balance, 'unrealized_pnl')
-                marginFrozen = self.safe_float(balance, 'margin_frozen')
-                marginForUnfilled = self.safe_float(balance, 'margin_for_unfilled')
+                realizedPnl = self.safe_number(balance, 'realized_pnl')
+                unrealizedPnl = self.safe_number(balance, 'unrealized_pnl')
+                marginFrozen = self.safe_number(balance, 'margin_frozen')
+                marginForUnfilled = self.safe_number(balance, 'margin_for_unfilled')
                 account['free'] = self.sum(totalAvailBalance, realizedPnl, unrealizedPnl) - marginFrozen - marginForUnfilled
             # it may be incorrect to use total, free and used for swap accounts
-            account['total'] = self.safe_float(balance, 'equity')
+            account['total'] = self.safe_number(balance, 'equity')
             result[code] = account
         return self.parse_balance(result)
 
@@ -1679,8 +1679,8 @@ class okex(Exchange):
                 symbol = self.markets_by_id[marketId]['symbol']
             account = self.account()
             # it may be incorrect to use total, free and used for swap accounts
-            account['total'] = self.safe_float(balance, 'equity')
-            account['free'] = self.safe_float(balance, 'total_avail_balance')
+            account['total'] = self.safe_number(balance, 'equity')
+            account['free'] = self.safe_number(balance, 'total_avail_balance')
             result[symbol] = account
         return self.parse_balance(result)
 
@@ -1875,7 +1875,7 @@ class okex(Exchange):
             elif type == 'market':
                 # for market buy it requires the amount of quote currency to spend
                 if side == 'buy':
-                    notional = self.safe_float(params, 'notional')
+                    notional = self.safe_number(params, 'notional')
                     createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
                     if createMarketBuyOrderRequiresPrice:
                         if price is not None:
@@ -2066,8 +2066,8 @@ class okex(Exchange):
         if market is not None:
             if symbol is None:
                 symbol = market['symbol']
-        amount = self.safe_float(order, 'size')
-        filled = self.safe_float_2(order, 'filled_size', 'filled_qty')
+        amount = self.safe_number(order, 'size')
+        filled = self.safe_number_2(order, 'filled_size', 'filled_qty')
         remaining = None
         if amount is not None:
             if filled is not None:
@@ -2075,9 +2075,9 @@ class okex(Exchange):
                 remaining = max(0, amount - filled)
         if type == 'market':
             remaining = 0
-        cost = self.safe_float_2(order, 'filled_notional', 'funds')
-        price = self.safe_float(order, 'price')
-        average = self.safe_float(order, 'price_avg')
+        cost = self.safe_number_2(order, 'filled_notional', 'funds')
+        price = self.safe_number(order, 'price')
+        average = self.safe_number(order, 'price_avg')
         if cost is None:
             if filled is not None and average is not None:
                 cost = average * filled
@@ -2085,7 +2085,7 @@ class okex(Exchange):
             if (average is None) and (filled is not None) and (filled > 0):
                 average = cost / filled
         status = self.parse_order_status(self.safe_string(order, 'state'))
-        feeCost = self.safe_float(order, 'fee')
+        feeCost = self.safe_number(order, 'fee')
         fee = None
         if feeCost is not None:
             feeCurrency = None
@@ -2096,7 +2096,7 @@ class okex(Exchange):
         clientOrderId = self.safe_string(order, 'client_oid')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
-        stopPrice = self.safe_float(order, 'trigger_price')
+        stopPrice = self.safe_number(order, 'trigger_price')
         return {
             'info': order,
             'id': id,
@@ -2527,7 +2527,7 @@ class okex(Exchange):
             address = addressTo
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         txid = self.safe_string(transaction, 'txid')
         timestamp = self.parse8601(self.safe_string(transaction, 'timestamp'))
@@ -2585,18 +2585,18 @@ class okex(Exchange):
         feeCurrencyId = None
         if receivedCurrencyId == quoteId:
             side = self.safe_string(otherTrade, 'side')
-            amount = self.safe_float(otherTrade, 'size')
-            cost = self.safe_float(userTrade, 'size')
+            amount = self.safe_number(otherTrade, 'size')
+            cost = self.safe_number(userTrade, 'size')
             feeCurrencyId = self.safe_string(otherTrade, 'currency')
         else:
             side = self.safe_string(userTrade, 'side')
-            amount = self.safe_float(userTrade, 'size')
-            cost = self.safe_float(otherTrade, 'size')
+            amount = self.safe_number(userTrade, 'size')
+            cost = self.safe_number(otherTrade, 'size')
             feeCurrencyId = self.safe_string(userTrade, 'currency')
         id = self.safe_string(userTrade, 'trade_id')
-        price = self.safe_float(userTrade, 'price')
-        feeCostFirst = self.safe_float(otherTrade, 'fee')
-        feeCostSecond = self.safe_float(userTrade, 'fee')
+        price = self.safe_number(userTrade, 'price')
+        feeCostFirst = self.safe_number(otherTrade, 'fee')
+        feeCostSecond = self.safe_number(userTrade, 'fee')
         feeCurrencyCodeFirst = self.safe_currency_code(self.safe_string(otherTrade, 'currency'))
         feeCurrencyCodeSecond = self.safe_currency_code(self.safe_string(userTrade, 'currency'))
         fee = None
@@ -3381,14 +3381,14 @@ class okex(Exchange):
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         code = self.safe_currency_code(self.safe_string(item, 'currency'), currency)
-        amount = self.safe_float(item, 'amount')
+        amount = self.safe_number(item, 'amount')
         timestamp = self.parse8601(self.safe_string(item, 'timestamp'))
         fee = {
-            'cost': self.safe_float(item, 'fee'),
+            'cost': self.safe_number(item, 'fee'),
             'currency': code,
         }
         before = None
-        after = self.safe_float(item, 'balance')
+        after = self.safe_number(item, 'balance')
         status = 'ok'
         marketId = self.safe_string(item, 'instrument_id')
         symbol = None
