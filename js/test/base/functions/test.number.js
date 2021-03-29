@@ -320,3 +320,6 @@ assert (String (x.sub (w)) === '0.000001143');
 assert (String (w.sub (x)) === '-0.000001143');
 assert (String (x.div (w, 18)) === '-0.000000000017809439');
 assert (String (w.div (x, 18)) === '-0.0000005615');
+
+assert (Precise.stringMul ('0.00000002', '69696900000') === '1393.938')
+assert (Precise.stringMul (undefined, '69696900000') === undefined)
