@@ -305,7 +305,7 @@ module.exports = class phemex extends Exchange {
         });
     }
 
-    parseSafeFloat (value = undefined) {
+    parseSafeNumber (value = undefined) {
         if (value === undefined) {
             return value;
         }
@@ -404,7 +404,7 @@ module.exports = class phemex extends Exchange {
             },
             'cost': {
                 'min': undefined,
-                'max': this.parseSafeFloat (this.safeString (market, 'maxOrderQty')),
+                'max': this.parseSafeNumber (this.safeString (market, 'maxOrderQty')),
             },
         };
         const active = undefined;
@@ -470,21 +470,21 @@ module.exports = class phemex extends Exchange {
         const taker = this.safeNumber (market, 'defaultTakerFee');
         const maker = this.safeNumber (market, 'defaultMakerFee');
         const precision = {
-            'amount': this.parseSafeFloat (this.safeString (market, 'baseTickSize')),
-            'price': this.parseSafeFloat (this.safeString (market, 'quoteTickSize')),
+            'amount': this.parseSafeNumber (this.safeString (market, 'baseTickSize')),
+            'price': this.parseSafeNumber (this.safeString (market, 'quoteTickSize')),
         };
         const limits = {
             'amount': {
                 'min': precision['amount'],
-                'max': this.parseSafeFloat (this.safeString (market, 'maxBaseOrderSize')),
+                'max': this.parseSafeNumber (this.safeString (market, 'maxBaseOrderSize')),
             },
             'price': {
                 'min': precision['price'],
                 'max': undefined,
             },
             'cost': {
-                'min': this.parseSafeFloat (this.safeString (market, 'minOrderValue')),
-                'max': this.parseSafeFloat (this.safeString (market, 'maxOrderValue')),
+                'min': this.parseSafeNumber (this.safeString (market, 'minOrderValue')),
+                'max': this.parseSafeNumber (this.safeString (market, 'maxOrderValue')),
             },
         };
         const base = this.safeCurrencyCode (baseId);
