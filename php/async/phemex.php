@@ -309,7 +309,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function parse_safe_float($value = null) {
+    public function parse_safe_number($value = null) {
         if ($value === null) {
             return $value;
         }
@@ -408,7 +408,7 @@ class phemex extends Exchange {
             ),
             'cost' => array(
                 'min' => null,
-                'max' => $this->parse_safe_float($this->safe_string($market, 'maxOrderQty')),
+                'max' => $this->parse_safe_number($this->safe_string($market, 'maxOrderQty')),
             ),
         );
         $active = null;
@@ -474,21 +474,21 @@ class phemex extends Exchange {
         $taker = $this->safe_number($market, 'defaultTakerFee');
         $maker = $this->safe_number($market, 'defaultMakerFee');
         $precision = array(
-            'amount' => $this->parse_safe_float($this->safe_string($market, 'baseTickSize')),
-            'price' => $this->parse_safe_float($this->safe_string($market, 'quoteTickSize')),
+            'amount' => $this->parse_safe_number($this->safe_string($market, 'baseTickSize')),
+            'price' => $this->parse_safe_number($this->safe_string($market, 'quoteTickSize')),
         );
         $limits = array(
             'amount' => array(
                 'min' => $precision['amount'],
-                'max' => $this->parse_safe_float($this->safe_string($market, 'maxBaseOrderSize')),
+                'max' => $this->parse_safe_number($this->safe_string($market, 'maxBaseOrderSize')),
             ),
             'price' => array(
                 'min' => $precision['price'],
                 'max' => null,
             ),
             'cost' => array(
-                'min' => $this->parse_safe_float($this->safe_string($market, 'minOrderValue')),
-                'max' => $this->parse_safe_float($this->safe_string($market, 'maxOrderValue')),
+                'min' => $this->parse_safe_number($this->safe_string($market, 'minOrderValue')),
+                'max' => $this->parse_safe_number($this->safe_string($market, 'maxOrderValue')),
             ),
         );
         $base = $this->safe_currency_code($baseId);

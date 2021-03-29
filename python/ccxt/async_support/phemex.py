@@ -321,7 +321,7 @@ class phemex(Exchange):
             },
         })
 
-    def parse_safe_float(self, value=None):
+    def parse_safe_number(self, value=None):
         if value is None:
             return value
         value = value.replace(',', '')
@@ -415,7 +415,7 @@ class phemex(Exchange):
             },
             'cost': {
                 'min': None,
-                'max': self.parse_safe_float(self.safe_string(market, 'maxOrderQty')),
+                'max': self.parse_safe_number(self.safe_string(market, 'maxOrderQty')),
             },
         }
         active = None
@@ -480,21 +480,21 @@ class phemex(Exchange):
         taker = self.safe_number(market, 'defaultTakerFee')
         maker = self.safe_number(market, 'defaultMakerFee')
         precision = {
-            'amount': self.parse_safe_float(self.safe_string(market, 'baseTickSize')),
-            'price': self.parse_safe_float(self.safe_string(market, 'quoteTickSize')),
+            'amount': self.parse_safe_number(self.safe_string(market, 'baseTickSize')),
+            'price': self.parse_safe_number(self.safe_string(market, 'quoteTickSize')),
         }
         limits = {
             'amount': {
                 'min': precision['amount'],
-                'max': self.parse_safe_float(self.safe_string(market, 'maxBaseOrderSize')),
+                'max': self.parse_safe_number(self.safe_string(market, 'maxBaseOrderSize')),
             },
             'price': {
                 'min': precision['price'],
                 'max': None,
             },
             'cost': {
-                'min': self.parse_safe_float(self.safe_string(market, 'minOrderValue')),
-                'max': self.parse_safe_float(self.safe_string(market, 'maxOrderValue')),
+                'min': self.parse_safe_number(self.safe_string(market, 'minOrderValue')),
+                'max': self.parse_safe_number(self.safe_string(market, 'maxOrderValue')),
             },
         }
         base = self.safe_currency_code(baseId)
