@@ -54,10 +54,10 @@ module.exports = class globe extends Exchange {
                 },
             },
             'markets': {
-                'BTC/USD': { 'id': 'XBTUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'XBT', 'quoteId': 'USD', 'precision': { 'amount': 1, 'price': 0.5 } },
-                'ETH/USD': { 'id': 'ETHUSD', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'ETH', 'quoteId': 'USD', 'precision': { 'amount': 1, 'price': 0.05 } },
-                'UNI/USD': { 'id': 'UNIUSD', 'symbol': 'UNI/USD', 'base': 'UNI', 'quote': 'USD', 'baseId': 'UNI', 'quoteId': 'USD', 'precision': { 'amount': 1, 'price': 0.05 } },
-                'VXBT/USD': { 'id': 'VXBT', 'symbol': 'VXBT/USD', 'base': 'VXBT', 'quote': 'USD', 'baseId': 'VXBT', 'quoteId': 'USD', 'precision': { 'amount': 1, 'price': 0.0005 } },
+                'BTC/USD': { 'id': 'XBTUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'XBT', 'quoteId': 'USD', 'precision': { 'amount': 1, 'price': 0.5}},
+                'ETH/USD': { 'id': 'ETHUSD', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'ETH', 'quoteId': 'USD', 'precision': { 'amount': 1, 'price': 0.05}},
+                'UNI/USD': { 'id': 'UNIUSD', 'symbol': 'UNI/USD', 'base': 'UNI', 'quote': 'USD', 'baseId': 'UNI', 'quoteId': 'USD', 'precision': { 'amount': 1, 'price': 0.05}},
+                'VXBT/USD': { 'id': 'VXBT', 'symbol': 'VXBT/USD', 'base': 'VXBT', 'quote': 'USD', 'baseId': 'VXBT', 'quoteId': 'USD', 'precision': { 'amount': 1, 'price': 0.0005}},
             },
             'fees': {
                 'trading': {
