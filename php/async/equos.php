@@ -224,7 +224,7 @@ class equos extends Exchange {
             'precision' => $precision,
             'limits' => array(
                 'amount' => array(
-                    'min' => $this->safe_float($market, 'minTradeVol'),
+                    'min' => $this->safe_number($market, 'minTradeVol'),
                     'max' => null,
                 ),
                 'price' => array(
@@ -290,7 +290,7 @@ class equos extends Exchange {
         $name = $this->safe_string($currency, 6);
         $status = $this->safe_integer($currency, 4);
         $active = ($status === 1);
-        $fee = $this->safe_float($currency, 5); // withdraw_fee
+        $fee = $this->safe_number($currency, 5); // withdraw_fee
         return array(
             'id' => $id,
             'info' => $currency,
@@ -382,8 +382,8 @@ class equos extends Exchange {
         if ($market === null) {
             throw new ArgumentsRequired($this->id . ' parseBidAsk() requires a $market argument');
         }
-        $price = $this->safe_float($bidask, $priceKey);
-        $amount = $this->safe_float($bidask, $amountKey);
+        $price = $this->safe_number($bidask, $priceKey);
+        $amount = $this->safe_number($bidask, $amountKey);
         return [
             $this->convert_from_scale($price, $market['precision']['price']),
             $this->convert_from_scale($amount, $market['precision']['amount']),
@@ -529,9 +529,9 @@ class equos extends Exchange {
             $orderId = $this->safe_string($trade, 'orderId');
             $side = $this->safe_string_lower($trade, 'side');
             $type = $this->parse_order_type($this->safe_string($trade, 'ordType'));
-            $price = $this->safe_float($trade, 'lastPx');
-            $amount = $this->safe_float($trade, 'quoteQty');
-            $feeCost = $this->safe_float($trade, 'commission');
+            $price = $this->safe_number($trade, 'lastPx');
+            $amount = $this->safe_number($trade, 'quoteQty');
+            $feeCost = $this->safe_number($trade, 'commission');
             if ($feeCost !== null) {
                 $feeCost = -$feeCost;
                 $feeCurrencyId = $this->safe_string($trade, 'commCurrency');
@@ -602,8 +602,8 @@ class equos extends Exchange {
             if ($assetType === 'ASSET') {
                 $currencyId = $this->safe_string($position, 'symbol');
                 $code = $this->safe_currency_code($currencyId);
-                $quantity = $this->safe_float($position, 'quantity');
-                $availableQuantity = $this->safe_float($position, 'availableQuantity');
+                $quantity = $this->safe_number($position, 'quantity');
+                $availableQuantity = $this->safe_number($position, 'availableQuantity');
                 $scale = $this->safe_integer($position, 'quantity_scale');
                 $account = $this->account();
                 $account['free'] = $this->convert_from_scale($availableQuantity, $scale);
@@ -649,7 +649,7 @@ class equos extends Exchange {
             $request['ordType'] = 2;
             $request['price'] = $this->convert_to_scale($price, $this->get_scale($price));
         } else {
-            $stopPrice = $this->safe_float_2($params, 'stopPrice', 'stopPx');
+            $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stopPx');
             $params = $this->omit($params, array( 'stopPrice', 'stopPx' ));
             if ($stopPrice === null) {
                 if ($type === 'stop') {
@@ -746,7 +746,7 @@ class equos extends Exchange {
             $request['ordType'] = 2;
             $request['price'] = $this->convert_to_scale($price, $this->get_scale($price));
         } else {
-            $stopPrice = $this->safe_float_2($params, 'stopPrice', 'stopPx');
+            $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stopPx');
             $params = $this->omit($params, array( 'stopPrice', 'stopPx' ));
             if ($stopPrice === null) {
                 if ($type === 'stop') {
@@ -1119,7 +1119,7 @@ class equos extends Exchange {
             $address = null;
         }
         $type = $this->safe_string($transaction, 'type');
-        $amount = $this->safe_float($transaction, 'balance_change');
+        $amount = $this->safe_number($transaction, 'balance_change');
         if ($amount === null) {
             $amount = $this->safe_integer($transaction, 'quantity');
             $amountScale = $this->safe_integer($transaction, 'quantity_scale');
@@ -1202,8 +1202,8 @@ class equos extends Exchange {
         for ($i = 0; $i < count($tradingFees); $i++) {
             $tradingFee = $tradingFees[$i];
             if ($this->safe_string($tradingFee, 'tier') !== null) {
-                $taker[$tradingFee['tier']] = $this->safe_float($tradingFee, 'taker');
-                $maker[$tradingFee['tier']] = $this->safe_float($tradingFee, 'maker');
+                $taker[$tradingFee['tier']] = $this->safe_number($tradingFee, 'taker');
+                $maker[$tradingFee['tier']] = $this->safe_number($tradingFee, 'maker');
             }
         }
         return array(
