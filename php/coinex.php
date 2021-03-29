@@ -199,13 +199,13 @@ class coinex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
-                'taker' => $this->safe_float($market, 'taker_fee_rate'),
-                'maker' => $this->safe_float($market, 'maker_fee_rate'),
+                'taker' => $this->safe_number($market, 'taker_fee_rate'),
+                'maker' => $this->safe_number($market, 'maker_fee_rate'),
                 'info' => $market,
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'min_amount'),
+                        'min' => $this->safe_number($market, 'min_amount'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -225,16 +225,16 @@ class coinex extends Exchange {
             $symbol = $market['symbol'];
         }
         $ticker = $this->safe_value($ticker, 'ticker', array());
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -244,7 +244,7 @@ class coinex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float_2($ticker, 'vol', 'volume'),
+            'baseVolume' => $this->safe_number_2($ticker, 'vol', 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -304,16 +304,16 @@ class coinex extends Exchange {
         }
         $tradeId = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order_id');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $marketId = $this->safe_string($trade, 'market');
         $symbol = $this->safe_symbol($marketId, $market);
-        $cost = $this->safe_float($trade, 'deal_money');
+        $cost = $this->safe_number($trade, 'deal_money');
         if (!$cost) {
             $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
         }
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_asset');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
@@ -366,11 +366,11 @@ class coinex extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 0),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 4),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 5),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -431,8 +431,8 @@ class coinex extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($balances, $currencyId, array());
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'available');
-            $account['used'] = $this->safe_float($balance, 'frozen');
+            $account['free'] = $this->safe_number($balance, 'available');
+            $account['used'] = $this->safe_number($balance, 'frozen');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -474,11 +474,11 @@ class coinex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_timestamp($order, 'create_time');
-        $price = $this->safe_float($order, 'price');
-        $cost = $this->safe_float($order, 'deal_money');
-        $amount = $this->safe_float($order, 'amount');
-        $filled = $this->safe_float($order, 'deal_amount');
-        $average = $this->safe_float($order, 'avg_price');
+        $price = $this->safe_number($order, 'price');
+        $cost = $this->safe_number($order, 'deal_money');
+        $amount = $this->safe_number($order, 'amount');
+        $filled = $this->safe_number($order, 'deal_amount');
+        $average = $this->safe_number($order, 'avg_price');
         $symbol = null;
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, $market);
@@ -490,7 +490,7 @@ class coinex extends Exchange {
                 $feeCurrency = $market['quote'];
             }
         }
-        $remaining = $this->safe_float($order, 'left');
+        $remaining = $this->safe_number($order, 'left');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string($order, 'order_type');
         $side = $this->safe_string($order, 'type');
@@ -516,7 +516,7 @@ class coinex extends Exchange {
             'trades' => null,
             'fee' => array(
                 'currency' => $feeCurrency,
-                'cost' => $this->safe_float($order, 'deal_fee'),
+                'cost' => $this->safe_number($order, 'deal_fee'),
             ),
             'info' => $order,
         ));
@@ -765,8 +765,8 @@ class coinex extends Exchange {
         $timestamp = $this->safe_timestamp($transaction, 'create_time');
         $type = (is_array($transaction) && array_key_exists('coin_withdraw_id', $transaction)) ? 'withdraw' : 'deposit';
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $amount = $this->safe_float($transaction, 'amount');
-        $feeCost = $this->safe_float($transaction, 'tx_fee');
+        $amount = $this->safe_number($transaction, 'amount');
+        $feeCost = $this->safe_number($transaction, 'tx_fee');
         if ($type === 'deposit') {
             $feeCost = 0;
         }
