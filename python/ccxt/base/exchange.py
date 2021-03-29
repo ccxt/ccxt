@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.44.4'
+__version__ = '1.44.51'
 
 # -----------------------------------------------------------------------------
 
@@ -301,6 +301,8 @@ class Exchange(object):
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
+    quoteJsonNumbers = True
+    number = float  # or str (a pointer to a class)
     # whether fees should be summed by currency code
     reduceFees = True
     lastRestRequestTimestamp = 0
@@ -545,6 +547,12 @@ class Exchange(object):
     def on_rest_response(self, code, reason, url, method, response_headers, response_body, request_headers, request_body):
         return response_body.strip()
 
+    def on_json_response(self, response_body):
+        if self.quoteJsonNumbers:
+            return json.loads(response_body, parse_float=str, parse_int=str)
+        else:
+            return json.loads(response_body)
+
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
@@ -649,7 +657,7 @@ class Exchange(object):
     def parse_json(self, http_response):
         try:
             if Exchange.is_json_encoded_object(http_response):
-                return json.loads(http_response)
+                return self.on_json_response(http_response)
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
 
@@ -698,9 +706,14 @@ class Exchange(object):
         if not Exchange.key_exists(dictionary, key):
             return default_value
         value = dictionary[key]
-        if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
-            return int(value)
-        return default_value
+        try:
+            # needed to avoid breaking on "100.0"
+            # https://stackoverflow.com/questions/1094717/convert-a-string-to-integer-with-decimal-in-python#1094721
+            return int(float(value))
+        except ValueError:
+            return default_value
+        except TypeError:
+            return default_value
 
     @staticmethod
     def safe_integer_product(dictionary, key, factor, default_value=None):
@@ -1222,10 +1235,6 @@ class Exchange(object):
         return Exchange.binary_to_base58(signature)
 
     @staticmethod
-    def unjson(input):
-        return json.loads(input)
-
-    @staticmethod
     def json(data, params=None):
         return json.dumps(data, separators=(',', ':'))
 
@@ -1484,7 +1493,7 @@ class Exchange(object):
         return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
     def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
-        return [float(bidask[price_key]), float(bidask[amount_key])]
+        return [self.number(bidask[price_key]), self.number(bidask[amount_key])]
 
     def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
         result = []
@@ -1691,6 +1700,12 @@ class Exchange(object):
         # Get offset based on timeframe in milliseconds
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
+
+    def parse_tickers(self, tickers, symbols=None):
+        result = []
+        for i in range(0, len(tickers)):
+            result.append(self.parse_ticker(tickers[i]))
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_deposit_addresses(self, addresses, codes=None):
         result = []
@@ -2231,3 +2246,23 @@ class Exchange(object):
             'filled': filled,
             'remaining': remaining,
         })
+
+    def safe_number(self, dictionary, key, default=None):
+        value = self.safe_string(dictionary, key)
+        if value is None:
+            return default
+        else:
+            try:
+                return self.number(value)
+            except Exception:
+                return default
+
+    def safe_number_2(self, dictionary, key1, key2, default=None):
+        value = self.safe_string_2(dictionary, key1, key2)
+        if value is None:
+            return default
+        else:
+            try:
+                return self.number(value)
+            except Exception:
+                return default

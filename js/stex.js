@@ -552,14 +552,6 @@ module.exports = class stex extends Exchange {
         };
     }
 
-    parseTickers (tickers, symbols = undefined) {
-        const result = [];
-        for (let i = 0; i < tickers.length; i++) {
-            result.push (this.parseTicker (tickers[i]));
-        }
-        return this.filterByArray (result, 'symbol', symbols);
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);

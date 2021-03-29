@@ -294,7 +294,7 @@ module.exports = class ascendex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const precision = this.safeInteger2 (currency, 'precisionScale', 'nativeScale');
             // why would the exchange API have different names for the same field
-            const fee = this.safeFloat2 (currency, 'withdrawFee', 'withdrawalFee');
+            const fee = this.safeNumber2 (currency, 'withdrawFee', 'withdrawalFee');
             const status = this.safeString2 (currency, 'status', 'statusCode');
             const active = (status === 'Normal');
             const margin = ('borrowAssetCode' in currency);
@@ -322,7 +322,7 @@ module.exports = class ascendex extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'minWithdrawalAmt'),
+                        'min': this.safeNumber (currency, 'minWithdrawalAmt'),
                         'max': undefined,
                     },
                 },
@@ -423,8 +423,8 @@ module.exports = class ascendex extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const precision = {
-                'amount': this.safeFloat (market, 'lotSize'),
-                'price': this.safeFloat (market, 'tickSize'),
+                'amount': this.safeNumber (market, 'lotSize'),
+                'price': this.safeNumber (market, 'tickSize'),
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'Normal');
@@ -450,16 +450,16 @@ module.exports = class ascendex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'minQty'),
-                        'max': this.safeFloat (market, 'maxQty'),
+                        'min': this.safeNumber (market, 'minQty'),
+                        'max': this.safeNumber (market, 'maxQty'),
                     },
                     'price': {
-                        'min': this.safeFloat (market, 'tickSize'),
+                        'min': this.safeNumber (market, 'tickSize'),
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeFloat (market, 'minNotional'),
-                        'max': this.safeFloat (market, 'maxNotional'),
+                        'min': this.safeNumber (market, 'minNotional'),
+                        'max': this.safeNumber (market, 'maxNotional'),
                     },
                 },
             });
@@ -593,8 +593,8 @@ module.exports = class ascendex extends Exchange {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'availableBalance');
-            account['total'] = this.safeFloat (balance, 'totalBalance');
+            account['free'] = this.safeNumber (balance, 'availableBalance');
+            account['total'] = this.safeNumber (balance, 'totalBalance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -669,10 +669,10 @@ module.exports = class ascendex extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const close = this.safeFloat (ticker, 'close');
+        const close = this.safeNumber (ticker, 'close');
         const bid = this.safeValue (ticker, 'bid', []);
         const ask = this.safeValue (ticker, 'ask', []);
-        const open = this.safeFloat (ticker, 'open');
+        const open = this.safeNumber (ticker, 'open');
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
@@ -687,12 +687,12 @@ module.exports = class ascendex extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (bid, 0),
-            'bidVolume': this.safeFloat (bid, 1),
-            'ask': this.safeFloat (ask, 0),
-            'askVolume': this.safeFloat (ask, 1),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (bid, 0),
+            'bidVolume': this.safeNumber (bid, 1),
+            'ask': this.safeNumber (ask, 0),
+            'askVolume': this.safeNumber (ask, 1),
             'vwap': undefined,
             'open': open,
             'close': close,
@@ -701,18 +701,10 @@ module.exports = class ascendex extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
-    }
-
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -791,11 +783,11 @@ module.exports = class ascendex extends Exchange {
         const data = this.safeValue (ohlcv, 'data', {});
         return [
             this.safeInteger (data, 'ts'),
-            this.safeFloat (data, 'o'),
-            this.safeFloat (data, 'h'),
-            this.safeFloat (data, 'l'),
-            this.safeFloat (data, 'c'),
-            this.safeFloat (data, 'v'),
+            this.safeNumber (data, 'o'),
+            this.safeNumber (data, 'h'),
+            this.safeNumber (data, 'l'),
+            this.safeNumber (data, 'c'),
+            this.safeNumber (data, 'v'),
         ];
     }
 
@@ -860,8 +852,8 @@ module.exports = class ascendex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (trade, 'ts');
-        const price = this.safeFloat2 (trade, 'price', 'p');
-        const amount = this.safeFloat (trade, 'q');
+        const price = this.safeNumber2 (trade, 'price', 'p');
+        const amount = this.safeNumber (trade, 'q');
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
@@ -991,10 +983,10 @@ module.exports = class ascendex extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '/');
         const timestamp = this.safeInteger2 (order, 'timestamp', 'sendingTime');
         const lastTradeTimestamp = this.safeInteger (order, 'lastExecTime');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'orderQty');
-        const average = this.safeFloat (order, 'avgPx');
-        const filled = this.safeFloat2 (order, 'cumFilledQty', 'cumQty');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'orderQty');
+        const average = this.safeNumber (order, 'avgPx');
+        const filled = this.safeNumber2 (order, 'cumFilledQty', 'cumQty');
         const id = this.safeString (order, 'orderId');
         let clientOrderId = this.safeString (order, 'id');
         if (clientOrderId !== undefined) {
@@ -1004,7 +996,7 @@ module.exports = class ascendex extends Exchange {
         }
         const type = this.safeStringLower (order, 'orderType');
         const side = this.safeStringLower (order, 'side');
-        const feeCost = this.safeFloat (order, 'cumFee');
+        const feeCost = this.safeNumber (order, 'cumFee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'feeAsset');
@@ -1014,7 +1006,7 @@ module.exports = class ascendex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const stopPrice = this.safeFloat (order, 'stopPrice');
+        const stopPrice = this.safeNumber (order, 'stopPrice');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1074,7 +1066,7 @@ module.exports = class ascendex extends Exchange {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
         if ((type === 'stop_limit') || (type === 'stop_market')) {
-            const stopPrice = this.safeFloat (params, 'stopPrice');
+            const stopPrice = this.safeNumber (params, 'stopPrice');
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice parameter for ' + type + ' orders');
             } else {
@@ -1610,7 +1602,7 @@ module.exports = class ascendex extends Exchange {
         //     }
         //
         const id = this.safeString (transaction, 'requestId');
-        const amount = this.safeFloat (transaction, 'amount');
+        const amount = this.safeNumber (transaction, 'amount');
         const destAddress = this.safeValue (transaction, 'destAddress', {});
         const address = this.safeString (destAddress, 'address');
         const tag = this.safeString (destAddress, 'destTag');
@@ -1620,7 +1612,7 @@ module.exports = class ascendex extends Exchange {
         const currencyId = this.safeString (transaction, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const feeCost = this.safeFloat (transaction, 'commission');
+        const feeCost = this.safeNumber (transaction, 'commission');
         return {
             'info': transaction,
             'id': id,

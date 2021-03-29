@@ -2125,7 +2125,8 @@ class bybit(Exchange):
                 'recv_window': self.options['recvWindow'],
                 'timestamp': timestamp,
             })
-            auth = self.rawencode(self.keysort(query))
+            sortedQuery = self.keysort(query)
+            auth = self.rawencode(sortedQuery)
             signature = self.hmac(self.encode(auth), self.encode(self.secret))
             if method == 'POST':
                 body = self.json(self.extend(query, {
@@ -2135,7 +2136,7 @@ class bybit(Exchange):
                     'Content-Type': 'application/json',
                 }
             else:
-                request += '?' + auth + '&sign=' + signature
+                request += '?' + self.urlencode(sortedQuery) + '&sign=' + signature
         url += request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -2154,8 +2155,8 @@ class bybit(Exchange):
         #         time_now: '1583934106.590436'
         #     }
         #
-        errorCode = self.safe_value(response, 'ret_code')
-        if errorCode != 0:
+        errorCode = self.safe_string(response, 'ret_code')
+        if errorCode != '0':
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

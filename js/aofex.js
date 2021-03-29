@@ -193,8 +193,8 @@ module.exports = class aofex extends Exchange {
             const symbol = base + '/' + quote;
             const numericId = this.safeInteger (market, 'id');
             const precision = this.safeValue (precisions, id, {});
-            const makerFee = this.safeFloat (market, 'maker_fee');
-            const takerFee = this.safeFloat (market, 'taker_fee');
+            const makerFee = this.safeNumber (market, 'maker_fee');
+            const takerFee = this.safeNumber (market, 'taker_fee');
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -212,12 +212,12 @@ module.exports = class aofex extends Exchange {
                 },
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'min_size'),
-                        'max': this.safeFloat (market, 'max_size'),
+                        'min': this.safeNumber (market, 'min_size'),
+                        'max': this.safeNumber (market, 'max_size'),
                     },
                     'price': {
-                        'min': this.safeFloat (market, 'min_price'),
-                        'max': this.safeFloat (market, 'max_price'),
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
                         'min': undefined,
@@ -245,11 +245,11 @@ module.exports = class aofex extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 'id'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'amount'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'amount'),
         ];
     }
 
@@ -328,8 +328,8 @@ module.exports = class aofex extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'frozen');
+            account['free'] = this.safeNumber (balance, 'available');
+            account['used'] = this.safeNumber (balance, 'frozen');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -355,8 +355,8 @@ module.exports = class aofex extends Exchange {
         return {
             'info': response,
             'symbol': symbol,
-            'maker': this.safeFloat (result, 'fromFee'),
-            'taker': this.safeFloat (result, 'toFee'),
+            'maker': this.safeNumber (result, 'fromFee'),
+            'taker': this.safeNumber (result, 'toFee'),
         };
     }
 
@@ -413,8 +413,8 @@ module.exports = class aofex extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        const open = this.safeFloat (ticker, 'open');
-        const last = this.safeFloat (ticker, 'close');
+        const open = this.safeNumber (ticker, 'open');
+        const last = this.safeNumber (ticker, 'close');
         let change = undefined;
         if (symbol !== undefined) {
             change = parseFloat (this.priceToPrecision (symbol, last - open));
@@ -423,8 +423,8 @@ module.exports = class aofex extends Exchange {
         }
         const average = this.sum (last, open) / 2;
         const percentage = change / open * 100;
-        const baseVolume = this.safeFloat (ticker, 'amount');
-        const quoteVolume = this.safeFloat (ticker, 'vol');
+        const baseVolume = this.safeNumber (ticker, 'amount');
+        const quoteVolume = this.safeNumber (ticker, 'vol');
         let vwap = this.vwap (baseVolume, quoteVolume);
         if (vwap !== undefined) {
             vwap = parseFloat (this.priceToPrecision (symbol, vwap));
@@ -433,8 +433,8 @@ module.exports = class aofex extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -552,13 +552,13 @@ module.exports = class aofex extends Exchange {
             symbol = market['symbol'];
         }
         const side = this.safeString (trade, 'direction');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'amount', 'number');
-        let cost = this.safeFloat (trade, 'total_price');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber2 (trade, 'amount', 'number');
+        let cost = this.safeNumber (trade, 'total_price');
         if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
         }
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             let feeCurrencyCode = undefined;
@@ -702,21 +702,21 @@ module.exports = class aofex extends Exchange {
         const orderType = this.safeString (order, 'type');
         const type = (orderType === '2') ? 'limit' : 'market';
         const side = this.safeString (order, 'side');
-        // const amount = this.safeFloat (order, 'number');
-        // const price = this.safeFloat (order, 'price');
+        // const amount = this.safeNumber (order, 'number');
+        // const price = this.safeNumber (order, 'price');
         let cost = undefined;
         let price = undefined;
         let amount = undefined;
         let average = undefined;
-        const number = this.safeFloat (order, 'number');
-        const totalPrice = this.safeFloat (order, 'total_price');
+        const number = this.safeNumber (order, 'number');
+        const totalPrice = this.safeNumber (order, 'total_price');
         if (type === 'limit') {
             amount = number;
-            price = this.safeFloat (order, 'price');
+            price = this.safeNumber (order, 'price');
         } else {
-            average = this.safeFloat (order, 'deal_price');
+            average = this.safeNumber (order, 'deal_price');
             if (side === 'buy') {
-                amount = this.safeFloat (order, 'deal_number');
+                amount = this.safeNumber (order, 'deal_number');
             } else {
                 amount = number;
             }

@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable, CancelPending, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable, CancelPending, ArgumentsRequired, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -243,6 +243,7 @@ module.exports = class ftx extends Exchange {
                     'An unexpected error occurred': ExchangeNotAvailable, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
                     'Please retry request': ExchangeNotAvailable, // {"error":"Please retry request","success":false}
                     'Please try again': ExchangeNotAvailable, // {"error":"Please try again","success":false}
+                    'Only have permissions for subaccount': PermissionDenied, // {"success":false,"error":"Only have permissions for subaccount *sub_name*"}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -504,14 +505,6 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseTicker (result, market);
-    }
-
-    parseTickers (tickers, symbols = undefined) {
-        const result = [];
-        for (let i = 0; i < tickers.length; i++) {
-            result.push (this.parseTicker (tickers[i]));
-        }
-        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1141,12 +1134,12 @@ module.exports = class ftx extends Exchange {
             request['price'] = null;
         } else if ((type === 'stop') || (type === 'takeProfit')) {
             method = 'privatePostConditionalOrders';
-            const stopPrice = this.safeFloat2 (params, [ 'stopPrice', 'triggerPrice' ]);
+            const stopPrice = this.safeFloat2 (params, 'stopPrice', 'triggerPrice');
             if (stopPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders');
+            } else {
                 params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
                 request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
-            } else {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders');
             }
             if (price !== undefined) {
                 request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market

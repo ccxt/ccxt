@@ -203,8 +203,8 @@ class aofex(Exchange):
             symbol = base + '/' + quote
             numericId = self.safe_integer(market, 'id')
             precision = self.safe_value(precisions, id, {})
-            makerFee = self.safe_float(market, 'maker_fee')
-            takerFee = self.safe_float(market, 'taker_fee')
+            makerFee = self.safe_number(market, 'maker_fee')
+            takerFee = self.safe_number(market, 'taker_fee')
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -222,12 +222,12 @@ class aofex(Exchange):
                 },
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'min_size'),
-                        'max': self.safe_float(market, 'max_size'),
+                        'min': self.safe_number(market, 'min_size'),
+                        'max': self.safe_number(market, 'max_size'),
                     },
                     'price': {
-                        'min': self.safe_float(market, 'min_price'),
-                        'max': self.safe_float(market, 'max_price'),
+                        'min': self.safe_number(market, 'min_price'),
+                        'max': self.safe_number(market, 'max_price'),
                     },
                     'cost': {
                         'min': None,
@@ -253,11 +253,11 @@ class aofex(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 'id'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'amount'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'amount'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -333,8 +333,8 @@ class aofex(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'frozen')
+            account['free'] = self.safe_number(balance, 'available')
+            account['used'] = self.safe_number(balance, 'frozen')
             result[code] = account
         return self.parse_balance(result)
 
@@ -358,8 +358,8 @@ class aofex(Exchange):
         return {
             'info': response,
             'symbol': symbol,
-            'maker': self.safe_float(result, 'fromFee'),
-            'taker': self.safe_float(result, 'toFee'),
+            'maker': self.safe_number(result, 'fromFee'),
+            'taker': self.safe_number(result, 'toFee'),
         }
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -413,8 +413,8 @@ class aofex(Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        open = self.safe_float(ticker, 'open')
-        last = self.safe_float(ticker, 'close')
+        open = self.safe_number(ticker, 'open')
+        last = self.safe_number(ticker, 'close')
         change = None
         if symbol is not None:
             change = float(self.price_to_precision(symbol, last - open))
@@ -422,8 +422,8 @@ class aofex(Exchange):
             change = last - open
         average = self.sum(last, open) / 2
         percentage = change / open * 100
-        baseVolume = self.safe_float(ticker, 'amount')
-        quoteVolume = self.safe_float(ticker, 'vol')
+        baseVolume = self.safe_number(ticker, 'amount')
+        quoteVolume = self.safe_number(ticker, 'vol')
         vwap = self.vwap(baseVolume, quoteVolume)
         if vwap is not None:
             vwap = float(self.price_to_precision(symbol, vwap))
@@ -431,8 +431,8 @@ class aofex(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -544,12 +544,12 @@ class aofex(Exchange):
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         side = self.safe_string(trade, 'direction')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float_2(trade, 'amount', 'number')
-        cost = self.safe_float(trade, 'total_price')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number_2(trade, 'amount', 'number')
+        cost = self.safe_number(trade, 'total_price')
         if (cost is None) and (price is not None) and (amount is not None):
             cost = price * amount
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
             feeCurrencyCode = None
@@ -686,21 +686,21 @@ class aofex(Exchange):
         orderType = self.safe_string(order, 'type')
         type = 'limit' if (orderType == '2') else 'market'
         side = self.safe_string(order, 'side')
-        # amount = self.safe_float(order, 'number')
-        # price = self.safe_float(order, 'price')
+        # amount = self.safe_number(order, 'number')
+        # price = self.safe_number(order, 'price')
         cost = None
         price = None
         amount = None
         average = None
-        number = self.safe_float(order, 'number')
-        totalPrice = self.safe_float(order, 'total_price')
+        number = self.safe_number(order, 'number')
+        totalPrice = self.safe_number(order, 'total_price')
         if type == 'limit':
             amount = number
-            price = self.safe_float(order, 'price')
+            price = self.safe_number(order, 'price')
         else:
-            average = self.safe_float(order, 'deal_price')
+            average = self.safe_number(order, 'deal_price')
             if side == 'buy':
-                amount = self.safe_float(order, 'deal_number')
+                amount = self.safe_number(order, 'deal_number')
             else:
                 amount = number
         fee = None

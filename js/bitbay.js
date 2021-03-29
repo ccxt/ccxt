@@ -278,8 +278,8 @@ module.exports = class bitbay extends Exchange {
             if (this.inArray (base, fiatCurrencies) || this.inArray (quote, fiatCurrencies)) {
                 fees = this.safeValue (this.fees, 'fiat', {});
             }
-            const maker = this.safeFloat (fees, 'maker');
-            const taker = this.safeFloat (fees, 'taker');
+            const maker = this.safeNumber (fees, 'maker');
+            const taker = this.safeNumber (fees, 'taker');
             // todo: check that the limits have ben interpreted correctly
             // todo: parse the fees page
             result.push ({
@@ -295,7 +295,7 @@ module.exports = class bitbay extends Exchange {
                 'taker': taker,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (first, 'minOffer'),
+                        'min': this.safeNumber (first, 'minOffer'),
                         'max': undefined,
                     },
                     'price': {
@@ -303,7 +303,7 @@ module.exports = class bitbay extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeFloat (second, 'minOffer'),
+                        'min': this.safeNumber (second, 'minOffer'),
                         'max': undefined,
                     },
                 },
@@ -343,8 +343,8 @@ module.exports = class bitbay extends Exchange {
         const marketId = this.safeString (order, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.safeInteger (order, 'time');
-        const amount = this.safeFloat (order, 'startAmount');
-        const remaining = this.safeFloat (order, 'currentAmount');
+        const amount = this.safeNumber (order, 'startAmount');
+        const remaining = this.safeNumber (order, 'currentAmount');
         const postOnly = this.safeValue (order, 'postOnly');
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
@@ -359,7 +359,7 @@ module.exports = class bitbay extends Exchange {
             'timeInForce': undefined,
             'postOnly': postOnly,
             'side': this.safeStringLower (order, 'offerType'),
-            'price': this.safeFloat (order, 'rate'),
+            'price': this.safeNumber (order, 'rate'),
             'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
@@ -421,8 +421,8 @@ module.exports = class bitbay extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeFloat (balance, 'lockedFunds');
-            account['free'] = this.safeFloat (balance, 'availableFunds');
+            account['used'] = this.safeNumber (balance, 'lockedFunds');
+            account['free'] = this.safeNumber (balance, 'availableFunds');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -444,22 +444,22 @@ module.exports = class bitbay extends Exchange {
         };
         const ticker = await this.publicGetIdTicker (this.extend (request, params));
         const timestamp = this.milliseconds ();
-        const baseVolume = this.safeFloat (ticker, 'volume');
-        const vwap = this.safeFloat (ticker, 'vwap');
+        const baseVolume = this.safeNumber (ticker, 'volume');
+        const vwap = this.safeNumber (ticker, 'vwap');
         let quoteVolume = undefined;
         if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'max'),
-            'low': this.safeFloat (ticker, 'min'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'max'),
+            'low': this.safeNumber (ticker, 'min'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
@@ -468,7 +468,7 @@ module.exports = class bitbay extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeFloat (ticker, 'average'),
+            'average': this.safeNumber (ticker, 'average'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
@@ -769,7 +769,7 @@ module.exports = class bitbay extends Exchange {
         const currencyId = this.safeString (balance, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const change = this.safeValue (item, 'change', {});
-        let amount = this.safeFloat (change, 'total');
+        let amount = this.safeNumber (change, 'total');
         let direction = 'in';
         if (amount < 0) {
             direction = 'out';
@@ -781,9 +781,9 @@ module.exports = class bitbay extends Exchange {
         const referenceId = this.safeString (item, 'detailId');
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const fundsBefore = this.safeValue (item, 'fundsBefore', {});
-        const before = this.safeFloat (fundsBefore, 'total');
+        const before = this.safeNumber (fundsBefore, 'total');
         const fundsAfter = this.safeValue (item, 'fundsAfter', {});
-        const after = this.safeFloat (fundsAfter, 'total');
+        const after = this.safeNumber (fundsAfter, 'total');
         return {
             'info': item,
             'id': id,
@@ -840,11 +840,11 @@ module.exports = class bitbay extends Exchange {
         const first = this.safeValue (ohlcv, 1, {});
         return [
             this.safeInteger (ohlcv, 0),
-            this.safeFloat (first, 'o'),
-            this.safeFloat (first, 'h'),
-            this.safeFloat (first, 'l'),
-            this.safeFloat (first, 'c'),
-            this.safeFloat (first, 'v'),
+            this.safeNumber (first, 'o'),
+            this.safeNumber (first, 'h'),
+            this.safeNumber (first, 'l'),
+            this.safeNumber (first, 'c'),
+            this.safeNumber (first, 'v'),
         ];
     }
 
@@ -927,15 +927,15 @@ module.exports = class bitbay extends Exchange {
         if (wasTaker !== undefined) {
             takerOrMaker = wasTaker ? 'taker' : 'maker';
         }
-        const price = this.safeFloat2 (trade, 'rate', 'r');
-        const amount = this.safeFloat2 (trade, 'amount', 'a');
+        const price = this.safeNumber2 (trade, 'rate', 'r');
+        const amount = this.safeNumber2 (trade, 'amount', 'a');
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
                 cost = price * amount;
             }
         }
-        const feeCost = this.safeFloat (trade, 'commissionValue');
+        const feeCost = this.safeNumber (trade, 'commissionValue');
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];

@@ -429,12 +429,6 @@ class probit(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    def parse_tickers(self, rawTickers, symbols=None):
-        tickers = []
-        for i in range(0, len(rawTickers)):
-            tickers.append(self.parse_ticker(rawTickers[i]))
-        return self.filter_by_array(tickers, 'symbol', symbols)
-
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)

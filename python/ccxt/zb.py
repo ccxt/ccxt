@@ -336,15 +336,6 @@ class zb(Exchange):
             'info': depositAddress,
         }
 
-    def parse_deposit_addresses(self, addresses, codes=None):
-        result = []
-        for i in range(0, len(addresses)):
-            address = self.parse_deposit_address(addresses[i])
-            result.append(address)
-        if codes:
-            result = self.filter_by_array(result, 'currency', codes)
-        return self.index_by(result, 'currency')
-
     def fetch_deposit_addresses(self, codes=None, params={}):
         self.load_markets()
         response = self.privateGetGetPayinAddress(params)

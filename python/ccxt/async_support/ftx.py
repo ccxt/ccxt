@@ -14,6 +14,7 @@ except NameError:
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -261,6 +262,7 @@ class ftx(Exchange):
                     'An unexpected error occurred': ExchangeNotAvailable,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
                     'Please retry request': ExchangeNotAvailable,  # {"error":"Please retry request","success":false}
                     'Please try again': ExchangeNotAvailable,  # {"error":"Please try again","success":false}
+                    'Only have permissions for subaccount': PermissionDenied,  # {"success":false,"error":"Only have permissions for subaccount *sub_name*"}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -512,12 +514,6 @@ class ftx(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         return self.parse_ticker(result, market)
-
-    def parse_tickers(self, tickers, symbols=None):
-        result = []
-        for i in range(0, len(tickers)):
-            result.append(self.parse_ticker(tickers[i]))
-        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -1116,12 +1112,12 @@ class ftx(Exchange):
             request['price'] = None
         elif (type == 'stop') or (type == 'takeProfit'):
             method = 'privatePostConditionalOrders'
-            stopPrice = self.safe_float_2(params, ['stopPrice', 'triggerPrice'])
+            stopPrice = self.safe_float_2(params, 'stopPrice', 'triggerPrice')
             if stopPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders')
+            else:
                 params = self.omit(params, ['stopPrice', 'triggerPrice'])
                 request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
-            else:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders')
             if price is not None:
                 request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
         elif type == 'trailingStop':

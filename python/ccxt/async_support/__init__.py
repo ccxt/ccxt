@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.44.4'
+__version__ = '1.44.51'
 
 # -----------------------------------------------------------------------------
 
@@ -52,7 +52,6 @@ from ccxt.base.errors import error_hierarchy                # noqa: F401
 
 
 from ccxt.async_support.aax import aax                                    # noqa: F401
-from ccxt.async_support.acx import acx                                    # noqa: F401
 from ccxt.async_support.aofex import aofex                                # noqa: F401
 from ccxt.async_support.ascendex import ascendex                          # noqa: F401
 from ccxt.async_support.bequant import bequant                            # noqa: F401
@@ -178,7 +177,6 @@ from ccxt.async_support.zb import zb                                      # noqa
 
 exchanges = [
     'aax',
-    'acx',
     'aofex',
     'ascendex',
     'bequant',

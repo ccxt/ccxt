@@ -923,7 +923,7 @@ module.exports = class binance extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const markets = this.safeValue (response, 'symbols');
+        const markets = this.safeValue (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -1342,14 +1342,6 @@ module.exports = class binance extends Exchange {
             return this.parseTicker (firstTicker, market);
         }
         return this.parseTicker (response, market);
-    }
-
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
@@ -2951,7 +2943,6 @@ module.exports = class binance extends Exchange {
         if (api === 'wapi') {
             url += '.html';
         }
-        const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (path === 'historicalTrades') {
             if (this.apiKey) {
                 headers = {
@@ -2960,19 +2951,22 @@ module.exports = class binance extends Exchange {
             } else {
                 throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
             }
-        } else if (userDataStream) {
+        }
+        const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
+        if (userDataStream) {
             if (this.apiKey) {
                 // v1 special case for userDataStream
-                body = this.urlencode (params);
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
+                if (method !== 'GET') {
+                    body = this.urlencode (params);
+                }
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
-        }
-        if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        } else if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query = undefined;
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
@@ -3004,13 +2998,8 @@ module.exports = class binance extends Exchange {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            // userDataStream endpoints are public, but POST, PUT, DELETE
-            // therefore they don't accept URL query arguments
-            // https://github.com/ccxt/ccxt/issues/5224
-            if (!userDataStream) {
-                if (Object.keys (params).length) {
-                    url += '?' + this.urlencode (params);
-                }
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
