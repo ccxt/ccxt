@@ -168,13 +168,14 @@ class gateio extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                '88MPH' => 'MPH',
+                'BIFI' => 'Bitcoin File',
                 'BOX' => 'DefiBox',
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
+                'MPH' => 'Morpher', // conflict with 88MPH
                 'SBTC' => 'Super Bitcoin',
                 'TNC' => 'Trinity Network Credit',
-                '88MPH' => 'MPH',
-                'MPH' => 'Morpher', // conflict with 88MPH
             ),
         ));
     }
