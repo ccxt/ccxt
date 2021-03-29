@@ -251,14 +251,14 @@ class hitbtc extends Exchange {
             if (mb_strpos($id, '_') !== false) {
                 $symbol = $id;
             }
-            $lot = $this->safe_float($market, 'quantityIncrement');
-            $step = $this->safe_float($market, 'tickSize');
+            $lot = $this->safe_number($market, 'quantityIncrement');
+            $step = $this->safe_number($market, 'tickSize');
             $precision = array(
                 'price' => $step,
                 'amount' => $lot,
             );
-            $taker = $this->safe_float($market, 'takeLiquidityRate');
-            $maker = $this->safe_float($market, 'provideLiquidityRate');
+            $taker = $this->safe_number($market, 'takeLiquidityRate');
+            $maker = $this->safe_number($market, 'provideLiquidityRate');
             $feeCurrencyId = $this->safe_string($market, 'feeCurrency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $result[] = array_merge($this->fees['trading'], array(
@@ -391,7 +391,7 @@ class hitbtc extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $active,
-                'fee' => $this->safe_float($currency, 'payoutFee'), // todo => redesign
+                'fee' => $this->safe_number($currency, 'payoutFee'), // todo => redesign
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
@@ -431,8 +431,8 @@ class hitbtc extends Exchange {
         //
         return array(
             'info' => $response,
-            'maker' => $this->safe_float($response, 'provideLiquidityRate'),
-            'taker' => $this->safe_float($response, 'takeLiquidityRate'),
+            'maker' => $this->safe_number($response, 'provideLiquidityRate'),
+            'taker' => $this->safe_number($response, 'takeLiquidityRate'),
         );
     }
 
@@ -453,8 +453,8 @@ class hitbtc extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'available');
-            $account['used'] = $this->safe_float($balance, 'reserved');
+            $account['free'] = $this->safe_number($balance, 'available');
+            $account['used'] = $this->safe_number($balance, 'reserved');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -474,11 +474,11 @@ class hitbtc extends Exchange {
         //
         return array(
             $this->parse8601($this->safe_string($ohlcv, 'timestamp')),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'max'),
-            $this->safe_float($ohlcv, 'min'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volume'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'max'),
+            $this->safe_number($ohlcv, 'min'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
         );
     }
 
@@ -524,10 +524,10 @@ class hitbtc extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $baseVolume = $this->safe_float($ticker, 'volume');
-        $quoteVolume = $this->safe_float($ticker, 'volumeQuote');
-        $open = $this->safe_float($ticker, 'open');
-        $last = $this->safe_float($ticker, 'last');
+        $baseVolume = $this->safe_number($ticker, 'volume');
+        $quoteVolume = $this->safe_number($ticker, 'volumeQuote');
+        $open = $this->safe_number($ticker, 'open');
+        $last = $this->safe_number($ticker, 'last');
         $change = null;
         $percentage = null;
         $average = null;
@@ -543,11 +543,11 @@ class hitbtc extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => $open,
@@ -623,7 +623,7 @@ class hitbtc extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyCode = $market ? $market['feeCurrency'] : null;
             $fee = array(
@@ -635,8 +635,8 @@ class hitbtc extends Exchange {
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $orderId = $this->safe_string($trade, 'clientOrderId');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'quantity');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'quantity');
         $cost = $price * $amount;
         $side = $this->safe_string($trade, 'side');
         $id = $this->safe_string($trade, 'id');
@@ -736,11 +736,11 @@ class hitbtc extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'hash');
         $fee = null;
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
@@ -928,15 +928,15 @@ class hitbtc extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $amount = $this->safe_float($order, 'quantity');
-        $filled = $this->safe_float($order, 'cumQuantity');
+        $amount = $this->safe_number($order, 'quantity');
+        $filled = $this->safe_number($order, 'cumQuantity');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         // we use $clientOrderId as the $order $id with this exchange intentionally
         // because most of their endpoints will require $clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $id = $this->safe_string($order, 'clientOrderId');
         $clientOrderId = $id;
-        $price = $this->safe_float($order, 'price');
+        $price = $this->safe_number($order, 'price');
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $trades = $this->safe_value($order, 'tradesReport');

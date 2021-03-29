@@ -256,14 +256,14 @@ class hitbtc(Exchange):
             # bequant fix
             if id.find('_') >= 0:
                 symbol = id
-            lot = self.safe_float(market, 'quantityIncrement')
-            step = self.safe_float(market, 'tickSize')
+            lot = self.safe_number(market, 'quantityIncrement')
+            step = self.safe_number(market, 'tickSize')
             precision = {
                 'price': step,
                 'amount': lot,
             }
-            taker = self.safe_float(market, 'takeLiquidityRate')
-            maker = self.safe_float(market, 'provideLiquidityRate')
+            taker = self.safe_number(market, 'takeLiquidityRate')
+            maker = self.safe_number(market, 'provideLiquidityRate')
             feeCurrencyId = self.safe_string(market, 'feeCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             result.append(self.extend(self.fees['trading'], {
@@ -386,7 +386,7 @@ class hitbtc(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
-                'fee': self.safe_float(currency, 'payoutFee'),  # todo: redesign
+                'fee': self.safe_number(currency, 'payoutFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -424,8 +424,8 @@ class hitbtc(Exchange):
         #
         return {
             'info': response,
-            'maker': self.safe_float(response, 'provideLiquidityRate'),
-            'taker': self.safe_float(response, 'takeLiquidityRate'),
+            'maker': self.safe_number(response, 'provideLiquidityRate'),
+            'taker': self.safe_number(response, 'takeLiquidityRate'),
         }
 
     async def fetch_balance(self, params={}):
@@ -444,8 +444,8 @@ class hitbtc(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'reserved')
+            account['free'] = self.safe_number(balance, 'available')
+            account['used'] = self.safe_number(balance, 'reserved')
             result[code] = account
         return self.parse_balance(result)
 
@@ -463,11 +463,11 @@ class hitbtc(Exchange):
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'timestamp')),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'max'),
-            self.safe_float(ohlcv, 'min'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'max'),
+            self.safe_number(ohlcv, 'min'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -506,10 +506,10 @@ class hitbtc(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        baseVolume = self.safe_float(ticker, 'volume')
-        quoteVolume = self.safe_float(ticker, 'volumeQuote')
-        open = self.safe_float(ticker, 'open')
-        last = self.safe_float(ticker, 'last')
+        baseVolume = self.safe_number(ticker, 'volume')
+        quoteVolume = self.safe_number(ticker, 'volumeQuote')
+        open = self.safe_number(ticker, 'open')
+        last = self.safe_number(ticker, 'last')
         change = None
         percentage = None
         average = None
@@ -523,11 +523,11 @@ class hitbtc(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': open,
@@ -598,7 +598,7 @@ class hitbtc(Exchange):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         fee = None
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
             feeCurrencyCode = market['feeCurrency'] if market else None
             fee = {
@@ -609,8 +609,8 @@ class hitbtc(Exchange):
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         orderId = self.safe_string(trade, 'clientOrderId')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'quantity')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'quantity')
         cost = price * amount
         side = self.safe_string(trade, 'side')
         id = self.safe_string(trade, 'id')
@@ -706,11 +706,11 @@ class hitbtc(Exchange):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string(transaction, 'hash')
         fee = None
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -883,15 +883,15 @@ class hitbtc(Exchange):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        amount = self.safe_float(order, 'quantity')
-        filled = self.safe_float(order, 'cumQuantity')
+        amount = self.safe_number(order, 'quantity')
+        filled = self.safe_number(order, 'cumQuantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         id = self.safe_string(order, 'clientOrderId')
         clientOrderId = id
-        price = self.safe_float(order, 'price')
+        price = self.safe_number(order, 'price')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
         trades = self.safe_value(order, 'tradesReport')
