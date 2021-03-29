@@ -103,5 +103,32 @@ class Precise {
         array_splice($integerArray, $index, 0, $item);
         return $sign . implode('', $integerArray);
     }
-}
 
+    public static function string_mul($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->mul(new Precise($string2));
+    }
+
+    public static function string_div($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->div(new Precise($string2));
+    }
+
+    public static function string_add($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->add(new Precise($string2));
+    }
+
+    public static function string_sub($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->sub(new Precise($string2));
+    }
+}

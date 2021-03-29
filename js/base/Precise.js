@@ -94,6 +94,34 @@ class Precise {
         integerArray.splice (index, 0, item)
         return sign + integerArray.join ('')
     }
+
+    static stringMul (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).mul (new Precise (string2))
+    }
+
+    static stringDiv (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).div (new Precise (string2))
+    }
+
+    static stringAdd (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).add (new Precise (string2))
+    }
+
+    static stringSub (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).sub (new Precise (string2))
+    }
 }
 
 module.exports = Precise;
