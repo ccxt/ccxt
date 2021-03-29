@@ -937,7 +937,7 @@ module.exports = class hitbtc extends Exchange {
         const side = this.safeString (order, 'side');
         let trades = this.safeValue (order, 'tradesReport');
         const fee = undefined;
-        const average = this.safeValue (order, 'avgPrice');
+        const average = this.safeNumber (order, 'avgPrice');
         if (trades !== undefined) {
             trades = this.parseTrades (trades, market);
         }
