@@ -300,7 +300,7 @@ class bittrex(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'minTradeSize'),
+                        'min': self.safe_number(market, 'minTradeSize'),
                         'max': None,
                     },
                     'price': {
@@ -326,8 +326,8 @@ class bittrex(Exchange):
             code = self.safe_currency_code(currencyId)
             account = self.account()
             balance = indexed[currencyId]
-            account['free'] = self.safe_float(balance, 'available')
-            account['total'] = self.safe_float(balance, 'total')
+            account['free'] = self.safe_number(balance, 'available')
+            account['total'] = self.safe_number(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 
@@ -385,7 +385,7 @@ class bittrex(Exchange):
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
             precision = 8  # default precision, todo: fix "magic constants"
-            fee = self.safe_float(currency, 'txFee')  # todo: redesign
+            fee = self.safe_number(currency, 'txFee')  # todo: redesign
             isActive = self.safe_string(currency, 'status')
             result[code] = {
                 'id': id,
@@ -444,17 +444,17 @@ class bittrex(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'updatedAt'))
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '-')
-        percentage = self.safe_float(ticker, 'percentChange')
-        last = self.safe_float(ticker, 'lastTradeRate')
+        percentage = self.safe_number(ticker, 'percentChange')
+        last = self.safe_number(ticker, 'lastTradeRate')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bidRate'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bidRate'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'askRate'),
+            'ask': self.safe_number(ticker, 'askRate'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -464,8 +464,8 @@ class bittrex(Exchange):
             'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
+            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
@@ -575,8 +575,8 @@ class bittrex(Exchange):
         marketId = self.safe_string(trade, 'marketSymbol')
         market = self.safe_market(marketId, market, '-')
         cost = None
-        price = self.safe_float(trade, 'rate')
-        amount = self.safe_float(trade, 'quantity')
+        price = self.safe_number(trade, 'rate')
+        amount = self.safe_number(trade, 'quantity')
         if amount is not None:
             if price is not None:
                 cost = price * amount
@@ -585,7 +585,7 @@ class bittrex(Exchange):
         if isTaker is not None:
             takerOrMaker = 'taker' if isTaker else 'maker'
         fee = None
-        feeCost = self.safe_float(trade, 'commission')
+        feeCost = self.safe_number(trade, 'commission')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -651,11 +651,11 @@ class bittrex(Exchange):
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'startsAt')),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -751,9 +751,9 @@ class bittrex(Exchange):
             cost = None
             if isCeilingLimit:
                 request['limit'] = self.price_to_precision(symbol, price)
-                cost = self.safe_float_2(params, 'ceiling', 'cost', amount)
+                cost = self.safe_number_2(params, 'ceiling', 'cost', amount)
             elif isCeilingMarket:
-                cost = self.safe_float_2(params, 'ceiling', 'cost')
+                cost = self.safe_number_2(params, 'ceiling', 'cost')
                 if cost is None:
                     if price is None:
                         cost = amount
@@ -898,7 +898,7 @@ class bittrex(Exchange):
         #     }
         #
         id = self.safe_string(transaction, 'id')
-        amount = self.safe_float(transaction, 'quantity')
+        amount = self.safe_number(transaction, 'quantity')
         address = self.safe_string(transaction, 'cryptoAddress')
         txid = self.safe_string(transaction, 'txId')
         updated = self.parse8601(self.safe_string(transaction, 'updatedAt'))
@@ -932,7 +932,7 @@ class bittrex(Exchange):
                 status = 'ok'
             elif responseStatus == 'AUTHORIZED' and (txid is not None):
                 status = 'ok'
-        feeCost = self.safe_float(transaction, 'txCost')
+        feeCost = self.safe_number(transaction, 'txCost')
         if feeCost is None:
             if type == 'deposit':
                 # according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
@@ -999,11 +999,11 @@ class bittrex(Exchange):
             lastTradeTimestamp = self.parse8601(updatedAt)
         timestamp = self.parse8601(createdAt)
         type = self.safe_string_lower(order, 'type')
-        quantity = self.safe_float(order, 'quantity')
-        limit = self.safe_float(order, 'limit')
-        fillQuantity = self.safe_float(order, 'fillQuantity')
-        commission = self.safe_float(order, 'commission')
-        proceeds = self.safe_float(order, 'proceeds')
+        quantity = self.safe_number(order, 'quantity')
+        limit = self.safe_number(order, 'limit')
+        fillQuantity = self.safe_number(order, 'fillQuantity')
+        commission = self.safe_number(order, 'commission')
+        proceeds = self.safe_number(order, 'proceeds')
         status = self.safe_string_lower(order, 'status')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         postOnly = (timeInForce == 'PO')
@@ -1073,9 +1073,9 @@ class bittrex(Exchange):
             'side': self.safe_string(order, 'side'),
             'order': self.safe_string(order, 'id'),
             'type': self.safe_string(order, 'type'),
-            'price': self.safe_float(order, 'average'),
-            'amount': self.safe_float(order, 'filled'),
-            'cost': self.safe_float(order, 'cost'),
+            'price': self.safe_number(order, 'average'),
+            'amount': self.safe_number(order, 'filled'),
+            'cost': self.safe_number(order, 'cost'),
             'symbol': self.safe_string(order, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
