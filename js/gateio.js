@@ -215,9 +215,9 @@ module.exports = class gateio extends Exchange {
                 const currency = coin[id];
                 const code = this.safeCurrencyCode (id);
                 const delisted = this.safeValue (currency, 'delisted', 0);
-                const withdrawDisabled = this.safeValue (currency, 'withdraw_disabled', 0);
-                const depositDisabled = this.safeValue (currency, 'deposit_disabled', 0);
-                const tradeDisabled = this.safeValue (currency, 'trade_disabled', 0);
+                const withdrawDisabled = this.safeInteger2 (currency, 'withdraw_disabled', 0);
+                const depositDisabled = this.safeInteger2 (currency, 'deposit_disabled', 0);
+                const tradeDisabled = this.safeInteger2 (currency, 'trade_disabled', 0);
                 const listed = (delisted === 0);
                 const withdrawEnabled = (withdrawDisabled === 0);
                 const depositEnabled = (depositDisabled === 0);
@@ -324,7 +324,7 @@ module.exports = class gateio extends Exchange {
                 'price': priceLimits,
                 'cost': costLimits,
             };
-            const disabled = this.safeValue (details, 'trade_disabled');
+            const disabled = this.safeInteger (details, 'trade_disabled');
             const active = !disabled;
             const uppercaseId = id.toUpperCase ();
             const fee = this.safeFloat (details, 'fee');
