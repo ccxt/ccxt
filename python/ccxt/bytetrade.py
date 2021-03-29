@@ -193,11 +193,11 @@ class bytetrade(Exchange):
             limits = self.safe_value(currency, 'limits')
             deposit = self.safe_value(limits, 'deposit')
             amountPrecision = self.safe_integer(currency, 'basePrecision')
-            maxDeposit = self.safe_float(deposit, 'max')
+            maxDeposit = self.safe_number(deposit, 'max')
             if maxDeposit == -1.0:
                 maxDeposit = None
             withdraw = self.safe_value(limits, 'withdraw')
-            maxWithdraw = self.safe_float(withdraw, 'max')
+            maxWithdraw = self.safe_number(withdraw, 'max')
             if maxWithdraw == -1.0:
                 maxWithdraw = None
             result[code] = {
@@ -212,11 +212,11 @@ class bytetrade(Exchange):
                     'price': {'min': None, 'max': None},
                     'cost': {'min': None, 'max': None},
                     'deposit': {
-                        'min': self.safe_float(deposit, 'min'),
+                        'min': self.safe_number(deposit, 'min'),
                         'max': maxDeposit,
                     },
                     'withdraw': {
-                        'min': self.safe_float(withdraw, 'min'),
+                        'min': self.safe_number(withdraw, 'min'),
                         'max': maxWithdraw,
                     },
                 },
@@ -265,12 +265,12 @@ class bytetrade(Exchange):
                 'normalSymbol': normalSymbol,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(amount, 'min'),
-                        'max': self.safe_float(amount, 'max'),
+                        'min': self.safe_number(amount, 'min'),
+                        'max': self.safe_number(amount, 'max'),
                     },
                     'price': {
-                        'min': self.safe_float(price, 'min'),
-                        'max': self.safe_float(price, 'max'),
+                        'min': self.safe_number(price, 'min'),
+                        'max': self.safe_number(price, 'max'),
                     },
                     'cost': {
                         'min': None,
@@ -295,8 +295,8 @@ class bytetrade(Exchange):
             currencyId = self.safe_string(balance, 'code')
             code = self.safe_currency_code(currencyId, None)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'free')
-            account['used'] = self.safe_float(balance, 'used')
+            account['free'] = self.safe_number(balance, 'free')
+            account['used'] = self.safe_number(balance, 'used')
             result[code] = account
         return self.parse_balance(result)
 
@@ -353,22 +353,22 @@ class bytetrade(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
-            'vwap': self.safe_float(ticker, 'weightedAvgPrice'),
-            'open': self.safe_float(ticker, 'open'),
-            'close': self.safe_float(ticker, 'close'),
-            'last': self.safe_float(ticker, 'last'),
+            'vwap': self.safe_number(ticker, 'weightedAvgPrice'),
+            'open': self.safe_number(ticker, 'open'),
+            'close': self.safe_number(ticker, 'close'),
+            'last': self.safe_number(ticker, 'last'),
             'previousClose': None,  # previous day close
-            'change': self.safe_float(ticker, 'change'),
-            'percentage': self.safe_float(ticker, 'percentage'),
+            'change': self.safe_number(ticker, 'change'),
+            'percentage': self.safe_number(ticker, 'percentage'),
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_number(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
@@ -430,11 +430,11 @@ class bytetrade(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 0),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 5),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -460,9 +460,9 @@ class bytetrade(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'timestamp')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = self.safe_float(trade, 'cost')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
+        cost = self.safe_number(trade, 'cost')
         id = self.safe_string(trade, 'id')
         type = self.safe_string(trade, 'type')
         takerOrMaker = self.safe_string(trade, 'takerOrMaker')
@@ -523,12 +523,12 @@ class bytetrade(Exchange):
         timestamp = self.safe_integer(order, 'timestamp')
         datetime = self.safe_string(order, 'datetime')
         lastTradeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
-        filled = self.safe_float(order, 'filled')
-        remaining = self.safe_float(order, 'remaining')
-        cost = self.safe_float(order, 'cost')
-        average = self.safe_float(order, 'average')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount')
+        filled = self.safe_number(order, 'filled')
+        remaining = self.safe_number(order, 'remaining')
+        cost = self.safe_number(order, 'cost')
+        average = self.safe_number(order, 'average')
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
@@ -1086,9 +1086,9 @@ class bytetrade(Exchange):
         datetime = self.safe_string(transaction, 'datetime')
         type = self.safe_string(transaction, 'type')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         feeInfo = self.safe_value(transaction, 'fee')
-        feeCost = self.safe_float(feeInfo, 'cost')
+        feeCost = self.safe_number(feeInfo, 'cost')
         feeCurrencyId = self.safe_string(feeInfo, 'code')
         feeCode = self.safe_currency_code(feeCurrencyId, currency)
         fee = {
