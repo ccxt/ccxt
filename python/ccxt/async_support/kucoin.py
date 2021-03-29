@@ -381,11 +381,11 @@ class kucoin(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = self.safe_value(market, 'enableTrading')
-            baseMaxSize = self.safe_float(market, 'baseMaxSize')
-            baseMinSize = self.safe_float(market, 'baseMinSize')
-            quoteMaxSize = self.safe_float(market, 'quoteMaxSize')
-            quoteMinSize = self.safe_float(market, 'quoteMinSize')
-            # quoteIncrement = self.safe_float(market, 'quoteIncrement')
+            baseMaxSize = self.safe_number(market, 'baseMaxSize')
+            baseMinSize = self.safe_number(market, 'baseMinSize')
+            quoteMaxSize = self.safe_number(market, 'quoteMaxSize')
+            quoteMinSize = self.safe_number(market, 'quoteMinSize')
+            # quoteIncrement = self.safe_number(market, 'quoteIncrement')
             precision = {
                 'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
                 'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
@@ -396,7 +396,7 @@ class kucoin(Exchange):
                     'max': baseMaxSize,
                 },
                 'price': {
-                    'min': self.safe_float(market, 'priceIncrement'),
+                    'min': self.safe_number(market, 'priceIncrement'),
                     'max': quoteMaxSize / baseMinSize,
                 },
                 'cost': {
@@ -445,7 +445,7 @@ class kucoin(Exchange):
             precision = self.safe_integer(entry, 'precision')
             isWithdrawEnabled = self.safe_value(entry, 'isWithdrawEnabled', False)
             isDepositEnabled = self.safe_value(entry, 'isDepositEnabled', False)
-            fee = self.safe_float(entry, 'withdrawalMinFee')
+            fee = self.safe_number(entry, 'withdrawalMinFee')
             active = (isWithdrawEnabled and isDepositEnabled)
             result[code] = {
                 'id': id,
@@ -508,7 +508,7 @@ class kucoin(Exchange):
         response = await self.privateGetWithdrawalsQuotas(self.extend(request, params))
         data = response['data']
         withdrawFees = {}
-        withdrawFees[code] = self.safe_float(data, 'withdrawMinFee')
+        withdrawFees[code] = self.safe_number(data, 'withdrawMinFee')
         return {
             'info': response,
             'withdraw': withdrawFees,
@@ -554,34 +554,34 @@ class kucoin(Exchange):
         #         "mark": 0
         #     }
         #
-        percentage = self.safe_float(ticker, 'changeRate')
+        percentage = self.safe_number(ticker, 'changeRate')
         if percentage is not None:
             percentage = percentage * 100
-        last = self.safe_float_2(ticker, 'last', 'lastTradedPrice')
+        last = self.safe_number_2(ticker, 'last', 'lastTradedPrice')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '-')
-        baseVolume = self.safe_float(ticker, 'vol')
-        quoteVolume = self.safe_float(ticker, 'volValue')
+        baseVolume = self.safe_number(ticker, 'vol')
+        quoteVolume = self.safe_number(ticker, 'volValue')
         vwap = self.vwap(baseVolume, quoteVolume)
         timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': vwap,
-            'open': self.safe_float(ticker, 'open'),
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'changePrice'),
+            'change': self.safe_number(ticker, 'changePrice'),
             'percentage': percentage,
-            'average': self.safe_float(ticker, 'averagePrice'),
+            'average': self.safe_number(ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
@@ -660,11 +660,11 @@ class kucoin(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 0),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 5),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
@@ -848,7 +848,7 @@ class kucoin(Exchange):
             # 'marginMode': 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
             # 'autoBorrow': False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
         }
-        quoteAmount = self.safe_float_2(params, 'cost', 'funds')
+        quoteAmount = self.safe_number_2(params, 'cost', 'funds')
         if type == 'market':
             if quoteAmount is not None:
                 params = self.omit(params, ['cost', 'funds'])
@@ -1054,17 +1054,17 @@ class kucoin(Exchange):
         type = self.safe_string(order, 'type')
         timestamp = self.safe_integer(order, 'createdAt')
         datetime = self.iso8601(timestamp)
-        price = self.safe_float(order, 'price')
+        price = self.safe_number(order, 'price')
         if price == 0.0:
             # market orders
             price = None
         side = self.safe_string(order, 'side')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
-        feeCost = self.safe_float(order, 'fee')
-        amount = self.safe_float(order, 'size')
-        filled = self.safe_float(order, 'dealSize')
-        cost = self.safe_float(order, 'dealFunds')
+        feeCost = self.safe_number(order, 'fee')
+        amount = self.safe_number(order, 'size')
+        filled = self.safe_number(order, 'dealSize')
+        cost = self.safe_number(order, 'dealFunds')
         # bool
         isActive = self.safe_value(order, 'isActive', False)
         cancelExist = self.safe_value(order, 'cancelExist', False)
@@ -1076,7 +1076,7 @@ class kucoin(Exchange):
         }
         clientOrderId = self.safe_string(order, 'clientOid')
         timeInForce = self.safe_string(order, 'timeInForce')
-        stopPrice = self.safe_float(order, 'stopPrice')
+        stopPrice = self.safe_number(order, 'stopPrice')
         postOnly = self.safe_value(order, 'postOnly')
         return self.safe_order({
             'id': orderId,
@@ -1290,7 +1290,7 @@ class kucoin(Exchange):
         id = self.safe_string_2(trade, 'tradeId', 'id')
         orderId = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string(trade, 'liquidity')
-        amount = self.safe_float_2(trade, 'size', 'amount')
+        amount = self.safe_number_2(trade, 'size', 'amount')
         timestamp = self.safe_integer(trade, 'time')
         if timestamp is not None:
             timestamp = int(timestamp / 1000000)
@@ -1299,10 +1299,10 @@ class kucoin(Exchange):
             # if it's a historical v1 trade, the exchange returns timestamp in seconds
             if ('dealValue' in trade) and (timestamp is not None):
                 timestamp = timestamp * 1000
-        price = self.safe_float_2(trade, 'price', 'dealPrice')
+        price = self.safe_number_2(trade, 'price', 'dealPrice')
         side = self.safe_string(trade, 'side')
         fee = None
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
             feeCurrency = self.safe_currency_code(feeCurrencyId)
@@ -1312,12 +1312,12 @@ class kucoin(Exchange):
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
-                'rate': self.safe_float(trade, 'feeRate'),
+                'rate': self.safe_number(trade, 'feeRate'),
             }
         type = self.safe_string(trade, 'type')
         if type == 'match':
             type = None
-        cost = self.safe_float_2(trade, 'funds', 'dealValue')
+        cost = self.safe_number_2(trade, 'funds', 'dealValue')
         if cost is None:
             if amount is not None:
                 if price is not None:
@@ -1412,7 +1412,7 @@ class kucoin(Exchange):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'address')
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         txid = self.safe_string(transaction, 'walletTxId')
         if txid is not None:
             txidParts = txid.split('@')
@@ -1426,7 +1426,7 @@ class kucoin(Exchange):
         rawStatus = self.safe_string(transaction, 'status')
         status = self.parse_transaction_status(rawStatus)
         fee = None
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             rate = None
             if amount is not None:
@@ -1625,8 +1625,8 @@ class kucoin(Exchange):
             currencyId = self.safe_string(data, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(data, 'availableBalance')
-            account['total'] = self.safe_float(data, 'accountEquity')
+            account['free'] = self.safe_number(data, 'availableBalance')
+            account['total'] = self.safe_number(data, 'accountEquity')
             result = {'info': response}
             result[code] = account
             return self.parse_balance(result)
@@ -1654,9 +1654,9 @@ class kucoin(Exchange):
                     currencyId = self.safe_string(balance, 'currency')
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
-                    account['total'] = self.safe_float(balance, 'balance')
-                    account['free'] = self.safe_float(balance, 'available')
-                    account['used'] = self.safe_float(balance, 'holds')
+                    account['total'] = self.safe_number(balance, 'balance')
+                    account['free'] = self.safe_number(balance, 'available')
+                    account['used'] = self.safe_number(balance, 'holds')
                     result[code] = account
             return self.parse_balance(result)
 
@@ -1713,7 +1713,7 @@ class kucoin(Exchange):
             id = self.safe_string(data, 'applyId')
             currencyId = self.safe_string(data, 'currency')
             code = self.safe_currency_code(currencyId)
-            amount = self.safe_float(data, 'amount')
+            amount = self.safe_number(data, 'amount')
             rawStatus = self.safe_string(data, 'status')
             status = None
             if rawStatus == 'PROCESSING':
@@ -1832,11 +1832,11 @@ class kucoin(Exchange):
         currencyId = self.safe_string(item, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         fee = {
-            'cost': self.safe_float(item, 'fee'),
+            'cost': self.safe_number(item, 'fee'),
             'code': code,
         }
-        amount = self.safe_float(item, 'amount')
-        after = self.safe_float(item, 'balance')
+        amount = self.safe_number(item, 'amount')
+        after = self.safe_number(item, 'balance')
         direction = self.safe_string(item, 'direction')
         before = None
         if after is not None and amount is not None:
