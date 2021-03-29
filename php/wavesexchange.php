@@ -571,13 +571,13 @@ class wavesexchange extends Exchange {
             $symbol = $market['symbol'];
         }
         $data = $this->safe_value($ticker, 'data', array());
-        $last = $this->safe_float($data, 'lastPrice');
-        $low = $this->safe_float($data, 'low');
-        $high = $this->safe_float($data, 'high');
-        $vwap = $this->safe_float($data, 'weightedAveragePrice');
-        $baseVolume = $this->safe_float($data, 'volume');
-        $quoteVolume = $this->safe_float($data, 'quoteVolume');
-        $open = $this->safe_float($data, 'firstPrice');
+        $last = $this->safe_number($data, 'lastPrice');
+        $low = $this->safe_number($data, 'low');
+        $high = $this->safe_number($data, 'high');
+        $vwap = $this->safe_number($data, 'weightedAveragePrice');
+        $baseVolume = $this->safe_number($data, 'volume');
+        $quoteVolume = $this->safe_number($data, 'quoteVolume');
+        $open = $this->safe_number($data, 'firstPrice');
         $change = null;
         $average = null;
         $percentage = null;
@@ -731,11 +731,11 @@ class wavesexchange extends Exchange {
         $data = $this->safe_value($ohlcv, 'data', array());
         return array(
             $this->parse8601($this->safe_string($data, 'time')),
-            $this->safe_float($data, 'open'),
-            $this->safe_float($data, 'high'),
-            $this->safe_float($data, 'low'),
-            $this->safe_float($data, 'close'),
-            $this->safe_float($data, 'volume', 0),
+            $this->safe_number($data, 'open'),
+            $this->safe_number($data, 'high'),
+            $this->safe_number($data, 'low'),
+            $this->safe_number($data, 'close'),
+            $this->safe_number($data, 'volume', 0),
         );
     }
 
@@ -950,7 +950,7 @@ class wavesexchange extends Exchange {
         }
         if ($matcherFee === null) {
             $wavesPrecision = $this->safe_integer($this->options, 'wavesPrecision', 8);
-            $rate = $this->safe_float($rates, $matcherFeeAssetId);
+            $rate = $this->safe_number($rates, $matcherFeeAssetId);
             $code = $this->safe_currency_code($matcherFeeAssetId);
             $currency = $this->currency($code);
             $newPrecison = pow(10, $wavesPrecision - $currency['precision']);
@@ -1360,7 +1360,7 @@ class wavesexchange extends Exchange {
             $issueTransaction = $this->safe_value($entry, 'issueTransaction');
             $decimals = $this->safe_integer($issueTransaction, 'decimals');
             $currencyId = $this->safe_string($entry, 'assetId');
-            $balance = $this->safe_float($entry, 'balance');
+            $balance = $this->safe_number($entry, 'balance');
             $code = null;
             if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->safe_currency_code($currencyId);
@@ -1390,7 +1390,7 @@ class wavesexchange extends Exchange {
             if (!(is_array($result) && array_key_exists($code, $result))) {
                 $result[$code] = $this->account();
             }
-            $amount = $this->safe_float($reservedBalance, $currencyId);
+            $amount = $this->safe_number($reservedBalance, $currencyId);
             $result[$code]['used'] = $this->currency_from_precision($code, $amount);
         }
         $wavesRequest = array(
@@ -1403,7 +1403,7 @@ class wavesexchange extends Exchange {
         //   "$balance" => 909085978
         // }
         $result['WAVES'] = $this->safe_value($result, 'WAVES', array());
-        $result['WAVES']['total'] = $this->currency_from_precision('WAVES', $this->safe_float($wavesTotal, 'balance'));
+        $result['WAVES']['total'] = $this->currency_from_precision('WAVES', $this->safe_number($wavesTotal, 'balance'));
         $codes = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
@@ -1495,8 +1495,8 @@ class wavesexchange extends Exchange {
         $datetime = $this->safe_string($data, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $id = $this->safe_string($data, 'id');
-        $price = $this->safe_float($data, 'price');
-        $amount = $this->safe_float($data, 'amount');
+        $price = $this->safe_number($data, 'price');
+        $amount = $this->safe_number($data, 'amount');
         $order1 = $this->safe_value($data, 'order1');
         $order2 = $this->safe_value($data, 'order2');
         $order = null;
@@ -1520,7 +1520,7 @@ class wavesexchange extends Exchange {
             $cost = $price * $amount;
         }
         $fee = array(
-            'cost' => $this->safe_float($data, 'fee'),
+            'cost' => $this->safe_number($data, 'fee'),
             'currency' => $this->safe_currency_code($this->safe_string($order, 'matcherFeeAssetId', 'WAVES')),
         );
         return array(
@@ -1602,7 +1602,7 @@ class wavesexchange extends Exchange {
             $withdrawAddress = $this->privateGetWithdrawAddressesCurrencyAddress ($withdrawAddressRequest);
             $currency = $this->safe_value($withdrawAddress, 'currency');
             $allowedAmount = $this->safe_value($currency, 'allowed_amount');
-            $minimum = $this->safe_float($allowedAmount, 'min');
+            $minimum = $this->safe_number($allowedAmount, 'min');
             if ($amount <= $minimum) {
                 throw new BadRequest($this->id . ' ' . $code . ' withdraw failed, $amount ' . (string) $amount . ' must be greater than the $minimum allowed $amount of ' . (string) $minimum);
             }
