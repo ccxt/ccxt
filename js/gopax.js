@@ -218,8 +218,8 @@ module.exports = class gopax extends Exchange {
             const minimums = this.safeValue (market, 'restApiOrderAmountMin', {});
             const marketAsk = this.safeValue (minimums, 'marketAsk', {});
             const marketBid = this.safeValue (minimums, 'marketBid', {});
-            const takerFeePercent = this.safeFloat (market, 'takerFeePercent');
-            const makerFeePercent = this.safeFloat (market, 'makerFeePercent');
+            const takerFeePercent = this.safeNumber (market, 'takerFeePercent');
+            const makerFeePercent = this.safeNumber (market, 'makerFeePercent');
             const taker = parseFloat (this.decimalToPrecision (takerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE));
             const maker = parseFloat (this.decimalToPrecision (makerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE));
             result.push ({
@@ -237,15 +237,15 @@ module.exports = class gopax extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (marketAsk, 'amount'),
+                        'min': this.safeNumber (marketAsk, 'amount'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.safeFloat (market, 'priceMin'),
+                        'min': this.safeNumber (market, 'priceMin'),
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeFloat (marketBid, 'amount'),
+                        'min': this.safeNumber (marketBid, 'amount'),
                         'max': undefined,
                     },
                 },
@@ -280,8 +280,8 @@ module.exports = class gopax extends Exchange {
             const id = this.safeString (currency, 'id');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
-            const fee = this.safeFloat (currency, 'withdrawalFee');
-            const precision = this.safeFloat (currency, 'scale');
+            const fee = this.safeNumber (currency, 'withdrawalFee');
+            const precision = this.safeNumber (currency, 'scale');
             result[code] = {
                 'id': id,
                 'info': currency,
@@ -304,7 +304,7 @@ module.exports = class gopax extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'withdrawalAmountMin'),
+                        'min': this.safeNumber (currency, 'withdrawalAmountMin'),
                         'max': undefined,
                     },
                 },
@@ -372,8 +372,8 @@ module.exports = class gopax extends Exchange {
         const marketId = this.safeString (ticker, 'name');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
-        const open = this.safeFloat (ticker, 'open');
-        const last = this.safeFloat2 (ticker, 'price', 'close');
+        const open = this.safeNumber (ticker, 'open');
+        const last = this.safeNumber2 (ticker, 'price', 'close');
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
@@ -384,20 +384,20 @@ module.exports = class gopax extends Exchange {
                 percentage = change / open * 100;
             }
         }
-        const baseVolume = this.safeFloat (ticker, 'volume');
-        const quoteVolume = this.safeFloat (ticker, 'quoteVolume');
+        const baseVolume = this.safeNumber (ticker, 'volume');
+        const quoteVolume = this.safeNumber (ticker, 'quoteVolume');
         const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': this.safeFloat (ticker, 'bidVolume'),
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': this.safeFloat (ticker, 'askVolume'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
+            'bidVolume': this.safeNumber (ticker, 'bidVolume'),
+            'ask': this.safeNumber (ticker, 'ask'),
+            'askVolume': this.safeNumber (ticker, 'askVolume'),
             'vwap': vwap,
             'open': open,
             'close': last,
@@ -454,8 +454,8 @@ module.exports = class gopax extends Exchange {
 
     parsePublicTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         let symbol = undefined;
         if ('symbol' in market) {
             symbol = this.safeString (market, 'symbol');
@@ -481,14 +481,14 @@ module.exports = class gopax extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const symbol = this.safeString (trade, 'tradingPairName').replace ('-', '/');
         const side = this.safeString (trade, 'side');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'baseAmount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'baseAmount');
         let feeCurrency = symbol.slice (0, 3);
         if (side === 'sell') {
             feeCurrency = symbol.slice (4);
         }
         const fee = {
-            'cost': this.safeFloat (trade, 'fee'),
+            'cost': this.safeNumber (trade, 'fee'),
             'currency': feeCurrency,
             'rate': undefined,
         };
@@ -570,15 +570,15 @@ module.exports = class gopax extends Exchange {
         } else if (type === '2') {
             type = 'market';
         }
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'amount', 'baseAmount');
-        let cost = this.safeFloat (trade, 'quoteAmount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber2 (trade, 'amount', 'baseAmount');
+        let cost = this.safeNumber (trade, 'quoteAmount');
         if (cost === undefined) {
             if ((price !== undefined) && (amount !== undefined)) {
                 cost = price * amount;
             }
         }
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -645,11 +645,11 @@ module.exports = class gopax extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 0),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 5),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -689,10 +689,10 @@ module.exports = class gopax extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString2 (balance, 'asset', 'isoAlpha3');
             const code = this.safeCurrencyCode (currencyId);
-            const hold = this.safeFloat (balance, 'hold');
-            const pendingWithdrawal = this.safeFloat (balance, 'pendingWithdrawal');
+            const hold = this.safeNumber (balance, 'hold');
+            const pendingWithdrawal = this.safeNumber (balance, 'pendingWithdrawal');
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'avail');
+            account['free'] = this.safeNumber (balance, 'avail');
             account['used'] = this.sum (hold, pendingWithdrawal);
             result[code] = account;
         }
@@ -773,16 +773,16 @@ module.exports = class gopax extends Exchange {
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         const timeInForce = this.safeStringUpper (order, 'timeInForce');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount');
-        const stopPrice = this.safeFloat (order, 'stopPrice');
-        const remaining = this.safeFloat (order, 'remaining');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'amount');
+        const stopPrice = this.safeNumber (order, 'stopPrice');
+        const remaining = this.safeNumber (order, 'remaining');
         const marketId = this.safeString (order, 'tradingPairName');
         market = this.safeMarket (marketId, market, '-');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const balanceChange = this.safeValue (order, 'balanceChange', {});
-        const filled = this.safeFloat (balanceChange, 'baseNet');
-        let cost = this.safeFloat (balanceChange, 'quoteNet');
+        const filled = this.safeNumber (balanceChange, 'baseNet');
+        let cost = this.safeNumber (balanceChange, 'quoteNet');
         if (cost !== undefined) {
             cost = Math.abs (cost);
         }
@@ -793,16 +793,16 @@ module.exports = class gopax extends Exchange {
         let fee = undefined;
         if (side === 'buy') {
             const baseFee = this.safeValue (balanceChange, 'baseFee', {});
-            const taking = this.safeFloat (baseFee, 'taking');
-            const making = this.safeFloat (baseFee, 'making');
+            const taking = this.safeNumber (baseFee, 'taking');
+            const making = this.safeNumber (baseFee, 'making');
             fee = {
                 'currency': market['base'],
                 'cost': this.sum (taking, making),
             };
         } else {
             const quoteFee = this.safeValue (balanceChange, 'quoteFee', {});
-            const taking = this.safeFloat (quoteFee, 'taking');
-            const making = this.safeFloat (quoteFee, 'making');
+            const taking = this.safeNumber (quoteFee, 'taking');
+            const making = this.safeNumber (quoteFee, 'making');
             fee = {
                 'currency': market['quote'],
                 'cost': this.sum (taking, making),
@@ -982,7 +982,7 @@ module.exports = class gopax extends Exchange {
             request['clientOrderId'] = clientOrderId;
             params = this.omit (params, 'clientOrderId');
         }
-        const stopPrice = this.safeFloat (params, 'stopPrice');
+        const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             params = this.omit (params, 'stopPrice');
@@ -1175,8 +1175,8 @@ module.exports = class gopax extends Exchange {
         } else if ((type === 'crypto_deposit' || type === 'fiat_deposit')) {
             type = 'deposit';
         }
-        const amount = this.safeFloat (transaction, 'netAmount');
-        const feeCost = this.safeFloat (transaction, 'feeAmount');
+        const amount = this.safeNumber (transaction, 'netAmount');
+        const feeCost = this.safeNumber (transaction, 'feeAmount');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
