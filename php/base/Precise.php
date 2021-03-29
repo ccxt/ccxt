@@ -50,7 +50,6 @@ class Precise {
         return new Precise ($result, $this->decimals + $distance);
     }
 
-
     public function add ($other) {
         if ($this->decimals === $other->decimals) {
             $integerResult = $this->integer->add ($other->integer);
@@ -64,8 +63,6 @@ class Precise {
             return new Precise ($result, $bigger->decimals);
         }
     }
-
-
 
     public function sub ($other) {
         $negative = new Precise ($other->integer->neg (), $other->decimals);
