@@ -311,7 +311,7 @@ class gateio extends Exchange {
                 'price' => $this->safe_integer($details, 'decimal_places'),
             );
             $amountLimits = array(
-                'min' => $this->safe_float($details, 'min_amount'),
+                'min' => $this->safe_number($details, 'min_amount'),
                 'max' => null,
             );
             $priceLimits = array(
@@ -319,7 +319,7 @@ class gateio extends Exchange {
                 'max' => null,
             );
             $defaultCost = $amountLimits['min'] * $priceLimits['min'];
-            $minCost = $this->safe_float($this->options['limits']['cost']['min'], $quote, $defaultCost);
+            $minCost = $this->safe_number($this->options['limits']['cost']['min'], $quote, $defaultCost);
             $costLimits = array(
                 'min' => $minCost,
                 'max' => null,
@@ -332,7 +332,7 @@ class gateio extends Exchange {
             $disabled = $this->safe_integer($details, 'trade_disabled');
             $active = !$disabled;
             $uppercaseId = strtoupper($id);
-            $fee = $this->safe_float($details, 'fee');
+            $fee = $this->safe_number($details, 'fee');
             $result[] = array(
                 'id' => $id,
                 'uppercaseId' => $uppercaseId,
@@ -366,8 +366,8 @@ class gateio extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($available, $currencyId);
-            $account['used'] = $this->safe_float($locked, $currencyId);
+            $account['free'] = $this->safe_number($available, $currencyId);
+            $account['used'] = $this->safe_number($locked, $currencyId);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -386,11 +386,11 @@ class gateio extends Exchange {
         // they return array( Timestamp, Volume, Close, High, Low, Open )
         return array(
             $this->safe_integer($ohlcv, 0), // t
-            $this->safe_float($ohlcv, 5), // o
-            $this->safe_float($ohlcv, 3), // h
-            $this->safe_float($ohlcv, 4), // l
-            $this->safe_float($ohlcv, 2), // c
-            $this->safe_float($ohlcv, 1), // v
+            $this->safe_number($ohlcv, 5), // o
+            $this->safe_number($ohlcv, 3), // h
+            $this->safe_number($ohlcv, 4), // l
+            $this->safe_number($ohlcv, 2), // c
+            $this->safe_number($ohlcv, 1), // v
         );
     }
 
@@ -430,8 +430,8 @@ class gateio extends Exchange {
         if ($market) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last');
-        $percentage = $this->safe_float($ticker, 'percentChange');
+        $last = $this->safe_number($ticker, 'last');
+        $percentage = $this->safe_number($ticker, 'percentChange');
         $open = null;
         $change = null;
         $average = null;
@@ -441,17 +441,17 @@ class gateio extends Exchange {
             $change = $last - $open;
             $average = $this->sum($last, $open) / 2;
         }
-        $open = $this->safe_float($ticker, 'open', $open);
-        $change = $this->safe_float($ticker, 'change', $change);
+        $open = $this->safe_number($ticker, 'open', $open);
+        $change = $this->safe_number($ticker, 'change', $change);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float_2($ticker, 'high24hr', 'high'),
-            'low' => $this->safe_float_2($ticker, 'low24hr', 'low'),
-            'bid' => $this->safe_float($ticker, 'highestBid'),
+            'high' => $this->safe_number_2($ticker, 'high24hr', 'high'),
+            'low' => $this->safe_number_2($ticker, 'low24hr', 'low'),
+            'bid' => $this->safe_number($ticker, 'highestBid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'lowestAsk'),
+            'ask' => $this->safe_number($ticker, 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -461,8 +461,8 @@ class gateio extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'quoteVolume'), // gateio has them reversed
-            'quoteVolume' => $this->safe_float($ticker, 'baseVolume'),
+            'baseVolume' => $this->safe_number($ticker, 'quoteVolume'), // gateio has them reversed
+            'quoteVolume' => $this->safe_number($ticker, 'baseVolume'),
             'info' => $ticker,
         );
     }
@@ -508,8 +508,8 @@ class gateio extends Exchange {
         $id = $this->safe_string_2($trade, 'tradeID', 'id');
         // take either of orderid or $orderId
         $orderId = $this->safe_string_2($trade, 'orderid', 'orderNumber');
-        $price = $this->safe_float_2($trade, 'rate', 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number_2($trade, 'rate', 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $type = $this->safe_string($trade, 'type');
         $takerOrMaker = $this->safe_string($trade, 'role');
         $cost = null;
@@ -524,11 +524,11 @@ class gateio extends Exchange {
         }
         $fee = null;
         $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee_coin'));
-        $feeCost = $this->safe_float($trade, 'point_fee');
+        $feeCost = $this->safe_number($trade, 'point_fee');
         if (($feeCost === null) || ($feeCost === 0)) {
-            $feeCost = $this->safe_float($trade, 'gt_fee');
+            $feeCost = $this->safe_number($trade, 'gt_fee');
             if (($feeCost === null) || ($feeCost === 0)) {
-                $feeCost = $this->safe_float($trade, 'fee');
+                $feeCost = $this->safe_number($trade, 'fee');
             } else {
                 $feeCurrency = $this->safe_currency_code('GT');
             }
@@ -672,16 +672,16 @@ class gateio extends Exchange {
         } else if ($side === '2') {
             $side = 'buy';
         }
-        $price = $this->safe_float_2($order, 'initialRate', 'rate');
-        $average = $this->safe_float($order, 'filledRate');
-        $amount = $this->safe_float_2($order, 'initialAmount', 'amount');
-        $filled = $this->safe_float($order, 'filledAmount');
+        $price = $this->safe_number_2($order, 'initialRate', 'rate');
+        $average = $this->safe_number($order, 'filledRate');
+        $amount = $this->safe_number_2($order, 'initialAmount', 'amount');
+        $filled = $this->safe_number($order, 'filledAmount');
         // In the $order $status response, this field has a different name.
-        $remaining = $this->safe_float_2($order, 'leftAmount', 'left');
-        $feeCost = $this->safe_float($order, 'feeValue');
+        $remaining = $this->safe_number_2($order, 'leftAmount', 'left');
+        $feeCost = $this->safe_number($order, 'feeValue');
         $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
         $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-        $feeRate = $this->safe_float($order, 'feePercentage');
+        $feeRate = $this->safe_number($order, 'feePercentage');
         if ($feeRate !== null) {
             $feeRate = $feeRate / 100;
         }
@@ -902,7 +902,7 @@ class gateio extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $id = $this->safe_string($transaction, 'id');
         $txid = $this->safe_string($transaction, 'txid');
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         if ($address === 'false') {
             $address = null;
@@ -910,7 +910,7 @@ class gateio extends Exchange {
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $type = $this->parse_transaction_type($id[0]);
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $feeCost = $this->safe_number($transaction, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(

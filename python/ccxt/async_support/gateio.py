@@ -311,7 +311,7 @@ class gateio(Exchange):
                 'price': self.safe_integer(details, 'decimal_places'),
             }
             amountLimits = {
-                'min': self.safe_float(details, 'min_amount'),
+                'min': self.safe_number(details, 'min_amount'),
                 'max': None,
             }
             priceLimits = {
@@ -319,7 +319,7 @@ class gateio(Exchange):
                 'max': None,
             }
             defaultCost = amountLimits['min'] * priceLimits['min']
-            minCost = self.safe_float(self.options['limits']['cost']['min'], quote, defaultCost)
+            minCost = self.safe_number(self.options['limits']['cost']['min'], quote, defaultCost)
             costLimits = {
                 'min': minCost,
                 'max': None,
@@ -332,7 +332,7 @@ class gateio(Exchange):
             disabled = self.safe_integer(details, 'trade_disabled')
             active = not disabled
             uppercaseId = id.upper()
-            fee = self.safe_float(details, 'fee')
+            fee = self.safe_number(details, 'fee')
             result.append({
                 'id': id,
                 'uppercaseId': uppercaseId,
@@ -363,8 +363,8 @@ class gateio(Exchange):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(available, currencyId)
-            account['used'] = self.safe_float(locked, currencyId)
+            account['free'] = self.safe_number(available, currencyId)
+            account['used'] = self.safe_number(locked, currencyId)
             result[code] = account
         return self.parse_balance(result)
 
@@ -380,11 +380,11 @@ class gateio(Exchange):
         # they return [Timestamp, Volume, Close, High, Low, Open]
         return [
             self.safe_integer(ohlcv, 0),  # t
-            self.safe_float(ohlcv, 5),  # o
-            self.safe_float(ohlcv, 3),  # h
-            self.safe_float(ohlcv, 4),  # l
-            self.safe_float(ohlcv, 2),  # c
-            self.safe_float(ohlcv, 1),  # v
+            self.safe_number(ohlcv, 5),  # o
+            self.safe_number(ohlcv, 3),  # h
+            self.safe_number(ohlcv, 4),  # l
+            self.safe_number(ohlcv, 2),  # c
+            self.safe_number(ohlcv, 1),  # v
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -420,8 +420,8 @@ class gateio(Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
-        percentage = self.safe_float(ticker, 'percentChange')
+        last = self.safe_number(ticker, 'last')
+        percentage = self.safe_number(ticker, 'percentChange')
         open = None
         change = None
         average = None
@@ -430,17 +430,17 @@ class gateio(Exchange):
             open = last / self.sum(1, relativeChange)
             change = last - open
             average = self.sum(last, open) / 2
-        open = self.safe_float(ticker, 'open', open)
-        change = self.safe_float(ticker, 'change', change)
+        open = self.safe_number(ticker, 'open', open)
+        change = self.safe_number(ticker, 'change', change)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float_2(ticker, 'high24hr', 'high'),
-            'low': self.safe_float_2(ticker, 'low24hr', 'low'),
-            'bid': self.safe_float(ticker, 'highestBid'),
+            'high': self.safe_number_2(ticker, 'high24hr', 'high'),
+            'low': self.safe_number_2(ticker, 'low24hr', 'low'),
+            'bid': self.safe_number(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'lowestAsk'),
+            'ask': self.safe_number(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -450,8 +450,8 @@ class gateio(Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'quoteVolume'),  # gateio has them reversed
-            'quoteVolume': self.safe_float(ticker, 'baseVolume'),
+            'baseVolume': self.safe_number(ticker, 'quoteVolume'),  # gateio has them reversed
+            'quoteVolume': self.safe_number(ticker, 'baseVolume'),
             'info': ticker,
         }
 
@@ -493,8 +493,8 @@ class gateio(Exchange):
         id = self.safe_string_2(trade, 'tradeID', 'id')
         # take either of orderid or orderId
         orderId = self.safe_string_2(trade, 'orderid', 'orderNumber')
-        price = self.safe_float_2(trade, 'rate', 'price')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number_2(trade, 'rate', 'price')
+        amount = self.safe_number(trade, 'amount')
         type = self.safe_string(trade, 'type')
         takerOrMaker = self.safe_string(trade, 'role')
         cost = None
@@ -506,11 +506,11 @@ class gateio(Exchange):
             symbol = market['symbol']
         fee = None
         feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee_coin'))
-        feeCost = self.safe_float(trade, 'point_fee')
+        feeCost = self.safe_number(trade, 'point_fee')
         if (feeCost is None) or (feeCost == 0):
-            feeCost = self.safe_float(trade, 'gt_fee')
+            feeCost = self.safe_number(trade, 'gt_fee')
             if (feeCost is None) or (feeCost == 0):
-                feeCost = self.safe_float(trade, 'fee')
+                feeCost = self.safe_number(trade, 'fee')
             else:
                 feeCurrency = self.safe_currency_code('GT')
         else:
@@ -644,16 +644,16 @@ class gateio(Exchange):
             side = 'sell'
         elif side == '2':
             side = 'buy'
-        price = self.safe_float_2(order, 'initialRate', 'rate')
-        average = self.safe_float(order, 'filledRate')
-        amount = self.safe_float_2(order, 'initialAmount', 'amount')
-        filled = self.safe_float(order, 'filledAmount')
+        price = self.safe_number_2(order, 'initialRate', 'rate')
+        average = self.safe_number(order, 'filledRate')
+        amount = self.safe_number_2(order, 'initialAmount', 'amount')
+        filled = self.safe_number(order, 'filledAmount')
         # In the order status response, self field has a different name.
-        remaining = self.safe_float_2(order, 'leftAmount', 'left')
-        feeCost = self.safe_float(order, 'feeValue')
+        remaining = self.safe_number_2(order, 'leftAmount', 'left')
+        feeCost = self.safe_number(order, 'feeValue')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
         feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-        feeRate = self.safe_float(order, 'feePercentage')
+        feeRate = self.safe_number(order, 'feePercentage')
         if feeRate is not None:
             feeRate = feeRate / 100
         return self.safe_order({
@@ -848,14 +848,14 @@ class gateio(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         id = self.safe_string(transaction, 'id')
         txid = self.safe_string(transaction, 'txid')
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         if address == 'false':
             address = None
         timestamp = self.safe_timestamp(transaction, 'timestamp')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         type = self.parse_transaction_type(id[0])
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         fee = None
         if feeCost is not None:
             fee = {
