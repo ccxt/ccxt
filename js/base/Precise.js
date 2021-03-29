@@ -32,18 +32,12 @@ class Precise {
     }
 
     mul (other) {
-        if (other === undefined) {
-            return undefined
-        }
         // other must be another instance of Precise
         const integerResult = this.integer.mul (other.integer)
         return new Precise (integerResult, this.decimals + other.decimals)
     }
 
     div (other, precision = 18) {
-        if (other === undefined) {
-            return undefined
-        }
         const distance = precision - this.decimals
         const exponent = new BN (this.base).pow (new BN (distance))
         const numerator = this.integer.mul (exponent)
@@ -52,9 +46,6 @@ class Precise {
     }
 
     add (other) {
-        if (other === undefined) {
-            return undefined
-        }
         if (this.decimals === other.decimals) {
             const integerResult = this.integer.add (other.integer)
             return new Precise (integerResult, this.decimals)
@@ -69,9 +60,6 @@ class Precise {
     }
 
     sub (other) {
-        if (other === undefined) {
-            return undefined
-        }
         const negative = new Precise (other.integer.neg (), other.decimals)
         return this.add (negative)
     }
