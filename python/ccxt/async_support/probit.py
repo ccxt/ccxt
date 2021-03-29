@@ -204,11 +204,11 @@ class probit(Exchange):
             costPrecision = self.safe_integer(market, 'cost_precision')
             precision = {
                 'amount': 1 / math.pow(10, amountPrecision),
-                'price': self.safe_float(market, 'price_increment'),
+                'price': self.safe_number(market, 'price_increment'),
                 'cost': 1 / math.pow(10, costPrecision),
             }
-            takerFeeRate = self.safe_float(market, 'taker_fee_rate')
-            makerFeeRate = self.safe_float(market, 'maker_fee_rate')
+            takerFeeRate = self.safe_number(market, 'taker_fee_rate')
+            makerFeeRate = self.safe_number(market, 'maker_fee_rate')
             result.append({
                 'id': id,
                 'info': market,
@@ -223,16 +223,16 @@ class probit(Exchange):
                 'maker': makerFeeRate / 100,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'min_quantity'),
-                        'max': self.safe_float(market, 'max_quantity'),
+                        'min': self.safe_number(market, 'min_quantity'),
+                        'max': self.safe_number(market, 'max_quantity'),
                     },
                     'price': {
-                        'min': self.safe_float(market, 'min_price'),
-                        'max': self.safe_float(market, 'max_price'),
+                        'min': self.safe_number(market, 'min_price'),
+                        'max': self.safe_number(market, 'max_price'),
                     },
                     'cost': {
-                        'min': self.safe_float(market, 'min_cost'),
-                        'max': self.safe_float(market, 'max_cost'),
+                        'min': self.safe_number(market, 'min_cost'),
+                        'max': self.safe_number(market, 'max_cost'),
                     },
                 },
             })
@@ -317,13 +317,13 @@ class probit(Exchange):
             # [{'amount': '0.015', 'priority': 1, 'currency_id': 'ETH'}, {}]
             for j in range(0, len(withdrawalFees)):
                 withdrawalFee = withdrawalFees[j]
-                amount = self.safe_float(withdrawalFee, 'amount')
+                amount = self.safe_number(withdrawalFee, 'amount')
                 priority = self.safe_integer(withdrawalFee, 'priority')
                 if (amount is not None) and (priority is not None):
                     fees.append(withdrawalFee)
             withdrawalFeesByPriority = self.sort_by(fees, 'priority')
             withdrawalFee = self.safe_value(withdrawalFeesByPriority, 0, {})
-            fee = self.safe_float(withdrawalFee, 'amount')
+            fee = self.safe_number(withdrawalFee, 'amount')
             result[code] = {
                 'id': id,
                 'code': code,
@@ -346,11 +346,11 @@ class probit(Exchange):
                         'max': None,
                     },
                     'deposit': {
-                        'min': self.safe_float(platform, 'min_deposit_amount'),
+                        'min': self.safe_number(platform, 'min_deposit_amount'),
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_float(platform, 'min_withdrawal_amount'),
+                        'min': self.safe_number(platform, 'min_withdrawal_amount'),
                         'max': None,
                     },
                 },
@@ -378,8 +378,8 @@ class probit(Exchange):
             currencyId = self.safe_string(balance, 'currency_id')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'total')
-            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_number(balance, 'total')
+            account['free'] = self.safe_number(balance, 'available')
             result[code] = account
         return self.parse_balance(result)
 
@@ -474,23 +474,23 @@ class probit(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
         marketId = self.safe_string(ticker, 'market_id')
         symbol = self.safe_symbol(marketId, market, '-')
-        close = self.safe_float(ticker, 'last')
-        change = self.safe_float(ticker, 'change')
+        close = self.safe_number(ticker, 'last')
+        change = self.safe_number(ticker, 'change')
         percentage = None
         open = None
         if change is not None:
             if close is not None:
                 open = close - change
                 percentage = (change / open) * 100
-        baseVolume = self.safe_float(ticker, 'base_volume')
-        quoteVolume = self.safe_float(ticker, 'quote_volume')
+        baseVolume = self.safe_number(ticker, 'base_volume')
+        quoteVolume = self.safe_number(ticker, 'quote_volume')
         vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -623,14 +623,14 @@ class probit(Exchange):
         marketId = self.safe_string(trade, 'market_id', marketId)
         symbol = self.safe_symbol(marketId, market, '-')
         side = self.safe_string(trade, 'side')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'quantity')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'quantity')
         cost = None
         if price is not None:
             if amount is not None:
                 cost = price * amount
         orderId = self.safe_string(trade, 'order_id')
-        feeCost = self.safe_float(trade, 'fee_amount')
+        feeCost = self.safe_number(trade, 'fee_amount')
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency_id')
@@ -761,11 +761,11 @@ class probit(Exchange):
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'start_time')),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'base_volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'base_volume'),
         ]
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -853,14 +853,14 @@ class probit(Exchange):
         marketId = self.safe_string(order, 'market_id')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'time'))
-        price = self.safe_float(order, 'limit_price')
-        filled = self.safe_float(order, 'filled_quantity')
-        remaining = self.safe_float(order, 'open_quantity')
-        canceledAmount = self.safe_float(order, 'cancelled_quantity')
+        price = self.safe_number(order, 'limit_price')
+        filled = self.safe_number(order, 'filled_quantity')
+        remaining = self.safe_number(order, 'open_quantity')
+        canceledAmount = self.safe_number(order, 'cancelled_quantity')
         if canceledAmount is not None:
             remaining = self.sum(remaining, canceledAmount)
-        amount = self.safe_float(order, 'quantity', self.sum(filled, remaining))
-        cost = self.safe_float_2(order, 'filled_cost', 'cost')
+        amount = self.safe_number(order, 'quantity', self.sum(filled, remaining))
+        cost = self.safe_number_2(order, 'filled_cost', 'cost')
         if type == 'market':
             price = None
         clientOrderId = self.safe_string(order, 'client_order_id')
@@ -915,7 +915,7 @@ class probit(Exchange):
         elif type == 'market':
             # for market buy it requires the amount of quote currency to spend
             if side == 'buy':
-                cost = self.safe_float(params, 'cost')
+                cost = self.safe_number(params, 'cost')
                 createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
                 if createMarketBuyOrderRequiresPrice:
                     if price is not None:
@@ -1053,7 +1053,7 @@ class probit(Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         id = self.safe_string(transaction, 'id')
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'destination_tag')
         txid = self.safe_string(transaction, 'hash')
@@ -1062,7 +1062,7 @@ class probit(Exchange):
         currencyId = self.safe_string(transaction, 'currency_id')
         code = self.safe_currency_code(currencyId)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         fee = None
         if feeCost is not None and feeCost != 0:
             fee = {
