@@ -445,8 +445,8 @@ class deribit(Exchange):
                 future = (type == 'future')
                 option = (type == 'option')
                 active = self.safe_value(market, 'is_active')
-                minTradeAmount = self.safe_float(market, 'min_trade_amount')
-                tickSize = self.safe_float(market, 'tick_size')
+                minTradeAmount = self.safe_number(market, 'min_trade_amount')
+                tickSize = self.safe_number(market, 'tick_size')
                 precision = {
                     'amount': minTradeAmount,
                     'price': tickSize,
@@ -458,8 +458,8 @@ class deribit(Exchange):
                     'quote': quote,
                     'active': active,
                     'precision': precision,
-                    'taker': self.safe_float(market, 'taker_commission'),
-                    'maker': self.safe_float(market, 'maker_commission'),
+                    'taker': self.safe_number(market, 'taker_commission'),
+                    'maker': self.safe_number(market, 'maker_commission'),
                     'limits': {
                         'amount': {
                             'min': minTradeAmount,
@@ -539,9 +539,9 @@ class deribit(Exchange):
         currencyId = self.safe_string(balance, 'currency')
         currencyCode = self.safe_currency_code(currencyId)
         account = self.account()
-        account['free'] = self.safe_float(balance, 'availableFunds')
-        account['used'] = self.safe_float(balance, 'maintenanceMargin')
-        account['total'] = self.safe_float(balance, 'equity')
+        account['free'] = self.safe_number(balance, 'availableFunds')
+        account['used'] = self.safe_number(balance, 'maintenanceMargin')
+        account['total'] = self.safe_number(balance, 'equity')
         result[currencyCode] = account
         return self.parse_balance(result)
 
@@ -658,18 +658,18 @@ class deribit(Exchange):
         timestamp = self.safe_integer_2(ticker, 'timestamp', 'creation_timestamp')
         marketId = self.safe_string(ticker, 'instrument_name')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_float_2(ticker, 'last_price', 'last')
+        last = self.safe_number_2(ticker, 'last_price', 'last')
         stats = self.safe_value(ticker, 'stats', ticker)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float_2(stats, 'high', 'max_price'),
-            'low': self.safe_float_2(stats, 'low', 'min_price'),
-            'bid': self.safe_float_2(ticker, 'best_bid_price', 'bid_price'),
-            'bidVolume': self.safe_float(ticker, 'best_bid_amount'),
-            'ask': self.safe_float_2(ticker, 'best_ask_price', 'ask_price'),
-            'askVolume': self.safe_float(ticker, 'best_ask_amount'),
+            'high': self.safe_number_2(stats, 'high', 'max_price'),
+            'low': self.safe_number_2(stats, 'low', 'min_price'),
+            'bid': self.safe_number_2(ticker, 'best_bid_price', 'bid_price'),
+            'bidVolume': self.safe_number(ticker, 'best_bid_amount'),
+            'ask': self.safe_number_2(ticker, 'best_ask_price', 'ask_price'),
+            'askVolume': self.safe_number(ticker, 'best_ask_amount'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -679,7 +679,7 @@ class deribit(Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_float(stats, 'volume'),
+            'quoteVolume': self.safe_number(stats, 'volume'),
             'info': ticker,
         }
 
@@ -858,8 +858,8 @@ class deribit(Exchange):
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string(trade, 'direction')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
         cost = None
         if amount is not None:
             if price is not None:
@@ -869,7 +869,7 @@ class deribit(Exchange):
         if liquidity is not None:
             # M = maker, T = taker, MT = both
             takerOrMaker = 'maker' if (liquidity == 'M') else 'taker'
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
@@ -1040,10 +1040,10 @@ class deribit(Exchange):
         timestamp = self.safe_integer(order, 'creation_timestamp')
         lastUpdate = self.safe_integer(order, 'last_update_timestamp')
         id = self.safe_string(order, 'order_id')
-        price = self.safe_float(order, 'price')
-        average = self.safe_float(order, 'average_price')
-        amount = self.safe_float(order, 'amount')
-        filled = self.safe_float(order, 'filled_amount')
+        price = self.safe_number(order, 'price')
+        average = self.safe_number(order, 'average_price')
+        amount = self.safe_number(order, 'amount')
+        filled = self.safe_number(order, 'filled_amount')
         lastTradeTimestamp = None
         if filled is not None:
             if filled > 0:
@@ -1052,7 +1052,7 @@ class deribit(Exchange):
         marketId = self.safe_string(order, 'instrument_name')
         market = self.safe_market(marketId, market)
         side = self.safe_string_lower(order, 'direction')
-        feeCost = self.safe_float(order, 'commission')
+        feeCost = self.safe_number(order, 'commission')
         fee = None
         if feeCost is not None:
             feeCost = abs(feeCost)
@@ -1162,7 +1162,7 @@ class deribit(Exchange):
             else:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
         if stopPriceIsRequired:
-            stopPrice = self.safe_float_2(params, 'stop_price', 'stopPrice')
+            stopPrice = self.safe_number_2(params, 'stop_price', 'stopPrice')
             if stopPrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stop_price or stopPrice param for a ' + type + ' order')
             else:
@@ -1535,7 +1535,7 @@ class deribit(Exchange):
         updated = self.safe_integer(transaction, 'updated_timestamp')
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         address = self.safe_string(transaction, 'address')
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         type = 'deposit'
         fee = None
         if feeCost is not None:
@@ -1557,7 +1557,7 @@ class deribit(Exchange):
             'tagTo': None,
             'tagFrom': None,
             'type': type,
-            'amount': self.safe_float(transaction, 'amount'),
+            'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
             'status': status,
             'updated': updated,

@@ -129,8 +129,8 @@ class flowbtc(Exchange):
             currencyId = balance['name']
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'balance')
-            account['total'] = self.safe_float(balance, 'hold')
+            account['free'] = self.safe_number(balance, 'balance')
+            account['total'] = self.safe_number(balance, 'hold')
             result[code] = account
         return self.parse_balance(result)
 
@@ -151,16 +151,16 @@ class flowbtc(Exchange):
         }
         ticker = self.publicPostGetTicker(self.extend(request, params))
         timestamp = self.milliseconds()
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -170,8 +170,8 @@ class flowbtc(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume24hr'),
-            'quoteVolume': self.safe_float(ticker, 'volume24hrProduct2'),
+            'baseVolume': self.safe_number(ticker, 'volume24hr'),
+            'quoteVolume': self.safe_number(ticker, 'volume24hrProduct2'),
             'info': ticker,
         }
 
@@ -179,8 +179,8 @@ class flowbtc(Exchange):
         timestamp = self.safe_timestamp(trade, 'unixtime')
         side = 'buy' if (trade['incomingOrderSide'] == 0) else 'sell'
         id = self.safe_string(trade, 'tid')
-        price = self.safe_float(trade, 'px')
-        amount = self.safe_float(trade, 'qty')
+        price = self.safe_number(trade, 'px')
+        amount = self.safe_number(trade, 'qty')
         cost = None
         if price is not None:
             if amount is not None:

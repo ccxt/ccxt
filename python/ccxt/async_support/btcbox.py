@@ -103,8 +103,8 @@ class btcbox(Exchange):
             if free in response:
                 account = self.account()
                 used = currencyId + '_lock'
-                account['free'] = self.safe_float(response, free)
-                account['used'] = self.safe_float(response, used)
+                account['free'] = self.safe_number(response, free)
+                account['used'] = self.safe_number(response, used)
                 result[code] = account
         return self.parse_balance(result)
 
@@ -123,16 +123,16 @@ class btcbox(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -142,8 +142,8 @@ class btcbox(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
-            'quoteVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
+            'quoteVolume': self.safe_number(ticker, 'volume'),
             'info': ticker,
         }
 
@@ -163,8 +163,8 @@ class btcbox(Exchange):
         if market is not None:
             symbol = market['symbol']
         id = self.safe_string(trade, 'tid')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
         cost = None
         if amount is not None:
             if price is not None:
@@ -260,13 +260,13 @@ class btcbox(Exchange):
         timestamp = None
         if datetimeString is not None:
             timestamp = self.parse8601(order['datetime'] + '+09:00')  # Tokyo time
-        amount = self.safe_float(order, 'amount_original')
-        remaining = self.safe_float(order, 'amount_outstanding')
+        amount = self.safe_number(order, 'amount_original')
+        remaining = self.safe_number(order, 'amount_outstanding')
         filled = None
         if amount is not None:
             if remaining is not None:
                 filled = amount - remaining
-        price = self.safe_float(order, 'price')
+        price = self.safe_number(order, 'price')
         cost = None
         if price is not None:
             if filled is not None:

@@ -136,11 +136,11 @@ module.exports = class coinfalcon extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'change_in_24h'),
+            'change': this.safeNumber (ticker, 'change_in_24h'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
         };
     }
@@ -177,8 +177,8 @@ module.exports = class coinfalcon extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'size');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'size');
         const symbol = market['symbol'];
         let cost = undefined;
         if (price !== undefined) {
@@ -190,7 +190,7 @@ module.exports = class coinfalcon extends Exchange {
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'order_id');
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyCode = this.safeString (trade, 'fee_currency_code');
             fee = {
@@ -259,9 +259,9 @@ module.exports = class coinfalcon extends Exchange {
             const currencyId = this.safeString (balance, 'currency_code');
             const code = this.safeCurrencyCode (currencyId);
             const account = {
-                'free': this.safeFloat (balance, 'available_balance'),
-                'used': this.safeFloat (balance, 'hold_balance'),
-                'total': this.safeFloat (balance, 'balance'),
+                'free': this.safeNumber (balance, 'available_balance'),
+                'used': this.safeNumber (balance, 'hold_balance'),
+                'total': this.safeNumber (balance, 'balance'),
             };
             result[code] = account;
         }
@@ -300,9 +300,9 @@ module.exports = class coinfalcon extends Exchange {
         const marketId = this.safeString (order, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'size');
-        const filled = this.safeFloat (order, 'size_filled');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'size');
+        const filled = this.safeNumber (order, 'size_filled');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'operation_type');
         if (type !== undefined) {

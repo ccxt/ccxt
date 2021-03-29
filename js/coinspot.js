@@ -123,7 +123,7 @@ module.exports = class coinspot extends Exchange {
                     const balance = currencies[currencyId];
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
-                    account['total'] = this.safeFloat (balance, 'balance');
+                    account['total'] = this.safeNumber (balance, 'balance');
                     result[code] = account;
                 }
             }
@@ -133,7 +133,7 @@ module.exports = class coinspot extends Exchange {
                 const currencyId = currencyIds[i];
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['total'] = this.safeFloat (balances, currencyId);
+                account['total'] = this.safeNumber (balances, currencyId);
                 result[code] = account;
             }
         }
@@ -157,16 +157,16 @@ module.exports = class coinspot extends Exchange {
         id = id.toLowerCase ();
         const ticker = response['prices'][id];
         const timestamp = this.milliseconds ();
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeFloat (ticker, 'bid'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -214,9 +214,9 @@ module.exports = class coinspot extends Exchange {
         //         "market":"BTC/AUD"
         //     }
         //
-        const price = this.safeFloat (trade, 'rate');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = this.safeFloat (trade, 'total');
+        const price = this.safeNumber (trade, 'rate');
+        const amount = this.safeNumber (trade, 'amount');
+        let cost = this.safeNumber (trade, 'total');
         if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
             cost = price * amount;
         }

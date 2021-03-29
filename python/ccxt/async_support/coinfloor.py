@@ -106,14 +106,14 @@ class coinfloor(Exchange):
         baseIdLower = self.safe_string_lower(market, 'baseId')
         quoteIdLower = self.safe_string_lower(market, 'quoteId')
         result[base] = {
-            'free': self.safe_float(response, baseIdLower + '_available'),
-            'used': self.safe_float(response, baseIdLower + '_reserved'),
-            'total': self.safe_float(response, baseIdLower + '_balance'),
+            'free': self.safe_number(response, baseIdLower + '_available'),
+            'used': self.safe_number(response, baseIdLower + '_reserved'),
+            'total': self.safe_number(response, baseIdLower + '_balance'),
         }
         result[quote] = {
-            'free': self.safe_float(response, quoteIdLower + '_available'),
-            'used': self.safe_float(response, quoteIdLower + '_reserved'),
-            'total': self.safe_float(response, quoteIdLower + '_balance'),
+            'free': self.safe_number(response, quoteIdLower + '_available'),
+            'used': self.safe_number(response, quoteIdLower + '_reserved'),
+            'total': self.safe_number(response, quoteIdLower + '_balance'),
         }
         return self.parse_balance(result)
 
@@ -131,21 +131,21 @@ class coinfloor(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        vwap = self.safe_float(ticker, 'vwap')
-        baseVolume = self.safe_float(ticker, 'volume')
+        vwap = self.safe_number(ticker, 'vwap')
+        baseVolume = self.safe_number(ticker, 'volume')
         quoteVolume = None
         if vwap is not None:
             quoteVolume = baseVolume * vwap
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -172,8 +172,8 @@ class coinfloor(Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string(trade, 'tid')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
         cost = None
         if price is not None:
             if amount is not None:
@@ -287,8 +287,8 @@ class coinfloor(Exchange):
                 parts = key.split('_')
                 numParts = len(parts)
                 if numParts == 2:
-                    tmpBaseAmount = self.safe_float(item, parts[0])
-                    tmpQuoteAmount = self.safe_float(item, parts[1])
+                    tmpBaseAmount = self.safe_number(item, parts[0])
+                    tmpQuoteAmount = self.safe_number(item, parts[1])
                     if tmpBaseAmount is not None and tmpQuoteAmount is not None:
                         baseId = parts[0]
                         quoteId = parts[1]
@@ -300,7 +300,7 @@ class coinfloor(Exchange):
         referenceId = self.safe_string(item, 'id')
         timestamp = self.parse8601(self.safe_string(item, 'datetime'))
         fee = None
-        feeCost = self.safe_float(item, 'fee')
+        feeCost = self.safe_number(item, 'fee')
         result = {
             'id': None,
             'timestamp': timestamp,
@@ -399,8 +399,8 @@ class coinfloor(Exchange):
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'type': type,
-            'price': self.safe_float(response, 'price'),
-            'remaining': self.safe_float(response, 'amount'),
+            'price': self.safe_number(response, 'price'),
+            'remaining': self.safe_number(response, 'amount'),
             'info': response,
         }
 
@@ -421,8 +421,8 @@ class coinfloor(Exchange):
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount')
         side = None
         status = self.safe_string(order, 'status')
         rawType = self.safe_string(order, 'type')

@@ -173,6 +173,8 @@ class gateio extends Exchange {
                 'BTCBULL' => 'BULL',
                 'SBTC' => 'Super Bitcoin',
                 'TNC' => 'Trinity Network Credit',
+                '88MPH' => 'MPH',
+                'MPH' => 'Morpher', // conflict with 88MPH
             ),
         ));
     }

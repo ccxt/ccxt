@@ -198,9 +198,9 @@ module.exports = class bithumb extends Exchange {
             const account = this.account ();
             const currency = this.currency (code);
             const lowerCurrencyId = this.safeStringLower (currency, 'id');
-            account['total'] = this.safeFloat (balances, 'total_' + lowerCurrencyId);
-            account['used'] = this.safeFloat (balances, 'in_use_' + lowerCurrencyId);
-            account['free'] = this.safeFloat (balances, 'available_' + lowerCurrencyId);
+            account['total'] = this.safeNumber (balances, 'total_' + lowerCurrencyId);
+            account['used'] = this.safeNumber (balances, 'in_use_' + lowerCurrencyId);
+            account['free'] = this.safeNumber (balances, 'available_' + lowerCurrencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -265,8 +265,8 @@ module.exports = class bithumb extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const open = this.safeFloat (ticker, 'opening_price');
-        const close = this.safeFloat (ticker, 'closing_price');
+        const open = this.safeNumber (ticker, 'opening_price');
+        const close = this.safeNumber (ticker, 'closing_price');
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
@@ -277,18 +277,18 @@ module.exports = class bithumb extends Exchange {
             }
             average = this.sum (open, close) / 2;
         }
-        const baseVolume = this.safeFloat (ticker, 'units_traded_24H');
-        const quoteVolume = this.safeFloat (ticker, 'acc_trade_value_24H');
+        const baseVolume = this.safeNumber (ticker, 'units_traded_24H');
+        const quoteVolume = this.safeNumber (ticker, 'acc_trade_value_24H');
         const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'max_price'),
-            'low': this.safeFloat (ticker, 'min_price'),
-            'bid': this.safeFloat (ticker, 'buy_price'),
+            'high': this.safeNumber (ticker, 'max_price'),
+            'low': this.safeNumber (ticker, 'min_price'),
+            'bid': this.safeNumber (ticker, 'buy_price'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell_price'),
+            'ask': this.safeNumber (ticker, 'sell_price'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
@@ -394,11 +394,11 @@ module.exports = class bithumb extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 5),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -488,9 +488,9 @@ module.exports = class bithumb extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'units_traded', 'units');
-        let cost = this.safeFloat (trade, 'total');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber2 (trade, 'units_traded', 'units');
+        let cost = this.safeNumber (trade, 'total');
         if (cost === undefined) {
             if (amount !== undefined) {
                 if (price !== undefined) {
@@ -499,7 +499,7 @@ module.exports = class bithumb extends Exchange {
             }
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             const feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
@@ -702,14 +702,14 @@ module.exports = class bithumb extends Exchange {
         const sideProperty = this.safeValue2 (order, 'type', 'side');
         const side = (sideProperty === 'bid') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'order_status'));
-        let price = this.safeFloat2 (order, 'order_price', 'price');
+        let price = this.safeNumber2 (order, 'order_price', 'price');
         let type = 'limit';
         if (price === 0) {
             price = undefined;
             type = 'market';
         }
-        const amount = this.safeFloat2 (order, 'order_qty', 'units');
-        let remaining = this.safeFloat (order, 'units_remaining');
+        const amount = this.safeNumber2 (order, 'order_qty', 'units');
+        let remaining = this.safeNumber (order, 'units_remaining');
         if (remaining === undefined) {
             if (status === 'closed') {
                 remaining = 0;

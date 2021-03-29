@@ -216,8 +216,8 @@ class coinegg extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $this->milliseconds();
-        $last = $this->safe_float($ticker, 'last');
-        $percentage = $this->safe_float($ticker, 'change');
+        $last = $this->safe_number($ticker, 'last');
+        $percentage = $this->safe_number($ticker, 'change');
         $open = null;
         $change = null;
         $average = null;
@@ -231,11 +231,11 @@ class coinegg extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -245,8 +245,8 @@ class coinegg extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
-            'quoteVolume' => $this->safe_float($ticker, 'quoteVol'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'quoteVolume' => $this->safe_number($ticker, 'quoteVol'),
             'info' => $ticker,
         );
     }
@@ -275,8 +275,8 @@ class coinegg extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'date');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $symbol = $market['symbol'];
         $cost = null;
         if ($amount !== null) {
@@ -330,7 +330,7 @@ class coinegg extends Exchange {
                 $result[$code] = $this->account();
             }
             $type = ($accountType === 'lock') ? 'used' : 'free';
-            $result[$code][$type] = $this->safe_float($balances, $key);
+            $result[$code][$type] = $this->safe_number($balances, $key);
         }
         return $this->parse_balance($result);
     }
@@ -341,9 +341,9 @@ class coinegg extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'datetime'));
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount_original');
-        $remaining = $this->safe_float($order, 'amount_outstanding');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'amount_original');
+        $remaining = $this->safe_number($order, 'amount_outstanding');
         $status = $this->safe_string($order, 'status');
         if ($status === 'cancelled') {
             $status = 'canceled';

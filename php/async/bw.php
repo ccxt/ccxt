@@ -188,7 +188,7 @@ class bw extends Exchange {
             $symbol = $base . '/' . $quote;
             $state = $this->safe_integer($market, 'state');
             $active = ($state === 1);
-            $fee = $this->safe_float($market, 'defaultFee');
+            $fee = $this->safe_number($market, 'defaultFee');
             $result[] = array(
                 'id' => $id,
                 'active' => $active,
@@ -209,7 +209,7 @@ class bw extends Exchange {
                 ),
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'minAmount'),
+                        'min' => $this->safe_number($market, 'minAmount'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -295,11 +295,11 @@ class bw extends Exchange {
                 'info' => $currency,
                 'name' => $code,
                 'active' => $active,
-                'fee' => $this->safe_float($currency, 'drawFee'),
+                'fee' => $this->safe_number($currency, 'drawFee'),
                 'precision' => null,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($currency, 'limitAmount', 0),
+                        'min' => $this->safe_number($currency, 'limitAmount', 0),
                         'max' => null,
                     ),
                     'price' => array(
@@ -312,7 +312,7 @@ class bw extends Exchange {
                     ),
                     'withdraw' => array(
                         'min' => null,
-                        'max' => $this->safe_float($currency, 'onceDrawLimit'),
+                        'max' => $this->safe_number($currency, 'onceDrawLimit'),
                     ),
                 ),
             );
@@ -349,9 +349,9 @@ class bw extends Exchange {
             'high' => floatval($this->safe_value($ticker, 2)),
             'low' => floatval($this->safe_value($ticker, 3)),
             'bid' => floatval($this->safe_value($ticker, 7)),
-            'bidVolume' => $this->safe_float($bid, 'quantity'),
+            'bidVolume' => $this->safe_number($bid, 'quantity'),
             'ask' => floatval($this->safe_value($ticker, 8)),
-            'askVolume' => $this->safe_float($ask, 'quantity'),
+            'askVolume' => $this->safe_number($ask, 'quantity'),
             'vwap' => null,
             'open' => null,
             'close' => $close,
@@ -480,8 +480,8 @@ class bw extends Exchange {
         //     ...
         //
         $timestamp = $this->safe_timestamp($trade, 2);
-        $price = $this->safe_float($trade, 5);
-        $amount = $this->safe_float($trade, 6);
+        $price = $this->safe_number($trade, 5);
+        $amount = $this->safe_number($trade, 6);
         $marketId = $this->safe_string($trade, 1);
         $symbol = null;
         if ($marketId !== null) {
@@ -574,11 +574,11 @@ class bw extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 3),
-            $this->safe_float($ohlcv, 4),
-            $this->safe_float($ohlcv, 5),
-            $this->safe_float($ohlcv, 6),
-            $this->safe_float($ohlcv, 7),
-            $this->safe_float($ohlcv, 8),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
+            $this->safe_number($ohlcv, 6),
+            $this->safe_number($ohlcv, 7),
+            $this->safe_number($ohlcv, 8),
         );
     }
 
@@ -636,8 +636,8 @@ class bw extends Exchange {
             $currencyId = $this->safe_string($balance, 'currencyTypeId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'amount');
-            $account['used'] = $this->safe_float($balance, 'freeze');
+            $account['free'] = $this->safe_number($balance, 'amount');
+            $account['used'] = $this->safe_number($balance, 'freeze');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -736,11 +736,11 @@ class bw extends Exchange {
         } else if ($side === '1') {
             $side = 'buy';
         }
-        $amount = $this->safe_float($order, 'amount');
-        $price = $this->safe_float($order, 'price');
-        $filled = $this->safe_float($order, 'completeAmount');
-        $remaining = $this->safe_float_2($order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
-        $cost = $this->safe_float($order, 'totalMoney');
+        $amount = $this->safe_number($order, 'amount');
+        $price = $this->safe_number($order, 'price');
+        $filled = $this->safe_number($order, 'completeAmount');
+        $remaining = $this->safe_number_2($order, 'availabelAmount', 'availableAmount'); // typo in the docs or in the API, availabel vs available
+        $cost = $this->safe_number($order, 'totalMoney');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         return $this->safe_order(array(
             'info' => $order,
@@ -1060,12 +1060,12 @@ class bw extends Exchange {
             $code = $currency['code'];
         }
         $type = (is_array($transaction) && array_key_exists('depositId', $transaction)) ? 'deposit' : 'withdrawal';
-        $amount = $this->safe_float_2($transaction, 'actuallyAmount', 'amount');
+        $amount = $this->safe_number_2($transaction, 'actuallyAmount', 'amount');
         $status = $this->parse_transaction_status($this->safe_string_2($transaction, 'verifyStatus', 'state'));
         $timestamp = $this->safe_integer($transaction, 'createTime');
         $txid = $this->safe_string($transaction, 'txId');
         $fee = null;
-        $feeCost = $this->safe_float($transaction, 'fees');
+        $feeCost = $this->safe_number($transaction, 'fees');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,

@@ -114,10 +114,10 @@ class southxchange(Exchange):
             balance = response[i]
             currencyId = self.safe_string(balance, 'Currency')
             code = self.safe_currency_code(currencyId)
-            deposited = self.safe_float(balance, 'Deposited')
-            unconfirmed = self.safe_float(balance, 'Unconfirmed')
+            deposited = self.safe_number(balance, 'Deposited')
+            unconfirmed = self.safe_number(balance, 'Unconfirmed')
             account = self.account()
-            account['free'] = self.safe_float(balance, 'Available')
+            account['free'] = self.safe_number(balance, 'Available')
             account['total'] = self.sum(deposited, unconfirmed)
             result[code] = account
         return self.parse_balance(result)
@@ -135,16 +135,16 @@ class southxchange(Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'Last')
+        last = self.safe_number(ticker, 'Last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_float(ticker, 'Bid'),
+            'bid': self.safe_number(ticker, 'Bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'Ask'),
+            'ask': self.safe_number(ticker, 'Ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -152,9 +152,9 @@ class southxchange(Exchange):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_float(ticker, 'Variation24Hr'),
+            'percentage': self.safe_number(ticker, 'Variation24Hr'),
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'Volume24Hr'),
+            'baseVolume': self.safe_number(ticker, 'Volume24Hr'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -184,8 +184,8 @@ class southxchange(Exchange):
 
     def parse_trade(self, trade, market):
         timestamp = self.safe_timestamp(trade, 'At')
-        price = self.safe_float(trade, 'Price')
-        amount = self.safe_float(trade, 'Amount')
+        price = self.safe_number(trade, 'Price')
+        amount = self.safe_number(trade, 'Amount')
         cost = None
         if price is not None:
             if amount is not None:
@@ -227,9 +227,9 @@ class southxchange(Exchange):
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
         timestamp = None
-        price = self.safe_float(order, 'LimitPrice')
-        amount = self.safe_float(order, 'OriginalAmount')
-        remaining = self.safe_float(order, 'Amount')
+        price = self.safe_number(order, 'LimitPrice')
+        amount = self.safe_number(order, 'OriginalAmount')
+        remaining = self.safe_number(order, 'Amount')
         type = 'limit'
         side = self.safe_string_lower(order, 'Type')
         id = self.safe_string(order, 'Code')
@@ -375,8 +375,8 @@ class southxchange(Exchange):
         type = self.safe_string(item, 'Type')
         ledgerEntryType = self.parse_ledger_entry_type(type)
         code = self.safe_currency_code(self.safe_string(item, 'CurrencyCode'), currency)
-        amount = self.safe_float(item, 'Amount')
-        after = self.safe_float(item, 'TotalBalance')
+        amount = self.safe_number(item, 'Amount')
+        after = self.safe_number(item, 'TotalBalance')
         before = None
         if amount is not None:
             if after is not None:
@@ -539,7 +539,7 @@ class southxchange(Exchange):
         #     }
         #
         id = self.safe_string(transaction, 'MovementId')
-        amount = self.safe_float(transaction, 'Amount')
+        amount = self.safe_number(transaction, 'Amount')
         address = self.safe_string(transaction, 'Address')
         addressTo = address
         addressFrom = None

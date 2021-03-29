@@ -328,7 +328,7 @@ class bitstamp(Exchange):
             'type': currencyType,
             'name': name,
             'active': True,
-            'fee': self.safe_float(description['fees']['funding']['withdraw'], code),
+            'fee': self.safe_number(description['fees']['funding']['withdraw'], code),
             'precision': precision,
             'limits': {
                 'amount': {
@@ -424,24 +424,24 @@ class bitstamp(Exchange):
         }
         ticker = self.publicGetTickerPair(self.extend(request, params))
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        vwap = self.safe_float(ticker, 'vwap')
-        baseVolume = self.safe_float(ticker, 'volume')
+        vwap = self.safe_number(ticker, 'vwap')
+        baseVolume = self.safe_number(ticker, 'volume')
         quoteVolume = None
         if baseVolume is not None and vwap is not None:
             quoteVolume = baseVolume * vwap
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': self.safe_float(ticker, 'open'),
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -482,7 +482,7 @@ class bitstamp(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             if id.find('_') < 0:
-                value = self.safe_float(transaction, id)
+                value = self.safe_number(transaction, id)
                 if (value is not None) and (value != 0):
                     return id
         return None
@@ -553,11 +553,11 @@ class bitstamp(Exchange):
         id = self.safe_string_2(trade, 'id', 'tid')
         symbol = None
         side = None
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
         orderId = self.safe_string(trade, 'order_id')
         type = None
-        cost = self.safe_float(trade, 'cost')
+        cost = self.safe_number(trade, 'cost')
         if market is None:
             keys = list(trade.keys())
             for i in range(0, len(keys)):
@@ -569,12 +569,12 @@ class bitstamp(Exchange):
             # try to deduce it from used keys
             if market is None:
                 market = self.get_market_from_trade(trade)
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         feeCurrency = None
         if market is not None:
-            price = self.safe_float(trade, market['symbolId'], price)
-            amount = self.safe_float(trade, market['baseId'], amount)
-            cost = self.safe_float(trade, market['quoteId'], cost)
+            price = self.safe_number(trade, market['symbolId'], price)
+            amount = self.safe_number(trade, market['baseId'], amount)
+            cost = self.safe_number(trade, market['quoteId'], cost)
             feeCurrency = market['quote']
             symbol = market['symbol']
         timestamp = self.safe_string_2(trade, 'date', 'datetime')
@@ -630,7 +630,7 @@ class bitstamp(Exchange):
 
     def parse_trading_fee(self, balances, symbol):
         market = self.market(symbol)
-        tradeFee = self.safe_float(balances, market['id'] + '_fee')
+        tradeFee = self.safe_number(balances, market['id'] + '_fee')
         return {
             'symbol': symbol,
             'maker': tradeFee,
@@ -678,11 +678,11 @@ class bitstamp(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 'timestamp'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -735,9 +735,9 @@ class bitstamp(Exchange):
             currency = self.currency(code)
             currencyId = currency['id']
             account = self.account()
-            account['free'] = self.safe_float(balance, currencyId + '_available')
-            account['used'] = self.safe_float(balance, currencyId + '_reserved')
-            account['total'] = self.safe_float(balance, currencyId + '_balance')
+            account['free'] = self.safe_number(balance, currencyId + '_available')
+            account['used'] = self.safe_number(balance, currencyId + '_reserved')
+            account['total'] = self.safe_number(balance, currencyId + '_balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -780,7 +780,7 @@ class bitstamp(Exchange):
             if id.find('_withdrawal_fee') >= 0:
                 currencyId = id.split('_')[0]
                 code = self.safe_currency_code(currencyId)
-                withdraw[code] = self.safe_float(balance, id)
+                withdraw[code] = self.safe_number(balance, id)
         return {
             'info': balance,
             'withdraw': withdraw,
@@ -1006,16 +1006,16 @@ class bitstamp(Exchange):
         id = self.safe_string(transaction, 'id')
         currencyId = self.get_currency_id_from_transaction(transaction)
         code = self.safe_currency_code(currencyId, currency)
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         feeCurrency = None
         amount = None
         if 'amount' in transaction:
-            amount = self.safe_float(transaction, 'amount')
+            amount = self.safe_number(transaction, 'amount')
         elif currency is not None:
-            amount = self.safe_float(transaction, currency['id'], amount)
+            amount = self.safe_number(transaction, currency['id'], amount)
             feeCurrency = currency['code']
         elif (code is not None) and (currencyId is not None):
-            amount = self.safe_float(transaction, currencyId, amount)
+            amount = self.safe_number(transaction, currencyId, amount)
             feeCurrency = code
         if amount is not None:
             # withdrawals have a negative amount
@@ -1137,7 +1137,7 @@ class bitstamp(Exchange):
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
-        amount = self.safe_float(order, 'amount')
+        amount = self.safe_number(order, 'amount')
         filled = 0.0
         trades = []
         transactions = self.safe_value(order, 'transactions', [])
@@ -1164,7 +1164,7 @@ class bitstamp(Exchange):
         remaining = None
         if amount is not None:
             remaining = amount - filled
-        price = self.safe_float(order, 'price')
+        price = self.safe_number(order, 'price')
         if market is None:
             market = self.get_market_from_trades(trades)
         feeCurrency = None
@@ -1281,11 +1281,11 @@ class bitstamp(Exchange):
             parsedTransaction = self.parse_transaction(item)
             direction = None
             if 'amount' in item:
-                amount = self.safe_float(item, 'amount')
+                amount = self.safe_number(item, 'amount')
                 direction = amount > 'in' if 0 else 'out'
             elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
                 currencyId = self.currency_id(parsedTransaction['currency'])
-                amount = self.safe_float(item, currencyId)
+                amount = self.safe_number(item, currencyId)
                 direction = amount > 'in' if 0 else 'out'
             return {
                 'id': parsedTransaction['id'],

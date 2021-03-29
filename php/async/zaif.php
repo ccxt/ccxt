@@ -160,7 +160,7 @@ class zaif extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array(
-                'amount' => -log10 ($this->safe_float($market, 'item_unit_step')),
+                'amount' => -log10 ($this->safe_number($market, 'item_unit_step')),
                 'price' => $this->safe_integer($market, 'aux_unit_point'),
             );
             $fees = $this->safe_value($this->options['fees'], $symbol, $this->fees['trading']);
@@ -179,11 +179,11 @@ class zaif extends Exchange {
                 'maker' => $maker,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'item_unit_min'),
+                        'min' => $this->safe_number($market, 'item_unit_min'),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($market, 'aux_unit_min'),
+                        'min' => $this->safe_number($market, 'aux_unit_min'),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -215,7 +215,7 @@ class zaif extends Exchange {
             );
             if (is_array($balances) && array_key_exists('deposit', $balances)) {
                 if (is_array($balances['deposit']) && array_key_exists($currencyId, $balances['deposit'])) {
-                    $account['total'] = $this->safe_float($balances['deposit'], $currencyId);
+                    $account['total'] = $this->safe_number($balances['deposit'], $currencyId);
                     $account['used'] = $account['total'] - $account['free'];
                 }
             }
@@ -240,22 +240,22 @@ class zaif extends Exchange {
         );
         $ticker = yield $this->publicGetTickerPair (array_merge($request, $params));
         $timestamp = $this->milliseconds();
-        $vwap = $this->safe_float($ticker, 'vwap');
-        $baseVolume = $this->safe_float($ticker, 'volume');
+        $vwap = $this->safe_number($ticker, 'vwap');
+        $baseVolume = $this->safe_number($ticker, 'volume');
         $quoteVolume = null;
         if ($baseVolume !== null && $vwap !== null) {
             $quoteVolume = $baseVolume * $vwap;
         }
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
@@ -276,8 +276,8 @@ class zaif extends Exchange {
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string_2($trade, 'id', 'tid');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
@@ -361,8 +361,8 @@ class zaif extends Exchange {
         $timestamp = $this->safe_timestamp($order, 'timestamp');
         $marketId = $this->safe_string($order, 'currency_pair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'amount');
         $id = $this->safe_string($order, 'id');
         return $this->safe_order(array(
             'id' => $id,

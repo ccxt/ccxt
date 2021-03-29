@@ -186,8 +186,8 @@ class tidebit extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'balance');
-            $account['used'] = $this->safe_float($balance, 'locked');
+            $account['free'] = $this->safe_number($balance, 'balance');
+            $account['used'] = $this->safe_number($balance, 'locked');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -215,15 +215,15 @@ class tidebit extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'bidVolume' => null,
             'askVolume' => null,
             'vwap' => null,
@@ -234,7 +234,7 @@ class tidebit extends Exchange {
             'percentage' => null,
             'previousClose' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -268,9 +268,9 @@ class tidebit extends Exchange {
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $id = $this->safe_string($trade, 'id');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'volume');
-        $cost = $this->safe_float($trade, 'funds');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'volume');
+        $cost = $this->safe_number($trade, 'funds');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -315,11 +315,11 @@ class tidebit extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 0),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 4),
-            $this->safe_float($ohlcv, 5),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -405,11 +405,11 @@ class tidebit extends Exchange {
         $id = $this->safe_string($order, 'id');
         $type = $this->safe_string($order, 'ord_type');
         $side = $this->safe_string($order, 'side');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'volume');
-        $filled = $this->safe_float($order, 'executed_volume');
-        $remaining = $this->safe_float($order, 'remaining_volume');
-        $average = $this->safe_float($order, 'avg_price');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'volume');
+        $filled = $this->safe_number($order, 'executed_volume');
+        $remaining = $this->safe_number($order, 'remaining_volume');
+        $average = $this->safe_number($order, 'avg_price');
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,

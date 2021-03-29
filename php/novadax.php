@@ -199,7 +199,7 @@ class novadax extends Exchange {
             );
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_float($market, 'minOrderAmount'),
+                    'min' => $this->safe_number($market, 'minOrderAmount'),
                     'max' => null,
                 ),
                 'price' => array(
@@ -207,7 +207,7 @@ class novadax extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $this->safe_float($market, 'minOrderValue'),
+                    'min' => $this->safe_number($market, 'minOrderValue'),
                     'max' => null,
                 ),
             );
@@ -249,8 +249,8 @@ class novadax extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $open = $this->safe_float($ticker, 'open24h');
-        $last = $this->safe_float($ticker, 'lastPrice');
+        $open = $this->safe_number($ticker, 'open24h');
+        $last = $this->safe_number($ticker, 'lastPrice');
         $percentage = null;
         $change = null;
         $average = null;
@@ -259,18 +259,18 @@ class novadax extends Exchange {
             $percentage = $change / $open * 100;
             $average = $this->sum($last, $open) / 2;
         }
-        $baseVolume = $this->safe_float($ticker, 'baseVolume24h');
-        $quoteVolume = $this->safe_float($ticker, 'quoteVolume24h');
+        $baseVolume = $this->safe_number($ticker, 'baseVolume24h');
+        $quoteVolume = $this->safe_number($ticker, 'quoteVolume24h');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high24h'),
-            'low' => $this->safe_float($ticker, 'low24h'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high24h'),
+            'low' => $this->safe_number($ticker, 'low24h'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => $open,
@@ -426,9 +426,9 @@ class novadax extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $side = $this->safe_string_lower($trade, 'side');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = $this->safe_float($trade, 'volume');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
+        $cost = $this->safe_number($trade, 'volume');
         if (($cost === null) && ($amount !== null) && ($price !== null)) {
             $cost = $amount * $price;
         }
@@ -442,7 +442,7 @@ class novadax extends Exchange {
             $feeCurrencyId = $this->safe_string($parts, 1);
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $this->safe_float($parts, 0),
+                'cost' => $this->safe_number($parts, 0),
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -550,11 +550,11 @@ class novadax extends Exchange {
         $volumeField = $this->safe_string($options, 'volume', 'amount'); // or vol
         return array(
             $this->safe_timestamp($ohlcv, 'score'),
-            $this->safe_float($ohlcv, 'openPrice'),
-            $this->safe_float($ohlcv, 'highPrice'),
-            $this->safe_float($ohlcv, 'lowPrice'),
-            $this->safe_float($ohlcv, 'closePrice'),
-            $this->safe_float($ohlcv, $volumeField),
+            $this->safe_number($ohlcv, 'openPrice'),
+            $this->safe_number($ohlcv, 'highPrice'),
+            $this->safe_number($ohlcv, 'lowPrice'),
+            $this->safe_number($ohlcv, 'closePrice'),
+            $this->safe_number($ohlcv, $volumeField),
         );
     }
 
@@ -582,9 +582,9 @@ class novadax extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_float($balance, 'available');
-            $account['free'] = $this->safe_float($balance, 'balance');
-            $account['used'] = $this->safe_float($balance, 'hold');
+            $account['total'] = $this->safe_number($balance, 'available');
+            $account['free'] = $this->safe_number($balance, 'balance');
+            $account['used'] = $this->safe_number($balance, 'hold');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -610,7 +610,7 @@ class novadax extends Exchange {
             if ($uppercaseSide === 'SELL') {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             } else if ($uppercaseSide === 'BUY') {
-                $value = $this->safe_float($params, 'value');
+                $value = $this->safe_number($params, 'value');
                 $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
                 if ($createMarketBuyOrderRequiresPrice) {
                     if ($price !== null) {
@@ -840,17 +840,17 @@ class novadax extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'id');
-        $amount = $this->safe_float($order, 'amount');
-        $price = $this->safe_float($order, 'price');
-        $cost = $this->safe_float($order, 'filledValue');
+        $amount = $this->safe_number($order, 'amount');
+        $price = $this->safe_number($order, 'price');
+        $cost = $this->safe_number($order, 'filledValue');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->safe_integer($order, 'timestamp');
-        $average = $this->safe_float($order, 'averagePrice');
-        $filled = $this->safe_float($order, 'filledAmount');
+        $average = $this->safe_number($order, 'averagePrice');
+        $filled = $this->safe_number($order, 'filledAmount');
         $fee = null;
-        $feeCost = $this->safe_float($order, 'filledFee');
+        $feeCost = $this->safe_number($order, 'filledFee');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
@@ -1044,7 +1044,7 @@ class novadax extends Exchange {
         } else if ($type === 'COIN_OUT') {
             $type = 'withdraw';
         }
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag');
         $txid = $this->safe_string($transaction, 'txHash');

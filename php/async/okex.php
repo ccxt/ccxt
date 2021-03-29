@@ -804,7 +804,7 @@ class okex extends Exchange {
         $option = false;
         $baseId = $this->safe_string($market, 'base_currency');
         $quoteId = $this->safe_string($market, 'quote_currency');
-        $contractVal = $this->safe_float($market, 'contract_val');
+        $contractVal = $this->safe_number($market, 'contract_val');
         if ($contractVal !== null) {
             if (is_array($market) && array_key_exists('option_type', $market)) {
                 $marketType = 'option';
@@ -830,12 +830,12 @@ class okex extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $spot ? ($base . '/' . $quote) : $id;
-        $lotSize = $this->safe_float_2($market, 'lot_size', 'trade_increment');
+        $lotSize = $this->safe_number_2($market, 'lot_size', 'trade_increment');
         $precision = array(
-            'amount' => $this->safe_float($market, 'size_increment', $lotSize),
-            'price' => $this->safe_float($market, 'tick_size'),
+            'amount' => $this->safe_number($market, 'size_increment', $lotSize),
+            'price' => $this->safe_number($market, 'tick_size'),
         );
-        $minAmount = $this->safe_float_2($market, 'min_size', 'base_min_size');
+        $minAmount = $this->safe_number_2($market, 'min_size', 'base_min_size');
         $active = true;
         $fees = $this->safe_value_2($this->fees, $marketType, 'trading', array());
         return array_merge($fees, array(
@@ -1010,7 +1010,7 @@ class okex extends Exchange {
                     'price' => array( 'min' => null, 'max' => null ),
                     'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'min_withdrawal'),
+                        'min' => $this->safe_number($currency, 'min_withdrawal'),
                         'max' => null,
                     ),
                 ),
@@ -1085,18 +1085,18 @@ class okex extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last');
-        $open = $this->safe_float($ticker, 'open_24h');
+        $last = $this->safe_number($ticker, 'last');
+        $open = $this->safe_number($ticker, 'open_24h');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high_24h'),
-            'low' => $this->safe_float($ticker, 'low_24h'),
-            'bid' => $this->safe_float($ticker, 'best_bid'),
-            'bidVolume' => $this->safe_float($ticker, 'best_bid_size'),
-            'ask' => $this->safe_float($ticker, 'best_ask'),
-            'askVolume' => $this->safe_float($ticker, 'best_ask_size'),
+            'high' => $this->safe_number($ticker, 'high_24h'),
+            'low' => $this->safe_number($ticker, 'low_24h'),
+            'bid' => $this->safe_number($ticker, 'best_bid'),
+            'bidVolume' => $this->safe_number($ticker, 'best_bid_size'),
+            'ask' => $this->safe_number($ticker, 'best_ask'),
+            'askVolume' => $this->safe_number($ticker, 'best_ask_size'),
             'vwap' => null,
             'open' => $open,
             'close' => $last,
@@ -1105,8 +1105,8 @@ class okex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'base_volume_24h'),
-            'quoteVolume' => $this->safe_float($ticker, 'quote_volume_24h'),
+            'baseVolume' => $this->safe_number($ticker, 'base_volume_24h'),
+            'quoteVolume' => $this->safe_number($ticker, 'quote_volume_24h'),
             'info' => $ticker,
         );
     }
@@ -1243,9 +1243,9 @@ class okex extends Exchange {
             $quote = $market['quote'];
         }
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'timestamp', 'created_at'));
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float_2($trade, 'size', 'qty');
-        $amount = $this->safe_float($trade, 'order_qty', $amount);
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number_2($trade, 'size', 'qty');
+        $amount = $this->safe_number($trade, 'order_qty', $amount);
         $takerOrMaker = $this->safe_string_2($trade, 'exec_type', 'liquidity');
         if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
@@ -1259,7 +1259,7 @@ class okex extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrency = ($side === 'buy') ? $base : $quote;
@@ -1368,22 +1368,22 @@ class okex extends Exchange {
             }
             return array(
                 $timestamp, // $timestamp
-                $this->safe_float($ohlcv, 1),            // Open
-                $this->safe_float($ohlcv, 2),            // High
-                $this->safe_float($ohlcv, 3),            // Low
-                $this->safe_float($ohlcv, 4),            // Close
-                // $this->safe_float($ohlcv, 5),         // Quote Volume
-                // $this->safe_float($ohlcv, 6),         // Base Volume
-                $this->safe_float($ohlcv, $volumeIndex),  // Volume, okex will return base volume in the 7th element for future markets
+                $this->safe_number($ohlcv, 1),            // Open
+                $this->safe_number($ohlcv, 2),            // High
+                $this->safe_number($ohlcv, 3),            // Low
+                $this->safe_number($ohlcv, 4),            // Close
+                // $this->safe_number($ohlcv, 5),         // Quote Volume
+                // $this->safe_number($ohlcv, 6),         // Base Volume
+                $this->safe_number($ohlcv, $volumeIndex),  // Volume, okex will return base volume in the 7th element for future markets
             );
         } else {
             return array(
                 $this->parse8601($this->safe_string($ohlcv, 'time')),
-                $this->safe_float($ohlcv, 'open'),    // Open
-                $this->safe_float($ohlcv, 'high'),    // High
-                $this->safe_float($ohlcv, 'low'),     // Low
-                $this->safe_float($ohlcv, 'close'),   // Close
-                $this->safe_float($ohlcv, 'volume'),  // Base Volume
+                $this->safe_number($ohlcv, 'open'),    // Open
+                $this->safe_number($ohlcv, 'high'),    // High
+                $this->safe_number($ohlcv, 'low'),     // Low
+                $this->safe_number($ohlcv, 'close'),   // Close
+                $this->safe_number($ohlcv, 'volume'),  // Base Volume
             );
         }
     }
@@ -1529,9 +1529,9 @@ class okex extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_float($balance, 'balance');
-            $account['used'] = $this->safe_float($balance, 'hold');
-            $account['free'] = $this->safe_float($balance, 'available');
+            $account['total'] = $this->safe_number($balance, 'balance');
+            $account['used'] = $this->safe_number($balance, 'hold');
+            $account['free'] = $this->safe_number($balance, 'available');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -1601,9 +1601,9 @@ class okex extends Exchange {
                     $currencyId = $parts[1];
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
-                    $account['total'] = $this->safe_float($marketBalance, 'balance');
-                    $account['used'] = $this->safe_float($marketBalance, 'hold');
-                    $account['free'] = $this->safe_float($marketBalance, 'available');
+                    $account['total'] = $this->safe_number($marketBalance, 'balance');
+                    $account['used'] = $this->safe_number($marketBalance, 'hold');
+                    $account['free'] = $this->safe_number($marketBalance, 'available');
                     $accounts[$code] = $account;
                 } else {
                     throw new NotSupported($this->id . ' margin $balance $response format has changed!');
@@ -1656,29 +1656,29 @@ class okex extends Exchange {
             $code = $this->safe_currency_code($id);
             $balance = $this->safe_value($info, $id, array());
             $account = $this->account();
-            $totalAvailBalance = $this->safe_float($balance, 'total_avail_balance');
+            $totalAvailBalance = $this->safe_number($balance, 'total_avail_balance');
             if ($this->safe_string($balance, 'margin_mode') === 'fixed') {
                 $contracts = $this->safe_value($balance, 'contracts', array());
                 $free = $totalAvailBalance;
                 for ($i = 0; $i < count($contracts); $i++) {
                     $contract = $contracts[$i];
-                    $fixedBalance = $this->safe_float($contract, 'fixed_balance');
-                    $realizedPnl = $this->safe_float($contract, 'realized_pnl');
-                    $marginFrozen = $this->safe_float($contract, 'margin_frozen');
-                    $marginForUnfilled = $this->safe_float($contract, 'margin_for_unfilled');
+                    $fixedBalance = $this->safe_number($contract, 'fixed_balance');
+                    $realizedPnl = $this->safe_number($contract, 'realized_pnl');
+                    $marginFrozen = $this->safe_number($contract, 'margin_frozen');
+                    $marginForUnfilled = $this->safe_number($contract, 'margin_for_unfilled');
                     $margin = $this->sum($fixedBalance, $realizedPnl) - $marginFrozen - $marginForUnfilled;
                     $free = $this->sum($free, $margin);
                 }
                 $account['free'] = $free;
             } else {
-                $realizedPnl = $this->safe_float($balance, 'realized_pnl');
-                $unrealizedPnl = $this->safe_float($balance, 'unrealized_pnl');
-                $marginFrozen = $this->safe_float($balance, 'margin_frozen');
-                $marginForUnfilled = $this->safe_float($balance, 'margin_for_unfilled');
+                $realizedPnl = $this->safe_number($balance, 'realized_pnl');
+                $unrealizedPnl = $this->safe_number($balance, 'unrealized_pnl');
+                $marginFrozen = $this->safe_number($balance, 'margin_frozen');
+                $marginForUnfilled = $this->safe_number($balance, 'margin_for_unfilled');
                 $account['free'] = $this->sum($totalAvailBalance, $realizedPnl, $unrealizedPnl) - $marginFrozen - $marginForUnfilled;
             }
             // it may be incorrect to use total, $free and used for swap accounts
-            $account['total'] = $this->safe_float($balance, 'equity');
+            $account['total'] = $this->safe_number($balance, 'equity');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -1716,8 +1716,8 @@ class okex extends Exchange {
             }
             $account = $this->account();
             // it may be incorrect to use total, free and used for swap accounts
-            $account['total'] = $this->safe_float($balance, 'equity');
-            $account['free'] = $this->safe_float($balance, 'total_avail_balance');
+            $account['total'] = $this->safe_number($balance, 'equity');
+            $account['free'] = $this->safe_number($balance, 'total_avail_balance');
             $result[$symbol] = $account;
         }
         return $this->parse_balance($result);
@@ -1921,7 +1921,7 @@ class okex extends Exchange {
             } else if ($type === 'market') {
                 // for $market buy it requires the $amount of quote currency to spend
                 if ($side === 'buy') {
-                    $notional = $this->safe_float($params, 'notional');
+                    $notional = $this->safe_number($params, 'notional');
                     $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
                     if ($createMarketBuyOrderRequiresPrice) {
                         if ($price !== null) {
@@ -2131,8 +2131,8 @@ class okex extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $amount = $this->safe_float($order, 'size');
-        $filled = $this->safe_float_2($order, 'filled_size', 'filled_qty');
+        $amount = $this->safe_number($order, 'size');
+        $filled = $this->safe_number_2($order, 'filled_size', 'filled_qty');
         $remaining = null;
         if ($amount !== null) {
             if ($filled !== null) {
@@ -2143,9 +2143,9 @@ class okex extends Exchange {
         if ($type === 'market') {
             $remaining = 0;
         }
-        $cost = $this->safe_float_2($order, 'filled_notional', 'funds');
-        $price = $this->safe_float($order, 'price');
-        $average = $this->safe_float($order, 'price_avg');
+        $cost = $this->safe_number_2($order, 'filled_notional', 'funds');
+        $price = $this->safe_number($order, 'price');
+        $average = $this->safe_number($order, 'price_avg');
         if ($cost === null) {
             if ($filled !== null && $average !== null) {
                 $cost = $average * $filled;
@@ -2156,7 +2156,7 @@ class okex extends Exchange {
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
-        $feeCost = $this->safe_float($order, 'fee');
+        $feeCost = $this->safe_number($order, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrency = null;
@@ -2169,7 +2169,7 @@ class okex extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
-        $stopPrice = $this->safe_float($order, 'trigger_price');
+        $stopPrice = $this->safe_number($order, 'trigger_price');
         return array(
             'info' => $order,
             'id' => $id,
@@ -2630,7 +2630,7 @@ class okex extends Exchange {
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $txid = $this->safe_string($transaction, 'txid');
         $timestamp = $this->parse8601($this->safe_string($transaction, 'timestamp'));
@@ -2693,19 +2693,19 @@ class okex extends Exchange {
         $feeCurrencyId = null;
         if ($receivedCurrencyId === $quoteId) {
             $side = $this->safe_string($otherTrade, 'side');
-            $amount = $this->safe_float($otherTrade, 'size');
-            $cost = $this->safe_float($userTrade, 'size');
+            $amount = $this->safe_number($otherTrade, 'size');
+            $cost = $this->safe_number($userTrade, 'size');
             $feeCurrencyId = $this->safe_string($otherTrade, 'currency');
         } else {
             $side = $this->safe_string($userTrade, 'side');
-            $amount = $this->safe_float($userTrade, 'size');
-            $cost = $this->safe_float($otherTrade, 'size');
+            $amount = $this->safe_number($userTrade, 'size');
+            $cost = $this->safe_number($otherTrade, 'size');
             $feeCurrencyId = $this->safe_string($userTrade, 'currency');
         }
         $id = $this->safe_string($userTrade, 'trade_id');
-        $price = $this->safe_float($userTrade, 'price');
-        $feeCostFirst = $this->safe_float($otherTrade, 'fee');
-        $feeCostSecond = $this->safe_float($userTrade, 'fee');
+        $price = $this->safe_number($userTrade, 'price');
+        $feeCostFirst = $this->safe_number($otherTrade, 'fee');
+        $feeCostSecond = $this->safe_number($userTrade, 'fee');
         $feeCurrencyCodeFirst = $this->safe_currency_code($this->safe_string($otherTrade, 'currency'));
         $feeCurrencyCodeSecond = $this->safe_currency_code($this->safe_string($userTrade, 'currency'));
         $fee = null;
@@ -3519,14 +3519,14 @@ class okex extends Exchange {
         $referenceAccount = null;
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $code = $this->safe_currency_code($this->safe_string($item, 'currency'), $currency);
-        $amount = $this->safe_float($item, 'amount');
+        $amount = $this->safe_number($item, 'amount');
         $timestamp = $this->parse8601($this->safe_string($item, 'timestamp'));
         $fee = array(
-            'cost' => $this->safe_float($item, 'fee'),
+            'cost' => $this->safe_number($item, 'fee'),
             'currency' => $code,
         );
         $before = null;
-        $after = $this->safe_float($item, 'balance');
+        $after = $this->safe_number($item, 'balance');
         $status = 'ok';
         $marketId = $this->safe_string($item, 'instrument_id');
         $symbol = null;

@@ -161,7 +161,7 @@ class zaif(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': -math.log10(self.safe_float(market, 'item_unit_step')),
+                'amount': -math.log10(self.safe_number(market, 'item_unit_step')),
                 'price': self.safe_integer(market, 'aux_unit_point'),
             }
             fees = self.safe_value(self.options['fees'], symbol, self.fees['trading'])
@@ -180,11 +180,11 @@ class zaif(Exchange):
                 'maker': maker,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'item_unit_min'),
+                        'min': self.safe_number(market, 'item_unit_min'),
                         'max': None,
                     },
                     'price': {
-                        'min': self.safe_float(market, 'aux_unit_min'),
+                        'min': self.safe_number(market, 'aux_unit_min'),
                         'max': None,
                     },
                     'cost': {
@@ -214,7 +214,7 @@ class zaif(Exchange):
             }
             if 'deposit' in balances:
                 if currencyId in balances['deposit']:
-                    account['total'] = self.safe_float(balances['deposit'], currencyId)
+                    account['total'] = self.safe_number(balances['deposit'], currencyId)
                     account['used'] = account['total'] - account['free']
             result[code] = account
         return self.parse_balance(result)
@@ -234,21 +234,21 @@ class zaif(Exchange):
         }
         ticker = await self.publicGetTickerPair(self.extend(request, params))
         timestamp = self.milliseconds()
-        vwap = self.safe_float(ticker, 'vwap')
-        baseVolume = self.safe_float(ticker, 'volume')
+        vwap = self.safe_number(ticker, 'vwap')
+        baseVolume = self.safe_number(ticker, 'volume')
         quoteVolume = None
         if baseVolume is not None and vwap is not None:
             quoteVolume = baseVolume * vwap
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -268,8 +268,8 @@ class zaif(Exchange):
         side = 'buy' if (side == 'bid') else 'sell'
         timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string_2(trade, 'id', 'tid')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
         cost = None
         if price is not None:
             if amount is not None:
@@ -344,8 +344,8 @@ class zaif(Exchange):
         timestamp = self.safe_timestamp(order, 'timestamp')
         marketId = self.safe_string(order, 'currency_pair')
         symbol = self.safe_symbol(marketId, market, '_')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount')
         id = self.safe_string(order, 'id')
         return self.safe_order({
             'id': id,

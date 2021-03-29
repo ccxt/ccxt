@@ -218,7 +218,7 @@ class crex24(Exchange):
             symbol = base + '/' + quote
             tickSize = self.safe_value(market, 'tickSize')
             minPrice = self.safe_value(market, 'minPrice')
-            minAmount = self.safe_float(market, 'minVolume')
+            minAmount = self.safe_number(market, 'minVolume')
             precision = {
                 'amount': self.precision_from_string(self.number_to_string(minAmount)),
                 'price': self.precision_from_string(self.number_to_string(tickSize)),
@@ -296,7 +296,7 @@ class crex24(Exchange):
                 'type': type,
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
-                'fee': self.safe_float(currency, 'flatWithdrawalFee'),  # todo: redesign
+                'fee': self.safe_number(currency, 'flatWithdrawalFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -312,12 +312,12 @@ class crex24(Exchange):
                         'max': None,
                     },
                     'deposit': {
-                        'min': self.safe_float(currency, 'minDeposit'),
+                        'min': self.safe_number(currency, 'minDeposit'),
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_float(currency, 'minWithdrawal'),
-                        'max': self.safe_float(currency, 'maxWithdrawal'),
+                        'min': self.safe_number(currency, 'minWithdrawal'),
+                        'max': self.safe_number(currency, 'maxWithdrawal'),
                     },
                 },
             }
@@ -345,8 +345,8 @@ class crex24(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'reserved')
+            account['free'] = self.safe_number(balance, 'available')
+            account['used'] = self.safe_number(balance, 'reserved')
             result[code] = account
         return self.parse_balance(result)
 
@@ -397,16 +397,16 @@ class crex24(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         marketId = self.safe_string(ticker, 'instrument')
         symbol = self.safe_symbol(marketId, market, '-')
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -414,10 +414,10 @@ class crex24(Exchange):
             'last': last,
             'previousClose': None,  # previous day close
             'change': None,
-            'percentage': self.safe_float(ticker, 'percentChange'),
+            'percentage': self.safe_number(ticker, 'percentChange'),
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_number(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
@@ -506,8 +506,8 @@ class crex24(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'volume')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'volume')
         cost = None
         if price is not None:
             if amount is not None:
@@ -520,7 +520,7 @@ class crex24(Exchange):
         fee = None
         feeCurrencyId = self.safe_string(trade, 'feeCurrency')
         feeCode = self.safe_currency_code(feeCurrencyId)
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -577,11 +577,11 @@ class crex24(Exchange):
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'timestamp')),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -646,9 +646,9 @@ class crex24(Exchange):
         marketId = self.safe_string(order, 'instrument')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'volume')
-        remaining = self.safe_float(order, 'remainingVolume')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'volume')
+        remaining = self.safe_number(order, 'remainingVolume')
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'lastUpdate'))
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
@@ -657,7 +657,7 @@ class crex24(Exchange):
         trades = None
         average = None
         timeInForce = self.safe_string(order, 'timeInForce')
-        stopPrice = self.safe_float(order, 'stopPrice')
+        stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -710,7 +710,7 @@ class crex24(Exchange):
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = self.price_to_precision(symbol, price)
         if stopPriceIsRequired:
-            stopPrice = self.safe_float(params, 'stopPrice')
+            stopPrice = self.safe_number(params, 'stopPrice')
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
@@ -1101,8 +1101,8 @@ class crex24(Exchange):
         timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
         updated = self.parse8601(self.safe_string(transaction, 'processedAt'))
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        amount = self.safe_float(transaction, 'amount')
-        feeCost = self.safe_float(transaction, 'fee')
+        amount = self.safe_number(transaction, 'amount')
+        feeCost = self.safe_number(transaction, 'fee')
         fee = {
             'cost': feeCost,
             'currency': code,

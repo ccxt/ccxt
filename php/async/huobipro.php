@@ -257,6 +257,7 @@ class huobipro extends Exchange {
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'PNT' => 'Penta',
                 'SBTC' => 'Super Bitcoin',
+                'BIFI' => 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             ),
         ));
     }
@@ -321,8 +322,8 @@ class huobipro extends Exchange {
             'info' => $limits,
             'limits' => array(
                 'amount' => array(
-                    'min' => $this->safe_float($limits, 'limit-order-must-greater-than'),
-                    'max' => $this->safe_float($limits, 'limit-order-must-less-than'),
+                    'min' => $this->safe_number($limits, 'limit-order-must-greater-than'),
+                    'max' => $this->safe_number($limits, 'limit-order-must-less-than'),
                 ),
             ),
         );
@@ -356,9 +357,9 @@ class huobipro extends Exchange {
             );
             $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
             $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
-            $minAmount = $this->safe_float($market, 'min-order-amt', pow(10, -$precision['amount']));
-            $maxAmount = $this->safe_float($market, 'max-order-amt');
-            $minCost = $this->safe_float($market, 'min-order-value', 0);
+            $minAmount = $this->safe_number($market, 'min-order-amt', pow(10, -$precision['amount']));
+            $maxAmount = $this->safe_number($market, 'max-order-amt');
+            $minCost = $this->safe_number($market, 'min-order-value', 0);
             $state = $this->safe_string($market, 'state');
             $active = ($state === 'online');
             $result[] = array(
@@ -437,24 +438,24 @@ class huobipro extends Exchange {
         $askVolume = null;
         if (is_array($ticker) && array_key_exists('bid', $ticker)) {
             if (gettype($ticker['bid']) === 'array' && count(array_filter(array_keys($ticker['bid']), 'is_string')) == 0) {
-                $bid = $this->safe_float($ticker['bid'], 0);
-                $bidVolume = $this->safe_float($ticker['bid'], 1);
+                $bid = $this->safe_number($ticker['bid'], 0);
+                $bidVolume = $this->safe_number($ticker['bid'], 1);
             } else {
-                $bid = $this->safe_float($ticker, 'bid');
+                $bid = $this->safe_number($ticker, 'bid');
                 $bidVolume = $this->safe_value($ticker, 'bidSize');
             }
         }
         if (is_array($ticker) && array_key_exists('ask', $ticker)) {
             if (gettype($ticker['ask']) === 'array' && count(array_filter(array_keys($ticker['ask']), 'is_string')) == 0) {
-                $ask = $this->safe_float($ticker['ask'], 0);
-                $askVolume = $this->safe_float($ticker['ask'], 1);
+                $ask = $this->safe_number($ticker['ask'], 0);
+                $askVolume = $this->safe_number($ticker['ask'], 1);
             } else {
-                $ask = $this->safe_float($ticker, 'ask');
+                $ask = $this->safe_number($ticker, 'ask');
                 $askVolume = $this->safe_value($ticker, 'askSize');
             }
         }
-        $open = $this->safe_float($ticker, 'open');
-        $close = $this->safe_float($ticker, 'close');
+        $open = $this->safe_number($ticker, 'open');
+        $close = $this->safe_number($ticker, 'close');
         $change = null;
         $percentage = null;
         $average = null;
@@ -465,15 +466,15 @@ class huobipro extends Exchange {
                 $percentage = ($change / $open) * 100;
             }
         }
-        $baseVolume = $this->safe_float($ticker, 'amount');
-        $quoteVolume = $this->safe_float($ticker, 'vol');
+        $baseVolume = $this->safe_number($ticker, 'amount');
+        $quoteVolume = $this->safe_number($ticker, 'vol');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
             'bid' => $bid,
             'bidVolume' => $bidVolume,
             'ask' => $ask,
@@ -631,8 +632,8 @@ class huobipro extends Exchange {
             $type = $typeParts[1];
         }
         $takerOrMaker = $this->safe_string($trade, 'role');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float_2($trade, 'filled-amount', 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number_2($trade, 'filled-amount', 'amount');
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
@@ -640,12 +641,12 @@ class huobipro extends Exchange {
             }
         }
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'filled-fees');
+        $feeCost = $this->safe_number($trade, 'filled-fees');
         $feeCurrency = null;
         if ($market !== null) {
             $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
         }
-        $filledPoints = $this->safe_float($trade, 'filled-points');
+        $filledPoints = $this->safe_number($trade, 'filled-points');
         if ($filledPoints !== null) {
             if (($feeCost === null) || ($feeCost === 0.0)) {
                 $feeCost = $filledPoints;
@@ -759,11 +760,11 @@ class huobipro extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 'id'),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'amount'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'amount'),
         );
     }
 
@@ -860,11 +861,11 @@ class huobipro extends Exchange {
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => $this->safe_float($currency, 'deposit-min-amount'),
+                        'min' => $this->safe_number($currency, 'deposit-min-amount'),
                         'max' => pow(10, $precision),
                     ),
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'withdraw-min-amount'),
+                        'min' => $this->safe_number($currency, 'withdraw-min-amount'),
                         'max' => pow(10, $precision),
                     ),
                 ),
@@ -895,10 +896,10 @@ class huobipro extends Exchange {
                 $account = $this->account();
             }
             if ($balance['type'] === 'trade') {
-                $account['free'] = $this->safe_float($balance, 'balance');
+                $account['free'] = $this->safe_number($balance, 'balance');
             }
             if ($balance['type'] === 'frozen') {
-                $account['used'] = $this->safe_float($balance, 'balance');
+                $account['used'] = $this->safe_number($balance, 'balance');
             }
             $result[$code] = $account;
         }
@@ -1077,16 +1078,16 @@ class huobipro extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($order, 'created-at');
-        $amount = $this->safe_float($order, 'amount');
-        $filled = $this->safe_float_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
+        $amount = $this->safe_number($order, 'amount');
+        $filled = $this->safe_number_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
         if (($type === 'market') && ($side === 'buy')) {
             $amount = ($status === 'closed') ? $filled : null;
         }
-        $price = $this->safe_float($order, 'price');
+        $price = $this->safe_number($order, 'price');
         if ($price === 0.0) {
             $price = null;
         }
-        $cost = $this->safe_float_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
+        $cost = $this->safe_number_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
         $remaining = null;
         $average = null;
         if ($filled !== null) {
@@ -1098,7 +1099,7 @@ class huobipro extends Exchange {
                 $average = $cost / $filled;
             }
         }
-        $feeCost = $this->safe_float_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled fees
+        $feeCost = $this->safe_number_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled fees
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrency = null;
@@ -1367,7 +1368,7 @@ class huobipro extends Exchange {
         }
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $tag = $this->safe_string($transaction, 'address-tag');
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {
             $feeCost = abs($feeCost);
         }
@@ -1380,7 +1381,7 @@ class huobipro extends Exchange {
             'address' => $this->safe_string($transaction, 'address'),
             'tag' => $tag,
             'type' => $type,
-            'amount' => $this->safe_float($transaction, 'amount'),
+            'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,

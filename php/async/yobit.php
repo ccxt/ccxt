@@ -239,8 +239,8 @@ class yobit extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($free, $currencyId);
-            $account['total'] = $this->safe_float($total, $currencyId);
+            $account['free'] = $this->safe_number($free, $currencyId);
+            $account['total'] = $this->safe_number($total, $currencyId);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -283,15 +283,15 @@ class yobit extends Exchange {
                 'price' => $this->safe_integer($market, 'decimal_places'),
             );
             $amountLimits = array(
-                'min' => $this->safe_float($market, 'min_amount'),
-                'max' => $this->safe_float($market, 'max_amount'),
+                'min' => $this->safe_number($market, 'min_amount'),
+                'max' => $this->safe_number($market, 'max_amount'),
             );
             $priceLimits = array(
-                'min' => $this->safe_float($market, 'min_price'),
-                'max' => $this->safe_float($market, 'max_price'),
+                'min' => $this->safe_number($market, 'min_price'),
+                'max' => $this->safe_number($market, 'max_price'),
             );
             $costLimits = array(
-                'min' => $this->safe_float($market, 'min_total'),
+                'min' => $this->safe_number($market, 'min_total'),
             );
             $limits = array(
                 'amount' => $amountLimits,
@@ -300,7 +300,7 @@ class yobit extends Exchange {
             );
             $hidden = $this->safe_integer($market, 'hidden');
             $active = ($hidden === 0);
-            $takerFee = $this->safe_float($market, 'fee');
+            $takerFee = $this->safe_number($market, 'fee');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -385,16 +385,16 @@ class yobit extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -403,9 +403,9 @@ class yobit extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_float($ticker, 'avg'),
-            'baseVolume' => $this->safe_float($ticker, 'vol_cur'),
-            'quoteVolume' => $this->safe_float($ticker, 'vol'),
+            'average' => $this->safe_number($ticker, 'avg'),
+            'baseVolume' => $this->safe_number($ticker, 'vol_cur'),
+            'quoteVolume' => $this->safe_number($ticker, 'vol'),
             'info' => $ticker,
         );
     }
@@ -454,15 +454,15 @@ class yobit extends Exchange {
         } else if ($side === 'bid') {
             $side = 'buy';
         }
-        $price = $this->safe_float_2($trade, 'rate', 'price');
+        $price = $this->safe_number_2($trade, 'rate', 'price');
         $id = $this->safe_string_2($trade, 'trade_id', 'tid');
         $order = $this->safe_string($trade, 'order_id');
         $marketId = $this->safe_string($trade, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $amount = $this->safe_float($trade, 'amount');
+        $amount = $this->safe_number($trade, 'amount');
         $type = 'limit'; // all trades are still limit trades
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'commission');
+        $feeCost = $this->safe_number($trade, 'commission');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
@@ -544,8 +544,8 @@ class yobit extends Exchange {
                 $id = $this->safe_string($response['return'], 'init_order_id');
                 $status = 'closed';
             }
-            $filled = $this->safe_float($response['return'], 'received', 0.0);
-            $remaining = $this->safe_float($response['return'], 'remains', $amount);
+            $filled = $this->safe_number($response['return'], 'received', 0.0);
+            $remaining = $this->safe_number($response['return'], 'remains', $amount);
         }
         $timestamp = $this->milliseconds();
         return array(
@@ -595,9 +595,9 @@ class yobit extends Exchange {
         $timestamp = $this->safe_timestamp($order, 'timestamp_created');
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $remaining = $this->safe_float($order, 'amount');
-        $amount = $this->safe_float($order, 'start_amount');
-        $price = $this->safe_float($order, 'rate');
+        $remaining = $this->safe_number($order, 'amount');
+        $amount = $this->safe_number($order, 'start_amount');
+        $price = $this->safe_number($order, 'rate');
         $fee = null;
         $type = 'limit';
         $side = $this->safe_string($order, 'type');

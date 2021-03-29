@@ -148,26 +148,26 @@ module.exports = class exx extends Exchange {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'date');
         ticker = ticker['ticker'];
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'riseRate'),
+            'change': this.safeNumber (ticker, 'riseRate'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -217,8 +217,8 @@ module.exports = class exx extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp (trade, 'date');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -270,9 +270,9 @@ module.exports = class exx extends Exchange {
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             const account = {
-                'free': this.safeFloat (balance, 'balance'),
-                'used': this.safeFloat (balance, 'freeze'),
-                'total': this.safeFloat (balance, 'total'),
+                'free': this.safeNumber (balance, 'balance'),
+                'used': this.safeNumber (balance, 'freeze'),
+                'total': this.safeNumber (balance, 'total'),
             };
             result[code] = account;
         }
@@ -296,10 +296,10 @@ module.exports = class exx extends Exchange {
         //
         const symbol = market['symbol'];
         const timestamp = parseInt (order['trade_date']);
-        const price = this.safeFloat (order, 'price');
-        const cost = this.safeFloat (order, 'trade_money');
-        const amount = this.safeFloat (order, 'total_amount');
-        const filled = this.safeFloat (order, 'trade_amount', 0.0);
+        const price = this.safeNumber (order, 'price');
+        const cost = this.safeNumber (order, 'trade_money');
+        const amount = this.safeNumber (order, 'total_amount');
+        const filled = this.safeNumber (order, 'trade_amount', 0.0);
         let status = this.safeInteger (order, 'status');
         if (status === 1) {
             status = 'canceled';
@@ -311,7 +311,7 @@ module.exports = class exx extends Exchange {
         let fee = undefined;
         if ('fees' in order) {
             fee = {
-                'cost': this.safeFloat (order, 'fees'),
+                'cost': this.safeNumber (order, 'fees'),
                 'currency': market['quote'],
             };
         }

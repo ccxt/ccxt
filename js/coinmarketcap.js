@@ -208,16 +208,16 @@ module.exports = class coinmarketcap extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.milliseconds ();
         }
-        const change = this.safeFloat (ticker, 'percent_change_24h');
+        const change = this.safeNumber (ticker, 'percent_change_24h');
         let last = undefined;
         let symbol = undefined;
         let volume = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
             const priceKey = 'price_' + market['quoteId'];
-            last = this.safeFloat (ticker, priceKey);
+            last = this.safeNumber (ticker, priceKey);
             const volumeKey = '24h_volume_' + market['quoteId'];
-            volume = this.safeFloat (ticker, volumeKey);
+            volume = this.safeNumber (ticker, volumeKey);
         }
         return {
             'symbol': symbol,

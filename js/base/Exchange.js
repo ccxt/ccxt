@@ -224,6 +224,8 @@ module.exports = class Exchange {
 
         this.minFundingAddressLength = 1 // used in checkAddress
         this.substituteCommonCurrencyCodes = true  // reserved
+        this.quoteJsonNumbers = true // treat numbers in json as quoted precise strings
+        this.number = Number // or String (a pointer to a function)
 
         // whether fees should be summed by currency code
         this.reduceFees = true
@@ -522,7 +524,7 @@ module.exports = class Exchange {
     parseJson (jsonString) {
         try {
             if (this.isJsonEncodedObject (jsonString)) {
-                return JSON.parse (jsonString)
+                return JSON.parse (this.onJsonResponse (jsonString))
             }
         } catch (e) {
             // SyntaxError
@@ -601,7 +603,11 @@ module.exports = class Exchange {
     }
 
     onRestResponse (statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
-        return responseBody.trim ().replace (/:(\d{15,}),/g, ':"$1",');
+        return responseBody.trim ()
+    }
+
+    onJsonResponse (responseBody) {
+        return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+),/g, '":"$1",') : responseBody;
     }
 
     setMarkets (markets, currencies = undefined) {
@@ -921,8 +927,8 @@ module.exports = class Exchange {
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        const price = parseFloat (bidask[priceKey])
-        const amount = parseFloat (bidask[amountKey])
+        const price = this.number (bidask[priceKey])
+        const amount = this.number (bidask[amountKey])
         return [ price, amount ]
     }
 
@@ -1279,19 +1285,19 @@ module.exports = class Exchange {
         return this.createOrder (symbol, ...args)
     }
 
-    createLimitOrder (symbol, side, amount, price = undefined, params = {}) {
+    createLimitOrder (symbol, side, amount, price, params = {}) {
         return this.createOrder (symbol, 'limit', side, amount, price, params)
     }
 
-    createMarketOrder (symbol, side, amount, price = undefined, params = {}) {
+    createMarketOrder (symbol, side, amount, price, params = {}) {
         return this.createOrder (symbol, 'market', side, amount, price, params)
     }
 
-    createLimitBuyOrder (symbol, amount, price = undefined, params = {}) {
+    createLimitBuyOrder (symbol, amount, price, params = {}) {
         return this.createOrder  (symbol, 'limit', 'buy', amount, price, params)
     }
 
-    createLimitSellOrder (symbol, amount, price = undefined, params = {}) {
+    createLimitSellOrder (symbol, amount, price, params = {}) {
         return this.createOrder (symbol, 'limit', 'sell', amount, price, params)
     }
 
@@ -1557,5 +1563,31 @@ module.exports = class Exchange {
             'filled': filled,
             'remaining': remaining,
         });
+    }
+
+    safeNumber (object, key, d = undefined) {
+        const value = this.safeString (object, key)
+        if (value === undefined) {
+            return d
+        } else {
+            try {
+                return this.number (value)
+            } catch (e) {
+                return d
+            }
+        }
+    }
+
+    safeNumber2 (object, key1, key2, d = undefined) {
+        const value = this.safeString2 (object, key1, key2)
+        if (value === undefined) {
+            return d
+        } else {
+            try {
+                return this.number (value)
+            } catch (e) {
+                return d
+            }
+        }
     }
 }

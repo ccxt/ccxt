@@ -449,8 +449,8 @@ class timex(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'totalBalance')
-            account['used'] = self.safe_float(balance, 'lockedBalance')
+            account['total'] = self.safe_number(balance, 'totalBalance')
+            account['used'] = self.safe_number(balance, 'lockedBalance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -791,7 +791,7 @@ class timex(Exchange):
         result = self.safe_value(response, 0, {})
         return {
             'info': response,
-            'maker': self.safe_float(result, 'fee'),
+            'maker': self.safe_number(result, 'fee'),
             'taker': None,
         }
 
@@ -827,18 +827,18 @@ class timex(Exchange):
             'amount': self.precision_from_string(self.safe_string(market, 'quantityIncrement')),
             'price': self.precision_from_string(self.safe_string(market, 'tickSize')),
         }
-        amountIncrement = self.safe_float(market, 'quantityIncrement')
-        minBase = self.safe_float(market, 'baseMinSize')
+        amountIncrement = self.safe_number(market, 'quantityIncrement')
+        minBase = self.safe_number(market, 'baseMinSize')
         minAmount = max(amountIncrement, minBase)
-        priceIncrement = self.safe_float(market, 'tickSize')
-        minCost = self.safe_float(market, 'quoteMinSize')
+        priceIncrement = self.safe_number(market, 'tickSize')
+        minCost = self.safe_number(market, 'quoteMinSize')
         limits = {
             'amount': {'min': minAmount, 'max': None},
             'price': {'min': priceIncrement, 'max': None},
             'cost': {'min': max(minCost, minAmount * priceIncrement), 'max': None},
         }
-        taker = self.safe_float(market, 'takerFee')
-        maker = self.safe_float(market, 'makerFee')
+        taker = self.safe_number(market, 'takerFee')
+        maker = self.safe_number(market, 'makerFee')
         return {
             'id': id,
             'symbol': symbol,
@@ -898,7 +898,7 @@ class timex(Exchange):
         name = self.safe_string(currency, 'name')
         precision = self.safe_integer(currency, 'decimals')
         active = self.safe_value(currency, 'active')
-        # fee = self.safe_float(currency, 'withdrawalFee')
+        # fee = self.safe_number(currency, 'withdrawalFee')
         feeString = self.safe_string(currency, 'withdrawalFee')
         tradeDecimals = self.safe_integer(currency, 'tradeDecimals')
         fee = None
@@ -931,12 +931,6 @@ class timex(Exchange):
             },
         }
 
-    def parse_tickers(self, rawTickers, symbols=None):
-        tickers = []
-        for i in range(0, len(rawTickers)):
-            tickers.append(self.parse_ticker(rawTickers[i]))
-        return self.filter_by_array(tickers, 'symbol', symbols)
-
     def parse_ticker(self, ticker, market=None):
         #
         #     {
@@ -956,8 +950,8 @@ class timex(Exchange):
         marketId = self.safe_string(ticker, 'market')
         symbol = self.safe_symbol(marketId, market, '/')
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        last = self.safe_float(ticker, 'last')
-        open = self.safe_float(ticker, 'open')
+        last = self.safe_number(ticker, 'last')
+        open = self.safe_number(ticker, 'open')
         change = None
         average = None
         if last is not None and open is not None:
@@ -971,11 +965,11 @@ class timex(Exchange):
             'info': ticker,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -985,8 +979,8 @@ class timex(Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'volumeQuote'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
+            'quoteVolume': self.safe_number(ticker, 'volumeQuote'),
         }
 
     def parse_trade(self, trade, market=None):
@@ -1019,8 +1013,8 @@ class timex(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'quantity')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'quantity')
         id = self.safe_string(trade, 'id')
         side = self.safe_string_lower_2(trade, 'direction', 'side')
         takerOrMaker = self.safe_string_lower(trade, 'makerOrTaker')
@@ -1028,7 +1022,7 @@ class timex(Exchange):
         if takerOrMaker is not None:
             orderId = self.safe_string(trade, takerOrMaker + 'OrderId')
         fee = None
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
             feeCurrency = None if (market is None) else market['quote']
             fee = {
@@ -1068,11 +1062,11 @@ class timex(Exchange):
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'timestamp')),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     def parse_order(self, order, market=None):
@@ -1102,10 +1096,10 @@ class timex(Exchange):
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(order, 'createdAt'))
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'quantity')
-        filled = self.safe_float(order, 'filledQuantity')
-        canceledQuantity = self.safe_float(order, 'cancelledQuantity')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'quantity')
+        filled = self.safe_number(order, 'filledQuantity')
+        canceledQuantity = self.safe_number(order, 'cancelledQuantity')
         remaining = None
         status = None
         if (amount is not None) and (filled is not None):

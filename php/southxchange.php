@@ -116,10 +116,10 @@ class southxchange extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'Currency');
             $code = $this->safe_currency_code($currencyId);
-            $deposited = $this->safe_float($balance, 'Deposited');
-            $unconfirmed = $this->safe_float($balance, 'Unconfirmed');
+            $deposited = $this->safe_number($balance, 'Deposited');
+            $unconfirmed = $this->safe_number($balance, 'Unconfirmed');
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'Available');
+            $account['free'] = $this->safe_number($balance, 'Available');
             $account['total'] = $this->sum($deposited, $unconfirmed);
             $result[$code] = $account;
         }
@@ -141,16 +141,16 @@ class southxchange extends Exchange {
         if ($market) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'Last');
+        $last = $this->safe_number($ticker, 'Last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_float($ticker, 'Bid'),
+            'bid' => $this->safe_number($ticker, 'Bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'Ask'),
+            'ask' => $this->safe_number($ticker, 'Ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -158,9 +158,9 @@ class southxchange extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $this->safe_float($ticker, 'Variation24Hr'),
+            'percentage' => $this->safe_number($ticker, 'Variation24Hr'),
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'Volume24Hr'),
+            'baseVolume' => $this->safe_number($ticker, 'Volume24Hr'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -194,8 +194,8 @@ class southxchange extends Exchange {
 
     public function parse_trade($trade, $market) {
         $timestamp = $this->safe_timestamp($trade, 'At');
-        $price = $this->safe_float($trade, 'Price');
-        $amount = $this->safe_float($trade, 'Amount');
+        $price = $this->safe_number($trade, 'Price');
+        $amount = $this->safe_number($trade, 'Amount');
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
@@ -242,9 +242,9 @@ class southxchange extends Exchange {
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
         $timestamp = null;
-        $price = $this->safe_float($order, 'LimitPrice');
-        $amount = $this->safe_float($order, 'OriginalAmount');
-        $remaining = $this->safe_float($order, 'Amount');
+        $price = $this->safe_number($order, 'LimitPrice');
+        $amount = $this->safe_number($order, 'OriginalAmount');
+        $remaining = $this->safe_number($order, 'Amount');
         $type = 'limit';
         $side = $this->safe_string_lower($order, 'Type');
         $id = $this->safe_string($order, 'Code');
@@ -403,8 +403,8 @@ class southxchange extends Exchange {
         $type = $this->safe_string($item, 'Type');
         $ledgerEntryType = $this->parse_ledger_entry_type($type);
         $code = $this->safe_currency_code($this->safe_string($item, 'CurrencyCode'), $currency);
-        $amount = $this->safe_float($item, 'Amount');
-        $after = $this->safe_float($item, 'TotalBalance');
+        $amount = $this->safe_number($item, 'Amount');
+        $after = $this->safe_number($item, 'TotalBalance');
         $before = null;
         if ($amount !== null) {
             if ($after !== null) {
@@ -575,7 +575,7 @@ class southxchange extends Exchange {
         //     }
         //
         $id = $this->safe_string($transaction, 'MovementId');
-        $amount = $this->safe_float($transaction, 'Amount');
+        $amount = $this->safe_number($transaction, 'Amount');
         $address = $this->safe_string($transaction, 'Address');
         $addressTo = $address;
         $addressFrom = null;

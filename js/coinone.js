@@ -142,8 +142,8 @@ module.exports = class coinone extends Exchange {
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'avail');
-            account['total'] = this.safeFloat (balance, 'balance');
+            account['free'] = this.safeNumber (balance, 'avail');
+            account['total'] = this.safeNumber (balance, 'balance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -199,13 +199,13 @@ module.exports = class coinone extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const first = this.safeFloat (ticker, 'first');
-        const last = this.safeFloat (ticker, 'last');
+        const first = this.safeNumber (ticker, 'first');
+        const last = this.safeNumber (ticker, 'last');
         let average = undefined;
         if (first !== undefined && last !== undefined) {
             average = this.sum (first, last) / 2;
         }
-        const previousClose = this.safeFloat (ticker, 'yesterday_last');
+        const previousClose = this.safeNumber (ticker, 'yesterday_last');
         let change = undefined;
         let percentage = undefined;
         if (last !== undefined && previousClose !== undefined) {
@@ -219,8 +219,8 @@ module.exports = class coinone extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -233,7 +233,7 @@ module.exports = class coinone extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -279,8 +279,8 @@ module.exports = class coinone extends Exchange {
                 side = 'buy';
             }
         }
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'qty');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'qty');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -288,11 +288,11 @@ module.exports = class coinone extends Exchange {
             }
         }
         const orderId = this.safeString (trade, 'orderId');
-        let feeCost = this.safeFloat (trade, 'fee');
+        let feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
-            let feeRate = this.safeFloat (trade, 'feeRate');
+            let feeRate = this.safeNumber (trade, 'feeRate');
             feeRate = Math.abs (feeRate);
             let feeCurrencyCode = undefined;
             if (market !== undefined) {
@@ -452,7 +452,7 @@ module.exports = class coinone extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'orderId');
-        const price = this.safeFloat (order, 'price');
+        const price = this.safeNumber (order, 'price');
         const timestamp = this.safeTimestamp (order, 'timestamp');
         let side = this.safeString (order, 'type');
         if (side === 'ask') {
@@ -460,8 +460,8 @@ module.exports = class coinone extends Exchange {
         } else if (side === 'bid') {
             side = 'buy';
         }
-        const remaining = this.safeFloat (order, 'remainQty');
-        const amount = this.safeFloat (order, 'qty');
+        const remaining = this.safeNumber (order, 'remainQty');
+        const amount = this.safeNumber (order, 'qty');
         let status = this.safeString (order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if (status === 'live') {
@@ -491,12 +491,12 @@ module.exports = class coinone extends Exchange {
             quote = market['quote'];
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (order, 'fee');
+        const feeCost = this.safeNumber (order, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyCode = (side === 'sell') ? quote : base;
             fee = {
                 'cost': feeCost,
-                'rate': this.safeFloat (order, 'feeRate'),
+                'rate': this.safeNumber (order, 'feeRate'),
                 'currency': feeCurrencyCode,
             };
         }
@@ -597,8 +597,8 @@ module.exports = class coinone extends Exchange {
             // eslint-disable-next-line quotes
             throw new ArgumentsRequired (this.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
         }
-        const price = this.safeFloat (params, 'price');
-        const qty = this.safeFloat (params, 'qty');
+        const price = this.safeNumber (params, 'price');
+        const qty = this.safeNumber (params, 'qty');
         const isAsk = this.safeInteger (params, 'is_ask');
         if ((price === undefined) || (qty === undefined) || (isAsk === undefined)) {
             // eslint-disable-next-line quotes

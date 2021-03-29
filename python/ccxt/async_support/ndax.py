@@ -249,7 +249,7 @@ class ndax(Exchange):
             name = self.safe_string(currency, 'ProductFullName')
             type = self.safe_string(currency, 'ProductType')
             code = self.safe_currency_code(self.safe_string(currency, 'Product'))
-            precision = self.safe_float(currency, 'TickSize')
+            precision = self.safe_number(currency, 'TickSize')
             isDisabled = self.safe_value(currency, 'IsDisabled')
             active = not isDisabled
             result[code] = {
@@ -328,8 +328,8 @@ class ndax(Exchange):
             quote = self.safe_currency_code(self.safe_string(market, 'Product2Symbol'))
             symbol = base + '/' + quote
             precision = {
-                'amount': self.safe_float(market, 'QuantityIncrement'),
-                'price': self.safe_float(market, 'PriceIncrement'),
+                'amount': self.safe_number(market, 'QuantityIncrement'),
+                'price': self.safe_number(market, 'PriceIncrement'),
             }
             sessionStatus = self.safe_string(market, 'SessionStatus')
             isDisable = self.safe_value(market, 'IsDisable')
@@ -347,11 +347,11 @@ class ndax(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'MinimumQuantity'),
+                        'min': self.safe_number(market, 'MinimumQuantity'),
                         'max': None,
                     },
                     'price': {
-                        'min': self.safe_float(market, 'MinimumPrice'),
+                        'min': self.safe_number(market, 'MinimumPrice'),
                         'max': None,
                     },
                     'cost': {
@@ -465,26 +465,26 @@ class ndax(Exchange):
         timestamp = self.safe_integer(ticker, 'TimeStamp')
         marketId = self.safe_string(ticker, 'InstrumentId')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_float(ticker, 'LastTradedPx')
-        percentage = self.safe_float(ticker, 'Rolling24HrPxChangePercent')
-        change = self.safe_float(ticker, 'Rolling24HrPxChange')
-        open = self.safe_float(ticker, 'SessionOpen')
+        last = self.safe_number(ticker, 'LastTradedPx')
+        percentage = self.safe_number(ticker, 'Rolling24HrPxChangePercent')
+        change = self.safe_number(ticker, 'Rolling24HrPxChange')
+        open = self.safe_number(ticker, 'SessionOpen')
         average = None
         if (last is not None) and (change is not None):
             average = self.sum(last, open) / 2
-        baseVolume = self.safe_float(ticker, 'Rolling24HrVolume')
-        quoteVolume = self.safe_float(ticker, 'Rolling24HrNotional')
+        baseVolume = self.safe_number(ticker, 'Rolling24HrVolume')
+        quoteVolume = self.safe_number(ticker, 'Rolling24HrNotional')
         vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'SessionHigh'),
-            'low': self.safe_float(ticker, 'SessionLow'),
-            'bid': self.safe_float(ticker, 'BestBid'),
-            'bidVolume': None,  # self.safe_float(ticker, 'BidQty'), always shows 0
-            'ask': self.safe_float(ticker, 'BestOffer'),
-            'askVolume': None,  # self.safe_float(ticker, 'AskQty'), always shows 0
+            'high': self.safe_number(ticker, 'SessionHigh'),
+            'low': self.safe_number(ticker, 'SessionLow'),
+            'bid': self.safe_number(ticker, 'BestBid'),
+            'bidVolume': None,  # self.safe_number(ticker, 'BidQty'), always shows 0
+            'ask': self.safe_number(ticker, 'BestOffer'),
+            'askVolume': None,  # self.safe_number(ticker, 'AskQty'), always shows 0
             'vwap': vwap,
             'open': open,
             'close': last,
@@ -555,11 +555,11 @@ class ndax(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 0),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 5),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -714,8 +714,8 @@ class ndax(Exchange):
         fee = None
         type = None
         if isinstance(trade, list):
-            price = self.safe_float(trade, 3)
-            amount = self.safe_float(trade, 2)
+            price = self.safe_number(trade, 3)
+            amount = self.safe_number(trade, 2)
             if (price is not None) and (amount is not None):
                 cost = price * amount
             timestamp = self.safe_integer(trade, 6)
@@ -729,13 +729,13 @@ class ndax(Exchange):
             id = self.safe_string(trade, 'TradeId')
             orderId = self.safe_string_2(trade, 'OrderId', 'OrigOrderId')
             marketId = self.safe_string_2(trade, 'InstrumentId', 'Instrument')
-            price = self.safe_float(trade, 'Price')
-            amount = self.safe_float(trade, 'Quantity')
-            cost = self.safe_float_2(trade, 'Value', 'GrossValueExecuted')
+            price = self.safe_number(trade, 'Price')
+            amount = self.safe_number(trade, 'Quantity')
+            cost = self.safe_number_2(trade, 'Value', 'GrossValueExecuted')
             takerOrMaker = self.safe_string_lower(trade, 'MakerTaker')
             side = self.safe_string_lower(trade, 'Side')
             type = self.safe_string_lower(trade, 'OrderType')
-            feeCost = self.safe_float(trade, 'Fee')
+            feeCost = self.safe_number(trade, 'Fee')
             if feeCost is not None:
                 feeCurrencyId = self.safe_string(trade, 'FeeProductId')
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -852,8 +852,8 @@ class ndax(Exchange):
             currencyId = self.safe_string(balance, 'ProductId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'Amount')
-            account['used'] = self.safe_float(balance, 'Hold')
+            account['total'] = self.safe_number(balance, 'Amount')
+            account['used'] = self.safe_number(balance, 'Hold')
             result[code] = account
         return self.parse_balance(result)
 
@@ -899,8 +899,8 @@ class ndax(Exchange):
         type = self.parse_ledger_entry_type(self.safe_string(item, 'ReferenceType'))
         currencyId = self.safe_string(item, 'ProductId')
         code = self.safe_currency_code(currencyId, currency)
-        credit = self.safe_float(item, 'CR')
-        debit = self.safe_float(item, 'DR')
+        credit = self.safe_number(item, 'CR')
+        debit = self.safe_number(item, 'DR')
         amount = None
         direction = None
         if credit > 0:
@@ -911,7 +911,7 @@ class ndax(Exchange):
             direction = 'out'
         timestamp = self.safe_integer(item, 'TimeStamp')
         before = None
-        after = self.safe_float(item, 'Balance')
+        after = self.safe_number(item, 'Balance')
         if direction == 'out':
             before = self.sum(after, amount)
         elif direction == 'in':
@@ -1059,14 +1059,14 @@ class ndax(Exchange):
         side = self.safe_string_lower(order, 'Side')
         type = self.safe_string_lower(order, 'OrderType')
         clientOrderId = self.safe_string_2(order, 'ReplacementClOrdId', 'ClientOrderId')
-        price = self.safe_float(order, 'Price', 0.0)
+        price = self.safe_number(order, 'Price', 0.0)
         price = price if (price > 0.0) else None
-        amount = self.safe_float(order, 'OrigQuantity')
-        filled = self.safe_float(order, 'QuantityExecuted')
-        cost = self.safe_float(order, 'GrossValueExecuted')
-        average = self.safe_float(order, 'AvgPrice', 0.0)
+        amount = self.safe_number(order, 'OrigQuantity')
+        filled = self.safe_number(order, 'QuantityExecuted')
+        cost = self.safe_number(order, 'GrossValueExecuted')
+        average = self.safe_number(order, 'AvgPrice', 0.0)
         average = average if (average > 0) else None
-        stopPrice = self.safe_float(order, 'StopPrice', 0.0)
+        stopPrice = self.safe_number(order, 'StopPrice', 0.0)
         stopPrice = stopPrice if (stopPrice > 0.0) else None
         timeInForce = None
         status = self.parse_order_status(self.safe_string(order, 'OrderState'))
@@ -1855,8 +1855,8 @@ class ndax(Exchange):
             updated = self.safe_integer(templateForm, 'LastUpdated', updated)
         addressTo = address
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'TicketStatus'), type)
-        amount = self.safe_float(transaction, 'Amount')
-        feeCost = self.safe_float(transaction, 'FeeAmount')
+        amount = self.safe_number(transaction, 'Amount')
+        feeCost = self.safe_number(transaction, 'FeeAmount')
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}

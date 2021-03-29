@@ -366,8 +366,8 @@ class aax(Exchange):
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
             active = (status == 'enable')
-            taker = self.safe_float(market, 'takerFee')
-            maker = self.safe_float(market, 'makerFee')
+            taker = self.safe_number(market, 'takerFee')
+            maker = self.safe_number(market, 'makerFee')
             type = self.safe_string(market, 'type')
             inverse = None
             linear = None
@@ -383,8 +383,8 @@ class aax(Exchange):
             if type == 'spot':
                 symbol = base + '/' + quote
             precision = {
-                'amount': self.safe_float(market, 'lotSize'),
-                'price': self.safe_float(market, 'tickSize'),
+                'amount': self.safe_number(market, 'lotSize'),
+                'price': self.safe_number(market, 'tickSize'),
             }
             result.append({
                 'id': id,
@@ -440,8 +440,8 @@ class aax(Exchange):
         timestamp = self.safe_integer(ticker, 't')
         marketId = self.safe_string(ticker, 's')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_float(ticker, 'c')
-        open = self.safe_float(ticker, 'o')
+        last = self.safe_number(ticker, 'c')
+        open = self.safe_number(ticker, 'o')
         change = None
         percentage = None
         average = None
@@ -450,13 +450,13 @@ class aax(Exchange):
             if open > 0:
                 percentage = change / open * 100
             average = self.sum(last, open) / 2
-        quoteVolume = self.safe_float(ticker, 'v')
+        quoteVolume = self.safe_number(ticker, 'v')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'h'),
-            'low': self.safe_float(ticker, 'l'),
+            'high': self.safe_number(ticker, 'h'),
+            'low': self.safe_number(ticker, 'l'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -593,8 +593,8 @@ class aax(Exchange):
         market = self.safe_market(marketId, market)
         if market is not None:
             symbol = market['symbol']
-        price = self.safe_float_2(trade, 'p', 'filledPrice')
-        amount = self.safe_float_2(trade, 'q', 'filledQty')
+        price = self.safe_number_2(trade, 'p', 'filledPrice')
+        amount = self.safe_number_2(trade, 'q', 'filledQty')
         orderId = self.safe_string(trade, 'orderID')
         isTaker = self.safe_value(trade, 'taker')
         takerOrMaker = None
@@ -614,7 +614,7 @@ class aax(Exchange):
             cost = price * amount
         orderType = self.parse_order_type(self.safe_string(trade, 'orderType'))
         fee = None
-        feeCost = self.safe_float(trade, 'commission')
+        feeCost = self.safe_number(trade, 'commission')
         if feeCost is not None:
             feeCurrency = None
             if market is not None:
@@ -677,11 +677,11 @@ class aax(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 5),
-            self.safe_float(ohlcv, 0),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
+            self.safe_number(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
@@ -763,8 +763,8 @@ class aax(Exchange):
                 currencyId = self.safe_string(balance, 'currency')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['free'] = self.safe_float(balance, 'available')
-                account['used'] = self.safe_float(balance, 'unavailable')
+                account['free'] = self.safe_number(balance, 'available')
+                account['used'] = self.safe_number(balance, 'unavailable')
                 result[code] = account
         return self.parse_balance(result)
 
@@ -791,7 +791,7 @@ class aax(Exchange):
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
             params = self.omit(params, ['clOrdID', 'clientOrderId'])
-        stopPrice = self.safe_float(params, 'stopPrice')
+        stopPrice = self.safe_number(params, 'stopPrice')
         if stopPrice is None:
             if (orderType == 'STOP-LIMIT') or (orderType == 'STOP'):
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders')
@@ -903,7 +903,7 @@ class aax(Exchange):
             # 'price': self.price_to_precision(symbol, price),
             # 'stopPrice': self.price_to_precision(symbol, stopPrice),
         }
-        stopPrice = self.safe_float(params, 'stopPrice')
+        stopPrice = self.safe_number(params, 'stopPrice')
         if stopPrice is not None:
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
             params = self.omit(params, 'stopPrice')
@@ -1507,14 +1507,14 @@ class aax(Exchange):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        price = self.safe_float(order, 'price')
-        stopPrice = self.safe_float(order, 'stopPrice')
+        price = self.safe_number(order, 'price')
+        stopPrice = self.safe_number(order, 'stopPrice')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         execInst = self.safe_string(order, 'execInst')
         postOnly = (execInst == 'Post-Only')
-        average = self.safe_float(order, 'avgPrice')
-        amount = self.safe_float(order, 'orderQty')
-        filled = self.safe_float(order, 'cumQty')
+        average = self.safe_number(order, 'avgPrice')
+        amount = self.safe_number(order, 'orderQty')
+        filled = self.safe_number(order, 'cumQty')
         remaining = self.safe_string(order, 'leavesQty')
         cost = None
         lastTradeTimestamp = None
@@ -1526,7 +1526,7 @@ class aax(Exchange):
                 if isinstance(lastTradeTimestamp, basestring):
                     lastTradeTimestamp = self.parse8601(lastTradeTimestamp)
         fee = None
-        feeCost = self.safe_float(order, 'commission')
+        feeCost = self.safe_number(order, 'commission')
         if feeCost is not None:
             feeCurrency = None
             if market is not None:

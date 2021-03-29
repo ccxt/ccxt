@@ -189,11 +189,11 @@ class braziliex extends Exchange {
                 'funding' => array(
                     'withdraw' => array(
                         'active' => $canWithdraw,
-                        'fee' => $this->safe_float($currency, 'txWithdrawalFee'),
+                        'fee' => $this->safe_number($currency, 'txWithdrawalFee'),
                     ),
                     'deposit' => array(
                         'active' => $canDeposit,
-                        'fee' => $this->safe_float($currency, 'txDepositFee'),
+                        'fee' => $this->safe_number($currency, 'txDepositFee'),
                     ),
                 ),
                 'limits' => array(
@@ -210,11 +210,11 @@ class braziliex extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'MinWithdrawal'),
+                        'min' => $this->safe_number($currency, 'MinWithdrawal'),
                         'max' => pow(10, $precision),
                     ),
                     'deposit' => array(
-                        'min' => $this->safe_float($currency, 'minDeposit'),
+                        'min' => $this->safe_number($currency, 'minDeposit'),
                         'max' => null,
                     ),
                 ),
@@ -262,9 +262,9 @@ class braziliex extends Exchange {
             $quoteIsFiat = $this->safe_integer($quoteCurrency, 'is_fiat', 0);
             $minCost = null;
             if ($quoteIsFiat) {
-                $minCost = $this->safe_float($baseCurrency, 'minAmountTradeFIAT');
+                $minCost = $this->safe_number($baseCurrency, 'minAmountTradeFIAT');
             } else {
-                $minCost = $this->safe_float($baseCurrency, 'minAmountTrade' . $uppercaseQuoteId);
+                $minCost = $this->safe_number($baseCurrency, 'minAmountTrade' . $uppercaseQuoteId);
             }
             $isActive = $this->safe_integer($market, 'active');
             $active = ($isActive === 1);
@@ -307,27 +307,27 @@ class braziliex extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->milliseconds();
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'highestBid24'),
-            'low' => $this->safe_float($ticker, 'lowestAsk24'),
-            'bid' => $this->safe_float($ticker, 'highestBid'),
+            'high' => $this->safe_number($ticker, 'highestBid24'),
+            'low' => $this->safe_number($ticker, 'lowestAsk24'),
+            'bid' => $this->safe_number($ticker, 'highestBid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'lowestAsk'),
+            'ask' => $this->safe_number($ticker, 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'percentChange'),
+            'change' => $this->safe_number($ticker, 'percentChange'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'baseVolume24'),
-            'quoteVolume' => $this->safe_float($ticker, 'quoteVolume24'),
+            'baseVolume' => $this->safe_number($ticker, 'baseVolume24'),
+            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume24'),
             'info' => $ticker,
         );
     }
@@ -367,13 +367,13 @@ class braziliex extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'date_exec', 'date'));
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $cost = $this->safe_float($trade, 'total');
+        $cost = $this->safe_number($trade, 'total');
         $orderId = $this->safe_string($trade, 'order_number');
         $type = 'limit';
         $side = $this->safe_string($trade, 'type');
@@ -415,8 +415,8 @@ class braziliex extends Exchange {
             $balance = $balances[$currencyId];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'available');
-            $account['total'] = $this->safe_float($balance, 'total');
+            $account['free'] = $this->safe_number($balance, 'available');
+            $account['total'] = $this->safe_number($balance, 'total');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -441,10 +441,10 @@ class braziliex extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($order, 'date'));
         }
-        $price = $this->safe_float($order, 'price');
-        $cost = $this->safe_float($order, 'total');
-        $amount = $this->safe_float($order, 'amount');
-        $filledPercentage = $this->safe_float($order, 'progress');
+        $price = $this->safe_number($order, 'price');
+        $cost = $this->safe_number($order, 'total');
+        $amount = $this->safe_number($order, 'amount');
+        $filledPercentage = $this->safe_number($order, 'progress');
         $filled = $amount * $filledPercentage;
         $id = $this->safe_string($order, 'order_number');
         $fee = $this->safe_value($order, 'fee'); // propagated from createOrder
@@ -524,7 +524,7 @@ class braziliex extends Exchange {
             'price' => $this->safe_string($priceParts, 1),
             'total' => $this->safe_string($totalParts, 1),
             'fee' => array(
-                'cost' => $this->safe_float($feeParts, 1),
+                'cost' => $this->safe_number($feeParts, 1),
                 'currency' => $this->safe_string($feeParts, 2),
             ),
             'progress' => '0.0',

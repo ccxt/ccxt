@@ -236,8 +236,8 @@ module.exports = class yobit extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (free, currencyId);
-            account['total'] = this.safeFloat (total, currencyId);
+            account['free'] = this.safeNumber (free, currencyId);
+            account['total'] = this.safeNumber (total, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -280,15 +280,15 @@ module.exports = class yobit extends Exchange {
                 'price': this.safeInteger (market, 'decimal_places'),
             };
             const amountLimits = {
-                'min': this.safeFloat (market, 'min_amount'),
-                'max': this.safeFloat (market, 'max_amount'),
+                'min': this.safeNumber (market, 'min_amount'),
+                'max': this.safeNumber (market, 'max_amount'),
             };
             const priceLimits = {
-                'min': this.safeFloat (market, 'min_price'),
-                'max': this.safeFloat (market, 'max_price'),
+                'min': this.safeNumber (market, 'min_price'),
+                'max': this.safeNumber (market, 'max_price'),
             };
             const costLimits = {
-                'min': this.safeFloat (market, 'min_total'),
+                'min': this.safeNumber (market, 'min_total'),
             };
             const limits = {
                 'amount': amountLimits,
@@ -297,7 +297,7 @@ module.exports = class yobit extends Exchange {
             };
             const hidden = this.safeInteger (market, 'hidden');
             const active = (hidden === 0);
-            const takerFee = this.safeFloat (market, 'fee');
+            const takerFee = this.safeNumber (market, 'fee');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -382,16 +382,16 @@ module.exports = class yobit extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -400,9 +400,9 @@ module.exports = class yobit extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeFloat (ticker, 'avg'),
-            'baseVolume': this.safeFloat (ticker, 'vol_cur'),
-            'quoteVolume': this.safeFloat (ticker, 'vol'),
+            'average': this.safeNumber (ticker, 'avg'),
+            'baseVolume': this.safeNumber (ticker, 'vol_cur'),
+            'quoteVolume': this.safeNumber (ticker, 'vol'),
             'info': ticker,
         };
     }
@@ -451,15 +451,15 @@ module.exports = class yobit extends Exchange {
         } else if (side === 'bid') {
             side = 'buy';
         }
-        const price = this.safeFloat2 (trade, 'rate', 'price');
+        const price = this.safeNumber2 (trade, 'rate', 'price');
         const id = this.safeString2 (trade, 'trade_id', 'tid');
         const order = this.safeString (trade, 'order_id');
         const marketId = this.safeString (trade, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const amount = this.safeFloat (trade, 'amount');
+        const amount = this.safeNumber (trade, 'amount');
         const type = 'limit'; // all trades are still limit trades
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'commission');
+        const feeCost = this.safeNumber (trade, 'commission');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commissionCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -541,8 +541,8 @@ module.exports = class yobit extends Exchange {
                 id = this.safeString (response['return'], 'init_order_id');
                 status = 'closed';
             }
-            filled = this.safeFloat (response['return'], 'received', 0.0);
-            remaining = this.safeFloat (response['return'], 'remains', amount);
+            filled = this.safeNumber (response['return'], 'received', 0.0);
+            remaining = this.safeNumber (response['return'], 'remains', amount);
         }
         const timestamp = this.milliseconds ();
         return {
@@ -592,9 +592,9 @@ module.exports = class yobit extends Exchange {
         const timestamp = this.safeTimestamp (order, 'timestamp_created');
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const remaining = this.safeFloat (order, 'amount');
-        const amount = this.safeFloat (order, 'start_amount');
-        const price = this.safeFloat (order, 'rate');
+        const remaining = this.safeNumber (order, 'amount');
+        const amount = this.safeNumber (order, 'start_amount');
+        const price = this.safeNumber (order, 'rate');
         const fee = undefined;
         const type = 'limit';
         const side = this.safeString (order, 'type');

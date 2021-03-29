@@ -383,8 +383,8 @@ class ftx(Exchange):
             # check if a market is a spot or future market
             symbol = self.safe_string(market, 'name') if (type == 'future') else (base + '/' + quote)
             active = self.safe_value(market, 'enabled')
-            sizeIncrement = self.safe_float(market, 'sizeIncrement')
-            priceIncrement = self.safe_float(market, 'priceIncrement')
+            sizeIncrement = self.safe_number(market, 'sizeIncrement')
+            priceIncrement = self.safe_number(market, 'priceIncrement')
             precision = {
                 'amount': sizeIncrement,
                 'price': priceIncrement,
@@ -456,28 +456,28 @@ class ftx(Exchange):
                     symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         timestamp = self.safe_timestamp(ticker, 'time', self.milliseconds())
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
-            'bidVolume': self.safe_float(ticker, 'bidSize'),
-            'ask': self.safe_float(ticker, 'ask'),
-            'askVolume': self.safe_float(ticker, 'askSize'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
+            'bidVolume': self.safe_number(ticker, 'bidSize'),
+            'ask': self.safe_number(ticker, 'ask'),
+            'askVolume': self.safe_number(ticker, 'askSize'),
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_float(ticker, 'change24h'),
+            'percentage': self.safe_number(ticker, 'change24h'),
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume24h'),
+            'quoteVolume': self.safe_number(ticker, 'quoteVolume24h'),
             'info': ticker,
         }
 
@@ -590,11 +590,11 @@ class ftx(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 'time'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     def get_market_id(self, symbol, key, params={}):
@@ -763,8 +763,8 @@ class ftx(Exchange):
             else:
                 symbol = marketId
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'size')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'size')
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         side = self.safe_string(trade, 'side')
@@ -772,14 +772,14 @@ class ftx(Exchange):
         if price is not None and amount is not None:
             cost = price * amount
         fee = None
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
-                'rate': self.safe_float(trade, 'feeRate'),
+                'rate': self.safe_number(trade, 'feeRate'),
             }
         orderId = self.safe_string(trade, 'orderId')
         return {
@@ -880,8 +880,8 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', {})
         return {
             'info': response,
-            'maker': self.safe_float(result, 'makerFee'),
-            'taker': self.safe_float(result, 'takerFee'),
+            'maker': self.safe_number(result, 'makerFee'),
+            'taker': self.safe_number(result, 'takerFee'),
         }
 
     async def fetch_balance(self, params={}):
@@ -907,8 +907,8 @@ class ftx(Exchange):
             balance = balances[i]
             code = self.safe_currency_code(self.safe_string(balance, 'coin'))
             account = self.account()
-            account['free'] = self.safe_float(balance, 'free')
-            account['total'] = self.safe_float(balance, 'total')
+            account['free'] = self.safe_number(balance, 'free')
+            account['total'] = self.safe_number(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 
@@ -1031,9 +1031,9 @@ class ftx(Exchange):
         id = self.safe_string(order, 'id')
         timestamp = self.parse8601(self.safe_string(order, 'createdAt'))
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        amount = self.safe_float(order, 'size')
-        filled = self.safe_float(order, 'filledSize')
-        remaining = self.safe_float(order, 'remainingSize')
+        amount = self.safe_number(order, 'size')
+        filled = self.safe_number(order, 'filledSize')
+        remaining = self.safe_number(order, 'remainingSize')
         if (remaining == 0.0) and (amount is not None) and (filled is not None):
             remaining = max(amount - filled, 0)
             if remaining > 0:
@@ -1052,14 +1052,14 @@ class ftx(Exchange):
             symbol = market['symbol']
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')
-        average = self.safe_float(order, 'avgFillPrice')
-        price = self.safe_float_2(order, 'price', 'triggerPrice', average)
+        average = self.safe_number(order, 'avgFillPrice')
+        price = self.safe_number_2(order, 'price', 'triggerPrice', average)
         cost = None
         if filled is not None and price is not None:
             cost = filled * price
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'triggeredAt'))
         clientOrderId = self.safe_string(order, 'clientId')
-        stopPrice = self.safe_float(order, 'triggerPrice')
+        stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_value(order, 'postOnly')
         return {
             'info': order,
@@ -1112,12 +1112,12 @@ class ftx(Exchange):
             request['price'] = None
         elif (type == 'stop') or (type == 'takeProfit'):
             method = 'privatePostConditionalOrders'
-            stopPrice = self.safe_float_2(params, ['stopPrice', 'triggerPrice'])
+            stopPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
             if stopPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders')
+            else:
                 params = self.omit(params, ['stopPrice', 'triggerPrice'])
                 request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
-            else:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders')
             if price is not None:
                 request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
         elif type == 'trailingStop':
@@ -1186,9 +1186,9 @@ class ftx(Exchange):
         request = {}
         method = None
         clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
-        triggerPrice = self.safe_float(params, 'triggerPrice')
-        orderPrice = self.safe_float(params, 'orderPrice')
-        trailValue = self.safe_float(params, 'trailValue')
+        triggerPrice = self.safe_number(params, 'triggerPrice')
+        orderPrice = self.safe_number(params, 'orderPrice')
+        trailValue = self.safe_number(params, 'trailValue')
         params = self.omit(params, ['client_order_id', 'clientOrderId', 'triggerPrice', 'orderPrice', 'trailValue'])
         triggerPriceIsDefined = (triggerPrice is not None)
         orderPriceIsDefined = (orderPrice is not None)
@@ -1651,7 +1651,7 @@ class ftx(Exchange):
         #
         code = self.safe_currency_code(self.safe_string(transaction, 'coin'))
         id = self.safe_string(transaction, 'id')
-        amount = self.safe_float(transaction, 'size')
+        amount = self.safe_number(transaction, 'size')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         timestamp = self.parse8601(self.safe_string(transaction, 'time'))
         txid = self.safe_string(transaction, 'txid')
@@ -1665,7 +1665,7 @@ class ftx(Exchange):
             notes = self.safe_string(transaction, 'notes')
             if notes is not None:
                 address = notes[12:]
-        fee = self.safe_float(transaction, 'fee')
+        fee = self.safe_number(transaction, 'fee')
         return {
             'info': transaction,
             'id': id,

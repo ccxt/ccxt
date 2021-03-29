@@ -370,8 +370,8 @@ class ftx extends Exchange {
             // check if a $market is a spot or future $market
             $symbol = ($type === 'future') ? $this->safe_string($market, 'name') : ($base . '/' . $quote);
             $active = $this->safe_value($market, 'enabled');
-            $sizeIncrement = $this->safe_float($market, 'sizeIncrement');
-            $priceIncrement = $this->safe_float($market, 'priceIncrement');
+            $sizeIncrement = $this->safe_number($market, 'sizeIncrement');
+            $priceIncrement = $this->safe_number($market, 'priceIncrement');
             $precision = array(
                 'amount' => $sizeIncrement,
                 'price' => $priceIncrement,
@@ -449,28 +449,28 @@ class ftx extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         $timestamp = $this->safe_timestamp($ticker, 'time', $this->milliseconds());
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
-            'bidVolume' => $this->safe_float($ticker, 'bidSize'),
-            'ask' => $this->safe_float($ticker, 'ask'),
-            'askVolume' => $this->safe_float($ticker, 'askSize'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
+            'bidVolume' => $this->safe_number($ticker, 'bidSize'),
+            'ask' => $this->safe_number($ticker, 'ask'),
+            'askVolume' => $this->safe_number($ticker, 'askSize'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $this->safe_float($ticker, 'change24h'),
+            'percentage' => $this->safe_number($ticker, 'change24h'),
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, 'quoteVolume24h'),
+            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume24h'),
             'info' => $ticker,
         );
     }
@@ -588,11 +588,11 @@ class ftx extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 'time'),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volume'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
         );
     }
 
@@ -769,8 +769,8 @@ class ftx extends Exchange {
             }
         }
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'size');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'size');
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
@@ -780,14 +780,14 @@ class ftx extends Exchange {
             $cost = $price * $amount;
         }
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
-                'rate' => $this->safe_float($trade, 'feeRate'),
+                'rate' => $this->safe_number($trade, 'feeRate'),
             );
         }
         $orderId = $this->safe_string($trade, 'orderId');
@@ -893,8 +893,8 @@ class ftx extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         return array(
             'info' => $response,
-            'maker' => $this->safe_float($result, 'makerFee'),
-            'taker' => $this->safe_float($result, 'takerFee'),
+            'maker' => $this->safe_number($result, 'makerFee'),
+            'taker' => $this->safe_number($result, 'takerFee'),
         );
     }
 
@@ -921,8 +921,8 @@ class ftx extends Exchange {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'free');
-            $account['total'] = $this->safe_float($balance, 'total');
+            $account['free'] = $this->safe_number($balance, 'free');
+            $account['total'] = $this->safe_number($balance, 'total');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -1048,9 +1048,9 @@ class ftx extends Exchange {
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->parse8601($this->safe_string($order, 'createdAt'));
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $amount = $this->safe_float($order, 'size');
-        $filled = $this->safe_float($order, 'filledSize');
-        $remaining = $this->safe_float($order, 'remainingSize');
+        $amount = $this->safe_number($order, 'size');
+        $filled = $this->safe_number($order, 'filledSize');
+        $remaining = $this->safe_number($order, 'remainingSize');
         if (($remaining === 0.0) && ($amount !== null) && ($filled !== null)) {
             $remaining = max ($amount - $filled, 0);
             if ($remaining > 0) {
@@ -1074,15 +1074,15 @@ class ftx extends Exchange {
         }
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');
-        $average = $this->safe_float($order, 'avgFillPrice');
-        $price = $this->safe_float_2($order, 'price', 'triggerPrice', $average);
+        $average = $this->safe_number($order, 'avgFillPrice');
+        $price = $this->safe_number_2($order, 'price', 'triggerPrice', $average);
         $cost = null;
         if ($filled !== null && $price !== null) {
             $cost = $filled * $price;
         }
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'triggeredAt'));
         $clientOrderId = $this->safe_string($order, 'clientId');
-        $stopPrice = $this->safe_float($order, 'triggerPrice');
+        $stopPrice = $this->safe_number($order, 'triggerPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
         return array(
             'info' => $order,
@@ -1137,12 +1137,12 @@ class ftx extends Exchange {
             $request['price'] = null;
         } else if (($type === 'stop') || ($type === 'takeProfit')) {
             $method = 'privatePostConditionalOrders';
-            $stopPrice = $this->safe_float_2($params, array( 'stopPrice', 'triggerPrice' ));
+            $stopPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
             if ($stopPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $stopPrice parameter or a triggerPrice parameter for ' . $type . ' orders');
+            } else {
                 $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
                 $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $stopPrice));
-            } else {
-                throw new ArgumentsRequired($this->id . ' createOrder () requires a $stopPrice parameter or a triggerPrice parameter for ' . $type . ' orders');
             }
             if ($price !== null) {
                 $request['orderPrice'] = floatval($this->price_to_precision($symbol, $price)); // optional, order $type is limit if this is specified, otherwise $market
@@ -1215,9 +1215,9 @@ class ftx extends Exchange {
         $request = array();
         $method = null;
         $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
-        $triggerPrice = $this->safe_float($params, 'triggerPrice');
-        $orderPrice = $this->safe_float($params, 'orderPrice');
-        $trailValue = $this->safe_float($params, 'trailValue');
+        $triggerPrice = $this->safe_number($params, 'triggerPrice');
+        $orderPrice = $this->safe_number($params, 'orderPrice');
+        $trailValue = $this->safe_number($params, 'trailValue');
         $params = $this->omit($params, array( 'client_order_id', 'clientOrderId', 'triggerPrice', 'orderPrice', 'trailValue' ));
         $triggerPriceIsDefined = ($triggerPrice !== null);
         $orderPriceIsDefined = ($orderPrice !== null);
@@ -1713,7 +1713,7 @@ class ftx extends Exchange {
         //
         $code = $this->safe_currency_code($this->safe_string($transaction, 'coin'));
         $id = $this->safe_string($transaction, 'id');
-        $amount = $this->safe_float($transaction, 'size');
+        $amount = $this->safe_number($transaction, 'size');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $timestamp = $this->parse8601($this->safe_string($transaction, 'time'));
         $txid = $this->safe_string($transaction, 'txid');
@@ -1730,7 +1730,7 @@ class ftx extends Exchange {
                 $address = mb_substr($notes, 12);
             }
         }
-        $fee = $this->safe_float($transaction, 'fee');
+        $fee = $this->safe_number($transaction, 'fee');
         return array(
             'info' => $transaction,
             'id' => $id,

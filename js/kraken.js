@@ -312,14 +312,14 @@ module.exports = class kraken extends Exchange {
             const symbol = darkpool ? altname : (base + '/' + quote);
             const makerFees = this.safeValue (market, 'fees_maker', []);
             const firstMakerFee = this.safeValue (makerFees, 0, []);
-            const firstMakerFeeRate = this.safeFloat (firstMakerFee, 1);
+            const firstMakerFeeRate = this.safeNumber (firstMakerFee, 1);
             let maker = undefined;
             if (firstMakerFeeRate !== undefined) {
                 maker = parseFloat (firstMakerFeeRate) / 100;
             }
             const takerFees = this.safeValue (market, 'fees', []);
             const firstTakerFee = this.safeValue (takerFees, 0, []);
-            const firstTakerFeeRate = this.safeFloat (firstTakerFee, 1);
+            const firstTakerFeeRate = this.safeNumber (firstTakerFee, 1);
             let taker = undefined;
             if (firstTakerFeeRate !== undefined) {
                 taker = parseFloat (firstTakerFeeRate) / 100;
@@ -328,7 +328,7 @@ module.exports = class kraken extends Exchange {
                 'amount': this.safeInteger (market, 'lot_decimals'),
                 'price': this.safeInteger (market, 'pair_decimals'),
             };
-            const minAmount = this.safeFloat (market, 'ordermin');
+            const minAmount = this.safeNumber (market, 'ordermin');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -463,7 +463,7 @@ module.exports = class kraken extends Exchange {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
         const response = await this.privatePostTradeVolume (params);
-        const tradedVolume = this.safeFloat (response['result'], 'volume');
+        const tradedVolume = this.safeNumber (response['result'], 'volume');
         const tiers = this.fees['trading']['tiers'];
         let taker = tiers['taker'][1];
         let maker = tiers['maker'][1];
@@ -485,8 +485,8 @@ module.exports = class kraken extends Exchange {
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        const price = this.safeFloat (bidask, priceKey);
-        const amount = this.safeFloat (bidask, amountKey);
+        const price = this.safeNumber (bidask, priceKey);
+        const amount = this.safeNumber (bidask, amountKey);
         const timestamp = this.safeInteger (bidask, 2);
         return [ price, amount, timestamp ];
     }
@@ -559,7 +559,7 @@ module.exports = class kraken extends Exchange {
             'ask': parseFloat (ticker['a'][0]),
             'askVolume': undefined,
             'vwap': vwap,
-            'open': this.safeFloat (ticker, 'o'),
+            'open': this.safeNumber (ticker, 'o'),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -630,11 +630,11 @@ module.exports = class kraken extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 6),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 6),
         ];
     }
 
@@ -701,24 +701,24 @@ module.exports = class kraken extends Exchange {
         const referenceAccount = undefined;
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const code = this.safeCurrencyCode (this.safeString (item, 'asset'), currency);
-        let amount = this.safeFloat (item, 'amount');
+        let amount = this.safeNumber (item, 'amount');
         if (amount < 0) {
             direction = 'out';
             amount = Math.abs (amount);
         } else {
             direction = 'in';
         }
-        const time = this.safeFloat (item, 'time');
+        const time = this.safeNumber (item, 'time');
         let timestamp = undefined;
         if (time !== undefined) {
             timestamp = parseInt (time * 1000);
         }
         const fee = {
-            'cost': this.safeFloat (item, 'fee'),
+            'cost': this.safeNumber (item, 'fee'),
             'currency': code,
         };
         const before = undefined;
-        const after = this.safeFloat (item, 'balance');
+        const after = this.safeNumber (item, 'balance');
         const status = 'ok';
         return {
             'info': item,
@@ -853,8 +853,8 @@ module.exports = class kraken extends Exchange {
             timestamp = this.safeTimestamp (trade, 2);
             side = (trade[3] === 's') ? 'sell' : 'buy';
             type = (trade[4] === 'l') ? 'limit' : 'market';
-            price = this.safeFloat (trade, 0);
-            amount = this.safeFloat (trade, 1);
+            price = this.safeNumber (trade, 0);
+            amount = this.safeNumber (trade, 1);
             const tradeLength = trade.length;
             if (tradeLength > 6) {
                 id = this.safeString (trade, 6); // artificially added as per #1794
@@ -875,15 +875,15 @@ module.exports = class kraken extends Exchange {
             timestamp = this.safeTimestamp (trade, 'time');
             side = this.safeString (trade, 'type');
             type = this.safeString (trade, 'ordertype');
-            price = this.safeFloat (trade, 'price');
-            amount = this.safeFloat (trade, 'vol');
+            price = this.safeNumber (trade, 'price');
+            amount = this.safeNumber (trade, 'vol');
             if ('fee' in trade) {
                 let currency = undefined;
                 if (market !== undefined) {
                     currency = market['quote'];
                 }
                 fee = {
-                    'cost': this.safeFloat (trade, 'fee'),
+                    'cost': this.safeNumber (trade, 'fee'),
                     'currency': currency,
                 };
             }
@@ -970,7 +970,7 @@ module.exports = class kraken extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balances, currencyId);
+            account['total'] = this.safeNumber (balances, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -1002,15 +1002,15 @@ module.exports = class kraken extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         } else if ((type === 'stop-loss') || (type === 'take-profit')) {
-            const stopPrice = this.safeFloat2 (params, 'price', 'stopPrice', price);
+            const stopPrice = this.safeNumber2 (params, 'price', 'stopPrice', price);
             if (stopPrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument or a price/stopPrice parameter for a ' + type + ' order');
             } else {
                 request['price'] = this.priceToPrecision (symbol, stopPrice);
             }
         } else if ((type === 'stop-loss-limit') || (type === 'take-profit-limit')) {
-            const stopPrice = this.safeFloat2 (params, 'price', 'stopPrice');
-            const limitPrice = this.safeFloat (params, 'price2');
+            const stopPrice = this.safeNumber2 (params, 'price', 'stopPrice');
+            const limitPrice = this.safeNumber (params, 'price2');
             const stopPriceDefined = (stopPrice !== undefined);
             const limitPriceDefined = (limitPrice !== undefined);
             if (stopPriceDefined && limitPriceDefined) {
@@ -1119,10 +1119,10 @@ module.exports = class kraken extends Exchange {
         if (orderDescription !== undefined) {
             const parts = orderDescription.split (' ');
             side = this.safeString (parts, 0);
-            amount = this.safeFloat (parts, 1);
+            amount = this.safeNumber (parts, 1);
             marketId = this.safeString (parts, 2);
             type = this.safeString (parts, 4);
-            price = this.safeFloat (parts, 5);
+            price = this.safeNumber (parts, 5);
         }
         side = this.safeString (description, 'type', side);
         type = this.safeString (description, 'ordertype', type);
@@ -1136,23 +1136,23 @@ module.exports = class kraken extends Exchange {
             market = this.getDelistedMarketById (marketId);
         }
         const timestamp = this.safeTimestamp (order, 'opentm');
-        amount = this.safeFloat (order, 'vol', amount);
-        const filled = this.safeFloat (order, 'vol_exec');
+        amount = this.safeNumber (order, 'vol', amount);
+        const filled = this.safeNumber (order, 'vol_exec');
         let fee = undefined;
-        const cost = this.safeFloat (order, 'cost');
-        price = this.safeFloat (description, 'price', price);
+        const cost = this.safeNumber (order, 'cost');
+        price = this.safeNumber (description, 'price', price);
         if ((price === undefined) || (price === 0.0)) {
-            price = this.safeFloat (description, 'price2');
+            price = this.safeNumber (description, 'price2');
         }
         if ((price === undefined) || (price === 0.0)) {
-            price = this.safeFloat (order, 'price', price);
+            price = this.safeNumber (order, 'price', price);
         }
-        const average = this.safeFloat (order, 'price');
+        const average = this.safeNumber (order, 'price');
         if (market !== undefined) {
             symbol = market['symbol'];
             if ('fee' in order) {
                 const flags = order['oflags'];
-                const feeCost = this.safeFloat (order, 'fee');
+                const feeCost = this.safeNumber (order, 'fee');
                 fee = {
                     'cost': feeCost,
                     'rate': undefined,
@@ -1176,7 +1176,7 @@ module.exports = class kraken extends Exchange {
         if (rawTrades !== undefined) {
             trades = this.parseTrades (rawTrades, market, undefined, undefined, { 'order': id });
         }
-        const stopPrice = this.safeFloat (order, 'stopprice');
+        const stopPrice = this.safeNumber (order, 'stopprice');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1549,10 +1549,10 @@ module.exports = class kraken extends Exchange {
         const currencyId = this.safeString (transaction, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (transaction, 'info');
-        const amount = this.safeFloat (transaction, 'amount');
+        const amount = this.safeNumber (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const type = this.safeString (transaction, 'type'); // injected from the outside
-        let feeCost = this.safeFloat (transaction, 'fee');
+        let feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost === undefined) {
             if (type === 'deposit') {
                 feeCost = 0;

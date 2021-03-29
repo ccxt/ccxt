@@ -367,8 +367,8 @@ module.exports = class ftx extends Exchange {
             // check if a market is a spot or future market
             const symbol = (type === 'future') ? this.safeString (market, 'name') : (base + '/' + quote);
             const active = this.safeValue (market, 'enabled');
-            const sizeIncrement = this.safeFloat (market, 'sizeIncrement');
-            const priceIncrement = this.safeFloat (market, 'priceIncrement');
+            const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
+            const priceIncrement = this.safeNumber (market, 'priceIncrement');
             const precision = {
                 'amount': sizeIncrement,
                 'price': priceIncrement,
@@ -446,28 +446,28 @@ module.exports = class ftx extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         const timestamp = this.safeTimestamp (ticker, 'time', this.milliseconds ());
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': this.safeFloat (ticker, 'bidSize'),
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': this.safeFloat (ticker, 'askSize'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
+            'bidVolume': this.safeNumber (ticker, 'bidSize'),
+            'ask': this.safeNumber (ticker, 'ask'),
+            'askVolume': this.safeNumber (ticker, 'askSize'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeFloat (ticker, 'change24h'),
+            'percentage': this.safeNumber (ticker, 'change24h'),
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'quoteVolume24h'),
+            'quoteVolume': this.safeNumber (ticker, 'quoteVolume24h'),
             'info': ticker,
         };
     }
@@ -585,11 +585,11 @@ module.exports = class ftx extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 'time'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -766,8 +766,8 @@ module.exports = class ftx extends Exchange {
             }
         }
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'size');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'size');
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
@@ -777,14 +777,14 @@ module.exports = class ftx extends Exchange {
             cost = price * amount;
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
-                'rate': this.safeFloat (trade, 'feeRate'),
+                'rate': this.safeNumber (trade, 'feeRate'),
             };
         }
         const orderId = this.safeString (trade, 'orderId');
@@ -890,8 +890,8 @@ module.exports = class ftx extends Exchange {
         const result = this.safeValue (response, 'result', {});
         return {
             'info': response,
-            'maker': this.safeFloat (result, 'makerFee'),
-            'taker': this.safeFloat (result, 'takerFee'),
+            'maker': this.safeNumber (result, 'makerFee'),
+            'taker': this.safeNumber (result, 'takerFee'),
         };
     }
 
@@ -918,8 +918,8 @@ module.exports = class ftx extends Exchange {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'free');
-            account['total'] = this.safeFloat (balance, 'total');
+            account['free'] = this.safeNumber (balance, 'free');
+            account['total'] = this.safeNumber (balance, 'total');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -1045,9 +1045,9 @@ module.exports = class ftx extends Exchange {
         const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const amount = this.safeFloat (order, 'size');
-        const filled = this.safeFloat (order, 'filledSize');
-        let remaining = this.safeFloat (order, 'remainingSize');
+        const amount = this.safeNumber (order, 'size');
+        const filled = this.safeNumber (order, 'filledSize');
+        let remaining = this.safeNumber (order, 'remainingSize');
         if ((remaining === 0.0) && (amount !== undefined) && (filled !== undefined)) {
             remaining = Math.max (amount - filled, 0);
             if (remaining > 0) {
@@ -1071,15 +1071,15 @@ module.exports = class ftx extends Exchange {
         }
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
-        const average = this.safeFloat (order, 'avgFillPrice');
-        const price = this.safeFloat2 (order, 'price', 'triggerPrice', average);
+        const average = this.safeNumber (order, 'avgFillPrice');
+        const price = this.safeNumber2 (order, 'price', 'triggerPrice', average);
         let cost = undefined;
         if (filled !== undefined && price !== undefined) {
             cost = filled * price;
         }
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'triggeredAt'));
         const clientOrderId = this.safeString (order, 'clientId');
-        const stopPrice = this.safeFloat (order, 'triggerPrice');
+        const stopPrice = this.safeNumber (order, 'triggerPrice');
         const postOnly = this.safeValue (order, 'postOnly');
         return {
             'info': order,
@@ -1134,12 +1134,12 @@ module.exports = class ftx extends Exchange {
             request['price'] = null;
         } else if ((type === 'stop') || (type === 'takeProfit')) {
             method = 'privatePostConditionalOrders';
-            const stopPrice = this.safeFloat2 (params, [ 'stopPrice', 'triggerPrice' ]);
+            const stopPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
             if (stopPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders');
+            } else {
                 params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
                 request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
-            } else {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders');
             }
             if (price !== undefined) {
                 request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
@@ -1212,9 +1212,9 @@ module.exports = class ftx extends Exchange {
         const request = {};
         let method = undefined;
         const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
-        const triggerPrice = this.safeFloat (params, 'triggerPrice');
-        const orderPrice = this.safeFloat (params, 'orderPrice');
-        const trailValue = this.safeFloat (params, 'trailValue');
+        const triggerPrice = this.safeNumber (params, 'triggerPrice');
+        const orderPrice = this.safeNumber (params, 'orderPrice');
+        const trailValue = this.safeNumber (params, 'trailValue');
         params = this.omit (params, [ 'client_order_id', 'clientOrderId', 'triggerPrice', 'orderPrice', 'trailValue' ]);
         const triggerPriceIsDefined = (triggerPrice !== undefined);
         const orderPriceIsDefined = (orderPrice !== undefined);
@@ -1710,7 +1710,7 @@ module.exports = class ftx extends Exchange {
         //
         const code = this.safeCurrencyCode (this.safeString (transaction, 'coin'));
         const id = this.safeString (transaction, 'id');
-        const amount = this.safeFloat (transaction, 'size');
+        const amount = this.safeNumber (transaction, 'size');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const timestamp = this.parse8601 (this.safeString (transaction, 'time'));
         const txid = this.safeString (transaction, 'txid');
@@ -1727,7 +1727,7 @@ module.exports = class ftx extends Exchange {
                 address = notes.slice (12);
             }
         }
-        const fee = this.safeFloat (transaction, 'fee');
+        const fee = this.safeNumber (transaction, 'fee');
         return {
             'info': transaction,
             'id': id,

@@ -242,11 +242,11 @@ class btcmarkets(Exchange):
         tagTo = tag
         addressFrom = None
         tagFrom = None
-        fee = self.safe_float(transaction, 'fee')
+        fee = self.safe_number(transaction, 'fee')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         currencyId = self.safe_string(transaction, 'assetName')
         code = self.safe_currency_code(currencyId)
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         if fee:
             amount -= fee
         return {
@@ -297,10 +297,10 @@ class btcmarkets(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             fees = self.safe_value(self.safe_value(self.options, 'fees', {}), quote, self.fees)
-            pricePrecision = self.safe_float(market, 'priceDecimals')
-            amountPrecision = self.safe_float(market, 'amountDecimals')
-            minAmount = self.safe_float(market, 'minOrderAmount')
-            maxAmount = self.safe_float(market, 'maxOrderAmount')
+            pricePrecision = self.safe_number(market, 'priceDecimals')
+            amountPrecision = self.safe_number(market, 'amountDecimals')
+            minAmount = self.safe_number(market, 'minOrderAmount')
+            maxAmount = self.safe_number(market, 'maxOrderAmount')
             minPrice = None
             if quote == 'AUD':
                 minPrice = math.pow(10, -pricePrecision)
@@ -355,8 +355,8 @@ class btcmarkets(Exchange):
             balance = response[i]
             currencyId = self.safe_string(balance, 'assetName')
             code = self.safe_currency_code(currencyId)
-            total = self.safe_float(balance, 'balance')
-            used = self.safe_float(balance, 'locked')
+            total = self.safe_number(balance, 'balance')
+            used = self.safe_number(balance, 'locked')
             account = self.account()
             account['used'] = used
             account['total'] = total
@@ -376,11 +376,11 @@ class btcmarkets(Exchange):
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 0)),
-            self.safe_float(ohlcv, 1),  # open
-            self.safe_float(ohlcv, 2),  # high
-            self.safe_float(ohlcv, 3),  # low
-            self.safe_float(ohlcv, 4),  # close
-            self.safe_float(ohlcv, 5),  # volume
+            self.safe_number(ohlcv, 1),  # open
+            self.safe_number(ohlcv, 2),  # high
+            self.safe_number(ohlcv, 3),  # low
+            self.safe_number(ohlcv, 4),  # close
+            self.safe_number(ohlcv, 5),  # volume
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -468,21 +468,21 @@ class btcmarkets(Exchange):
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        last = self.safe_float(ticker, 'lastPrice')
-        baseVolume = self.safe_float(ticker, 'volume24h')
-        quoteVolume = self.safe_float(ticker, 'volumeQte24h')
+        last = self.safe_number(ticker, 'lastPrice')
+        baseVolume = self.safe_number(ticker, 'volume24h')
+        quoteVolume = self.safe_number(ticker, 'volumeQte24h')
         vwap = self.vwap(baseVolume, quoteVolume)
-        change = self.safe_float(ticker, 'price24h')
-        percentage = self.safe_float(ticker, 'pricePct24h')
+        change = self.safe_number(ticker, 'price24h')
+        percentage = self.safe_number(ticker, 'pricePct24h')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high24h'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bestBid'),
+            'high': self.safe_number(ticker, 'high24h'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bestBid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'bestAsk'),
+            'ask': self.safe_number(ticker, 'bestAsk'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -585,15 +585,15 @@ class btcmarkets(Exchange):
         elif side == 'Ask':
             side = 'sell'
         id = self.safe_string(trade, 'id')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
         cost = None
         if amount is not None:
             if price is not None:
                 cost = amount * price
         orderId = self.safe_string(trade, 'orderId')
         fee = None
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -678,7 +678,7 @@ class btcmarkets(Exchange):
             else:
                 request['price'] = self.price_to_precision(symbol, price)
         if triggerPriceIsRequired:
-            triggerPrice = self.safe_float(params, 'triggerPrice')
+            triggerPrice = self.safe_number(params, 'triggerPrice')
             params = self.omit(params, 'triggerPrice')
             if triggerPrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice parameter for a ' + type + 'order')
@@ -797,9 +797,9 @@ class btcmarkets(Exchange):
         elif side == 'Ask':
             side = 'sell'
         type = self.safe_string_lower(order, 'type')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
-        remaining = self.safe_float(order, 'openAmount')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount')
+        remaining = self.safe_number(order, 'openAmount')
         filled = None
         if (amount is not None) and (remaining is not None):
             filled = max(0, amount - remaining)
@@ -811,7 +811,7 @@ class btcmarkets(Exchange):
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
-        stopPrice = self.safe_float(order, 'triggerPrice')
+        stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_value(order, 'postOnly')
         return {
             'info': order,

@@ -182,8 +182,8 @@ module.exports = class tidebit extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'locked');
+            account['free'] = this.safeNumber (balance, 'balance');
+            account['used'] = this.safeNumber (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -211,15 +211,15 @@ module.exports = class tidebit extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'ask': this.safeFloat (ticker, 'sell'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'bidVolume': undefined,
             'askVolume': undefined,
             'vwap': undefined,
@@ -230,7 +230,7 @@ module.exports = class tidebit extends Exchange {
             'percentage': undefined,
             'previousClose': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -264,9 +264,9 @@ module.exports = class tidebit extends Exchange {
     parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         const id = this.safeString (trade, 'id');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'volume');
-        const cost = this.safeFloat (trade, 'funds');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'volume');
+        const cost = this.safeNumber (trade, 'funds');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -311,11 +311,11 @@ module.exports = class tidebit extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 5),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -401,11 +401,11 @@ module.exports = class tidebit extends Exchange {
         const id = this.safeString (order, 'id');
         const type = this.safeString (order, 'ord_type');
         const side = this.safeString (order, 'side');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'volume');
-        const filled = this.safeFloat (order, 'executed_volume');
-        const remaining = this.safeFloat (order, 'remaining_volume');
-        const average = this.safeFloat (order, 'avg_price');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'volume');
+        const filled = this.safeNumber (order, 'executed_volume');
+        const remaining = this.safeNumber (order, 'remaining_volume');
+        const average = this.safeNumber (order, 'avg_price');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,

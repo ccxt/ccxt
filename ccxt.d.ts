@@ -356,7 +356,9 @@ declare module 'ccxt' {
         checkRequiredCredentials (): void;
         commonCurrencyCode (currency: string): string;
         createDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
-        createLimitOrder (symbol: string, side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
+        createLimitOrder (symbol: string, side: Order['side'], amount: number, price: number, params?: Params): Promise<Order>;
+        createLimitBuyOrder (symbol: string, amount: number, price: number, params?: Params): Promise<Order>;
+        createLimitSellOrder (symbol: string, amount: number, price: number, params?: Params): Promise<Order>;
         createMarketOrder (symbol: string, side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
         createOrder (symbol: string, type: Order['type'], side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
         decode (str: string): string;
@@ -423,7 +425,6 @@ declare module 'ccxt' {
     /* tslint:disable */
 
     export class aax extends Exchange {}
-    export class acx extends Exchange {}
     export class aofex extends Exchange {}
     export class ascendex extends Exchange {}
     export class bequant extends hitbtc {}
@@ -508,7 +509,7 @@ declare module 'ccxt' {
     export class itbit extends Exchange {}
     export class kraken extends Exchange {}
     export class kucoin extends Exchange {}
-    export class kuna extends acx {}
+    export class kuna extends Exchange {}
     export class lakebtc extends Exchange {}
     export class latoken extends Exchange {}
     export class lbank extends Exchange {}
@@ -551,7 +552,6 @@ declare module 'ccxt' {
 
     export type ExchangeId =
         | 'aax'
-        | 'acx'
         | 'aofex'
         | 'ascendex'
         | 'bequant'

@@ -260,21 +260,21 @@ class oceanex extends Exchange {
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => $this->safe_float($ticker, 'last'),
-            'last' => $this->safe_float($ticker, 'last'),
+            'close' => $this->safe_number($ticker, 'last'),
+            'last' => $this->safe_number($ticker, 'last'),
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
+            'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -399,8 +399,8 @@ class oceanex extends Exchange {
             'type' => 'limit',
             'takerOrMaker' => null,
             'side' => $side,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'volume'),
+            'price' => $this->safe_number($trade, 'price'),
+            'amount' => $this->safe_number($trade, 'volume'),
             'cost' => null,
             'fee' => null,
         );
@@ -427,8 +427,8 @@ class oceanex extends Exchange {
             $result[$symbol] = array(
                 'info' => $group,
                 'symbol' => $symbol,
-                'maker' => $this->safe_float($maker, 'value'),
-                'taker' => $this->safe_float($taker, 'value'),
+                'maker' => $this->safe_number($maker, 'value'),
+                'taker' => $this->safe_number($taker, 'value'),
             );
         }
         return $result;
@@ -450,8 +450,8 @@ class oceanex extends Exchange {
             $currencyId = $this->safe_value($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'balance');
-            $account['used'] = $this->safe_float($balance, 'locked');
+            $account['free'] = $this->safe_number($balance, 'balance');
+            $account['used'] = $this->safe_number($balance, 'locked');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -579,12 +579,12 @@ class oceanex extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $this->safe_value($order, 'side'),
-            'price' => $this->safe_float($order, 'price'),
+            'price' => $this->safe_number($order, 'price'),
             'stopPrice' => null,
-            'average' => $this->safe_float($order, 'avg_price'),
-            'amount' => $this->safe_float($order, 'volume'),
-            'remaining' => $this->safe_float($order, 'remaining_volume'),
-            'filled' => $this->safe_float($order, 'executed_volume'),
+            'average' => $this->safe_number($order, 'avg_price'),
+            'amount' => $this->safe_number($order, 'volume'),
+            'remaining' => $this->safe_number($order, 'remaining_volume'),
+            'filled' => $this->safe_number($order, 'executed_volume'),
             'status' => $status,
             'cost' => null,
             'trades' => null,

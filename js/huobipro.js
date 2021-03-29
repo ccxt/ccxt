@@ -252,6 +252,7 @@ module.exports = class huobipro extends Exchange {
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'PNT': 'Penta',
                 'SBTC': 'Super Bitcoin',
+                'BIFI': 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         });
     }
@@ -316,8 +317,8 @@ module.exports = class huobipro extends Exchange {
             'info': limits,
             'limits': {
                 'amount': {
-                    'min': this.safeFloat (limits, 'limit-order-must-greater-than'),
-                    'max': this.safeFloat (limits, 'limit-order-must-less-than'),
+                    'min': this.safeNumber (limits, 'limit-order-must-greater-than'),
+                    'max': this.safeNumber (limits, 'limit-order-must-less-than'),
                 },
             },
         };
@@ -351,9 +352,9 @@ module.exports = class huobipro extends Exchange {
             };
             const maker = (base === 'OMG') ? 0 : 0.2 / 100;
             const taker = (base === 'OMG') ? 0 : 0.2 / 100;
-            const minAmount = this.safeFloat (market, 'min-order-amt', Math.pow (10, -precision['amount']));
-            const maxAmount = this.safeFloat (market, 'max-order-amt');
-            const minCost = this.safeFloat (market, 'min-order-value', 0);
+            const minAmount = this.safeNumber (market, 'min-order-amt', Math.pow (10, -precision['amount']));
+            const maxAmount = this.safeNumber (market, 'max-order-amt');
+            const minCost = this.safeNumber (market, 'min-order-value', 0);
             const state = this.safeString (market, 'state');
             const active = (state === 'online');
             result.push ({
@@ -432,24 +433,24 @@ module.exports = class huobipro extends Exchange {
         let askVolume = undefined;
         if ('bid' in ticker) {
             if (Array.isArray (ticker['bid'])) {
-                bid = this.safeFloat (ticker['bid'], 0);
-                bidVolume = this.safeFloat (ticker['bid'], 1);
+                bid = this.safeNumber (ticker['bid'], 0);
+                bidVolume = this.safeNumber (ticker['bid'], 1);
             } else {
-                bid = this.safeFloat (ticker, 'bid');
+                bid = this.safeNumber (ticker, 'bid');
                 bidVolume = this.safeValue (ticker, 'bidSize');
             }
         }
         if ('ask' in ticker) {
             if (Array.isArray (ticker['ask'])) {
-                ask = this.safeFloat (ticker['ask'], 0);
-                askVolume = this.safeFloat (ticker['ask'], 1);
+                ask = this.safeNumber (ticker['ask'], 0);
+                askVolume = this.safeNumber (ticker['ask'], 1);
             } else {
-                ask = this.safeFloat (ticker, 'ask');
+                ask = this.safeNumber (ticker, 'ask');
                 askVolume = this.safeValue (ticker, 'askSize');
             }
         }
-        const open = this.safeFloat (ticker, 'open');
-        const close = this.safeFloat (ticker, 'close');
+        const open = this.safeNumber (ticker, 'open');
+        const close = this.safeNumber (ticker, 'close');
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
@@ -460,15 +461,15 @@ module.exports = class huobipro extends Exchange {
                 percentage = (change / open) * 100;
             }
         }
-        const baseVolume = this.safeFloat (ticker, 'amount');
-        const quoteVolume = this.safeFloat (ticker, 'vol');
+        const baseVolume = this.safeNumber (ticker, 'amount');
+        const quoteVolume = this.safeNumber (ticker, 'vol');
         const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
@@ -626,8 +627,8 @@ module.exports = class huobipro extends Exchange {
             type = typeParts[1];
         }
         const takerOrMaker = this.safeString (trade, 'role');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'filled-amount', 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber2 (trade, 'filled-amount', 'amount');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -635,12 +636,12 @@ module.exports = class huobipro extends Exchange {
             }
         }
         let fee = undefined;
-        let feeCost = this.safeFloat (trade, 'filled-fees');
+        let feeCost = this.safeNumber (trade, 'filled-fees');
         let feeCurrency = undefined;
         if (market !== undefined) {
             feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-currency'));
         }
-        const filledPoints = this.safeFloat (trade, 'filled-points');
+        const filledPoints = this.safeNumber (trade, 'filled-points');
         if (filledPoints !== undefined) {
             if ((feeCost === undefined) || (feeCost === 0.0)) {
                 feeCost = filledPoints;
@@ -754,11 +755,11 @@ module.exports = class huobipro extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 'id'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'amount'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'amount'),
         ];
     }
 
@@ -855,11 +856,11 @@ module.exports = class huobipro extends Exchange {
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.safeFloat (currency, 'deposit-min-amount'),
+                        'min': this.safeNumber (currency, 'deposit-min-amount'),
                         'max': Math.pow (10, precision),
                     },
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'withdraw-min-amount'),
+                        'min': this.safeNumber (currency, 'withdraw-min-amount'),
                         'max': Math.pow (10, precision),
                     },
                 },
@@ -890,10 +891,10 @@ module.exports = class huobipro extends Exchange {
                 account = this.account ();
             }
             if (balance['type'] === 'trade') {
-                account['free'] = this.safeFloat (balance, 'balance');
+                account['free'] = this.safeNumber (balance, 'balance');
             }
             if (balance['type'] === 'frozen') {
-                account['used'] = this.safeFloat (balance, 'balance');
+                account['used'] = this.safeNumber (balance, 'balance');
             }
             result[code] = account;
         }
@@ -1072,16 +1073,16 @@ module.exports = class huobipro extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (order, 'created-at');
-        let amount = this.safeFloat (order, 'amount');
-        const filled = this.safeFloat2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
+        let amount = this.safeNumber (order, 'amount');
+        const filled = this.safeNumber2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
         if ((type === 'market') && (side === 'buy')) {
             amount = (status === 'closed') ? filled : undefined;
         }
-        let price = this.safeFloat (order, 'price');
+        let price = this.safeNumber (order, 'price');
         if (price === 0.0) {
             price = undefined;
         }
-        const cost = this.safeFloat2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
+        const cost = this.safeNumber2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
         let remaining = undefined;
         let average = undefined;
         if (filled !== undefined) {
@@ -1093,7 +1094,7 @@ module.exports = class huobipro extends Exchange {
                 average = cost / filled;
             }
         }
-        const feeCost = this.safeFloat2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
+        const feeCost = this.safeNumber2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee = undefined;
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
@@ -1362,7 +1363,7 @@ module.exports = class huobipro extends Exchange {
         }
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         const tag = this.safeString (transaction, 'address-tag');
-        let feeCost = this.safeFloat (transaction, 'fee');
+        let feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
         }
@@ -1375,7 +1376,7 @@ module.exports = class huobipro extends Exchange {
             'address': this.safeString (transaction, 'address'),
             'tag': tag,
             'type': type,
-            'amount': this.safeFloat (transaction, 'amount'),
+            'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
             'status': status,
             'updated': updated,

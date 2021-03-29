@@ -457,8 +457,8 @@ class timex extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_float($balance, 'totalBalance');
-            $account['used'] = $this->safe_float($balance, 'lockedBalance');
+            $account['total'] = $this->safe_number($balance, 'totalBalance');
+            $account['used'] = $this->safe_number($balance, 'lockedBalance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -822,7 +822,7 @@ class timex extends Exchange {
         $result = $this->safe_value($response, 0, array());
         return array(
             'info' => $response,
-            'maker' => $this->safe_float($result, 'fee'),
+            'maker' => $this->safe_number($result, 'fee'),
             'taker' => null,
         );
     }
@@ -859,18 +859,18 @@ class timex extends Exchange {
             'amount' => $this->precision_from_string($this->safe_string($market, 'quantityIncrement')),
             'price' => $this->precision_from_string($this->safe_string($market, 'tickSize')),
         );
-        $amountIncrement = $this->safe_float($market, 'quantityIncrement');
-        $minBase = $this->safe_float($market, 'baseMinSize');
+        $amountIncrement = $this->safe_number($market, 'quantityIncrement');
+        $minBase = $this->safe_number($market, 'baseMinSize');
         $minAmount = max ($amountIncrement, $minBase);
-        $priceIncrement = $this->safe_float($market, 'tickSize');
-        $minCost = $this->safe_float($market, 'quoteMinSize');
+        $priceIncrement = $this->safe_number($market, 'tickSize');
+        $minCost = $this->safe_number($market, 'quoteMinSize');
         $limits = array(
             'amount' => array( 'min' => $minAmount, 'max' => null ),
             'price' => array( 'min' => $priceIncrement, 'max' => null ),
             'cost' => array( 'min' => max ($minCost, $minAmount * $priceIncrement), 'max' => null ),
         );
-        $taker = $this->safe_float($market, 'takerFee');
-        $maker = $this->safe_float($market, 'makerFee');
+        $taker = $this->safe_number($market, 'takerFee');
+        $maker = $this->safe_number($market, 'makerFee');
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -931,7 +931,7 @@ class timex extends Exchange {
         $name = $this->safe_string($currency, 'name');
         $precision = $this->safe_integer($currency, 'decimals');
         $active = $this->safe_value($currency, 'active');
-        // $fee = $this->safe_float($currency, 'withdrawalFee');
+        // $fee = $this->safe_number($currency, 'withdrawalFee');
         $feeString = $this->safe_string($currency, 'withdrawalFee');
         $tradeDecimals = $this->safe_integer($currency, 'tradeDecimals');
         $fee = null;
@@ -968,14 +968,6 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_tickers($rawTickers, $symbols = null) {
-        $tickers = array();
-        for ($i = 0; $i < count($rawTickers); $i++) {
-            $tickers[] = $this->parse_ticker($rawTickers[$i]);
-        }
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
-    }
-
     public function parse_ticker($ticker, $market = null) {
         //
         //     {
@@ -995,8 +987,8 @@ class timex extends Exchange {
         $marketId = $this->safe_string($ticker, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '/');
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
-        $last = $this->safe_float($ticker, 'last');
-        $open = $this->safe_float($ticker, 'open');
+        $last = $this->safe_number($ticker, 'last');
+        $open = $this->safe_number($ticker, 'open');
         $change = null;
         $average = null;
         if ($last !== null && $open !== null) {
@@ -1012,11 +1004,11 @@ class timex extends Exchange {
             'info' => $ticker,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -1026,8 +1018,8 @@ class timex extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
-            'quoteVolume' => $this->safe_float($ticker, 'volumeQuote'),
+            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'quoteVolume' => $this->safe_number($ticker, 'volumeQuote'),
         );
     }
 
@@ -1061,8 +1053,8 @@ class timex extends Exchange {
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'quantity');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'quantity');
         $id = $this->safe_string($trade, 'id');
         $side = $this->safe_string_lower_2($trade, 'direction', 'side');
         $takerOrMaker = $this->safe_string_lower($trade, 'makerOrTaker');
@@ -1071,7 +1063,7 @@ class timex extends Exchange {
             $orderId = $this->safe_string($trade, $takerOrMaker . 'OrderId');
         }
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrency = ($market === null) ? null : $market['quote'];
             $fee = array(
@@ -1114,11 +1106,11 @@ class timex extends Exchange {
         //
         return array(
             $this->parse8601($this->safe_string($ohlcv, 'timestamp')),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volume'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
         );
     }
 
@@ -1149,10 +1141,10 @@ class timex extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string($order, 'createdAt'));
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'quantity');
-        $filled = $this->safe_float($order, 'filledQuantity');
-        $canceledQuantity = $this->safe_float($order, 'cancelledQuantity');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'quantity');
+        $filled = $this->safe_number($order, 'filledQuantity');
+        $canceledQuantity = $this->safe_number($order, 'cancelledQuantity');
         $remaining = null;
         $status = null;
         if (($amount !== null) && ($filled !== null)) {

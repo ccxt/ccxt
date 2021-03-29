@@ -197,6 +197,26 @@ module.exports = class binance extends Exchange {
                         'apiReferral/rebate/historicalRecord',
                         'apiReferral/kickback/recentRecord',
                         'apiReferral/kickback/historicalRecord',
+                        // brokerage API
+                        'broker/subAccountApi',
+                        'broker/subAccount',
+                        'broker/subAccountApi/commission/futures',
+                        'broker/subAccountApi/commission/coinFutures',
+                        'broker/info',
+                        'broker/transfer',
+                        'broker/transfer/futures',
+                        'broker/rebate/recentRecord',
+                        'broker/rebate/historicalRecord',
+                        'broker/subAccount/bnbBurn/status',
+                        'broker/subAccount/depositHist',
+                        'broker/subAccount/spotSummary',
+                        'broker/subAccount/marginSummary',
+                        'broker/subAccount/futuresSummary',
+                        'broker/rebate/futures/recentRecord',
+                        'broker/subAccountApi/ipRestriction',
+                        'broker/universalTransfer',
+                        // v2 not supported yet
+                        // GET /sapi/v2/broker/subAccount/futuresSummary
                     ],
                     'post': [
                         'asset/dust',
@@ -236,11 +256,30 @@ module.exports = class binance extends Exchange {
                         // leveraged token endpoints
                         'blvt/subscribe',
                         'blvt/redeem',
-                        // broker api
+                        // brokerage API
                         'apiReferral/customization',
                         'apiReferral/userCustomization',
                         'apiReferral/rebate/historicalRecord',
                         'apiReferral/kickback/historicalRecord',
+                        'broker/subAccount',
+                        'broker/subAccount/margin',
+                        'broker/subAccount/futures',
+                        'broker/subAccountApi',
+                        'broker/subAccountApi/permission',
+                        'broker/subAccountApi/commission',
+                        'broker/subAccountApi/commission/futures',
+                        'broker/subAccountApi/commission/coinFutures',
+                        'broker/transfer',
+                        'broker/transfer/futures',
+                        'broker/rebate/historicalRecord',
+                        'broker/subAccount/bnbBurn/spot',
+                        'broker/subAccount/bnbBurn/marginInterest',
+                        'broker/subAccount/blvt',
+                        'broker/subAccountApi/ipRestriction',
+                        'broker/subAccountApi/ipRestriction/ipList',
+                        'broker/universalTransfer',
+                        'broker/subAccountApi/permission/universalTransfer',
+                        'broker/subAccountApi/permission/vanillaOptions',
                     ],
                     'put': [
                         'userDataStream',
@@ -251,6 +290,9 @@ module.exports = class binance extends Exchange {
                         'margin/order',
                         'userDataStream',
                         'userDataStream/isolated',
+                        // brokerage API
+                        'broker/subAccountApi',
+                        'broker/subAccountApi/ipRestriction/ipList',
                     ],
                 },
                 'wapi': {
@@ -923,7 +965,7 @@ module.exports = class binance extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const markets = this.safeValue (response, 'symbols');
+        const markets = this.safeValue (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -1313,9 +1355,9 @@ module.exports = class binance extends Exchange {
 
     async fetchStatus (params = {}) {
         const response = await this.wapiGetSystemStatus (params);
-        let status = this.safeValue (response, 'status');
+        let status = this.safeString (response, 'status');
         if (status !== undefined) {
-            status = (status === 0) ? 'ok' : 'maintenance';
+            status = (status === '0') ? 'ok' : 'maintenance';
             this.status = this.extend (this.status, {
                 'status': status,
                 'updated': this.milliseconds (),
@@ -1342,14 +1384,6 @@ module.exports = class binance extends Exchange {
             return this.parseTicker (firstTicker, market);
         }
         return this.parseTicker (response, market);
-    }
-
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
@@ -2951,7 +2985,6 @@ module.exports = class binance extends Exchange {
         if (api === 'wapi') {
             url += '.html';
         }
-        const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (path === 'historicalTrades') {
             if (this.apiKey) {
                 headers = {
@@ -2960,19 +2993,22 @@ module.exports = class binance extends Exchange {
             } else {
                 throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
             }
-        } else if (userDataStream) {
+        }
+        const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
+        if (userDataStream) {
             if (this.apiKey) {
                 // v1 special case for userDataStream
-                body = this.urlencode (params);
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
+                if (method !== 'GET') {
+                    body = this.urlencode (params);
+                }
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
-        }
-        if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        } else if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query = undefined;
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
@@ -3004,13 +3040,8 @@ module.exports = class binance extends Exchange {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            // userDataStream endpoints are public, but POST, PUT, DELETE
-            // therefore they don't accept URL query arguments
-            // https://github.com/ccxt/ccxt/issues/5224
-            if (!userDataStream) {
-                if (Object.keys (params).length) {
-                    url += '?' + this.urlencode (params);
-                }
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

@@ -88,8 +88,8 @@ module.exports = class btcbox extends Exchange {
             if (free in response) {
                 const account = this.account ();
                 const used = currencyId + '_lock';
-                account['free'] = this.safeFloat (response, free);
-                account['used'] = this.safeFloat (response, used);
+                account['free'] = this.safeNumber (response, free);
+                account['used'] = this.safeNumber (response, used);
                 result[code] = account;
             }
         }
@@ -114,16 +114,16 @@ module.exports = class btcbox extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -133,8 +133,8 @@ module.exports = class btcbox extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
         };
     }
@@ -158,8 +158,8 @@ module.exports = class btcbox extends Exchange {
             symbol = market['symbol'];
         }
         const id = this.safeString (trade, 'tid');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
@@ -265,15 +265,15 @@ module.exports = class btcbox extends Exchange {
         if (datetimeString !== undefined) {
             timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
         }
-        const amount = this.safeFloat (order, 'amount_original');
-        const remaining = this.safeFloat (order, 'amount_outstanding');
+        const amount = this.safeNumber (order, 'amount_original');
+        const remaining = this.safeNumber (order, 'amount_outstanding');
         let filled = undefined;
         if (amount !== undefined) {
             if (remaining !== undefined) {
                 filled = amount - remaining;
             }
         }
-        const price = this.safeFloat (order, 'price');
+        const price = this.safeNumber (order, 'price');
         let cost = undefined;
         if (price !== undefined) {
             if (filled !== undefined) {

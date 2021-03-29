@@ -207,7 +207,7 @@ module.exports = class crex24 extends Exchange {
             const symbol = base + '/' + quote;
             const tickSize = this.safeValue (market, 'tickSize');
             const minPrice = this.safeValue (market, 'minPrice');
-            const minAmount = this.safeFloat (market, 'minVolume');
+            const minAmount = this.safeNumber (market, 'minVolume');
             const precision = {
                 'amount': this.precisionFromString (this.numberToString (minAmount)),
                 'price': this.precisionFromString (this.numberToString (tickSize)),
@@ -287,7 +287,7 @@ module.exports = class crex24 extends Exchange {
                 'type': type,
                 'name': this.safeString (currency, 'name'),
                 'active': active,
-                'fee': this.safeFloat (currency, 'flatWithdrawalFee'), // todo: redesign
+                'fee': this.safeNumber (currency, 'flatWithdrawalFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -303,12 +303,12 @@ module.exports = class crex24 extends Exchange {
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.safeFloat (currency, 'minDeposit'),
+                        'min': this.safeNumber (currency, 'minDeposit'),
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'minWithdrawal'),
-                        'max': this.safeFloat (currency, 'maxWithdrawal'),
+                        'min': this.safeNumber (currency, 'minWithdrawal'),
+                        'max': this.safeNumber (currency, 'maxWithdrawal'),
                     },
                 },
             };
@@ -338,8 +338,8 @@ module.exports = class crex24 extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'reserved');
+            account['free'] = this.safeNumber (balance, 'available');
+            account['used'] = this.safeNumber (balance, 'reserved');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -394,16 +394,16 @@ module.exports = class crex24 extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const marketId = this.safeString (ticker, 'instrument');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -411,10 +411,10 @@ module.exports = class crex24 extends Exchange {
             'last': last,
             'previousClose': undefined, // previous day close
             'change': undefined,
-            'percentage': this.safeFloat (ticker, 'percentChange'),
+            'percentage': this.safeNumber (ticker, 'percentChange'),
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'baseVolume'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
+            'baseVolume': this.safeNumber (ticker, 'baseVolume'),
+            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
         };
     }
@@ -508,8 +508,8 @@ module.exports = class crex24 extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'volume');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'volume');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -524,7 +524,7 @@ module.exports = class crex24 extends Exchange {
         let fee = undefined;
         const feeCurrencyId = this.safeString (trade, 'feeCurrency');
         const feeCode = this.safeCurrencyCode (feeCurrencyId);
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -585,11 +585,11 @@ module.exports = class crex24 extends Exchange {
         //
         return [
             this.parse8601 (this.safeString (ohlcv, 'timestamp')),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -658,9 +658,9 @@ module.exports = class crex24 extends Exchange {
         const marketId = this.safeString (order, 'instrument');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'volume');
-        const remaining = this.safeFloat (order, 'remainingVolume');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'volume');
+        const remaining = this.safeNumber (order, 'remainingVolume');
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'lastUpdate'));
         const id = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
@@ -669,7 +669,7 @@ module.exports = class crex24 extends Exchange {
         const trades = undefined;
         const average = undefined;
         const timeInForce = this.safeString (order, 'timeInForce');
-        const stopPrice = this.safeFloat (order, 'stopPrice');
+        const stopPrice = this.safeNumber (order, 'stopPrice');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -726,7 +726,7 @@ module.exports = class crex24 extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (stopPriceIsRequired) {
-            const stopPrice = this.safeFloat (params, 'stopPrice');
+            const stopPrice = this.safeNumber (params, 'stopPrice');
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             } else {
@@ -1145,8 +1145,8 @@ module.exports = class crex24 extends Exchange {
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
         const updated = this.parse8601 (this.safeString (transaction, 'processedAt'));
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const amount = this.safeFloat (transaction, 'amount');
-        const feeCost = this.safeFloat (transaction, 'fee');
+        const amount = this.safeNumber (transaction, 'amount');
+        const feeCost = this.safeNumber (transaction, 'fee');
         const fee = {
             'cost': feeCost,
             'currency': code,

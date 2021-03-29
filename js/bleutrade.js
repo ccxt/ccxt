@@ -163,8 +163,8 @@ module.exports = class bleutrade extends Exchange {
                 'code': code,
                 'name': this.safeString (item, 'AssetLong'),
                 'active': this.safeValue (item, 'IsActive') && !this.safeValue (item, 'MaintenanceMode'),
-                'fee': this.safeFloat (item, 'WithdrawTxFee'),
-                'precision': this.safeFloat (item, 'DecimalPlaces'),
+                'fee': this.safeNumber (item, 'WithdrawTxFee'),
+                'precision': this.safeNumber (item, 'DecimalPlaces'),
                 'info': item,
                 'limits': this.limits,
             };
@@ -216,7 +216,7 @@ module.exports = class bleutrade extends Exchange {
                 'taker': this.fees['trading']['taker'],
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'MinTradeSize'),
+                        'min': this.safeNumber (market, 'MinTradeSize'),
                         'max': undefined,
                     },
                     'price': {
@@ -292,8 +292,8 @@ module.exports = class bleutrade extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
         const marketId = this.safeString (ticker, 'MarketName');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const previous = this.safeFloat (ticker, 'PrevDay');
-        const last = this.safeFloat (ticker, 'Last');
+        const previous = this.safeNumber (ticker, 'PrevDay');
+        const last = this.safeNumber (ticker, 'Last');
         let change = undefined;
         let percentage = undefined;
         if (last !== undefined) {
@@ -308,11 +308,11 @@ module.exports = class bleutrade extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'High'),
-            'low': this.safeFloat (ticker, 'Low'),
-            'bid': this.safeFloat (ticker, 'Bid'),
+            'high': this.safeNumber (ticker, 'High'),
+            'low': this.safeNumber (ticker, 'Low'),
+            'bid': this.safeNumber (ticker, 'Bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'Ask'),
+            'ask': this.safeNumber (ticker, 'Ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': previous,
@@ -322,8 +322,8 @@ module.exports = class bleutrade extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'Volume'),
-            'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
+            'baseVolume': this.safeNumber (ticker, 'Volume'),
+            'quoteVolume': this.safeNumber (ticker, 'BaseVolume'),
             'info': ticker,
         };
     }
@@ -331,11 +331,11 @@ module.exports = class bleutrade extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         return [
             this.parse8601 (ohlcv['TimeStamp'] + '+00:00'),
-            this.safeFloat (ohlcv, 'Open'),
-            this.safeFloat (ohlcv, 'High'),
-            this.safeFloat (ohlcv, 'Low'),
-            this.safeFloat (ohlcv, 'Close'),
-            this.safeFloat (ohlcv, 'Volume'),
+            this.safeNumber (ohlcv, 'Open'),
+            this.safeNumber (ohlcv, 'High'),
+            this.safeNumber (ohlcv, 'Low'),
+            this.safeNumber (ohlcv, 'Close'),
+            this.safeNumber (ohlcv, 'Volume'),
         ];
     }
 
@@ -411,8 +411,8 @@ module.exports = class bleutrade extends Exchange {
             const currencyId = this.safeString (item, 'Asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (item, 'Available');
-            account['total'] = this.safeFloat (item, 'Balance');
+            account['free'] = this.safeNumber (item, 'Available');
+            account['total'] = this.safeNumber (item, 'Balance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -558,7 +558,7 @@ module.exports = class bleutrade extends Exchange {
             //
         }
         const timestamp = this.parse8601 (this.safeString (item, 'TimeStamp'));
-        let amount = this.safeFloat (item, 'Amount');
+        let amount = this.safeNumber (item, 'Amount');
         let direction = undefined;
         if (amount !== undefined) {
             direction = 'in';
@@ -632,10 +632,10 @@ module.exports = class bleutrade extends Exchange {
         if ('Created' in order) {
             timestamp = this.parse8601 (order['Created'] + '+00:00');
         }
-        const price = this.safeFloat (order, 'Price');
-        const amount = this.safeFloat (order, 'Quantity');
-        const remaining = this.safeFloat (order, 'QuantityRemaining');
-        const average = this.safeFloat (order, 'PricePerUnit');
+        const price = this.safeNumber (order, 'Price');
+        const amount = this.safeNumber (order, 'Quantity');
+        const remaining = this.safeNumber (order, 'QuantityRemaining');
+        const average = this.safeNumber (order, 'PricePerUnit');
         const id = this.safeString (order, 'OrderID');
         return this.safeOrder ({
             'info': order,
@@ -696,7 +696,7 @@ module.exports = class bleutrade extends Exchange {
         //     Symbol: 'BTC' }
         //
         const id = this.safeString (transaction, 'ID');
-        let amount = this.safeFloat (transaction, 'Amount');
+        let amount = this.safeNumber (transaction, 'Amount');
         let type = 'deposit';
         if (amount < 0) {
             amount = Math.abs (amount);

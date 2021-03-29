@@ -158,7 +158,7 @@ module.exports = class zaif extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': -Math.log10 (this.safeFloat (market, 'item_unit_step')),
+                'amount': -Math.log10 (this.safeNumber (market, 'item_unit_step')),
                 'price': this.safeInteger (market, 'aux_unit_point'),
             };
             const fees = this.safeValue (this.options['fees'], symbol, this.fees['trading']);
@@ -177,11 +177,11 @@ module.exports = class zaif extends Exchange {
                 'maker': maker,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'item_unit_min'),
+                        'min': this.safeNumber (market, 'item_unit_min'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.safeFloat (market, 'aux_unit_min'),
+                        'min': this.safeNumber (market, 'aux_unit_min'),
                         'max': undefined,
                     },
                     'cost': {
@@ -213,7 +213,7 @@ module.exports = class zaif extends Exchange {
             };
             if ('deposit' in balances) {
                 if (currencyId in balances['deposit']) {
-                    account['total'] = this.safeFloat (balances['deposit'], currencyId);
+                    account['total'] = this.safeNumber (balances['deposit'], currencyId);
                     account['used'] = account['total'] - account['free'];
                 }
             }
@@ -238,22 +238,22 @@ module.exports = class zaif extends Exchange {
         };
         const ticker = await this.publicGetTickerPair (this.extend (request, params));
         const timestamp = this.milliseconds ();
-        const vwap = this.safeFloat (ticker, 'vwap');
-        const baseVolume = this.safeFloat (ticker, 'volume');
+        const vwap = this.safeNumber (ticker, 'vwap');
+        const baseVolume = this.safeNumber (ticker, 'volume');
         let quoteVolume = undefined;
         if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
@@ -274,8 +274,8 @@ module.exports = class zaif extends Exchange {
         side = (side === 'bid') ? 'buy' : 'sell';
         const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString2 (trade, 'id', 'tid');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -359,8 +359,8 @@ module.exports = class zaif extends Exchange {
         const timestamp = this.safeTimestamp (order, 'timestamp');
         const marketId = this.safeString (order, 'currency_pair');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'amount');
         const id = this.safeString (order, 'id');
         return this.safeOrder ({
             'id': id,

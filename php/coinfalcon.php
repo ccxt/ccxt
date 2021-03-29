@@ -138,11 +138,11 @@ class coinfalcon extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'change_in_24h'),
+            'change' => $this->safe_number($ticker, 'change_in_24h'),
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, 'volume'),
+            'quoteVolume' => $this->safe_number($ticker, 'volume'),
             'info' => $ticker,
         );
     }
@@ -179,8 +179,8 @@ class coinfalcon extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'size');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'size');
         $symbol = $market['symbol'];
         $cost = null;
         if ($price !== null) {
@@ -192,7 +192,7 @@ class coinfalcon extends Exchange {
         $side = $this->safe_string($trade, 'side');
         $orderId = $this->safe_string($trade, 'order_id');
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyCode = $this->safe_string($trade, 'fee_currency_code');
             $fee = array(
@@ -261,9 +261,9 @@ class coinfalcon extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
             $account = array(
-                'free' => $this->safe_float($balance, 'available_balance'),
-                'used' => $this->safe_float($balance, 'hold_balance'),
-                'total' => $this->safe_float($balance, 'balance'),
+                'free' => $this->safe_number($balance, 'available_balance'),
+                'used' => $this->safe_number($balance, 'hold_balance'),
+                'total' => $this->safe_number($balance, 'balance'),
             );
             $result[$code] = $account;
         }
@@ -302,9 +302,9 @@ class coinfalcon extends Exchange {
         $marketId = $this->safe_string($order, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'size');
-        $filled = $this->safe_float($order, 'size_filled');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'size');
+        $filled = $this->safe_number($order, 'size_filled');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string($order, 'operation_type');
         if ($type !== null) {

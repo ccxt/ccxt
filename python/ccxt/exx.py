@@ -151,26 +151,26 @@ class exx(Exchange):
         symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'date')
         ticker = ticker['ticker']
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'riseRate'),
+            'change': self.safe_number(ticker, 'riseRate'),
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -214,8 +214,8 @@ class exx(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
         cost = None
         if price is not None:
             if amount is not None:
@@ -262,9 +262,9 @@ class exx(Exchange):
             balance = balances[currencyId]
             code = self.safe_currency_code(currencyId)
             account = {
-                'free': self.safe_float(balance, 'balance'),
-                'used': self.safe_float(balance, 'freeze'),
-                'total': self.safe_float(balance, 'total'),
+                'free': self.safe_number(balance, 'balance'),
+                'used': self.safe_number(balance, 'freeze'),
+                'total': self.safe_number(balance, 'total'),
             }
             result[code] = account
         return self.parse_balance(result)
@@ -286,10 +286,10 @@ class exx(Exchange):
         #
         symbol = market['symbol']
         timestamp = int(order['trade_date'])
-        price = self.safe_float(order, 'price')
-        cost = self.safe_float(order, 'trade_money')
-        amount = self.safe_float(order, 'total_amount')
-        filled = self.safe_float(order, 'trade_amount', 0.0)
+        price = self.safe_number(order, 'price')
+        cost = self.safe_number(order, 'trade_money')
+        amount = self.safe_number(order, 'total_amount')
+        filled = self.safe_number(order, 'trade_amount', 0.0)
         status = self.safe_integer(order, 'status')
         if status == 1:
             status = 'canceled'
@@ -300,7 +300,7 @@ class exx(Exchange):
         fee = None
         if 'fees' in order:
             fee = {
-                'cost': self.safe_float(order, 'fees'),
+                'cost': self.safe_number(order, 'fees'),
                 'currency': market['quote'],
             }
         return self.safe_order({

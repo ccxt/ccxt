@@ -225,7 +225,7 @@ class buda extends Exchange {
             }
             $id = $this->safe_string($currency, 'id');
             $code = $this->safe_currency_code($id);
-            $precision = $this->safe_float($currency, 'input_decimals');
+            $precision = $this->safe_number($currency, 'input_decimals');
             $minimum = pow(10, -$precision);
             $result[$code] = array(
                 'id' => $id,
@@ -570,15 +570,15 @@ class buda extends Exchange {
         $side = $this->safe_string_lower($order, 'type');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $originalAmount = $this->safe_value($order, 'original_amount', array());
-        $amount = $this->safe_float($originalAmount, 0);
+        $amount = $this->safe_number($originalAmount, 0);
         $remainingAmount = $this->safe_value($order, 'amount', array());
-        $remaining = $this->safe_float($remainingAmount, 0);
+        $remaining = $this->safe_number($remainingAmount, 0);
         $tradedAmount = $this->safe_value($order, 'traded_amount', array());
-        $filled = $this->safe_float($tradedAmount, 0);
+        $filled = $this->safe_number($tradedAmount, 0);
         $totalExchanged = $this->safe_value($order, 'totalExchanged', array());
-        $cost = $this->safe_float($totalExchanged, 0);
+        $cost = $this->safe_number($totalExchanged, 0);
         $limitPrice = $this->safe_value($order, 'limit', array());
-        $price = $this->safe_float($limitPrice, 0);
+        $price = $this->safe_number($limitPrice, 0);
         if ($price === null) {
             if ($limitPrice !== null) {
                 $price = $limitPrice;
@@ -589,7 +589,7 @@ class buda extends Exchange {
             $average = $this->price_to_precision($symbol, $cost / $filled);
         }
         $paidFee = $this->safe_value($order, 'paid_fee', array());
-        $feeCost = $this->safe_float($paidFee, 0);
+        $feeCost = $this->safe_number($paidFee, 0);
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($paidFee, 1);

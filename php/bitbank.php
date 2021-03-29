@@ -146,16 +146,16 @@ class bitbank extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -165,7 +165,7 @@ class bitbank extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -201,8 +201,8 @@ class bitbank extends Exchange {
             $symbol = $market['symbol'];
             $feeCurrency = $market['quote'];
         }
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
@@ -212,7 +212,7 @@ class bitbank extends Exchange {
         $id = $this->safe_string_2($trade, 'transaction_id', 'trade_id');
         $takerOrMaker = $this->safe_string($trade, 'maker_taker');
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee_amount_quote');
+        $feeCost = $this->safe_number($trade, 'fee_amount_quote');
         if ($feeCost !== null) {
             $fee = array(
                 'currency' => $feeCurrency,
@@ -264,11 +264,11 @@ class bitbank extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 5),
-            $this->safe_float($ohlcv, 0),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 4),
+            $this->safe_number($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
         );
     }
 
@@ -320,9 +320,9 @@ class bitbank extends Exchange {
             $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = array(
-                'free' => $this->safe_float($balance, 'free_amount'),
-                'used' => $this->safe_float($balance, 'locked_amount'),
-                'total' => $this->safe_float($balance, 'onhand_amount'),
+                'free' => $this->safe_number($balance, 'free_amount'),
+                'used' => $this->safe_number($balance, 'locked_amount'),
+                'total' => $this->safe_number($balance, 'onhand_amount'),
             );
             $result[$code] = $account;
         }
@@ -351,11 +351,11 @@ class bitbank extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_integer($order, 'ordered_at');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'start_amount');
-        $filled = $this->safe_float($order, 'executed_amount');
-        $remaining = $this->safe_float($order, 'remaining_amount');
-        $average = $this->safe_float($order, 'average_price');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'start_amount');
+        $filled = $this->safe_number($order, 'executed_amount');
+        $remaining = $this->safe_number($order, 'remaining_amount');
+        $average = $this->safe_number($order, 'average_price');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');

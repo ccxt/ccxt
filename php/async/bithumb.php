@@ -201,9 +201,9 @@ class bithumb extends Exchange {
             $account = $this->account();
             $currency = $this->currency($code);
             $lowerCurrencyId = $this->safe_string_lower($currency, 'id');
-            $account['total'] = $this->safe_float($balances, 'total_' . $lowerCurrencyId);
-            $account['used'] = $this->safe_float($balances, 'in_use_' . $lowerCurrencyId);
-            $account['free'] = $this->safe_float($balances, 'available_' . $lowerCurrencyId);
+            $account['total'] = $this->safe_number($balances, 'total_' . $lowerCurrencyId);
+            $account['used'] = $this->safe_number($balances, 'in_use_' . $lowerCurrencyId);
+            $account['free'] = $this->safe_number($balances, 'available_' . $lowerCurrencyId);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -268,8 +268,8 @@ class bithumb extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $open = $this->safe_float($ticker, 'opening_price');
-        $close = $this->safe_float($ticker, 'closing_price');
+        $open = $this->safe_number($ticker, 'opening_price');
+        $close = $this->safe_number($ticker, 'closing_price');
         $change = null;
         $percentage = null;
         $average = null;
@@ -280,18 +280,18 @@ class bithumb extends Exchange {
             }
             $average = $this->sum($open, $close) / 2;
         }
-        $baseVolume = $this->safe_float($ticker, 'units_traded_24H');
-        $quoteVolume = $this->safe_float($ticker, 'acc_trade_value_24H');
+        $baseVolume = $this->safe_number($ticker, 'units_traded_24H');
+        $quoteVolume = $this->safe_number($ticker, 'acc_trade_value_24H');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'max_price'),
-            'low' => $this->safe_float($ticker, 'min_price'),
-            'bid' => $this->safe_float($ticker, 'buy_price'),
+            'high' => $this->safe_number($ticker, 'max_price'),
+            'low' => $this->safe_number($ticker, 'min_price'),
+            'bid' => $this->safe_number($ticker, 'buy_price'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell_price'),
+            'ask' => $this->safe_number($ticker, 'sell_price'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => $open,
@@ -397,11 +397,11 @@ class bithumb extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 0),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 4),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 5),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -491,9 +491,9 @@ class bithumb extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float_2($trade, 'units_traded', 'units');
-        $cost = $this->safe_float($trade, 'total');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number_2($trade, 'units_traded', 'units');
+        $cost = $this->safe_number($trade, 'total');
         if ($cost === null) {
             if ($amount !== null) {
                 if ($price !== null) {
@@ -502,7 +502,7 @@ class bithumb extends Exchange {
             }
         }
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
@@ -705,14 +705,14 @@ class bithumb extends Exchange {
         $sideProperty = $this->safe_value_2($order, 'type', 'side');
         $side = ($sideProperty === 'bid') ? 'buy' : 'sell';
         $status = $this->parse_order_status($this->safe_string($order, 'order_status'));
-        $price = $this->safe_float_2($order, 'order_price', 'price');
+        $price = $this->safe_number_2($order, 'order_price', 'price');
         $type = 'limit';
         if ($price === 0) {
             $price = null;
             $type = 'market';
         }
-        $amount = $this->safe_float_2($order, 'order_qty', 'units');
-        $remaining = $this->safe_float($order, 'units_remaining');
+        $amount = $this->safe_number_2($order, 'order_qty', 'units');
+        $remaining = $this->safe_number($order, 'units_remaining');
         if ($remaining === null) {
             if ($status === 'closed') {
                 $remaining = 0;

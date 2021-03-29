@@ -123,8 +123,8 @@ class independentreserve(Exchange):
             currencyId = self.safe_string(balance, 'CurrencyCode')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'AvailableBalance')
-            account['total'] = self.safe_float(balance, 'TotalBalance')
+            account['free'] = self.safe_number(balance, 'AvailableBalance')
+            account['total'] = self.safe_number(balance, 'TotalBalance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -144,16 +144,16 @@ class independentreserve(Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'LastPrice')
+        last = self.safe_number(ticker, 'LastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'DayHighestPrice'),
-            'low': self.safe_float(ticker, 'DayLowestPrice'),
-            'bid': self.safe_float(ticker, 'CurrentHighestBidPrice'),
+            'high': self.safe_number(ticker, 'DayHighestPrice'),
+            'low': self.safe_number(ticker, 'DayLowestPrice'),
+            'bid': self.safe_number(ticker, 'CurrentHighestBidPrice'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'CurrentLowestOfferPrice'),
+            'ask': self.safe_number(ticker, 'CurrentLowestOfferPrice'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -162,8 +162,8 @@ class independentreserve(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_float(ticker, 'DayAvgPrice'),
-            'baseVolume': self.safe_float(ticker, 'DayVolumeXbtInSecondaryCurrrency'),
+            'average': self.safe_number(ticker, 'DayAvgPrice'),
+            'baseVolume': self.safe_number(ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -237,10 +237,10 @@ class independentreserve(Exchange):
         elif orderType.find('Limit') >= 0:
             orderType = 'limit'
         timestamp = self.parse8601(self.safe_string(order, 'CreatedTimestampUtc'))
-        amount = self.safe_float_2(order, 'VolumeOrdered', 'Volume')
-        filled = self.safe_float(order, 'VolumeFilled')
-        remaining = self.safe_float(order, 'Outstanding')
-        feeRate = self.safe_float(order, 'FeePercent')
+        amount = self.safe_number_2(order, 'VolumeOrdered', 'Volume')
+        filled = self.safe_number(order, 'VolumeFilled')
+        remaining = self.safe_number(order, 'Outstanding')
+        feeRate = self.safe_number(order, 'FeePercent')
         feeCost = None
         if feeRate is not None:
             feeCost = feeRate * filled
@@ -251,9 +251,9 @@ class independentreserve(Exchange):
         }
         id = self.safe_string(order, 'OrderGuid')
         status = self.parse_order_status(self.safe_string(order, 'Status'))
-        cost = self.safe_float(order, 'Value')
-        average = self.safe_float(order, 'AvgPrice')
-        price = self.safe_float(order, 'Price')
+        cost = self.safe_number(order, 'Value')
+        average = self.safe_number(order, 'AvgPrice')
+        price = self.safe_number(order, 'Price')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -351,8 +351,8 @@ class independentreserve(Exchange):
         timestamp = self.parse8601(trade['TradeTimestampUtc'])
         id = self.safe_string(trade, 'TradeGuid')
         orderId = self.safe_string(trade, 'OrderGuid')
-        price = self.safe_float_2(trade, 'Price', 'SecondaryCurrencyTradePrice')
-        amount = self.safe_float_2(trade, 'VolumeTraded', 'PrimaryCurrencyAmount')
+        price = self.safe_number_2(trade, 'Price', 'SecondaryCurrencyTradePrice')
+        amount = self.safe_number_2(trade, 'VolumeTraded', 'PrimaryCurrencyAmount')
         cost = None
         if price is not None:
             if amount is not None:
