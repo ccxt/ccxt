@@ -311,7 +311,7 @@ module.exports = class phemex extends Exchange {
         }
         value = value.replace (',', '');
         const parts = value.split (' ');
-        return this.safeFloat (parts, 0);
+        return this.safeNumber (parts, 0);
     }
 
     parseSwapMarket (market) {
@@ -377,16 +377,16 @@ module.exports = class phemex extends Exchange {
         }
         const linear = !inverse;
         const precision = {
-            'amount': this.safeFloat (market, 'lotSize'),
-            'price': this.safeFloat (market, 'tickSize'),
+            'amount': this.safeNumber (market, 'lotSize'),
+            'price': this.safeNumber (market, 'tickSize'),
         };
         const priceScale = this.safeInteger (market, 'priceScale');
         const ratioScale = this.safeInteger (market, 'ratioScale');
         const valueScale = this.safeInteger (market, 'valueScale');
-        const minPriceEp = this.safeFloat (market, 'minPriceEp');
-        const maxPriceEp = this.safeFloat (market, 'maxPriceEp');
-        const makerFeeRateEr = this.safeFloat (market, 'makerFeeRateEr');
-        const takerFeeRateEr = this.safeFloat (market, 'takerFeeRateEr');
+        const minPriceEp = this.safeNumber (market, 'minPriceEp');
+        const maxPriceEp = this.safeNumber (market, 'maxPriceEp');
+        const makerFeeRateEr = this.safeNumber (market, 'makerFeeRateEr');
+        const takerFeeRateEr = this.safeNumber (market, 'takerFeeRateEr');
         if (makerFeeRateEr !== undefined) {
             maker = this.fromEn (makerFeeRateEr, ratioScale, 0.00000001);
         }
@@ -467,8 +467,8 @@ module.exports = class phemex extends Exchange {
         const inverse = undefined;
         const spot = true;
         const swap = false;
-        const taker = this.safeFloat (market, 'defaultTakerFee');
-        const maker = this.safeFloat (market, 'defaultMakerFee');
+        const taker = this.safeNumber (market, 'defaultTakerFee');
+        const maker = this.safeNumber (market, 'defaultMakerFee');
         const precision = {
             'amount': this.parseSafeFloat (this.safeString (market, 'baseTickSize')),
             'price': this.parseSafeFloat (this.safeString (market, 'quoteTickSize')),
@@ -680,8 +680,8 @@ module.exports = class phemex extends Exchange {
             const name = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (id);
             const valueScale = this.safeInteger (currency, 'valueScale');
-            const minValueEv = this.safeFloat (currency, 'minValueEv');
-            const maxValueEv = this.safeFloat (currency, 'maxValueEv');
+            const minValueEv = this.safeNumber (currency, 'minValueEv');
+            const maxValueEv = this.safeNumber (currency, 'maxValueEv');
             let minAmount = undefined;
             let maxAmount = undefined;
             let precision = undefined;
@@ -731,12 +731,12 @@ module.exports = class phemex extends Exchange {
         if (market === undefined) {
             throw new ArgumentsRequired (this.id + ' parseBidAsk() requires a market argument');
         }
-        let amount = this.safeFloat (bidask, amountKey);
+        let amount = this.safeNumber (bidask, amountKey);
         if (market['spot']) {
             amount = this.fromEv (amount, market);
         }
         return [
-            this.fromEp (this.safeFloat (bidask, priceKey), market),
+            this.fromEp (this.safeNumber (bidask, priceKey), market),
             amount,
         ];
     }
@@ -870,16 +870,16 @@ module.exports = class phemex extends Exchange {
         //
         let baseVolume = undefined;
         if ((market !== undefined) && market['spot']) {
-            baseVolume = this.fromEv (this.safeFloat (ohlcv, 7), market);
+            baseVolume = this.fromEv (this.safeNumber (ohlcv, 7), market);
         } else {
             baseVolume = this.safeInteger (ohlcv, 7);
         }
         return [
             this.safeTimestamp (ohlcv, 0),
-            this.fromEp (this.safeFloat (ohlcv, 3), market),
-            this.fromEp (this.safeFloat (ohlcv, 4), market),
-            this.fromEp (this.safeFloat (ohlcv, 5), market),
-            this.fromEp (this.safeFloat (ohlcv, 6), market),
+            this.fromEp (this.safeNumber (ohlcv, 3), market),
+            this.fromEp (this.safeNumber (ohlcv, 4), market),
+            this.fromEp (this.safeNumber (ohlcv, 5), market),
+            this.fromEp (this.safeNumber (ohlcv, 6), market),
             baseVolume,
         ];
     }
@@ -972,11 +972,11 @@ module.exports = class phemex extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
-        const last = this.fromEp (this.safeFloat (ticker, 'lastEp'), market);
-        const quoteVolume = this.fromEp (this.safeFloat (ticker, 'turnoverEv'), market);
-        let baseVolume = this.safeFloat (ticker, 'volume');
+        const last = this.fromEp (this.safeNumber (ticker, 'lastEp'), market);
+        const quoteVolume = this.fromEp (this.safeNumber (ticker, 'turnoverEv'), market);
+        let baseVolume = this.safeNumber (ticker, 'volume');
         if (baseVolume === undefined) {
-            baseVolume = this.fromEv (this.safeFloat (ticker, 'volumeEv'));
+            baseVolume = this.fromEv (this.safeNumber (ticker, 'volumeEv'));
         }
         let vwap = undefined;
         if ((market !== undefined) && (market['spot'])) {
@@ -985,7 +985,7 @@ module.exports = class phemex extends Exchange {
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
-        const open = this.fromEp (this.safeFloat (ticker, 'openEp'), market);
+        const open = this.fromEp (this.safeNumber (ticker, 'openEp'), market);
         if ((open !== undefined) && (last !== undefined)) {
             change = last - open;
             if (open > 0) {
@@ -997,11 +997,11 @@ module.exports = class phemex extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.fromEp (this.safeFloat (ticker, 'highEp'), market),
-            'low': this.fromEp (this.safeFloat (ticker, 'lowEp'), market),
-            'bid': this.fromEp (this.safeFloat (ticker, 'bidEp'), market),
+            'high': this.fromEp (this.safeNumber (ticker, 'highEp'), market),
+            'low': this.fromEp (this.safeNumber (ticker, 'lowEp'), market),
+            'bid': this.fromEp (this.safeNumber (ticker, 'bidEp'), market),
             'bidVolume': undefined,
-            'ask': this.fromEp (this.safeFloat (ticker, 'askEp'), market),
+            'ask': this.fromEp (this.safeNumber (ticker, 'askEp'), market),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
@@ -1192,8 +1192,8 @@ module.exports = class phemex extends Exchange {
                 id = this.safeString (trade, tradeLength - 4);
             }
             side = this.safeStringLower (trade, tradeLength - 3);
-            price = this.fromEp (this.safeFloat (trade, tradeLength - 2), market);
-            amount = this.fromEv (this.safeFloat (trade, tradeLength - 1), market);
+            price = this.fromEp (this.safeNumber (trade, tradeLength - 2), market);
+            amount = this.fromEv (this.safeNumber (trade, tradeLength - 1), market);
             if (market['spot']) {
                 if ((price !== undefined) && (amount !== undefined)) {
                     cost = price * amount;
@@ -1209,14 +1209,14 @@ module.exports = class phemex extends Exchange {
             if (execStatus === 'MakerFill') {
                 takerOrMaker = 'maker';
             }
-            price = this.fromEp (this.safeFloat (trade, 'execPriceEp'), market);
-            amount = this.fromEv (this.safeFloat (trade, 'execBaseQtyEv'), market);
-            amount = this.safeFloat (trade, 'execQty', amount);
-            cost = this.fromEv (this.safeFloat2 (trade, 'execQuoteQtyEv', 'execValueEv'), market);
-            const feeCost = this.fromEv (this.safeFloat (trade, 'execFeeEv'), market);
+            price = this.fromEp (this.safeNumber (trade, 'execPriceEp'), market);
+            amount = this.fromEv (this.safeNumber (trade, 'execBaseQtyEv'), market);
+            amount = this.safeNumber (trade, 'execQty', amount);
+            cost = this.fromEv (this.safeNumber2 (trade, 'execQuoteQtyEv', 'execValueEv'), market);
+            const feeCost = this.fromEv (this.safeNumber (trade, 'execFeeEv'), market);
             if (feeCost !== undefined) {
                 let feeRate = undefined;
-                let feeRateEr = this.safeFloat (trade, 'feeRateEr');
+                let feeRateEr = this.safeNumber (trade, 'feeRateEr');
                 if (feeRateEr < 0) {
                     feeRateEr = Math.abs (feeRateEr);
                     feeRate = this.fromEr (feeRateEr, market);
@@ -1292,9 +1292,9 @@ module.exports = class phemex extends Exchange {
             const currency = this.safeValue (this.currencies, code, {});
             const scale = this.safeInteger (currency, 'valueScale', 8);
             const account = this.account ();
-            const balanceEv = this.safeFloat (balance, 'balanceEv');
-            const lockedTradingBalanceEv = this.safeFloat (balance, 'lockedTradingBalanceEv');
-            const lockedWithdrawEv = this.safeFloat (balance, 'lockedWithdrawEv');
+            const balanceEv = this.safeNumber (balance, 'balanceEv');
+            const lockedTradingBalanceEv = this.safeNumber (balance, 'lockedTradingBalanceEv');
+            const lockedWithdrawEv = this.safeNumber (balance, 'lockedWithdrawEv');
             const total = this.fromEn (balanceEv, scale, scale, DECIMAL_PLACES);
             const lockedTradingBalance = this.fromEn (lockedTradingBalanceEv, scale, scale, DECIMAL_PLACES);
             const lockedWithdraw = this.fromEn (lockedWithdrawEv, scale, scale, DECIMAL_PLACES);
@@ -1388,8 +1388,8 @@ module.exports = class phemex extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const currency = this.currency (code);
         const account = this.account ();
-        const accountBalanceEv = this.safeFloat (balance, 'accountBalanceEv');
-        const totalUsedBalanceEv = this.safeFloat (balance, 'totalUsedBalanceEv');
+        const accountBalanceEv = this.safeNumber (balance, 'accountBalanceEv');
+        const totalUsedBalanceEv = this.safeNumber (balance, 'totalUsedBalanceEv');
         const valueScale = this.safeInteger (currency, 'valueScale', 8);
         account['total'] = this.fromEn (accountBalanceEv, valueScale, valueScale, DECIMAL_PLACES);
         account['used'] = this.fromEn (totalUsedBalanceEv, valueScale, valueScale, DECIMAL_PLACES);
@@ -1621,21 +1621,21 @@ module.exports = class phemex extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        let price = this.fromEp (this.safeFloat (order, 'priceEp'), market);
+        let price = this.fromEp (this.safeNumber (order, 'priceEp'), market);
         if (price === 0) {
             price = undefined;
         }
-        const amount = this.fromEv (this.safeFloat (order, 'baseQtyEv'), market);
-        const remaining = this.fromEv (this.safeFloat (order, 'leavesBaseQtyEv'), market);
-        let filled = this.fromEv (this.safeFloat (order, 'cumBaseQtyEv'), market);
-        const cost = this.fromEv (this.safeFloat (order, 'quoteQtyEv'), market);
-        const average = this.fromEp (this.safeFloat (order, 'avgPriceEp'), market);
+        const amount = this.fromEv (this.safeNumber (order, 'baseQtyEv'), market);
+        const remaining = this.fromEv (this.safeNumber (order, 'leavesBaseQtyEv'), market);
+        let filled = this.fromEv (this.safeNumber (order, 'cumBaseQtyEv'), market);
+        const cost = this.fromEv (this.safeNumber (order, 'quoteQtyEv'), market);
+        const average = this.fromEp (this.safeNumber (order, 'avgPriceEp'), market);
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
         const timestamp = this.safeIntegerProduct2 (order, 'actionTimeNs', 'createTimeNs', 0.000001);
         let fee = undefined;
-        const feeCost = this.fromEv (this.safeFloat (order, 'cumFeeEv'), market);
+        const feeCost = this.fromEv (this.safeNumber (order, 'cumFeeEv'), market);
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -1648,7 +1648,7 @@ module.exports = class phemex extends Exchange {
             }
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.fromEp (this.safeFloat (order, 'stopPxEp', market));
+        const stopPrice = this.fromEp (this.safeNumber (order, 'stopPxEp', market));
         const postOnly = (timeInForce === 'PO');
         return {
             'info': order,
@@ -1721,18 +1721,18 @@ module.exports = class phemex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'orderType'));
-        const price = this.fromEp (this.safeFloat (order, 'priceEp'), market);
-        const amount = this.safeFloat (order, 'orderQty');
-        const filled = this.safeFloat (order, 'cumQty');
-        const remaining = this.safeFloat (order, 'leavesQty');
+        const price = this.fromEp (this.safeNumber (order, 'priceEp'), market);
+        const amount = this.safeNumber (order, 'orderQty');
+        const filled = this.safeNumber (order, 'cumQty');
+        const remaining = this.safeNumber (order, 'leavesQty');
         const timestamp = this.safeIntegerProduct (order, 'actionTimeNs', 0.000001);
-        const cost = this.safeFloat (order, 'cumValue');
+        const cost = this.safeNumber (order, 'cumValue');
         let lastTradeTimestamp = this.safeIntegerProduct (order, 'transactTimeNs', 0.000001);
         if (lastTradeTimestamp === 0) {
             lastTradeTimestamp = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.safeFloat (order, 'stopPx');
+        const stopPrice = this.safeNumber (order, 'stopPx');
         const postOnly = (timeInForce === 'PO');
         return {
             'info': order,
@@ -1807,7 +1807,7 @@ module.exports = class phemex extends Exchange {
             }
             request['qtyType'] = qtyType;
             if (qtyType === 'ByQuote') {
-                let cost = this.safeFloat (params, 'cost');
+                let cost = this.safeNumber (params, 'cost');
                 params = this.omit (params, 'cost');
                 if (this.options['createOrderByQuoteRequiresPrice']) {
                     if (price !== undefined) {
@@ -1827,7 +1827,7 @@ module.exports = class phemex extends Exchange {
         if (type === 'Limit') {
             request['priceEp'] = this.toEp (price, market);
         }
-        const stopPrice = this.safeFloat2 (params, 'stopPx', 'stopPrice');
+        const stopPrice = this.safeNumber2 (params, 'stopPx', 'stopPrice');
         if (stopPrice !== undefined) {
             request['stopPxEp'] = this.toEp (stopPrice, market);
         }
@@ -2335,7 +2335,7 @@ module.exports = class phemex extends Exchange {
         const code = currency['code'];
         const timestamp = this.safeInteger2 (transaction, 'createdAt', 'submitedAt');
         let type = this.safeStringLower (transaction, 'type');
-        const feeCost = this.fromEn (this.safeFloat (transaction, 'feeEv'), currency['valueScale'], currency['precision']);
+        const feeCost = this.fromEn (this.safeNumber (transaction, 'feeEv'), currency['valueScale'], currency['precision']);
         let fee = undefined;
         if (feeCost !== undefined) {
             type = 'withdrawal';
@@ -2345,7 +2345,7 @@ module.exports = class phemex extends Exchange {
             };
         }
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const amount = this.fromEn (this.safeFloat (transaction, 'amountEv'), currency['valueScale'], currency['precision']);
+        const amount = this.fromEn (this.safeNumber (transaction, 'amountEv'), currency['valueScale'], currency['precision']);
         return {
             'info': transaction,
             'id': id,
