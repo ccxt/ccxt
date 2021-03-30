@@ -2952,6 +2952,18 @@ class Exchange {
         ));
     }
 
+    public function parse_number($value, $default = null) {
+        if ($value === null) {
+            return $default;
+        } else {
+            try {
+                return $this->number($value);
+            } catch (Exception $e) {
+                return $default;
+            }
+        }
+    }
+
     public function safe_number($object, $key, $default = null) {
         $value = $this->safe_string($object, $key);
         if ($value === null) {

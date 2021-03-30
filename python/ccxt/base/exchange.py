@@ -2249,6 +2249,15 @@ class Exchange(object):
             'remaining': remaining,
         })
 
+    def parse_number(self, value, default=None):
+        if value is None:
+            return default
+        else:
+            try:
+                return self.number(value)
+            except Exception:
+                return default
+
     def safe_number(self, dictionary, key, default=None):
         value = self.safe_string(dictionary, key)
         if value is None:
