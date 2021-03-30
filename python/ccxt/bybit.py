@@ -325,6 +325,9 @@ class bybit(Exchange):
                     'LTC/USDT': 'linear',
                     'XTZ/USDT': 'linear',
                     'LINK/USDT': 'linear',
+                    'ADA/USDT': 'linear',
+                    'DOT/USDT': 'linear',
+                    'UNI/USDT': 'linear',
                 },
                 'defaultType': 'linear',  # may also be inverse or inverseFuture
                 'code': 'BTC',
