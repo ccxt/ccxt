@@ -244,7 +244,7 @@ class digifinex extends Exchange {
             $depositStatus = $this->safe_value($currency, 'deposit_status', 1);
             $withdrawStatus = $this->safe_value($currency, 'withdraw_status', 1);
             $active = $depositStatus && $withdrawStatus;
-            $fee = $this->safe_float($currency, 'withdraw_fee_rate');
+            $fee = $this->safe_number($currency, 'withdraw_fee_rate');
             if (is_array($result) && array_key_exists($code, $result)) {
                 if (gettype($result[$code]['info']) === 'array' && count(array_filter(array_keys($result[$code]['info']), 'is_string')) == 0) {
                     $result[$code]['info'][] = $currency;
@@ -275,7 +275,7 @@ class digifinex extends Exchange {
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $this->safe_float($currency, 'min_withdraw_amount'),
+                            'min' => $this->safe_number($currency, 'min_withdraw_amount'),
                             'max' => null,
                         ),
                     ),
@@ -329,7 +329,7 @@ class digifinex extends Exchange {
             );
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_float($market, 'minimum_amount'),
+                    'min' => $this->safe_number($market, 'minimum_amount'),
                     'max' => null,
                 ),
                 'price' => array(
@@ -337,7 +337,7 @@ class digifinex extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $this->safe_float($market, 'minimum_value'),
+                    'min' => $this->safe_number($market, 'minimum_value'),
                     'max' => null,
                 ),
             );
@@ -407,7 +407,7 @@ class digifinex extends Exchange {
             );
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_float($market, 'min_volume'),
+                    'min' => $this->safe_number($market, 'min_volume'),
                     'max' => null,
                 ),
                 'price' => array(
@@ -415,7 +415,7 @@ class digifinex extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $this->safe_float($market, 'min_amount'),
+                    'min' => $this->safe_number($market, 'min_amount'),
                     'max' => null,
                 ),
             );
@@ -460,9 +460,9 @@ class digifinex extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['used'] = $this->safe_float($balance, 'frozen');
-            $account['free'] = $this->safe_float($balance, 'free');
-            $account['total'] = $this->safe_float($balance, 'total');
+            $account['used'] = $this->safe_number($balance, 'frozen');
+            $account['free'] = $this->safe_number($balance, 'free');
+            $account['total'] = $this->safe_number($balance, 'total');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -583,17 +583,17 @@ class digifinex extends Exchange {
         $marketId = $this->safe_string_upper($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_timestamp($ticker, 'date');
-        $last = $this->safe_float($ticker, 'last');
-        $percentage = $this->safe_float($ticker, 'change');
+        $last = $this->safe_number($ticker, 'last');
+        $percentage = $this->safe_number($ticker, 'change');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -603,8 +603,8 @@ class digifinex extends Exchange {
             'change' => null,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
-            'quoteVolume' => $this->safe_float($ticker, 'base_vol'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'quoteVolume' => $this->safe_number($ticker, 'base_vol'),
             'info' => $ticker,
         );
     }
@@ -640,8 +640,8 @@ class digifinex extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $timestamp = $this->safe_timestamp_2($trade, 'date', 'timestamp');
         $side = $this->safe_string_2($trade, 'type', 'side');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
@@ -651,7 +651,7 @@ class digifinex extends Exchange {
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $takerOrMaker = $this->safe_value($trade, 'is_maker');
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
@@ -753,11 +753,11 @@ class digifinex extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 0),
-            $this->safe_float($ohlcv, 5), // open
-            $this->safe_float($ohlcv, 3), // high
-            $this->safe_float($ohlcv, 4), // low
-            $this->safe_float($ohlcv, 2), // close
-            $this->safe_float($ohlcv, 1), // volume
+            $this->safe_number($ohlcv, 5), // open
+            $this->safe_number($ohlcv, 3), // high
+            $this->safe_number($ohlcv, 4), // low
+            $this->safe_number($ohlcv, 2), // close
+            $this->safe_number($ohlcv, 1), // volume
         );
     }
 
@@ -948,10 +948,10 @@ class digifinex extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $amount = $this->safe_float($order, 'amount');
-        $filled = $this->safe_float($order, 'executed_amount');
-        $price = $this->safe_float($order, 'price');
-        $average = $this->safe_float($order, 'avg_price');
+        $amount = $this->safe_number($order, 'amount');
+        $filled = $this->safe_number($order, 'executed_amount');
+        $price = $this->safe_number($order, 'price');
+        $average = $this->safe_number($order, 'avg_price');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1168,7 +1168,7 @@ class digifinex extends Exchange {
         $code = $this->safe_currency_code($this->safe_string($item, 'currency_mark'), $currency);
         $timestamp = $this->safe_timestamp($item, 'time');
         $before = null;
-        $after = $this->safe_float($item, 'balance');
+        $after = $this->safe_number($item, 'balance');
         $status = 'ok';
         return array(
             'info' => $item,
@@ -1383,8 +1383,8 @@ class digifinex extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($transaction, 'created_date'));
         $updated = $this->parse8601($this->safe_string($transaction, 'finished_date'));
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
-        $amount = $this->safe_float($transaction, 'amount');
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $amount = $this->safe_number($transaction, 'amount');
+        $feeCost = $this->safe_number($transaction, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
