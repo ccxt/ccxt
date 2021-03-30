@@ -1080,25 +1080,11 @@ class huobipro extends Exchange {
         $timestamp = $this->safe_integer($order, 'created-at');
         $amount = $this->safe_number($order, 'amount');
         $filled = $this->safe_number_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
-        if (($type === 'market') && ($side === 'buy')) {
-            $amount = ($status === 'closed') ? $filled : null;
-        }
         $price = $this->safe_number($order, 'price');
         if ($price === 0.0) {
             $price = null;
         }
         $cost = $this->safe_number_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
-        $remaining = null;
-        $average = null;
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-            }
-            // if $cost is defined and $filled is not zero
-            if (($cost !== null) && ($filled > 0)) {
-                $average = $cost / $filled;
-            }
-        }
         $feeCost = $this->safe_number_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled fees
         $fee = null;
         if ($feeCost !== null) {
@@ -1111,7 +1097,7 @@ class huobipro extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -1125,15 +1111,15 @@ class huobipro extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'average' => $average,
+            'average' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
