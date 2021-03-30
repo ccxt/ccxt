@@ -1129,68 +1129,22 @@ class bitstamp(Exchange):
             side = 'sell' if (side == '1') else 'buy'
         # there is no timestamp from fetchOrder
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
-        lastTradeTimestamp = None
-        symbol = None
         marketId = self.safe_string_lower(order, 'currency_pair')
-        if marketId is not None:
-            marketId = marketId.replace('/', '')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-        amount = self.safe_number(order, 'amount')
-        filled = 0.0
-        trades = []
-        transactions = self.safe_value(order, 'transactions', [])
-        feeCost = None
-        cost = None
-        numTransactions = len(transactions)
-        if numTransactions > 0:
-            feeCost = 0.0
-            for i in range(0, numTransactions):
-                trade = self.parse_trade(self.extend({
-                    'order_id': id,
-                    'side': side,
-                }, transactions[i]), market)
-                filled = self.sum(filled, trade['amount'])
-                feeCost = self.sum(feeCost, trade['fee']['cost'])
-                if cost is None:
-                    cost = 0.0
-                cost = self.sum(cost, trade['cost'])
-                trades.append(trade)
-            lastTradeTimestamp = trades[numTransactions - 1]['timestamp']
+        symbol = self.safe_symbol(marketId, market, '/')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        if (status == 'closed') and (amount is None):
-            amount = filled
-        remaining = None
-        if amount is not None:
-            remaining = amount - filled
+        amount = self.safe_number(order, 'amount')
+        transactions = self.safe_value(order, 'transactions', [])
+        trades = self.parse_trades(transactions, market)
+        length = len(trades)
+        if length:
+            symbol = trades[0]['symbol']
         price = self.safe_number(order, 'price')
-        if market is None:
-            market = self.get_market_from_trades(trades)
-        feeCurrency = None
-        if market is not None:
-            if symbol is None:
-                symbol = market['symbol']
-            feeCurrency = market['quote']
-        if cost is None:
-            if price is not None:
-                cost = price * filled
-        elif price is None:
-            if filled > 0:
-                price = cost / filled
-        fee = None
-        if feeCost is not None:
-            if feeCurrency is not None:
-                fee = {
-                    'cost': feeCost,
-                    'currency': feeCurrency,
-                }
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': None,
@@ -1199,15 +1153,15 @@ class bitstamp(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
+            'filled': None,
+            'remaining': None,
             'trades': trades,
-            'fee': fee,
+            'fee': None,
             'info': order,
             'average': None,
-        }
+        })
 
     def parse_ledger_entry_type(self, type):
         types = {
