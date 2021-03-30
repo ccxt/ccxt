@@ -1197,15 +1197,8 @@ module.exports = class bitstamp extends Exchange {
         }
         // there is no timestamp from fetchOrder
         const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
-        let symbol = undefined;
-        let marketId = this.safeStringLower (order, 'currency_pair');
-        if (marketId !== undefined) {
-            marketId = marketId.replace ('/', '');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
-        }
+        const marketId = this.safeStringLower (order, 'currency_pair');
+        let symbol = this.safeSymbol (marketId, market, '/');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const amount = this.safeNumber (order, 'amount');
         const transactions = this.safeValue (order, 'transactions', []);
