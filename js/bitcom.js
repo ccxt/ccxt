@@ -1,0 +1,478 @@
+'use strict';
+
+//  ---------------------------------------------------------------------------
+
+const Exchange = require ('./base/Exchange');
+const { NetworkError, AuthenticationError, PermissionDenied, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest } = require ('./base/errors');
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class bitcom extends Exchange {
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'bitcom',
+            'name': 'bit.com',
+            'countries': ['SG'],
+            'version': 'v1',
+            'rateLimit': 500,
+            'has': {
+                'CORS': true,
+                'fetchIndex': true, // GET /v1/index
+                'fetchMarkets': true, // GET /v1/market/summary
+                'fetchCurrencies': true, // GET /v1/currencies
+                // TODO: need to be implemented
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                'createDepositAddress': true,
+                'createOrder': true,
+                'editOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchOrderTrades': true,
+                'fetchStatus': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'fetchTransactions': false,
+                'fetchWithdrawals': true,
+                'withdraw': true,
+            },
+            'urls': {
+                'logo': 'https://144321d373cade4e83.matrixtechfin.com:1443/imgs/logo-1617071258366.png',
+                'api': {
+                    'public': 'https://alphaapi.bitexch.dev',
+                    'private': 'https://alphaapi.bitexch.dev',
+                    'v1': 'https://alphaapi.bitexch.dev/v1',
+                },
+                'www': 'https://www.bit.com/',
+                'doc': 'https://www.bit.com/docs/en-us/#introduction',
+                'fees': 'https://www.bit.com/tieredFee',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        // system
+                        'system/time',
+                        'system/version',
+                        'system/cancel_only_status',
+                        // market
+                        'index',
+                        'market/summary',
+                        'instruments',
+                        'tickers',
+                        'orderbooks',
+                        'market/trades',
+                        'klines',
+                        'delivery_info',
+                        'settlement_prices',
+                        'funding_rate',
+                        'funding_rate_history',
+                        'total_volumes',
+                        'currencies',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'order',
+                    ],
+                    'delete': [
+                        'orders/{id}',
+                    ],
+                    'post': [
+                        'createTradeOrder',
+                    ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'taker': 0.005,
+                    'maker': 0.007,
+                },
+            },
+            'httpExceptions': {
+                '400': BadRequest,
+                '429': DDoSProtection,
+                '500': ExchangeNotAvailable,
+            },
+            'exceptions': {
+                // '0': Success,
+                '18100100': ExchangeError, // General Error
+                '18100101': ExchangeError, // Invalid Order Request
+                '18100102': ExchangeError, // Invalid Order Side
+                '18100103': ExchangeError, // Invalid Order Price
+                '18100104': ExchangeError, // Invalid Order Quantity
+                '18100105': ExchangeError, // Invalid Order Type
+                '18100106': ExchangeError, // Invalid Time In Force
+                '18100107': ExchangeError, // Get Position Error
+                '18100109': ExchangeError, // Get Underlying Price Fail
+                '18100110': ExchangeError, // Place Order Error
+                '18100111': ExchangeError, // Marshal Order Error
+                '18100112': ExchangeError, // Submit Order Request Error
+                '18100113': ExchangeError, // Invalid Order ID
+                '18100114': ExchangeError, // Get Order Error
+                '18100115': ExchangeError, // Order Not Found
+                '18100116': ExchangeError, // Submit Order Cancel Error
+                '18100117': ExchangeError, // Invalid Order Status Parameter
+                '18100119': ExchangeError, // Get Trade Error
+                '18100120': ExchangeError, // Bad Create Option Request
+                '18100121': ExchangeError, // Calc Strike Price Error
+                '18100122': ExchangeError, // Create Option Error
+                '18100123': ExchangeError, // Bad Update Option Request
+                '18100124': ExchangeError, // Invalid Expiration
+                '18100125': ExchangeError, // Get Option Error
+                '18100126': ExchangeError, // Invalid Option Status
+                '18100127': ExchangeError, // Update Option Error
+                '18100128': ExchangeError, // Get Expiration Error
+                '18100129': ExchangeError, // Invalid Delivery Price
+                '18100130': ExchangeError, // Option Has Incomplete Orders
+                '18100131': ExchangeError, // Bad Transfer Request
+                '18100132': ExchangeError, // Invalid Transfer Quantity
+                '18100133': ExchangeError, // Create Transfer Error
+                '18100134': ExchangeError, // Get User Trade Error
+                '18100135': ExchangeError, // Get Transfer Error
+                '18100137': ExchangeError, // Get Account Error
+                '18100138': ExchangeError, // Get Trades Error
+                '18100139': ExchangeError, // Invalid Option Type
+                '18100141': ExchangeError, // Invalid Currency
+                '18100142': ExchangeError, // Get Underlying Error
+                '18100143': ExchangeError, // Get Ticks Error
+                '18100144': ExchangeError, // Get Mark Price Error
+                '18100145': ExchangeError, // Get Portfolio Margin Error
+                '18100146': ExchangeError, // Update Account Error
+                '18100147': ExchangeError, // Get Transaction Log Error
+                '18100148': ExchangeError, // Audit Account Error
+                '18100149': ExchangeError, // Delivery Information Error
+                '18100150': ExchangeError, // Exceed Max Open Order By Account
+                '18100151': ExchangeError, // Exceed Max Open Order By Instrument
+                '18100152': ExchangeError, // Get Open Order Count Error
+                '18100153': ExchangeError, // Create Expiration Error
+                '18100154': ExchangeError, // Update Access Token Error
+                '18100155': ExchangeError, // Bad Delete Option Request
+                '18100156': ExchangeError, // Delete Option Error
+                '18100157': ExchangeError, // Bad Config Error
+                '18100158': ExchangeError, // Update Config Error
+                '18100159': ExchangeError, // Get Fee Rate Error
+                '18100160': ExchangeError, // Invalidate Parameters Error
+                '18100161': ExchangeError, // Get Orderbook Error
+                '18100162': ExchangeError, // Get Index Error
+                '18100163': ExchangeError, // Big Account Information Error
+                '18100164': ExchangeError, // Get Uc Transfer Record Error
+                '18100165': ExchangeError, // Invalid User Error
+                '18100166': ExchangeError, // Insurance Account Error
+                '18100167': ExchangeError, // Insurance Log Error
+                '18100168': ExchangeError, // Fee Account Error
+                '18100169': ExchangeError, // Fee Log Error
+                '18100170': ExchangeError, // Get Delivery Error
+                '18100171': ExchangeError, // Get Insurance Data Error
+                '18100172': ExchangeError, // Invalid Depth Error
+                '18100173': ExchangeError, // Invalid Expired Error
+                '18100174': ExchangeError, // Get Orderbook Summary Error
+                '18100175': ExchangeError, // Get Settlement Error
+                '18100176': ExchangeError, // Get Trading View Data Error
+                '18100177': ExchangeError, // Get User Error
+                '18100178': ExchangeError, // Save User Error
+                '18100179': ExchangeError, // Get Funding Chart Data Error
+                '18100180': ExchangeError, // Invalid Order Cancel Request
+                '18100181': ExchangeError, // Get Instrument Error
+                '18100183': ExchangeError, // Get Future Error
+                '18100185': ExchangeError, // Invalid Instrument
+                '18100186': ExchangeError, // Close Position Request Error
+                '18100187': ExchangeError, // Get Order Margin Error
+                '18100188': ExchangeError, // Get Limit Price Error
+                '18100189': ExchangeError, // Invalid Stop Price
+                '18100190': ExchangeError, // Get Open Stop Order Count Error
+                '18100191': ExchangeError, // Exceed Max Open Stop Order
+                '18100192': ExchangeError, // Invalid Order Stop Price
+                '18100193': ExchangeError, // Invalid Order Trigger Type
+                '18100194': ExchangeError, // Save Stop Order Failed
+                '18100195': ExchangeError, // Delete Expiration Error
+                '18100196': ExchangeError, // Get Funding Rate Error
+                '18100197': ExchangeError, // Bad Update Expiration Request
+                '18100198': ExchangeError, // Update Expiration Error
+                '18100199': ExchangeError, // Insufficient Balance Error
+                '18100200': ExchangeError, // Invalid Transaction Type Error
+                '18100201': ExchangeError, // Get Index Data Error
+                '18100202': ExchangeError, // Invalid Argument Error
+                '18100204': ExchangeError, // Invalid Page Parameter Error
+                '18100205': ExchangeError, // Get Market Summary Error
+                '18100206': ExchangeError, // System Account Error
+                '18100210': ExchangeError, // Invalid Operator Id Error
+                '18100211': ExchangeError, // Get Takeover Records Error
+                '18100212': ExchangeError, // Invalid Operator User Ids
+                '18100213': ExchangeError, // Start Takeover
+                '18100214': ExchangeError, // Invalid Account Id
+                '18100215': ExchangeError, // Exit Admin Takeover
+                '18100216': ExchangeError, // Link Admin To Account
+                '18100217': ExchangeError, // Unlink Admin From Account
+                '18100218': ExchangeError, // Calc Portfolio Margin
+                '18100223': ExchangeError, // Get Takeover Orders Error
+                '18100224': ExchangeError, // Invalid Amend Order Request Error
+                '18100225': ExchangeError, // Auto Price Error
+                '18100226': ExchangeError, // Takeover Switch User Id Error
+                '18100227': ExchangeError, // Account Is Locked Error
+                '18100228': ExchangeError, // Get Bankruptcy Error
+                '18100229': ExchangeError, // Filled Bankruptcy Request Error
+                '18100230': ExchangeError, // Exceed Max Stop Order Error
+                '18100231': ExchangeError, // Invalid Stop Order Status Error
+                '18100232': ExchangeError, // Verification Code Mail Error
+                '18100233': ExchangeError, // Verification Code Phone Error
+                '18100234': ExchangeError, // Rpc Error: Order not active
+                '18100235': ExchangeError, // Fill Bankruptcy Error
+                '18100236': ExchangeError, // Invalid Order Role
+                '18100237': ExchangeError, // No Block Order Permission
+                '18100238': ExchangeError, // Self Trading Error
+                '18100239': ExchangeError, // Illegal Valid Time Error
+                '18100240': ExchangeError, // Invalid Block Order Request
+                '18100241': ExchangeError, // Accept Block Order Error
+                '18100242': ExchangeError, // Reject Block Order Error
+                '18100243': ExchangeError, // Calculate Option Mm Error
+                '18100244': ExchangeError, // Reduce Only Error
+                '18100245': ExchangeError, // Block Trade Service Stop Error
+                '18100246': ExchangeError, // Get Stop Trigger Price Error
+                '18100247': ExchangeError, // Get Open Order Size Error
+                '18100248': ExchangeError, // Get Position Size Error
+                '18100249': ExchangeError, // Exceed Max Open Order By Option
+                '18100250': ExchangeError, // Exceed Max Open Order By Future
+                '18100251': ExchangeError, // Marketing Bonus Request Error
+                '18100252': ExchangeError, // Bonus Error
+                '18100253': ExchangeError, // Get Bonus Error
+                '18100254': ExchangeError, // Marketing Refund Request Error
+                '18100255': ExchangeError, // Refund Error
+                '18100256': ExchangeError, // Get Active Error
+                '18100257': ExchangeError, // Get Account Configuration Error
+                '18100258': ExchangeError, // Invalid User Kyc Level Error
+                '18100259': ExchangeError, // Duplicate Bonus Error
+                '18100260': ExchangeError, // Calc Position Summary Error
+                '18100261': ExchangeError, // Exceed Account Delta Error
+                '18100262': ExchangeError, // Withdraw Request Error
+                '18100263': ExchangeError, // Withdraw Error
+                '18100264': ExchangeError, // Invalid User Defined String
+                '18100265': ExchangeError, // Invalid Blocktrade Source
+                '18100266': ExchangeError, // Send Captcha Error
+                '18100267': ExchangeError, // Invalid Captcha Error
+                '18100268': ExchangeError, // Invalid Number String
+                '18100269': ExchangeError, // Exceed Max Position Error
+                '18100270': ExchangeError, // Exceed Max Open Quantity Error
+                '18100271': ExchangeError, // Get Block Order Error
+                '18100272': ExchangeError, // Duplicated Blocktrade Key
+                '18100273': ExchangeError, // Creat Bonus Active Error
+                '18100274': ExchangeError, // Bonus Total Limit Error
+                '18100275': ExchangeError, // Invalid Batch Order Request
+                '18100276': ExchangeError, // Invalid Batch Order Count Request
+                '18100277': ExchangeError, // Rpc New Batch Order Error
+                '18100278': ExchangeError, // Fetch Db Timeout
+                '18100279': ExchangeError, // Takeover Not Allowed
+                '18100280': ExchangeError, // Invalid Batch Order Amend Request
+                '18100281': ExchangeError, // Not Found In Open Orders
+                '18100282': ExchangeError, // Rpc Batch Amend Error
+                '18100285': ExchangeError, // Mmp error
+                '18100304': ExchangeError, // Invalid Channel Error
+                '18100305': ExchangeError, // Invalid Category Error
+                '18100306': ExchangeError, // Invalid Interval Error
+                '18100401': ExchangeError, // Invalid Address
+                '18100402': ExchangeError, // Address Not Whitelisted
+                '18100403': ExchangeError, // Invalid Fund Password
+                '18100404': ExchangeError, // Withdrawal Order Not Exist
+                '18100405': ExchangeError, // KYT Rejected
+                '18100406': ExchangeError, // Withdraw Too Frequently
+                '18100407': ExchangeError, // Withdraw Limit Exceeded
+                '18100408': ExchangeError, // Withdraw Amount Less Than Minimum Amount
+                '18200300': PermissionDenied, // Rate Limit Exceed
+                '18200301': PermissionDenied, // Login Error
+                '18200302': AuthenticationError, // Authentication Error
+                '17002010': AuthenticationError, // signature error
+                '17002011': AuthenticationError, // invalid IP address
+                '17002012': AuthenticationError, // no permission to access this endpoint
+                '17002014': AuthenticationError, // timestamp expired
+                '17002006': AuthenticationError, // internal error
+                '18200303': PermissionDenied, // Exceed Max Connection Error
+                '18300300': ExchangeError, // Not Part In Competition
+                '18300301': ExchangeError, // Register Competition Failed
+                '18300302': ExchangeError, // Register Competition Failed
+                '18400300': ExchangeError, // Cancel Only Period
+                '18500000': ExchangeError, // Rpc timeout error (API result in uncertain state, see above info)
+            },
+        });
+    }
+
+    async fetchIndex (params = {}) {
+        // params = {
+        //     'currency': 'BTC',
+        // }
+        const resp = await this.publicGetIndex (params);
+        const indexResp = this.safeValue (resp, 'data', {});
+        const name = this.safeString (indexResp, 'name');
+        const indexPrice = this.safeString (indexResp, 'index_price');
+        return {
+            'name': name,
+            'index_price': indexPrice,
+        };
+    }
+
+    async fetchMarkets (params = {}) {
+        // params = {
+        //     'currency': 'BTC',
+        //     'category': 'future',
+        //     'instrument_id': 'BTC-PERPETUAL',
+        // }
+        const resp = await this.publicGetMarketSummary (params);
+        const marketSummaries = this.safeValue (resp, 'data', []);
+        const nums = marketSummaries.length;
+        if (nums < 1) {
+            throw new NetworkError (this.id + ' publicGetMarketSummary returned empty response: ' + this.json (marketSummaries));
+        }
+        const result = [];
+        for (let i = 0; i < nums; i++) {
+            const market = marketSummaries[i];
+            const instrumentId = this.safeString (market, 'instrument_id');
+            const timestamp = this.safeString (market, 'timestamp');
+            const bestBid = this.safeString (market, 'best_bid');
+            const bestAsk = this.safeString (market, 'best_ask');
+            const bestBitQty = this.safeString (market, 'best_bid_qty');
+            const bestAskQty = this.safeString (market, 'best_ask_qty');
+            const lastPrice = this.safeString (market, 'last_price');
+            const lastQty = this.safeString (market, 'last_qty');
+            const open24H = this.safeString (market, 'open24h');
+            const high24H = this.safeString (market, 'high24h');
+            const low24H = this.safeString (market, 'low24h');
+            const volume24H = this.safeString (market, 'volume24h');
+            const openInterest = this.safeString (market, 'open_interest');
+            const markPrice = this.safeString (market, 'mark_price');
+            const maxBuy = this.safeString (market, 'max_buy');
+            const minSell = this.safeString (market, 'min_sell');
+            const delta = this.safeString (market, 'delta');
+            const gamma = this.safeString (market, 'gamma');
+            const vega = this.safeString (market, 'vega');
+            const theta = this.safeString (market, 'theta');
+            result.push ({
+                'instrument_id': instrumentId,
+                'timestamp': timestamp,
+                'best_bid': bestBid,
+                'best_ask': bestAsk,
+                'best_bid_qty': bestBitQty,
+                'best_ask_qty': bestAskQty,
+                'last_price': lastPrice,
+                'last_qty': lastQty,
+                'open24h': open24H,
+                'high24h': high24H,
+                'low24h': low24H,
+                'volume24h': volume24H,
+                'open_interest': openInterest,
+                'mark_price': markPrice,
+                'max_buy': maxBuy,
+                'min_sell': minSell,
+                'delta': delta,
+                'gamma': gamma,
+                'vega': vega,
+                'theta': theta,
+            });
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        const resp = await this.publicGetCurrencies (params);
+        const indexResp = this.safeValue (resp, 'data', {});
+        const currencies = this.safeValue (indexResp, 'currencies', []);
+        return {
+            'currencies': currencies,
+        };
+    }
+
+    nonce () {
+        return this.milliseconds ();
+    }
+
+    urldecodeBase64 (val) {
+        const before = val;
+        val = val.replace ('-', '+').replace ('_', '/');
+        if (before === val) {
+            return val;
+        } else {
+            return this.urldecodeBase64 (val);
+        }
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const query = this.omit (params, this.extractParams (path));
+        const pathEnding = '/' + this.version + '/' + this.implodeParams (path, params);
+        const fullPath = '/api' + pathEnding;
+        let url = this.urls['api'][api] + pathEnding;
+        let bodyForSignature = '';
+        if (method === 'GET' || method === 'DELETE') {
+            const queryEncoded = this.urlencode (query);
+            if (Object.keys (query).length) {
+                url += '?' + queryEncoded;
+            }
+            bodyForSignature = queryEncoded;
+        } else if (method === 'POST') {
+            body = this.json (query);
+            bodyForSignature = body;
+        }
+        if (api !== 'public') {
+            this.checkRequiredCredentials ();
+            const timestamp = '' + this.nonce ();
+            let secret = this.urldecodeBase64 (this.secret);
+            // this.print ('presecret: ' + secret);
+            secret = this.base64ToBinary (secret);
+            const signature = this.hmac (this.encode (method.toLowerCase ()), this.encode (timestamp), 'sha512', 'base64');
+            // this.print ('signature1: ' + this.base64ToBinary (signature));
+            const signature2 = this.hmac (this.encode (fullPath), this.base64ToBinary (signature), 'sha512', 'base64');
+            // this.print ('signature2: ' + this.base64ToBinary (signature2));
+            const signature3 = this.hmac (this.encode (bodyForSignature), this.base64ToBinary (signature2), 'sha512', 'base64');
+            // this.print ('signature3: ' + this.base64ToBinary (signature3));
+            const signature4 = this.hmac (secret, this.base64ToBinary (signature3), 'sha512', 'base64');
+            // this.print ('secret: ' + secret);
+            // this.print ('signature4: ' + this.base64ToBinary (signature4));
+            headers = {
+                'Content-Type': 'application/json',
+                'KICK-API-KEY': this.apiKey,
+                'KICK-API-PASS': this.stringToBase64 (this.password),
+                'KICK-API-TIMESTAMP': timestamp,
+                'KICK-SIGNATURE': signature4,
+            };
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const response = await this.fetch2 (
+            path,
+            api,
+            method,
+            params,
+            headers,
+            body
+        );
+        return response;
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        if ('code' in response) {
+            const code = this.safeInteger (response, 'code');
+            if (code === 0) {
+                return;
+            }
+            const message = this.safeString (response, 'message');
+            this.throwExactlyMatchedException (this.exceptions, code, message);
+            throw new ExchangeError (message);
+        } else {
+            const error = this.id + ' ' + body;
+            throw new ExchangeError (error);
+        }
+    }
+};
