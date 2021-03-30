@@ -2950,8 +2950,12 @@ class Exchange {
         ));
     }
 
-    public function safe_number($object, $key, $default = null) {
-        $value = $this->safe_string($object, $key);
+    public function safe_number($object, $key = null, $default = null) {
+        if ($key === null) {
+            $value = $object;
+        } else {
+            $value = $this->safe_string($object, $key);
+        }
         if ($value === null) {
             return $default;
         } else {

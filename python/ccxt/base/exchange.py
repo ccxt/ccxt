@@ -2247,8 +2247,11 @@ class Exchange(object):
             'remaining': remaining,
         })
 
-    def safe_number(self, dictionary, key, default=None):
-        value = self.safe_string(dictionary, key)
+    def safe_number(self, dictionary, key=None, default=None):
+        if key is None:
+            value = dictionary
+        else:
+            value = self.safe_string(dictionary, key)
         if value is None:
             return default
         else:

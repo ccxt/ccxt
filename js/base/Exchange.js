@@ -1565,8 +1565,13 @@ module.exports = class Exchange {
         });
     }
 
-    safeNumber (object, key, d = undefined) {
-        const value = this.safeString (object, key)
+    safeNumber (object, key = undefined, d = undefined) {
+        let value = undefined
+        if (key === undefined) {
+            value = object
+        } else {
+            value = this.safeString (object, key)
+        }
         if (value === undefined) {
             return d
         } else {
