@@ -193,8 +193,8 @@ class rightbtc(Exchange):
             })
         return result
 
-    def divide_safe_float(self, x, key, divisor):
-        value = self.safe_float(x, key)
+    def divide_safe_number(self, x, key, divisor):
+        value = self.safe_number(x, key)
         if value is not None:
             return value / divisor
         return value
@@ -202,12 +202,12 @@ class rightbtc(Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'date')
-        last = self.divide_safe_float(ticker, 'last', 1e8)
-        high = self.divide_safe_float(ticker, 'high', 1e8)
-        low = self.divide_safe_float(ticker, 'low', 1e8)
-        bid = self.divide_safe_float(ticker, 'buy', 1e8)
-        ask = self.divide_safe_float(ticker, 'sell', 1e8)
-        baseVolume = self.divide_safe_float(ticker, 'vol24h', 1e8)
+        last = self.divide_safe_number(ticker, 'last', 1e8)
+        high = self.divide_safe_number(ticker, 'high', 1e8)
+        low = self.divide_safe_number(ticker, 'low', 1e8)
+        bid = self.divide_safe_number(ticker, 'buy', 1e8)
+        ask = self.divide_safe_number(ticker, 'sell', 1e8)
+        baseVolume = self.divide_safe_number(ticker, 'vol24h', 1e8)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -300,9 +300,9 @@ class rightbtc(Exchange):
         id = self.safe_string(trade, 'tid')
         id = self.safe_string(trade, 'trade_id', id)
         orderId = self.safe_string(trade, 'order_id')
-        price = self.divide_safe_float(trade, 'price', 1e8)
-        amount = self.safe_float(trade, 'amount')
-        amount = self.safe_float(trade, 'quantity', amount)
+        price = self.divide_safe_number(trade, 'price', 1e8)
+        amount = self.safe_number(trade, 'amount')
+        amount = self.safe_number(trade, 'quantity', amount)
         if amount is not None:
             amount = amount / 1e8
         marketId = self.safe_string(trade, 'trading_pair')
@@ -393,8 +393,8 @@ class rightbtc(Exchange):
             code = self.safe_currency_code(currencyId)
             account = self.account()
             # https://github.com/ccxt/ccxt/issues/3873
-            account['free'] = self.divide_safe_float(balance, 'balance', 1e8)
-            account['used'] = self.divide_safe_float(balance, 'frozen', 1e8)
+            account['free'] = self.divide_safe_number(balance, 'balance', 1e8)
+            account['used'] = self.divide_safe_number(balance, 'frozen', 1e8)
             result[code] = account
         return self.parse_balance(result)
 
@@ -474,24 +474,24 @@ class rightbtc(Exchange):
             timestamp = order['time']
         elif 'transactTime' in order:
             timestamp = order['transactTime']
-        price = self.safe_float_2(order, 'limit', 'price')
+        price = self.safe_number_2(order, 'limit', 'price')
         if price is not None:
             price = price / 1e8
-        amount = self.divide_safe_float(order, 'quantity', 1e8)
-        filled = self.divide_safe_float(order, 'filled_quantity', 1e8)
-        remaining = self.divide_safe_float(order, 'rest', 1e8)
-        cost = self.divide_safe_float(order, 'cost', 1e8)
+        amount = self.divide_safe_number(order, 'quantity', 1e8)
+        filled = self.divide_safe_number(order, 'filled_quantity', 1e8)
+        remaining = self.divide_safe_number(order, 'rest', 1e8)
+        cost = self.divide_safe_number(order, 'cost', 1e8)
         # lines 483-494 should be generalized into a base class method
         type = 'limit'
         side = self.safe_string_lower(order, 'side')
-        feeCost = self.divide_safe_float(order, 'min_fee', 1e8)
+        feeCost = self.divide_safe_number(order, 'min_fee', 1e8)
         fee = None
         if feeCost is not None:
             feeCurrency = None
             if market is not None:
                 feeCurrency = market['quote']
             fee = {
-                'rate': self.safe_float(order, 'fee'),
+                'rate': self.safe_number(order, 'fee'),
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
