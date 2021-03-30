@@ -1525,6 +1525,8 @@ module.exports = class Exchange {
             // ensure amount = filled + remaining
             if (filled !== undefined && remaining !== undefined) {
                 amount = this.sum (filled, remaining);
+            } else if (this.safeString (order, 'status') === 'closed') {
+                amount = filled;
             }
         }
         if (filled === undefined) {

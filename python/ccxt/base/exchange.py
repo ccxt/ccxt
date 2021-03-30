@@ -2218,6 +2218,8 @@ class Exchange(object):
             # ensure amount = filled + remaining
             if filled is not None and remaining is not None:
                 amount = self.sum(filled, remaining)
+            elif self.safe_string(order, 'status') == 'closed':
+                amount = filled
         if filled is None:
             if amount is not None and remaining is not None:
                 filled = max(self.sum(amount, -remaining), 0)

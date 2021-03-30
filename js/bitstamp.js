@@ -1197,83 +1197,23 @@ module.exports = class bitstamp extends Exchange {
         }
         // there is no timestamp from fetchOrder
         const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
-        let lastTradeTimestamp = undefined;
-        let symbol = undefined;
-        let marketId = this.safeStringLower (order, 'currency_pair');
-        if (marketId !== undefined) {
-            marketId = marketId.replace ('/', '');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
-        }
-        let amount = this.safeNumber (order, 'amount');
-        let filled = 0.0;
-        const trades = [];
-        const transactions = this.safeValue (order, 'transactions', []);
-        let feeCost = undefined;
-        let cost = undefined;
-        const numTransactions = transactions.length;
-        if (numTransactions > 0) {
-            feeCost = 0.0;
-            for (let i = 0; i < numTransactions; i++) {
-                const trade = this.parseTrade (this.extend ({
-                    'order_id': id,
-                    'side': side,
-                }, transactions[i]), market);
-                filled = this.sum (filled, trade['amount']);
-                feeCost = this.sum (feeCost, trade['fee']['cost']);
-                if (cost === undefined) {
-                    cost = 0.0;
-                }
-                cost = this.sum (cost, trade['cost']);
-                trades.push (trade);
-            }
-            lastTradeTimestamp = trades[numTransactions - 1]['timestamp'];
-        }
+        const marketId = this.safeStringLower (order, 'currency_pair');
+        let symbol = this.safeSymbol (marketId, market, '/');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        if ((status === 'closed') && (amount === undefined)) {
-            amount = filled;
+        const amount = this.safeNumber (order, 'amount');
+        const transactions = this.safeValue (order, 'transactions', []);
+        const trades = this.parseTrades (transactions, market);
+        const length = trades.length;
+        if (length) {
+            symbol = trades[0]['symbol'];
         }
-        let remaining = undefined;
-        if (amount !== undefined) {
-            remaining = amount - filled;
-        }
-        let price = this.safeNumber (order, 'price');
-        if (market === undefined) {
-            market = this.getMarketFromTrades (trades);
-        }
-        let feeCurrency = undefined;
-        if (market !== undefined) {
-            if (symbol === undefined) {
-                symbol = market['symbol'];
-            }
-            feeCurrency = market['quote'];
-        }
-        if (cost === undefined) {
-            if (price !== undefined) {
-                cost = price * filled;
-            }
-        } else if (price === undefined) {
-            if (filled > 0) {
-                price = cost / filled;
-            }
-        }
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            if (feeCurrency !== undefined) {
-                fee = {
-                    'cost': feeCost,
-                    'currency': feeCurrency,
-                };
-            }
-        }
-        return {
+        const price = this.safeNumber (order, 'price');
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': undefined,
@@ -1282,15 +1222,15 @@ module.exports = class bitstamp extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
+            'filled': undefined,
+            'remaining': undefined,
             'trades': trades,
-            'fee': fee,
+            'fee': undefined,
             'info': order,
             'average': undefined,
-        };
+        });
     }
 
     parseLedgerEntryType (type) {

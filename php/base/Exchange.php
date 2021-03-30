@@ -2910,6 +2910,8 @@ class Exchange {
             // ensure $amount = $filled . $remaining
             if ($filled !== null && $remaining !== null) {
                 $amount = $this->sum($filled, $remaining);
+            } else if ($this->safe_string($order, 'status') === 'closed') {
+                $amount = $filled;
             }
         }
         if ($filled === null) {
