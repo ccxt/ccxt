@@ -347,7 +347,7 @@ module.exports = class digifinex extends Exchange {
             // const status = this.safeString (market, 'status');
             // const active = (status === 'TRADING');
             //
-            const isAllowed = this.safeValue (market, 'is_allow', 1);
+            const isAllowed = this.safeInteger (market, 'is_allow', 1);
             const active = isAllowed ? true : false;
             const type = 'spot';
             const spot = (type === 'spot');
