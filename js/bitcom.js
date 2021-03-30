@@ -394,7 +394,9 @@ module.exports = class bitcom extends Exchange {
     async fetchBalance (params = {}) {
         const ccysResp = await this.getCurrencies ();
         const ccys = this.safeValue (ccysResp, 'currencies', []);
-        const result = {};
+        const result = {
+            'info': [],
+        };
         for (let i = 0; i < ccys.length; i++) {
             const resp = await this.privateGetAccounts ({'currency': ccys[i]});
             const accountResp = this.safeValue (resp, 'data', {});
