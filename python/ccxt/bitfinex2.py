@@ -955,9 +955,10 @@ class bitfinex2(bitfinex):
         # timestamp = self.safe_timestamp(order, 5)
         timestamp = self.safe_integer(order, 5)
         remaining = abs(self.safe_number(order, 6))
-        amount = abs(self.safe_number(order, 7))
+        signedAmount = self.safe_number(order, 7)
+        amount = abs(signedAmount)
         filled = amount - remaining
-        side = 'sell' if (order[7] < 0) else 'buy'
+        side = 'sell' if (signedAmount < 0) else 'buy'
         orderType = self.safe_string(order, 8)
         type = self.safe_string(self.safe_value(self.options, 'exchangeTypes'), orderType)
         status = None

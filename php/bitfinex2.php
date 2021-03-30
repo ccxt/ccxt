@@ -1004,9 +1004,10 @@ class bitfinex2 extends bitfinex {
         // $timestamp = $this->safe_timestamp($order, 5);
         $timestamp = $this->safe_integer($order, 5);
         $remaining = abs($this->safe_number($order, 6));
-        $amount = abs($this->safe_number($order, 7));
+        $signedAmount = $this->safe_number($order, 7);
+        $amount = abs($signedAmount);
         $filled = $amount - $remaining;
-        $side = ($order[7] < 0) ? 'sell' : 'buy';
+        $side = ($signedAmount < 0) ? 'sell' : 'buy';
         $orderType = $this->safe_string($order, 8);
         $type = $this->safe_string($this->safe_value($this->options, 'exchangeTypes'), $orderType);
         $status = null;
