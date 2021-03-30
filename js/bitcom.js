@@ -20,13 +20,13 @@ module.exports = class bitcom extends Exchange {
                 'fetchIndex': true, // GET /v1/index
                 'fetchMarkets': true, // GET /v1/market/summary
                 'fetchCurrencies': true, // GET /v1/currencies
+                'fetchBalance': true,
                 // TODO: need to be implemented
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'editOrder': true,
-                'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -82,10 +82,8 @@ module.exports = class bitcom extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'order',
-                    ],
-                    'delete': [
-                        'orders/{id}',
+                        // account
+                        'accounts',
                     ],
                     'post': [
                         'createTradeOrder',
@@ -390,60 +388,125 @@ module.exports = class bitcom extends Exchange {
         };
     }
 
-    nonce () {
-        return this.milliseconds ();
+    async fetchBalance (params = {}) {
+        const resp = await this.privateGetAccounts (params);
+        const accountResp = this.safeValue (resp, 'data', {});
+        //     "data": {
+        //         "user_id": "51140",
+        //         "currency": "BTC",
+        //         "cash_balance": "99.59591877",
+        //         "available_balance": "97.47174526",
+        //         "margin_balance": "99.59589266",
+        //         "initial_margin": "2.12414740",
+        //         "maintenance_margin": "0.00002866",
+        //         "equity": "100.02737507",
+        //         "pnl": "0.08047907",
+        //         "total_delta": "1.40711353",
+        //         "account_id": "3033",
+        //         "mode": "regular",
+        //         "session_upl": "0.08047907",
+        //         "session_rpl": "-0.00002286",
+        //         "option_value": "0.43148240",
+        //         "option_pnl": "0.08048240",
+        //         "option_session_rpl": "0.00000000",
+        //         "option_session_upl": "0.08048240",
+        //         "option_delta": "1.83338535",
+        //         "option_gamma": "0.00017907",
+        //         "option_vega": "4.04908990",
+        //         "option_theta": "-36.98180587",
+        //         "future_pnl": "-0.00000333",
+        //         "future_session_rpl": "-0.00002286",
+        //         "future_session_upl": "-0.00000333",
+        //         "future_session_funding": "-0.00002286",
+        //         "future_delta":"0.00521057",
+        //         "created_at": 1588218506000,
+        //         "projected_info": {
+        //             "projected_initial_margin": "0.97919888",
+        //             "projected_maintenance_margin": "0.78335911",
+        //             "projected_total_delta": "3.89635553"
+        //         }
+        //     }
+        const result = {
+            'info': resp,
+        };
+        const currencyId = this.safeString (accountResp, 'currency');
+        const currencyCode = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeNumber (accountResp, 'available_balance');
+        account['used'] = this.safeNumber (accountResp, 'maintenance_margin');
+        account['total'] = this.safeNumber (accountResp, 'cash_balance');
+        result[currencyCode] = account;
+        return this.parseBalance (result);
     }
 
-    urldecodeBase64 (val) {
-        const before = val;
-        val = val.replace ('-', '+').replace ('_', '/');
-        if (before === val) {
-            return val;
-        } else {
-            return this.urldecodeBase64 (val);
-        }
+    nonce () {
+        return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const pathEnding = '/' + this.version + '/' + this.implodeParams (path, params);
-        const fullPath = '/api' + pathEnding;
         let url = this.urls['api'][api] + pathEnding;
-        let bodyForSignature = '';
-        if (method === 'GET' || method === 'DELETE') {
-            const queryEncoded = this.urlencode (query);
-            if (Object.keys (query).length) {
-                url += '?' + queryEncoded;
-            }
-            bodyForSignature = queryEncoded;
-        } else if (method === 'POST') {
-            body = this.json (query);
-            bodyForSignature = body;
-        }
         if (api !== 'public') {
             this.checkRequiredCredentials ();
             const timestamp = '' + this.nonce ();
-            let secret = this.urldecodeBase64 (this.secret);
-            // this.print ('presecret: ' + secret);
-            secret = this.base64ToBinary (secret);
-            const signature = this.hmac (this.encode (method.toLowerCase ()), this.encode (timestamp), 'sha512', 'base64');
-            // this.print ('signature1: ' + this.base64ToBinary (signature));
-            const signature2 = this.hmac (this.encode (fullPath), this.base64ToBinary (signature), 'sha512', 'base64');
-            // this.print ('signature2: ' + this.base64ToBinary (signature2));
-            const signature3 = this.hmac (this.encode (bodyForSignature), this.base64ToBinary (signature2), 'sha512', 'base64');
-            // this.print ('signature3: ' + this.base64ToBinary (signature3));
-            const signature4 = this.hmac (secret, this.base64ToBinary (signature3), 'sha512', 'base64');
-            // this.print ('secret: ' + secret);
-            // this.print ('signature4: ' + this.base64ToBinary (signature4));
+            params['timestamp'] = timestamp;
+            const strToSign = pathEnding + '&' + this.encodeObject (params);
+            this.print ('strToSign: ' + strToSign);
+            const signature = this.hmac (strToSign, this.secret, 'sha256', 'hex');
+            this.print ('signature: ' + signature);
             headers = {
                 'Content-Type': 'application/json',
-                'KICK-API-KEY': this.apiKey,
-                'KICK-API-PASS': this.stringToBase64 (this.password),
-                'KICK-API-TIMESTAMP': timestamp,
-                'KICK-SIGNATURE': signature4,
+                'X-Bit-Access-Key': this.apiKey,
             };
+            params['signature'] = signature;
+        }
+        const queryWithTimeAndSig = this.omit (params, this.extractParams (path));
+        if (method === 'GET') {
+            const queryEncoded = this.urlencode (queryWithTimeAndSig);
+            if (Object.keys (query).length) {
+                url += '?' + queryEncoded;
+            }
+        } else if (method === 'POST') {
+            body = this.json (queryWithTimeAndSig);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    encodeObject (params = {}) {
+        const sortedKeys = Object.keys (params).sort ();
+        const resultList = [];
+        for (let i = 0; i < sortedKeys.length; i++) {
+            const key = sortedKeys[i];
+            const val = params[key];
+            if (val instanceof Array) {
+                const listVal = this.encodeList (val);
+                resultList.push (key + '=' + listVal);
+            } else if (val instanceof Object) {
+                const objVal = this.encodeObject (val);
+                resultList.push (key + '=' + objVal);
+            } else if (val instanceof Boolean) {
+                const boolVal = val.toString ().toLowerCase ();
+                resultList.push (key + '=' + boolVal);
+            } else {
+                const generalVal = val.toString ();
+                resultList.push (key + '=' + generalVal);
+            }
+        }
+        const sortedList = resultList.sort ();
+        return sortedList.join ('&');
+    }
+
+    encodeList (list = []) {
+        const strList = [];
+        for (let i = 0; i < list; i++) {
+            const objVal = this.encodeObject (list[i]);
+            const objStr = objVal.toString ();
+            strList.push (objStr);
+        }
+        let outputStr = strList.join ('&');
+        outputStr = '[' + outputStr + ']';
+        return outputStr;
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

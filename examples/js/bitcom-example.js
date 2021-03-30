@@ -14,7 +14,7 @@ const ccxt = require("../../ccxt.js"),
         verbose: process.argv.includes ('--verbose'),
         timeout: 60000,
         apiKey: 'ak-3d4dc159-8313-4726-860e-60355ccf1d24',
-        secretKey: 'A2I2HuUKqx7VnxQVvJhvowvmgQ3GgunDtdsHHyEjZoQXn14zmf8hB8MZzjlgGOFg'
+        secret: 'A2I2HuUKqx7VnxQVvJhvowvmgQ3GgunDtdsHHyEjZoQXn14zmf8hB8MZzjlgGOFg'
     });
 
     let params = {}
@@ -38,6 +38,13 @@ const ccxt = require("../../ccxt.js"),
     // get currencies
     const currencies = await exchange.fetchCurrencies ()
     log (currencies)
+
+    //get balance
+    params = {
+        'currency': 'BTC',
+    }
+    const balance = await exchange.fetchBalance (params)
+    log.green (balance)
 
 
     // //get ticker
@@ -71,9 +78,7 @@ const ccxt = require("../../ccxt.js"),
     //     log(cancelResponse)
     // }
     //
-    // //get balance
-    // const balance = await exchange.fetchBalance ()
-    // log.green (balance)
+
     //
     // //get open orders
     // const openOrders = await exchange.fetchOpenOrders ()
