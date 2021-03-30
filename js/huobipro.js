@@ -1073,27 +1073,13 @@ module.exports = class huobipro extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (order, 'created-at');
-        let amount = this.safeNumber (order, 'amount');
+        const amount = this.safeNumber (order, 'amount');
         const filled = this.safeNumber2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
-        if ((type === 'market') && (side === 'buy')) {
-            amount = (status === 'closed') ? filled : undefined;
-        }
         let price = this.safeNumber (order, 'price');
         if (price === 0.0) {
             price = undefined;
         }
         const cost = this.safeNumber2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
-        let remaining = undefined;
-        let average = undefined;
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
-            }
-            // if cost is defined and filled is not zero
-            if ((cost !== undefined) && (filled > 0)) {
-                average = cost / filled;
-            }
-        }
         const feeCost = this.safeNumber2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -1106,7 +1092,7 @@ module.exports = class huobipro extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -1120,15 +1106,15 @@ module.exports = class huobipro extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'average': average,
+            'average': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
