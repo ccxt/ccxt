@@ -927,8 +927,8 @@ module.exports = class Exchange {
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        const price = this.number (bidask[priceKey])
-        const amount = this.number (bidask[amountKey])
+        const price = this.safeNumber (bidask, priceKey)
+        const amount = this.safeNumber (bidask, amountKey)
         return [ price, amount ]
     }
 
