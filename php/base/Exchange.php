@@ -1753,8 +1753,8 @@ class Exchange {
     }
 
     public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
-        $price = $this->number($bidask[$price_key]);
-        $amount = $this->number($bidask[$amount_key]);
+        $price = $this->safe_number($bidask, $price_key);
+        $amount = $this->safe_number($bidask, $amount_key);
         return array($price, $amount);
     }
 
