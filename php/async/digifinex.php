@@ -351,7 +351,7 @@ class digifinex extends Exchange {
             // $status = $this->safe_string($market, 'status');
             // $active = ($status === 'TRADING');
             //
-            $isAllowed = $this->safe_value($market, 'is_allow', 1);
+            $isAllowed = $this->safe_integer($market, 'is_allow', 1);
             $active = $isAllowed ? true : false;
             $type = 'spot';
             $spot = ($type === 'spot');

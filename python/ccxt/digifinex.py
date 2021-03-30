@@ -356,7 +356,7 @@ class digifinex(Exchange):
             # status = self.safe_string(market, 'status')
             # active = (status == 'TRADING')
             #
-            isAllowed = self.safe_value(market, 'is_allow', 1)
+            isAllowed = self.safe_integer(market, 'is_allow', 1)
             active = True if isAllowed else False
             type = 'spot'
             spot = (type == 'spot')
