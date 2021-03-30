@@ -16,11 +16,14 @@ module.exports = class bitcom extends Exchange {
             'version': 'v1',
             'rateLimit': 500,
             'has': {
+                // CCXT interface
                 'CORS': true,
-                'fetchIndex': true, // GET /v1/index
-                'fetchMarkets': true, // GET /v1/market/summary
-                'fetchCurrencies': true, // GET /v1/currencies
+                'fetchMarkets': true,
                 'fetchBalance': true,
+                // bit.com API
+                'getIndex': true, // GET /v1/index
+                'getMarketSummary': true, // GET /v1/market/summary
+                'getCurrencies': true, // GET /v1/currencies
                 // TODO: need to be implemented
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -304,7 +307,7 @@ module.exports = class bitcom extends Exchange {
         });
     }
 
-    async fetchIndex (params = {}) {
+    async getIndex (params = {}) {
         // params = {
         //     'currency': 'BTC',
         // }
@@ -318,7 +321,7 @@ module.exports = class bitcom extends Exchange {
         };
     }
 
-    async fetchMarkets (params = {}) {
+    async getMarketSummary (params = {}) {
         // params = {
         //     'currency': 'BTC',
         //     'category': 'future',
@@ -379,7 +382,7 @@ module.exports = class bitcom extends Exchange {
         return result;
     }
 
-    async fetchCurrencies (params = {}) {
+    async getCurrencies (params = {}) {
         const resp = await this.publicGetCurrencies (params);
         const indexResp = this.safeValue (resp, 'data', {});
         const currencies = this.safeValue (indexResp, 'currencies', []);
@@ -389,53 +392,21 @@ module.exports = class bitcom extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        const resp = await this.privateGetAccounts (params);
-        const accountResp = this.safeValue (resp, 'data', {});
-        //     "data": {
-        //         "user_id": "51140",
-        //         "currency": "BTC",
-        //         "cash_balance": "99.59591877",
-        //         "available_balance": "97.47174526",
-        //         "margin_balance": "99.59589266",
-        //         "initial_margin": "2.12414740",
-        //         "maintenance_margin": "0.00002866",
-        //         "equity": "100.02737507",
-        //         "pnl": "0.08047907",
-        //         "total_delta": "1.40711353",
-        //         "account_id": "3033",
-        //         "mode": "regular",
-        //         "session_upl": "0.08047907",
-        //         "session_rpl": "-0.00002286",
-        //         "option_value": "0.43148240",
-        //         "option_pnl": "0.08048240",
-        //         "option_session_rpl": "0.00000000",
-        //         "option_session_upl": "0.08048240",
-        //         "option_delta": "1.83338535",
-        //         "option_gamma": "0.00017907",
-        //         "option_vega": "4.04908990",
-        //         "option_theta": "-36.98180587",
-        //         "future_pnl": "-0.00000333",
-        //         "future_session_rpl": "-0.00002286",
-        //         "future_session_upl": "-0.00000333",
-        //         "future_session_funding": "-0.00002286",
-        //         "future_delta":"0.00521057",
-        //         "created_at": 1588218506000,
-        //         "projected_info": {
-        //             "projected_initial_margin": "0.97919888",
-        //             "projected_maintenance_margin": "0.78335911",
-        //             "projected_total_delta": "3.89635553"
-        //         }
-        //     }
-        const result = {
-            'info': resp,
-        };
-        const currencyId = this.safeString (accountResp, 'currency');
-        const currencyCode = this.safeCurrencyCode (currencyId);
-        const account = this.account ();
-        account['free'] = this.safeNumber (accountResp, 'available_balance');
-        account['used'] = this.safeNumber (accountResp, 'maintenance_margin');
-        account['total'] = this.safeNumber (accountResp, 'cash_balance');
-        result[currencyCode] = account;
+        const ccysResp = await this.getCurrencies ();
+        const ccys = this.safeValue (ccysResp, 'currencies', []);
+        const result = {};
+        for (let i = 0; i < ccys.length; i++) {
+            const resp = await this.privateGetAccounts ({'currency': ccys[i]});
+            const accountResp = this.safeValue (resp, 'data', {});
+            result['info'].push (accountResp);
+            const currencyId = ccys[i];
+            const currencyCode = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeNumber (accountResp, 'available_balance');
+            account['used'] = this.safeNumber (accountResp, 'maintenance_margin');
+            account['total'] = this.safeNumber (accountResp, 'equity');
+            result[currencyCode] = account;
+        }
         return this.parseBalance (result);
     }
 
@@ -452,9 +423,9 @@ module.exports = class bitcom extends Exchange {
             const timestamp = '' + this.nonce ();
             params['timestamp'] = timestamp;
             const strToSign = pathEnding + '&' + this.encodeObject (params);
-            this.print ('strToSign: ' + strToSign);
+            // this.print ('strToSign: ' + strToSign);
             const signature = this.hmac (strToSign, this.secret, 'sha256', 'hex');
-            this.print ('signature: ' + signature);
+            // this.print ('signature: ' + signature);
             headers = {
                 'Content-Type': 'application/json',
                 'X-Bit-Access-Key': this.apiKey,
@@ -474,12 +445,13 @@ module.exports = class bitcom extends Exchange {
     }
 
     encodeObject (params = {}) {
-        const sortedKeys = Object.keys (params).sort ();
+        const paramKeys = Object.keys (params);
+        const sortedKeys = paramKeys.sort ();
         const resultList = [];
         for (let i = 0; i < sortedKeys.length; i++) {
             const key = sortedKeys[i];
             const val = params[key];
-            if (val instanceof Array) {
+            if (Array.isArray (val)) {
                 const listVal = this.encodeList (val);
                 resultList.push (key + '=' + listVal);
             } else if (val instanceof Object) {

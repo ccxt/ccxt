@@ -8,6 +8,10 @@ const ccxt = require("../../ccxt.js"),
 
 // ----------------------------------------------------------------------------
 
+function prettyJSONLog(str) {
+    log (JSON.stringify(str, null, 2))
+}
+
 (async () => {
 
     const exchange = new ccxt.bitcom ({
@@ -19,12 +23,12 @@ const ccxt = require("../../ccxt.js"),
 
     let params = {}
 
-    // get market summary
+    // get index
     params = {
         'currency': 'BTC',
     }
-    const indexInfo = await exchange.fetchIndex (params)
-    log (indexInfo)
+    const indexInfo = await exchange.getIndex (params)
+    prettyJSONLog (indexInfo)
 
     // get market summary
     params = {
@@ -32,19 +36,19 @@ const ccxt = require("../../ccxt.js"),
         'category': 'future',
         'instrument_id': 'BTC-PERPETUAL',
     }
-    const marketSummary = await exchange.fetchMarkets (params)
-    log (marketSummary)
+    const marketSummary = await exchange.getMarketSummary (params)
+    prettyJSONLog (marketSummary)
 
     // get currencies
-    const currencies = await exchange.fetchCurrencies ()
-    log (currencies)
+    const currencies = await exchange.getCurrencies ()
+    prettyJSONLog (currencies)
 
     //get balance
     params = {
         'currency': 'BTC',
     }
     const balance = await exchange.fetchBalance (params)
-    log.green (balance)
+    prettyJSONLog (balance)
 
 
     // //get ticker
