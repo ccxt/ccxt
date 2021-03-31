@@ -61,7 +61,7 @@ class bitfinex extends \ccxt\async\bitfinex {
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $trades = yield $this->subscribe('trades', $symbol, $params);
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($limit);
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
@@ -447,7 +447,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $url = $this->urls['api']['ws']['private'];
         $orders = yield $this->watch($url, 'os', null, 1);
         if ($this->newUpdates) {
-            $limit = $orders->getLimit ($limit);
+            $limit = $orders->getLimit ($symbol, $limit);
         }
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }

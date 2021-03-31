@@ -81,7 +81,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         const name = 'matches';
         const trades = await this.subscribe (name, symbol, name, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (limit);
+            limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -95,7 +95,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         const authentication = this.authenticate ();
         const trades = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
-            limit = trades.getLimit (limit);
+            limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -109,7 +109,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         const authentication = this.authenticate ();
         const orders = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
-            limit = orders.getLimit (limit);
+            limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }

@@ -45,7 +45,7 @@ class ripio extends \ccxt\async\ripio {
         );
         $trades = yield $this->watch($url, $messageHash, null, $messageHash, $subscription);
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($limit);
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }

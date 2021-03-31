@@ -217,7 +217,7 @@ class gateio extends \ccxt\async\gateio {
         $messageHash = 'trades.update' . ':' . $marketId;
         $trades = yield $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($limit);
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
@@ -287,7 +287,7 @@ class gateio extends \ccxt\async\gateio {
         $messageHash = 'kline.update' . ':' . $marketId;
         $ohlcv = yield $this->watch($url, $messageHash, $subscribeMessage, $messageHash, $subscription);
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($limit);
+            $limit = $ohlcv->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
@@ -460,7 +460,7 @@ class gateio extends \ccxt\async\gateio {
         );
         $orders = yield $this->watch($url, $messageHash, $subscribeMessage, $method, $subscription);
         if ($this->newUpdates) {
-            $limit = $orders->getLimit ($limit);
+            $limit = $orders->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }

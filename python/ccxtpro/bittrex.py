@@ -201,7 +201,7 @@ class bittrex(Exchange, ccxt.bittrex):
         authentication = await self.authenticate()
         orders = await self.subscribe_to_orders(authentication, params)
         if self.newUpdates:
-            limit = orders.getLimit(limit)
+            limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     async def subscribe_to_orders(self, authentication, params={}):
@@ -345,7 +345,7 @@ class bittrex(Exchange, ccxt.bittrex):
         negotiation = await self.negotiate()
         ohlcv = await self.subscribe_to_ohlcv(negotiation, symbol, timeframe, params)
         if self.newUpdates:
-            limit = ohlcv.getLimit(limit)
+            limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     async def subscribe_to_ohlcv(self, negotiation, symbol, timeframe='1m', params={}):
@@ -401,7 +401,7 @@ class bittrex(Exchange, ccxt.bittrex):
         negotiation = await self.negotiate()
         trades = await self.subscribe_to_trades(negotiation, symbol, params)
         if self.newUpdates:
-            limit = trades.getLimit(limit)
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def subscribe_to_trades(self, negotiation, symbol, params={}):

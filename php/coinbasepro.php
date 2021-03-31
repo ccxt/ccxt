@@ -84,7 +84,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $name = 'matches';
         $trades = yield $this->subscribe($name, $symbol, $name, $params);
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($limit);
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
@@ -98,7 +98,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $authentication = $this->authenticate();
         $trades = yield $this->subscribe($name, $symbol, $messageHash, array_merge($params, $authentication));
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($limit);
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
@@ -112,7 +112,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $authentication = $this->authenticate();
         $orders = yield $this->subscribe($name, $symbol, $messageHash, array_merge($params, $authentication));
         if ($this->newUpdates) {
-            $limit = $orders->getLimit ($limit);
+            $limit = $orders->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }

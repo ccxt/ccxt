@@ -22,36 +22,46 @@ def equals(a, b):
 
 cache = ArrayCache(3)
 
-cache.append(1)
-cache.append(2)
-cache.append(3)
-cache.append(4)
+cache.append({'symbol': 'BTC/USDT', 'data': 1})
+cache.append({'symbol': 'BTC/USDT', 'data': 2})
+cache.append({'symbol': 'BTC/USDT', 'data': 3})
+cache.append({'symbol': 'BTC/USDT', 'data': 4})
 
-assert equals(cache, [2, 3, 4])
+assert(equals(cache, [
+    {'symbol': 'BTC/USDT', 'data': 2},
+    {'symbol': 'BTC/USDT', 'data': 3},
+    {'symbol': 'BTC/USDT', 'data': 4},
+]))
 
-cache.append(5)
-cache.append(6)
-cache.append(7)
-cache.append(8)
+cache.append({'symbol': 'BTC/USDT', 'data': 5})
+cache.append({'symbol': 'BTC/USDT', 'data': 6})
+cache.append({'symbol': 'BTC/USDT', 'data': 7})
+cache.append({'symbol': 'BTC/USDT', 'data': 8})
 
-assert equals(cache, [6, 7, 8])
+assert(equals(cache, [
+    {'symbol': 'BTC/USDT', 'data': 6},
+    {'symbol': 'BTC/USDT', 'data': 7},
+    {'symbol': 'BTC/USDT', 'data': 8},
+]))
 
 cache.clear()
 
-assert equals(cache, [])
+cache.append({'symbol': 'BTC/USDT', 'data': 1})
 
-cache.append(1)
-
-assert equals(cache, [1])
+assert(equals(cache, [
+    {'symbol': 'BTC/USDT', 'data': 1},
+]))
 
 # ----------------------------------------------------------------------------
 
 cache = ArrayCache(1)
 
-cache.append(1)
-cache.append(2)
+cache.append({'symbol': 'BTC/USDT', 'data': 1})
+cache.append({'symbol': 'BTC/USDT', 'data': 2})
 
-assert equals(cache, [2])
+assert(equals(cache, [
+    {'symbol': 'BTC/USDT', 'data': 2},
+]))
 
 # ----------------------------------------------------------------------------
 

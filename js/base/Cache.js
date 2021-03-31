@@ -9,24 +9,30 @@ class ArrayCache extends Array {
             value: maxSize,
             writable: true,
         })
-        Object.defineProperty (this, 'newUpdates', {
+        Object.defineProperty (this, 'newUpdatesBySymbol', {
             __proto__: null, // make it invisible
-            value: 0,
+            value: {},
             writable: true,
         })
-        Object.defineProperty (this, 'clearUpdates', {
+        Object.defineProperty (this, 'clearUpdatesBySymbol', {
             __proto__: null, // make it invisible
-            value: false,
+            value: {},
             writable: true,
         })
     }
 
-    getLimit (limit) {
-        this.clearUpdates = true
-        if (limit === undefined) {
-            return this.newUpdates
+    getLimit (symbol, limit) {
+        if (symbol === undefined) {
+            symbol = 'all';
         }
-        return Math.min (this.newUpdates, limit)
+        this.clearUpdatesBySymbol[symbol] = true
+        if (limit === undefined) {
+            return this.newUpdatesBySymbol[symbol]
+        } else if (this.newUpdatesBySymbol[symbol] === undefined) {
+            return limit
+        } else {
+            return Math.min (this.newUpdates, limit)
+        }
     }
 
     append (item) {
@@ -35,11 +41,16 @@ class ArrayCache extends Array {
             this.shift ()
         }
         this.push (item)
-        if (this.clearUpdates) {
-            this.clearUpdates = false
-            this.newUpdates = 0
+        if (this.clearUpdatesBySymbol[item.symbol]) {
+            this.clearUpdatesBySymbol[item.symbol] = false
+            this.newUpdatesBySymbol[item.symbol] = 0
         }
-        this.newUpdates++
+        if (this.clearUpdatesBySymbol['all']) {
+            this.clearUpdatesBySymbol['all'] = false
+            this.newUpdatesBySymbol['all'] = 0
+        }
+        this.newUpdatesBySymbol[item.symbol] = (this.newUpdatesBySymbol[item.symbol] || 0) + 1
+        this.newUpdatesBySymbol['all'] = (this.newUpdatesBySymbol['all'] || 0) + 1
     }
 
     clear () {
@@ -61,6 +72,24 @@ class ArrayCacheByTimestamp extends ArrayCache {
             value: new Set (),
             writable: true,
         })
+        Object.defineProperty (this, 'newUpdates', {
+            __proto__: null, // make it invisible
+            value: 0,
+            writable: true,
+        })
+        Object.defineProperty (this, 'clearUpdates', {
+            __proto__: null, // make it invisible
+            value: false,
+            writable: true,
+        })
+    }
+
+    getLimit (symbol, limit) {
+        this.clearUpdates = true
+        if (limit === undefined) {
+            return this.newUpdates
+        }
+        return Math.min (this.newUpdates, limit)
     }
 
     append (item) {
@@ -88,10 +117,15 @@ class ArrayCacheByTimestamp extends ArrayCache {
     }
 }
 
-class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
+class ArrayCacheBySymbolById extends ArrayCache {
 
     constructor (maxSize = undefined) {
         super (maxSize)
+        Object.defineProperty (this, 'hashmap', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+        })
     }
 
     append (item) {
@@ -115,11 +149,16 @@ class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
             delete this.hashmap[deleteReference.symbol][deleteReference.id]
         }
         this.push (item)
-        if (this.clearUpdates) {
-            this.clearUpdates = false
-            this.newUpdates = 0
+        if (this.clearUpdatesBySymbol[item.symbol]) {
+            this.clearUpdatesBySymbol[item.symbol] = false
+            this.newUpdatesBySymbol[item.symbol] = 0
         }
-        this.newUpdates++
+        if (this.clearUpdatesBySymbol['all']) {
+            this.clearUpdatesBySymbol['all'] = false
+            this.newUpdatesBySymbol['all'] = 0
+        }
+        this.newUpdatesBySymbol[item.symbol] = (this.newUpdatesBySymbol[item.symbol] || 0) + 1
+        this.newUpdatesBySymbol['all'] = (this.newUpdatesBySymbol['all'] || 0) + 1
     }
 }
 

@@ -184,7 +184,7 @@ class bitstamp(Exchange, ccxt.bitstamp):
         message = self.extend(request, params)
         trades = await self.watch(url, messageHash, message, messageHash, subscription)
         if self.newUpdates:
-            limit = trades.getLimit(limit)
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def parse_trade(self, trade, market=None):

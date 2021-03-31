@@ -213,7 +213,7 @@ module.exports = class gateio extends ccxt.gateio {
         const messageHash = 'trades.update' + ':' + marketId;
         const trades = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
         if (this.newUpdates) {
-            limit = trades.getLimit (limit);
+            limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -283,7 +283,7 @@ module.exports = class gateio extends ccxt.gateio {
         const messageHash = 'kline.update' + ':' + marketId;
         const ohlcv = await this.watch (url, messageHash, subscribeMessage, messageHash, subscription);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (limit);
+            limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
@@ -456,7 +456,7 @@ module.exports = class gateio extends ccxt.gateio {
         };
         const orders = await this.watch (url, messageHash, subscribeMessage, method, subscription);
         if (this.newUpdates) {
-            limit = orders.getLimit (limit);
+            limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }

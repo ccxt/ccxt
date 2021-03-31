@@ -44,7 +44,7 @@ class ripio(Exchange, ccxt.ripio):
         }
         trades = await self.watch(url, messageHash, None, messageHash, subscription)
         if self.newUpdates:
-            limit = trades.getLimit(limit)
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trade(self, client, message, subscription):

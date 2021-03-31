@@ -367,7 +367,7 @@ class binance extends \ccxt\async\binance {
         );
         $trades = yield $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($limit);
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
@@ -580,7 +580,7 @@ class binance extends \ccxt\async\binance {
         );
         $ohlcv = yield $this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe);
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($limit);
+            $limit = $ohlcv->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
@@ -918,7 +918,7 @@ class binance extends \ccxt\async\binance {
         $message = null;
         $orders = yield $this->watch($url, $messageHash, $message, $type);
         if ($this->newUpdates) {
-            $limit = $orders->getLimit ($limit);
+            $limit = $orders->getLimit ($symbol, $limit);
         }
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
@@ -1180,7 +1180,7 @@ class binance extends \ccxt\async\binance {
         $message = null;
         $trades = yield $this->watch($url, $messageHash, $message, $type);
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($limit);
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }

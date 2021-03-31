@@ -200,7 +200,7 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         const message = this.extend (request, params);
         const trades = await this.watch (url, messageHash, message, messageHash, subscription);
         if (this.newUpdates) {
-            limit = trades.getLimit (limit);
+            limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
