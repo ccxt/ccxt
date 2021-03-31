@@ -465,7 +465,7 @@ class aax extends Exchange {
             }
         }
         $price = $this->safe_float_2($trade, 'p', 'avgPrice');
-        $amount = $this->safe_float_2($trade, 'q', 'orderQty');
+        $amount = $this->safe_float_2($trade, 'q', 'filledQty');
         $sideType = $this->safe_integer($trade, 'side');
         $side = null;
         if ($sideType !== null) {

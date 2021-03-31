@@ -442,7 +442,7 @@ class aax(Exchange):
             if base is not None and quote is not None:
                 symbol = base + '/' + quote
         price = self.safe_float_2(trade, 'p', 'avgPrice')
-        amount = self.safe_float_2(trade, 'q', 'orderQty')
+        amount = self.safe_float_2(trade, 'q', 'filledQty')
         sideType = self.safe_integer(trade, 'side')
         side = None
         if sideType is not None:

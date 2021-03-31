@@ -458,7 +458,7 @@ module.exports = class aax extends Exchange {
             }
         }
         let price = this.safeFloat2 (trade, 'p', 'avgPrice');
-        const amount = this.safeFloat2 (trade, 'q', 'orderQty');
+        const amount = this.safeFloat2 (trade, 'q', 'filledQty');
         const sideType = this.safeInteger (trade, 'side');
         let side = undefined;
         if (sideType !== undefined) {
