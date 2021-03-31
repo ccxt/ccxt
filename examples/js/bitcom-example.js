@@ -31,6 +31,11 @@ function prettyJSONLog(str) {
     const markets = await exchange.fetchMarkets ()
     prettyJSONLog (markets)
 
+    // fetch klines
+    const symbol = 'BTC-PERPETUAL'
+    const klines = await exchange.fetchOHLCV (symbol, '5m', undefined, 10)
+    prettyJSONLog (klines)
+
 
     // //get ticker
     // const ticker = await exchange.fetchTicker ("BTC/USDT")
