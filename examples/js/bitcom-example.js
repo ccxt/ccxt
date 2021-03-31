@@ -95,4 +95,30 @@ function prettyJSONLog(str) {
     }
     const marketTrades = await exchange.fetchTrades ( undefined, undefined, 100, params )
     prettyJSONLog (marketTrades)
+
+    // create orders
+    params = {
+        'currency': 'ETH',
+    }
+    const createOrder = await exchange.createOrder ('ETH-2APR21-1800-C', 'market', 'buy',
+        '1.0', undefined, params )
+    prettyJSONLog (createOrder)
+
+    // amend orders
+    params = {
+        'currency': 'ETH',
+    }
+    const amendOrder = await exchange.editOrder ('1888694', 'ETH-2APR21-1820-C', undefined, undefined,
+        '2.0', undefined, params )
+    prettyJSONLog (amendOrder)
+
+    // cancel orders
+    params = {
+        'currency': 'ETH',
+    }
+    const cancelOrder = await exchange.cancelOrder ('1888694', undefined, params)
+    prettyJSONLog (cancelOrder)
+
+    // cancel all orders
+    await exchange.cancelAllOrders ()
 })()
