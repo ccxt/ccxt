@@ -628,7 +628,6 @@ module.exports = class bitcom extends Exchange {
         return this.parseTicker (result, market);
     }
 
-
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeInteger (ticker, 'time');
         const instrumentId = this.safeString (ticker, 'instrument_id');
@@ -657,6 +656,189 @@ module.exports = class bitcom extends Exchange {
             'quoteVolume': undefined,
             'info': ticker,
         };
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        // params = {
+        //     'currency': 'BTC',
+        // }
+        await this.loadMarkets ();
+        const currency = this.safeString (params, 'currency');
+        if (currency === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a currency parameter.');
+        }
+        const request = {
+            'order_id': id,
+        };
+        const orderResp = await this.privateGetOrders (this.extend (request, params));
+        // {
+        //     "code": 0,
+        //     "message": "",
+        //     "data": [{
+        //         "order_id": "7718222",
+        //         "created_at": 1589202185000,
+        //         "updated_at": 1589460149000,
+        //         "user_id": "51140",
+        //         "instrument_id": "BTC-29MAY20-7500-C",
+        //         "order_type": "limit",
+        //         "side": "buy",
+        //         "price": "0.08000000",
+        //         "qty": "3.00000000",
+        //         "time_in_force": "gtc",
+        //         "avg_price": "0.00000000",
+        //         "filled_qty": "0.00000000",
+        //         "status": "cancelled",
+        //         "fee": "0.00000000",
+        //         "is_liquidation": false,
+        //         "auto_price": "0.00000000",
+        //         "auto_price_type": "",
+        //         "pnl": "0.00000000",
+        //         "cash_flow": "0.00000000",
+        //         "initial_margin": "",
+        //         "taker_fee_rate": "0.00050000",
+        //         "maker_fee_rate": "0.00020000",
+        //         "label": "hedge",
+        //         "stop_price": "0.00000000",
+        //         "reduce_only": false,
+        //         "post_only": false,
+        //         "reject_post_only": false,
+        //         "mmp": false,
+        //         "reorder_index": 1,
+        //         "source": "api",
+        //         "hidden": false
+        //     }]
+        // }
+        const orders = this.safeValue (orderResp, 'data', []);
+        const orderResult = orders[0];
+        return this.parseOrder (orderResult);
+    }
+
+    async fetchOrders (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.safeString (params, 'currency');
+        if (currency === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a currency parameter.');
+        }
+        const orderResp = await this.privateGetOrders (params);
+        // {
+        //     "code": 0,
+        //     "message": "",
+        //     "data": [{
+        //         "order_id": "7718222",
+        //         "created_at": 1589202185000,
+        //         "updated_at": 1589460149000,
+        //         "user_id": "51140",
+        //         "instrument_id": "BTC-29MAY20-7500-C",
+        //         "order_type": "limit",
+        //         "side": "buy",
+        //         "price": "0.08000000",
+        //         "qty": "3.00000000",
+        //         "time_in_force": "gtc",
+        //         "avg_price": "0.00000000",
+        //         "filled_qty": "0.00000000",
+        //         "status": "cancelled",
+        //         "fee": "0.00000000",
+        //         "is_liquidation": false,
+        //         "auto_price": "0.00000000",
+        //         "auto_price_type": "",
+        //         "pnl": "0.00000000",
+        //         "cash_flow": "0.00000000",
+        //         "initial_margin": "",
+        //         "taker_fee_rate": "0.00050000",
+        //         "maker_fee_rate": "0.00020000",
+        //         "label": "hedge",
+        //         "stop_price": "0.00000000",
+        //         "reduce_only": false,
+        //         "post_only": false,
+        //         "reject_post_only": false,
+        //         "mmp": false,
+        //         "reorder_index": 1,
+        //         "source": "api",
+        //         "hidden": false
+        //     }]
+        // }
+        const orderList = this.safeValue (orderResp, 'data', []);
+        const orders = [];
+        for (let i = 0; i < orderList.length; i++) {
+            const order = this.parseOrder (orderList[i]);
+            orders.push (order);
+        }
+        return orders;
+    }
+
+    parseOrder (order, market = undefined) {
+        const timestamp = this.safeInteger (order, 'created_at');
+        const lastUpdate = this.safeInteger (order, 'updated_at');
+        const id = this.safeString (order, 'order_id');
+        const price = this.safeNumber (order, 'price');
+        const average = this.safeNumber (order, 'avg_price');
+        const amount = this.safeNumber (order, 'qty');
+        const filled = this.safeNumber (order, 'filled_qty');
+        let lastTradeTimestamp = undefined;
+        if (filled !== undefined) {
+            if (filled > 0) {
+                lastTradeTimestamp = lastUpdate;
+            }
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const marketId = this.safeString (order, 'instrument_id');
+        market = this.safeMarket (marketId, market);
+        const side = this.safeStringLower (order, 'side');
+        let feeCost = this.safeNumber (order, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            feeCost = Math.abs (feeCost);
+            fee = {
+                'cost': feeCost,
+                'currency': market['base'],
+            };
+        }
+        const type = this.safeString (order, 'order_type');
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
+        const stopPrice = this.safeValue (order, 'stop_price');
+        const postOnly = this.safeValue (order, 'post_only');
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'amount': amount,
+            'cost': undefined,
+            'average': average,
+            'filled': filled,
+            'remaining': undefined,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
+        });
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'open': 'open',
+            'cancelled': 'canceled',
+            'filled': 'closed',
+            'pending': 'open',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'gtc': 'GTC',
+            'fok': 'FOK',
+            'ioc': 'IOC',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     nonce () {
