@@ -22,6 +22,7 @@ function prettyJSONLog(str) {
     });
 
     let params = {}
+    let symbol
 
     // fetch time
     const timestamp = await exchange.fetchTime ()
@@ -32,15 +33,16 @@ function prettyJSONLog(str) {
     prettyJSONLog (status)
 
     // fetch klines
-    const symbol = 'BTC-PERPETUAL'
+    symbol = 'BTC-PERPETUAL'
     const klines = await exchange.fetchOHLCV (symbol, '5m', undefined, 10)
     prettyJSONLog (klines)
 
 
-    // //get ticker
-    // const ticker = await exchange.fetchTicker ("BTC/USDT")
-    // log (ticker)
-    //
+    // fetch ticker
+    symbol = 'BTC-PERPETUAL'
+    const ticker = await exchange.fetchTicker (symbol)
+    prettyJSONLog (ticker)
+
 
     //
     // //get orderbook
