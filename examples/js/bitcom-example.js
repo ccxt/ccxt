@@ -42,6 +42,11 @@ function prettyJSONLog(str) {
     const ticker = await exchange.fetchTicker (symbol)
     prettyJSONLog (ticker)
 
+    // fetch order book
+    symbol = 'BTC-PERPETUAL'
+    const orderBook = await exchange.fetchOrderBook (symbol)
+    prettyJSONLog (orderBook)
+
     // fetch order
     params = {
         'currency': 'BTC',
@@ -55,4 +60,18 @@ function prettyJSONLog(str) {
     }
     const orders = await exchange.fetchOrders (undefined, undefined, params )
     prettyJSONLog (orders)
+
+    // fetch open orders
+    params = {
+        'currency': 'BTC',
+    }
+    const openOrders = await exchange.fetchOpenOrders (undefined, undefined, 10, params )
+    prettyJSONLog (openOrders)
+
+    // fetch open trades
+    params = {
+        'currency': 'BTC',
+    }
+    const openTrades = await exchange.fetchOrderTrades ('17508028', undefined, 10, 100, params )
+    prettyJSONLog (openTrades)
 })()
