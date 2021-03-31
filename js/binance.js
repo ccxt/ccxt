@@ -1729,7 +1729,7 @@ module.exports = class binance extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        //  spot
+        // spot
         //
         //     {
         //         "symbol": "LTCBTC",
@@ -1750,7 +1750,7 @@ module.exports = class binance extends Exchange {
         //         "isWorking": true
         //     }
         //
-        //  futures
+        // futures
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -1768,7 +1768,7 @@ module.exports = class binance extends Exchange {
         //         "updateTime": 1499827319559
         //     }
         //
-        //  createOrder with { "newOrderRespType": "FULL" }
+        // createOrder with { "newOrderRespType": "FULL" }
         //
         //     {
         //       "symbol": "BTCUSDT",
