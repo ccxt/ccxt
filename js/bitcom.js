@@ -15,15 +15,12 @@ module.exports = class bitcom extends Exchange {
             'countries': ['SG'],
             'version': 'v1',
             'rateLimit': 500,
+            'category': ['future', 'option'],
             'has': {
                 // CCXT interface
                 'CORS': true,
                 'fetchMarkets': true,
                 'fetchBalance': true,
-                // bit.com API
-                'getIndex': true, // GET /v1/index
-                'getMarketSummary': true, // GET /v1/market/summary
-                'getCurrencies': true, // GET /v1/currencies
                 // TODO: need to be implemented
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -87,18 +84,38 @@ module.exports = class bitcom extends Exchange {
                     'get': [
                         // account
                         'accounts',
+                        'positions',
+                        'transactions',
+                        'user/deliveries',
+                        'user/settlements',
+                        'account_configs/cod',
+                        'mmp_state',
+                        'reset_mmp',
+                        // order
+                        'orders',
+                        'open_orders',
+                        'stop_orders',
+                        'user/trades',
+                        'margins',
+                        // wallet
+                        'wallet/withdraw',
+                        'wallet/withdrawals',
+                        'wallet/deposits',
                     ],
                     'post': [
-                        'createTradeOrder',
+                        // account
+                        'account_configs/cod',
+                        'update_mmp_config',
+                        // order
+                        'orders',
+                        'batchorders',
+                        'cancel_orders',
+                        'amend_orders',
+                        'amend_batchorders',
+                        'close_positions',
+                        // wallet
+                        'wallet/withdraw',
                     ],
-                },
-            },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.005,
-                    'maker': 0.007,
                 },
             },
             'httpExceptions': {
@@ -398,7 +415,7 @@ module.exports = class bitcom extends Exchange {
             'info': [],
         };
         for (let i = 0; i < ccys.length; i++) {
-            const resp = await this.privateGetAccounts ({'currency': ccys[i]});
+            const resp = await this.privateGetAccounts ({ 'currency': ccys[i] });
             const accountResp = this.safeValue (resp, 'data', {});
             result['info'].push (accountResp);
             const currencyId = ccys[i];
@@ -410,6 +427,67 @@ module.exports = class bitcom extends Exchange {
             result[currencyCode] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchMarkets (params = {}) {
+        const ccysResp = await this.getCurrencies ();
+        const ccys = this.safeValue (ccysResp, 'currencies', []);
+        const result = [];
+        for (let i = 0; i < ccys.length; i++) {
+            const request = {
+                'currency': ccys[i],
+            };
+            for (let j = 0; j < this.category.length; j++) {
+                request['category'] = this.category[j];
+                const instrumentResp = await this.publicGetInstruments (this.extend (request, params));
+                const instruments = this.safeValue (instrumentResp, 'data', []);
+                for (let k = 0; k < instruments.length; k++) {
+                    const instrument = instruments[k];
+                    const id = this.safeString (instrument, 'instrument_id');
+                    const base = this.safeString (instrument, 'base_currency');
+                    const quote = this.safeString (instrument, 'quote_currency');
+                    const type = this.category[j];
+                    const future = (type === 'future');
+                    const option = (type === 'option');
+                    const active = this.safeString (instrument, 'active');
+                    const minSize = this.safeNumber (instrument, 'min_size');
+                    const stepSize = this.safeNumber (instrument, 'size_step');
+                    const precision = {
+                        'amount': minSize,
+                        'price': stepSize,
+                    };
+                    result.push ({
+                        'id': id,
+                        'symbol': id,
+                        'base': base,
+                        'quote': quote,
+                        'active': active,
+                        'precision': precision,
+                        'tierBased': true,
+                        'limits': {
+                            'amount': {
+                                'min': minSize,
+                                'max': undefined,
+                            },
+                            'price': {
+                                'min': stepSize,
+                                'max': undefined,
+                            },
+                            'cost': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                        'type': type,
+                        'spot': false,
+                        'future': future,
+                        'option': option,
+                        'info': instrument,
+                    });
+                }
+            }
+        }
+        return result;
     }
 
     nonce () {

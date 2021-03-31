@@ -23,32 +23,13 @@ function prettyJSONLog(str) {
 
     let params = {}
 
-    // get index
-    params = {
-        'currency': 'BTC',
-    }
-    const indexInfo = await exchange.getIndex (params)
-    prettyJSONLog (indexInfo)
-
-    // get market summary
-    params = {
-        'currency': 'BTC',
-        'category': 'future',
-        'instrument_id': 'BTC-PERPETUAL',
-    }
-    const marketSummary = await exchange.getMarketSummary (params)
-    prettyJSONLog (marketSummary)
-
-    // get currencies
-    const currencies = await exchange.getCurrencies ()
-    prettyJSONLog (currencies)
-
-    //get balance
-    params = {
-        'currency': 'BTC',
-    }
-    const balance = await exchange.fetchBalance (params)
+    // fetch balance
+    const balance = await exchange.fetchBalance ()
     prettyJSONLog (balance)
+
+    // fetch markets
+    const markets = await exchange.fetchMarkets ()
+    prettyJSONLog (markets)
 
 
     // //get ticker
