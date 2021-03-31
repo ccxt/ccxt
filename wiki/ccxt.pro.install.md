@@ -196,7 +196,7 @@ cd ccxt.pro
 npm run build
 
 # Step 4: Build the CCXT Pro PHP Composer package from the local repository
-composer install
+composer install --ignore-platform-reqs
 
 # Step 5: Add to your project's composer.json
 cd path/to/your/project
