@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NetworkError, AuthenticationError, ArgumentsRequired, PermissionDenied, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest } = require ('./base/errors');
+const { NetworkError, AuthenticationError, ArgumentsRequired, PermissionDenied, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -34,12 +34,12 @@ module.exports = class bitcom extends Exchange {
                 'fetchMyTrades': true,
                 'fetchTrades': true,
                 'fetchTransactions': false,
-                // TODO: need to be implemented
-                'cancelAllOrders': true,
-                'cancelOrder': true,
-                'createDepositAddress': true,
                 'createOrder': true,
                 'editOrder': true,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
+                // TODO: need to be implemented
+                'createDepositAddress': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
@@ -1154,6 +1154,169 @@ module.exports = class bitcom extends Exchange {
         });
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_id': market['id'],
+            'qty': this.amountToPrecision (symbol, amount),
+            'order_type': type, // limit/market/stop-limit/stop-market/
+            'side': side, // buy/sell
+        };
+        let priceIsRequired = false;
+        let stopPriceIsRequired = false;
+        if (type === 'limit') {
+            priceIsRequired = true;
+        } else if (type === 'stop-limit') {
+            priceIsRequired = true;
+            stopPriceIsRequired = true;
+        }
+        if (priceIsRequired) {
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            } else {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+            }
+        }
+        if (stopPriceIsRequired) {
+            const stopPrice = this.safeNumber (params, 'stop_price');
+            if (stopPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a stop_price param for a ' + type + ' order');
+            } else {
+                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+            }
+        }
+        const placeOrderResp = await this.privatePostOrders (this.extend (request, params));
+        // {
+        //     "code": 0,
+        //     "message": "",
+        //     "data": {
+        //         "order_id": "17552314",
+        //         "created_at": 1589523803017,
+        //         "updated_at": 1589523803017,
+        //         "user_id": "51140",
+        //         "instrument_id": "BTC-29MAY20-8000-C",
+        //         "order_type": "limit",
+        //         "side": "buy",
+        //         "price": "0.08000000",
+        //         "qty": "3.00000000",
+        //         "time_in_force": "gtc",
+        //         "avg_price": "0.00000000",
+        //         "filled_qty": "0.00000000",
+        //         "status": "open",
+        //         "is_liquidation": false,
+        //         "auto_price": "0.00000000",
+        //         "auto_price_type": "",
+        //         "taker_fee_rate": "0.00050000",
+        //         "maker_fee_rate": "0.00020000",
+        //         "label":"hedge",
+        //         "stop_price": "0.00000000",
+        //         "reduce_only": false,
+        //         "post_only": false,
+        //         "reject_post_only": false,
+        //         "mmp":false,
+        //         "source": "api",
+        //         "hidden": false
+        //     }
+        // }
+        const order = this.safeValue (placeOrderResp, 'data', {});
+        return this.parseOrder (order, market);
+    }
+
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        const currency = this.safeString (params, 'currency');
+        if (currency === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a currency parameter.');
+        }
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'order_id': id,
+        };
+        if (amount !== undefined) {
+            request['qty'] = this.amountToPrecision (symbol, amount);
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const amendResp = await this.privatePostAmendOrders (this.extend (request, params));
+        // {
+        //     "code": 0,
+        //     "message": "",
+        //     "data": {
+        //         "order_id": "1206764",
+        //         "created_at": 1590760363846,
+        //         "updated_at": 1590760363846,
+        //         "user_id": "51140",
+        //         "instrument_id": "BTC-PERPETUAL",
+        //         "order_type": "limit",
+        //         "side": "buy",
+        //         "price": "9450.00000000",
+        //         "qty": "260.00000000",
+        //         "time_in_force": "gtc",
+        //         "avg_price": "9435.67307692",
+        //         "filled_qty": "260.00000000",
+        //         "status": "filled",
+        //         "is_liquidation": false,
+        //         "auto_price": "0.00000000",
+        //         "auto_price_type": "",
+        //         "taker_fee_rate": "0.00050000",
+        //         "maker_fee_rate": "-0.00020000",
+        //         "label": "hedge",
+        //         "stop_price": "0.00000000",
+        //         "reduce_only": false,
+        //         "post_only": false,
+        //         "reject_post_only": false,
+        //         "mmp": false,
+        //         "source": "api",
+        //         "hidden": false,
+        //     }
+        // }
+        const code = this.safeNumber (amendResp, 'code');
+        if (code === 0) {
+            const order = this.safeValue (amendResp, 'data', {});
+            return this.parseOrder (order);
+        }
+        const errMsg = this.safeString (amendResp, 'message');
+        throw new InvalidOrder (this.id + ' editOrder() failed, err: ' + errMsg);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        const currency = this.safeString (params, 'currency');
+        if (currency === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a currency parameter.');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'order_id': id,
+        };
+        const cancelResp = await this.privatePostCancelOrders (this.extend (request, params));
+        // {
+        //     "code": 0,
+        //     "message": "",
+        //     "data": {
+        //         "num_cancelled": 1
+        //     }
+        // }
+        const code = this.safeNumber (cancelResp, 'code');
+        if (code === 0) {
+            return this.fetchOrder (id, symbol, params);
+        }
+        const errMsg = this.safeString (cancelResp, 'message');
+        throw new InvalidOrder (this.id + ' cancelOrder() failed, err: ' + errMsg);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        const ccysResp = await this.getCurrencies ();
+        const ccys = this.safeValue (ccysResp, 'currencies', []);
+        for (let i = 0; i < ccys.length; i++) {
+            const request = { 'currency': ccys[i] };
+            await this.privatePostCancelOrders (request);
+        }
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'open': 'open',
@@ -1191,7 +1354,7 @@ module.exports = class bitcom extends Exchange {
         let url = this.urls['api'][api] + pathEnding;
         if (api !== 'public') {
             this.checkRequiredCredentials ();
-            const timestamp = '' + this.nonce ();
+            const timestamp = this.milliseconds ();
             params['timestamp'] = timestamp;
             const strToSign = pathEnding + '&' + this.encodeObject (params);
             // this.print ('strToSign: ' + strToSign);
@@ -1208,9 +1371,12 @@ module.exports = class bitcom extends Exchange {
             const queryEncoded = this.urlencode (queryWithTimeAndSig);
             if (Object.keys (query).length) {
                 url += '?' + queryEncoded;
+                // this.print ('GET query url: ' + url);
             }
         } else if (method === 'POST') {
             body = this.json (queryWithTimeAndSig);
+            // this.print ('POST query url: ' + url);
+            // this.print ('POST request body: ' + JSON.stringify (body));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
