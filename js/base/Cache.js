@@ -72,6 +72,7 @@ class ArrayCacheByTimestamp extends ArrayCache {
             value: new Set (),
             writable: true,
         })
+        this.sizeTrackerBySymbol['all'] = new Set ()
     }
 
     append (item) {
@@ -90,12 +91,11 @@ class ArrayCacheByTimestamp extends ArrayCache {
             }
             this.push (item)
         }
+        this.sizeTrackerBySymbol[item.symbol] = (this.sizeTrackerBySymbol[item.symbol] || new Set ())
         if (this.clearUpdatesBySymbol[item.symbol]) {
-            this.sizeTrackerBySymbol[item.symbol] = (this.sizeTrackerBySymbol[item.symbol] || new Set ())
             this.sizeTrackerBySymbol[item.symbol].clear ()
         }
         if (this.clearUpdatesBySymbol['all']) {
-            this.sizeTrackerBySymbol['all'] = (this.sizeTrackerBySymbol['all'] || new Set ())
             this.sizeTrackerBySymbol['all'].clear ()
         }
         this.sizeTrackerBySymbol[item.symbol].add (item[0])
