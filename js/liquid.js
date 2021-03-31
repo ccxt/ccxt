@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection, NotSupported } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection, NotSupported, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -187,6 +187,7 @@ module.exports = class liquid extends Exchange {
                 'less_than_order_size': InvalidOrder,
                 'price_too_high': InvalidOrder,
                 'price_too_small': InvalidOrder, // {"errors":{"order":["price_too_small"]}}
+                'product_disabled': BadSymbol, // {"errors":{"order":["product_disabled"]}}
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
