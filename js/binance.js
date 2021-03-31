@@ -1768,7 +1768,7 @@ module.exports = class binance extends Exchange {
         //         "updateTime": 1499827319559
         //     }
         //
-        // market orders with { "newOrderRespType": "FULL" }
+        //  createOrder with { "newOrderRespType": "FULL" }
         //
         //     {
         //       "symbol": "BTCUSDT",
