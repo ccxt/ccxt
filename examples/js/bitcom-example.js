@@ -68,10 +68,31 @@ function prettyJSONLog(str) {
     const openOrders = await exchange.fetchOpenOrders (undefined, undefined, 10, params )
     prettyJSONLog (openOrders)
 
+    // fetch closed orders
+    params = {
+        'currency': 'BTC',
+    }
+    const closedOrders = await exchange.fetchClosedOrders (undefined, undefined, 10, params )
+    prettyJSONLog (closedOrders)
+
     // fetch open trades
     params = {
         'currency': 'BTC',
     }
-    const openTrades = await exchange.fetchOrderTrades ('17508028', undefined, 10, 100, params )
+    const openTrades = await exchange.fetchOrderTrades ('17508028', undefined, undefined, 100, params )
     prettyJSONLog (openTrades)
+
+    // fetch user trades
+    params = {
+        'currency': 'BTC',
+    }
+    const userTrades = await exchange.fetchMyTrades ( undefined, undefined, 100, params )
+    prettyJSONLog (userTrades)
+
+    // fetch market trades
+    params = {
+        'currency': 'BTC',
+    }
+    const marketTrades = await exchange.fetchTrades ( undefined, undefined, 100, params )
+    prettyJSONLog (marketTrades)
 })()
