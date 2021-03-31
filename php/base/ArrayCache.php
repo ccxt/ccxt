@@ -55,8 +55,8 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
             $this->clear_updates_by_symbol['all'] = false;
             $this->new_updates_by_symbol['all'] = 0;
         }
-        $this->new_updates_by_symbol = ($this->new_updates_by_symbol[$item['symbol']] ?? 0) + 1;
-        $this->new_updates_by_symbol = ($this->new_updates_by_symbol['all'] ?? 0) + 1;
+        $this->new_updates_by_symbol[$item['symbol']] = ($this->new_updates_by_symbol[$item['symbol']] ?? 0) + 1;
+        $this->new_updates_by_symbol['all'] = ($this->new_updates_by_symbol['all'] ?? 0) + 1;
     }
 
     public function count() {
