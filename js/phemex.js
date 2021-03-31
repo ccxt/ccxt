@@ -360,7 +360,7 @@ module.exports = class phemex extends Exchange {
         //     }
         //
         const id = this.safeString (market, 'symbol');
-        const baseId = this.safeString (market, 'baseCurrency', 'contractUnderlyingAssets');
+        const baseId = this.safeString2 (market, 'baseCurrency', 'contractUnderlyingAssets');
         const quoteId = this.safeString (market, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
