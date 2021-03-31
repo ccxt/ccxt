@@ -15,13 +15,16 @@ module.exports = class bitcom extends Exchange {
             'countries': ['SG'],
             'version': 'v1',
             'rateLimit': 500,
-            'category': ['future', 'option'],
             'has': {
                 // CCXT interface
                 'CORS': true,
+                'fetchStatus': true,
+                'fetchTime': true,
                 'fetchMarkets': true,
                 'fetchBalance': true,
                 'fetchOHLCV': true,
+                'fetchTicker': true,
+                'fetchTickers': false,
                 // TODO: need to be implemented
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -37,14 +40,13 @@ module.exports = class bitcom extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
-                'fetchStatus': true,
-                'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactions': false,
                 'fetchWithdrawals': true,
                 'withdraw': true,
+            },
+            'options': {
+                'category': ['future', 'option'],
             },
             'timeframes': {
                 '1m': '1',
@@ -422,6 +424,30 @@ module.exports = class bitcom extends Exchange {
         };
     }
 
+    async fetchTime (params = {}) {
+        const timeResp = await this.publicGetSystemTime (params);
+        // {
+        //   "code": 0,
+        //   "message": "",
+        //   "data": 1587884283175
+        // }
+        return this.safeInteger (timeResp, 'data');
+    }
+
+    async fetchStatus (params = {}) {
+        await this.publicGetSystemTime (params);
+        // {
+        //   "code": 0,
+        //   "message": "",
+        //   "data": 1587884283175
+        // }
+        this.status = this.extend (this.status, {
+            'status': 'ok',
+            'updated': this.milliseconds (),
+        });
+        return this.status;
+    }
+
     async fetchBalance (params = {}) {
         const ccysResp = await this.getCurrencies ();
         const ccys = this.safeValue (ccysResp, 'currencies', []);
@@ -451,8 +477,9 @@ module.exports = class bitcom extends Exchange {
             const request = {
                 'currency': ccys[i],
             };
-            for (let j = 0; j < this.category.length; j++) {
-                request['category'] = this.category[j];
+            const categories = this.options.category;
+            for (let j = 0; j < categories.length; j++) {
+                request['category'] = categories[j];
                 const instrumentResp = await this.publicGetInstruments (this.extend (request, params));
                 const instruments = this.safeValue (instrumentResp, 'data', []);
                 for (let k = 0; k < instruments.length; k++) {
@@ -460,7 +487,7 @@ module.exports = class bitcom extends Exchange {
                     const id = this.safeString (instrument, 'instrument_id');
                     const base = this.safeString (instrument, 'base_currency');
                     const quote = this.safeString (instrument, 'quote_currency');
-                    const type = this.category[j];
+                    const type = categories[j];
                     const future = (type === 'future');
                     const option = (type === 'option');
                     const active = this.safeString (instrument, 'active');
@@ -556,6 +583,80 @@ module.exports = class bitcom extends Exchange {
         const klines = this.safeValue (response, 'data', {});
         const ohlcvs = this.convertTradingViewToOHLCV (klines, 'timestamps', 'open', 'high', 'low', 'close', 'volume', true);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_id': market['id'],
+        };
+        const tickerResp = await this.publicGetTickers (this.extend (request, params));
+        // {
+        //     "code": 0,
+        //     "message": "",
+        //     "data":{
+        //         "time":1589126498813,
+        //         "instrument_id":"BTC-26JUN20-5000-C",
+        //         "best_bid":"0.50200000",
+        //         "best_ask":"0.50500000",
+        //         "best_bid_qty":"2.30000000",
+        //         "best_ask_qty":"0.80000000",
+        //         "ask_sigma":"2.22748567",
+        //         "bid_sigma":"2.18964114",
+        //         "last_price":"0.50500000",
+        //         "last_qty":"0.10000000",
+        //         "open24h":"0.50500000",
+        //         "high24h":"0.50500000",
+        //         "low24h":"0.50500000",
+        //         "price_change24h":"",
+        //         "volume24h":"0.10000000",
+        //         "open_interest":"289.50000000",
+        //         "underlying_name":"BTC-26JUN20",
+        //         "underlying_price":"8616.02000000",
+        //         "mark_price":"0.43989364",
+        //         "sigma":"1.29049244",
+        //         "delta":"0.92073799",
+        //         "vega":"4.54807454",
+        //         "theta":"-6.28858194",
+        //         "gamma":"0.00003713",
+        //         "min_sell":"0.38950000",
+        //         "max_buy":"0.49000000"
+        //     }
+        // }
+        const result = this.safeValue (tickerResp, 'data', {});
+        return this.parseTicker (result, market);
+    }
+
+
+    parseTicker (ticker, market = undefined) {
+        const timestamp = this.safeInteger (ticker, 'time');
+        const instrumentId = this.safeString (ticker, 'instrument_id');
+        const symbol = this.safeSymbol (instrumentId, market);
+        const last = this.safeNumber (ticker, 'last_price');
+        const stats = this.safeValue (ticker, 'stats', ticker);
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeNumber (stats, 'high24h'),
+            'low': this.safeNumber (stats, 'low24h'),
+            'bid': this.safeNumber (ticker, 'best_bid'),
+            'bidVolume': this.safeNumber (ticker, 'best_bid_qty'),
+            'ask': this.safeNumber (ticker, 'best_ask'),
+            'askVolume': this.safeNumber (ticker, 'best_ask_qty'),
+            'vwap': undefined,
+            'open': this.safeNumber (ticker, 'open24h'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
     }
 
     nonce () {

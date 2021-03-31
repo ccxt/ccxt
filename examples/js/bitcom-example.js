@@ -23,13 +23,13 @@ function prettyJSONLog(str) {
 
     let params = {}
 
-    // fetch balance
-    const balance = await exchange.fetchBalance ()
-    prettyJSONLog (balance)
+    // fetch time
+    const timestamp = await exchange.fetchTime ()
+    prettyJSONLog (timestamp)
 
-    // fetch markets
-    const markets = await exchange.fetchMarkets ()
-    prettyJSONLog (markets)
+    // fetch status
+    const status = await exchange.fetchStatus ()
+    prettyJSONLog (status)
 
     // fetch klines
     const symbol = 'BTC-PERPETUAL'
