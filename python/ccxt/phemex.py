@@ -374,7 +374,7 @@ class phemex(Exchange):
         #     }
         #
         id = self.safe_string(market, 'symbol')
-        baseId = self.safe_string(market, 'baseCurrency', 'contractUnderlyingAssets')
+        baseId = self.safe_string_2(market, 'baseCurrency', 'contractUnderlyingAssets')
         quoteId = self.safe_string(market, 'quoteCurrency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)

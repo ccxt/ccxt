@@ -364,7 +364,7 @@ class phemex extends Exchange {
         //     }
         //
         $id = $this->safe_string($market, 'symbol');
-        $baseId = $this->safe_string($market, 'baseCurrency', 'contractUnderlyingAssets');
+        $baseId = $this->safe_string_2($market, 'baseCurrency', 'contractUnderlyingAssets');
         $quoteId = $this->safe_string($market, 'quoteCurrency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
