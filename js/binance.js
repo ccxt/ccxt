@@ -544,7 +544,7 @@ module.exports = class binance extends Exchange {
                 'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
                 'newOrderRespType': {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-                    'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
+                    'limit': 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
                 'quoteOrderQty': true, // whether market orders support amounts in quote currency
                 'broker': {
@@ -1768,6 +1768,33 @@ module.exports = class binance extends Exchange {
         //         "updateTime": 1499827319559
         //     }
         //
+        // market orders with { result: "FULL" }
+        //
+        //     {
+        //       "symbol": "BTCUSDT",
+        //       "orderId": 5403233939,
+        //       "orderListId": -1,
+        //       "clientOrderId": "x-R4BD3S825e669e75b6c14f69a2c43e",
+        //       "transactTime": 1617151923742,
+        //       "price": "0.00000000",
+        //       "origQty": "0.00050000",
+        //       "executedQty": "0.00050000",
+        //       "cummulativeQuoteQty": "29.47081500",
+        //       "status": "FILLED",
+        //       "timeInForce": "GTC",
+        //       "type": "MARKET",
+        //       "side": "BUY",
+        //       "fills": [
+        //         {
+        //           "price": "58941.63000000",
+        //           "qty": "0.00050000",
+        //           "commission": "0.00007050",
+        //           "commissionAsset": "BNB",
+        //           "tradeId": 737466631
+        //         }
+        //       ]
+        //     }
+        //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -1777,80 +1804,26 @@ module.exports = class binance extends Exchange {
         } else if ('transactTime' in order) {
             timestamp = this.safeInteger (order, 'transactTime');
         }
-        let price = this.safeNumber (order, 'price');
+        const price = this.safeNumber (order, 'price');
         const amount = this.safeNumber (order, 'origQty');
         const filled = this.safeNumber (order, 'executedQty');
-        let remaining = undefined;
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
-        let cost = this.safeNumber2 (order, 'cummulativeQuoteQty', 'cumQuote');
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
-                if (this.options['parseOrderToPrecision']) {
-                    remaining = parseFloat (this.amountToPrecision (symbol, remaining));
-                }
-                remaining = Math.max (remaining, 0.0);
-            }
-            if (price !== undefined) {
-                if (cost === undefined) {
-                    cost = price * filled;
-                }
-            }
-        }
+        const cost = this.safeNumber2 (order, 'cummulativeQuoteQty', 'cumQuote');
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
-        if (type === 'market') {
-            if (price === 0.0) {
-                if ((cost !== undefined) && (filled !== undefined)) {
-                    if ((cost > 0) && (filled > 0)) {
-                        price = cost / filled;
-                        if (this.options['parseOrderToPrecision']) {
-                            price = parseFloat (this.priceToPrecision (symbol, price));
-                        }
-                    }
-                }
-            }
-        } else if (type === 'limit_maker') {
+        if (type === 'limit_maker') {
             type = 'limit';
         }
         const side = this.safeStringLower (order, 'side');
-        let fee = undefined;
-        let trades = undefined;
-        const fills = this.safeValue (order, 'fills');
-        if (fills !== undefined) {
-            trades = this.parseTrades (fills, market);
-            const numTrades = trades.length;
-            if (numTrades > 0) {
-                cost = trades[0]['cost'];
-                fee = {
-                    'cost': trades[0]['fee']['cost'],
-                    'currency': trades[0]['fee']['currency'],
-                };
-                for (let i = 1; i < trades.length; i++) {
-                    cost = this.sum (cost, trades[i]['cost']);
-                    fee['cost'] = this.sum (fee['cost'], trades[i]['fee']['cost']);
-                }
-            }
-        }
-        let average = undefined;
-        if (cost !== undefined) {
-            if (filled) {
-                average = cost / filled;
-                if (this.options['parseOrderToPrecision']) {
-                    average = parseFloat (this.priceToPrecision (symbol, average));
-                }
-            }
-            if (this.options['parseOrderToPrecision']) {
-                cost = parseFloat (this.costToPrecision (symbol, cost));
-            }
-        }
+        const fills = this.safeValue (order, 'fills', []);
+        const trades = this.parseTrades (fills, market);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1866,13 +1839,13 @@ module.exports = class binance extends Exchange {
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': undefined,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
-            'fee': fee,
+            'fee': undefined,
             'trades': trades,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
