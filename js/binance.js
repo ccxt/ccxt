@@ -1892,8 +1892,11 @@ module.exports = class binance extends Exchange {
         } else {
             request['newClientOrderId'] = clientOrderId;
         }
-        if (market['spot']) {
+        if ((orderType === 'spot') || (orderType === 'margin')) {
             request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        } else {
+            // delivery and future
+            request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
         }
         // additional required fields depending on the order type
         let timeInForceIsRequired = false;
