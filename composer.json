@@ -24,6 +24,8 @@
     "require": {
         "php": ">=5.4.0",
         "ccxt/ccxt": ">=1.45.72",
+        "react/http": "^1.2.0",
+        "recoil/react": "1.0.2",
         "ratchet/pawl": "^0.3.4",
         "ext-ds": "*",
         "ext-json": "*"
