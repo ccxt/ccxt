@@ -126,7 +126,7 @@ class huobipro(Exchange, ccxt.huobipro):
         }
         trades = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
         if self.newUpdates:
-            limit = trades.getLimit(limit)
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client, message):
@@ -190,7 +190,7 @@ class huobipro(Exchange, ccxt.huobipro):
         }
         ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
         if self.newUpdates:
-            limit = ohlcv.getLimit(limit)
+            limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):

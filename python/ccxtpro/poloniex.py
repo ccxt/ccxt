@@ -231,7 +231,7 @@ class poloniex(Exchange, ccxt.poloniex):
         }
         trades = await self.watch(url, messageHash, subscribe, numericId)
         if self.newUpdates:
-            limit = trades.getLimit(limit)
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):

@@ -119,7 +119,7 @@ class ftx extends \ccxt\async\ftx {
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $trades = yield $this->watch_public($symbol, 'trades');
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($limit);
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
@@ -405,7 +405,7 @@ class ftx extends \ccxt\async\ftx {
         yield $this->load_markets();
         $orders = yield $this->watch_private('orders', $symbol);
         if ($this->newUpdates) {
-            $limit = $orders->getLimit ($limit);
+            $limit = $orders->getLimit ($symbol, $limit);
         }
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
@@ -481,7 +481,7 @@ class ftx extends \ccxt\async\ftx {
         yield $this->load_markets();
         $trades = yield $this->watch_private('fills', $symbol);
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($limit);
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }

@@ -257,7 +257,7 @@ class phemex(Exchange, ccxt.phemex):
         request = self.deep_extend(subscribe, params)
         trades = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
-            limit = trades.getLimit(limit)
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
@@ -298,7 +298,7 @@ class phemex(Exchange, ccxt.phemex):
         request = self.deep_extend(subscribe, params)
         ohlcv = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
-            limit = ohlcv.getLimit(limit)
+            limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_delta(self, bookside, delta, market=None):

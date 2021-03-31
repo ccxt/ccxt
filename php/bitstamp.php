@@ -203,7 +203,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $message = array_merge($request, $params);
         $trades = yield $this->watch($url, $messageHash, $message, $messageHash, $subscription);
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($limit);
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }

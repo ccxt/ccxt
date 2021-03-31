@@ -219,7 +219,7 @@ class bittrex extends \ccxt\async\bittrex {
         $authentication = yield $this->authenticate();
         $orders = yield $this->subscribe_to_orders($authentication, $params);
         if ($this->newUpdates) {
-            $limit = $orders->getLimit ($limit);
+            $limit = $orders->getLimit ($symbol, $limit);
         }
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
@@ -377,7 +377,7 @@ class bittrex extends \ccxt\async\bittrex {
         $negotiation = yield $this->negotiate();
         $ohlcv = yield $this->subscribe_to_ohlcv($negotiation, $symbol, $timeframe, $params);
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($limit);
+            $limit = $ohlcv->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
@@ -438,7 +438,7 @@ class bittrex extends \ccxt\async\bittrex {
         $negotiation = yield $this->negotiate();
         $trades = yield $this->subscribe_to_trades($negotiation, $symbol, $params);
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($limit);
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }

@@ -214,7 +214,7 @@ class gopax(Exchange, ccxt.gopax):
         message = self.extend(request, params)
         orders = await self.watch(url, messageHash, message, subscriptionHash, subscription)
         if self.newUpdates:
-            limit = orders.getLimit(limit)
+            limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def parse_ws_order_status(self, status):
@@ -442,7 +442,7 @@ class gopax(Exchange, ccxt.gopax):
         message = self.extend(request, params)
         trades = await self.watch(url, messageHash, message, subscriptionHash, subscription)
         if self.newUpdates:
-            limit = trades.getLimit(limit)
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_my_trades(self, client, message):

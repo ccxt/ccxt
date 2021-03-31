@@ -183,7 +183,7 @@ class hitbtc(Exchange, ccxt.hitbtc):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         trades = await self.watch_public(symbol, 'trades', None, params)
         if self.newUpdates:
-            limit = trades.getLimit(limit)
+            limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client, message):
@@ -247,7 +247,7 @@ class hitbtc(Exchange, ccxt.hitbtc):
         requestParams = self.deep_extend(request, params)
         ohlcv = await self.watch_public(symbol, 'ohlcv', period, requestParams)
         if self.newUpdates:
-            limit = ohlcv.getLimit(limit)
+            limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):

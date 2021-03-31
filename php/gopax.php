@@ -221,7 +221,7 @@ class gopax extends \ccxt\async\gopax {
         $message = array_merge($request, $params);
         $orders = yield $this->watch($url, $messageHash, $message, $subscriptionHash, $subscription);
         if ($this->newUpdates) {
-            $limit = $orders->getLimit ($limit);
+            $limit = $orders->getLimit ($symbol, $limit);
         }
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
@@ -468,7 +468,7 @@ class gopax extends \ccxt\async\gopax {
         $message = array_merge($request, $params);
         $trades = yield $this->watch($url, $messageHash, $message, $subscriptionHash, $subscription);
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($limit);
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }

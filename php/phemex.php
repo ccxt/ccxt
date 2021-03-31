@@ -272,7 +272,7 @@ class phemex extends \ccxt\async\phemex {
         $request = $this->deep_extend($subscribe, $params);
         $trades = yield $this->watch($url, $messageHash, $request, $messageHash);
         if ($this->newUpdates) {
-            $limit = $trades->getLimit ($limit);
+            $limit = $trades->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
@@ -316,7 +316,7 @@ class phemex extends \ccxt\async\phemex {
         $request = $this->deep_extend($subscribe, $params);
         $ohlcv = yield $this->watch($url, $messageHash, $request, $messageHash);
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit ($limit);
+            $limit = $ohlcv->getLimit ($symbol, $limit);
         }
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
