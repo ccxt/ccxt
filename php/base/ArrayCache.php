@@ -7,8 +7,8 @@ use \Ds\Deque;
 class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \Countable {
     public $max_size;
     public $deque;
-    public $new_updates;
-    public $clear_updates;
+    public $new_updates_by_symbol;
+    public $clear_updates_by_symbol;
 
     public function __construct($max_size = null) {
         $this->max_size = $max_size;
@@ -16,8 +16,8 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
         // https://www.php.net/manual/en/class.ds-deque.php
         // would inherit directly but it is marked as final
         $this->deque = new Deque();
-        $this->new_updates = 0;
-        $this->clear_updates = false;
+        $this->new_updates_by_symbol = array();
+        $this->clear_updates_by_symbol = array();
     }
 
     public function getIterator() {
@@ -28,12 +28,18 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
         return $this->deque;
     }
 
-    public function getLimit($limit) {
-        $this->clear_updates = true;
-        if ($limit === null) {
-            return $this->new_updates;
+    public function getLimit($symbol, $limit) {
+        if ($symbol === null) {
+            $symbol = 'all';
         }
-        return min($this->new_updates, $limit);
+        $this->clear_updates_by_symbol[$symbol] = true;
+        if ($limit === null) {
+            return $this->new_updates_by_symbol[$symbol] ?? null;
+        } else if ($this->new_updates_by_symbol[$symbol] ?? false) {
+            return $limit;
+        } else {
+            return min($this->new_updates_by_symbol[$symbol], $limit);
+        }
     }
 
     public function append($item) {
@@ -41,11 +47,16 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
             $this->deque->shift();
         }
         $this->deque->push($item);
-        if ($this->clear_updates) {
-            $this->clear_updates = false;
-            $this->new_updates = 0;
+        if ($this->clear_updates_by_symbol[$item['symbol']] ?? false) {
+            $this->clear_updates_by_symbol[$item['symbol']] = false;
+            $this->new_updates_by_symbol[$item['symbol']] = 0;
         }
-        $this->new_updates++;
+        if ($this->clear_updates_by_symbol['all'] ?? false) {
+            $this->clear_updates_by_symbol['all'] = false;
+            $this->new_updates_by_symbol['all'] = 0;
+        }
+        $this->new_updates_by_symbol = ($this->new_updates_by_symbol[$item['symbol']] ?? 0) + 1;
+        $this->new_updates_by_symbol = ($this->new_updates_by_symbol['all'] ?? 0) + 1;
     }
 
     public function count() {

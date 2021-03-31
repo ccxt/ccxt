@@ -67,12 +67,29 @@ class ArrayCacheByTimestamp extends ArrayCache {
             value: {},
             writable: true,
         })
-        Object.defineProperty (this, 'sizeTrackerBySymbol', {
+        Object.defineProperty (this, 'sizeTracker', {
             __proto__: null, // make it invisible
             value: new Set (),
             writable: true,
         })
-        this.sizeTrackerBySymbol['all'] = new Set ()
+        Object.defineProperty (this, 'newUpdates', {
+            __proto__: null, // make it invisible
+            value: 0,
+            writable: true,
+        })
+        Object.defineProperty (this, 'clearUpdates', {
+            __proto__: null, // make it invisible
+            value: false,
+            writable: true,
+        })
+    }
+
+    getLimit (symbol, limit) {
+        this.clearUpdates = true
+        if (limit === undefined) {
+            return this.newUpdates
+        }
+        return Math.min (this.newUpdates, limit)
     }
 
     append (item) {
@@ -91,24 +108,24 @@ class ArrayCacheByTimestamp extends ArrayCache {
             }
             this.push (item)
         }
-        this.sizeTrackerBySymbol[item.symbol] = (this.sizeTrackerBySymbol[item.symbol] || new Set ())
-        if (this.clearUpdatesBySymbol[item.symbol]) {
-            this.sizeTrackerBySymbol[item.symbol].clear ()
+        if (this.clearUpdates) {
+            this.clearUpdates = false
+            this.sizeTracker.clear ()
         }
-        if (this.clearUpdatesBySymbol['all']) {
-            this.sizeTrackerBySymbol['all'].clear ()
-        }
-        this.sizeTrackerBySymbol[item.symbol].add (item[0])
-        this.sizeTrackerBySymbol['all'].add (item[0])
-        this.newUpdatesBySymbol[item.symbol] = this.sizeTrackerBySymbol[item.symbol].size
-        this.newUpdatesBySymbol['all'] = this.sizeTrackerBySymbol[item.symbol].size
+        this.sizeTracker.add (item[0])
+        this.newUpdates = this.sizeTracker.size
     }
 }
 
-class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
+class ArrayCacheBySymbolById extends ArrayCache {
 
     constructor (maxSize = undefined) {
         super (maxSize)
+        Object.defineProperty (this, 'hashmap', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+        })
     }
 
     append (item) {

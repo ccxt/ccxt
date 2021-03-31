@@ -28,24 +28,33 @@ class ArrayCache(list):
         super(list, self).__init__()
         self.max_size = max_size
         self._deque = collections.deque([], max_size)
-        self._new_updates = 0
-        self._clear_updates = False
+        self._new_updates_by_symbol = {}
+        self._clear_updates_by_symbol = {}
 
     def __eq__(self, other):
         return list(self) == other
 
-    def getLimit(self, limit):
-        self._clear_updates = True
+    def getLimit(self, symbol, limit):
+        if symbol is None:
+            symbol = 'all'
+        self._clear_updates_by_symbol[symbol] = True
         if limit is None:
-            return self._new_updates
-        return min(self._new_updates, limit)
+            return self._new_updates_by_symbol.get(symbol)
+        elif self._new_updates_by_symbol.get(symbol) is None:
+            return limit
+        else:
+            return min(self._new_updates_by_symbol[symbol], limit)
 
     def append(self, item):
         self._deque.append(item)
-        if self._clear_updates:
-            self._clear_updates = True
-            self._new_updates = 0
-        self._new_updates += 1
+        if self._clear_updates_by_symbol.get(item['symbol']):
+            self._clear_updates_by_symbol[item['symbol']] = False
+            self._new_updates_by_symbol[item['symbol']] = 0
+        if self._clear_updates_by_symbol.get('all'):
+            self._clear_updates_by_symbol['all'] = False
+            self._new_updates_by_symbol['all'] = 0
+        self._new_updates_by_symbol[item['symbol']] = self._new_updates_by_symbol.get(item['symbol'], 0) + 1
+        self._new_updates_by_symbol['all'] = self._new_updates_by_symbol.get('all', 0) + 1
 
     def __repr__(self):
         return str(list(self))
@@ -68,6 +77,14 @@ class ArrayCacheByTimestamp(ArrayCache):
         super(ArrayCacheByTimestamp, self).__init__(max_size)
         self.hashmap = {}
         self._size_tracker = set()
+        self._new_updates = 0
+        self._clear_updates = False
+
+    def getLimit(self, symbol, limit):
+        self._clear_updates = True
+        if limit is None:
+            return self._new_updates
+        return min(self._new_updates, limit)
 
     def append(self, item):
         if item[0] in self.hashmap:
@@ -87,9 +104,10 @@ class ArrayCacheByTimestamp(ArrayCache):
         self._new_updates = len(self._size_tracker)
 
 
-class ArrayCacheBySymbolById(ArrayCacheByTimestamp):
+class ArrayCacheBySymbolById(ArrayCache):
     def __init__(self, max_size=None):
         super(ArrayCacheBySymbolById, self).__init__(max_size)
+        self.hashmap = {}
         self._index = collections.deque([], max_size)
 
     def append(self, item):
@@ -110,7 +128,11 @@ class ArrayCacheBySymbolById(ArrayCacheByTimestamp):
             del self.hashmap[delete_item['symbol']][delete_item['id']]
         self._deque.append(item)
         self._index.append(item['id'])
-        if self._clear_updates:
-            self._clear_updates = False
-            self._new_updates = 0
-        self._new_updates += 1
+        if self._clear_updates_by_symbol.get(item['symbol']):
+            self._clear_updates_by_symbol[item['symbol']] = False
+            self._new_updates_by_symbol[item['symbol']] = 0
+        if self._clear_updates_by_symbol.get('all'):
+            self._clear_updates_by_symbol['all'] = False
+            self._new_updates_by_symbol['all'] = 0
+        self._new_updates_by_symbol[item['symbol']] = self._new_updates_by_symbol.get(item['symbol'], 0) + 1
+        self._new_updates_by_symbol['all'] = self._new_updates_by_symbol.get('all', 0) + 1

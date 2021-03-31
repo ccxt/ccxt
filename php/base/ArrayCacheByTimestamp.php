@@ -7,11 +7,23 @@ use \Ds\Set;
 class ArrayCacheByTimestamp extends ArrayCache {
     public $hashmap;
     private $size_tracker;
+    public $new_updates;
+    public $clear_updates;
 
     public function __construct($max_size = null) {
         parent::__construct($max_size);
         $this->hashmap = array();
         $this->size_tracker = new Set();
+        $this->new_updates = 0;
+        $this->clear_updates = false;
+    }
+
+    public function getLimit($symbol, $limit) {
+        $this->clear_updates = true;
+        if ($limit === null) {
+            return $this->new_updates;
+        }
+        return min($this->new_updates, $limit);
     }
 
     public function append($item) {
