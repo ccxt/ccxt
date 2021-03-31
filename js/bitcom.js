@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NetworkError, AuthenticationError, PermissionDenied, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest } = require ('./base/errors');
+const { NetworkError, AuthenticationError, ArgumentsRequired, PermissionDenied, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -21,6 +21,7 @@ module.exports = class bitcom extends Exchange {
                 'CORS': true,
                 'fetchMarkets': true,
                 'fetchBalance': true,
+                'fetchOHLCV': true,
                 // TODO: need to be implemented
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -31,7 +32,6 @@ module.exports = class bitcom extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -45,6 +45,20 @@ module.exports = class bitcom extends Exchange {
                 'fetchTransactions': false,
                 'fetchWithdrawals': true,
                 'withdraw': true,
+            },
+            'timeframes': {
+                '1m': '1',
+                '3m': '3',
+                '5m': '5',
+                '10m': '10',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '3h': '180',
+                '6h': '360',
+                '12h': '720',
+                '1d': '1440',
             },
             'urls': {
                 'logo': 'https://144321d373cade4e83.matrixtechfin.com:1443/imgs/logo-1617071258366.png',
@@ -488,6 +502,60 @@ module.exports = class bitcom extends Exchange {
             }
         }
         return result;
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_id': market['id'],
+            'timeframe_min': this.timeframes[timeframe],
+        };
+        const duration = this.parseTimeframe (timeframe);
+        const now = this.milliseconds ();
+        if (since === undefined) {
+            if (limit === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
+            } else {
+                request['start_time'] = now - (limit - 1) * duration * 1000;
+                request['end_time'] = now;
+            }
+        } else {
+            request['start_time'] = since;
+            if (limit === undefined) {
+                request['end_time'] = now;
+            } else {
+                request['end_time'] = this.sum (since, limit * duration * 1000);
+            }
+        }
+        const response = await this.publicGetKlines (this.extend (request, params));
+        // {
+        //     "code": 0,
+        //     "message": "",
+        //     "data": {
+        //         "close": [
+        //             0.023
+        //         ],
+        //         "high": [
+        //             0.031
+        //         ],
+        //         "low": [
+        //             0.022
+        //         ],
+        //         "open": [
+        //             0.028
+        //         ],
+        //         "timestamps": [
+        //             1585296000000
+        //         ],
+        //         "volume": [
+        //             31.2
+        //         ]
+        //     }
+        // }
+        const klines = this.safeValue (response, 'data', {});
+        const ohlcvs = this.convertTradingViewToOHLCV (klines, 'timestamps', 'open', 'high', 'low', 'close', 'volume', true);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     nonce () {
