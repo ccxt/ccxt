@@ -63,7 +63,7 @@ module.exports = class okex extends ccxt.okex {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.subscribe ('trade', symbol, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (limit);
+            limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -148,7 +148,7 @@ module.exports = class okex extends ccxt.okex {
         const name = 'candle' + interval + 's';
         const ohlcv = await this.subscribe (name, symbol, params);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (limit);
+            limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }

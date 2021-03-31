@@ -194,7 +194,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchPublic (symbol, 'trades', undefined, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (limit);
+            limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -264,7 +264,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
         const requestParams = this.deepExtend (request, params);
         const ohlcv = await this.watchPublic (symbol, 'ohlcv', period, requestParams);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (limit);
+            limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }

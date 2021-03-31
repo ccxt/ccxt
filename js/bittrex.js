@@ -215,7 +215,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const authentication = await this.authenticate ();
         const orders = await this.subscribeToOrders (authentication, params);
         if (this.newUpdates) {
-            limit = orders.getLimit (limit);
+            limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
@@ -373,7 +373,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const negotiation = await this.negotiate ();
         const ohlcv = await this.subscribeToOHLCV (negotiation, symbol, timeframe, params);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (limit);
+            limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
@@ -434,7 +434,7 @@ module.exports = class bittrex extends ccxt.bittrex {
         const negotiation = await this.negotiate ();
         const trades = await this.subscribeToTrades (negotiation, symbol, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (limit);
+            limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }

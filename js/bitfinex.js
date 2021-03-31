@@ -57,7 +57,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.subscribe ('trades', symbol, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (limit);
+            limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -443,7 +443,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         const url = this.urls['api']['ws']['private'];
         const orders = await this.watch (url, 'os', undefined, 1);
         if (this.newUpdates) {
-            limit = orders.getLimit (limit);
+            limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
