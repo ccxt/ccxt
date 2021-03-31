@@ -563,7 +563,7 @@ class binance(Exchange):
                 'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
                 'newOrderRespType': {
                     'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-                    'limit': 'RESULT',  # we change it from 'ACK' by default to 'RESULT'
+                    'limit': 'FULL',  # we change it from 'ACK' by default to 'FULL'(returns immediately if limit is not hit)
                 },
                 'quoteOrderQty': True,  # whether market orders support amounts in quote currency
                 'broker': {
@@ -1683,7 +1683,7 @@ class binance(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        #  spot
+        # spot
         #
         #     {
         #         "symbol": "LTCBTC",
@@ -1704,7 +1704,7 @@ class binance(Exchange):
         #         "isWorking": True
         #     }
         #
-        #  futures
+        # futures
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -1722,6 +1722,33 @@ class binance(Exchange):
         #         "updateTime": 1499827319559
         #     }
         #
+        # createOrder with {"newOrderRespType": "FULL"}
+        #
+        #     {
+        #       "symbol": "BTCUSDT",
+        #       "orderId": 5403233939,
+        #       "orderListId": -1,
+        #       "clientOrderId": "x-R4BD3S825e669e75b6c14f69a2c43e",
+        #       "transactTime": 1617151923742,
+        #       "price": "0.00000000",
+        #       "origQty": "0.00050000",
+        #       "executedQty": "0.00050000",
+        #       "cummulativeQuoteQty": "29.47081500",
+        #       "status": "FILLED",
+        #       "timeInForce": "GTC",
+        #       "type": "MARKET",
+        #       "side": "BUY",
+        #       "fills": [
+        #         {
+        #           "price": "58941.63000000",
+        #           "qty": "0.00050000",
+        #           "commission": "0.00007050",
+        #           "commissionAsset": "BNB",
+        #           "tradeId": 737466631
+        #         }
+        #       ]
+        #     }
+        #
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -1733,60 +1760,22 @@ class binance(Exchange):
         price = self.safe_number(order, 'price')
         amount = self.safe_number(order, 'origQty')
         filled = self.safe_number(order, 'executedQty')
-        remaining = None
         # - Spot/Margin market: cummulativeQuoteQty
         # - Futures market: cumQuote.
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
         cost = self.safe_number_2(order, 'cummulativeQuoteQty', 'cumQuote')
-        if filled is not None:
-            if amount is not None:
-                remaining = amount - filled
-                if self.options['parseOrderToPrecision']:
-                    remaining = float(self.amount_to_precision(symbol, remaining))
-                remaining = max(remaining, 0.0)
-            if price is not None:
-                if cost is None:
-                    cost = price * filled
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
-        if type == 'market':
-            if price == 0.0:
-                if (cost is not None) and (filled is not None):
-                    if (cost > 0) and (filled > 0):
-                        price = cost / filled
-                        if self.options['parseOrderToPrecision']:
-                            price = float(self.price_to_precision(symbol, price))
-        elif type == 'limit_maker':
+        if type == 'limit_maker':
             type = 'limit'
         side = self.safe_string_lower(order, 'side')
-        fee = None
-        trades = None
-        fills = self.safe_value(order, 'fills')
-        if fills is not None:
-            trades = self.parse_trades(fills, market)
-            numTrades = len(trades)
-            if numTrades > 0:
-                cost = trades[0]['cost']
-                fee = {
-                    'cost': trades[0]['fee']['cost'],
-                    'currency': trades[0]['fee']['currency'],
-                }
-                for i in range(1, len(trades)):
-                    cost = self.sum(cost, trades[i]['cost'])
-                    fee['cost'] = self.sum(fee['cost'], trades[i]['fee']['cost'])
-        average = None
-        if cost is not None:
-            if filled:
-                average = cost / filled
-                if self.options['parseOrderToPrecision']:
-                    average = float(self.price_to_precision(symbol, average))
-            if self.options['parseOrderToPrecision']:
-                cost = float(self.cost_to_precision(symbol, cost))
+        fills = self.safe_value(order, 'fills', [])
+        trades = self.parse_trades(fills, market)
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX')
         stopPrice = self.safe_number(order, 'stopPrice')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1802,13 +1791,13 @@ class binance(Exchange):
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': None,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
-            'fee': fee,
+            'fee': None,
             'trades': trades,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -1847,8 +1836,11 @@ class binance(Exchange):
                     request['newClientOrderId'] = brokerId + self.uuid22()
         else:
             request['newClientOrderId'] = clientOrderId
-        if market['spot']:
+        if (orderType == 'spot') or (orderType == 'margin'):
             request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        else:
+            # delivery and future
+            request['newOrderRespType'] = 'RESULT'  # "ACK", "RESULT", default "ACK"
         # additional required fields depending on the order type
         timeInForceIsRequired = False
         priceIsRequired = False

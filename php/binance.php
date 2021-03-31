@@ -550,7 +550,7 @@ class binance extends Exchange {
                 'parseOrderToPrecision' => false, // force amounts and costs in parseOrder to precision
                 'newOrderRespType' => array(
                     'market' => 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-                    'limit' => 'RESULT', // we change it from 'ACK' by default to 'RESULT'
+                    'limit' => 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 ),
                 'quoteOrderQty' => true, // whether market orders support amounts in quote currency
                 'broker' => array(
@@ -1735,7 +1735,7 @@ class binance extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        //  spot
+        // spot
         //
         //     {
         //         "$symbol" => "LTCBTC",
@@ -1756,7 +1756,7 @@ class binance extends Exchange {
         //         "isWorking" => true
         //     }
         //
-        //  futures
+        // futures
         //
         //     {
         //         "$symbol" => "BTCUSDT",
@@ -1774,6 +1774,33 @@ class binance extends Exchange {
         //         "updateTime" => 1499827319559
         //     }
         //
+        // createOrder with array( "newOrderRespType" => "FULL" )
+        //
+        //     {
+        //       "$symbol" => "BTCUSDT",
+        //       "orderId" => 5403233939,
+        //       "orderListId" => -1,
+        //       "$clientOrderId" => "x-R4BD3S825e669e75b6c14f69a2c43e",
+        //       "transactTime" => 1617151923742,
+        //       "$price" => "0.00000000",
+        //       "origQty" => "0.00050000",
+        //       "executedQty" => "0.00050000",
+        //       "cummulativeQuoteQty" => "29.47081500",
+        //       "$status" => "FILLED",
+        //       "$timeInForce" => "GTC",
+        //       "$type" => "MARKET",
+        //       "$side" => "BUY",
+        //       "$fills" => array(
+        //         {
+        //           "$price" => "58941.63000000",
+        //           "qty" => "0.00050000",
+        //           "commission" => "0.00007050",
+        //           "commissionAsset" => "BNB",
+        //           "tradeId" => 737466631
+        //         }
+        //       )
+        //     }
+        //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1786,77 +1813,23 @@ class binance extends Exchange {
         $price = $this->safe_number($order, 'price');
         $amount = $this->safe_number($order, 'origQty');
         $filled = $this->safe_number($order, 'executedQty');
-        $remaining = null;
         // - Spot/Margin $market => cummulativeQuoteQty
         // - Futures $market => cumQuote.
         //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
         $cost = $this->safe_number_2($order, 'cummulativeQuoteQty', 'cumQuote');
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-                if ($this->options['parseOrderToPrecision']) {
-                    $remaining = floatval($this->amount_to_precision($symbol, $remaining));
-                }
-                $remaining = max ($remaining, 0.0);
-            }
-            if ($price !== null) {
-                if ($cost === null) {
-                    $cost = $price * $filled;
-                }
-            }
-        }
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
-        if ($type === 'market') {
-            if ($price === 0.0) {
-                if (($cost !== null) && ($filled !== null)) {
-                    if (($cost > 0) && ($filled > 0)) {
-                        $price = $cost / $filled;
-                        if ($this->options['parseOrderToPrecision']) {
-                            $price = floatval($this->price_to_precision($symbol, $price));
-                        }
-                    }
-                }
-            }
-        } else if ($type === 'limit_maker') {
+        if ($type === 'limit_maker') {
             $type = 'limit';
         }
         $side = $this->safe_string_lower($order, 'side');
-        $fee = null;
-        $trades = null;
-        $fills = $this->safe_value($order, 'fills');
-        if ($fills !== null) {
-            $trades = $this->parse_trades($fills, $market);
-            $numTrades = is_array($trades) ? count($trades) : 0;
-            if ($numTrades > 0) {
-                $cost = $trades[0]['cost'];
-                $fee = array(
-                    'cost' => $trades[0]['fee']['cost'],
-                    'currency' => $trades[0]['fee']['currency'],
-                );
-                for ($i = 1; $i < count($trades); $i++) {
-                    $cost = $this->sum($cost, $trades[$i]['cost']);
-                    $fee['cost'] = $this->sum($fee['cost'], $trades[$i]['fee']['cost']);
-                }
-            }
-        }
-        $average = null;
-        if ($cost !== null) {
-            if ($filled) {
-                $average = $cost / $filled;
-                if ($this->options['parseOrderToPrecision']) {
-                    $average = floatval($this->price_to_precision($symbol, $average));
-                }
-            }
-            if ($this->options['parseOrderToPrecision']) {
-                $cost = floatval($this->cost_to_precision($symbol, $cost));
-            }
-        }
+        $fills = $this->safe_value($order, 'fills', array());
+        $trades = $this->parse_trades($fills, $market);
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'GTX');
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1872,13 +1845,13 @@ class binance extends Exchange {
             'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => $average,
+            'average' => null,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
-            'fee' => $fee,
+            'fee' => null,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1925,8 +1898,11 @@ class binance extends Exchange {
         } else {
             $request['newClientOrderId'] = $clientOrderId;
         }
-        if ($market['spot']) {
+        if (($orderType === 'spot') || ($orderType === 'margin')) {
             $request['newOrderRespType'] = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        } else {
+            // delivery and future
+            $request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
         }
         // additional required fields depending on the order $type
         $timeInForceIsRequired = false;
