@@ -4,11 +4,13 @@ namespace ccxtpro;
 
 use Ds\Deque;
 
-class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
+class ArrayCacheBySymbolById extends ArrayCache {
+    public $hashmap;
     private $index;
 
     public function __construct($max_size = null) {
         parent::__construct($max_size);
+        $this->hashmap = array();
         $this->index = new Deque();
     }
 
@@ -39,10 +41,15 @@ class ArrayCacheBySymbolById extends ArrayCacheByTimestamp {
         $this->deque->push(null);
         $this->deque[$this->deque->count() - 1] = &$item;
         $this->index->push($item['id']);
-        if ($this->clear_updates) {
-            $this->clear_updates = false;
-            $this->new_updates = 0;
+        if ($this->clear_updates_by_symbol[$item['symbol']] ?? false) {
+            $this->clear_updates_by_symbol[$item['symbol']] = false;
+            $this->new_updates_by_symbol[$item['symbol']] = 0;
         }
-        $this->new_updates++;
+        if ($this->clear_updates_by_symbol['all'] ?? false) {
+            $this->clear_updates_by_symbol['all'] = false;
+            $this->new_updates_by_symbol['all'] = 0;
+        }
+        $this->new_updates_by_symbol[$item['symbol']] = ($this->new_updates_by_symbol[$item['symbol']] ?? 0) + 1;
+        $this->new_updates_by_symbol['all'] = ($this->new_updates_by_symbol['all'] ?? 0) + 1;
     }
 }

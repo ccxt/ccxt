@@ -128,7 +128,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         };
         const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
         if (this.newUpdates) {
-            limit = trades.getLimit (limit);
+            limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -197,7 +197,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (limit);
+            limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }

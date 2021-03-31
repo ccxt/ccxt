@@ -178,7 +178,7 @@ module.exports = class kucoin extends ccxt.kucoin {
         const topic = '/market/match';
         const trades = await this.subscribe (negotiation, topic, undefined, symbol, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (limit);
+            limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
