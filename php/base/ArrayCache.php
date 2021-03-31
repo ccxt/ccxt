@@ -63,10 +63,6 @@ class ArrayCache implements \JsonSerializable, \ArrayAccess, \IteratorAggregate,
         return $this->deque->count();
     }
 
-    public function clear_new_updates() {
-        $this->new_updates = array();
-    }
-
     public function clear() {
         $this->deque->clear();
     }
