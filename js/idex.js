@@ -609,7 +609,7 @@ module.exports = class idex extends ccxt.idex {
         }
         const transactions = await this.subscribePrivate (subscribeObject, messageHash);
         if (this.newUpdates) {
-            limit = transactions.getLimit (symbol, limit);
+            limit = transactions.getLimit (code, limit);
         }
         return this.filterBySinceLimit (transactions, since, limit, 'timestamp', true);
     }
