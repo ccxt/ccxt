@@ -25,6 +25,11 @@ module.exports = class bitcom extends Exchange {
                 'fetchOHLCV': true,
                 'fetchTicker': true,
                 'fetchTickers': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchOrderTrades': true,
                 // TODO: need to be implemented
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -35,11 +40,6 @@ module.exports = class bitcom extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchMyTrades': true,
-                'fetchOpenOrders': true,
-                'fetchOrder': true,
-                'fetchOrderBook': true,
-                'fetchOrders': false,
-                'fetchOrderTrades': true,
                 'fetchTrades': true,
                 'fetchTransactions': false,
                 'fetchWithdrawals': true,
@@ -662,11 +662,14 @@ module.exports = class bitcom extends Exchange {
         // params = {
         //     'currency': 'BTC',
         // }
-        await this.loadMarkets ();
         const currency = this.safeString (params, 'currency');
         if (currency === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a currency parameter.');
         }
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a id parameter.');
+        }
+        await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
@@ -714,11 +717,11 @@ module.exports = class bitcom extends Exchange {
     }
 
     async fetchOrders (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
         const currency = this.safeString (params, 'currency');
         if (currency === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a currency parameter.');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a currency parameter.');
         }
+        await this.loadMarkets ();
         const orderResp = await this.privateGetOrders (params);
         // {
         //     "code": 0,
@@ -764,6 +767,146 @@ module.exports = class bitcom extends Exchange {
             orders.push (order);
         }
         return orders;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const currency = this.safeString (params, 'currency');
+        if (currency === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a currency parameter.');
+        }
+        await this.loadMarkets ();
+        const request = {};
+        if (symbol !== undefined) {
+            request['instrument_id'] = symbol;
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const openOrderResp = await this.privateGetOpenOrders (this.extend (request, params));
+        // {
+        //     "code": 0,
+        //     "message": "",
+        //     "data": [{
+        //         "order_id": "7610691",
+        //         "created_at": 1589183001000,
+        //         "updated_at": 1589183001000,
+        //         "user_id": "51140",
+        //         "instrument_id": "BTC-29MAY20-7500-C",
+        //         "order_type": "limit",
+        //         "side": "buy",
+        //         "price": "0.08000000",
+        //         "qty": "3.00000000",
+        //         "time_in_force": "gtc",
+        //         "avg_price": "0.00000000",
+        //         "filled_qty": "0.00000000",
+        //         "status": "open",
+        //         "fee": "0.00000000",
+        //         "is_liquidation": false,
+        //         "auto_price": "0.00000000",
+        //         "auto_price_type": "",
+        //         "pnl": "0.00000000",
+        //         "cash_flow": "0.00000000",
+        //         "initial_margin": "0.24000000",
+        //         "taker_fee_rate": "0.00050000",
+        //         "maker_fee_rate": "0.00020000",
+        //         "label": "hedge",
+        //         "stop_price": "0.00000000",
+        //         "reduce_only": false,
+        //         "post_only": false,
+        //         "reject_post_only": false,
+        //         "mmp": false,
+        //         "reorder_index": 1,
+        //         "source": "api",
+        //         "hidden": false
+        //         }
+        //     ]
+        // }
+        const openOrders = this.safeValue (openOrderResp, 'data', []);
+        return this.parseOrders (openOrders, undefined, since, limit);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const currency = this.safeString (params, 'currency');
+        if (currency === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a currency parameter.');
+        }
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a id parameter.');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'order_id': id,
+        };
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const tradesResp = await this.privateGetUserTrades (this.extend (request, params));
+        // {
+        //     "code": 0,
+        //     "message": "",
+        //     "data": [{
+        //         "trade_id": "23210268",
+        //         "order_id": "17551020",
+        //         "instrument_id": "BTC-22MAY20-7500-C",
+        //         "qty": "2.00000000",
+        //         "price": "0.17550000",
+        //         "sigma": "0.00000000",
+        //         "underlying_price": "9471.25000000",
+        //         "index_price": "9469.81000000",
+        //         "usd_price": "1661.95165500",
+        //         "fee": "0.00100000",
+        //         "fee_rate": "0.00050000",
+        //         "side": "buy",
+        //         "created_at": 1589521371000,
+        //         "is_taker": true,
+        //         "order_type": "limit",
+        //         "label": "hedge"
+        //     }]
+        // }
+        const trades = this.safeValue (tradesResp, 'data', []);
+        return this.parseTrades (trades, undefined, since, limit);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_id': market['id'],
+        };
+        if (limit !== undefined) {
+            request['level'] = limit;
+        }
+        const orderBookResp = await this.publicGetOrderbooks (this.extend (request, params));
+        // {
+        //     "code": 0,
+        //     "message": "",
+        //     "data": {
+        //         "instrument_id": "BTC-27MAR20-9000-C",
+        //         "timestamp": 1585299600000,
+        //         "asks": [
+        //             ["0.02300000", "3.00000000"],
+        //             ["0.02400000", "0.70000000"],
+        //             ["0.02500000", "18.00000000"]
+        //         ],
+        //         "bids": [
+        //             ["0.02100000", "0.30000000"],
+        //             ["0.02000000", "2.00000000"],
+        //             ["0.01900000", "5.60000000"]
+        //         ]
+        //     }
+        // }
+        const orderBook = this.safeValue (orderBookResp, 'data', {});
+        const timestamp = this.safeInteger (orderBook, 'timestamp');
+        const nonce = this.nonce ();
+        const result = this.parseOrderBook (orderBook, timestamp);
+        result['nonce'] = nonce;
+        return result;
     }
 
     parseOrder (order, market = undefined) {
