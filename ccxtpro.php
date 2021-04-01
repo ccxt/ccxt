@@ -39,6 +39,7 @@ require_once PATH_TO_CCXTPRO_BASE . 'Client.php';
 require_once PATH_TO_CCXTPRO_BASE . 'ClientTrait.php';
 require_once PATH_TO_CCXTPRO_BASE . 'OrderBook.php';
 require_once PATH_TO_CCXTPRO_BASE . 'OrderBookSide.php';
+require_once PATH_TO_CCXTPRO_BASE . 'BaseCache.php';
 require_once PATH_TO_CCXTPRO_BASE . 'ArrayCache.php';
 require_once PATH_TO_CCXTPRO_BASE . 'ArrayCacheByTimestamp.php';
 require_once PATH_TO_CCXTPRO_BASE . 'ArrayCacheBySymbolById.php';

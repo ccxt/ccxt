@@ -1,6 +1,6 @@
 'use strict';
 
-class ArrayCache extends Array {
+class BaseCache extends Array {
 
     constructor (maxSize = undefined) {
         super ()
@@ -9,6 +9,17 @@ class ArrayCache extends Array {
             value: maxSize,
             writable: true,
         })
+    }
+
+    clear () {
+        this.length = 0
+    }
+}
+
+class ArrayCache extends BaseCache {
+
+    constructor(maxSize = undefined) {
+        super (maxSize);
         Object.defineProperty (this, 'newUpdatesBySymbol', {
             __proto__: null, // make it invisible
             value: {},
@@ -52,13 +63,9 @@ class ArrayCache extends Array {
         this.newUpdatesBySymbol[item.symbol] = (this.newUpdatesBySymbol[item.symbol] || 0) + 1
         this.newUpdatesBySymbol['all'] = (this.newUpdatesBySymbol['all'] || 0) + 1
     }
-
-    clear () {
-        this.length = 0
-    }
 }
 
-class ArrayCacheByTimestamp extends ArrayCache {
+class ArrayCacheByTimestamp extends BaseCache {
 
     constructor (maxSize = undefined) {
         super (maxSize)
