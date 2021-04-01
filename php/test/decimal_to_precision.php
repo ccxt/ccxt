@@ -288,7 +288,7 @@ assert (decimal_to_precision ('1.45', ROUND, 0, DECIMAL_PLACES) === '1'); // not
 
 // ----------------------------------------------------------------------------
 // negative precision only implemented so far in python
-// pretty useless for decimal applications as anything |x| < 5 === 0
+// pretty useless for decimal applications as anything |$x| < 5 === 0
 // NO_PADDING and PAD_WITH_ZERO are ignored
 
 assert (decimal_to_precision ('5', ROUND, -1, DECIMAL_PLACES) === '10');
@@ -319,3 +319,27 @@ assert (decimal_to_precision ('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT
 // throws (() =>
 //     decimal_to_precision ('0.01', TRUNCATE, -1, TICK_SIZE),
 //         "TICK_SIZE cant be used with negative numPrecisionDigits")
+
+// ----------------------------------------------------------------------------
+
+$w = '-1.123e-6';
+$x = '0.00000002';
+$y = '69696900000';
+
+assert (Precise::string_mul($x, $y) === '1393.938');
+assert (Precise::string_mul($y, $x) === '1393.938');
+assert (Precise::string_add($x, $y) === '69696900000.00000002');
+assert (Precise::string_add($y, $x) === '69696900000.00000002');
+assert (Precise::string_sub($x, $y) === '-69696899999.99999998');
+assert (Precise::string_sub($y, $x) === '69696899999.99999998');
+assert (Precise::string_div($x, $y) === '0.000000000000028695');
+assert (Precise::string_div($y, $x) === '34848450000');
+
+assert (Precise::string_mul($x, $w) === '-0.00000000000002246');
+assert (Precise::string_mul($w, $x) === '-0.00000000000002246');
+assert (Precise::string_add($x, $w) === '-0.000001103');
+assert (Precise::string_add($w, $x) === '-0.000001103');
+assert (Precise::string_sub($x, $w) === '0.000001143');
+assert (Precise::string_sub($w, $x) === '-0.000001143');
+assert (Precise::string_div($x, $w) === '-0.000000000017809439');
+assert (Precise::string_div($w, $x) === '-0.0000005615');
