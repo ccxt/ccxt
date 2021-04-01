@@ -38,12 +38,11 @@ module.exports = class bitcom extends Exchange {
                 'editOrder': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                // TODO: need to be implemented
-                'createDepositAddress': true,
-                'fetchDepositAddress': true,
+                'createDepositAddress': false,
+                'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
-                'withdraw': true,
+                'withdraw': false,
             },
             'options': {
                 'category': ['future', 'option'],
@@ -1315,6 +1314,127 @@ module.exports = class bitcom extends Exchange {
             const request = { 'currency': ccys[i] };
             await this.privatePostCancelOrders (request);
         }
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
+        }
+        const request = {
+            'currency': code,
+        };
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const depositResp = await this.privateGetWalletDeposits (this.extend (request, params));
+        // {
+        //     "code": 0,
+        //     "data": {
+        //         "count": 1,
+        //         "items": [{
+        //             "address": "mfaFpdVCb6UFS5AXUhC8VGXgj9dnJ37nLP",
+        //             "amount": "0.001",
+        //             "code": 0,
+        //             "confirmations": 0,
+        //             "currency": "BTC",
+        //             "state": "confirmed",
+        //             "transaction_id": "52e1537002f51acbf5f52b9dfeab6a9e7cc185a669cda2573e768420b0839523",
+        //             "created_at": 1608606000000,
+        //             "updated_at": 1608606000000,
+        //             "is_onchain": true
+        //         }]
+        //     }
+        // }
+        const result = this.safeValue (depositResp, 'data', {});
+        const depositItems = this.safeValue (result, 'items', []);
+        return this.parseTransactions (depositItems, code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
+        }
+        const request = {
+            'currency': code,
+        };
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const withdrawalsResp = await this.privateGetWalletWithdrawals (this.extend (request, params));
+        // {
+        //     "code": 0,
+        //     "data": {
+        //         "count": 2,
+        //         "items": [{
+        //             "address": "mfaFpdVCb6UFS5AXUhC8VGXgj9dnJ37nLP",
+        //             "amount": "0.001",
+        //             "code": 0,
+        //             "confirmations": 0,
+        //             "currency": "BTC",
+        //             "fee": "0.00001",
+        //             "state": "confirmed",
+        //             "transaction_id": "52e1537002f51acbf5f52b9dfeab6a9e7cc185a669cda2573e768420b0839523",
+        //             "created_at": 1608606000000,
+        //             "updated_at": 1608606000000,
+        //             "is_onchain": true
+        //         }, {
+        //             "address": "mfaFpdVCb6UFS5AXUhC8VGXgj9dnJ37nLP",
+        //             "amount": "0.11",
+        //             "code": 13100100,
+        //             "confirmations": 0,
+        //             "currency": "BTC",
+        //             "fee": "0.00001",
+        //             "state": "rejected",
+        //             "transaction_id": "",
+        //             "created_at": 1608606000000,
+        //             "updated_at": 1608606000000,
+        //             "is_onchain": false
+        //         }]
+        //     }
+        // }
+        const result = this.safeValue (withdrawalsResp, 'result', {});
+        const withdrawals = this.safeValue (result, 'data', []);
+        return this.parseTransactions (withdrawals, code, since, limit, params);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeInteger (transaction, 'created_at');
+        const updated = this.safeInteger (transaction, 'updated_at');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const address = this.safeString (transaction, 'address');
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'transaction_id'),
+            'txid': this.safeString (transaction, 'transaction_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': undefined,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'confirmed': 'ok',
+            'pending': 'pending',
+            'mempool': 'pending',
+            'unconfirmed': 'pending',
+            'rejected': 'canceled',
+            'rollback': 'failed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderStatus (status) {
