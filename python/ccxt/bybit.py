@@ -325,6 +325,9 @@ class bybit(Exchange):
                     'LTC/USDT': 'linear',
                     'XTZ/USDT': 'linear',
                     'LINK/USDT': 'linear',
+                    'ADA/USDT': 'linear',
+                    'DOT/USDT': 'linear',
+                    'UNI/USDT': 'linear',
                 },
                 'defaultType': 'linear',  # may also be inverse or inverseFuture
                 'code': 'BTC',
@@ -1098,8 +1101,8 @@ class bybit(Exchange):
         #
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
-        symbol = None
-        base = None
+        symbol = market['symbol']
+        feeCurrency = None
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         type = self.safe_string_lower(order, 'order_type')
@@ -1111,24 +1114,16 @@ class bybit(Exchange):
         cost = self.safe_number(order, 'cum_exec_value')
         filled = self.safe_number(order, 'cum_exec_qty')
         remaining = self.safe_number(order, 'leaves_qty')
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol)
         if market is not None:
-            symbol = market['symbol']
-            base = market['base']
+            if marketType == 'linear':
+                feeCurrency = market['quote']
+            else:
+                feeCurrency = market['base']
         lastTradeTimestamp = self.safe_timestamp(order, 'last_exec_time')
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
-        if (filled is None) and (amount is not None) and (remaining is not None):
-            filled = amount - remaining
-        if filled is not None:
-            if (remaining is None) and (amount is not None):
-                remaining = amount - filled
-            if cost is None:
-                if price is not None:
-                    cost = price * filled
-            if (type == 'market') and (cost is not None) and (cost > 0):
-                price = None
-                if average is None:
-                    average = filled / cost
         status = self.parse_order_status(self.safe_string_2(order, 'order_status', 'stop_order_status'))
         side = self.safe_string_lower(order, 'side')
         feeCost = self.safe_number(order, 'cum_exec_fee')
@@ -1137,7 +1132,7 @@ class bybit(Exchange):
             feeCost = abs(feeCost)
             fee = {
                 'cost': feeCost,
-                'currency': base,
+                'currency': feeCurrency,
             }
         clientOrderId = self.safe_string(order, 'order_link_id')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
@@ -1145,7 +1140,7 @@ class bybit(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         stopPrice = self.safe_number(order, 'stop_px')
         postOnly = (timeInForce == 'PO')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1167,7 +1162,7 @@ class bybit(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:

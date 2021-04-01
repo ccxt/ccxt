@@ -185,8 +185,8 @@ module.exports = class rightbtc extends Exchange {
         return result;
     }
 
-    divideSafeFloat (x, key, divisor) {
-        const value = this.safeFloat (x, key);
+    divideSafeNumber (x, key, divisor) {
+        const value = this.safeNumber (x, key);
         if (value !== undefined) {
             return value / divisor;
         }
@@ -196,12 +196,12 @@ module.exports = class rightbtc extends Exchange {
     parseTicker (ticker, market = undefined) {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'date');
-        const last = this.divideSafeFloat (ticker, 'last', 1e8);
-        const high = this.divideSafeFloat (ticker, 'high', 1e8);
-        const low = this.divideSafeFloat (ticker, 'low', 1e8);
-        const bid = this.divideSafeFloat (ticker, 'buy', 1e8);
-        const ask = this.divideSafeFloat (ticker, 'sell', 1e8);
-        const baseVolume = this.divideSafeFloat (ticker, 'vol24h', 1e8);
+        const last = this.divideSafeNumber (ticker, 'last', 1e8);
+        const high = this.divideSafeNumber (ticker, 'high', 1e8);
+        const low = this.divideSafeNumber (ticker, 'low', 1e8);
+        const bid = this.divideSafeNumber (ticker, 'buy', 1e8);
+        const ask = this.divideSafeNumber (ticker, 'sell', 1e8);
+        const baseVolume = this.divideSafeNumber (ticker, 'vol24h', 1e8);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -305,9 +305,9 @@ module.exports = class rightbtc extends Exchange {
         let id = this.safeString (trade, 'tid');
         id = this.safeString (trade, 'trade_id', id);
         const orderId = this.safeString (trade, 'order_id');
-        const price = this.divideSafeFloat (trade, 'price', 1e8);
-        let amount = this.safeFloat (trade, 'amount');
-        amount = this.safeFloat (trade, 'quantity', amount);
+        const price = this.divideSafeNumber (trade, 'price', 1e8);
+        let amount = this.safeNumber (trade, 'amount');
+        amount = this.safeNumber (trade, 'quantity', amount);
         if (amount !== undefined) {
             amount = amount / 1e8;
         }
@@ -404,8 +404,8 @@ module.exports = class rightbtc extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             // https://github.com/ccxt/ccxt/issues/3873
-            account['free'] = this.divideSafeFloat (balance, 'balance', 1e8);
-            account['used'] = this.divideSafeFloat (balance, 'frozen', 1e8);
+            account['free'] = this.divideSafeNumber (balance, 'balance', 1e8);
+            account['used'] = this.divideSafeNumber (balance, 'frozen', 1e8);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -494,18 +494,18 @@ module.exports = class rightbtc extends Exchange {
         } else if ('transactTime' in order) {
             timestamp = order['transactTime'];
         }
-        let price = this.safeFloat2 (order, 'limit', 'price');
+        let price = this.safeNumber2 (order, 'limit', 'price');
         if (price !== undefined) {
             price = price / 1e8;
         }
-        const amount = this.divideSafeFloat (order, 'quantity', 1e8);
-        const filled = this.divideSafeFloat (order, 'filled_quantity', 1e8);
-        const remaining = this.divideSafeFloat (order, 'rest', 1e8);
-        const cost = this.divideSafeFloat (order, 'cost', 1e8);
+        const amount = this.divideSafeNumber (order, 'quantity', 1e8);
+        const filled = this.divideSafeNumber (order, 'filled_quantity', 1e8);
+        const remaining = this.divideSafeNumber (order, 'rest', 1e8);
+        const cost = this.divideSafeNumber (order, 'cost', 1e8);
         // lines 483-494 should be generalized into a base class method
         const type = 'limit';
         const side = this.safeStringLower (order, 'side');
-        const feeCost = this.divideSafeFloat (order, 'min_fee', 1e8);
+        const feeCost = this.divideSafeNumber (order, 'min_fee', 1e8);
         let fee = undefined;
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
@@ -513,7 +513,7 @@ module.exports = class rightbtc extends Exchange {
                 feeCurrency = market['quote'];
             }
             fee = {
-                'rate': this.safeFloat (order, 'fee'),
+                'rate': this.safeNumber (order, 'fee'),
                 'cost': feeCost,
                 'currency': feeCurrency,
             };

@@ -253,11 +253,11 @@ class poloniex(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 'date'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'quoteVolume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'quoteVolume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
@@ -341,8 +341,8 @@ class poloniex(Exchange):
             balance = self.safe_value(response, currencyId, {})
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'onOrders')
+            account['free'] = self.safe_number(balance, 'available')
+            account['used'] = self.safe_number(balance, 'onOrders')
             result[code] = account
         return self.parse_balance(result)
 
@@ -361,8 +361,8 @@ class poloniex(Exchange):
         #
         return {
             'info': fees,
-            'maker': self.safe_float(fees, 'makerFee'),
-            'taker': self.safe_float(fees, 'takerFee'),
+            'maker': self.safe_number(fees, 'makerFee'),
+            'taker': self.safe_number(fees, 'takerFee'),
             'withdraw': {},
             'deposit': {},
         }
@@ -412,8 +412,8 @@ class poloniex(Exchange):
         open = None
         change = None
         average = None
-        last = self.safe_float(ticker, 'last')
-        relativeChange = self.safe_float(ticker, 'percentChange')
+        last = self.safe_number(ticker, 'last')
+        relativeChange = self.safe_number(ticker, 'percentChange')
         if relativeChange != -1:
             open = last / self.sum(1, relativeChange)
             change = last - open
@@ -422,11 +422,11 @@ class poloniex(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high24hr'),
-            'low': self.safe_float(ticker, 'low24hr'),
-            'bid': self.safe_float(ticker, 'highestBid'),
+            'high': self.safe_number(ticker, 'high24hr'),
+            'low': self.safe_number(ticker, 'low24hr'),
+            'bid': self.safe_number(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'lowestAsk'),
+            'ask': self.safe_number(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -436,8 +436,8 @@ class poloniex(Exchange):
             'change': change,
             'percentage': relativeChange * 100,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'quoteVolume'),
-            'quoteVolume': self.safe_float(ticker, 'baseVolume'),
+            'baseVolume': self.safe_number(ticker, 'quoteVolume'),
+            'quoteVolume': self.safe_number(ticker, 'baseVolume'),
             'info': ticker,
         }
 
@@ -474,7 +474,7 @@ class poloniex(Exchange):
             code = self.safe_currency_code(id)
             active = (currency['delisted'] == 0) and not currency['disabled']
             numericId = self.safe_integer(currency, 'id')
-            fee = self.safe_float(currency, 'txFee')
+            fee = self.safe_number(currency, 'txFee')
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -559,13 +559,13 @@ class poloniex(Exchange):
             symbol = market['symbol']
         side = self.safe_string(trade, 'type')
         fee = None
-        price = self.safe_float(trade, 'rate')
-        cost = self.safe_float(trade, 'total')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'rate')
+        cost = self.safe_number(trade, 'total')
+        amount = self.safe_number(trade, 'amount')
         feeDisplay = self.safe_string(trade, 'feeDisplay')
         if feeDisplay is not None:
             parts = feeDisplay.split(' ')
-            feeCost = self.safe_float(parts, 0)
+            feeCost = self.safe_number(parts, 0)
             if feeCost is not None:
                 feeCurrencyId = self.safe_string(parts, 1)
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -581,7 +581,7 @@ class poloniex(Exchange):
                     'rate': feeRate,
                 }
         takerOrMaker = None
-        takerAdjustment = self.safe_float(trade, 'takerAdjustment')
+        takerAdjustment = self.safe_number(trade, 'takerAdjustment')
         if takerAdjustment is not None:
             takerOrMaker = 'taker'
         return {
@@ -806,9 +806,9 @@ class poloniex(Exchange):
             resultingTrades = self.safe_value(resultingTrades, self.safe_string(market, 'id', marketId))
         if resultingTrades is not None:
             trades = self.parse_trades(resultingTrades, market)
-        price = self.safe_float_2(order, 'price', 'rate')
-        remaining = self.safe_float(order, 'amount')
-        amount = self.safe_float(order, 'startingAmount')
+        price = self.safe_number_2(order, 'price', 'rate')
+        remaining = self.safe_number(order, 'amount')
+        amount = self.safe_number(order, 'startingAmount')
         filled = None
         cost = 0
         if amount is not None:
@@ -847,7 +847,7 @@ class poloniex(Exchange):
             type = None
         id = self.safe_string(order, 'orderNumber')
         fee = None
-        feeCost = self.safe_float(order, 'fee')
+        feeCost = self.safe_number(order, 'fee')
         if feeCost is not None:
             feeCurrencyCode = None
             if market is not None:
@@ -1300,11 +1300,11 @@ class poloniex(Exchange):
         defaultType = 'withdrawal' if ('withdrawalNumber' in transaction) else 'deposit'
         type = self.safe_string(transaction, 'type', defaultType)
         id = self.safe_string_2(transaction, 'withdrawalNumber', 'depositNumber')
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'paymentID')
         # according to https://poloniex.com/fees/
-        feeCost = self.safe_float(transaction, 'fee', 0)
+        feeCost = self.safe_number(transaction, 'fee', 0)
         if type == 'withdrawal':
             # poloniex withdrawal amount includes the fee
             amount = amount - feeCost

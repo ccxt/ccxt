@@ -315,6 +315,9 @@ module.exports = class bybit extends Exchange {
                     'LTC/USDT': 'linear',
                     'XTZ/USDT': 'linear',
                     'LINK/USDT': 'linear',
+                    'ADA/USDT': 'linear',
+                    'DOT/USDT': 'linear',
+                    'UNI/USDT': 'linear',
                 },
                 'defaultType': 'linear',  // may also be inverse or inverseFuture
                 'code': 'BTC',
@@ -1125,8 +1128,8 @@ module.exports = class bybit extends Exchange {
         //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        let symbol = undefined;
-        let base = undefined;
+        const symbol = market['symbol'];
+        let feeCurrency = undefined;
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const id = this.safeString2 (order, 'order_id', 'stop_order_id');
         const type = this.safeStringLower (order, 'order_type');
@@ -1134,37 +1137,23 @@ module.exports = class bybit extends Exchange {
         if (price === 0.0) {
             price = undefined;
         }
-        let average = this.safeNumber (order, 'average_price');
+        const average = this.safeNumber (order, 'average_price');
         const amount = this.safeNumber (order, 'qty');
-        let cost = this.safeNumber (order, 'cum_exec_value');
-        let filled = this.safeNumber (order, 'cum_exec_qty');
-        let remaining = this.safeNumber (order, 'leaves_qty');
+        const cost = this.safeNumber (order, 'cum_exec_value');
+        const filled = this.safeNumber (order, 'cum_exec_qty');
+        const remaining = this.safeNumber (order, 'leaves_qty');
+        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeString (marketTypes, symbol);
         if (market !== undefined) {
-            symbol = market['symbol'];
-            base = market['base'];
+            if (marketType === 'linear') {
+                feeCurrency = market['quote'];
+            } else {
+                feeCurrency = market['base'];
+            }
         }
         let lastTradeTimestamp = this.safeTimestamp (order, 'last_exec_time');
         if (lastTradeTimestamp === 0) {
             lastTradeTimestamp = undefined;
-        }
-        if ((filled === undefined) && (amount !== undefined) && (remaining !== undefined)) {
-            filled = amount - remaining;
-        }
-        if (filled !== undefined) {
-            if ((remaining === undefined) && (amount !== undefined)) {
-                remaining = amount - filled;
-            }
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = price * filled;
-                }
-            }
-            if ((type === 'market') && (cost !== undefined) && (cost > 0)) {
-                price = undefined;
-                if (average === undefined) {
-                    average = filled / cost;
-                }
-            }
         }
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'stop_order_status'));
         const side = this.safeStringLower (order, 'side');
@@ -1174,7 +1163,7 @@ module.exports = class bybit extends Exchange {
             feeCost = Math.abs (feeCost);
             fee = {
                 'cost': feeCost,
-                'currency': base,
+                'currency': feeCurrency,
             };
         }
         let clientOrderId = this.safeString (order, 'order_link_id');
@@ -1184,7 +1173,7 @@ module.exports = class bybit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const stopPrice = this.safeNumber (order, 'stop_px');
         const postOnly = (timeInForce === 'PO');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1206,7 +1195,7 @@ module.exports = class bybit extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

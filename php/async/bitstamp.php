@@ -1164,7 +1164,7 @@ class bitstamp extends Exchange {
         //   { $status => 'Finished',
         //     $id => 731693945,
         //     $transactions:
-        //     array( { $fee => '0.000019',
+        //     array( { fee => '0.000019',
         //         $price => '0.00015803',
         //         datetime => '2018-01-07 10:45:34.132551',
         //         btc => '0.0079015000000000',
@@ -1172,12 +1172,12 @@ class bitstamp extends Exchange {
         //         type => 2,
         //         xrp => '50.00000000' } ) }
         //
-        // partially $filled $order:
+        // partially filled $order:
         //   { "$id" => 468646390,
         //     "$status" => "Canceled",
         //     "$transactions" => [array(
         //         "eth" => "0.23000000",
-        //         "$fee" => "0.09",
+        //         "fee" => "0.09",
         //         "tid" => 25810126,
         //         "usd" => "69.8947000000000000",
         //         "type" => 2,
@@ -1202,83 +1202,23 @@ class bitstamp extends Exchange {
         }
         // there is no $timestamp from fetchOrder
         $timestamp = $this->parse8601($this->safe_string($order, 'datetime'));
-        $lastTradeTimestamp = null;
-        $symbol = null;
         $marketId = $this->safe_string_lower($order, 'currency_pair');
-        if ($marketId !== null) {
-            $marketId = str_replace('/', '', $marketId);
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            }
-        }
-        $amount = $this->safe_number($order, 'amount');
-        $filled = 0.0;
-        $trades = array();
-        $transactions = $this->safe_value($order, 'transactions', array());
-        $feeCost = null;
-        $cost = null;
-        $numTransactions = is_array($transactions) ? count($transactions) : 0;
-        if ($numTransactions > 0) {
-            $feeCost = 0.0;
-            for ($i = 0; $i < $numTransactions; $i++) {
-                $trade = $this->parse_trade(array_merge(array(
-                    'order_id' => $id,
-                    'side' => $side,
-                ), $transactions[$i]), $market);
-                $filled = $this->sum($filled, $trade['amount']);
-                $feeCost = $this->sum($feeCost, $trade['fee']['cost']);
-                if ($cost === null) {
-                    $cost = 0.0;
-                }
-                $cost = $this->sum($cost, $trade['cost']);
-                $trades[] = $trade;
-            }
-            $lastTradeTimestamp = $trades[$numTransactions - 1]['timestamp'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '/');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        if (($status === 'closed') && ($amount === null)) {
-            $amount = $filled;
-        }
-        $remaining = null;
-        if ($amount !== null) {
-            $remaining = $amount - $filled;
+        $amount = $this->safe_number($order, 'amount');
+        $transactions = $this->safe_value($order, 'transactions', array());
+        $trades = $this->parse_trades($transactions, $market);
+        $length = is_array($trades) ? count($trades) : 0;
+        if ($length) {
+            $symbol = $trades[0]['symbol'];
         }
         $price = $this->safe_number($order, 'price');
-        if ($market === null) {
-            $market = $this->get_market_from_trades($trades);
-        }
-        $feeCurrency = null;
-        if ($market !== null) {
-            if ($symbol === null) {
-                $symbol = $market['symbol'];
-            }
-            $feeCurrency = $market['quote'];
-        }
-        if ($cost === null) {
-            if ($price !== null) {
-                $cost = $price * $filled;
-            }
-        } else if ($price === null) {
-            if ($filled > 0) {
-                $price = $cost / $filled;
-            }
-        }
-        $fee = null;
-        if ($feeCost !== null) {
-            if ($feeCurrency !== null) {
-                $fee = array(
-                    'cost' => $feeCost,
-                    'currency' => $feeCurrency,
-                );
-            }
-        }
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
-            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => null,
@@ -1287,15 +1227,15 @@ class bitstamp extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'amount' => $amount,
-            'filled' => $filled,
-            'remaining' => $remaining,
+            'filled' => null,
+            'remaining' => null,
             'trades' => $trades,
-            'fee' => $fee,
+            'fee' => null,
             'info' => $order,
             'average' => null,
-        );
+        ));
     }
 
     public function parse_ledger_entry_type($type) {

@@ -164,13 +164,14 @@ module.exports = class gateio extends Exchange {
                 },
             },
             'commonCurrencies': {
+                '88MPH': 'MPH',
+                'BIFI': 'Bitcoin File',
                 'BOX': 'DefiBox',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
+                'MPH': 'Morpher', // conflict with 88MPH
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
-                '88MPH': 'MPH',
-                'MPH': 'Morpher', // conflict with 88MPH
             },
         });
     }
@@ -215,9 +216,9 @@ module.exports = class gateio extends Exchange {
                 const currency = coin[id];
                 const code = this.safeCurrencyCode (id);
                 const delisted = this.safeValue (currency, 'delisted', 0);
-                const withdrawDisabled = this.safeValue (currency, 'withdraw_disabled', 0);
-                const depositDisabled = this.safeValue (currency, 'deposit_disabled', 0);
-                const tradeDisabled = this.safeValue (currency, 'trade_disabled', 0);
+                const withdrawDisabled = this.safeInteger2 (currency, 'withdraw_disabled', 0);
+                const depositDisabled = this.safeInteger2 (currency, 'deposit_disabled', 0);
+                const tradeDisabled = this.safeInteger2 (currency, 'trade_disabled', 0);
                 const listed = (delisted === 0);
                 const withdrawEnabled = (withdrawDisabled === 0);
                 const depositEnabled = (depositDisabled === 0);
@@ -306,7 +307,7 @@ module.exports = class gateio extends Exchange {
                 'price': this.safeInteger (details, 'decimal_places'),
             };
             const amountLimits = {
-                'min': this.safeFloat (details, 'min_amount'),
+                'min': this.safeNumber (details, 'min_amount'),
                 'max': undefined,
             };
             const priceLimits = {
@@ -314,7 +315,7 @@ module.exports = class gateio extends Exchange {
                 'max': undefined,
             };
             const defaultCost = amountLimits['min'] * priceLimits['min'];
-            const minCost = this.safeFloat (this.options['limits']['cost']['min'], quote, defaultCost);
+            const minCost = this.safeNumber (this.options['limits']['cost']['min'], quote, defaultCost);
             const costLimits = {
                 'min': minCost,
                 'max': undefined,
@@ -324,10 +325,10 @@ module.exports = class gateio extends Exchange {
                 'price': priceLimits,
                 'cost': costLimits,
             };
-            const disabled = this.safeValue (details, 'trade_disabled');
+            const disabled = this.safeInteger (details, 'trade_disabled');
             const active = !disabled;
             const uppercaseId = id.toUpperCase ();
-            const fee = this.safeFloat (details, 'fee');
+            const fee = this.safeNumber (details, 'fee');
             result.push ({
                 'id': id,
                 'uppercaseId': uppercaseId,
@@ -361,8 +362,8 @@ module.exports = class gateio extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (available, currencyId);
-            account['used'] = this.safeFloat (locked, currencyId);
+            account['free'] = this.safeNumber (available, currencyId);
+            account['used'] = this.safeNumber (locked, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -381,11 +382,11 @@ module.exports = class gateio extends Exchange {
         // they return [ Timestamp, Volume, Close, High, Low, Open ]
         return [
             this.safeInteger (ohlcv, 0), // t
-            this.safeFloat (ohlcv, 5), // o
-            this.safeFloat (ohlcv, 3), // h
-            this.safeFloat (ohlcv, 4), // l
-            this.safeFloat (ohlcv, 2), // c
-            this.safeFloat (ohlcv, 1), // v
+            this.safeNumber (ohlcv, 5), // o
+            this.safeNumber (ohlcv, 3), // h
+            this.safeNumber (ohlcv, 4), // l
+            this.safeNumber (ohlcv, 2), // c
+            this.safeNumber (ohlcv, 1), // v
         ];
     }
 
@@ -425,8 +426,8 @@ module.exports = class gateio extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
-        const percentage = this.safeFloat (ticker, 'percentChange');
+        const last = this.safeNumber (ticker, 'last');
+        const percentage = this.safeNumber (ticker, 'percentChange');
         let open = undefined;
         let change = undefined;
         let average = undefined;
@@ -436,17 +437,17 @@ module.exports = class gateio extends Exchange {
             change = last - open;
             average = this.sum (last, open) / 2;
         }
-        open = this.safeFloat (ticker, 'open', open);
-        change = this.safeFloat (ticker, 'change', change);
+        open = this.safeNumber (ticker, 'open', open);
+        change = this.safeNumber (ticker, 'change', change);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat2 (ticker, 'high24hr', 'high'),
-            'low': this.safeFloat2 (ticker, 'low24hr', 'low'),
-            'bid': this.safeFloat (ticker, 'highestBid'),
+            'high': this.safeNumber2 (ticker, 'high24hr', 'high'),
+            'low': this.safeNumber2 (ticker, 'low24hr', 'low'),
+            'bid': this.safeNumber (ticker, 'highestBid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'lowestAsk'),
+            'ask': this.safeNumber (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -456,8 +457,8 @@ module.exports = class gateio extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'quoteVolume'), // gateio has them reversed
-            'quoteVolume': this.safeFloat (ticker, 'baseVolume'),
+            'baseVolume': this.safeNumber (ticker, 'quoteVolume'), // gateio has them reversed
+            'quoteVolume': this.safeNumber (ticker, 'baseVolume'),
             'info': ticker,
         };
     }
@@ -503,8 +504,8 @@ module.exports = class gateio extends Exchange {
         const id = this.safeString2 (trade, 'tradeID', 'id');
         // take either of orderid or orderId
         const orderId = this.safeString2 (trade, 'orderid', 'orderNumber');
-        const price = this.safeFloat2 (trade, 'rate', 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber2 (trade, 'rate', 'price');
+        const amount = this.safeNumber (trade, 'amount');
         const type = this.safeString (trade, 'type');
         const takerOrMaker = this.safeString (trade, 'role');
         let cost = undefined;
@@ -519,11 +520,11 @@ module.exports = class gateio extends Exchange {
         }
         let fee = undefined;
         let feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee_coin'));
-        let feeCost = this.safeFloat (trade, 'point_fee');
+        let feeCost = this.safeNumber (trade, 'point_fee');
         if ((feeCost === undefined) || (feeCost === 0)) {
-            feeCost = this.safeFloat (trade, 'gt_fee');
+            feeCost = this.safeNumber (trade, 'gt_fee');
             if ((feeCost === undefined) || (feeCost === 0)) {
-                feeCost = this.safeFloat (trade, 'fee');
+                feeCost = this.safeNumber (trade, 'fee');
             } else {
                 feeCurrency = this.safeCurrencyCode ('GT');
             }
@@ -667,16 +668,16 @@ module.exports = class gateio extends Exchange {
         } else if (side === '2') {
             side = 'buy';
         }
-        const price = this.safeFloat2 (order, 'initialRate', 'rate');
-        const average = this.safeFloat (order, 'filledRate');
-        const amount = this.safeFloat2 (order, 'initialAmount', 'amount');
-        const filled = this.safeFloat (order, 'filledAmount');
+        const price = this.safeNumber2 (order, 'initialRate', 'rate');
+        const average = this.safeNumber (order, 'filledRate');
+        const amount = this.safeNumber2 (order, 'initialAmount', 'amount');
+        const filled = this.safeNumber (order, 'filledAmount');
         // In the order status response, this field has a different name.
-        const remaining = this.safeFloat2 (order, 'leftAmount', 'left');
-        const feeCost = this.safeFloat (order, 'feeValue');
+        const remaining = this.safeNumber2 (order, 'leftAmount', 'left');
+        const feeCost = this.safeNumber (order, 'feeValue');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-        let feeRate = this.safeFloat (order, 'feePercentage');
+        let feeRate = this.safeNumber (order, 'feePercentage');
         if (feeRate !== undefined) {
             feeRate = feeRate / 100;
         }
@@ -897,7 +898,7 @@ module.exports = class gateio extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const id = this.safeString (transaction, 'id');
         const txid = this.safeString (transaction, 'txid');
-        let amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeNumber (transaction, 'amount');
         let address = this.safeString (transaction, 'address');
         if (address === 'false') {
             address = undefined;
@@ -905,7 +906,7 @@ module.exports = class gateio extends Exchange {
         const timestamp = this.safeTimestamp (transaction, 'timestamp');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const type = this.parseTransactionType (id[0]);
-        const feeCost = this.safeFloat (transaction, 'fee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {

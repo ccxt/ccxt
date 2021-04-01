@@ -37,7 +37,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.45.44';
+$version = '1.45.79';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -56,7 +56,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.45.44';
+    const VERSION = '1.45.79';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -106,7 +106,6 @@ class Exchange {
         'bytetrade',
         'cdax',
         'cex',
-        'chilebit',
         'coinbase',
         'coinbaseprime',
         'coinbasepro',
@@ -367,6 +366,7 @@ class Exchange {
         'integerPow' => 'integer_pow',
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeOrder' => 'safe_order',
+        'parseNumber' => 'parse_number',
         'safeNumber' => 'safe_number',
         'safeNumber2' => 'safe_number2',
     );
@@ -1754,8 +1754,8 @@ class Exchange {
     }
 
     public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
-        $price = $this->number($bidask[$price_key]);
-        $amount = $this->number($bidask[$amount_key]);
+        $price = $this->safe_number($bidask, $price_key);
+        $amount = $this->safe_number($bidask, $amount_key);
         return array($price, $amount);
     }
 
@@ -2911,6 +2911,8 @@ class Exchange {
             // ensure $amount = $filled . $remaining
             if ($filled !== null && $remaining !== null) {
                 $amount = $this->sum($filled, $remaining);
+            } else if ($this->safe_string($order, 'status') === 'closed') {
+                $amount = $filled;
             }
         }
         if ($filled === null) {
@@ -2949,6 +2951,18 @@ class Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
         ));
+    }
+
+    public function parse_number($value, $default = null) {
+        if ($value === null) {
+            return $default;
+        } else {
+            try {
+                return $this->number($value);
+            } catch (Exception $e) {
+                return $default;
+            }
+        }
     }
 
     public function safe_number($object, $key, $default = null) {

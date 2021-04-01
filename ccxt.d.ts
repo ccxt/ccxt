@@ -467,7 +467,6 @@ declare module 'ccxt' {
     export class bytetrade extends Exchange {}
     export class cdax extends huobipro {}
     export class cex extends Exchange {}
-    export class chilebit extends foxbit {}
     export class coinbase extends Exchange {}
     export class coinbaseprime extends coinbasepro {}
     export class coinbasepro extends Exchange {}
@@ -595,7 +594,6 @@ declare module 'ccxt' {
         | 'bytetrade'
         | 'cdax'
         | 'cex'
-        | 'chilebit'
         | 'coinbase'
         | 'coinbaseprime'
         | 'coinbasepro'

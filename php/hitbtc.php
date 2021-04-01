@@ -941,7 +941,7 @@ class hitbtc extends Exchange {
         $side = $this->safe_string($order, 'side');
         $trades = $this->safe_value($order, 'tradesReport');
         $fee = null;
-        $average = $this->safe_value($order, 'avgPrice');
+        $average = $this->safe_number($order, 'avgPrice');
         if ($trades !== null) {
             $trades = $this->parse_trades($trades, $market);
         }

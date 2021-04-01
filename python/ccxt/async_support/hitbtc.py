@@ -896,7 +896,7 @@ class hitbtc(Exchange):
         side = self.safe_string(order, 'side')
         trades = self.safe_value(order, 'tradesReport')
         fee = None
-        average = self.safe_value(order, 'avgPrice')
+        average = self.safe_number(order, 'avgPrice')
         if trades is not None:
             trades = self.parse_trades(trades, market)
         timeInForce = self.safe_string(order, 'timeInForce')

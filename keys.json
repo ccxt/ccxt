@@ -17,6 +17,7 @@
     "coss":          { "skip": true },
     "digifinex":     { "skip": true },
     "dsx":           { "skip": true },
+    "equos":         { "skip": true },
     "eterbase":      { "skip": true },
     "ethfinex":      { "skip": true },
     "exx":           { "skip": true },

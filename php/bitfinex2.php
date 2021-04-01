@@ -727,26 +727,26 @@ class bitfinex2 extends bitfinex {
             $symbol = $market['symbol'];
         }
         $length = is_array($ticker) ? count($ticker) : 0;
-        $last = $ticker[$length - 4];
+        $last = $this->safe_number($ticker, $length - 4);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $ticker[$length - 2],
-            'low' => $ticker[$length - 1],
-            'bid' => $ticker[$length - 10],
+            'high' => $this->safe_number($ticker, $length - 2),
+            'low' => $this->safe_number($ticker, $length - 1),
+            'bid' => $this->safe_number($ticker, $length - 10),
             'bidVolume' => null,
-            'ask' => $ticker[$length - 8],
+            'ask' => $this->safe_number($ticker, $length - 8),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $ticker[$length - 6],
-            'percentage' => $ticker[$length - 5] * 100,
+            'change' => $this->safe_number($ticker, $length - 6),
+            'percentage' => $this->safe_number($ticker, $length - 5) * 100,
             'average' => null,
-            'baseVolume' => $ticker[$length - 3],
+            'baseVolume' => $this->safe_number($ticker, $length - 3),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -1004,9 +1004,10 @@ class bitfinex2 extends bitfinex {
         // $timestamp = $this->safe_timestamp($order, 5);
         $timestamp = $this->safe_integer($order, 5);
         $remaining = abs($this->safe_number($order, 6));
-        $amount = abs($this->safe_number($order, 7));
+        $signedAmount = $this->safe_number($order, 7);
+        $amount = abs($signedAmount);
         $filled = $amount - $remaining;
-        $side = ($order[7] < 0) ? 'sell' : 'buy';
+        $side = ($signedAmount < 0) ? 'sell' : 'buy';
         $orderType = $this->safe_string($order, 8);
         $type = $this->safe_string($this->safe_value($this->options, 'exchangeTypes'), $orderType);
         $status = null;

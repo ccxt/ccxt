@@ -563,7 +563,7 @@ class binance(Exchange):
                 'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
                 'newOrderRespType': {
                     'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-                    'limit': 'RESULT',  # we change it from 'ACK' by default to 'RESULT'
+                    'limit': 'FULL',  # we change it from 'ACK' by default to 'FULL'(returns immediately if limit is not hit)
                 },
                 'quoteOrderQty': True,  # whether market orders support amounts in quote currency
                 'broker': {
@@ -784,7 +784,7 @@ class binance(Exchange):
             for j in range(0, len(networkList)):
                 networkItem = networkList[j]
                 name = self.safe_string(networkItem, 'name')
-                withdrawFee = self.safe_float(networkItem, 'withdrawFee')
+                withdrawFee = self.safe_number(networkItem, 'withdrawFee')
                 depositEnable = self.safe_value(networkItem, 'depositEnable')
                 withdrawEnable = self.safe_value(networkItem, 'withdrawEnable')
                 isDepositEnabled = isDepositEnabled or depositEnable
@@ -1033,10 +1033,10 @@ class binance(Exchange):
                 # https://github.com/ccxt/ccxt/issues/4286
                 # therefore limits['price']['max'] doesn't have any meaningful value except None
                 entry['limits']['price'] = {
-                    'min': self.safe_float(filter, 'minPrice'),
+                    'min': self.safe_number(filter, 'minPrice'),
                     'max': None,
                 }
-                maxPrice = self.safe_float(filter, 'maxPrice')
+                maxPrice = self.safe_number(filter, 'maxPrice')
                 if (maxPrice is not None) and (maxPrice > 0):
                     entry['limits']['price']['max'] = maxPrice
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
@@ -1045,18 +1045,18 @@ class binance(Exchange):
                 stepSize = self.safe_string(filter, 'stepSize')
                 entry['precision']['amount'] = self.precision_from_string(stepSize)
                 entry['limits']['amount'] = {
-                    'min': self.safe_float(filter, 'minQty'),
-                    'max': self.safe_float(filter, 'maxQty'),
+                    'min': self.safe_number(filter, 'minQty'),
+                    'max': self.safe_number(filter, 'maxQty'),
                 }
             if 'MARKET_LOT_SIZE' in filtersByType:
                 filter = self.safe_value(filtersByType, 'MARKET_LOT_SIZE', {})
                 entry['limits']['market'] = {
-                    'min': self.safe_float(filter, 'minQty'),
-                    'max': self.safe_float(filter, 'maxQty'),
+                    'min': self.safe_number(filter, 'minQty'),
+                    'max': self.safe_number(filter, 'maxQty'),
                 }
             if 'MIN_NOTIONAL' in filtersByType:
                 filter = self.safe_value(filtersByType, 'MIN_NOTIONAL', {})
-                entry['limits']['cost']['min'] = self.safe_float_2(filter, 'minNotional', 'notional')
+                entry['limits']['cost']['min'] = self.safe_number_2(filter, 'minNotional', 'notional')
             result.append(entry)
         return result
 
@@ -1248,8 +1248,8 @@ class binance(Exchange):
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['free'] = self.safe_float(balance, 'free')
-                account['used'] = self.safe_float(balance, 'locked')
+                account['free'] = self.safe_number(balance, 'free')
+                account['used'] = self.safe_number(balance, 'locked')
                 result[code] = account
         else:
             balances = response
@@ -1260,9 +1260,9 @@ class binance(Exchange):
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['free'] = self.safe_float(balance, 'availableBalance')
-                account['used'] = self.safe_float(balance, 'initialMargin')
-                account['total'] = self.safe_float_2(balance, 'marginBalance', 'balance')
+                account['free'] = self.safe_number(balance, 'availableBalance')
+                account['used'] = self.safe_number(balance, 'initialMargin')
+                account['total'] = self.safe_number_2(balance, 'marginBalance', 'balance')
                 result[code] = account
         return self.parse_balance(result)
 
@@ -1313,27 +1313,27 @@ class binance(Exchange):
         timestamp = self.safe_integer(ticker, 'closeTime')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_float(ticker, 'lastPrice')
+        last = self.safe_number(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'highPrice'),
-            'low': self.safe_float(ticker, 'lowPrice'),
-            'bid': self.safe_float(ticker, 'bidPrice'),
-            'bidVolume': self.safe_float(ticker, 'bidQty'),
-            'ask': self.safe_float(ticker, 'askPrice'),
-            'askVolume': self.safe_float(ticker, 'askQty'),
-            'vwap': self.safe_float(ticker, 'weightedAvgPrice'),
-            'open': self.safe_float(ticker, 'openPrice'),
+            'high': self.safe_number(ticker, 'highPrice'),
+            'low': self.safe_number(ticker, 'lowPrice'),
+            'bid': self.safe_number(ticker, 'bidPrice'),
+            'bidVolume': self.safe_number(ticker, 'bidQty'),
+            'ask': self.safe_number(ticker, 'askPrice'),
+            'askVolume': self.safe_number(ticker, 'askQty'),
+            'vwap': self.safe_number(ticker, 'weightedAvgPrice'),
+            'open': self.safe_number(ticker, 'openPrice'),
             'close': last,
             'last': last,
-            'previousClose': self.safe_float(ticker, 'prevClosePrice'),  # previous day close
-            'change': self.safe_float(ticker, 'priceChange'),
-            'percentage': self.safe_float(ticker, 'priceChangePercent'),
+            'previousClose': self.safe_number(ticker, 'prevClosePrice'),  # previous day close
+            'change': self.safe_number(ticker, 'priceChange'),
+            'percentage': self.safe_number(ticker, 'priceChangePercent'),
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
+            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
@@ -1415,11 +1415,11 @@ class binance(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 0),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 5),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -1544,8 +1544,8 @@ class binance(Exchange):
         #     }
         #
         timestamp = self.safe_integer_2(trade, 'T', 'time')
-        price = self.safe_float_2(trade, 'p', 'price')
-        amount = self.safe_float_2(trade, 'q', 'qty')
+        price = self.safe_number_2(trade, 'p', 'price')
+        amount = self.safe_number_2(trade, 'q', 'qty')
         id = self.safe_string_2(trade, 'a', 'id')
         side = None
         orderId = self.safe_string(trade, 'orderId')
@@ -1561,7 +1561,7 @@ class binance(Exchange):
         fee = None
         if 'commission' in trade:
             fee = {
-                'cost': self.safe_float(trade, 'commission'),
+                'cost': self.safe_number(trade, 'commission'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
         takerOrMaker = None
@@ -1683,7 +1683,7 @@ class binance(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        #  spot
+        # spot
         #
         #     {
         #         "symbol": "LTCBTC",
@@ -1704,7 +1704,7 @@ class binance(Exchange):
         #         "isWorking": True
         #     }
         #
-        #  futures
+        # futures
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -1722,6 +1722,33 @@ class binance(Exchange):
         #         "updateTime": 1499827319559
         #     }
         #
+        # createOrder with {"newOrderRespType": "FULL"}
+        #
+        #     {
+        #       "symbol": "BTCUSDT",
+        #       "orderId": 5403233939,
+        #       "orderListId": -1,
+        #       "clientOrderId": "x-R4BD3S825e669e75b6c14f69a2c43e",
+        #       "transactTime": 1617151923742,
+        #       "price": "0.00000000",
+        #       "origQty": "0.00050000",
+        #       "executedQty": "0.00050000",
+        #       "cummulativeQuoteQty": "29.47081500",
+        #       "status": "FILLED",
+        #       "timeInForce": "GTC",
+        #       "type": "MARKET",
+        #       "side": "BUY",
+        #       "fills": [
+        #         {
+        #           "price": "58941.63000000",
+        #           "qty": "0.00050000",
+        #           "commission": "0.00007050",
+        #           "commissionAsset": "BNB",
+        #           "tradeId": 737466631
+        #         }
+        #       ]
+        #     }
+        #
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -1730,63 +1757,25 @@ class binance(Exchange):
             timestamp = self.safe_integer(order, 'time')
         elif 'transactTime' in order:
             timestamp = self.safe_integer(order, 'transactTime')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'origQty')
-        filled = self.safe_float(order, 'executedQty')
-        remaining = None
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'origQty')
+        filled = self.safe_number(order, 'executedQty')
         # - Spot/Margin market: cummulativeQuoteQty
         # - Futures market: cumQuote.
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
-        cost = self.safe_float_2(order, 'cummulativeQuoteQty', 'cumQuote')
-        if filled is not None:
-            if amount is not None:
-                remaining = amount - filled
-                if self.options['parseOrderToPrecision']:
-                    remaining = float(self.amount_to_precision(symbol, remaining))
-                remaining = max(remaining, 0.0)
-            if price is not None:
-                if cost is None:
-                    cost = price * filled
+        cost = self.safe_number_2(order, 'cummulativeQuoteQty', 'cumQuote')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
-        if type == 'market':
-            if price == 0.0:
-                if (cost is not None) and (filled is not None):
-                    if (cost > 0) and (filled > 0):
-                        price = cost / filled
-                        if self.options['parseOrderToPrecision']:
-                            price = float(self.price_to_precision(symbol, price))
-        elif type == 'limit_maker':
+        if type == 'limit_maker':
             type = 'limit'
         side = self.safe_string_lower(order, 'side')
-        fee = None
-        trades = None
-        fills = self.safe_value(order, 'fills')
-        if fills is not None:
-            trades = self.parse_trades(fills, market)
-            numTrades = len(trades)
-            if numTrades > 0:
-                cost = trades[0]['cost']
-                fee = {
-                    'cost': trades[0]['fee']['cost'],
-                    'currency': trades[0]['fee']['currency'],
-                }
-                for i in range(1, len(trades)):
-                    cost = self.sum(cost, trades[i]['cost'])
-                    fee['cost'] = self.sum(fee['cost'], trades[i]['fee']['cost'])
-        average = None
-        if cost is not None:
-            if filled:
-                average = cost / filled
-                if self.options['parseOrderToPrecision']:
-                    average = float(self.price_to_precision(symbol, average))
-            if self.options['parseOrderToPrecision']:
-                cost = float(self.cost_to_precision(symbol, cost))
+        fills = self.safe_value(order, 'fills', [])
+        trades = self.parse_trades(fills, market)
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX')
-        stopPrice = self.safe_float(order, 'stopPrice')
-        return {
+        stopPrice = self.safe_number(order, 'stopPrice')
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1802,13 +1791,13 @@ class binance(Exchange):
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': None,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
-            'fee': fee,
+            'fee': None,
             'trades': trades,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -1847,8 +1836,11 @@ class binance(Exchange):
                     request['newClientOrderId'] = brokerId + self.uuid22()
         else:
             request['newClientOrderId'] = clientOrderId
-        if market['spot']:
+        if (orderType == 'spot') or (orderType == 'margin'):
             request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        else:
+            # delivery and future
+            request['newOrderRespType'] = 'RESULT'  # "ACK", "RESULT", default "ACK"
         # additional required fields depending on the order type
         timeInForceIsRequired = False
         priceIsRequired = False
@@ -1877,7 +1869,7 @@ class binance(Exchange):
         if uppercaseType == 'MARKET':
             quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
             if quoteOrderQty:
-                quoteOrderQty = self.safe_float(params, 'quoteOrderQty')
+                quoteOrderQty = self.safe_number(params, 'quoteOrderQty')
                 precision = market['precision']['price']
                 if quoteOrderQty is not None:
                     request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
@@ -1916,7 +1908,7 @@ class binance(Exchange):
             stopPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
             quantityIsRequired = True
-            callbackRate = self.safe_float(params, 'callbackRate')
+            callbackRate = self.safe_number(params, 'callbackRate')
             if callbackRate is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a callbackRate extra param for a ' + type + ' order')
         if quantityIsRequired:
@@ -1928,7 +1920,7 @@ class binance(Exchange):
         if timeInForceIsRequired:
             request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
         if stopPriceIsRequired:
-            stopPrice = self.safe_float(params, 'stopPrice')
+            stopPrice = self.safe_number(params, 'stopPrice')
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order')
             else:
@@ -2336,7 +2328,7 @@ class binance(Exchange):
         #
         fee = {
             'currency': earnedCurrency,
-            'cost': self.safe_float(trade, 'serviceChargeAmount'),
+            'cost': self.safe_number(trade, 'serviceChargeAmount'),
         }
         symbol = None
         amount = None
@@ -2344,13 +2336,13 @@ class binance(Exchange):
         side = None
         if tradedCurrencyIsQuote:
             symbol = applicantSymbol
-            amount = self.sum(self.safe_float(trade, 'transferedAmount'), fee['cost'])
-            cost = self.safe_float(trade, 'amount')
+            amount = self.sum(self.safe_number(trade, 'transferedAmount'), fee['cost'])
+            cost = self.safe_number(trade, 'amount')
             side = 'buy'
         else:
             symbol = tradedCurrency + '/' + earnedCurrency
-            amount = self.safe_float(trade, 'amount')
-            cost = self.sum(self.safe_float(trade, 'transferedAmount'), fee['cost'])
+            amount = self.safe_number(trade, 'amount')
+            cost = self.sum(self.safe_number(trade, 'transferedAmount'), fee['cost'])
             side = 'sell'
         price = None
         if cost is not None:
@@ -2507,8 +2499,8 @@ class binance(Exchange):
                 type = 'withdrawal'
                 timestamp = applyTime
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
-        amount = self.safe_float(transaction, 'amount')
-        feeCost = self.safe_float(transaction, 'transactionFee')
+        amount = self.safe_number(transaction, 'amount')
+        feeCost = self.safe_number(transaction, 'transactionFee')
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
@@ -2561,7 +2553,7 @@ class binance(Exchange):
         id = self.safe_string(transfer, 'tranId')
         currencyId = self.safe_string(transfer, 'asset')
         code = self.safe_currency_code(currencyId, currency)
-        amount = self.safe_float(transfer, 'amount')
+        amount = self.safe_number(transfer, 'amount')
         type = self.safe_string(transfer, 'type')
         fromAccount = None
         toAccount = None
@@ -2726,7 +2718,7 @@ class binance(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             code = self.safe_currency_code(id)
-            withdrawFees[code] = self.safe_float(detail[id], 'withdrawFee')
+            withdrawFees[code] = self.safe_number(detail[id], 'withdrawFee')
         return {
             'withdraw': withdrawFees,
             'deposit': {},
@@ -2769,8 +2761,8 @@ class binance(Exchange):
         return {
             'info': fee,
             'symbol': symbol,
-            'maker': self.safe_float(fee, 'maker'),
-            'taker': self.safe_float(fee, 'taker'),
+            'maker': self.safe_number(fee, 'maker'),
+            'taker': self.safe_number(fee, 'taker'),
         }
 
     def fetch_trading_fee(self, symbol, params={}):

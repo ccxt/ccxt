@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.45.44'
+__version__ = '1.45.79'
 
 # -----------------------------------------------------------------------------
 
@@ -1493,7 +1493,7 @@ class Exchange(object):
         return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
     def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
-        return [self.number(bidask[price_key]), self.number(bidask[amount_key])]
+        return [self.safe_number(bidask, price_key), self.safe_number(bidask, amount_key)]
 
     def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
         result = []
@@ -2218,6 +2218,8 @@ class Exchange(object):
             # ensure amount = filled + remaining
             if filled is not None and remaining is not None:
                 amount = self.sum(filled, remaining)
+            elif self.safe_string(order, 'status') == 'closed':
+                amount = filled
         if filled is None:
             if amount is not None and remaining is not None:
                 filled = max(self.sum(amount, -remaining), 0)
@@ -2246,6 +2248,15 @@ class Exchange(object):
             'filled': filled,
             'remaining': remaining,
         })
+
+    def parse_number(self, value, default=None):
+        if value is None:
+            return default
+        else:
+            try:
+                return self.number(value)
+            except Exception:
+                return default
 
     def safe_number(self, dictionary, key, default=None):
         value = self.safe_string(dictionary, key)

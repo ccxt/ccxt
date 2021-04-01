@@ -8,6 +8,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -197,6 +198,7 @@ class liquid(Exchange):
                 'less_than_order_size': InvalidOrder,
                 'price_too_high': InvalidOrder,
                 'price_too_small': InvalidOrder,  # {"errors":{"order":["price_too_small"]}}
+                'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',

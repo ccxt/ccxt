@@ -243,11 +243,11 @@ class poloniex extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 'date'),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'quoteVolume'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'quoteVolume'),
         );
     }
 
@@ -340,8 +340,8 @@ class poloniex extends Exchange {
             $balance = $this->safe_value($response, $currencyId, array());
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'available');
-            $account['used'] = $this->safe_float($balance, 'onOrders');
+            $account['free'] = $this->safe_number($balance, 'available');
+            $account['used'] = $this->safe_number($balance, 'onOrders');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -362,8 +362,8 @@ class poloniex extends Exchange {
         //
         return array(
             'info' => $fees,
-            'maker' => $this->safe_float($fees, 'makerFee'),
-            'taker' => $this->safe_float($fees, 'takerFee'),
+            'maker' => $this->safe_number($fees, 'makerFee'),
+            'taker' => $this->safe_number($fees, 'takerFee'),
             'withdraw' => array(),
             'deposit' => array(),
         );
@@ -421,8 +421,8 @@ class poloniex extends Exchange {
         $open = null;
         $change = null;
         $average = null;
-        $last = $this->safe_float($ticker, 'last');
-        $relativeChange = $this->safe_float($ticker, 'percentChange');
+        $last = $this->safe_number($ticker, 'last');
+        $relativeChange = $this->safe_number($ticker, 'percentChange');
         if ($relativeChange !== -1) {
             $open = $last / $this->sum(1, $relativeChange);
             $change = $last - $open;
@@ -432,11 +432,11 @@ class poloniex extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high24hr'),
-            'low' => $this->safe_float($ticker, 'low24hr'),
-            'bid' => $this->safe_float($ticker, 'highestBid'),
+            'high' => $this->safe_number($ticker, 'high24hr'),
+            'low' => $this->safe_number($ticker, 'low24hr'),
+            'bid' => $this->safe_number($ticker, 'highestBid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'lowestAsk'),
+            'ask' => $this->safe_number($ticker, 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -446,8 +446,8 @@ class poloniex extends Exchange {
             'change' => $change,
             'percentage' => $relativeChange * 100,
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'quoteVolume'),
-            'quoteVolume' => $this->safe_float($ticker, 'baseVolume'),
+            'baseVolume' => $this->safe_number($ticker, 'quoteVolume'),
+            'quoteVolume' => $this->safe_number($ticker, 'baseVolume'),
             'info' => $ticker,
         );
     }
@@ -488,7 +488,7 @@ class poloniex extends Exchange {
             $code = $this->safe_currency_code($id);
             $active = ($currency['delisted'] === 0) && !$currency['disabled'];
             $numericId = $this->safe_integer($currency, 'id');
-            $fee = $this->safe_float($currency, 'txFee');
+            $fee = $this->safe_number($currency, 'txFee');
             $result[$code] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -579,13 +579,13 @@ class poloniex extends Exchange {
         }
         $side = $this->safe_string($trade, 'type');
         $fee = null;
-        $price = $this->safe_float($trade, 'rate');
-        $cost = $this->safe_float($trade, 'total');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'rate');
+        $cost = $this->safe_number($trade, 'total');
+        $amount = $this->safe_number($trade, 'amount');
         $feeDisplay = $this->safe_string($trade, 'feeDisplay');
         if ($feeDisplay !== null) {
             $parts = explode(' ', $feeDisplay);
-            $feeCost = $this->safe_float($parts, 0);
+            $feeCost = $this->safe_number($parts, 0);
             if ($feeCost !== null) {
                 $feeCurrencyId = $this->safe_string($parts, 1);
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
@@ -604,7 +604,7 @@ class poloniex extends Exchange {
             }
         }
         $takerOrMaker = null;
-        $takerAdjustment = $this->safe_float($trade, 'takerAdjustment');
+        $takerAdjustment = $this->safe_number($trade, 'takerAdjustment');
         if ($takerAdjustment !== null) {
             $takerOrMaker = 'taker';
         }
@@ -850,9 +850,9 @@ class poloniex extends Exchange {
         if ($resultingTrades !== null) {
             $trades = $this->parse_trades($resultingTrades, $market);
         }
-        $price = $this->safe_float_2($order, 'price', 'rate');
-        $remaining = $this->safe_float($order, 'amount');
-        $amount = $this->safe_float($order, 'startingAmount');
+        $price = $this->safe_number_2($order, 'price', 'rate');
+        $remaining = $this->safe_number($order, 'amount');
+        $amount = $this->safe_number($order, 'startingAmount');
         $filled = null;
         $cost = 0;
         if ($amount !== null) {
@@ -902,7 +902,7 @@ class poloniex extends Exchange {
         }
         $id = $this->safe_string($order, 'orderNumber');
         $fee = null;
-        $feeCost = $this->safe_float($order, 'fee');
+        $feeCost = $this->safe_number($order, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyCode = null;
             if ($market !== null) {
@@ -1399,11 +1399,11 @@ class poloniex extends Exchange {
         $defaultType = (is_array($transaction) && array_key_exists('withdrawalNumber', $transaction)) ? 'withdrawal' : 'deposit';
         $type = $this->safe_string($transaction, 'type', $defaultType);
         $id = $this->safe_string_2($transaction, 'withdrawalNumber', 'depositNumber');
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'paymentID');
         // according to https://poloniex.com/fees/
-        $feeCost = $this->safe_float($transaction, 'fee', 0);
+        $feeCost = $this->safe_number($transaction, 'fee', 0);
         if ($type === 'withdrawal') {
             // poloniex withdrawal $amount includes the fee
             $amount = $amount - $feeCost;

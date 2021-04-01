@@ -565,13 +565,13 @@ module.exports = class wavesexchange extends Exchange {
             symbol = market['symbol'];
         }
         const data = this.safeValue (ticker, 'data', {});
-        const last = this.safeFloat (data, 'lastPrice');
-        const low = this.safeFloat (data, 'low');
-        const high = this.safeFloat (data, 'high');
-        const vwap = this.safeFloat (data, 'weightedAveragePrice');
-        const baseVolume = this.safeFloat (data, 'volume');
-        const quoteVolume = this.safeFloat (data, 'quoteVolume');
-        const open = this.safeFloat (data, 'firstPrice');
+        const last = this.safeNumber (data, 'lastPrice');
+        const low = this.safeNumber (data, 'low');
+        const high = this.safeNumber (data, 'high');
+        const vwap = this.safeNumber (data, 'weightedAveragePrice');
+        const baseVolume = this.safeNumber (data, 'volume');
+        const quoteVolume = this.safeNumber (data, 'quoteVolume');
+        const open = this.safeNumber (data, 'firstPrice');
         let change = undefined;
         let average = undefined;
         let percentage = undefined;
@@ -725,11 +725,11 @@ module.exports = class wavesexchange extends Exchange {
         const data = this.safeValue (ohlcv, 'data', {});
         return [
             this.parse8601 (this.safeString (data, 'time')),
-            this.safeFloat (data, 'open'),
-            this.safeFloat (data, 'high'),
-            this.safeFloat (data, 'low'),
-            this.safeFloat (data, 'close'),
-            this.safeFloat (data, 'volume', 0),
+            this.safeNumber (data, 'open'),
+            this.safeNumber (data, 'high'),
+            this.safeNumber (data, 'low'),
+            this.safeNumber (data, 'close'),
+            this.safeNumber (data, 'volume', 0),
         ];
     }
 
@@ -944,7 +944,7 @@ module.exports = class wavesexchange extends Exchange {
         }
         if (matcherFee === undefined) {
             const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
-            const rate = this.safeFloat (rates, matcherFeeAssetId);
+            const rate = this.safeNumber (rates, matcherFeeAssetId);
             const code = this.safeCurrencyCode (matcherFeeAssetId);
             const currency = this.currency (code);
             const newPrecison = Math.pow (10, wavesPrecision - currency['precision']);
@@ -1354,7 +1354,7 @@ module.exports = class wavesexchange extends Exchange {
             const issueTransaction = this.safeValue (entry, 'issueTransaction');
             const decimals = this.safeInteger (issueTransaction, 'decimals');
             const currencyId = this.safeString (entry, 'assetId');
-            const balance = this.safeFloat (entry, 'balance');
+            const balance = this.safeNumber (entry, 'balance');
             let code = undefined;
             if (currencyId in this.currencies_by_id) {
                 code = this.safeCurrencyCode (currencyId);
@@ -1384,7 +1384,7 @@ module.exports = class wavesexchange extends Exchange {
             if (!(code in result)) {
                 result[code] = this.account ();
             }
-            const amount = this.safeFloat (reservedBalance, currencyId);
+            const amount = this.safeNumber (reservedBalance, currencyId);
             result[code]['used'] = this.currencyFromPrecision (code, amount);
         }
         const wavesRequest = {
@@ -1397,7 +1397,7 @@ module.exports = class wavesexchange extends Exchange {
         //   "balance": 909085978
         // }
         result['WAVES'] = this.safeValue (result, 'WAVES', {});
-        result['WAVES']['total'] = this.currencyFromPrecision ('WAVES', this.safeFloat (wavesTotal, 'balance'));
+        result['WAVES']['total'] = this.currencyFromPrecision ('WAVES', this.safeNumber (wavesTotal, 'balance'));
         const codes = Object.keys (result);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -1489,8 +1489,8 @@ module.exports = class wavesexchange extends Exchange {
         const datetime = this.safeString (data, 'timestamp');
         const timestamp = this.parse8601 (datetime);
         const id = this.safeString (data, 'id');
-        const price = this.safeFloat (data, 'price');
-        const amount = this.safeFloat (data, 'amount');
+        const price = this.safeNumber (data, 'price');
+        const amount = this.safeNumber (data, 'amount');
         const order1 = this.safeValue (data, 'order1');
         const order2 = this.safeValue (data, 'order2');
         let order = undefined;
@@ -1514,7 +1514,7 @@ module.exports = class wavesexchange extends Exchange {
             cost = price * amount;
         }
         const fee = {
-            'cost': this.safeFloat (data, 'fee'),
+            'cost': this.safeNumber (data, 'fee'),
             'currency': this.safeCurrencyCode (this.safeString (order, 'matcherFeeAssetId', 'WAVES')),
         };
         return {
@@ -1596,7 +1596,7 @@ module.exports = class wavesexchange extends Exchange {
             const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
             const currency = this.safeValue (withdrawAddress, 'currency');
             const allowedAmount = this.safeValue (currency, 'allowed_amount');
-            const minimum = this.safeFloat (allowedAmount, 'min');
+            const minimum = this.safeNumber (allowedAmount, 'min');
             if (amount <= minimum) {
                 throw new BadRequest (this.id + ' ' + code + ' withdraw failed, amount ' + amount.toString () + ' must be greater than the minimum allowed amount of ' + minimum.toString ());
             }

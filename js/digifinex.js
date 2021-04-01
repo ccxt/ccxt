@@ -240,7 +240,7 @@ module.exports = class digifinex extends Exchange {
             const depositStatus = this.safeValue (currency, 'deposit_status', 1);
             const withdrawStatus = this.safeValue (currency, 'withdraw_status', 1);
             const active = depositStatus && withdrawStatus;
-            const fee = this.safeFloat (currency, 'withdraw_fee_rate');
+            const fee = this.safeNumber (currency, 'withdraw_fee_rate');
             if (code in result) {
                 if (Array.isArray (result[code]['info'])) {
                     result[code]['info'].push (currency);
@@ -271,7 +271,7 @@ module.exports = class digifinex extends Exchange {
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': this.safeFloat (currency, 'min_withdraw_amount'),
+                            'min': this.safeNumber (currency, 'min_withdraw_amount'),
                             'max': undefined,
                         },
                     },
@@ -325,7 +325,7 @@ module.exports = class digifinex extends Exchange {
             };
             const limits = {
                 'amount': {
-                    'min': this.safeFloat (market, 'minimum_amount'),
+                    'min': this.safeNumber (market, 'minimum_amount'),
                     'max': undefined,
                 },
                 'price': {
@@ -333,7 +333,7 @@ module.exports = class digifinex extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.safeFloat (market, 'minimum_value'),
+                    'min': this.safeNumber (market, 'minimum_value'),
                     'max': undefined,
                 },
             };
@@ -347,7 +347,7 @@ module.exports = class digifinex extends Exchange {
             // const status = this.safeString (market, 'status');
             // const active = (status === 'TRADING');
             //
-            const isAllowed = this.safeValue (market, 'is_allow', 1);
+            const isAllowed = this.safeInteger (market, 'is_allow', 1);
             const active = isAllowed ? true : false;
             const type = 'spot';
             const spot = (type === 'spot');
@@ -403,7 +403,7 @@ module.exports = class digifinex extends Exchange {
             };
             const limits = {
                 'amount': {
-                    'min': this.safeFloat (market, 'min_volume'),
+                    'min': this.safeNumber (market, 'min_volume'),
                     'max': undefined,
                 },
                 'price': {
@@ -411,7 +411,7 @@ module.exports = class digifinex extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.safeFloat (market, 'min_amount'),
+                    'min': this.safeNumber (market, 'min_amount'),
                     'max': undefined,
                 },
             };
@@ -456,9 +456,9 @@ module.exports = class digifinex extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeFloat (balance, 'frozen');
-            account['free'] = this.safeFloat (balance, 'free');
-            account['total'] = this.safeFloat (balance, 'total');
+            account['used'] = this.safeNumber (balance, 'frozen');
+            account['free'] = this.safeNumber (balance, 'free');
+            account['total'] = this.safeNumber (balance, 'total');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -579,17 +579,17 @@ module.exports = class digifinex extends Exchange {
         const marketId = this.safeStringUpper (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeTimestamp (ticker, 'date');
-        const last = this.safeFloat (ticker, 'last');
-        const percentage = this.safeFloat (ticker, 'change');
+        const last = this.safeNumber (ticker, 'last');
+        const percentage = this.safeNumber (ticker, 'change');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -599,8 +599,8 @@ module.exports = class digifinex extends Exchange {
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'base_vol'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'quoteVolume': this.safeNumber (ticker, 'base_vol'),
             'info': ticker,
         };
     }
@@ -636,8 +636,8 @@ module.exports = class digifinex extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const timestamp = this.safeTimestamp2 (trade, 'date', 'timestamp');
         const side = this.safeString2 (trade, 'type', 'side');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'amount');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -647,7 +647,7 @@ module.exports = class digifinex extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         const takerOrMaker = this.safeValue (trade, 'is_maker');
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
@@ -749,11 +749,11 @@ module.exports = class digifinex extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 0),
-            this.safeFloat (ohlcv, 5), // open
-            this.safeFloat (ohlcv, 3), // high
-            this.safeFloat (ohlcv, 4), // low
-            this.safeFloat (ohlcv, 2), // close
-            this.safeFloat (ohlcv, 1), // volume
+            this.safeNumber (ohlcv, 5), // open
+            this.safeNumber (ohlcv, 3), // high
+            this.safeNumber (ohlcv, 4), // low
+            this.safeNumber (ohlcv, 2), // close
+            this.safeNumber (ohlcv, 1), // volume
         ];
     }
 
@@ -944,10 +944,10 @@ module.exports = class digifinex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const amount = this.safeFloat (order, 'amount');
-        const filled = this.safeFloat (order, 'executed_amount');
-        const price = this.safeFloat (order, 'price');
-        const average = this.safeFloat (order, 'avg_price');
+        const amount = this.safeNumber (order, 'amount');
+        const filled = this.safeNumber (order, 'executed_amount');
+        const price = this.safeNumber (order, 'price');
+        const average = this.safeNumber (order, 'avg_price');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1164,7 +1164,7 @@ module.exports = class digifinex extends Exchange {
         const code = this.safeCurrencyCode (this.safeString (item, 'currency_mark'), currency);
         const timestamp = this.safeTimestamp (item, 'time');
         const before = undefined;
-        const after = this.safeFloat (item, 'balance');
+        const after = this.safeNumber (item, 'balance');
         const status = 'ok';
         return {
             'info': item,
@@ -1379,8 +1379,8 @@ module.exports = class digifinex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_date'));
         const updated = this.parse8601 (this.safeString (transaction, 'finished_date'));
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const amount = this.safeFloat (transaction, 'amount');
-        const feeCost = this.safeFloat (transaction, 'fee');
+        const amount = this.safeNumber (transaction, 'amount');
+        const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };

@@ -317,6 +317,9 @@ class bybit extends Exchange {
                     'LTC/USDT' => 'linear',
                     'XTZ/USDT' => 'linear',
                     'LINK/USDT' => 'linear',
+                    'ADA/USDT' => 'linear',
+                    'DOT/USDT' => 'linear',
+                    'UNI/USDT' => 'linear',
                 ),
                 'defaultType' => 'linear',  // may also be inverse or inverseFuture
                 'code' => 'BTC',
@@ -1127,8 +1130,8 @@ class bybit extends Exchange {
         //
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = null;
-        $base = null;
+        $symbol = $market['symbol'];
+        $feeCurrency = null;
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $id = $this->safe_string_2($order, 'order_id', 'stop_order_id');
         $type = $this->safe_string_lower($order, 'order_type');
@@ -1141,32 +1144,18 @@ class bybit extends Exchange {
         $cost = $this->safe_number($order, 'cum_exec_value');
         $filled = $this->safe_number($order, 'cum_exec_qty');
         $remaining = $this->safe_number($order, 'leaves_qty');
+        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
+        $marketType = $this->safe_string($marketTypes, $symbol);
         if ($market !== null) {
-            $symbol = $market['symbol'];
-            $base = $market['base'];
+            if ($marketType === 'linear') {
+                $feeCurrency = $market['quote'];
+            } else {
+                $feeCurrency = $market['base'];
+            }
         }
         $lastTradeTimestamp = $this->safe_timestamp($order, 'last_exec_time');
         if ($lastTradeTimestamp === 0) {
             $lastTradeTimestamp = null;
-        }
-        if (($filled === null) && ($amount !== null) && ($remaining !== null)) {
-            $filled = $amount - $remaining;
-        }
-        if ($filled !== null) {
-            if (($remaining === null) && ($amount !== null)) {
-                $remaining = $amount - $filled;
-            }
-            if ($cost === null) {
-                if ($price !== null) {
-                    $cost = $price * $filled;
-                }
-            }
-            if (($type === 'market') && ($cost !== null) && ($cost > 0)) {
-                $price = null;
-                if ($average === null) {
-                    $average = $filled / $cost;
-                }
-            }
         }
         $status = $this->parse_order_status($this->safe_string_2($order, 'order_status', 'stop_order_status'));
         $side = $this->safe_string_lower($order, 'side');
@@ -1176,7 +1165,7 @@ class bybit extends Exchange {
             $feeCost = abs($feeCost);
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $base,
+                'currency' => $feeCurrency,
             );
         }
         $clientOrderId = $this->safe_string($order, 'order_link_id');
@@ -1186,7 +1175,7 @@ class bybit extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_number($order, 'stop_px');
         $postOnly = ($timeInForce === 'PO');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1208,7 +1197,7 @@ class bybit extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

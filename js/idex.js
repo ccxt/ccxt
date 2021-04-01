@@ -260,16 +260,16 @@ module.exports = class idex extends Exchange {
         // }
         const marketId = this.safeString (ticker, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const baseVolume = this.safeFloat (ticker, 'baseVolume');
-        const quoteVolume = this.safeFloat (ticker, 'quoteVolume');
+        const baseVolume = this.safeNumber (ticker, 'baseVolume');
+        const quoteVolume = this.safeNumber (ticker, 'quoteVolume');
         const timestamp = this.safeInteger (ticker, 'time');
-        const open = this.safeFloat (ticker, 'open');
-        const high = this.safeFloat (ticker, 'high');
-        const low = this.safeFloat (ticker, 'low');
-        const close = this.safeFloat (ticker, 'close');
-        const ask = this.safeFloat (ticker, 'ask');
-        const bid = this.safeFloat (ticker, 'bid');
-        let percentage = this.safeFloat (ticker, 'percentChange');
+        const open = this.safeNumber (ticker, 'open');
+        const high = this.safeNumber (ticker, 'high');
+        const low = this.safeNumber (ticker, 'low');
+        const close = this.safeNumber (ticker, 'close');
+        const ask = this.safeNumber (ticker, 'ask');
+        const bid = this.safeNumber (ticker, 'bid');
+        let percentage = this.safeNumber (ticker, 'percentChange');
         if (percentage !== undefined) {
             percentage = 1 + percentage / 100;
         }
@@ -345,11 +345,11 @@ module.exports = class idex extends Exchange {
         //   sequence: 3853
         // }
         const timestamp = this.safeInteger (ohlcv, 'start');
-        const open = this.safeFloat (ohlcv, 'open');
-        const high = this.safeFloat (ohlcv, 'high');
-        const low = this.safeFloat (ohlcv, 'low');
-        const close = this.safeFloat (ohlcv, 'close');
-        const volume = this.safeFloat (ohlcv, 'volume');
+        const open = this.safeNumber (ohlcv, 'open');
+        const high = this.safeNumber (ohlcv, 'high');
+        const low = this.safeNumber (ohlcv, 'low');
+        const close = this.safeNumber (ohlcv, 'close');
+        const volume = this.safeNumber (ohlcv, 'volume');
         return [ timestamp, open, high, low, close, volume ];
     }
 
@@ -411,9 +411,9 @@ module.exports = class idex extends Exchange {
         //   txStatus: 'mined'
         // }
         const id = this.safeString (trade, 'fillId');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'quantity');
-        const cost = this.safeFloat (trade, 'quoteQuantity');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'quantity');
+        const cost = this.safeNumber (trade, 'quoteQuantity');
         const timestamp = this.safeInteger (trade, 'time');
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
@@ -422,7 +422,7 @@ module.exports = class idex extends Exchange {
         const oppositeSide = (makerSide === 'buy') ? 'sell' : 'buy';
         const side = this.safeString (trade, 'side', oppositeSide);
         const takerOrMaker = this.safeString (trade, 'liquidity', 'taker');
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeAsset');
@@ -495,8 +495,8 @@ module.exports = class idex extends Exchange {
         const result = [];
         for (let i = 0; i < bookSide.length; i++) {
             const order = bookSide[i];
-            const price = this.safeFloat (order, 0);
-            const amount = this.safeFloat (order, 1);
+            const price = this.safeNumber (order, 0);
+            const amount = this.safeNumber (order, 1);
             const orderCount = this.safeInteger (order, 2);
             result.push ([ price, amount, orderCount ]);
         }
@@ -583,9 +583,9 @@ module.exports = class idex extends Exchange {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'asset');
             const code = this.safeCurrencyCode (currencyId);
-            const total = this.safeFloat (entry, 'quantity');
-            const free = this.safeFloat (entry, 'availableForTrade');
-            const used = this.safeFloat (entry, 'locked');
+            const total = this.safeNumber (entry, 'quantity');
+            const free = this.safeNumber (entry, 'availableForTrade');
+            const used = this.safeNumber (entry, 'locked');
             result[code] = {
                 'free': free,
                 'used': used,
@@ -813,10 +813,10 @@ module.exports = class idex extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '-');
         const trades = this.parseTrades (fills, market);
         const type = this.safeString (order, 'type');
-        const amount = this.safeFloat (order, 'originalQuantity');
-        const filled = this.safeFloat (order, 'executedQuantity');
-        const average = this.safeFloat (order, 'avgExecutionPrice');
-        const price = this.safeFloat (order, 'price');
+        const amount = this.safeNumber (order, 'originalQuantity');
+        const filled = this.safeNumber (order, 'executedQuantity');
+        const average = this.safeNumber (order, 'avgExecutionPrice');
+        const price = this.safeNumber (order, 'price');
         const rawStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (rawStatus);
         const fee = {
@@ -925,7 +925,7 @@ module.exports = class idex extends Exchange {
                 throw new NotSupported (this.id + ' quoteOrderQuantity is not supported for ' + type + ' orders, only supported for market orders');
             }
             amountEnum = 1;
-            amount = this.safeFloat (params, 'quoteOrderQuantity');
+            amount = this.safeNumber (params, 'quoteOrderQuantity');
         }
         const sideEnum = (side === 'buy') ? 0 : 1;
         const walletBytes = this.remove0xPrefix (this.walletAddress);
@@ -1228,13 +1228,13 @@ module.exports = class idex extends Exchange {
         }
         const id = this.safeString2 (transaction, 'depositId', 'withdrawId');
         const code = this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency);
-        const amount = this.safeFloat (transaction, 'quantity');
+        const amount = this.safeNumber (transaction, 'quantity');
         const txid = this.safeString (transaction, 'txId');
         const timestamp = this.safeInteger (transaction, 'txTime');
         let fee = undefined;
         if ('fee' in transaction) {
             fee = {
-                'cost': this.safeFloat (transaction, 'fee'),
+                'cost': this.safeNumber (transaction, 'fee'),
                 'currency': 'ETH',
             };
         }

@@ -221,8 +221,8 @@ class gopax extends Exchange {
             $minimums = $this->safe_value($market, 'restApiOrderAmountMin', array());
             $marketAsk = $this->safe_value($minimums, 'marketAsk', array());
             $marketBid = $this->safe_value($minimums, 'marketBid', array());
-            $takerFeePercent = $this->safe_float($market, 'takerFeePercent');
-            $makerFeePercent = $this->safe_float($market, 'makerFeePercent');
+            $takerFeePercent = $this->safe_number($market, 'takerFeePercent');
+            $makerFeePercent = $this->safe_number($market, 'makerFeePercent');
             $taker = floatval($this->decimal_to_precision($takerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE));
             $maker = floatval($this->decimal_to_precision($makerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE));
             $result[] = array(
@@ -240,15 +240,15 @@ class gopax extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($marketAsk, 'amount'),
+                        'min' => $this->safe_number($marketAsk, 'amount'),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($market, 'priceMin'),
+                        'min' => $this->safe_number($market, 'priceMin'),
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $this->safe_float($marketBid, 'amount'),
+                        'min' => $this->safe_number($marketBid, 'amount'),
                         'max' => null,
                     ),
                 ),
@@ -283,8 +283,8 @@ class gopax extends Exchange {
             $id = $this->safe_string($currency, 'id');
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
-            $fee = $this->safe_float($currency, 'withdrawalFee');
-            $precision = $this->safe_float($currency, 'scale');
+            $fee = $this->safe_number($currency, 'withdrawalFee');
+            $precision = $this->safe_number($currency, 'scale');
             $result[$code] = array(
                 'id' => $id,
                 'info' => $currency,
@@ -307,7 +307,7 @@ class gopax extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'withdrawalAmountMin'),
+                        'min' => $this->safe_number($currency, 'withdrawalAmountMin'),
                         'max' => null,
                     ),
                 ),
@@ -375,8 +375,8 @@ class gopax extends Exchange {
         $marketId = $this->safe_string($ticker, 'name');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($ticker, 'time'));
-        $open = $this->safe_float($ticker, 'open');
-        $last = $this->safe_float_2($ticker, 'price', 'close');
+        $open = $this->safe_number($ticker, 'open');
+        $last = $this->safe_number_2($ticker, 'price', 'close');
         $change = null;
         $percentage = null;
         $average = null;
@@ -387,20 +387,20 @@ class gopax extends Exchange {
                 $percentage = $change / $open * 100;
             }
         }
-        $baseVolume = $this->safe_float($ticker, 'volume');
-        $quoteVolume = $this->safe_float($ticker, 'quoteVolume');
+        $baseVolume = $this->safe_number($ticker, 'volume');
+        $quoteVolume = $this->safe_number($ticker, 'quoteVolume');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,
             'info' => $ticker,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
-            'bidVolume' => $this->safe_float($ticker, 'bidVolume'),
-            'ask' => $this->safe_float($ticker, 'ask'),
-            'askVolume' => $this->safe_float($ticker, 'askVolume'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
+            'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
+            'ask' => $this->safe_number($ticker, 'ask'),
+            'askVolume' => $this->safe_number($ticker, 'askVolume'),
             'vwap' => $vwap,
             'open' => $open,
             'close' => $last,
@@ -457,8 +457,8 @@ class gopax extends Exchange {
 
     public function parse_public_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'amount');
         $symbol = null;
         if (is_array($market) && array_key_exists('symbol', $market)) {
             $symbol = $this->safe_string($market, 'symbol');
@@ -484,14 +484,14 @@ class gopax extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
         $symbol = str_replace('-', '/', $this->safe_string($trade, 'tradingPairName'));
         $side = $this->safe_string($trade, 'side');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'baseAmount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'baseAmount');
         $feeCurrency = mb_substr($symbol, 0, 3 - 0);
         if ($side === 'sell') {
             $feeCurrency = mb_substr($symbol, 4);
         }
         $fee = array(
-            'cost' => $this->safe_float($trade, 'fee'),
+            'cost' => $this->safe_number($trade, 'fee'),
             'currency' => $feeCurrency,
             'rate' => null,
         );
@@ -573,15 +573,15 @@ class gopax extends Exchange {
         } else if ($type === '2') {
             $type = 'market';
         }
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float_2($trade, 'amount', 'baseAmount');
-        $cost = $this->safe_float($trade, 'quoteAmount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number_2($trade, 'amount', 'baseAmount');
+        $cost = $this->safe_number($trade, 'quoteAmount');
         if ($cost === null) {
             if (($price !== null) && ($amount !== null)) {
                 $cost = $price * $amount;
             }
         }
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
@@ -648,11 +648,11 @@ class gopax extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 0),
-            $this->safe_float($ohlcv, 3),
-            $this->safe_float($ohlcv, 2),
-            $this->safe_float($ohlcv, 1),
-            $this->safe_float($ohlcv, 4),
-            $this->safe_float($ohlcv, 5),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
@@ -692,10 +692,10 @@ class gopax extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string_2($balance, 'asset', 'isoAlpha3');
             $code = $this->safe_currency_code($currencyId);
-            $hold = $this->safe_float($balance, 'hold');
-            $pendingWithdrawal = $this->safe_float($balance, 'pendingWithdrawal');
+            $hold = $this->safe_number($balance, 'hold');
+            $pendingWithdrawal = $this->safe_number($balance, 'pendingWithdrawal');
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'avail');
+            $account['free'] = $this->safe_number($balance, 'avail');
             $account['used'] = $this->sum($hold, $pendingWithdrawal);
             $result[$code] = $account;
         }
@@ -776,16 +776,16 @@ class gopax extends Exchange {
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $timeInForce = $this->safe_string_upper($order, 'timeInForce');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount');
-        $stopPrice = $this->safe_float($order, 'stopPrice');
-        $remaining = $this->safe_float($order, 'remaining');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'amount');
+        $stopPrice = $this->safe_number($order, 'stopPrice');
+        $remaining = $this->safe_number($order, 'remaining');
         $marketId = $this->safe_string($order, 'tradingPairName');
         $market = $this->safe_market($marketId, $market, '-');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $balanceChange = $this->safe_value($order, 'balanceChange', array());
-        $filled = $this->safe_float($balanceChange, 'baseNet');
-        $cost = $this->safe_float($balanceChange, 'quoteNet');
+        $filled = $this->safe_number($balanceChange, 'baseNet');
+        $cost = $this->safe_number($balanceChange, 'quoteNet');
         if ($cost !== null) {
             $cost = abs($cost);
         }
@@ -796,16 +796,16 @@ class gopax extends Exchange {
         $fee = null;
         if ($side === 'buy') {
             $baseFee = $this->safe_value($balanceChange, 'baseFee', array());
-            $taking = $this->safe_float($baseFee, 'taking');
-            $making = $this->safe_float($baseFee, 'making');
+            $taking = $this->safe_number($baseFee, 'taking');
+            $making = $this->safe_number($baseFee, 'making');
             $fee = array(
                 'currency' => $market['base'],
                 'cost' => $this->sum($taking, $making),
             );
         } else {
             $quoteFee = $this->safe_value($balanceChange, 'quoteFee', array());
-            $taking = $this->safe_float($quoteFee, 'taking');
-            $making = $this->safe_float($quoteFee, 'making');
+            $taking = $this->safe_number($quoteFee, 'taking');
+            $making = $this->safe_number($quoteFee, 'making');
             $fee = array(
                 'currency' => $market['quote'],
                 'cost' => $this->sum($taking, $making),
@@ -985,7 +985,7 @@ class gopax extends Exchange {
             $request['clientOrderId'] = $clientOrderId;
             $params = $this->omit($params, 'clientOrderId');
         }
-        $stopPrice = $this->safe_float($params, 'stopPrice');
+        $stopPrice = $this->safe_number($params, 'stopPrice');
         if ($stopPrice !== null) {
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             $params = $this->omit($params, 'stopPrice');
@@ -1178,8 +1178,8 @@ class gopax extends Exchange {
         } else if (($type === 'crypto_deposit' || $type === 'fiat_deposit')) {
             $type = 'deposit';
         }
-        $amount = $this->safe_float($transaction, 'netAmount');
-        $feeCost = $this->safe_float($transaction, 'feeAmount');
+        $amount = $this->safe_number($transaction, 'netAmount');
+        $feeCost = $this->safe_number($transaction, 'feeAmount');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(

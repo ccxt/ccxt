@@ -927,8 +927,8 @@ module.exports = class Exchange {
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        const price = this.number (bidask[priceKey])
-        const amount = this.number (bidask[amountKey])
+        const price = this.safeNumber (bidask, priceKey)
+        const amount = this.safeNumber (bidask, amountKey)
         return [ price, amount ]
     }
 
@@ -1525,6 +1525,8 @@ module.exports = class Exchange {
             // ensure amount = filled + remaining
             if (filled !== undefined && remaining !== undefined) {
                 amount = this.sum (filled, remaining);
+            } else if (this.safeString (order, 'status') === 'closed') {
+                amount = filled;
             }
         }
         if (filled === undefined) {
@@ -1563,6 +1565,18 @@ module.exports = class Exchange {
             'filled': filled,
             'remaining': remaining,
         });
+    }
+
+    parseNumber (value, d = undefined) {
+        if (value === undefined) {
+            return d
+        } else {
+            try {
+                return this.number (value)
+            } catch (e) {
+                return d
+            }
+        }
     }
 
     safeNumber (object, key, d = undefined) {

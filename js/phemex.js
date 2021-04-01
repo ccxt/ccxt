@@ -305,7 +305,7 @@ module.exports = class phemex extends Exchange {
         });
     }
 
-    parseSafeFloat (value = undefined) {
+    parseSafeNumber (value = undefined) {
         if (value === undefined) {
             return value;
         }
@@ -335,7 +335,9 @@ module.exports = class phemex extends Exchange {
         //         "minPriceEp":5000,
         //         "maxPriceEp":10000000000,
         //         "maxOrderQty":1000000,
-        //         "type":"Perpetual"
+        //         "type":"Perpetual",
+        //         "status":"Listed",
+        //         "tipOrderQty":1000000,
         //         "steps":"50",
         //         "riskLimits":[
         //             {"limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000},
@@ -360,7 +362,7 @@ module.exports = class phemex extends Exchange {
         //     }
         //
         const id = this.safeString (market, 'symbol');
-        const baseId = this.safeString (market, 'baseCurrency', 'contractUnderlyingAssets');
+        const baseId = this.safeString2 (market, 'baseCurrency', 'contractUnderlyingAssets');
         const quoteId = this.safeString (market, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
@@ -404,10 +406,11 @@ module.exports = class phemex extends Exchange {
             },
             'cost': {
                 'min': undefined,
-                'max': this.parseSafeFloat (this.safeString (market, 'maxOrderQty')),
+                'max': this.parseSafeNumber (this.safeString (market, 'maxOrderQty')),
             },
         };
-        const active = undefined;
+        const status = this.safeString (market, 'status');
+        const active = status === 'Listed';
         return {
             'id': id,
             'symbol': symbol,
@@ -456,7 +459,9 @@ module.exports = class phemex extends Exchange {
         //         "defaultMakerFee":"0.001",
         //         "defaultMakerFeeEr":100000,
         //         "baseQtyPrecision":6,
-        //         "quoteQtyPrecision":2
+        //         "quoteQtyPrecision":2,
+        //         "status":"Listed",
+        //         "tipOrderQty":20
         //     }
         //
         const type = this.safeStringLower (market, 'type');
@@ -470,27 +475,28 @@ module.exports = class phemex extends Exchange {
         const taker = this.safeNumber (market, 'defaultTakerFee');
         const maker = this.safeNumber (market, 'defaultMakerFee');
         const precision = {
-            'amount': this.parseSafeFloat (this.safeString (market, 'baseTickSize')),
-            'price': this.parseSafeFloat (this.safeString (market, 'quoteTickSize')),
+            'amount': this.parseSafeNumber (this.safeString (market, 'baseTickSize')),
+            'price': this.parseSafeNumber (this.safeString (market, 'quoteTickSize')),
         };
         const limits = {
             'amount': {
                 'min': precision['amount'],
-                'max': this.parseSafeFloat (this.safeString (market, 'maxBaseOrderSize')),
+                'max': this.parseSafeNumber (this.safeString (market, 'maxBaseOrderSize')),
             },
             'price': {
                 'min': precision['price'],
                 'max': undefined,
             },
             'cost': {
-                'min': this.parseSafeFloat (this.safeString (market, 'minOrderValue')),
-                'max': this.parseSafeFloat (this.safeString (market, 'maxOrderValue')),
+                'min': this.parseSafeNumber (this.safeString (market, 'minOrderValue')),
+                'max': this.parseSafeNumber (this.safeString (market, 'maxOrderValue')),
             },
         };
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        const active = undefined;
+        const status = this.safeString (market, 'status');
+        const active = status === 'Listed';
         return {
             'id': id,
             'symbol': symbol,

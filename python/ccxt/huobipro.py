@@ -1022,20 +1022,10 @@ class huobipro(Exchange):
         timestamp = self.safe_integer(order, 'created-at')
         amount = self.safe_number(order, 'amount')
         filled = self.safe_number_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
-        if (type == 'market') and (side == 'buy'):
-            amount = filled if (status == 'closed') else None
         price = self.safe_number(order, 'price')
         if price == 0.0:
             price = None
         cost = self.safe_number_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
-        remaining = None
-        average = None
-        if filled is not None:
-            if amount is not None:
-                remaining = amount - filled
-            # if cost is defined and filled is not zero
-            if (cost is not None) and (filled > 0):
-                average = cost / filled
         feeCost = self.safe_number_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
         fee = None
         if feeCost is not None:
@@ -1046,7 +1036,7 @@ class huobipro(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -1060,15 +1050,15 @@ class huobipro(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'average': average,
+            'average': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

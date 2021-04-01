@@ -28,11 +28,11 @@ use Exception;
 
 include 'throttle.php';
 
-$version = '1.45.44';
+$version = '1.45.79';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.45.44';
+    const VERSION = '1.45.79';
 
     public static $loop;
     public static $kernel;
@@ -63,6 +63,12 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function __construct($options = array()) {
+        if (!class_exists('React\\EventLoop\\Factory')) {
+            throw new ccxt\NotSupported("React is not installed\n\ncomposer require --ignore-platform-reqs react/http\n\n");
+        }
+        if (!class_exists('Recoil\\React\\ReactKernel')) {
+            throw new ccxt\NotSupported("Recoil is not installed\n\ncomposer require --ignore-platform-reqs recoil/react\n\n");
+        }
         $config = $this->omit($options, array('loop', 'kernel'));
         parent::__construct($config);
         // we only want one instance of the loop and one instance of the kernel

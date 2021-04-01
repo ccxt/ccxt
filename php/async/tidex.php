@@ -549,17 +549,18 @@ class tidex extends Exchange {
         $status = 'open';
         $filled = 0.0;
         $remaining = $amount;
-        if (is_array($response) && array_key_exists('return', $response)) {
-            $id = $this->safe_string($response['return'], 'order_id');
+        $returnResult = $this->safe_value($response, 'return');
+        if ($returnResult !== null) {
+            $id = $this->safe_string($returnResult, 'order_id');
             if ($id === '0') {
-                $id = $this->safe_string($response['return'], 'init_order_id');
+                $id = $this->safe_string($returnResult, 'init_order_id');
                 $status = 'closed';
             }
-            $filled = $this->safe_number($response['return'], 'received', 0.0);
-            $remaining = $this->safe_number($response['return'], 'remains', $amount);
+            $filled = $this->safe_number($returnResult, 'received', $filled);
+            $remaining = $this->safe_number($returnResult, 'remains', $amount);
         }
         $timestamp = $this->milliseconds();
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -569,7 +570,7 @@ class tidex extends Exchange {
             'type' => $type,
             'side' => $side,
             'price' => $price,
-            'cost' => $price * $filled,
+            'cost' => null,
             'amount' => $amount,
             'remaining' => $remaining,
             'filled' => $filled,
@@ -579,7 +580,7 @@ class tidex extends Exchange {
             'clientOrderId' => null,
             'average' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

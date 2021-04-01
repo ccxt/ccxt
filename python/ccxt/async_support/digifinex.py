@@ -254,7 +254,7 @@ class digifinex(Exchange):
             depositStatus = self.safe_value(currency, 'deposit_status', 1)
             withdrawStatus = self.safe_value(currency, 'withdraw_status', 1)
             active = depositStatus and withdrawStatus
-            fee = self.safe_float(currency, 'withdraw_fee_rate')
+            fee = self.safe_number(currency, 'withdraw_fee_rate')
             if code in result:
                 if isinstance(result[code]['info'], list):
                     result[code]['info'].append(currency)
@@ -284,7 +284,7 @@ class digifinex(Exchange):
                             'max': None,
                         },
                         'withdraw': {
-                            'min': self.safe_float(currency, 'min_withdraw_amount'),
+                            'min': self.safe_number(currency, 'min_withdraw_amount'),
                             'max': None,
                         },
                     },
@@ -334,7 +334,7 @@ class digifinex(Exchange):
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'minimum_amount'),
+                    'min': self.safe_number(market, 'minimum_amount'),
                     'max': None,
                 },
                 'price': {
@@ -342,7 +342,7 @@ class digifinex(Exchange):
                     'max': None,
                 },
                 'cost': {
-                    'min': self.safe_float(market, 'minimum_value'),
+                    'min': self.safe_number(market, 'minimum_value'),
                     'max': None,
                 },
             }
@@ -356,7 +356,7 @@ class digifinex(Exchange):
             # status = self.safe_string(market, 'status')
             # active = (status == 'TRADING')
             #
-            isAllowed = self.safe_value(market, 'is_allow', 1)
+            isAllowed = self.safe_integer(market, 'is_allow', 1)
             active = True if isAllowed else False
             type = 'spot'
             spot = (type == 'spot')
@@ -410,7 +410,7 @@ class digifinex(Exchange):
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'min_volume'),
+                    'min': self.safe_number(market, 'min_volume'),
                     'max': None,
                 },
                 'price': {
@@ -418,7 +418,7 @@ class digifinex(Exchange):
                     'max': None,
                 },
                 'cost': {
-                    'min': self.safe_float(market, 'min_amount'),
+                    'min': self.safe_number(market, 'min_amount'),
                     'max': None,
                 },
             }
@@ -461,9 +461,9 @@ class digifinex(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_float(balance, 'frozen')
-            account['free'] = self.safe_float(balance, 'free')
-            account['total'] = self.safe_float(balance, 'total')
+            account['used'] = self.safe_number(balance, 'frozen')
+            account['free'] = self.safe_number(balance, 'free')
+            account['total'] = self.safe_number(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 
@@ -577,17 +577,17 @@ class digifinex(Exchange):
         marketId = self.safe_string_upper(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_timestamp(ticker, 'date')
-        last = self.safe_float(ticker, 'last')
-        percentage = self.safe_float(ticker, 'change')
+        last = self.safe_number(ticker, 'last')
+        percentage = self.safe_number(ticker, 'change')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -597,8 +597,8 @@ class digifinex(Exchange):
             'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
-            'quoteVolume': self.safe_float(ticker, 'base_vol'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
+            'quoteVolume': self.safe_number(ticker, 'base_vol'),
             'info': ticker,
         }
 
@@ -633,8 +633,8 @@ class digifinex(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         timestamp = self.safe_timestamp_2(trade, 'date', 'timestamp')
         side = self.safe_string_2(trade, 'type', 'side')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        price = self.safe_number(trade, 'price')
+        amount = self.safe_number(trade, 'amount')
         cost = None
         if price is not None:
             if amount is not None:
@@ -642,7 +642,7 @@ class digifinex(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         takerOrMaker = self.safe_value(trade, 'is_maker')
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
@@ -738,11 +738,11 @@ class digifinex(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 0),
-            self.safe_float(ohlcv, 5),  # open
-            self.safe_float(ohlcv, 3),  # high
-            self.safe_float(ohlcv, 4),  # low
-            self.safe_float(ohlcv, 2),  # close
-            self.safe_float(ohlcv, 1),  # volume
+            self.safe_number(ohlcv, 5),  # open
+            self.safe_number(ohlcv, 3),  # high
+            self.safe_number(ohlcv, 4),  # low
+            self.safe_number(ohlcv, 2),  # close
+            self.safe_number(ohlcv, 1),  # volume
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -920,10 +920,10 @@ class digifinex(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        amount = self.safe_float(order, 'amount')
-        filled = self.safe_float(order, 'executed_amount')
-        price = self.safe_float(order, 'price')
-        average = self.safe_float(order, 'avg_price')
+        amount = self.safe_number(order, 'amount')
+        filled = self.safe_number(order, 'executed_amount')
+        price = self.safe_number(order, 'price')
+        average = self.safe_number(order, 'avg_price')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1125,7 +1125,7 @@ class digifinex(Exchange):
         code = self.safe_currency_code(self.safe_string(item, 'currency_mark'), currency)
         timestamp = self.safe_timestamp(item, 'time')
         before = None
-        after = self.safe_float(item, 'balance')
+        after = self.safe_number(item, 'balance')
         status = 'ok'
         return {
             'info': item,
@@ -1324,8 +1324,8 @@ class digifinex(Exchange):
         timestamp = self.parse8601(self.safe_string(transaction, 'created_date'))
         updated = self.parse8601(self.safe_string(transaction, 'finished_date'))
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        amount = self.safe_float(transaction, 'amount')
-        feeCost = self.safe_float(transaction, 'fee')
+        amount = self.safe_number(transaction, 'amount')
+        feeCost = self.safe_number(transaction, 'fee')
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
