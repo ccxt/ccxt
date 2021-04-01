@@ -407,9 +407,10 @@ module.exports = class mercado extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'order_id');
+        const order_type = this.safeString (order, 'order_type');
         let side = undefined;
         if ('order_type' in order) {
-            side = (order['order_type'] === 1) ? 'buy' : 'sell';
+            side = (order_type === '1') ? 'buy' : 'sell';
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'coin_pair');
@@ -424,15 +425,13 @@ module.exports = class mercado extends Exchange {
         const average = this.safeNumber (order, 'executed_price_avg');
         const amount = this.safeNumber (order, 'quantity');
         const filled = this.safeNumber (order, 'executed_quantity');
-        const remaining = amount - filled;
-        const cost = filled * average;
         const lastTradeTimestamp = this.safeTimestamp (order, 'updated_timestamp');
         const rawTrades = this.safeValue (order, 'operations', []);
         const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
             'side': side,
             'order': id,
         });
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -446,15 +445,15 @@ module.exports = class mercado extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
