@@ -21,7 +21,6 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![Binance Futures Spring Tournament](https://user-images.githubusercontent.com/1294454/111170687-4352b280-85b5-11eb-857c-dba47ae4ccb3.png)](https://www.binance.com/en/futures-activity/tournament/leader-registration)
 [![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png)](https://ccxt.pro)
 
 ## See Also
