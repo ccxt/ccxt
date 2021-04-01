@@ -11,7 +11,7 @@ class Delegate:
         return getattr(deque, self.name)
 
 
-class ArrayCache(list):
+class BaseCache(list):
     # implicitly called magic methods don't invoke __getattribute__
     # https://docs.python.org/3/reference/datamodel.html#special-method-lookup
     # all method lookups obey the descriptor protocol
@@ -25,14 +25,34 @@ class ArrayCache(list):
     clear = Delegate('clear', '_deque')
 
     def __init__(self, max_size=None):
-        super(list, self).__init__()
+        super(BaseCache, self).__init__()
         self.max_size = max_size
         self._deque = collections.deque([], max_size)
-        self._new_updates_by_symbol = {}
-        self._clear_updates_by_symbol = {}
 
     def __eq__(self, other):
         return list(self) == other
+
+    def __repr__(self):
+        return str(list(self))
+
+    def __add__(self, other):
+        return list(self) + other
+
+    def __getitem__(self, item):
+        # deque doesn't support slicing
+        deque = super(list, self).__getattribute__('_deque')
+        if isinstance(item, slice):
+            start, stop, step = item.indices(len(deque))
+            return [deque[i] for i in range(start, stop, step)]
+        else:
+            return deque[item]
+
+
+class ArrayCache(BaseCache):
+    def __init__(self, max_size=None):
+        super(ArrayCache, self).__init__(max_size)
+        self._new_updates_by_symbol = {}
+        self._clear_updates_by_symbol = {}
 
     def getLimit(self, symbol, limit):
         if symbol is None:
@@ -56,23 +76,8 @@ class ArrayCache(list):
         self._new_updates_by_symbol[item['symbol']] = self._new_updates_by_symbol.get(item['symbol'], 0) + 1
         self._new_updates_by_symbol['all'] = self._new_updates_by_symbol.get('all', 0) + 1
 
-    def __repr__(self):
-        return str(list(self))
 
-    def __add__(self, other):
-        return list(self) + other
-
-    def __getitem__(self, item):
-        # deque doesn't support slicing
-        deque = super(list, self).__getattribute__('_deque')
-        if isinstance(item, slice):
-            start, stop, step = item.indices(len(deque))
-            return [deque[i] for i in range(start, stop, step)]
-        else:
-            return deque[item]
-
-
-class ArrayCacheByTimestamp(ArrayCache):
+class ArrayCacheByTimestamp(BaseCache):
     def __init__(self, max_size=None):
         super(ArrayCacheByTimestamp, self).__init__(max_size)
         self.hashmap = {}
