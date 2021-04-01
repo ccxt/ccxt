@@ -820,6 +820,11 @@ class binance extends \ccxt\async\binance {
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
+        $client = $this->client($url);
+        if (!(is_array($client->subscriptions) && array_key_exists($type, $client->subscriptions))) {
+            // reset $this->balances after a disconnect
+            $this->balance[$type] = array();
+        }
         $messageHash = $type . ':balance';
         $message = null;
         return yield $this->watch($url, $messageHash, $message, $type);
@@ -879,7 +884,6 @@ class binance extends \ccxt\async\binance {
         $subscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
         $accountType = $subscriptions[0];
         $messageHash = $accountType . ':balance';
-        $balance = array( 'info' => $message );
         $message = $this->safe_value($message, 'a', $message);
         $balances = $this->safe_value($message, 'B', array());
         for ($i = 0; $i < count($balances); $i++) {
@@ -890,9 +894,9 @@ class binance extends \ccxt\async\binance {
             $account['free'] = $this->safe_float($entry, 'f');
             $account['used'] = $this->safe_float($entry, 'l');
             $account['total'] = $this->safe_float($entry, $wallet);
-            $balance[$code] = $account;
+            $this->balance[$accountType][$code] = $account;
         }
-        $client->resolve ($this->parse_balance($balance), $messageHash);
+        $client->resolve ($this->parse_balance($this->balance[$accountType]), $messageHash);
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -904,6 +908,11 @@ class binance extends \ccxt\async\binance {
         $messageHash = 'orders';
         if ($symbol !== null) {
             $messageHash .= ':' . $symbol;
+        }
+        $client = $this->client($url);
+        if (!(is_array($client->subscriptions) && array_key_exists($type, $client->subscriptions))) {
+            // reset $this->balances after a disconnect
+            $this->balance[$type] = array();
         }
         $message = null;
         $orders = yield $this->watch($url, $messageHash, $message, $type);
@@ -1166,6 +1175,11 @@ class binance extends \ccxt\async\binance {
         $messageHash = 'myTrades';
         if ($symbol !== null) {
             $messageHash .= ':' . $symbol;
+        }
+        $client = $this->client($url);
+        if (!(is_array($client->subscriptions) && array_key_exists($type, $client->subscriptions))) {
+            // reset $this->balances after a disconnect
+            $this->balance[$type] = array();
         }
         $message = null;
         $trades = yield $this->watch($url, $messageHash, $message, $type);

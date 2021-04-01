@@ -757,6 +757,10 @@ class binance(Exchange, ccxt.binance):
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
+        client = self.client(url)
+        if not (type in client.subscriptions):
+            # reset self.balances after a disconnect
+            self.balance[type] = {}
         messageHash = type + ':balance'
         message = None
         return await self.watch(url, messageHash, message, type)
@@ -815,7 +819,6 @@ class binance(Exchange, ccxt.binance):
         subscriptions = list(client.subscriptions.keys())
         accountType = subscriptions[0]
         messageHash = accountType + ':balance'
-        balance = {'info': message}
         message = self.safe_value(message, 'a', message)
         balances = self.safe_value(message, 'B', [])
         for i in range(0, len(balances)):
@@ -826,8 +829,8 @@ class binance(Exchange, ccxt.binance):
             account['free'] = self.safe_float(entry, 'f')
             account['used'] = self.safe_float(entry, 'l')
             account['total'] = self.safe_float(entry, wallet)
-            balance[code] = account
-        client.resolve(self.parse_balance(balance), messageHash)
+            self.balance[accountType][code] = account
+        client.resolve(self.parse_balance(self.balance[accountType]), messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -838,6 +841,10 @@ class binance(Exchange, ccxt.binance):
         messageHash = 'orders'
         if symbol is not None:
             messageHash += ':' + symbol
+        client = self.client(url)
+        if not (type in client.subscriptions):
+            # reset self.balances after a disconnect
+            self.balance[type] = {}
         message = None
         orders = await self.watch(url, messageHash, message, type)
         if self.newUpdates:
@@ -1086,6 +1093,10 @@ class binance(Exchange, ccxt.binance):
         messageHash = 'myTrades'
         if symbol is not None:
             messageHash += ':' + symbol
+        client = self.client(url)
+        if not (type in client.subscriptions):
+            # reset self.balances after a disconnect
+            self.balance[type] = {}
         message = None
         trades = await self.watch(url, messageHash, message, type)
         if self.newUpdates:
