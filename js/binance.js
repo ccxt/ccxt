@@ -55,7 +55,7 @@ module.exports = class binance extends ccxt.binance {
                 'watchTicker': {
                     'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
-                'wallet': 'wb', // wb = wallet balance, cb = cross balance
+                'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'futureBalance': {},
                 'listenKeyRefreshRate': 1200000, // 20 mins
             },
@@ -817,8 +817,7 @@ module.exports = class binance extends ccxt.binance {
         const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
-        const isSpotBalance = (type === 'spot') || (type === 'margin');
-        const messageHash = isSpotBalance ? 'spotBalance' : 'futureBalance';
+        const messageHash = type + ':balance';
         const message = undefined;
         return await this.watch (url, messageHash, message, type);
     }
@@ -871,35 +870,26 @@ module.exports = class binance extends ccxt.binance {
         //         }
         //     }
         //
-        const wallet = this.safeValue (this.options, 'wallet', 'wb');
-        const event = this.safeString (message, 'e');
-        const isSpotBalance = event === 'outboundAccountPosition';
-        let balanceType = undefined;
-        if (isSpotBalance) {
-            balanceType = this.balance;
-        } else {
-            balanceType = this.safeValue (this.options, 'futureBalance', {});
-        }
-        balanceType['info'] = message;
+        const wallet = this.safeValue (this.options, 'wallet', 'wb'); // cw for cross wallet
+        // each account is connected to a different endpoint
+        // and has exactly one subscriptionhash which is the account type
+        const subscriptions = Object.keys (client.subscriptions);
+        const accountType = subscriptions[0];
+        const messageHash = accountType + ':balance';
+        const balance = { 'info': message };
         message = this.safeValue (message, 'a', message);
         const balances = this.safeValue (message, 'B', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'a');
+            const entry = balances[i];
+            const currencyId = this.safeString (entry, 'a');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'f');
-            account['used'] = this.safeFloat (balance, 'l');
-            account['total'] = this.safeFloat (balance, wallet);
-            balanceType[code] = account;
+            account['free'] = this.safeFloat (entry, 'f');
+            account['used'] = this.safeFloat (entry, 'l');
+            account['total'] = this.safeFloat (entry, wallet);
+            balance[code] = account;
         }
-        if (isSpotBalance) {
-            this.balance = this.parseBalance (balanceType);
-            client.resolve (this.balance, 'spotBalance');
-        } else {
-            this.options['futureBalance'] = this.parseBalance (balanceType);
-            client.resolve (this.options['futureBalance'], 'futureBalance');
-        }
+        client.resolve (this.parseBalance (balance), messageHash);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
