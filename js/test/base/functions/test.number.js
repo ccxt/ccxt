@@ -1,6 +1,7 @@
 'use strict'
 
 const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS, toWei, fromWei } = require ('../../../../ccxt');
+const Precise = require ('../../../base/Precise')
 const assert = require ('assert');
 
 // ----------------------------------------------------------------------------
@@ -287,3 +288,27 @@ assert (decimalToPrecision ('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_D
 // throws (() =>
 //     decimalToPrecision ('0.01', TRUNCATE, -1, TICK_SIZE),
 //         "TICK_SIZE cant be used with negative numPrecisionDigits")
+
+// ----------------------------------------------------------------------------
+
+const w = '-1.123e-6';
+const x = '0.00000002';
+const y = '69696900000';
+
+assert (Precise.stringMul (x, y) === '1393.938');
+assert (Precise.stringMul (y, x) === '1393.938');
+assert (Precise.stringAdd (x, y) === '69696900000.00000002');
+assert (Precise.stringAdd (y, x) === '69696900000.00000002');
+assert (Precise.stringSub (x, y) === '-69696899999.99999998');
+assert (Precise.stringSub (y, x) === '69696899999.99999998');
+assert (Precise.stringDiv (x, y) === '0.000000000000028695');
+assert (Precise.stringDiv (y, x) === '34848450000');
+
+assert (Precise.stringMul (x, w) === '-0.00000000000002246');
+assert (Precise.stringMul (w, x) === '-0.00000000000002246');
+assert (Precise.stringAdd (x, w) === '-0.000001103');
+assert (Precise.stringAdd (w, x) === '-0.000001103');
+assert (Precise.stringSub (x, w) === '0.000001143');
+assert (Precise.stringSub (w, x) === '-0.000001143');
+assert (Precise.stringDiv (x, w) === '-0.000000000017809439');
+assert (Precise.stringDiv (w, x) === '-0.0000005615');

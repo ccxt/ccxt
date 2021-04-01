@@ -196,6 +196,10 @@ class Transpiler {
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             [ /assert\s*\((.+)\);/g, 'assert $1'],
+            [ /Precise\.stringAdd\s/g, 'Precise.string_add' ],
+            [ /Precise\.stringMul\s/g, 'Precise.string_mul' ],
+            [ /Precise\.stringDiv\s/g, 'Precise.string_div' ],
+            [ /Precise\.stringSub\s/g, 'Precise.string_sub' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -337,6 +341,10 @@ class Transpiler {
             [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
+            [ /Precise\.stringAdd\s/g, 'Precise::string_add' ],
+            [ /Precise\.stringDiv\s/g, 'Precise::string_div' ],
+            [ /Precise\.stringMul\s/g, 'Precise::string_mul' ],
+            [ /Precise\.stringSub\s/g, 'Precise::string_sub' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -579,6 +587,9 @@ class Transpiler {
             if (bodyAsString.indexOf (constant) >= 0) {
                 precisionImports.push ('from ccxt.base.decimal_to_precision import ' + constant)
             }
+        }
+        if (bodyAsString.indexOf ('Precise') >= 0) {
+            precisionImports.push ('from ccxt.base.precise import Precise')
         }
 
         header = header.concat (libraries, errorImports, precisionImports)
@@ -1300,6 +1311,7 @@ class Transpiler {
             "from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401",
             "from ccxt.base.decimal_to_precision import number_to_string      # noqa F401",
             "from ccxt.base.exchange import Exchange                          # noqa F401",
+            "from ccxt.base.precise import Precise                            # noqa F401",
             "",
             "",
             "def toWei(amount, decimals):",
