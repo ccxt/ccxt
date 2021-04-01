@@ -57,7 +57,7 @@ class binance(Exchange, ccxt.binance):
                 'watchTicker': {
                     'name': 'ticker',  # ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
-                'wallet': 'wb',  # wb = wallet balance, cb = cross balance
+                'wallet': 'wb',  # wb = wallet balance, cw = cross balance
                 'futureBalance': {},
                 'listenKeyRefreshRate': 1200000,  # 20 mins
             },
@@ -757,8 +757,7 @@ class binance(Exchange, ccxt.binance):
         defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
-        isSpotBalance = (type == 'spot') or (type == 'margin')
-        messageHash = 'spotBalance' if isSpotBalance else 'futureBalance'
+        messageHash = type + ':balance'
         message = None
         return await self.watch(url, messageHash, message, type)
 
@@ -810,32 +809,25 @@ class binance(Exchange, ccxt.binance):
         #         }
         #     }
         #
-        wallet = self.safe_value(self.options, 'wallet', 'wb')
-        event = self.safe_string(message, 'e')
-        isSpotBalance = event == 'outboundAccountPosition'
-        balanceType = None
-        if isSpotBalance:
-            balanceType = self.balance
-        else:
-            balanceType = self.safe_value(self.options, 'futureBalance', {})
-        balanceType['info'] = message
+        wallet = self.safe_value(self.options, 'wallet', 'wb')  # cw for cross wallet
+        # each account is connected to a different endpoint
+        # and has exactly one subscriptionhash which is the account type
+        subscriptions = list(client.subscriptions.keys())
+        accountType = subscriptions[0]
+        messageHash = accountType + ':balance'
+        balance = {'info': message}
         message = self.safe_value(message, 'a', message)
         balances = self.safe_value(message, 'B', [])
         for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'a')
+            entry = balances[i]
+            currencyId = self.safe_string(entry, 'a')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'f')
-            account['used'] = self.safe_float(balance, 'l')
-            account['total'] = self.safe_float(balance, wallet)
-            balanceType[code] = account
-        if isSpotBalance:
-            self.balance = self.parse_balance(balanceType)
-            client.resolve(self.balance, 'spotBalance')
-        else:
-            self.options['futureBalance'] = self.parse_balance(balanceType)
-            client.resolve(self.options['futureBalance'], 'futureBalance')
+            account['free'] = self.safe_float(entry, 'f')
+            account['used'] = self.safe_float(entry, 'l')
+            account['total'] = self.safe_float(entry, wallet)
+            balance[code] = account
+        client.resolve(self.parse_balance(balance), messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
