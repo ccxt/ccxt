@@ -291,35 +291,24 @@ assert (decimalToPrecision ('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_D
 
 // ----------------------------------------------------------------------------
 
-const w = new Precise ('-1.123e-6');
-const x = new Precise ('0.00000002');
-const y = new Precise ('69696900000');
-const z = new Precise ('12');
+const w = '-1.123e-6';
+const x = '0.00000002';
+const y = '69696900000';
 
-assert (String (w) === '-0.000001123');
-assert (String (x) === '0.00000002');
-assert (String (y) === '69696900000');
-assert (String (z) === '12');
+assert (Precise.stringMul (x, y) === '1393.938');
+assert (Precise.stringMul (y, x) === '1393.938');
+assert (Precise.stringAdd (x, y) === '69696900000.00000002');
+assert (Precise.stringAdd (y, x) === '69696900000.00000002');
+assert (Precise.stringSub (x, y) === '-69696899999.99999998');
+assert (Precise.stringSub (y, x) === '69696899999.99999998');
+assert (Precise.stringDiv (x, y) === '0.000000000000028695');
+assert (Precise.stringDiv (y, x) === '34848450000');
 
-assert (String (x.mul (y)) === '1393.938');
-assert (String (y.mul (x)) === '1393.938');
-assert (String (x.add (y)) === '69696900000.00000002');
-assert (String (y.add (x)) === '69696900000.00000002');
-assert (String (x.sub (y)) === '-69696899999.99999998');
-assert (String (y.sub (x)) === '69696899999.99999998');
-assert (String (x.div (y, 18)) === '0.000000000000028695');
-assert (String (y.div (x, 18)) === '34848450000');
-assert (String (x.div (y, 17)) === '0.00000000000002869');
-assert (String (y.div (x, 17)) === '34848450000');
-
-assert (String (x.mul (w)) === '-0.00000000000002246');
-assert (String (w.mul (x)) === '-0.00000000000002246');
-assert (String (x.add (w)) === '-0.000001103');
-assert (String (w.add (x)) === '-0.000001103');
-assert (String (x.sub (w)) === '0.000001143');
-assert (String (w.sub (x)) === '-0.000001143');
-assert (String (x.div (w, 18)) === '-0.000000000017809439');
-assert (String (w.div (x, 18)) === '-0.0000005615');
-
-assert (Precise.stringMul ('0.00000002', '69696900000') === '1393.938');
-assert (Precise.stringMul (undefined, '69696900000') === undefined);
+assert (Precise.stringMul (x, w) === '-0.00000000000002246');
+assert (Precise.stringMul (w, x) === '-0.00000000000002246');
+assert (Precise.stringAdd (x, w) === '-0.000001103');
+assert (Precise.stringAdd (w, x) === '-0.000001103');
+assert (Precise.stringSub (x, w) === '0.000001143');
+assert (Precise.stringSub (w, x) === '-0.000001143');
+assert (Precise.stringDiv (x, w) === '-0.000000000017809439');
+assert (Precise.stringDiv (w, x) === '-0.0000005615');
