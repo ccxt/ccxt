@@ -524,15 +524,16 @@ class tidex(Exchange):
         status = 'open'
         filled = 0.0
         remaining = amount
-        if 'return' in response:
-            id = self.safe_string(response['return'], 'order_id')
+        returnResult = self.safe_value(response, 'return')
+        if returnResult is not None:
+            id = self.safe_string(returnResult, 'order_id')
             if id == '0':
-                id = self.safe_string(response['return'], 'init_order_id')
+                id = self.safe_string(returnResult, 'init_order_id')
                 status = 'closed'
-            filled = self.safe_number(response['return'], 'received', 0.0)
-            remaining = self.safe_number(response['return'], 'remains', amount)
+            filled = self.safe_number(returnResult, 'received', filled)
+            remaining = self.safe_number(returnResult, 'remains', amount)
         timestamp = self.milliseconds()
-        return {
+        return self.safe_order({
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -542,7 +543,7 @@ class tidex(Exchange):
             'type': type,
             'side': side,
             'price': price,
-            'cost': price * filled,
+            'cost': None,
             'amount': amount,
             'remaining': remaining,
             'filled': filled,
@@ -552,7 +553,7 @@ class tidex(Exchange):
             'clientOrderId': None,
             'average': None,
             'trades': None,
-        }
+        })
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
