@@ -4,7 +4,7 @@ namespace ccxtpro;
 
 use \Ds\Set;
 
-class ArrayCacheByTimestamp extends ArrayCache {
+class ArrayCacheByTimestamp extends BaseCache {
     public $hashmap;
     private $size_tracker;
     public $new_updates;
