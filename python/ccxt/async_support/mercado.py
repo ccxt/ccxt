@@ -389,9 +389,10 @@ class mercado(Exchange):
         #     }
         #
         id = self.safe_string(order, 'order_id')
+        order_type = self.safe_string(order, 'order_type')
         side = None
         if 'order_type' in order:
-            side = 'buy' if (order['order_type'] == 1) else 'sell'
+            side = 'buy' if (order_type == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'coin_pair')
         market = self.safe_market(marketId, market)
@@ -405,15 +406,13 @@ class mercado(Exchange):
         average = self.safe_number(order, 'executed_price_avg')
         amount = self.safe_number(order, 'quantity')
         filled = self.safe_number(order, 'executed_quantity')
-        remaining = amount - filled
-        cost = filled * average
         lastTradeTimestamp = self.safe_timestamp(order, 'updated_timestamp')
         rawTrades = self.safe_value(order, 'operations', [])
         trades = self.parse_trades(rawTrades, market, None, None, {
             'side': side,
             'order': id,
         })
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -427,15 +426,15 @@ class mercado(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': trades,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:

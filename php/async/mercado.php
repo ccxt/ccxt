@@ -389,7 +389,7 @@ class mercado extends Exchange {
         //     {
         //         "order_id" => 4,
         //         "coin_pair" => "BRLBTC",
-        //         "order_type" => 1,
+        //         "$order_type" => 1,
         //         "$status" => 2,
         //         "has_fills" => true,
         //         "quantity" => "2.00000000",
@@ -411,9 +411,10 @@ class mercado extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'order_id');
+        $order_type = $this->safe_string($order, 'order_type');
         $side = null;
         if (is_array($order) && array_key_exists('order_type', $order)) {
-            $side = ($order['order_type'] === 1) ? 'buy' : 'sell';
+            $side = ($order_type === '1') ? 'buy' : 'sell';
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'coin_pair');
@@ -428,15 +429,13 @@ class mercado extends Exchange {
         $average = $this->safe_number($order, 'executed_price_avg');
         $amount = $this->safe_number($order, 'quantity');
         $filled = $this->safe_number($order, 'executed_quantity');
-        $remaining = $amount - $filled;
-        $cost = $filled * $average;
         $lastTradeTimestamp = $this->safe_timestamp($order, 'updated_timestamp');
         $rawTrades = $this->safe_value($order, 'operations', array());
         $trades = $this->parse_trades($rawTrades, $market, null, null, array(
             'side' => $side,
             'order' => $id,
         ));
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -450,15 +449,15 @@ class mercado extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
