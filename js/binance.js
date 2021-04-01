@@ -906,6 +906,11 @@ module.exports = class binance extends ccxt.binance {
         if (symbol !== undefined) {
             messageHash += ':' + symbol;
         }
+        const client = this.client (url);
+        if (!(type in client.subscriptions)) {
+            // reset this.balances after a disconnect
+            this.balance[type] = {};
+        }
         const message = undefined;
         const orders = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
@@ -1167,6 +1172,11 @@ module.exports = class binance extends ccxt.binance {
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             messageHash += ':' + symbol;
+        }
+        const client = this.client (url);
+        if (!(type in client.subscriptions)) {
+            // reset this.balances after a disconnect
+            this.balance[type] = {};
         }
         const message = undefined;
         const trades = await this.watch (url, messageHash, message, type);
