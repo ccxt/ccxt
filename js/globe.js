@@ -14,7 +14,7 @@ module.exports = class globe extends Exchange {
             'countries': [ 'SC' ], // Seychelles
             'version': 'v1',
             'userAgent': undefined,
-            'rateLimit': 2000,
+            'rateLimit': 22,
             'pro': true,
             'timeframes': {
                 '1m': '1m',
