@@ -55,7 +55,7 @@ module.exports = class binance extends ccxt.binance {
                 'watchTicker': {
                     'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
-                'wallet': 'wb', // wb = wallet balance, cb = cross balance
+                'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'futureBalance': {},
                 'listenKeyRefreshRate': 1200000, // 20 mins
             },
@@ -870,7 +870,7 @@ module.exports = class binance extends ccxt.binance {
         //         }
         //     }
         //
-        const wallet = this.safeValue (this.options, 'wallet', 'wb');
+        const wallet = this.safeValue (this.options, 'wallet', 'wb'); // cw for cross wallet
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
         const subscriptions = Object.keys (client.subscriptions);
