@@ -58,7 +58,7 @@ class binance extends \ccxt\async\binance {
                 'watchTicker' => array(
                     'name' => 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 ),
-                'wallet' => 'wb', // wb = wallet balance, cb = cross balance
+                'wallet' => 'wb', // wb = wallet balance, cw = cross balance
                 'futureBalance' => array(),
                 'listenKeyRefreshRate' => 1200000, // 20 mins
             ),
@@ -820,8 +820,7 @@ class binance extends \ccxt\async\binance {
         $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
-        $isSpotBalance = ($type === 'spot') || ($type === 'margin');
-        $messageHash = $isSpotBalance ? 'spotBalance' : 'futureBalance';
+        $messageHash = $type . ':balance';
         $message = null;
         return yield $this->watch($url, $messageHash, $message, $type);
     }
@@ -874,35 +873,26 @@ class binance extends \ccxt\async\binance {
         //         }
         //     }
         //
-        $wallet = $this->safe_value($this->options, 'wallet', 'wb');
-        $event = $this->safe_string($message, 'e');
-        $isSpotBalance = $event === 'outboundAccountPosition';
-        $balanceType = null;
-        if ($isSpotBalance) {
-            $balanceType = $this->balance;
-        } else {
-            $balanceType = $this->safe_value($this->options, 'futureBalance', array());
-        }
-        $balanceType['info'] = $message;
+        $wallet = $this->safe_value($this->options, 'wallet', 'wb'); // cw for cross $wallet
+        // each $account is connected to a different endpoint
+        // and has exactly one subscriptionhash which is the $account type
+        $subscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+        $accountType = $subscriptions[0];
+        $messageHash = $accountType . ':balance';
+        $balance = array( 'info' => $message );
         $message = $this->safe_value($message, 'a', $message);
         $balances = $this->safe_value($message, 'B', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
-            $currencyId = $this->safe_string($balance, 'a');
+            $entry = $balances[$i];
+            $currencyId = $this->safe_string($entry, 'a');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'f');
-            $account['used'] = $this->safe_float($balance, 'l');
-            $account['total'] = $this->safe_float($balance, $wallet);
-            $balanceType[$code] = $account;
+            $account['free'] = $this->safe_float($entry, 'f');
+            $account['used'] = $this->safe_float($entry, 'l');
+            $account['total'] = $this->safe_float($entry, $wallet);
+            $balance[$code] = $account;
         }
-        if ($isSpotBalance) {
-            $this->balance = $this->parse_balance($balanceType);
-            $client->resolve ($this->balance, 'spotBalance');
-        } else {
-            $this->options['futureBalance'] = $this->parse_balance($balanceType);
-            $client->resolve ($this->options['futureBalance'], 'futureBalance');
-        }
+        $client->resolve ($this->parse_balance($balance), $messageHash);
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
