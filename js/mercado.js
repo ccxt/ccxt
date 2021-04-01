@@ -407,10 +407,8 @@ module.exports = class mercado extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'order_id');
-        let side = undefined;
-        if ('order_type' in order) {
-            side = (order['order_type'] === 1) ? 'buy' : 'sell';
-        }
+        const order_type = this.safeString (order, 'order_type');
+        const side = (order_type === '1') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'coin_pair');
         market = this.safeMarket (marketId, market);
