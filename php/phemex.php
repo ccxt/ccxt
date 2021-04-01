@@ -339,7 +339,9 @@ class phemex extends Exchange {
         //         "$minPriceEp":5000,
         //         "$maxPriceEp":10000000000,
         //         "maxOrderQty":1000000,
-        //         "$type":"Perpetual"
+        //         "$type":"Perpetual",
+        //         "$status":"Listed",
+        //         "tipOrderQty":1000000,
         //         "steps":"50",
         //         "riskLimits":array(
         //             array("limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000),
@@ -411,7 +413,8 @@ class phemex extends Exchange {
                 'max' => $this->parse_safe_number($this->safe_string($market, 'maxOrderQty')),
             ),
         );
-        $active = null;
+        $status = $this->safe_string($market, 'status');
+        $active = $status === 'Listed';
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -460,7 +463,9 @@ class phemex extends Exchange {
         //         "defaultMakerFee":"0.001",
         //         "defaultMakerFeeEr":100000,
         //         "baseQtyPrecision":6,
-        //         "quoteQtyPrecision":2
+        //         "quoteQtyPrecision":2,
+        //         "$status":"Listed",
+        //         "tipOrderQty":20
         //     }
         //
         $type = $this->safe_string_lower($market, 'type');
@@ -494,7 +499,8 @@ class phemex extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        $active = null;
+        $status = $this->safe_string($market, 'status');
+        $active = $status === 'Listed';
         return array(
             'id' => $id,
             'symbol' => $symbol,

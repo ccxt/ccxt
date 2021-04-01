@@ -349,7 +349,9 @@ class phemex(Exchange):
         #         "minPriceEp":5000,
         #         "maxPriceEp":10000000000,
         #         "maxOrderQty":1000000,
-        #         "type":"Perpetual"
+        #         "type":"Perpetual",
+        #         "status":"Listed",
+        #         "tipOrderQty":1000000,
         #         "steps":"50",
         #         "riskLimits":[
         #             {"limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000},
@@ -418,7 +420,8 @@ class phemex(Exchange):
                 'max': self.parse_safe_number(self.safe_string(market, 'maxOrderQty')),
             },
         }
-        active = None
+        status = self.safe_string(market, 'status')
+        active = status == 'Listed'
         return {
             'id': id,
             'symbol': symbol,
@@ -466,7 +469,9 @@ class phemex(Exchange):
         #         "defaultMakerFee":"0.001",
         #         "defaultMakerFeeEr":100000,
         #         "baseQtyPrecision":6,
-        #         "quoteQtyPrecision":2
+        #         "quoteQtyPrecision":2,
+        #         "status":"Listed",
+        #         "tipOrderQty":20
         #     }
         #
         type = self.safe_string_lower(market, 'type')
@@ -500,7 +505,8 @@ class phemex(Exchange):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
-        active = None
+        status = self.safe_string(market, 'status')
+        active = status == 'Listed'
         return {
             'id': id,
             'symbol': symbol,
