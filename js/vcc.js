@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol, AddressPending, PermissionDenied, InsufficientFunds } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -559,13 +560,13 @@ module.exports = class vcc extends Exchange {
         }
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber2 (trade, 'base_volume', 'quantity');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'base_volume', 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         let cost = this.safeNumber2 (trade, 'quote_volume', 'amount');
         if (cost === undefined) {
-            if ((price !== undefined) && (amount !== undefined)) {
-                cost = price * amount;
-            }
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const side = this.safeString2 (trade, 'type', 'trade_type');
         const id = this.safeString2 (trade, 'trade_id', 'id');
