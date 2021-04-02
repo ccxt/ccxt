@@ -13,7 +13,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.decimal_to_precision import ROUND
 
 
 class latoken(Exchange):
@@ -94,6 +93,7 @@ class latoken(Exchange):
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
                     'maker': 0.1 / 100,
@@ -254,25 +254,6 @@ class latoken(Exchange):
                 },
             }
         return result
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        key = 'quote'
-        rate = market[takerOrMaker]
-        cost = amount * rate
-        precision = market['precision']['price']
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-            precision = market['precision']['amount']
-        cost = self.decimal_to_precision(cost, ROUND, precision, self.precisionMode)
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': float(cost),
-        }
 
     def fetch_balance(self, params={}):
         self.load_markets()
