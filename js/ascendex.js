@@ -131,6 +131,7 @@ module.exports = class ascendex extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': true,
                     'percentage': true,
                     'taker': 0.002,
@@ -465,28 +466,6 @@ module.exports = class ascendex extends Exchange {
             });
         }
         return result;
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        // TODO: fee calculation here is incorrect, we need to support tiered fee calculation.
-        const market = this.markets[symbol];
-        let key = 'quote';
-        const rate = market[takerOrMaker];
-        let cost = amount * rate;
-        let precision = market['precision']['price'];
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-            precision = market['precision']['amount'];
-        }
-        cost = this.decimalToPrecision (cost, ROUND, precision, this.precisionMode);
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (cost),
-        };
     }
 
     async fetchAccounts (params = {}) {
