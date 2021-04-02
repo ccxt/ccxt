@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, RateLimitExceeded } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -451,12 +452,15 @@ module.exports = class yobit extends Exchange {
         } else if (side === 'bid') {
             side = 'buy';
         }
-        const price = this.safeNumber2 (trade, 'rate', 'price');
+        const priceString = this.safeString2 (trade, 'rate', 'price');
         const id = this.safeString2 (trade, 'trade_id', 'tid');
         const order = this.safeString (trade, 'order_id');
         const marketId = this.safeString (trade, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const amount = this.safeNumber (trade, 'amount');
+        const amountString = this.safeString (trade, 'amount');
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const type = 'limit'; // all trades are still limit trades
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'commission');
@@ -472,12 +476,6 @@ module.exports = class yobit extends Exchange {
         if (isYourOrder !== undefined) {
             if (fee === undefined) {
                 fee = this.calculateFee (symbol, type, side, amount, price, 'taker');
-            }
-        }
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
             }
         }
         return {
