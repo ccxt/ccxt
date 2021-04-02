@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -192,14 +193,11 @@ module.exports = class southxchange extends Exchange {
 
     parseTrade (trade, market) {
         const timestamp = this.safeTimestamp (trade, 'At');
-        const price = this.safeNumber (trade, 'Price');
-        const amount = this.safeNumber (trade, 'Amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'Price');
+        const amountString = this.safeString (trade, 'Amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const side = this.safeString (trade, 'Type');
         let symbol = undefined;
         if (market !== undefined) {
