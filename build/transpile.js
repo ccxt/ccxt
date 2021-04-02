@@ -588,7 +588,7 @@ class Transpiler {
                 precisionImports.push ('from ccxt.base.decimal_to_precision import ' + constant)
             }
         }
-        if (bodyAsString.indexOf ('Precise') >= 0) {
+        if (bodyAsString.match (/\sPrecise/)) {
             precisionImports.push ('from ccxt.base.precise import Precise')
         }
 
@@ -646,7 +646,13 @@ class Transpiler {
             }
         }
 
-        header = header.concat (errorImports)
+        const precisionImports = []
+
+        if (async && bodyAsString.match (/\sPrecise/)) {
+            precisionImports.push ('use \\ccxt\\Precise;')
+        }
+
+        header = header.concat (errorImports).concat (precisionImports)
 
         methods = methods.concat (this.getPHPBaseMethods ())
 
