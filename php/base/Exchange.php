@@ -286,6 +286,7 @@ class Exchange {
         'convertOHLCVToTradingView' => 'convert_ohlcv_to_trading_view',
         'fetchTicker' => 'fetch_ticker',
         'fetchTickers' => 'fetch_tickers',
+        'fetchBalance' => 'fetch_balance',
         'fetchOrder' => 'fetch_order',
         'fetchUnifiedOrder' => 'fetch_unified_order',
         'createOrder' => 'create_order',
