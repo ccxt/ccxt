@@ -85,6 +85,7 @@ module.exports = class latoken extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
                     'maker': 0.1 / 100,
@@ -251,27 +252,6 @@ module.exports = class latoken extends Exchange {
             };
         }
         return result;
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        let key = 'quote';
-        const rate = market[takerOrMaker];
-        let cost = amount * rate;
-        let precision = market['precision']['price'];
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-            precision = market['precision']['amount'];
-        }
-        cost = this.decimalToPrecision (cost, ROUND, precision, this.precisionMode);
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (cost),
-        };
     }
 
     async fetchBalance (params = {}) {
