@@ -2,6 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, InsufficientFunds, InvalidAddress, BadSymbol, InvalidOrder } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 module.exports = class xena extends Exchange {
     describe () {
@@ -665,14 +666,11 @@ module.exports = class xena extends Exchange {
         const orderId = this.safeString (trade, 'orderId');
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const price = this.safeNumber2 (trade, 'lastPx', 'mdEntryPx');
-        const amount = this.safeNumber2 (trade, 'lastQty', 'mdEntrySize');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString2 (trade, 'lastPx', 'mdEntryPx');
+        const amountString = this.safeString2 (trade, 'lastQty', 'mdEntrySize');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'commission');
         if (feeCost !== undefined) {
