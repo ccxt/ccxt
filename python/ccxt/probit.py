@@ -154,6 +154,7 @@ class probit(Exchange):
                 },
             },
             'commonCurrencies': {
+                'AUTO': 'Cube',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'CBC': 'CryptoBharatCoin',
