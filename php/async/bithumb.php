@@ -659,7 +659,7 @@ class bithumb extends Exchange {
         //                 "$price" => "8601000",
         //                 "units" => "0.005",
         //                 "fee_currency" => "KRW",
-        //                 "$fee" => "107.51",
+        //                 "fee" => "107.51",
         //                 "total" => "43005"
         //             ),
         //         )
@@ -682,7 +682,7 @@ class bithumb extends Exchange {
         //                 $price => '13344000',
         //                 units => '0.0015',
         //                 fee_currency => 'KRW',
-        //                 $fee => '0',
+        //                 fee => '0',
         //                 total => '20016'
         //             }
         //         ),
@@ -731,65 +731,14 @@ class bithumb extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $filled = null;
-        $cost = null;
-        $average = null;
         $id = $this->safe_string($order, 'order_id');
-        $rawTrades = $this->safe_value($order, 'contract');
-        $trades = null;
-        $fee = null;
-        $fees = null;
-        $feesByCurrency = null;
-        if ($rawTrades !== null) {
-            $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-                'side' => $side,
-                'symbol' => $symbol,
-                'order' => $id,
-            ));
-            $filled = 0;
-            $feesByCurrency = array();
-            for ($i = 0; $i < count($trades); $i++) {
-                $trade = $trades[$i];
-                $filled = $this->sum($filled, $trade['amount']);
-                $cost = $this->sum($cost, $trade['cost']);
-                $tradeFee = $trade['fee'];
-                $feeCurrency = $tradeFee['currency'];
-                if (is_array($feesByCurrency) && array_key_exists($feeCurrency, $feesByCurrency)) {
-                    $feesByCurrency[$feeCurrency] = array(
-                        'currency' => $feeCurrency,
-                        'cost' => $this->sum($feesByCurrency[$feeCurrency]['cost'], $tradeFee['cost']),
-                    );
-                } else {
-                    $feesByCurrency[$feeCurrency] = array(
-                        'currency' => $feeCurrency,
-                        'cost' => $tradeFee['cost'],
-                    );
-                }
-            }
-            $feeCurrencies = is_array($feesByCurrency) ? array_keys($feesByCurrency) : array();
-            $feeCurrenciesLength = is_array($feeCurrencies) ? count($feeCurrencies) : 0;
-            if ($feeCurrenciesLength > 1) {
-                $fees = array();
-                for ($i = 0; $i < count($feeCurrencies); $i++) {
-                    $feeCurrency = $feeCurrencies[$i];
-                    $fees[] = $feesByCurrency[$feeCurrency];
-                }
-            } else {
-                $fee = $this->safe_value($feesByCurrency, $feeCurrencies[0]);
-            }
-            if ($filled !== 0) {
-                $average = $cost / $filled;
-            }
-        }
-        if ($amount !== null) {
-            if (($filled === null) && ($remaining !== null)) {
-                $filled = max (0, $amount - $remaining);
-            }
-            if (($remaining === null) && ($filled !== null)) {
-                $remaining = max (0, $amount - $filled);
-            }
-        }
-        $result = array(
+        $rawTrades = $this->safe_value($order, 'contract', array());
+        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
+            'side' => $side,
+            'symbol' => $symbol,
+            'order' => $id,
+        ));
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -804,20 +753,14 @@ class bithumb extends Exchange {
             'price' => $price,
             'stopPrice' => null,
             'amount' => $amount,
-            'cost' => $cost,
-            'average' => $average,
-            'filled' => $filled,
+            'cost' => null,
+            'average' => null,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
             'trades' => $trades,
-        );
-        if ($fee !== null) {
-            $result['fee'] = $fee;
-        } else if ($fees !== null) {
-            $result['fees'] = $fees;
-        }
-        return $result;
+        ));
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

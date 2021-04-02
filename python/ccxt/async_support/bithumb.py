@@ -693,56 +693,14 @@ class bithumb(Exchange):
             symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        filled = None
-        cost = None
-        average = None
         id = self.safe_string(order, 'order_id')
-        rawTrades = self.safe_value(order, 'contract')
-        trades = None
-        fee = None
-        fees = None
-        feesByCurrency = None
-        if rawTrades is not None:
-            trades = self.parse_trades(rawTrades, market, None, None, {
-                'side': side,
-                'symbol': symbol,
-                'order': id,
-            })
-            filled = 0
-            feesByCurrency = {}
-            for i in range(0, len(trades)):
-                trade = trades[i]
-                filled = self.sum(filled, trade['amount'])
-                cost = self.sum(cost, trade['cost'])
-                tradeFee = trade['fee']
-                feeCurrency = tradeFee['currency']
-                if feeCurrency in feesByCurrency:
-                    feesByCurrency[feeCurrency] = {
-                        'currency': feeCurrency,
-                        'cost': self.sum(feesByCurrency[feeCurrency]['cost'], tradeFee['cost']),
-                    }
-                else:
-                    feesByCurrency[feeCurrency] = {
-                        'currency': feeCurrency,
-                        'cost': tradeFee['cost'],
-                    }
-            feeCurrencies = list(feesByCurrency.keys())
-            feeCurrenciesLength = len(feeCurrencies)
-            if feeCurrenciesLength > 1:
-                fees = []
-                for i in range(0, len(feeCurrencies)):
-                    feeCurrency = feeCurrencies[i]
-                    fees.append(feesByCurrency[feeCurrency])
-            else:
-                fee = self.safe_value(feesByCurrency, feeCurrencies[0])
-            if filled != 0:
-                average = cost / filled
-        if amount is not None:
-            if (filled is None) and (remaining is not None):
-                filled = max(0, amount - remaining)
-            if (remaining is None) and (filled is not None):
-                remaining = max(0, amount - filled)
-        result = {
+        rawTrades = self.safe_value(order, 'contract', [])
+        trades = self.parse_trades(rawTrades, market, None, None, {
+            'side': side,
+            'symbol': symbol,
+            'order': id,
+        })
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -757,19 +715,14 @@ class bithumb(Exchange):
             'price': price,
             'stopPrice': None,
             'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
+            'cost': None,
+            'average': None,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': trades,
-        }
-        if fee is not None:
-            result['fee'] = fee
-        elif fees is not None:
-            result['fees'] = fees
-        return result
+        })
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
