@@ -1571,7 +1571,7 @@ module.exports = class Exchange {
         }
         // also ensure the cost field is calculated correctly
         const costPriceExists = (average !== undefined) || (price !== undefined);
-        if ((filled !== undefined) && costPriceExists && parseCost) {
+        if (parseCost && (filled !== undefined) && costPriceExists) {
             cost = (average === undefined) ? (price * filled) : (average * filled);
         }
         // support for market orders
