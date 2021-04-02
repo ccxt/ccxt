@@ -648,7 +648,7 @@ class Transpiler {
 
         const precisionImports = []
 
-        if (bodyAsString.match (/\sPrecise/)) {
+        if (async && bodyAsString.match (/\sPrecise/)) {
             precisionImports.push ('use \\ccxt\\Precise;')
         }
 
