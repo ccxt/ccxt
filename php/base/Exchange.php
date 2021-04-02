@@ -37,7 +37,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.45.87';
+$version = '1.45.88';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -56,7 +56,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.45.87';
+    const VERSION = '1.45.88';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -286,7 +286,6 @@ class Exchange {
         'convertOHLCVToTradingView' => 'convert_ohlcv_to_trading_view',
         'fetchTicker' => 'fetch_ticker',
         'fetchTickers' => 'fetch_tickers',
-        'fetchBalance' => 'fetch_balance',
         'fetchOrder' => 'fetch_order',
         'fetchUnifiedOrder' => 'fetch_unified_order',
         'createOrder' => 'create_order',
