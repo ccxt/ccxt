@@ -2,6 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 module.exports = class timex extends Exchange {
     describe () {
@@ -1046,8 +1047,11 @@ module.exports = class timex extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'quantity');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'id');
         const side = this.safeStringLower2 (trade, 'direction', 'side');
         const takerOrMaker = this.safeStringLower (trade, 'makerOrTaker');
@@ -1063,10 +1067,6 @@ module.exports = class timex extends Exchange {
                 'cost': feeCost,
                 'currency': feeCurrency,
             };
-        }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = this.costToPrecision (symbol, amount * price);
         }
         return {
             'info': trade,
