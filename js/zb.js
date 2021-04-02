@@ -498,8 +498,8 @@ module.exports = class zb extends Exchange {
         let side = this.safeString (trade, 'trade_type');
         side = (side === 'bid') ? 'buy' : 'sell';
         const id = this.safeString (trade, 'tid');
-        const priceString = this.safeNumber (trade, 'price');
-        const amountString = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
         const costString = Precise.stringMul (priceString, amountString);
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
