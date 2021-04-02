@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class xena extends Exchange {
 
@@ -674,14 +675,11 @@ class xena extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $price = $this->safe_number_2($trade, 'lastPx', 'mdEntryPx');
-        $amount = $this->safe_number_2($trade, 'lastQty', 'mdEntrySize');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string_2($trade, 'lastPx', 'mdEntryPx');
+        $amountString = $this->safe_string_2($trade, 'lastQty', 'mdEntrySize');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
         $feeCost = $this->safe_number($trade, 'commission');
         if ($feeCost !== null) {

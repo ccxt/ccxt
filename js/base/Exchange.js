@@ -1330,15 +1330,39 @@ module.exports = class Exchange {
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol]
-        const rate = market[takerOrMaker]
-        const cost = parseFloat (this.costToPrecision (symbol, amount * price))
+        const market = this.markets[symbol];
+        const feeSide = this.safeString (market, 'feeSide', 'quote');
+        let key = 'quote';
+        let cost = undefined;
+        if (feeSide === 'quote') {
+            cost = amount * price;
+        } else if (feeSide === 'base') {
+            cost = amount;
+        } else if (feeSide === 'get') {
+            cost = amount;
+            if (side === 'sell') {
+                cost *= price;
+            } else {
+                key = 'base';
+            }
+        } else if (feeSide === 'give') {
+            cost = amount;
+            if (side === 'buy') {
+                cost *= price;
+            } else {
+                key = 'base';
+            }
+        }
+        const rate = market[takerOrMaker];
+        if (cost !== undefined) {
+            cost *= rate;
+        }
         return {
             'type': takerOrMaker,
-            'currency': market['quote'],
+            'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, rate * cost)),
-        }
+            'cost': cost,
+        };
     }
 
     checkRequiredDependencies () {

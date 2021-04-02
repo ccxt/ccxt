@@ -162,6 +162,7 @@ class bitfinex extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => true,
                     'percentage' => true,
                     'maker' => 0.1 / 100,
@@ -605,32 +606,6 @@ class bitfinex extends Exchange {
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
         // Prices submit with a precision larger than 5 will be cut by the API.
         return $this->decimal_to_precision($price, TRUNCATE, 8, DECIMAL_PLACES);
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $rate = $market[$takerOrMaker];
-        $cost = $amount * $rate;
-        $key = 'quote';
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-        }
-        $code = $market[$key];
-        $currency = $this->safe_value($this->currencies, $code);
-        if ($currency !== null) {
-            $precision = $this->safe_integer($currency, 'precision');
-            if ($precision !== null) {
-                $cost = floatval($this->currency_to_precision($code, $cost));
-            }
-        }
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => $cost,
-        );
     }
 
     public function fetch_balance($params = array ()) {
