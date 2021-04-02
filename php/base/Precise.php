@@ -23,6 +23,7 @@ class Precise {
                 throw new \Error('Cannot set decimals when initializing with a string');
             }
             $modifier = 0;
+            $number = strtolower($number);
             if (strpos($number, 'e') > -1) {
                 list($number, $modifier) = explode('e', $number);
                 $modifier = intval($modifier);

@@ -17,6 +17,7 @@ class Precise {
                 throw new Error ('Cannot set decimals when initializing with a string')
             }
             let modifier = 0
+            number = number.toLowerCase ()
             if (number.indexOf ('e') > -1) {
                 [ number, modifier ] = number.split ('e')
                 modifier = parseInt (modifier)

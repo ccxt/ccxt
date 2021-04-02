@@ -24,6 +24,7 @@ class Precise:
             if decimals:
                 raise RuntimeError('Cannot set decimals when initializing with a string')
             modifier = 0
+            number = number.lower()
             if 'e' in number:
                 number, modifier = number.split('e')
                 modifier = int(modifier)
