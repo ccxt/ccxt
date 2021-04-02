@@ -117,6 +117,7 @@ class exmo extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
                     'maker' => 0.2 / 100,
@@ -1369,24 +1370,6 @@ class exmo extends Exchange {
             return $this->markets[$symbols[0]];
         }
         return null;
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $rate = $market[$takerOrMaker];
-        $cost = floatval($this->cost_to_precision($symbol, $amount * $rate));
-        $key = 'quote';
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-        }
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => floatval($this->fee_to_precision($symbol, $cost)),
-        );
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

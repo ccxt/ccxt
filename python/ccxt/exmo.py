@@ -132,6 +132,7 @@ class exmo(Exchange):
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
                     'maker': 0.2 / 100,
@@ -1293,22 +1294,6 @@ class exmo(Exchange):
         if numSymbols == 1:
             return self.markets[symbols[0]]
         return None
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * rate))
-        key = 'quote'
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, cost)),
-        }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
