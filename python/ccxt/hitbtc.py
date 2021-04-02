@@ -197,6 +197,7 @@ class hitbtc(Exchange):
                 },
             },
             'commonCurrencies': {
+                'AUTO': 'Cube',
                 'BCC': 'BCC',  # initial symbol for Bitcoin Cash, now inactive
                 'BET': 'DAO.Casino',
                 'BOX': 'BOX Token',

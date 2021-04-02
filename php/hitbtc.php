@@ -189,6 +189,7 @@ class hitbtc extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'AUTO' => 'Cube',
                 'BCC' => 'BCC', // initial symbol for Bitcoin Cash, now inactive
                 'BET' => 'DAO.Casino',
                 'BOX' => 'BOX Token',
