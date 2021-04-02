@@ -588,7 +588,7 @@ class Transpiler {
                 precisionImports.push ('from ccxt.base.decimal_to_precision import ' + constant)
             }
         }
-        if (bodyAsString.match (/\sPrecise/)) {
+        if (bodyAsString.match (/[\s(]Precise/)) {
             precisionImports.push ('from ccxt.base.precise import Precise')
         }
 
@@ -648,7 +648,7 @@ class Transpiler {
 
         const precisionImports = []
 
-        if (async && bodyAsString.match (/\sPrecise/)) {
+        if (async && bodyAsString.match (/[\s(]Precise/)) {
             precisionImports.push ('use \\ccxt\\Precise;')
         }
 
