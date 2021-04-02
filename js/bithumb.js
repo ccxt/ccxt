@@ -728,65 +728,14 @@ module.exports = class bithumb extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        let filled = undefined;
-        let cost = undefined;
-        let average = undefined;
         const id = this.safeString (order, 'order_id');
-        const rawTrades = this.safeValue (order, 'contract');
-        let trades = undefined;
-        let fee = undefined;
-        let fees = undefined;
-        let feesByCurrency = undefined;
-        if (rawTrades !== undefined) {
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                'side': side,
-                'symbol': symbol,
-                'order': id,
-            });
-            filled = 0;
-            feesByCurrency = {};
-            for (let i = 0; i < trades.length; i++) {
-                const trade = trades[i];
-                filled = this.sum (filled, trade['amount']);
-                cost = this.sum (cost, trade['cost']);
-                const tradeFee = trade['fee'];
-                const feeCurrency = tradeFee['currency'];
-                if (feeCurrency in feesByCurrency) {
-                    feesByCurrency[feeCurrency] = {
-                        'currency': feeCurrency,
-                        'cost': this.sum (feesByCurrency[feeCurrency]['cost'], tradeFee['cost']),
-                    };
-                } else {
-                    feesByCurrency[feeCurrency] = {
-                        'currency': feeCurrency,
-                        'cost': tradeFee['cost'],
-                    };
-                }
-            }
-            const feeCurrencies = Object.keys (feesByCurrency);
-            const feeCurrenciesLength = feeCurrencies.length;
-            if (feeCurrenciesLength > 1) {
-                fees = [];
-                for (let i = 0; i < feeCurrencies.length; i++) {
-                    const feeCurrency = feeCurrencies[i];
-                    fees.push (feesByCurrency[feeCurrency]);
-                }
-            } else {
-                fee = this.safeValue (feesByCurrency, feeCurrencies[0]);
-            }
-            if (filled !== 0) {
-                average = cost / filled;
-            }
-        }
-        if (amount !== undefined) {
-            if ((filled === undefined) && (remaining !== undefined)) {
-                filled = Math.max (0, amount - remaining);
-            }
-            if ((remaining === undefined) && (filled !== undefined)) {
-                remaining = Math.max (0, amount - filled);
-            }
-        }
-        const result = {
+        const rawTrades = this.safeValue (order, 'contract', []);
+        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+            'side': side,
+            'symbol': symbol,
+            'order': id,
+        });
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -801,20 +750,14 @@ module.exports = class bithumb extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': trades,
-        };
-        if (fee !== undefined) {
-            result['fee'] = fee;
-        } else if (fees !== undefined) {
-            result['fees'] = fees;
-        }
-        return result;
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
