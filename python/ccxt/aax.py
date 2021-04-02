@@ -1515,7 +1515,7 @@ class aax(Exchange):
         average = self.safe_number(order, 'avgPrice')
         amount = self.safe_number(order, 'orderQty')
         filled = self.safe_number(order, 'cumQty')
-        remaining = self.safe_string(order, 'leavesQty')
+        remaining = self.safe_number(order, 'leavesQty')
         cost = None
         lastTradeTimestamp = None
         if filled is not None:

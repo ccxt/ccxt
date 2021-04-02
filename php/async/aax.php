@@ -1575,7 +1575,7 @@ class aax extends Exchange {
         $average = $this->safe_number($order, 'avgPrice');
         $amount = $this->safe_number($order, 'orderQty');
         $filled = $this->safe_number($order, 'cumQty');
-        $remaining = $this->safe_string($order, 'leavesQty');
+        $remaining = $this->safe_number($order, 'leavesQty');
         $cost = null;
         $lastTradeTimestamp = null;
         if ($filled !== null) {
