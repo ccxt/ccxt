@@ -140,6 +140,7 @@ module.exports = class probit extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'AUTO': 'Cube',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'CBC': 'CryptoBharatCoin',
