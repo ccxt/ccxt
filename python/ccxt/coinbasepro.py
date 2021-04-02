@@ -908,18 +908,6 @@ class coinbasepro(Exchange):
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
         return self.privateDeleteOrders(self.extend(request, params))
 
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        rate = market[takerOrMaker]
-        cost = amount * price
-        currency = market['quote']
-        return {
-            'type': takerOrMaker,
-            'currency': currency,
-            'rate': rate,
-            'cost': float(self.currency_to_precision(currency, rate * cost)),
-        }
-
     def fetch_payment_methods(self, params={}):
         return self.privateGetPaymentMethods(params)
 

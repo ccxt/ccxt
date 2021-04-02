@@ -946,19 +946,6 @@ class coinbasepro extends Exchange {
         return yield $this->privateDeleteOrders (array_merge($request, $params));
     }
 
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $rate = $market[$takerOrMaker];
-        $cost = $amount * $price;
-        $currency = $market['quote'];
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $currency,
-            'rate' => $rate,
-            'cost' => floatval($this->currency_to_precision($currency, $rate * $cost)),
-        );
-    }
-
     public function fetch_payment_methods($params = array ()) {
         return yield $this->privateGetPaymentMethods ($params);
     }
