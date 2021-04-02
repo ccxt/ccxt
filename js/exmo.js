@@ -112,6 +112,7 @@ module.exports = class exmo extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
                     'maker': 0.2 / 100,
@@ -1364,24 +1365,6 @@ module.exports = class exmo extends Exchange {
             return this.markets[symbols[0]];
         }
         return undefined;
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        const rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
-        let key = 'quote';
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
-        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
