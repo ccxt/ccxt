@@ -159,6 +159,7 @@ module.exports = class bitfinex extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': true,
                     'percentage': true,
                     'maker': 0.1 / 100,
@@ -602,32 +603,6 @@ module.exports = class bitfinex extends Exchange {
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
         // Prices submit with a precision larger than 5 will be cut by the API.
         return this.decimalToPrecision (price, TRUNCATE, 8, DECIMAL_PLACES);
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        const rate = market[takerOrMaker];
-        let cost = amount * rate;
-        let key = 'quote';
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        const code = market[key];
-        const currency = this.safeValue (this.currencies, code);
-        if (currency !== undefined) {
-            const precision = this.safeInteger (currency, 'precision');
-            if (precision !== undefined) {
-                cost = parseFloat (this.currencyToPrecision (code, cost));
-            }
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': cost,
-        };
     }
 
     async fetchBalance (params = {}) {
