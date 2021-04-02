@@ -988,6 +988,10 @@ module.exports = class Exchange {
         return balance
     }
 
+    async fetchBalance (params = {}) {
+        throw new NotSupported (this.id + ' fetchBalance not supported yet')
+    }
+
     async fetchPartialBalance (part, params = {}) {
         const balance = await this.fetchBalance (params)
         return balance[part]
