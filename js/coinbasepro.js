@@ -942,19 +942,6 @@ module.exports = class coinbasepro extends Exchange {
         return await this.privateDeleteOrders (this.extend (request, params));
     }
 
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        const rate = market[takerOrMaker];
-        const cost = amount * price;
-        const currency = market['quote'];
-        return {
-            'type': takerOrMaker,
-            'currency': currency,
-            'rate': rate,
-            'cost': parseFloat (this.currencyToPrecision (currency, rate * cost)),
-        };
-    }
-
     async fetchPaymentMethods (params = {}) {
         return await this.privateGetPaymentMethods (params);
     }

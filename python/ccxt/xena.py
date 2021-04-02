@@ -11,6 +11,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.precise import Precise
 
 
 class xena(Exchange):
@@ -647,12 +648,11 @@ class xena(Exchange):
         orderId = self.safe_string(trade, 'orderId')
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        price = self.safe_number_2(trade, 'lastPx', 'mdEntryPx')
-        amount = self.safe_number_2(trade, 'lastQty', 'mdEntrySize')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string_2(trade, 'lastPx', 'mdEntryPx')
+        amountString = self.safe_string_2(trade, 'lastQty', 'mdEntrySize')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         feeCost = self.safe_number(trade, 'commission')
         if feeCost is not None:

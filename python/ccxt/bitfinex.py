@@ -176,6 +176,7 @@ class bitfinex(Exchange):
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': True,
                     'percentage': True,
                     'maker': 0.1 / 100,
@@ -610,28 +611,6 @@ class bitfinex(Exchange):
         # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals(e.g. 1.2345, 123.45, 1234.5, 0.00012345).
         # Prices submit with a precision larger than 5 will be cut by the API.
         return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        rate = market[takerOrMaker]
-        cost = amount * rate
-        key = 'quote'
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-        code = market[key]
-        currency = self.safe_value(self.currencies, code)
-        if currency is not None:
-            precision = self.safe_integer(currency, 'precision')
-            if precision is not None:
-                cost = float(self.currency_to_precision(code, cost))
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': cost,
-        }
 
     def fetch_balance(self, params={}):
         self.load_markets()

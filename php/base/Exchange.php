@@ -37,7 +37,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.45.81';
+$version = '1.45.91';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -56,7 +56,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.45.81';
+    const VERSION = '1.45.91';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2297,15 +2297,39 @@ class Exchange {
         return $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
     }
 
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array()) {
+    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
+        $feeSide = $this->safe_string($market, 'feeSide', 'quote');
+        $key = 'quote';
+        $cost = null;
+        if ($feeSide === 'quote') {
+            $cost = $amount * $price;
+        } else if ($feeSide === 'base') {
+            $cost = $amount;
+        } else if ($feeSide === 'get') {
+            $cost = $amount;
+            if ($side === 'sell') {
+                $cost *= $price;
+            } else {
+                $key = 'base';
+            }
+        } else if ($feeSide === 'give') {
+            $cost = $amount;
+            if ($side === 'buy') {
+                $cost *= $price;
+            } else {
+                $key = 'base';
+            }
+        }
         $rate = $market[$takerOrMaker];
-        $cost = floatval($this->cost_to_precision($symbol, $amount * $price));
+        if ($cost !== null) {
+            $cost *= $rate;
+        }
         return array(
             'type' => $takerOrMaker,
-            'currency' => $market['quote'],
+            'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval($this->fee_to_precision($symbol, $rate * $cost)),
+            'cost' => $cost,
         );
     }
 
