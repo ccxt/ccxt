@@ -13,14 +13,14 @@ class Precise {
         $isBN = $number instanceof BN;
         $isString = is_string($number);
         if (!($isBN || $isString)) {
-            throw new Error('Precise initiated with something other than a string or BN');
+            throw new \Error('Precise initiated with something other than a string or BN');
         }
         if ($isBN) {
             $this->integer = $number;
             $this->decimals = $decimals;
         } else {
             if ($decimals) {
-                throw new Error('Cannot set decimals when initializing with a string');
+                throw new \Error('Cannot set decimals when initializing with a string');
             }
             $modifier = 0;
             if (strpos($number, 'e') > -1) {
