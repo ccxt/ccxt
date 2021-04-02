@@ -2,6 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 module.exports = class tidex extends Exchange {
     describe () {
@@ -453,12 +454,15 @@ module.exports = class tidex extends Exchange {
         } else if (side === 'bid') {
             side = 'buy';
         }
-        const price = this.safeNumber2 (trade, 'rate', 'price');
+        const priceString = this.safeString2 (trade, 'rate', 'price');
         const id = this.safeString2 (trade, 'trade_id', 'tid');
         const orderId = this.safeString (trade, 'order_id');
         const marketId = this.safeString (trade, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const amount = this.safeNumber (trade, 'amount');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const type = 'limit'; // all trades are still limit trades
         let takerOrMaker = undefined;
         let fee = undefined;
@@ -479,12 +483,6 @@ module.exports = class tidex extends Exchange {
             }
             if (fee === undefined) {
                 fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
-            }
-        }
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
             }
         }
         return {
