@@ -1880,13 +1880,33 @@ class Exchange(object):
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
+        feeSide = self.safe_string(market, 'feeSide', 'quote')
+        key = 'quote'
+        cost = None
+        if feeSide == 'quote':
+            cost = amount * price
+        elif feeSide == 'base':
+            cost = amount
+        elif feeSide == 'get':
+            cost = amount
+            if side == 'sell':
+                cost *= price
+            else:
+                key = 'base'
+        elif feeSide == 'give':
+            cost = amount
+            if side == 'buy':
+                cost *= price
+            else:
+                key = 'base'
         rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * price))
+        if cost is not None:
+            cost *= rate
         return {
-            'rate': rate,
             'type': takerOrMaker,
-            'currency': market['quote'],
-            'cost': float(self.fee_to_precision(symbol, rate * cost)),
+            'currency': market[key],
+            'rate': rate,
+            'cost': cost,
         }
 
     def edit_limit_buy_order(self, id, symbol, *args):
