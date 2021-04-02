@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "848b2925ba116847b39d9bbd64f8c24e",
+    "content-hash": "fb9f5efb3d4d31c7eba93a408ff333e9",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.45.72",
+            "version": "1.45.84",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "1c463fd3fd3b4204a64e07b684c77894d742740e"
+                "reference": "30d28c14ca352c7ce5386d2f32e185d4e8d95135"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/1c463fd3fd3b4204a64e07b684c77894d742740e",
-                "reference": "1c463fd3fd3b4204a64e07b684c77894d742740e",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/30d28c14ca352c7ce5386d2f32e185d4e8d95135",
+                "reference": "30d28c14ca352c7ce5386d2f32e185d4e8d95135",
                 "shasum": ""
             },
             "require": {
@@ -29,8 +29,8 @@
                 "ext-pcre": "*",
                 "pear/console_table": "1.3.1",
                 "php": ">=5.4.0",
-                "react/http": "^1.2.0",
-                "recoil/react": "^1.0.2",
+                "react/http": "^1.2",
+                "recoil/react": "^1.0",
                 "symfony/polyfill-mbstring": "^1.7"
             },
             "suggest": {
@@ -281,7 +281,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.45.72"
+                "source": "https://github.com/ccxt/ccxt/tree/1.45.84"
             },
             "funding": [
                 {
@@ -289,7 +289,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2021-03-30T23:21:21+00:00"
+            "time": "2021-04-02T02:11:57+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -1671,7 +1671,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=5.4.0",
+        "php": ">=7.0",
         "ext-ds": "*",
         "ext-json": "*"
     },
