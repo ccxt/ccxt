@@ -1571,7 +1571,7 @@ module.exports = class aax extends Exchange {
         const average = this.safeNumber (order, 'avgPrice');
         const amount = this.safeNumber (order, 'orderQty');
         const filled = this.safeNumber (order, 'cumQty');
-        const remaining = this.safeString (order, 'leavesQty');
+        const remaining = this.safeNumber (order, 'leavesQty');
         let cost = undefined;
         let lastTradeTimestamp = undefined;
         if (filled !== undefined) {
