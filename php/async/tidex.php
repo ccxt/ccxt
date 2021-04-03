@@ -91,6 +91,7 @@ class tidex extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.1 / 100,
@@ -219,24 +220,6 @@ class tidex extends Exchange {
             );
         }
         return $result;
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $key = 'quote';
-        $rate = $market[$takerOrMaker];
-        $cost = floatval($this->cost_to_precision($symbol, $amount * $rate));
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-        }
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => $cost,
-        );
     }
 
     public function fetch_markets($params = array ()) {

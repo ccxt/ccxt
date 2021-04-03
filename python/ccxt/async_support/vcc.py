@@ -17,6 +17,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.precise import Precise
 
 
 class vcc(Exchange):
@@ -550,12 +551,13 @@ class vcc(Exchange):
             marketId = baseId + '_' + quoteId
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'base_volume', 'quantity')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'base_volume', 'quantity')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number_2(trade, 'quote_volume', 'amount')
         if cost is None:
-            if (price is not None) and (amount is not None):
-                cost = price * amount
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string_2(trade, 'type', 'trade_type')
         id = self.safe_string_2(trade, 'trade_id', 'id')
         feeCost = self.safe_number(trade, 'fee')

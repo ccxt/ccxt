@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\BadRequest;
 use \ccxt\AddressPending;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class vcc extends Exchange {
 
@@ -563,13 +564,13 @@ class vcc extends Exchange {
         }
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'base_volume', 'quantity');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'base_volume', 'quantity');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $cost = $this->safe_number_2($trade, 'quote_volume', 'amount');
         if ($cost === null) {
-            if (($price !== null) && ($amount !== null)) {
-                $cost = $price * $amount;
-            }
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $side = $this->safe_string_2($trade, 'type', 'trade_type');
         $id = $this->safe_string_2($trade, 'trade_id', 'id');
