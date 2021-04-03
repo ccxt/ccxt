@@ -560,7 +560,7 @@ module.exports = class huobipro extends Exchange {
         //     }
         //
         const ticker = this.parseTicker (response['tick'], market);
-        const timestamp = this.safeValue (response, 'ts');
+        const timestamp = this.safeInteger (response, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601 (timestamp);
         return ticker;
