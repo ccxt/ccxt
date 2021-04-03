@@ -565,7 +565,7 @@ class huobipro extends Exchange {
         //     }
         //
         $ticker = $this->parse_ticker($response['tick'], $market);
-        $timestamp = $this->safe_value($response, 'ts');
+        $timestamp = $this->safe_integer($response, 'ts');
         $ticker['timestamp'] = $timestamp;
         $ticker['datetime'] = $this->iso8601($timestamp);
         return $ticker;
