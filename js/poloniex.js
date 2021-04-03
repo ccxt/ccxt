@@ -113,6 +113,7 @@ module.exports = class poloniex extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     // starting from Jan 8 2020
                     'maker': 0.0009,
                     'taker': 0.0009,
@@ -205,24 +206,6 @@ module.exports = class poloniex extends Exchange {
                 },
             },
         });
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        let key = 'quote';
-        const rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
-        };
     }
 
     parseOHLCV (ohlcv, market = undefined) {
