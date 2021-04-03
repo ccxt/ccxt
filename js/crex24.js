@@ -206,7 +206,7 @@ module.exports = class crex24 extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const tickSize = this.safeValue (market, 'tickSize');
-            const minPrice = this.safeValue (market, 'minPrice');
+            const minPrice = this.safeNumber (market, 'minPrice');
             const minAmount = this.safeNumber (market, 'minVolume');
             const precision = {
                 'amount': this.precisionFromString (this.numberToString (minAmount)),
