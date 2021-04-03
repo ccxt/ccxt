@@ -189,6 +189,7 @@ module.exports = class huobipro extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
                     'maker': 0.002,
@@ -1190,24 +1191,6 @@ module.exports = class huobipro extends Exchange {
 
     currencyToPrecision (currency, fee) {
         return this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']);
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        const rate = market[takerOrMaker];
-        let cost = amount * rate;
-        let key = 'quote';
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.currencyToPrecision (market[key], cost)),
-        };
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
