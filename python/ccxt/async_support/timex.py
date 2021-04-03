@@ -14,6 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class timex(Exchange):
@@ -1013,8 +1014,11 @@ class timex(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'quantity')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'quantity')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string(trade, 'id')
         side = self.safe_string_lower_2(trade, 'direction', 'side')
         takerOrMaker = self.safe_string_lower(trade, 'makerOrTaker')
@@ -1029,9 +1033,6 @@ class timex(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = self.cost_to_precision(symbol, amount * price)
         return {
             'info': trade,
             'id': id,

@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -514,8 +515,11 @@ module.exports = class whitebit extends Exchange {
         } else {
             timestamp = parseInt (timestamp * 1000);
         }
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber2 (trade, 'amount', 'volume');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'amount', 'volume');
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const id = this.safeString2 (trade, 'id', 'tradeId');
         let side = this.safeString (trade, 'type');
         if (side === undefined) {
@@ -525,10 +529,6 @@ module.exports = class whitebit extends Exchange {
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-        }
-        let cost = undefined;
-        if (amount !== undefined && price !== undefined) {
-            cost = amount * price;
         }
         return {
             'info': trade,

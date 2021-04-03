@@ -455,12 +455,15 @@ class yobit extends Exchange {
         } else if ($side === 'bid') {
             $side = 'buy';
         }
-        $price = $this->safe_number_2($trade, 'rate', 'price');
+        $priceString = $this->safe_string_2($trade, 'rate', 'price');
         $id = $this->safe_string_2($trade, 'trade_id', 'tid');
         $order = $this->safe_string($trade, 'order_id');
         $marketId = $this->safe_string($trade, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $amount = $this->safe_number($trade, 'amount');
+        $amountString = $this->safe_string($trade, 'amount');
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $type = 'limit'; // all trades are still limit trades
         $fee = null;
         $feeCost = $this->safe_number($trade, 'commission');
@@ -476,12 +479,6 @@ class yobit extends Exchange {
         if ($isYourOrder !== null) {
             if ($fee === null) {
                 $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, 'taker');
-            }
-        }
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
             }
         }
         return array(
