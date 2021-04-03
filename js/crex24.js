@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -110,6 +111,7 @@ module.exports = class crex24 extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': true,
@@ -205,12 +207,12 @@ module.exports = class crex24 extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const tickSize = this.safeValue (market, 'tickSize');
+            const tickSize = this.safeNumber (market, 'tickSize');
             const minPrice = this.safeNumber (market, 'minPrice');
             const minAmount = this.safeNumber (market, 'minVolume');
             const precision = {
-                'amount': this.precisionFromString (this.numberToString (minAmount)),
-                'price': this.precisionFromString (this.numberToString (tickSize)),
+                'amount': minAmount,
+                'price': tickSize,
             };
             const active = (market['state'] === 'active');
             result.push ({
@@ -275,7 +277,8 @@ module.exports = class crex24 extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeInteger (currency, 'withdrawalPrecision');
+            const withdrawalPrecision = this.safeInteger (currency, 'withdrawalPrecision');
+            const precision = -Math.log10 (withdrawalPrecision);
             const address = this.safeValue (currency, 'BaseAddress');
             const active = (currency['depositsAllowed'] && currency['withdrawalsAllowed'] && !currency['isDelisted']);
             const type = currency['isFiat'] ? 'fiat' : 'crypto';
