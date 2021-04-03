@@ -15,6 +15,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class whitebit(Exchange):
@@ -505,8 +506,11 @@ class whitebit(Exchange):
             timestamp = self.parse8601(timestamp)
         else:
             timestamp = int(timestamp * 1000)
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'amount', 'volume')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'amount', 'volume')
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         id = self.safe_string_2(trade, 'id', 'tradeId')
         side = self.safe_string(trade, 'type')
         if side is None:
@@ -515,9 +519,6 @@ class whitebit(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        cost = None
-        if amount is not None and price is not None:
-            cost = amount * price
         return {
             'info': trade,
             'timestamp': timestamp,
