@@ -2252,7 +2252,7 @@ class Exchange(object):
                 average = cost / filled
         # also ensure the cost field is calculated correctly
         costPriceExists = (average is not None) or (price is not None)
-        if (filled is not None) and costPriceExists:
+        if parseCost and (filled is not None) and costPriceExists:
             cost = (price * filled) if (average is None) else (average * filled)
         # support for market orders
         orderType = self.safe_value(order, 'type')
