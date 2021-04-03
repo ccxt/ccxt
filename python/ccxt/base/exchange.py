@@ -2280,20 +2280,8 @@ class Exchange(object):
 
     def safe_number(self, dictionary, key, default=None):
         value = self.safe_string(dictionary, key)
-        if value is None:
-            return default
-        else:
-            try:
-                return self.number(value)
-            except Exception:
-                return default
+        return self.parse_number(value, default)
 
     def safe_number_2(self, dictionary, key1, key2, default=None):
         value = self.safe_string_2(dictionary, key1, key2)
-        if value is None:
-            return default
-        else:
-            try:
-                return self.number(value)
-            except Exception:
-                return default
+        return self.parse_number(value, default)
