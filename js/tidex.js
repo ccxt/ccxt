@@ -84,6 +84,7 @@ module.exports = class tidex extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
                     'taker': 0.1 / 100,
@@ -212,24 +213,6 @@ module.exports = class tidex extends Exchange {
             };
         }
         return result;
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        let key = 'quote';
-        const rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': cost,
-        };
     }
 
     async fetchMarkets (params = {}) {
