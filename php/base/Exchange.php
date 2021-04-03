@@ -2992,27 +2992,11 @@ class Exchange {
 
     public function safe_number($object, $key, $default = null) {
         $value = $this->safe_string($object, $key);
-        if ($value === null) {
-            return $default;
-        } else {
-            try {
-                return $this->number($value);
-            } catch (Exception $e) {
-                return $default;
-            }
-        }
+        return $this->parse_number($value, $default);
     }
 
     public function safe_number_2($object, $key1, $key2, $default = null) {
         $value = $this->safe_string_2($object, $key1, $key2);
-        if ($value === null) {
-            return $default;
-        } else {
-            try {
-                return $this->number($value);
-            } catch (Exception $e) {
-                return $default;
-            }
-        }
+        return $this->parse_number($value, $default);
     }
 }
