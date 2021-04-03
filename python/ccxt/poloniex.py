@@ -129,6 +129,7 @@ class poloniex(Exchange):
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     # starting from Jan 8 2020
                     'maker': 0.0009,
                     'taker': 0.0009,
@@ -221,22 +222,6 @@ class poloniex(Exchange):
                 },
             },
         })
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        key = 'quote'
-        rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * rate))
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, cost)),
-        }
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
