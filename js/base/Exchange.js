@@ -1609,27 +1609,11 @@ module.exports = class Exchange {
 
     safeNumber (object, key, d = undefined) {
         const value = this.safeString (object, key)
-        if (value === undefined) {
-            return d
-        } else {
-            try {
-                return this.number (value)
-            } catch (e) {
-                return d
-            }
-        }
+        return this.parseNumber (value, d)
     }
 
     safeNumber2 (object, key1, key2, d = undefined) {
         const value = this.safeString2 (object, key1, key2)
-        if (value === undefined) {
-            return d
-        } else {
-            try {
-                return this.number (value)
-            } catch (e) {
-                return d
-            }
-        }
+        return this.parseNumber (value, d)
     }
 }
