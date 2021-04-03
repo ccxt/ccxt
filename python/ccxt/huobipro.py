@@ -37,6 +37,7 @@ class huobipro(Exchange):
             'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
             'has': {
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': False,
                 'createOrder': True,
@@ -1125,6 +1126,32 @@ class huobipro(Exchange):
             'id': id,
             'status': 'canceled',
         })
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        self.load_markets()
+        request = {
+            # 'account-id' string False NA The account id used for self cancel Refer to GET /v1/account/accounts
+            # 'symbol': market['id'],  # a list of comma-separated symbols, all symbols by default
+            # 'types' 'string', buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            # 'side': 'buy',  # or 'sell'
+            # 'size': 100,  # the number of orders to cancel 1-100
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = self.privatePostOrderOrdersBatchCancelOpenOrders(self.extend(request, params))
+        #
+        #     {
+        #         code: 200,
+        #         data: {
+        #             "success-count": 2,
+        #             "failed-count": 0,
+        #             "next-id": 5454600
+        #         }
+        #     }
+        #
+        return response
 
     def currency_to_precision(self, currency, fee):
         return self.decimal_to_precision(fee, 0, self.currencies[currency]['precision'])
