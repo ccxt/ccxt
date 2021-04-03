@@ -14,6 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class ripio(Exchange):
@@ -428,11 +429,11 @@ class ripio(Exchange):
         takerOrMaker = 'taker' if (takerSide == side) else 'maker'
         if side is not None:
             side = side.lower()
-        price = self.safe_number_2(trade, 'price', 'match_price')
-        amount = self.safe_number_2(trade, 'amount', 'exchanged')
-        cost = None
-        if (amount is not None) and (price is not None):
-            cost = amount * price
+        priceString = self.safe_string_2(trade, 'price', 'match_price')
+        amountString = self.safe_string_2(trade, 'amount', 'exchanged')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market)
         feeCost = self.safe_number(trade, takerOrMaker + '_fee')

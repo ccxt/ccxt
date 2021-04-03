@@ -432,12 +432,11 @@ class ripio extends Exchange {
         if ($side !== null) {
             $side = strtolower($side);
         }
-        $price = $this->safe_number_2($trade, 'price', 'match_price');
-        $amount = $this->safe_number_2($trade, 'amount', 'exchanged');
-        $cost = null;
-        if (($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
-        }
+        $priceString = $this->safe_string_2($trade, 'price', 'match_price');
+        $amountString = $this->safe_string_2($trade, 'amount', 'exchanged');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'pair');
         $market = $this->safe_market($marketId, $market);
         $feeCost = $this->safe_number($trade, $takerOrMaker . '_fee');
