@@ -1576,7 +1576,7 @@ class aax extends Exchange {
         $amount = $this->safe_number($order, 'orderQty');
         $filled = $this->safe_number($order, 'cumQty');
         $remaining = $this->safe_number($order, 'leavesQty');
-        if (($amount === 0) && ($remaining === 0)) {
+        if (($filled === 0) && ($remaining === 0)) {
             $remaining = null;
         }
         $cost = null;
