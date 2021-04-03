@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class southxchange extends Exchange {
 
@@ -194,14 +195,11 @@ class southxchange extends Exchange {
 
     public function parse_trade($trade, $market) {
         $timestamp = $this->safe_timestamp($trade, 'At');
-        $price = $this->safe_number($trade, 'Price');
-        $amount = $this->safe_number($trade, 'Amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'Price');
+        $amountString = $this->safe_string($trade, 'Amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $side = $this->safe_string($trade, 'Type');
         $symbol = null;
         if ($market !== null) {

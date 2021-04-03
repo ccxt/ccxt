@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 import json
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class southxchange(Exchange):
@@ -184,12 +185,11 @@ class southxchange(Exchange):
 
     def parse_trade(self, trade, market):
         timestamp = self.safe_timestamp(trade, 'At')
-        price = self.safe_number(trade, 'Price')
-        amount = self.safe_number(trade, 'Amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'Price')
+        amountString = self.safe_string(trade, 'Amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string(trade, 'Type')
         symbol = None
         if market is not None:
