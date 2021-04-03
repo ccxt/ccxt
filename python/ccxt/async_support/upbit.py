@@ -13,6 +13,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.precise import Precise
 
 
 class upbit(Exchange):
@@ -656,12 +657,12 @@ class upbit(Exchange):
         elif askOrBid == 'bid':
             side = 'buy'
         cost = self.safe_number(trade, 'funds')
-        price = self.safe_number_2(trade, 'trade_price', 'price')
-        amount = self.safe_number_2(trade, 'trade_volume', 'volume')
+        priceString = self.safe_string_2(trade, 'trade_price', 'price')
+        amountString = self.safe_string_2(trade, 'trade_volume', 'volume')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         if cost is None:
-            if amount is not None:
-                if price is not None:
-                    cost = price * amount
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string_2(trade, 'market', 'code')
         market = self.safe_market(marketId, market)
         fee = None

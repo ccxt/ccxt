@@ -675,14 +675,12 @@ class upbit extends Exchange {
             $side = 'buy';
         }
         $cost = $this->safe_number($trade, 'funds');
-        $price = $this->safe_number_2($trade, 'trade_price', 'price');
-        $amount = $this->safe_number_2($trade, 'trade_volume', 'volume');
+        $priceString = $this->safe_string_2($trade, 'trade_price', 'price');
+        $amountString = $this->safe_string_2($trade, 'trade_volume', 'volume');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         if ($cost === null) {
-            if ($amount !== null) {
-                if ($price !== null) {
-                    $cost = $price * $amount;
-                }
-            }
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $marketId = $this->safe_string_2($trade, 'market', 'code');
         $market = $this->safe_market($marketId, $market);

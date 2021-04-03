@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -671,14 +672,12 @@ module.exports = class upbit extends Exchange {
             side = 'buy';
         }
         let cost = this.safeNumber (trade, 'funds');
-        const price = this.safeNumber2 (trade, 'trade_price', 'price');
-        const amount = this.safeNumber2 (trade, 'trade_volume', 'volume');
+        const priceString = this.safeString2 (trade, 'trade_price', 'price');
+        const amountString = this.safeString2 (trade, 'trade_volume', 'volume');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         if (cost === undefined) {
-            if (amount !== undefined) {
-                if (price !== undefined) {
-                    cost = price * amount;
-                }
-            }
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const marketId = this.safeString2 (trade, 'market', 'code');
         market = this.safeMarket (marketId, market);
