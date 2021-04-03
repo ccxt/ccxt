@@ -1053,8 +1053,11 @@ class timex extends Exchange {
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'quantity');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'quantity');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string($trade, 'id');
         $side = $this->safe_string_lower_2($trade, 'direction', 'side');
         $takerOrMaker = $this->safe_string_lower($trade, 'makerOrTaker');
@@ -1070,10 +1073,6 @@ class timex extends Exchange {
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
             );
-        }
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $this->cost_to_precision($symbol, $amount * $price);
         }
         return array(
             'info' => $trade,
