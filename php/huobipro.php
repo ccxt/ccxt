@@ -194,6 +194,7 @@ class huobipro extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
                     'maker' => 0.002,
@@ -1195,24 +1196,6 @@ class huobipro extends Exchange {
 
     public function currency_to_precision($currency, $fee) {
         return $this->decimal_to_precision($fee, 0, $this->currencies[$currency]['precision']);
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $rate = $market[$takerOrMaker];
-        $cost = $amount * $rate;
-        $key = 'quote';
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-        }
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => floatval($this->currency_to_precision($market[$key], $cost)),
-        );
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
