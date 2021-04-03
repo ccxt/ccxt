@@ -22,6 +22,7 @@ module.exports = class huobipro extends Exchange {
             'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
             'has': {
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': false,
                 'createOrder': true,
@@ -1187,6 +1188,34 @@ module.exports = class huobipro extends Exchange {
             'id': id,
             'status': 'canceled',
         });
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'account-id' string false NA The account id used for this cancel Refer to GET /v1/account/accounts
+            // 'symbol': market['id'], // a list of comma-separated symbols, all symbols by default
+            // 'types' 'string', buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            // 'side': 'buy', // or 'sell'
+            // 'size': 100, // the number of orders to cancel 1-100
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privatePostOrderOrdersBatchCancelOpenOrders (this.extend (request, params));
+        //
+        //     {
+        //         code: 200,
+        //         data: {
+        //             "success-count": 2,
+        //             "failed-count": 0,
+        //             "next-id": 5454600
+        //         }
+        //     }
+        //
+        return response;
     }
 
     currencyToPrecision (currency, fee) {
