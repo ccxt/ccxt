@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class tidex extends Exchange {
 
@@ -460,12 +461,15 @@ class tidex extends Exchange {
         } else if ($side === 'bid') {
             $side = 'buy';
         }
-        $price = $this->safe_number_2($trade, 'rate', 'price');
+        $priceString = $this->safe_string_2($trade, 'rate', 'price');
         $id = $this->safe_string_2($trade, 'trade_id', 'tid');
         $orderId = $this->safe_string($trade, 'order_id');
         $marketId = $this->safe_string($trade, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $amount = $this->safe_number($trade, 'amount');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $type = 'limit'; // all trades are still limit trades
         $takerOrMaker = null;
         $fee = null;
@@ -486,12 +490,6 @@ class tidex extends Exchange {
             }
             if ($fee === null) {
                 $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker);
-            }
-        }
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
             }
         }
         return array(

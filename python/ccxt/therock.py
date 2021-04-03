@@ -10,6 +10,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.precise import Precise
 
 
 class therock(Exchange):
@@ -333,12 +334,11 @@ class therock(Exchange):
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order_id')
         side = self.safe_string(trade, 'side')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         feeCost = None
         transactions = self.safe_value(trade, 'transactions', [])

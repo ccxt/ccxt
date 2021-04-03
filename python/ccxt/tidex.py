@@ -21,6 +21,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class tidex(Exchange):
@@ -447,12 +448,15 @@ class tidex(Exchange):
             side = 'sell'
         elif side == 'bid':
             side = 'buy'
-        price = self.safe_number_2(trade, 'rate', 'price')
+        priceString = self.safe_string_2(trade, 'rate', 'price')
         id = self.safe_string_2(trade, 'trade_id', 'tid')
         orderId = self.safe_string(trade, 'order_id')
         marketId = self.safe_string(trade, 'pair')
         symbol = self.safe_symbol(marketId, market)
-        amount = self.safe_number(trade, 'amount')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         type = 'limit'  # all trades are still limit trades
         takerOrMaker = None
         fee = None
@@ -471,10 +475,6 @@ class tidex(Exchange):
                 takerOrMaker = 'maker'
             if fee is None:
                 fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
         return {
             'id': id,
             'order': orderId,
