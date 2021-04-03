@@ -1572,7 +1572,7 @@ module.exports = class aax extends Exchange {
         const amount = this.safeNumber (order, 'orderQty');
         const filled = this.safeNumber (order, 'cumQty');
         let remaining = this.safeNumber (order, 'leavesQty');
-        if ((amount === 0) && (remaining === 0)) {
+        if ((filled === 0) && (remaining === 0)) {
             remaining = undefined;
         }
         let cost = undefined;
