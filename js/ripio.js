@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, BadSymbol, BadRequest, InvalidOrder, ArgumentsRequired, OrderNotFound, InsufficientFunds, DDoSProtection } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -430,12 +431,11 @@ module.exports = class ripio extends Exchange {
         if (side !== undefined) {
             side = side.toLowerCase ();
         }
-        const price = this.safeNumber2 (trade, 'price', 'match_price');
-        const amount = this.safeNumber2 (trade, 'amount', 'exchanged');
-        let cost = undefined;
-        if ((amount !== undefined) && (price !== undefined)) {
-            cost = amount * price;
-        }
+        const priceString = this.safeString2 (trade, 'price', 'match_price');
+        const amountString = this.safeString2 (trade, 'amount', 'exchanged');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market);
         const feeCost = this.safeNumber (trade, takerOrMaker + '_fee');
