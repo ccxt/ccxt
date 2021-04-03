@@ -1884,16 +1884,20 @@ class Exchange(object):
         key = 'quote'
         cost = None
         if feeSide == 'quote':
+            # the fee is always in quote currency
             cost = amount * price
         elif feeSide == 'base':
+            # the fee is always in base currency
             cost = amount
         elif feeSide == 'get':
+            # the fee is always in the currency you get
             cost = amount
             if side == 'sell':
                 cost *= price
             else:
                 key = 'base'
         elif feeSide == 'give':
+            # the fee is always in the currency you give
             cost = amount
             if side == 'buy':
                 cost *= price
