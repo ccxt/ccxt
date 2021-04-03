@@ -2304,10 +2304,13 @@ class Exchange {
         $key = 'quote';
         $cost = null;
         if ($feeSide === 'quote') {
+            // the fee is always in quote currency
             $cost = $amount * $price;
         } else if ($feeSide === 'base') {
+            // the fee is always in base currency
             $cost = $amount;
         } else if ($feeSide === 'get') {
+            // the fee is always in the currency you get
             $cost = $amount;
             if ($side === 'sell') {
                 $cost *= $price;
@@ -2315,6 +2318,7 @@ class Exchange {
                 $key = 'base';
             }
         } else if ($feeSide === 'give') {
+            // the fee is always in the currency you give
             $cost = $amount;
             if ($side === 'buy') {
                 $cost *= $price;
