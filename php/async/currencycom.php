@@ -96,6 +96,7 @@ class currencycom extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.002,
@@ -339,27 +340,6 @@ class currencycom extends Exchange {
             $result[] = $entry;
         }
         return $result;
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $key = 'quote';
-        $rate = $market[$takerOrMaker];
-        $cost = $amount * $rate;
-        $precision = $market['precision']['price'];
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-            $precision = $market['precision']['amount'];
-        }
-        $cost = $this->decimal_to_precision($cost, ROUND, $precision, $this->precisionMode);
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => floatval($cost),
-        );
     }
 
     public function fetch_accounts($params = array ()) {

@@ -15,7 +15,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -104,6 +103,7 @@ class currencycom(Exchange):
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
                     'taker': 0.002,
@@ -332,25 +332,6 @@ class currencycom(Exchange):
                 entry['limits']['cost']['min'] = self.safe_number(filter, 'minNotional')
             result.append(entry)
         return result
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        key = 'quote'
-        rate = market[takerOrMaker]
-        cost = amount * rate
-        precision = market['precision']['price']
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-            precision = market['precision']['amount']
-        cost = self.decimal_to_precision(cost, ROUND, precision, self.precisionMode)
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': float(cost),
-        }
 
     def fetch_accounts(self, params={}):
         response = self.privateGetAccount(params)
