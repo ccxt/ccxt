@@ -17,6 +17,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class crex24(Exchange):
@@ -123,6 +124,7 @@ class crex24(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': True,
@@ -216,12 +218,12 @@ class crex24(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            tickSize = self.safe_value(market, 'tickSize')
-            minPrice = self.safe_value(market, 'minPrice')
+            tickSize = self.safe_number(market, 'tickSize')
+            minPrice = self.safe_number(market, 'minPrice')
             minAmount = self.safe_number(market, 'minVolume')
             precision = {
-                'amount': self.precision_from_string(self.number_to_string(minAmount)),
-                'price': self.precision_from_string(self.number_to_string(tickSize)),
+                'amount': minAmount,
+                'price': tickSize,
             }
             active = (market['state'] == 'active')
             result.append({
@@ -284,7 +286,8 @@ class crex24(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            precision = self.safe_integer(currency, 'withdrawalPrecision')
+            withdrawalPrecision = self.safe_integer(currency, 'withdrawalPrecision')
+            precision = math.pow(10, -withdrawalPrecision)
             address = self.safe_value(currency, 'BaseAddress')
             active = (currency['depositsAllowed'] and currency['withdrawalsAllowed'] and not currency['isDelisted'])
             type = 'fiat' if currency['isFiat'] else 'crypto'
