@@ -554,7 +554,7 @@ class huobipro(Exchange):
         #     }
         #
         ticker = self.parse_ticker(response['tick'], market)
-        timestamp = self.safe_value(response, 'ts')
+        timestamp = self.safe_integer(response, 'ts')
         ticker['timestamp'] = timestamp
         ticker['datetime'] = self.iso8601(timestamp)
         return ticker
