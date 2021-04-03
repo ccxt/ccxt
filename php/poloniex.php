@@ -135,7 +135,7 @@ class poloniex extends \ccxt\async\poloniex {
         $existingSubscription = $this->safe_value($client->subscriptions, $channelId, array());
         $fetchedBalance = $this->safe_value($existingSubscription, 'fetchedBalance', false);
         if (!$fetchedBalance) {
-            $this->balance = yield $this->fetchBalance ();
+            $this->balance = yield $this->fetch_balance();
             $existingSubscription['fetchedBalance'] = true;
         }
         return yield $this->subscribe_private($messageHash, $existingSubscription);

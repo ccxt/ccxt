@@ -128,7 +128,7 @@ class poloniex(Exchange, ccxt.poloniex):
         existingSubscription = self.safe_value(client.subscriptions, channelId, {})
         fetchedBalance = self.safe_value(existingSubscription, 'fetchedBalance', False)
         if not fetchedBalance:
-            self.balance = await self.fetchBalance()
+            self.balance = await self.fetch_balance()
             existingSubscription['fetchedBalance'] = True
         return await self.subscribe_private(messageHash, existingSubscription)
 
