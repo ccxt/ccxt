@@ -24,6 +24,7 @@ module.exports = class huobipro extends Exchange {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'CORS': false,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -1188,6 +1189,52 @@ module.exports = class huobipro extends Exchange {
             'id': id,
             'status': 'canceled',
         });
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const clientOrderIds = this.safeValue2 (params, 'clientOrderIds', 'client-order-ids');
+        params = this.omit (params, [ 'clientOrderIds', 'client-order-ids' ]);
+        const request = {};
+        if (clientOrderIds === undefined) {
+            request['order-ids'] = ids;
+        } else {
+            request['client-order-ids'] = clientOrderIds;
+        }
+        const response = await this.privatePostOrderOrdersBatchcancel (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "success": [
+        //                 "5983466"
+        //             ],
+        //             "failed": [
+        //                 {
+        //                     "err-msg": "Incorrect order state",
+        //                     "order-state": 7,
+        //                     "order-id": "",
+        //                     "err-code": "order-orderstate-error",
+        //                     "client-order-id": "first"
+        //                 },
+        //                 {
+        //                     "err-msg": "Incorrect order state",
+        //                     "order-state": 7,
+        //                     "order-id": "",
+        //                     "err-code": "order-orderstate-error",
+        //                     "client-order-id": "second"
+        //                 },
+        //                 {
+        //                     "err-msg": "The record is not found.",
+        //                     "order-id": "",
+        //                     "err-code": "base-not-found",
+        //                     "client-order-id": "third"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        return response;
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
