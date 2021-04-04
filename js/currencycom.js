@@ -284,7 +284,7 @@ module.exports = class currencycom extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': -1 * Math.log10 (precision['amount']),
+                        'min': -Math.log10 (precision['amount']),
                         'max': undefined,
                     },
                 },
