@@ -774,13 +774,14 @@ module.exports = class binance extends Exchange {
             let fee = undefined;
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
-                const name = this.safeString (networkItem, 'name');
+                const network = this.safeString (networkItem, 'network');
+                // const name = this.safeString (networkItem, 'name');
                 const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
                 const depositEnable = this.safeValue (networkItem, 'depositEnable');
                 const withdrawEnable = this.safeValue (networkItem, 'withdrawEnable');
                 isDepositEnabled = isDepositEnabled || depositEnable;
                 isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
-                fees[name] = withdrawFee;
+                fees[network] = withdrawFee;
                 const isDefault = this.safeValue (networkItem, 'isDefault');
                 if (isDefault || fee === undefined) {
                     fee = withdrawFee;
