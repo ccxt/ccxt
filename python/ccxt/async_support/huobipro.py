@@ -39,6 +39,7 @@ class huobipro(Exchange):
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'CORS': False,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -1126,6 +1127,50 @@ class huobipro(Exchange):
             'id': id,
             'status': 'canceled',
         })
+
+    async def cancel_orders(self, ids, symbol=None, params={}):
+        await self.load_markets()
+        clientOrderIds = self.safe_value_2(params, 'clientOrderIds', 'client-order-ids')
+        params = self.omit(params, ['clientOrderIds', 'client-order-ids'])
+        request = {}
+        if clientOrderIds is None:
+            request['order-ids'] = ids
+        else:
+            request['client-order-ids'] = clientOrderIds
+        response = await self.privatePostOrderOrdersBatchcancel(self.extend(request, params))
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": {
+        #             "success": [
+        #                 "5983466"
+        #             ],
+        #             "failed": [
+        #                 {
+        #                     "err-msg": "Incorrect order state",
+        #                     "order-state": 7,
+        #                     "order-id": "",
+        #                     "err-code": "order-orderstate-error",
+        #                     "client-order-id": "first"
+        #                 },
+        #                 {
+        #                     "err-msg": "Incorrect order state",
+        #                     "order-state": 7,
+        #                     "order-id": "",
+        #                     "err-code": "order-orderstate-error",
+        #                     "client-order-id": "second"
+        #                 },
+        #                 {
+        #                     "err-msg": "The record is not found.",
+        #                     "order-id": "",
+        #                     "err-code": "base-not-found",
+        #                     "client-order-id": "third"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        return response
 
     async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
