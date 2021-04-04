@@ -783,13 +783,14 @@ class binance(Exchange):
             fee = None
             for j in range(0, len(networkList)):
                 networkItem = networkList[j]
-                name = self.safe_string(networkItem, 'name')
+                network = self.safe_string(networkItem, 'network')
+                # name = self.safe_string(networkItem, 'name')
                 withdrawFee = self.safe_number(networkItem, 'withdrawFee')
                 depositEnable = self.safe_value(networkItem, 'depositEnable')
                 withdrawEnable = self.safe_value(networkItem, 'withdrawEnable')
                 isDepositEnabled = isDepositEnabled or depositEnable
                 isWithdrawEnabled = isWithdrawEnabled or withdrawEnable
-                fees[name] = withdrawFee
+                fees[network] = withdrawFee
                 isDefault = self.safe_value(networkItem, 'isDefault')
                 if isDefault or fee is None:
                     fee = withdrawFee

@@ -707,7 +707,7 @@ class binance extends Exchange {
             //         $trading => true,
             //         $networkList => [
             //             array(
-            //                 network => 'BNB',
+            //                 $network => 'BNB',
             //                 coin => 'LINK',
             //                 withdrawIntegerMultiple => '0',
             //                 $isDefault => false,
@@ -727,7 +727,7 @@ class binance extends Exchange {
             //                 unLockConfirm => 0
             //             ),
             //             array(
-            //                 network => 'BSC',
+            //                 $network => 'BSC',
             //                 coin => 'LINK',
             //                 withdrawIntegerMultiple => '0.00000001',
             //                 $isDefault => false,
@@ -747,7 +747,7 @@ class binance extends Exchange {
             //                 unLockConfirm => 0
             //             ),
             //             {
-            //                 network => 'ETH',
+            //                 $network => 'ETH',
             //                 coin => 'LINK',
             //                 withdrawIntegerMultiple => '0.00000001',
             //                 $isDefault => true,
@@ -780,13 +780,14 @@ class binance extends Exchange {
             $fee = null;
             for ($j = 0; $j < count($networkList); $j++) {
                 $networkItem = $networkList[$j];
-                $name = $this->safe_string($networkItem, 'name');
+                $network = $this->safe_string($networkItem, 'network');
+                // $name = $this->safe_string($networkItem, 'name');
                 $withdrawFee = $this->safe_number($networkItem, 'withdrawFee');
                 $depositEnable = $this->safe_value($networkItem, 'depositEnable');
                 $withdrawEnable = $this->safe_value($networkItem, 'withdrawEnable');
                 $isDepositEnabled = $isDepositEnabled || $depositEnable;
                 $isWithdrawEnabled = $isWithdrawEnabled || $withdrawEnable;
-                $fees[$name] = $withdrawFee;
+                $fees[$network] = $withdrawFee;
                 $isDefault = $this->safe_value($networkItem, 'isDefault');
                 if ($isDefault || $fee === null) {
                     $fee = $withdrawFee;
