@@ -29,6 +29,7 @@ class huobipro extends Exchange {
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'CORS' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -1193,6 +1194,52 @@ class huobipro extends Exchange {
             'id' => $id,
             'status' => 'canceled',
         ));
+    }
+
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $clientOrderIds = $this->safe_value_2($params, 'clientOrderIds', 'client-order-ids');
+        $params = $this->omit($params, array( 'clientOrderIds', 'client-order-ids' ));
+        $request = array();
+        if ($clientOrderIds === null) {
+            $request['order-ids'] = $ids;
+        } else {
+            $request['client-order-ids'] = $clientOrderIds;
+        }
+        $response = $this->privatePostOrderOrdersBatchcancel (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => {
+        //             "success" => array(
+        //                 "5983466"
+        //             ),
+        //             "failed" => array(
+        //                 array(
+        //                     "err-msg" => "Incorrect order state",
+        //                     "order-state" => 7,
+        //                     "order-id" => "",
+        //                     "err-code" => "order-orderstate-error",
+        //                     "client-order-id" => "first"
+        //                 ),
+        //                 array(
+        //                     "err-msg" => "Incorrect order state",
+        //                     "order-state" => 7,
+        //                     "order-id" => "",
+        //                     "err-code" => "order-orderstate-error",
+        //                     "client-order-id" => "second"
+        //                 ),
+        //                 {
+        //                     "err-msg" => "The record is not found.",
+        //                     "order-id" => "",
+        //                     "err-code" => "base-not-found",
+        //                     "client-order-id" => "third"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        return $response;
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
