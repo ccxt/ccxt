@@ -1932,7 +1932,7 @@ class binance extends Exchange {
         } else if (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
             $stopPriceIsRequired = true;
             $quantityIsRequired = true;
-            if ($market['future']) {
+            if ($market['future'] || $market['delivery']) {
                 $priceIsRequired = true;
             }
         } else if (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {

@@ -1868,7 +1868,7 @@ class binance(Exchange):
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
             stopPriceIsRequired = True
             quantityIsRequired = True
-            if market['future']:
+            if market['future'] or market['delivery']:
                 priceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
             quantityIsRequired = True
