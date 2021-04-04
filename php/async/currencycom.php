@@ -288,7 +288,7 @@ class currencycom extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => -1 * log10 ($precision['amount']),
+                        'min' => -log10 ($precision['amount']),
                         'max' => null,
                     ),
                 ),

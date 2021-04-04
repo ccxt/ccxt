@@ -288,7 +288,7 @@ class currencycom(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': -1 * math.log10(precision['amount']),
+                        'min': -math.log10(precision['amount']),
                         'max': None,
                     },
                 },
