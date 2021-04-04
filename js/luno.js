@@ -79,6 +79,10 @@ module.exports = class luno extends Exchange {
                         'quotes/{id}',
                         'withdrawals',
                         'withdrawals/{id}',
+                        'transfers',
+                        // GET /api/exchange/2/listorders
+                        // GET /api/exchange/2/orders/{id}
+                        // GET /api/exchange/3/order
                     ],
                     'post': [
                         'accounts',
