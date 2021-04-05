@@ -117,7 +117,7 @@ pip3 install git+ssh://git@github.com/kroitor/ccxt.pro.git#subdirectory=python
 ```shell
 # in your project directory
 composer config repositories.ccxtpro '{"type": "git", "url": "https://github.com/kroitor/ccxt.pro.git"}'
-composer require ccxt/ccxtpro
+composer require --ignore-platform-reqs ccxt/ccxtpro
 ```
 
 ## Documentation
