@@ -15,6 +15,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.precise import Precise
 
 
 class qtrade(Exchange):
@@ -628,11 +629,12 @@ class qtrade(Exchange):
         marketId = self.safe_string(trade, 'market_string')
         symbol = self.safe_symbol(marketId, market, '_')
         cost = self.safe_number_2(trade, 'base_volume', 'base_amount')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'market_amount', 'amount')
-        if (cost is None) and (amount is not None) and (price is not None):
-            if price is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'market_amount', 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         feeCost = self.safe_number(trade, 'base_fee')
         if feeCost is not None:
