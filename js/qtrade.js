@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -638,12 +639,12 @@ module.exports = class qtrade extends Exchange {
         const marketId = this.safeString (trade, 'market_string');
         const symbol = this.safeSymbol (marketId, market, '_');
         let cost = this.safeNumber2 (trade, 'base_volume', 'base_amount');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber2 (trade, 'market_amount', 'amount');
-        if ((cost === undefined) && (amount !== undefined) && (price !== undefined)) {
-            if (price !== undefined) {
-                cost = price * amount;
-            }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'market_amount', 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'base_fee');
