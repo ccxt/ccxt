@@ -1208,7 +1208,7 @@ class Transpiler {
                 'class ' + name + ' extends ' + parent + ' {};',
                 '',
             ].join ("\n")
-            const phpFilename = './php/base/' + name + '.php'
+            const phpFilename = './php/' + name + '.php'
             log.bright.cyan (message, phpFilename.yellow)
             fs.writeFileSync (phpFilename, phpBody)
             return "require_once PATH_TO_CCXT_BASE . '" + name + ".php';"
@@ -1530,7 +1530,7 @@ class Transpiler {
         result.push (space + ');')
         const string = result.join ('\n')
 
-        const phpBaseClass = './php/base/Exchange.php';
+        const phpBaseClass = './php/Exchange.php';
         const phpBody = fs.readFileSync (phpBaseClass, 'utf8')
         const regex = /public static \$camelcase_methods = array\([\s\S]+?\);/g
         const bodyArray = phpBody.split (regex)
