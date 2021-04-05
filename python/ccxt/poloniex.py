@@ -20,6 +20,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.precise import Precise
 
 
 class poloniex(Exchange):
@@ -544,9 +545,13 @@ class poloniex(Exchange):
             symbol = market['symbol']
         side = self.safe_string(trade, 'type')
         fee = None
-        price = self.safe_number(trade, 'rate')
+        priceString = self.safe_string(trade, 'rate')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number(trade, 'total')
-        amount = self.safe_number(trade, 'amount')
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         feeDisplay = self.safe_string(trade, 'feeDisplay')
         if feeDisplay is not None:
             parts = feeDisplay.split(' ')
