@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\OrderNotFound;
+use \ccxt\Precise;
 
 class poloniex extends Exchange {
 
@@ -562,9 +563,14 @@ class poloniex extends Exchange {
         }
         $side = $this->safe_string($trade, 'type');
         $fee = null;
-        $price = $this->safe_number($trade, 'rate');
+        $priceString = $this->safe_string($trade, 'rate');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $cost = $this->safe_number($trade, 'total');
-        $amount = $this->safe_number($trade, 'amount');
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        }
         $feeDisplay = $this->safe_string($trade, 'feeDisplay');
         if ($feeDisplay !== null) {
             $parts = explode(' ', $feeDisplay);
