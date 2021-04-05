@@ -15,7 +15,7 @@ module.exports = class hollaex extends Exchange {
             'name': 'HollaEx',
             'countries': [ 'KR' ],
             'rateLimit': 333,
-            'version': 'v1',
+            'version': 'v2',
             'has': {
                 'CORS': false,
                 'fetchMarkets': true,
@@ -35,13 +35,13 @@ module.exports = class hollaex extends Exchange {
                 'cancelOrder': true,
                 'cancelAllOrders': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchOpenOrder': true,
                 'fetchOrder': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
                 'fetchTransactions': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchDepositAddress': true,
@@ -66,13 +66,17 @@ module.exports = class hollaex extends Exchange {
                 'public': {
                     'get': [
                         'health',
-                        'constant',
+                        'constants',
+                        'kit',
+                        'tiers',
                         'ticker',
-                        'ticker/all',
+                        'tickers',
+                        'orderbook',
                         'orderbooks',
                         'trades',
                         'chart',
-                        // TradingView data
+                        'charts',
+                        // TradingView
                         'udf/config',
                         'udf/history',
                         'udf/symbols',
@@ -82,20 +86,20 @@ module.exports = class hollaex extends Exchange {
                     'get': [
                         'user',
                         'user/balance',
-                        'user/trades',
-                        'user/orders',
-                        'user/orders/{order_id}',
                         'user/deposits',
                         'user/withdrawals',
-                        'user/withdraw/{currency}/fee',
+                        'user/withdrawal/fee',
+                        'user/trades',
+                        'orders',
+                        'orders/{order_id}',
                     ],
                     'post': [
                         'user/request-withdrawal',
                         'order',
                     ],
                     'delete': [
-                        'user/orders',
-                        'user/orders/{order_id}',
+                        'order/all',
+                        'order',
                     ],
                 },
             },
@@ -130,7 +134,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetConstant (params);
+        const response = await this.publicGetConstants (params);
         //
         //     {
         //         coins: {
@@ -218,7 +222,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetConstant (params);
+        const response = await this.publicGetConstants (params);
         const coins = this.safeValue (response, 'coins', {});
         const keys = Object.keys (coins);
         const result = {};
@@ -334,7 +338,7 @@ module.exports = class hollaex extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetTickerAll (this.extend (params));
+        const response = await this.publicGetTickers (this.extend (params));
         //
         //     {
         //         "bch-usdt": {
@@ -609,67 +613,146 @@ module.exports = class hollaex extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privateGetUserOrdersOrderId (this.extend (request, params));
+        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
         //
         //     {
-        //         "created_at": "2018-03-23T04:14:08.663Z",
-        //         "title": "string",
-        //         "side": "sell",
-        //         "type": "limit",
-        //         "price": 0,
-        //         "size": 0,
-        //         "symbol": "xht-usdt",
         //         "id": "string",
-        //         "created_by": 1,
-        //         "filled": 0
+        //         "side": "sell",
+        //         "symbol": "xht-usdt",
+        //         "size": 0.1,
+        //         "filled": 0,
+        //         "stop": null,
+        //         "fee": 0,
+        //         "fee_coin": "usdt",
+        //         "type": "limit",
+        //         "price": 1.09,
+        //         "status": "new",
+        //         "created_by": 116,
+        //         "created_at": "2021-02-17T02:32:38.910Z",
+        //         "updated_at": "2021-02-17T02:32:38.910Z",
+        //         "User": {
+        //             "id": 116,
+        //             "email": "fight@club.com",
+        //             "username": "narrator",
+        //             "exchange_id": 176
+        //         }
         //     }
         //
         return this.parseOrder (response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'open': true,
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': 'filled',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request = {
+            // 'symbol': market['id'],
+            // 'side': 'buy', // 'sell'
+            // 'status': 'new', // 'filled', 'pfilled', 'canceled'
+            // 'open': true,
+            // 'limit': limit, // default 50, max 100
+            // 'page': 1,
+            // 'order_by': 'created_at', // id, ...
+            // 'order': 'asc', // 'desc'
+            // 'start_date': this.iso8601 (since),
+            // 'end_date': this.iso8601 (this.milliseconds ()),
+        };
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetUserOrders (this.extend (request, params));
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50, max 100
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "created_at":"2020-03-03T08:02:18.639Z",
-        //             "title":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //             "side":"buy",
-        //             "type":"limit",
-        //             "price":226.19,
-        //             "size":0.086,
-        //             "symbol":"eth-usdt",
-        //             "id":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //             "created_by":620,
-        //             "filled":0
-        //         }
-        //     ]
+        //     {
+        //         "count": 1,
+        //         "data": [
+        //             {
+        //                 "id": "string",
+        //                 "side": "sell",
+        //                 "symbol": "xht-usdt",
+        //                 "size": 0.1,
+        //                 "filled": 0,
+        //                 "stop": null,
+        //                 "fee": 0,
+        //                 "fee_coin": "usdt",
+        //                 "type": "limit",
+        //                 "price": 1.09,
+        //                 "status": "new",
+        //                 "created_by": 116,
+        //                 "created_at": "2021-02-17T02:32:38.910Z",
+        //                 "updated_at": "2021-02-17T02:32:38.910Z",
+        //                 "User": {
+        //                     "id": 116,
+        //                     "email": "fight@club.com",
+        //                     "username": "narrator",
+        //                     "exchange_id": 176
+        //                 }
+        //             }
+        //         ]
+        //     }
         //
-        return this.parseOrders (response, market);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'new': 'open',
+            'pfilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
         //
-        // fetchOpenOrder, fetchOpenOrders
+        // createOrder, fetchOpenOrder, fetchOpenOrders
         //
         //     {
-        //         "created_at":"2020-03-03T08:02:18.639Z",
-        //         "title":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //         "side":"buy",
-        //         "type":"limit",
-        //         "price":226.19,
-        //         "size":0.086,
-        //         "symbol":"eth-usdt",
-        //         "id":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //         "created_by":620,
-        //         "filled":0
+        //         "id": "string",
+        //         "side": "sell",
+        //         "symbol": "xht-usdt",
+        //         "size": 0.1,
+        //         "filled": 0,
+        //         "stop": null,
+        //         "fee": 0,
+        //         "fee_coin": "usdt",
+        //         "type": "limit",
+        //         "price": 1.09,
+        //         "status": "new",
+        //         "created_by": 116,
+        //         "created_at": "2021-02-17T02:32:38.910Z",
+        //         "updated_at": "2021-02-17T02:32:38.910Z",
+        //         "User": {
+        //             "id": 116,
+        //             "email": "fight@club.com",
+        //             "username": "narrator",
+        //             "exchange_id": 176
+        //         },
+        //         "fee_structure": {
+        //             "maker": 0.2,
+        //             "taker": 0.2
+        //         },
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
@@ -681,7 +764,7 @@ module.exports = class hollaex extends Exchange {
         const price = this.safeNumber (order, 'price');
         const amount = this.safeNumber (order, 'size');
         const filled = this.safeNumber (order, 'filled');
-        const status = (type === 'market') ? 'closed' : 'open';
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
@@ -710,27 +793,44 @@ module.exports = class hollaex extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const order = {
+        const request = {
             'symbol': market['id'],
             'side': side,
             'size': amount,
             'type': type,
+            // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
+            // 'meta': {}, // other options such as post_only
         };
         if (type !== 'market') {
-            order['price'] = price;
+            request['price'] = price;
         }
-        const response = await this.privatePostOrder (this.extend (order, params));
+        const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop');
+        if (stopPrice !== undefined) {
+            request['stop'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
+            params = this.omit (params, [ 'stopPrice', 'stop' ]);
+        }
+        const response = await this.privatePostOrder (this.extend (request, params));
         //
         //     {
+        //         "fee": 0,
+        //         "meta": {},
         //         "symbol": "xht-usdt",
         //         "side": "sell",
-        //         "size": 1,
+        //         "size": 0.1,
         //         "type": "limit",
-        //         "price": 0.1,
+        //         "price": 1,
+        //         "fee_structure": {
+        //             "maker": 0.2,
+        //             "taker": 0.2
+        //         },
+        //         "fee_coin": "usdt",
         //         "id": "string",
-        //         "created_by": 34,
+        //         "created_by": 116,
         //         "filled": 0,
-        //         "status": "pending"
+        //         "status": "new",
+        //         "updated_at": "2021-02-17T03:03:19.231Z",
+        //         "created_at": "2021-02-17T03:03:19.231Z",
+        //         "stop": null
         //     }
         //
         return this.parseOrder (response, market);
@@ -741,7 +841,7 @@ module.exports = class hollaex extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privateDeleteUserOrdersOrderId (this.extend (request, params));
+        const response = await this.privateDeleteOrder (this.extend (request, params));
         //
         //     {
         //         "title": "string",
@@ -766,7 +866,7 @@ module.exports = class hollaex extends Exchange {
             market = this.markets (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateDeleteUserOrders (this.extend (request, params));
+        const response = await this.privateDeleteOrderAll (this.extend (request, params));
         //
         //     [
         //         {
