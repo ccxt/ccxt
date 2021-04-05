@@ -398,7 +398,7 @@ class gateio(Exchange):
         if limit is not None:
             periodDurationInSeconds = self.parse_timeframe(timeframe)
             hours = int((periodDurationInSeconds * limit) / 3600)
-            request['range_hour'] = max(0, hours - 1)
+            request['range_hour'] = max(1, hours - 1)
         response = self.publicGetCandlestick2Id(self.extend(request, params))
         #
         #     {
