@@ -398,11 +398,11 @@ module.exports = class gateio extends Exchange {
             'group_sec': this.timeframes[timeframe],
         };
         // max limit = 1001
-        if (limit !== undefined) {
-            const periodDurationInSeconds = this.parseTimeframe (timeframe);
-            const hours = parseInt ((periodDurationInSeconds * limit) / 3600);
-            request['range_hour'] = Math.max (1, hours - 1);
-        }
+        // if (limit !== undefined) {
+        //     const periodDurationInSeconds = this.parseTimeframe (timeframe);
+        //     const hours = parseInt ((periodDurationInSeconds * limit) / 3600);
+        //     request['range_hour'] = Math.max (1, hours - 1);
+        // }
         const response = await this.publicGetCandlestick2Id (this.extend (request, params));
         //
         //     {
