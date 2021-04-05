@@ -402,11 +402,11 @@ class gateio extends Exchange {
             'group_sec' => $this->timeframes[$timeframe],
         );
         // max $limit = 1001
-        if ($limit !== null) {
-            $periodDurationInSeconds = $this->parse_timeframe($timeframe);
-            $hours = intval(($periodDurationInSeconds * $limit) / 3600);
-            $request['range_hour'] = max (1, $hours - 1);
-        }
+        // if ($limit !== null) {
+        //     $periodDurationInSeconds = $this->parse_timeframe($timeframe);
+        //     $hours = intval(($periodDurationInSeconds * $limit) / 3600);
+        //     $request['range_hour'] = max (1, $hours - 1);
+        // }
         $response = yield $this->publicGetCandlestick2Id (array_merge($request, $params));
         //
         //     {
