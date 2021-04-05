@@ -10,7 +10,7 @@ class Future extends \React\Promise\Deferred {
         $this->loop = $loop;
     }
 
-    public function then($onFulfilled = null, $onRejected = null) {
+    public function then($onFulfilled = null, $onRejected = null, $progressHandler = null) {
         return $this->promise()->then($onFulfilled, $onRejected);
     }
 
