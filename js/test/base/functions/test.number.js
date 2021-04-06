@@ -294,6 +294,7 @@ assert (decimalToPrecision ('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_D
 const w = '-1.123e-6';
 const x = '0.00000002';
 const y = '69696900000';
+const z = '0'
 
 assert (Precise.stringMul (x, y) === '1393.938');
 assert (Precise.stringMul (y, x) === '1393.938');
@@ -312,3 +313,16 @@ assert (Precise.stringSub (x, w) === '0.000001143');
 assert (Precise.stringSub (w, x) === '-0.000001143');
 assert (Precise.stringDiv (x, w) === '-0.000000000017809439');
 assert (Precise.stringDiv (w, x) === '-0.0000005615');
+
+assert (Precise.stringMul (z, w) === '0');
+assert (Precise.stringMul (z, x) === '0');
+assert (Precise.stringMul (z, y) === '0');
+assert (Precise.stringMul (w, z) === '0');
+assert (Precise.stringMul (x, z) === '0');
+assert (Precise.stringMul (y, z) === '0');
+assert (Precise.stringAdd (z, w) === '-0.000001123');
+assert (Precise.stringAdd (z, x) === '0.00000002');
+assert (Precise.stringAdd (z, y) === '69696900000');
+assert (Precise.stringAdd (w, z) === '-0.000001123');
+assert (Precise.stringAdd (x, z) === '0.00000002');
+assert (Precise.stringAdd (y, z) === '69696900000');
