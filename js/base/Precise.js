@@ -66,8 +66,12 @@ class Precise {
     }
 
     reduce () {
-        const base = new BN (this.base)
         const zero = new BN (0)
+        if (this.integer.eq (zero)) {
+            this.decimals = 0
+            return this
+        }
+        const base = new BN (this.base)
         let divmod = this.integer.divmod (base)
         while (divmod.mod.eq (zero)) {
             this.integer = divmod.div

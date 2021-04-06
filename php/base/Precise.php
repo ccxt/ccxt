@@ -71,8 +71,12 @@ class Precise {
     }
 
     public function reduce () {
-        $base = new BN ($this->base);
         $zero = new BN (0);
+        if ($this->integer->eq($zero)) {
+            $this->decimals = 0;
+            return $this;
+        }
+        $base = new BN ($this->base);
         $div = $this->integer->div ($base);
         $mod = $this->integer->mod ($base);
         while ($mod->eq ($zero)) {
