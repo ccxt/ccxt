@@ -294,7 +294,7 @@ assert (decimalToPrecision ('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_D
 const w = '-1.123e-6';
 const x = '0.00000002';
 const y = '69696900000';
-const z = '0'
+const z = '0';
 
 assert (Precise.stringMul (x, y) === '1393.938');
 assert (Precise.stringMul (y, x) === '1393.938');
