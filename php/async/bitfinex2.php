@@ -1006,7 +1006,6 @@ class bitfinex2 extends bitfinex {
         $remaining = abs($this->safe_number($order, 6));
         $signedAmount = $this->safe_number($order, 7);
         $amount = abs($signedAmount);
-        $filled = $amount - $remaining;
         $side = ($signedAmount < 0) ? 'sell' : 'buy';
         $orderType = $this->safe_string($order, 8);
         $type = $this->safe_string($this->safe_value($this->options, 'exchangeTypes'), $orderType);
@@ -1018,9 +1017,8 @@ class bitfinex2 extends bitfinex {
         }
         $price = $this->safe_number($order, 16);
         $average = $this->safe_number($order, 17);
-        $cost = $price * $filled;
         $clientOrderId = $this->safe_string($order, 2);
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1035,14 +1033,14 @@ class bitfinex2 extends bitfinex {
             'price' => $price,
             'stopPrice' => null,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

@@ -957,7 +957,6 @@ class bitfinex2(bitfinex):
         remaining = abs(self.safe_number(order, 6))
         signedAmount = self.safe_number(order, 7)
         amount = abs(signedAmount)
-        filled = amount - remaining
         side = 'sell' if (signedAmount < 0) else 'buy'
         orderType = self.safe_string(order, 8)
         type = self.safe_string(self.safe_value(self.options, 'exchangeTypes'), orderType)
@@ -968,9 +967,8 @@ class bitfinex2(bitfinex):
             status = self.parse_order_status(self.safe_string(parts, 0))
         price = self.safe_number(order, 16)
         average = self.safe_number(order, 17)
-        cost = price * filled
         clientOrderId = self.safe_string(order, 2)
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -985,14 +983,14 @@ class bitfinex2(bitfinex):
             'price': price,
             'stopPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
