@@ -1166,22 +1166,9 @@ module.exports = class bitvavo extends Exchange {
         const type = this.safeString (order, 'orderType');
         const price = this.safeNumber (order, 'price');
         const amount = this.safeNumber (order, 'amount');
-        let remaining = this.safeNumber (order, 'amountRemaining');
-        let filled = this.safeNumber (order, 'filledAmount');
-        const remainingCost = this.safeNumber (order, 'remainingCost');
-        if ((remainingCost !== undefined) && (remainingCost === 0.0)) {
-            remaining = 0;
-        }
-        if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (0, amount - remaining);
-        }
+        const remaining = this.safeNumber (order, 'amountRemaining');
+        const filled = this.safeNumber (order, 'filledAmount');
         const cost = this.safeNumber (order, 'filledAmountQuote');
-        let average = undefined;
-        if (cost !== undefined) {
-            if (filled) {
-                average = cost / filled;
-            }
-        }
         let fee = undefined;
         const feeCost = this.safeNumber (order, 'feePaid');
         if (feeCost !== undefined) {
@@ -1192,32 +1179,24 @@ module.exports = class bitvavo extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        let lastTradeTimestamp = undefined;
-        const rawTrades = this.safeValue (order, 'fills');
-        let trades = undefined;
-        if (rawTrades !== undefined) {
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                'symbol': symbol,
-                'order': id,
-                'side': side,
-            });
-            const numTrades = trades.length;
-            if (numTrades > 0) {
-                const lastTrade = this.safeValue (trades, numTrades - 1);
-                lastTradeTimestamp = lastTrade['timestamp'];
-            }
-        }
+        const rawTrades = this.safeValue (order, 'fills', []);
+        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+            'symbol': symbol,
+            'order': id,
+            'side': side,
+            'type': type,
+        });
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = this.safeValue (order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         const stopPrice = this.safeNumber (order, 'triggerPrice');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -1227,13 +1206,13 @@ module.exports = class bitvavo extends Exchange {
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': undefined,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
