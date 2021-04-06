@@ -1961,6 +1961,7 @@ class bybit(Exchange):
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         address = self.safe_string(transaction, 'address')
         feeCost = self.safe_number(transaction, 'fee')
+        type = self.safe_string_lower(transaction, 'type')
         fee = None
         if feeCost is not None:
             fee = {
@@ -1979,7 +1980,7 @@ class bybit(Exchange):
             'tag': None,
             'tagTo': None,
             'tagFrom': None,
-            'type': 'withdrawal',
+            'type': type,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
             'status': status,

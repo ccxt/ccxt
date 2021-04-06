@@ -2033,7 +2033,7 @@ class bybit extends Exchange {
         //         "user_id" => 1,
         //         "coin" => "BTC",
         //         "wallet_id" => 27913,
-        //         "type" => "Realized P&L",
+        //         "$type" => "Realized P&L",
         //         "amount" => "-0.00000006",
         //         "tx_id" => "",
         //         "$address" => "BTCUSD",
@@ -2049,6 +2049,7 @@ class bybit extends Exchange {
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $address = $this->safe_string($transaction, 'address');
         $feeCost = $this->safe_number($transaction, 'fee');
+        $type = $this->safe_string_lower($transaction, 'type');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
@@ -2068,7 +2069,7 @@ class bybit extends Exchange {
             'tag' => null,
             'tagTo' => null,
             'tagFrom' => null,
-            'type' => 'withdrawal',
+            'type' => $type,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
             'status' => $status,
