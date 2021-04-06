@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class qtrade extends Exchange {
 
@@ -641,12 +642,12 @@ class qtrade extends Exchange {
         $marketId = $this->safe_string($trade, 'market_string');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $cost = $this->safe_number_2($trade, 'base_volume', 'base_amount');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'market_amount', 'amount');
-        if (($cost === null) && ($amount !== null) && ($price !== null)) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'market_amount', 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $fee = null;
         $feeCost = $this->safe_number($trade, 'base_fee');

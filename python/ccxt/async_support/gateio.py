@@ -395,10 +395,11 @@ class gateio(Exchange):
             'group_sec': self.timeframes[timeframe],
         }
         # max limit = 1001
-        if limit is not None:
-            periodDurationInSeconds = self.parse_timeframe(timeframe)
-            hours = int((periodDurationInSeconds * limit) / 3600)
-            request['range_hour'] = max(1, hours - 1)
+        # if limit is not None:
+        #     periodDurationInSeconds = self.parse_timeframe(timeframe)
+        #     hours = int((periodDurationInSeconds * limit) / 3600)
+        #     request['range_hour'] = max(1, hours - 1)
+        # }
         response = await self.publicGetCandlestick2Id(self.extend(request, params))
         #
         #     {
