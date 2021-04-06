@@ -1170,20 +1170,7 @@ class bitvavo extends Exchange {
         $amount = $this->safe_number($order, 'amount');
         $remaining = $this->safe_number($order, 'amountRemaining');
         $filled = $this->safe_number($order, 'filledAmount');
-        $remainingCost = $this->safe_number($order, 'remainingCost');
-        if (($remainingCost !== null) && ($remainingCost === 0.0)) {
-            $remaining = 0;
-        }
-        if (($amount !== null) && ($remaining !== null)) {
-            $filled = max (0, $amount - $remaining);
-        }
         $cost = $this->safe_number($order, 'filledAmountQuote');
-        $average = null;
-        if ($cost !== null) {
-            if ($filled) {
-                $average = $cost / $filled;
-            }
-        }
         $fee = null;
         $feeCost = $this->safe_number($order, 'feePaid');
         if ($feeCost !== null) {
@@ -1194,32 +1181,24 @@ class bitvavo extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        $lastTradeTimestamp = null;
-        $rawTrades = $this->safe_value($order, 'fills');
-        $trades = null;
-        if ($rawTrades !== null) {
-            $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-                'symbol' => $symbol,
-                'order' => $id,
-                'side' => $side,
-            ));
-            $numTrades = is_array($trades) ? count($trades) : 0;
-            if ($numTrades > 0) {
-                $lastTrade = $this->safe_value($trades, $numTrades - 1);
-                $lastTradeTimestamp = $lastTrade['timestamp'];
-            }
-        }
+        $rawTrades = $this->safe_value($order, 'fills', array());
+        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
+            'symbol' => $symbol,
+            'order' => $id,
+            'side' => $side,
+            'type' => $type,
+        ));
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = $this->safe_value($order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         $stopPrice = $this->safe_number($order, 'triggerPrice');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
@@ -1229,13 +1208,13 @@ class bitvavo extends Exchange {
             'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => $average,
+            'average' => null,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -1126,16 +1126,7 @@ class bitvavo(Exchange):
         amount = self.safe_number(order, 'amount')
         remaining = self.safe_number(order, 'amountRemaining')
         filled = self.safe_number(order, 'filledAmount')
-        remainingCost = self.safe_number(order, 'remainingCost')
-        if (remainingCost is not None) and (remainingCost == 0.0):
-            remaining = 0
-        if (amount is not None) and (remaining is not None):
-            filled = max(0, amount - remaining)
         cost = self.safe_number(order, 'filledAmountQuote')
-        average = None
-        if cost is not None:
-            if filled:
-                average = cost / filled
         fee = None
         feeCost = self.safe_number(order, 'feePaid')
         if feeCost is not None:
@@ -1145,30 +1136,24 @@ class bitvavo(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        lastTradeTimestamp = None
-        rawTrades = self.safe_value(order, 'fills')
-        trades = None
-        if rawTrades is not None:
-            trades = self.parse_trades(rawTrades, market, None, None, {
-                'symbol': symbol,
-                'order': id,
-                'side': side,
-            })
-            numTrades = len(trades)
-            if numTrades > 0:
-                lastTrade = self.safe_value(trades, numTrades - 1)
-                lastTradeTimestamp = lastTrade['timestamp']
+        rawTrades = self.safe_value(order, 'fills', [])
+        trades = self.parse_trades(rawTrades, market, None, None, {
+            'symbol': symbol,
+            'order': id,
+            'side': side,
+            'type': type,
+        })
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
         # https://github.com/ccxt/ccxt/issues/8489
         stopPrice = self.safe_number(order, 'triggerPrice')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -1178,13 +1163,13 @@ class bitvavo(Exchange):
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': None,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': trades,
-        }
+        })
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
