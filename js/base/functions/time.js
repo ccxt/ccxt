@@ -168,6 +168,11 @@ const ymdhms = (timestamp, infix = ' ') => {
     return Y + '-' + m + '-' + d + infix + H + ':' + M + ':' + S
 }
 
+const gmt = (timestamp) => {
+    const event = new Date (timestamp);
+    return event.toUTCString ()
+}
+
 module.exports =
 
     {
@@ -183,6 +188,7 @@ module.exports =
         , mdy
         , ymd
         , ymdhms
+        , gmt
         , setTimeout_safe
         , sleep: ms => new Promise (resolve => setTimeout_safe (resolve, ms))
         , TimedOut
