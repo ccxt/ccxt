@@ -64,9 +64,14 @@ module.exports = class bitcom extends Exchange {
             'urls': {
                 'logo': 'https://144321d373cade4e83.matrixtechfin.com:1443/imgs/logo-1617071258366.png',
                 'api': {
-                    'public': 'https://alphaapi.bitexch.dev',
-                    'private': 'https://alphaapi.bitexch.dev',
-                    'v1': 'https://alphaapi.bitexch.dev/v1',
+                    'public': 'https://api.bit.com',
+                    'private': 'https://api.bit.com',
+                    'v1': 'https://api.bit.com/v1',
+                },
+                'testApi': {
+                    'public': 'https://betaapi.bitexch.dev',
+                    'private': 'https://betaapi.bitexch.dev',
+                    'v1': 'https://betaapi.bitexch.dev/v1',
                 },
                 'www': 'https://www.bit.com/',
                 'doc': 'https://www.bit.com/docs/en-us/#introduction',
@@ -715,12 +720,22 @@ module.exports = class bitcom extends Exchange {
         return this.parseOrder (orderResult);
     }
 
-    async fetchOrders (id, symbol = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const currency = this.safeString (params, 'currency');
         if (currency === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a currency parameter.');
         }
         await this.loadMarkets ();
+        const request = {};
+        if (symbol !== undefined) {
+            request['instrument_id'] = symbol;
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
         const orderResp = await this.privateGetOrders (params);
         // {
         //     "code": 0,
@@ -760,12 +775,7 @@ module.exports = class bitcom extends Exchange {
         //     }]
         // }
         const orderList = this.safeValue (orderResp, 'data', []);
-        const orders = [];
-        for (let i = 0; i < orderList.length; i++) {
-            const order = this.parseOrder (orderList[i]);
-            orders.push (order);
-        }
-        return orders;
+        return this.parseOrders (orderList, undefined, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1507,7 +1517,7 @@ module.exports = class bitcom extends Exchange {
         const resultList = [];
         for (let i = 0; i < sortedKeys.length; i++) {
             const key = sortedKeys[i];
-            const val = params[key];
+            const val = this.safeValue (params, key);
             if (Array.isArray (val)) {
                 const listVal = this.encodeList (val);
                 resultList.push (key + '=' + listVal);
