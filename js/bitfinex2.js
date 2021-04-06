@@ -999,7 +999,6 @@ module.exports = class bitfinex2 extends bitfinex {
         const remaining = Math.abs (this.safeNumber (order, 6));
         const signedAmount = this.safeNumber (order, 7);
         const amount = Math.abs (signedAmount);
-        const filled = amount - remaining;
         const side = (signedAmount < 0) ? 'sell' : 'buy';
         const orderType = this.safeString (order, 8);
         const type = this.safeString (this.safeValue (this.options, 'exchangeTypes'), orderType);
@@ -1011,9 +1010,8 @@ module.exports = class bitfinex2 extends bitfinex {
         }
         const price = this.safeNumber (order, 16);
         const average = this.safeNumber (order, 17);
-        const cost = price * filled;
         const clientOrderId = this.safeString (order, 2);
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1028,14 +1026,14 @@ module.exports = class bitfinex2 extends bitfinex {
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
