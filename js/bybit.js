@@ -2047,6 +2047,7 @@ module.exports = class bybit extends Exchange {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const address = this.safeString (transaction, 'address');
         const feeCost = this.safeNumber (transaction, 'fee');
+        const type = this.safeStringLower (transaction, 'type');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -2066,7 +2067,7 @@ module.exports = class bybit extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': 'withdrawal',
+            'type': type,
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
             'status': status,
