@@ -51,12 +51,10 @@ module.exports = class bitcom extends Exchange {
                 '1m': '1',
                 '3m': '3',
                 '5m': '5',
-                '10m': '10',
                 '15m': '15',
                 '30m': '30',
                 '1h': '60',
                 '2h': '120',
-                '3h': '180',
                 '6h': '360',
                 '12h': '720',
                 '1d': '1440',
@@ -110,7 +108,6 @@ module.exports = class bitcom extends Exchange {
                         'user/settlements',
                         'account_configs/cod',
                         'mmp_state',
-                        'reset_mmp',
                         // order
                         'orders',
                         'open_orders',
@@ -126,6 +123,7 @@ module.exports = class bitcom extends Exchange {
                         // account
                         'account_configs/cod',
                         'update_mmp_config',
+                        'reset_mmp',
                         // order
                         'orders',
                         'batchorders',
