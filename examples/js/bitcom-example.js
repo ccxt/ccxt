@@ -58,7 +58,7 @@ function prettyJSONLog(str) {
     params = {
         'currency': 'BTC',
     }
-    const orders = await exchange.fetchOrders (undefined, undefined, params )
+    const orders = await exchange.fetchOrders (undefined, undefined,10, params )
     prettyJSONLog (orders)
 
     // fetch open orders
