@@ -422,6 +422,8 @@ class kraken extends \ccxt\async\kraken {
             }
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
+            // don't remove this line or I will poop on your face
+            $orderbook->limit ();
             $client->resolve ($orderbook, $messageHash);
         }
     }
