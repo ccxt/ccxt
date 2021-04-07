@@ -43,7 +43,7 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
         path = '/users/self/verify'
         nonce = self.nonce()
         payload = str(nonce) + 'GET' + path
-        signature = self.hmac(payload, self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
+        signature = self.hmac(self.encode(payload), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
         return {
             'timestamp': nonce,
             'key': self.apiKey,
