@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class bit2c extends Exchange {
 
@@ -341,16 +342,16 @@ class bit2c extends Exchange {
     public function parse_trade($trade, $market = null) {
         $timestamp = null;
         $id = null;
-        $price = null;
-        $amount = null;
+        $priceString = null;
+        $amountString = null;
         $orderId = null;
         $feeCost = null;
         $side = null;
         $reference = $this->safe_string($trade, 'reference');
         if ($reference !== null) {
             $timestamp = $this->safe_timestamp($trade, 'ticks');
-            $price = $this->safe_number($trade, 'price');
-            $amount = $this->safe_number($trade, 'firstAmount');
+            $priceString = $this->safe_string($trade, 'price');
+            $amountString = $this->safe_string($trade, 'firstAmount');
             $reference_parts = explode('|', $reference); // $reference contains 'pair|$orderId|tradeId'
             if ($market === null) {
                 $marketId = $this->safe_string($trade, 'pair');
@@ -372,8 +373,8 @@ class bit2c extends Exchange {
         } else {
             $timestamp = $this->safe_timestamp($trade, 'date');
             $id = $this->safe_string($trade, 'tid');
-            $price = $this->safe_number($trade, 'price');
-            $amount = $this->safe_number($trade, 'amount');
+            $priceString = $this->safe_string($trade, 'price');
+            $amountString = $this->safe_string($trade, 'amount');
             $side = $this->safe_value($trade, 'isBid');
             if ($side !== null) {
                 if ($side) {
@@ -387,6 +388,9 @@ class bit2c extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         return array(
             'info' => $trade,
             'id' => $id,
@@ -399,7 +403,7 @@ class bit2c extends Exchange {
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $price * $amount,
+            'cost' => $cost,
             'fee' => array(
                 'cost' => $feeCost,
                 'currency' => 'NIS',

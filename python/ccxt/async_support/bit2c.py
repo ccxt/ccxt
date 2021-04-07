@@ -17,6 +17,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class bit2c(Exchange):
@@ -328,16 +329,16 @@ class bit2c(Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = None
         id = None
-        price = None
-        amount = None
+        priceString = None
+        amountString = None
         orderId = None
         feeCost = None
         side = None
         reference = self.safe_string(trade, 'reference')
         if reference is not None:
             timestamp = self.safe_timestamp(trade, 'ticks')
-            price = self.safe_number(trade, 'price')
-            amount = self.safe_number(trade, 'firstAmount')
+            priceString = self.safe_string(trade, 'price')
+            amountString = self.safe_string(trade, 'firstAmount')
             reference_parts = reference.split('|')  # reference contains 'pair|orderId|tradeId'
             if market is None:
                 marketId = self.safe_string(trade, 'pair')
@@ -356,8 +357,8 @@ class bit2c(Exchange):
         else:
             timestamp = self.safe_timestamp(trade, 'date')
             id = self.safe_string(trade, 'tid')
-            price = self.safe_number(trade, 'price')
-            amount = self.safe_number(trade, 'amount')
+            priceString = self.safe_string(trade, 'price')
+            amountString = self.safe_string(trade, 'amount')
             side = self.safe_value(trade, 'isBid')
             if side is not None:
                 if side:
@@ -367,6 +368,9 @@ class bit2c(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'info': trade,
             'id': id,
@@ -379,7 +383,7 @@ class bit2c(Exchange):
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': {
                 'cost': feeCost,
                 'currency': 'NIS',
