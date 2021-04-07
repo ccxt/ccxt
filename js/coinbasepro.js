@@ -41,7 +41,7 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
         const path = '/users/self/verify';
         const nonce = this.nonce ();
         const payload = nonce.toString () + 'GET' + path;
-        const signature = this.hmac (payload, this.base64ToBinary (this.secret), 'sha256', 'base64');
+        const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), 'sha256', 'base64');
         return {
             'timestamp': nonce,
             'key': this.apiKey,
