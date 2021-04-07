@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -301,13 +302,15 @@ module.exports = class coinex extends Exchange {
         }
         const tradeId = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order_id');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market);
         let cost = this.safeNumber (trade, 'deal_money');
-        if (!cost) {
-            cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
