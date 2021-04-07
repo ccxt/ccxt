@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AccountSuspended, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds, BadSymbol, RateLimitExceeded, BadRequest } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -318,12 +319,11 @@ module.exports = class bibox extends Exchange {
             }
         }
         const feeRate = undefined; // todo: deduce from market if market is defined
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined && amount !== undefined) {
-            cost = price * amount;
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         if (feeCost !== undefined) {
             fee = {
                 'cost': -feeCost,
