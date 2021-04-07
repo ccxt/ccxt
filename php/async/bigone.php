@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class bigone extends Exchange {
 
@@ -449,16 +450,13 @@ class bigone extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'created_at', 'inserted_at'));
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'asset_pair_name');
         $symbol = $this->safe_symbol($marketId, $market, '-');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $this->cost_to_precision($symbol, $price * $amount);
-            }
-        }
         $side = $this->safe_string($trade, 'side');
         $takerSide = $this->safe_string($trade, 'taker_side');
         $takerOrMaker = null;

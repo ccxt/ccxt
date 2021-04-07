@@ -14,6 +14,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.precise import Precise
 
 
 class bigone(Exchange):
@@ -442,14 +443,13 @@ class bigone(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string_2(trade, 'created_at', 'inserted_at'))
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'asset_pair_name')
         symbol = self.safe_symbol(marketId, market, '-')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = self.cost_to_precision(symbol, price * amount)
         side = self.safe_string(trade, 'side')
         takerSide = self.safe_string(trade, 'taker_side')
         takerOrMaker = None
