@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -831,12 +832,11 @@ module.exports = class ascendex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (trade, 'ts');
-        const price = this.safeNumber2 (trade, 'price', 'p');
-        const amount = this.safeNumber (trade, 'q');
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
+        const priceString = this.safeString2 (trade, 'price', 'p');
+        const amountString = this.safeString (trade, 'q');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const buyerIsMaker = this.safeValue (trade, 'bm', false);
         const makerOrTaker = buyerIsMaker ? 'maker' : 'taker';
         const side = buyerIsMaker ? 'buy' : 'sell';
