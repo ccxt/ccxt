@@ -15,6 +15,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class ascendex(Exchange):
@@ -815,11 +816,11 @@ class ascendex(Exchange):
         #     }
         #
         timestamp = self.safe_integer(trade, 'ts')
-        price = self.safe_number_2(trade, 'price', 'p')
-        amount = self.safe_number(trade, 'q')
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
+        priceString = self.safe_string_2(trade, 'price', 'p')
+        amountString = self.safe_string(trade, 'q')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         buyerIsMaker = self.safe_value(trade, 'bm', False)
         makerOrTaker = 'maker' if buyerIsMaker else 'taker'
         side = 'buy' if buyerIsMaker else 'sell'

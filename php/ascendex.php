@@ -834,12 +834,11 @@ class ascendex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'ts');
-        $price = $this->safe_number_2($trade, 'price', 'p');
-        $amount = $this->safe_number($trade, 'q');
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
-        }
+        $priceString = $this->safe_string_2($trade, 'price', 'p');
+        $amountString = $this->safe_string($trade, 'q');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $buyerIsMaker = $this->safe_value($trade, 'bm', false);
         $makerOrTaker = $buyerIsMaker ? 'maker' : 'taker';
         $side = $buyerIsMaker ? 'buy' : 'sell';
