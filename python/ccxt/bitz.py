@@ -739,11 +739,8 @@ class bitz(Exchange):
         if timestamp is None:
             timestamp = self.safe_timestamp(order, 'created')
         cost = self.safe_number(order, 'orderTotalPrice')
-        if price is not None:
-            if filled is not None:
-                cost = filled * price
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -765,7 +762,7 @@ class bitz(Exchange):
             'fee': None,
             'info': order,
             'average': None,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

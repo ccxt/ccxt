@@ -766,13 +766,8 @@ class bitz extends Exchange {
             $timestamp = $this->safe_timestamp($order, 'created');
         }
         $cost = $this->safe_number($order, 'orderTotalPrice');
-        if ($price !== null) {
-            if ($filled !== null) {
-                $cost = $filled * $price;
-            }
-        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -794,7 +789,7 @@ class bitz extends Exchange {
             'fee' => null,
             'info' => $order,
             'average' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
