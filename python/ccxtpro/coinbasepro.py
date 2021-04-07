@@ -353,31 +353,31 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             else:
                 if type == 'match':
                     trade = self.parse_ws_trade(message)
-                    if previousOrder.trades is None:
-                        previousOrder.trades = []
-                    previousOrder.trades.append(trade)
-                    previousOrder.lastTradeTimestamp = trade['timestamp']
+                    if previousOrder['trades'] is None:
+                        previousOrder['trades'] = []
+                    previousOrder['trades'].append(trade)
+                    previousOrder['lastTradeTimestamp'] = trade['timestamp']
                     totalCost = 0
                     totalAmount = 0
-                    trades = previousOrder.trades
+                    trades = previousOrder['trades']
                     for i in range(0, len(trades)):
                         trade = trades[i]
                         totalCost = self.sum(totalCost, trade['cost'])
                         totalAmount = self.sum(totalAmount, trade['amount'])
                     if totalAmount > 0:
-                        previousOrder.average = totalCost / totalAmount
-                    previousOrder.cost = totalCost
-                    if previousOrder.filled is not None:
-                        previousOrder.filled += trade['amount']
-                        if previousOrder.amount is not None:
-                            previousOrder.remaining = previousOrder.amount - previousOrder.filled
-                    if previousOrder.fee is None:
-                        previousOrder.fee = {
+                        previousOrder['average'] = totalCost / totalAmount
+                    previousOrder['cost'] = totalCost
+                    if previousOrder['filled'] is not None:
+                        previousOrder['filled'] += trade['amount']
+                        if previousOrder['amount'] is not None:
+                            previousOrder['remaining'] = previousOrder['amount'] - previousOrder['filled']
+                    if previousOrder['fee'] is None:
+                        previousOrder['fee'] = {
                             'cost': 0,
                             'currency': trade['fee']['currency'],
                         }
-                    if (previousOrder.fee['cost'] is not None) and (trade['fee']['cost'] is not None):
-                        previousOrder.fee['cost'] = self.sum(previousOrder.fee['cost'], trade['fee']['cost'])
+                    if (previousOrder['fee']['cost'] is not None) and (trade['fee']['cost'] is not None):
+                        previousOrder['fee']['cost'] = self.sum(previousOrder['fee']['cost'], trade['fee']['cost'])
                 else:
                     info = self.extend(previousOrder['info'], message)
                     order = self.parse_ws_order(info)

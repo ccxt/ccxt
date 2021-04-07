@@ -379,37 +379,37 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             } else {
                 if ($type === 'match') {
                     $trade = $this->parse_ws_trade($message);
-                    if ($previousOrder->trades === null) {
-                        $previousOrder->trades = array();
+                    if ($previousOrder['trades'] === null) {
+                        $previousOrder['trades'] = array();
                     }
-                    $previousOrder->trades[] = $trade;
-                    $previousOrder->lastTradeTimestamp = $trade['timestamp'];
+                    $previousOrder['trades'][] = $trade;
+                    $previousOrder['lastTradeTimestamp'] = $trade['timestamp'];
                     $totalCost = 0;
                     $totalAmount = 0;
-                    $trades = $previousOrder->trades;
+                    $trades = $previousOrder['trades'];
                     for ($i = 0; $i < count($trades); $i++) {
                         $trade = $trades[$i];
                         $totalCost = $this->sum($totalCost, $trade['cost']);
                         $totalAmount = $this->sum($totalAmount, $trade['amount']);
                     }
                     if ($totalAmount > 0) {
-                        $previousOrder->average = $totalCost / $totalAmount;
+                        $previousOrder['average'] = $totalCost / $totalAmount;
                     }
-                    $previousOrder->cost = $totalCost;
-                    if ($previousOrder->filled !== null) {
-                        $previousOrder->filled .= $trade['amount'];
-                        if ($previousOrder->amount !== null) {
-                            $previousOrder->remaining = $previousOrder->amount - $previousOrder->filled;
+                    $previousOrder['cost'] = $totalCost;
+                    if ($previousOrder['filled'] !== null) {
+                        $previousOrder['filled'] .= $trade['amount'];
+                        if ($previousOrder['amount'] !== null) {
+                            $previousOrder['remaining'] = $previousOrder['amount'] - $previousOrder['filled'];
                         }
                     }
-                    if ($previousOrder->fee === null) {
-                        $previousOrder->fee = array(
+                    if ($previousOrder['fee'] === null) {
+                        $previousOrder['fee'] = array(
                             'cost' => 0,
                             'currency' => $trade['fee']['currency'],
                         );
                     }
-                    if (($previousOrder->fee['cost'] !== null) && ($trade['fee']['cost'] !== null)) {
-                        $previousOrder->fee['cost'] = $this->sum($previousOrder->fee['cost'], $trade['fee']['cost']);
+                    if (($previousOrder['fee']['cost'] !== null) && ($trade['fee']['cost'] !== null)) {
+                        $previousOrder['fee']['cost'] = $this->sum($previousOrder['fee']['cost'], $trade['fee']['cost']);
                     }
                 } else {
                     $info = array_merge($previousOrder['info'], $message);
