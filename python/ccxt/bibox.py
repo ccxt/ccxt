@@ -27,6 +27,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class bibox(Exchange):
@@ -325,11 +326,11 @@ class bibox(Exchange):
             else:
                 feeCurrency = self.safe_currency_code(feeCurrency)
         feeRate = None  # todo: deduce from market if market is defined
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None and amount is not None:
-            cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         if feeCost is not None:
             fee = {
                 'cost': -feeCost,

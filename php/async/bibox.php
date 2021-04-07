@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\OrderNotFound;
+use \ccxt\Precise;
 
 class bibox extends Exchange {
 
@@ -323,12 +324,11 @@ class bibox extends Exchange {
             }
         }
         $feeRate = null; // todo => deduce from $market if $market is defined
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($price !== null && $amount !== null) {
-            $cost = $price * $amount;
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => -$feeCost,
