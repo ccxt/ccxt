@@ -762,14 +762,9 @@ module.exports = class bitz extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.safeTimestamp (order, 'created');
         }
-        let cost = this.safeNumber (order, 'orderTotalPrice');
-        if (price !== undefined) {
-            if (filled !== undefined) {
-                cost = filled * price;
-            }
-        }
+        const cost = this.safeNumber (order, 'orderTotalPrice');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -791,7 +786,7 @@ module.exports = class bitz extends Exchange {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
