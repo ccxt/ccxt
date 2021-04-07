@@ -393,6 +393,8 @@ class kraken(Exchange, ccxt.kraken):
                 timestamp = self.handle_deltas(orderbook['bids'], b, timestamp)
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
+            # don't remove self line or I will poop on your face
+            orderbook.limit()
             client.resolve(orderbook, messageHash)
 
     def handle_deltas(self, bookside, deltas, timestamp):
