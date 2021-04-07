@@ -363,8 +363,8 @@ module.exports = class braziliex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString2 (trade, 'date_exec', 'date'));
-        const priceString = this.safeNumber (trade, 'price');
-        const amountString = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         let symbol = undefined;
