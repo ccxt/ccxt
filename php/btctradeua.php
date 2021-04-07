@@ -252,14 +252,11 @@ class btctradeua extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $type = 'limit';
         $side = $this->safe_string($trade, 'type');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amnt_trade');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amnt_trade');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

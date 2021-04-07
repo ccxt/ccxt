@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class btctradeua(Exchange):
@@ -229,12 +230,11 @@ class btctradeua(Exchange):
         id = self.safe_string(trade, 'id')
         type = 'limit'
         side = self.safe_string(trade, 'type')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amnt_trade')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amnt_trade')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']
