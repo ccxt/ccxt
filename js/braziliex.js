@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -362,13 +363,18 @@ module.exports = class braziliex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString2 (trade, 'date_exec', 'date'));
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeNumber (trade, 'price');
+        const amountString = this.safeNumber (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const cost = this.safeNumber (trade, 'total');
+        let cost = this.safeNumber (trade, 'total');
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        }
         const orderId = this.safeString (trade, 'order_number');
         const type = 'limit';
         const side = this.safeString (trade, 'type');
