@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
+use \ccxt\Precise;
 
 class aofex extends Exchange {
 
@@ -556,11 +557,13 @@ class aofex extends Exchange {
             $symbol = $market['symbol'];
         }
         $side = $this->safe_string($trade, 'direction');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'amount', 'number');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'amount', 'number');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $cost = $this->safe_number($trade, 'total_price');
-        if (($cost === null) && ($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;

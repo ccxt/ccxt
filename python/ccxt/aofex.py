@@ -16,6 +16,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.precise import Precise
 
 
 class aofex(Exchange):
@@ -544,11 +545,13 @@ class aofex(Exchange):
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         side = self.safe_string(trade, 'direction')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'amount', 'number')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'amount', 'number')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number(trade, 'total_price')
-        if (cost is None) and (price is not None) and (amount is not None):
-            cost = price * amount
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
