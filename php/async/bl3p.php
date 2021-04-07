@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\Precise;
 
 class bl3p extends Exchange {
 
@@ -143,20 +144,13 @@ class bl3p extends Exchange {
     public function parse_trade($trade, $market = null) {
         $id = $this->safe_string($trade, 'trade_id');
         $timestamp = $this->safe_integer($trade, 'date');
-        $price = $this->safe_number($trade, 'price_int');
-        if ($price !== null) {
-            $price /= 100000.0;
-        }
-        $amount = $this->safe_number($trade, 'amount_int');
-        if ($amount !== null) {
-            $amount /= 100000000.0;
-        }
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price_int');
+        $priceString = Precise::string_div($priceString, '100000');
+        $amountString = $this->safe_string($trade, 'amount_int');
+        $amountString = Precise::string_div($amountString, '100000000');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

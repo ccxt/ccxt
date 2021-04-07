@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from ccxt.base.precise import Precise
 
 
 class bl3p(Exchange):
@@ -137,16 +138,13 @@ class bl3p(Exchange):
     def parse_trade(self, trade, market=None):
         id = self.safe_string(trade, 'trade_id')
         timestamp = self.safe_integer(trade, 'date')
-        price = self.safe_number(trade, 'price_int')
-        if price is not None:
-            price /= 100000.0
-        amount = self.safe_number(trade, 'amount_int')
-        if amount is not None:
-            amount /= 100000000.0
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price_int')
+        priceString = Precise.string_div(priceString, '100000')
+        amountString = self.safe_string(trade, 'amount_int')
+        amountString = Precise.string_div(amountString, '100000000')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']
