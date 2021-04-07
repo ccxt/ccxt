@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -684,8 +685,11 @@ module.exports = class currencycom extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
-        const price = this.safeNumber2 (trade, 'p', 'price');
-        const amount = this.safeNumber2 (trade, 'q', 'qty');
+        const priceString = this.safeString2 (trade, 'p', 'price');
+        const amountString = this.safeString2 (trade, 'q', 'qty');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString2 (trade, 'a', 'id');
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
@@ -723,7 +727,7 @@ module.exports = class currencycom extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         };
     }
