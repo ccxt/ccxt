@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -273,15 +274,12 @@ module.exports = class coinegg extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp (trade, 'date');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const symbol = market['symbol'];
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = this.costToPrecision (symbol, price * amount);
-            }
-        }
         const type = 'limit';
         const side = this.safeString (trade, 'type');
         const id = this.safeString (trade, 'tid');
