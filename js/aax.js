@@ -610,7 +610,6 @@ module.exports = class aax extends Exchange {
         if (side === undefined) {
             side = (price > 0) ? 'buy' : 'sell';
         }
-        side = (price > 0) ? 'buy' : 'sell';
         price = Math.abs (price);
         let cost = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
