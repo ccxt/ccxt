@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -453,14 +454,11 @@ module.exports = class coinmate extends Exchange {
         //
         const marketId = this.safeString (trade, 'currencyPair');
         market = this.safeMarket (marketId, market, '_');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const side = this.safeStringLower2 (trade, 'type', 'tradeType');
         const type = this.safeStringLower (trade, 'orderType');
         const orderId = this.safeString (trade, 'orderId');
