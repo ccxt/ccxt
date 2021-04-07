@@ -44,7 +44,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $path = '/users/self/verify';
         $nonce = $this->nonce();
         $payload = (string) $nonce . 'GET' . $path;
-        $signature = $this->hmac($payload, base64_decode($this->secret), 'sha256', 'base64');
+        $signature = $this->hmac($this->encode($payload), base64_decode($this->secret), 'sha256', 'base64');
         return array(
             'timestamp' => $nonce,
             'key' => $this->apiKey,
