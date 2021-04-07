@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -279,14 +280,11 @@ module.exports = class coinone extends Exchange {
                 side = 'buy';
             }
         }
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'qty');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'qty');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderId = this.safeString (trade, 'orderId');
         let feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
