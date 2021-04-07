@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -185,14 +186,11 @@ module.exports = class flowbtc extends Exchange {
         const timestamp = this.safeTimestamp (trade, 'unixtime');
         const side = (trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
         const id = this.safeString (trade, 'tid');
-        const price = this.safeNumber (trade, 'px');
-        const amount = this.safeNumber (trade, 'qty');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'px');
+        const amountString = this.safeString (trade, 'qty');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         return {
             'info': trade,
             'timestamp': timestamp,
