@@ -66,6 +66,9 @@ class Precise:
         return self.add(negative)
 
     def reduce(self):
+        if self.integer == 0:
+            self.decimals = 0
+            return self
         div, mod = divmod(self.integer, self.base)
         while mod == 0:
             self.integer = div
