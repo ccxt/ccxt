@@ -376,37 +376,37 @@ module.exports = class coinbasepro extends ccxt.coinbasepro {
             } else {
                 if (type === 'match') {
                     const trade = this.parseWsTrade (message);
-                    if (previousOrder.trades === undefined) {
-                        previousOrder.trades = [];
+                    if (previousOrder['trades'] === undefined) {
+                        previousOrder['trades'] = [];
                     }
-                    previousOrder.trades.push (trade);
-                    previousOrder.lastTradeTimestamp = trade['timestamp'];
+                    previousOrder['trades'].push (trade);
+                    previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                     let totalCost = 0;
                     let totalAmount = 0;
-                    const trades = previousOrder.trades;
+                    const trades = previousOrder['trades'];
                     for (let i = 0; i < trades.length; i++) {
                         const trade = trades[i];
                         totalCost = this.sum (totalCost, trade['cost']);
                         totalAmount = this.sum (totalAmount, trade['amount']);
                     }
                     if (totalAmount > 0) {
-                        previousOrder.average = totalCost / totalAmount;
+                        previousOrder['average'] = totalCost / totalAmount;
                     }
-                    previousOrder.cost = totalCost;
-                    if (previousOrder.filled !== undefined) {
-                        previousOrder.filled += trade['amount'];
-                        if (previousOrder.amount !== undefined) {
-                            previousOrder.remaining = previousOrder.amount - previousOrder.filled;
+                    previousOrder['cost'] = totalCost;
+                    if (previousOrder['filled'] !== undefined) {
+                        previousOrder['filled'] += trade['amount'];
+                        if (previousOrder['amount'] !== undefined) {
+                            previousOrder['remaining'] = previousOrder['amount'] - previousOrder['filled'];
                         }
                     }
-                    if (previousOrder.fee === undefined) {
-                        previousOrder.fee = {
+                    if (previousOrder['fee'] === undefined) {
+                        previousOrder['fee'] = {
                             'cost': 0,
                             'currency': trade['fee']['currency'],
                         };
                     }
-                    if ((previousOrder.fee['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                        previousOrder.fee['cost'] = this.sum (previousOrder.fee['cost'], trade['fee']['cost']);
+                    if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
+                        previousOrder['fee']['cost'] = this.sum (previousOrder['fee']['cost'], trade['fee']['cost']);
                     }
                 } else {
                     const info = this.extend (previousOrder['info'], message);
