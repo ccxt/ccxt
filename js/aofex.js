@@ -559,7 +559,7 @@ module.exports = class aofex extends Exchange {
         const amount = this.parseNumber (amountString);
         let cost = this.safeNumber (trade, 'total_price');
         if (cost === undefined) {
-            cost = Precise.stringMul (priceString, amountString);
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
