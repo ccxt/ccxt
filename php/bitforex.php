@@ -297,14 +297,11 @@ class bitforex extends Exchange {
         $timestamp = $this->safe_integer($trade, 'time');
         $id = $this->safe_string($trade, 'tid');
         $orderId = null;
-        $amount = $this->safe_number($trade, 'amount');
-        $price = $this->safe_number($trade, 'price');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $sideId = $this->safe_integer($trade, 'direction');
         $side = $this->parse_side($sideId);
         return array(

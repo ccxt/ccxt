@@ -18,6 +18,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.precise import Precise
 
 
 class bitforex(Exchange):
@@ -305,12 +306,11 @@ class bitforex(Exchange):
         timestamp = self.safe_integer(trade, 'time')
         id = self.safe_string(trade, 'tid')
         orderId = None
-        amount = self.safe_number(trade, 'amount')
-        price = self.safe_number(trade, 'price')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         sideId = self.safe_integer(trade, 'direction')
         side = self.parse_side(sideId)
         return {
