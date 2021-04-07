@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, ExchangeError, ExchangeNotAvailable, ArgumentsRequired, InsufficientFunds, InvalidOrder, RateLimitExceeded, InvalidNonce, AuthenticationError, NotSupported } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -419,14 +420,11 @@ module.exports = class fcoin extends Exchange {
         const timestamp = this.safeInteger (trade, 'ts');
         const side = this.safeStringLower (trade, 'side');
         const id = this.safeString (trade, 'id');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const fee = undefined;
         return {
             'id': id,
