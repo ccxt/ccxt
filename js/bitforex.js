@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -295,14 +296,11 @@ module.exports = class bitforex extends Exchange {
         const timestamp = this.safeInteger (trade, 'time');
         const id = this.safeString (trade, 'tid');
         const orderId = undefined;
-        const amount = this.safeNumber (trade, 'amount');
-        const price = this.safeNumber (trade, 'price');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const sideId = this.safeInteger (trade, 'direction');
         const side = this.parseSide (sideId);
         return {
