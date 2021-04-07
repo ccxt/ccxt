@@ -367,13 +367,18 @@ class braziliex extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'date_exec', 'date'));
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
         $cost = $this->safe_number($trade, 'total');
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        }
         $orderId = $this->safe_string($trade, 'order_number');
         $type = 'limit';
         $side = $this->safe_string($trade, 'type');

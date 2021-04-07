@@ -17,6 +17,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.precise import Precise
 
 
 class braziliex(Exchange):
@@ -359,12 +360,16 @@ class braziliex(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string_2(trade, 'date_exec', 'date'))
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         symbol = None
         if market is not None:
             symbol = market['symbol']
         cost = self.safe_number(trade, 'total')
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = self.safe_string(trade, 'order_number')
         type = 'limit'
         side = self.safe_string(trade, 'type')
