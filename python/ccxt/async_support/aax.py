@@ -607,7 +607,6 @@ class aax(Exchange):
             side = 'sell'
         if side is None:
             side = 'buy' if (price > 0) else 'sell'
-        side = 'buy' if (price > 0) else 'sell'
         price = abs(price)
         cost = None
         if (price is not None) and (amount is not None):

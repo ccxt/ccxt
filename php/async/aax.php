@@ -614,7 +614,6 @@ class aax extends Exchange {
         if ($side === null) {
             $side = ($price > 0) ? 'buy' : 'sell';
         }
-        $side = ($price > 0) ? 'buy' : 'sell';
         $price = abs($price);
         $cost = null;
         if (($price !== null) && ($amount !== null)) {
