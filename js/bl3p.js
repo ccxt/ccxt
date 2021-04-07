@@ -143,13 +143,9 @@ module.exports = class bl3p extends Exchange {
         const id = this.safeString (trade, 'trade_id');
         const timestamp = this.safeInteger (trade, 'date');
         let priceString = this.safeString (trade, 'price_int');
-        if (priceString !== undefined) {
-            priceString = Precise.stringDiv (priceString, '100000');
-        }
+        priceString = Precise.stringDiv (priceString, '100000');
         let amountString = this.safeString (trade, 'amount_int');
-        if (amountString !== undefined) {
-            amountString = Precise.stringDiv (amountString, '100000000');
-        }
+        amountString = Precise.stringDiv (amountString, '100000000');
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
