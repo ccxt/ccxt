@@ -19,6 +19,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class deribit(Exchange):
@@ -858,12 +859,11 @@ class deribit(Exchange):
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string(trade, 'direction')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         liquidity = self.safe_string(trade, 'liquidity')
         takerOrMaker = None
         if liquidity is not None:
