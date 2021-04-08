@@ -576,10 +576,12 @@ class coinbasepro extends Exchange {
         if ($orderId !== null) {
             $side = ($trade['side'] === 'buy') ? 'buy' : 'sell';
         }
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'size');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         if ($cost === null) {
-            $cost = $amount * $price;
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         return array(
             'id' => $id,

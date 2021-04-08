@@ -24,6 +24,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class coinbasepro(Exchange):
@@ -576,10 +577,12 @@ class coinbasepro(Exchange):
         # Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         if orderId is not None:
             side = 'buy' if (trade['side'] == 'buy') else 'sell'
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'size')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         if cost is None:
-            cost = amount * price
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'id': id,
             'order': orderId,
