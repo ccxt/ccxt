@@ -10,6 +10,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.precise import Precise
 
 
 class btcalpha(Exchange):
@@ -194,12 +195,11 @@ class btcalpha(Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_timestamp(trade, 'timestamp')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = float(self.cost_to_precision(symbol, price * amount))
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string_2(trade, 'id', 'tid')
         side = self.safe_string_2(trade, 'my_side', 'side')
         orderId = self.safe_string(trade, 'o_id')

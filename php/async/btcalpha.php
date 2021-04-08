@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\InvalidOrder;
 use \ccxt\DDoSProtection;
+use \ccxt\Precise;
 
 class btcalpha extends Exchange {
 
@@ -203,14 +204,11 @@ class btcalpha extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string_2($trade, 'id', 'tid');
         $side = $this->safe_string_2($trade, 'my_side', 'side');
         $orderId = $this->safe_string($trade, 'o_id');
