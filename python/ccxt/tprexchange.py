@@ -48,16 +48,16 @@ class tprexchange(Exchange):
                 'fetchLedger': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrderBook': False,
+                'fetchOrderBook': True,
                 'fetchOrderBooks': False,
                 'fetchOrders': True,
                 'fetchOrderTrades': False,
                 'fetchStatus': True,
-                'fetchTicker': False,
-                'fetchTickers': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -73,12 +73,10 @@ class tprexchange(Exchange):
             },
             'timeframes': {
                 '1m': '1',
-                '5m': '5',
-                '15m': '15',
                 '1h': '60',
-                '4h': '240',
                 '1d': '1440',
                 '1w': '10080',
+                '1mn': '43200',
             },
             'urls': {
                 'logo': '',
@@ -139,6 +137,205 @@ class tprexchange(Exchange):
             },
         })
 
+    def parse_ticker(self, response):
+        if len(response) == 0:
+            return []
+        symbol = response[0].get('symbol')
+        high = 0
+        bidVolume = 0
+        askVolume = 0
+        vwap = 0
+        vwapCost = 0
+        vwapVolume = 0
+        open_ = 'None'
+        close = 0
+        last = close
+        previousClose = 'None'
+        change = 'None' 
+        percentage = 'None' 
+        average = 'None'
+        baseVolume = 0
+        quoteVolume = 0
+        time = 0
+        lastDayTime = int((datetime.now().timestamp() - 86400) * 1000)
+        currentTimestamp = int(datetime.now().timestamp() * 1000)
+        currentDatetime = str(datetime.fromtimestamp(currentTimestamp * 0.001))
+        low = response[0].get('price')
+        bid = 0
+        ask = sys.maxsize
+        openSellOrdersCount = 0
+
+        for order in response:
+
+            price = order.get('price')
+            amount = order.get('amount')
+            timestamp = order.get('timestamp')
+
+            if high < price:
+                high = price
+            if low > price:
+                low = price
+            
+            if order.get('status') == 'open':
+                if order.get('side') == 'buy':
+                    if bid < price:
+                        bid = price
+                    if bidVolume < amount:
+                        bidVolume = amount
+
+            if order.get('status') == 'open':
+                if order.get('side') == 'sell':
+                    openSellOrdersCount += 1
+                    if ask > price:
+                        ask = price
+                    if askVolume < amount:
+                        askVolume = amount
+
+            if order.get('info').get('status') == 'COMPLETED':
+                vwapCost += price * amount
+                vwapVolume += amount
+                if time < timestamp:
+                    time = timestamp
+                    close = price
+                if timestamp > lastDayTime:
+                    quoteVolume += amount
+                    baseVolume += price
+
+        if vwapVolume != 0:
+            vwap = vwapCost / vwapVolume
+        if openSellOrdersCount == 0:
+            ask = 0
+        last = close
+
+        result = {
+            'symbol':        symbol,
+            'info':          response,
+            'timestamp':     currentTimestamp,
+            'datetime':      currentDatetime,
+            'high':          high,
+            'low':           low,
+            'bid':           bid,
+            'bidVolume':     bidVolume,
+            'ask':           ask,
+            'askVolume':     askVolume,
+            'vwap':          vwap,
+            'open':          open_,
+            'close':         close,
+            'last':          last,
+            'previousClose': previousClose,
+            'change':        change,
+            'percentage':    percentage,
+            'average':       average,
+            'baseVolume':    baseVolume,
+            'quoteVolume':   quoteVolume,
+            }
+        return result
+
+    def fetch_ticker(self, symbol, since=None, limit=None):
+        response = self.fetch_orders(symbol, since, limit)
+        # Response example:
+        # {
+        #     'symbol': 'BTC/USDT', 
+        #     'info': [...], 
+        #     'timestamp': 1615386851976, 
+        #     'datetime': '2021-03-10 16:34:11.976000', 
+        #     'high': 50.0, 
+        #     'low': 1.0, 
+        #     'bid': 30.0, 
+        #     'bidVolume': 15.0, 
+        #     'ask': 40.0, 
+        #     'askVolume': 25.0, 
+        #     'vwap': 11.0, 
+        #     'open': 'None', 
+        #     'close': 20.0, 
+        #     'last': 20.0, 
+        #     'previousClose': 'None', 
+        #     'change': 'None', 
+        #     'percentage': 'None', 
+        #     'average': 'None', 
+        #     'baseVolume': 60.0, 
+        #     'quoteVolume': 30.0
+        # }
+        return self.parse_ticker(response)
+
+    def fetch_tickers(self, since=None, limit=None):
+        # Response example:
+        # [
+        #     {
+        #         'symbol': 'BTC/USDT', 
+        #         'info': [...], 
+        #         'timestamp': 1615386851976, 
+        #         'datetime': '2021-03-10 16:34:11.976000', 
+        #         'high': 50.0, 
+        #         'low': 1.0, 
+        #         'bid': 30.0, 
+        #         'bidVolume': 15.0, 
+        #         'ask': 40.0, 
+        #         'askVolume': 25.0, 
+        #         'vwap': 11.0, 
+        #         'open': 'None', 
+        #         'close': 20.0, 
+        #         'last': 20.0, 
+        #         'previousClose': 'None', 
+        #         'change': 'None', 
+        #         'percentage': 'None', 
+        #         'average': 'None', 
+        #         'baseVolume': 60.0, 
+        #         'quoteVolume': 30.0
+        #     }, 
+        #     ...
+        # ]
+        result = []
+        symbols = self.fetch_markets()
+        for symblol in symbols:
+            response = self.fetch_orders(symblol.get('symbol'), since, limit)
+            ticker = self.parse_ticker(response)
+            if len(ticker) != 0:
+                result.append(ticker)
+        return result
+
+    def fetch_order_book(self, symbol, limit, since=0):
+        # Response example:
+        # {
+        #     'bids': 
+        #     [
+        #        [20.0, 10.0, 'E161538482263642'],   // [price, amount, orderId]
+        #         [30.0, 15.0, 'E161538482271646']
+        #     ], 
+        #     'asks': 
+        #     [
+        #         [40.0, 20.0, 'E161538482278825'], 
+        #         [50.0, 25.0, 'E161538482286085']
+        #     ], 
+        #     'timestamp': 1615390711695, 
+        #     'datetime': '2021-03-10 17:38:31.695000', 
+        #     'nonce': 1615390711695
+        # }
+        orders = self.fetch_open_orders(symbol, since, limit)
+        bids = []
+        asks = []
+        for order in orders:
+            temp = []
+            temp.append(order.get('price'))
+            temp.append(order.get('amount'))
+            temp.append(order.get('id'))
+            if order.get('side') == 'buy':
+                bids.append(temp)
+            else:
+                asks.append(temp)
+
+        currentTimestamp = int(datetime.now().timestamp() * 1000)
+        currentDatetime = str(datetime.fromtimestamp(currentTimestamp * 0.001))
+
+        result = {
+            'bids': bids,
+            'asks': asks,
+            'timestamp': currentTimestamp,
+            'datetime': currentDatetime,
+            'nonce': currentTimestamp,
+        }
+        return result
+
     def parse_markets(self, response):
         listData = []
         for value in response:
@@ -166,6 +363,115 @@ class tprexchange(Exchange):
             }
             listData.append(tmp)
         return listData
+
+    def add_frame(self, timeFrameStart, timeFrameEnd, timeframe, highestPrice, lowestPrice, amount, result, openPrice, closePrice):
+        frame = []
+        frame.append(timeFrameStart)
+        frame.append(openPrice)
+        frame.append(highestPrice)
+        frame.append(lowestPrice)
+        frame.append(closePrice)
+        frame.append(amount)
+        result.append(frame)
+
+    def parse_ohlcv(self, response, since, timeframe):
+        highestPrice = 0
+        lowestPrice = sys.maxsize
+        price = 0
+        amount = 0
+        timeFrameStart = since
+        timeFrameEnd = int((since * 0.001 + timeframe) * 1000)
+        result = []
+        i = 0
+        orders = response.get('content')
+        isOpenPrice = True
+        openPrice = 0
+        closePrice = 0
+
+        while i < len(orders):
+            if isOpenPrice == True:
+                openPrice = orders[i].get('price')
+                isOpenPrice = False
+            time = orders[i].get('time')
+            if time >= timeFrameStart and time <= timeFrameEnd:
+                price = orders[i].get('price')
+                closePrice = price
+                if highestPrice < price:
+                    highestPrice = price
+                if lowestPrice > price:
+                    lowestPrice = price
+                amount += orders[i].get('amount')
+                i += 1
+                if i == len(orders):
+                    self.add_frame(timeFrameStart, timeFrameEnd, timeframe, highestPrice, lowestPrice, amount, result, openPrice, closePrice)
+            else:
+                if lowestPrice == sys.maxsize:
+                    lowestPrice = 0
+                    openPrice = 0
+                    closePrice = 0
+                    i -= 1
+                self.add_frame(timeFrameStart, timeFrameEnd, timeframe, highestPrice, lowestPrice, amount, result, openPrice, closePrice)
+                timeFrameStart = timeFrameEnd + 1
+                timeFrameEnd = int((timeFrameEnd * 0.001 + timeframe) * 1000)
+                amount = 0
+                highestPrice = 0
+                lowestPrice = sys.maxsize
+                isOpenPrice = True
+                i += 1
+
+        return result
+
+    # timeframe variants: 
+    # 1m (one minute);
+    # 1h (one hour);
+    # 1d (one day - 24 hours)
+    # 1w (one week - 7 days)
+    # 1mn (one mounth - 30 days)
+    def fetch_ohlcv(self, symbol, timeframe=None, since=0, limit=None, params={}):
+        # Response example:
+        # [
+        #     [
+        #         1504541580000, // UTC timestamp in milliseconds, integer
+        #         4235.4,        // (O)pen price, float
+        #         4240.6,        // (H)ighest price, float
+        #         4230.0,        // (L)owest price, float
+        #         4230.7,        // (C)losing price, float
+        #         37.72941911    // (V)olume (in terms of the base currency), float
+        #     ],
+        #     ...
+        # ]
+        inputDataCheck = False
+
+        for frame in self.timeframes:
+            if frame == timeframe:
+                inputDataCheck = True
+                break
+        
+        if inputDataCheck == False:
+            return {'error': 'Incorrect timeframe'}
+
+        tFrame = int(self.timeframes.get(timeframe)) * 60
+
+        default_order_amount_limit = 100
+        params['status'] = 'COMPLETED'
+        if 'page' in params:
+            params['pageNo'] = self.safe_string(params, 'page')
+        else:
+            params['pageNo'] = 0
+
+        if since is None:
+            since = 0
+        if limit is None:
+            limit = default_order_amount_limit
+        
+        request = {
+            'symbol': symbol,
+            'since': since,
+            'pageSize': limit,
+        }
+        fullRequest = self.extend(request, params)
+        response = self.privatePostExchangeOrderAll(fullRequest)
+        return self.parse_ohlcv(response, since, tFrame)
         
     def fetch_markets(self, symbol=''):
         request = {
@@ -209,9 +515,6 @@ class tprexchange(Exchange):
             currencies = self.fetch_currencies()
         markets = self.fetch_markets(symbol)
         return self.set_markets(markets, currencies)
-
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
-        return []
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         # Check existance of authentication token
@@ -294,7 +597,7 @@ class tprexchange(Exchange):
             'code': value.get('name').upper(),
             'name': value.get('name'),
             'active': bool(value.get('status')),
-            'fee': 0.001,
+            'fee': 0.005,
             'precision': 0,
             'limits':
             {
@@ -467,12 +770,11 @@ class tprexchange(Exchange):
         #   'status': one of TRADING COMPLETED CANCELED OVERTIMED. May be set in params
         #   'page': for pagination. In self case limit is size of every page. May be set in params
         # }
-        default_order_amount_limit = 20
+        default_order_amount_limit = 10000
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
         else:
             params['pageNo'] = 0
-
         if symbol is None:
             symbol = ''
         if since is None:
@@ -485,7 +787,7 @@ class tprexchange(Exchange):
             'since': since,
             'pageSize': limit,
         }
-        
+
         fullRequest = self.extend(request, params)
         response = self.privatePostExchangeOrderAll(fullRequest)
         # {
@@ -718,7 +1020,7 @@ class tprexchange(Exchange):
         #       'cost': 1.0, 
         #       'fee': 
         #       {
-        #           'cost': 0.001, 
+        #           'cost': 0.005, 
         #           'currency': 'BTC', 
         #           'rate': 'None' (Have no this information inside TPR exchange)
         #       }
@@ -762,7 +1064,7 @@ class tprexchange(Exchange):
                 'cost': cost,
                 'fee':
                 {
-                    'cost': 0.001,
+                    'cost': 0.005,
                     'currency': ExchangeOrder.get('coinSymbol'),
                     'rate': 'None',
                 }
