@@ -480,8 +480,11 @@ class bw extends Exchange {
         //     ...
         //
         $timestamp = $this->safe_timestamp($trade, 2);
-        $price = $this->safe_number($trade, 5);
-        $amount = $this->safe_number($trade, 6);
+        $priceString = $this->safe_string($trade, 5);
+        $amountString = $this->safe_string($trade, 6);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 1);
         $symbol = null;
         if ($marketId !== null) {
@@ -498,12 +501,6 @@ class bw extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $this->cost_to_precision($symbol, $price * $amount);
-            }
-        }
         $sideString = $this->safe_string($trade, 4);
         $side = ($sideString === 'ask') ? 'sell' : 'buy';
         return array(
@@ -517,7 +514,7 @@ class bw extends Exchange {
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => floatval($cost),
+            'cost' => $cost,
             'fee' => null,
             'info' => $trade,
         );
