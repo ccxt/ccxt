@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, ArgumentsRequired, InvalidAddress, OrderNotFound, NotSupported, DDoSProtection, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -504,16 +505,13 @@ module.exports = class gateio extends Exchange {
         const id = this.safeString2 (trade, 'tradeID', 'id');
         // take either of orderid or orderId
         const orderId = this.safeString2 (trade, 'orderid', 'orderNumber');
-        const price = this.safeNumber2 (trade, 'rate', 'price');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString2 (trade, 'rate', 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const type = this.safeString (trade, 'type');
         const takerOrMaker = this.safeString (trade, 'role');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
