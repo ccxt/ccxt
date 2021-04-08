@@ -192,14 +192,11 @@ class itbit extends Exchange {
         }
         $rebateCurrencyId = $this->safe_string($trade, 'rebateCurrency');
         $rebateCurrency = $this->safe_currency_code($rebateCurrencyId);
-        $price = $this->safe_number_2($trade, 'price', 'rate');
-        $amount = $this->safe_number_2($trade, 'currency1Amount', 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string_2($trade, 'price', 'rate');
+        $amountString = $this->safe_string_2($trade, 'currency1Amount', 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = null;
         $marketId = $this->safe_string($trade, 'instrument');
         if ($marketId !== null) {

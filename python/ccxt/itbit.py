@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class itbit(Exchange):
@@ -186,12 +187,11 @@ class itbit(Exchange):
             rebatesApplied = -rebatesApplied
         rebateCurrencyId = self.safe_string(trade, 'rebateCurrency')
         rebateCurrency = self.safe_currency_code(rebateCurrencyId)
-        price = self.safe_number_2(trade, 'price', 'rate')
-        amount = self.safe_number_2(trade, 'currency1Amount', 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string_2(trade, 'price', 'rate')
+        amountString = self.safe_string_2(trade, 'currency1Amount', 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         marketId = self.safe_string(trade, 'instrument')
         if marketId is not None:
