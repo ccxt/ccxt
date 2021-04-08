@@ -9,6 +9,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class coinbase(Exchange):
@@ -476,12 +477,11 @@ class coinbase(Exchange):
         orderId = None
         side = self.safe_string(trade, 'resource')
         type = None
-        cost = self.safe_number(subtotalObject, 'amount')
-        amount = self.safe_number(amountObject, 'amount')
-        price = None
-        if cost is not None:
-            if (amount is not None) and (amount > 0):
-                price = cost / amount
+        costString = self.safe_string(subtotalObject, 'amount')
+        amountString = self.safe_string(amountObject, 'amount')
+        cost = self.parse_number(costString)
+        amount = self.parse_number(amountString)
+        price = self.parse_number(Precise.string_div(costString, amountString))
         feeCost = self.safe_number(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
         feeCurrency = self.safe_currency_code(feeCurrencyId)

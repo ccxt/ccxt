@@ -493,14 +493,11 @@ class coinbase extends Exchange {
         $orderId = null;
         $side = $this->safe_string($trade, 'resource');
         $type = null;
-        $cost = $this->safe_number($subtotalObject, 'amount');
-        $amount = $this->safe_number($amountObject, 'amount');
-        $price = null;
-        if ($cost !== null) {
-            if (($amount !== null) && ($amount > 0)) {
-                $price = $cost / $amount;
-            }
-        }
+        $costString = $this->safe_string($subtotalObject, 'amount');
+        $amountString = $this->safe_string($amountObject, 'amount');
+        $cost = $this->parse_number($costString);
+        $amount = $this->parse_number($amountString);
+        $price = $this->parse_number(Precise::string_div($costString, $amountString));
         $feeCost = $this->safe_number($feeObject, 'amount');
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
