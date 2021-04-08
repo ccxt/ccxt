@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
 
@@ -490,14 +491,11 @@ module.exports = class coinbase extends Exchange {
         const orderId = undefined;
         const side = this.safeString (trade, 'resource');
         const type = undefined;
-        const cost = this.safeNumber (subtotalObject, 'amount');
-        const amount = this.safeNumber (amountObject, 'amount');
-        let price = undefined;
-        if (cost !== undefined) {
-            if ((amount !== undefined) && (amount > 0)) {
-                price = cost / amount;
-            }
-        }
+        const costString = this.safeString (subtotalObject, 'amount');
+        const amountString = this.safeString (amountObject, 'amount');
+        const cost = this.parseNumber (costString);
+        const amount = this.parseNumber (amountString);
+        const price = this.parseNumber (Precise.stringDiv (costString, amountString));
         const feeCost = this.safeNumber (feeObject, 'amount');
         const feeCurrencyId = this.safeString (feeObject, 'currency');
         const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
