@@ -74,6 +74,7 @@ module.exports = (exchange, ticker, method, symbol) => {
 
     if (![
 
+        'bybit',
         'coinmarketcap',
         'xbtce',
         'coss',
