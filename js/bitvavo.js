@@ -938,7 +938,6 @@ module.exports = class bitvavo extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
-        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'orderId': id,
