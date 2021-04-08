@@ -769,16 +769,15 @@ class ftx extends Exchange {
             }
         }
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'size');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
         $side = $this->safe_string($trade, 'side');
-        $cost = null;
-        if ($price !== null && $amount !== null) {
-            $cost = $price * $amount;
-        }
         $fee = null;
         $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {

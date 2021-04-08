@@ -24,6 +24,7 @@ from ccxt.base.errors import CancelPending
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class ftx(Exchange):
@@ -763,14 +764,14 @@ class ftx(Exchange):
             else:
                 symbol = marketId
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'size')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         side = self.safe_string(trade, 'side')
-        cost = None
-        if price is not None and amount is not None:
-            cost = price * amount
         fee = None
         feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
