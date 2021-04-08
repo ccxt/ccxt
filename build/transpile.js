@@ -1198,7 +1198,7 @@ class Transpiler {
         function phpMakeErrorClassFile (name, parent) {
 
             const useClause = "\nuse " + parent + ";\n"
-            const requireClause = "\nrequire_once PATH_TO_CCXT_BASE . '" + parent + ".php';\n"
+            const requireClause = "\nrequire_once PATH_TO_CCXT . '" + parent + ".php';\n"
 
             const phpBody = [
                 '<?php',
@@ -1208,10 +1208,10 @@ class Transpiler {
                 'class ' + name + ' extends ' + parent + ' {};',
                 '',
             ].join ("\n")
-            const phpFilename = './php/base/' + name + '.php'
+            const phpFilename = './php/' + name + '.php'
             log.bright.cyan (message, phpFilename.yellow)
             fs.writeFileSync (phpFilename, phpBody)
-            return "require_once PATH_TO_CCXT_BASE . '" + name + ".php';"
+            return "require_once PATH_TO_CCXT . '" + name + ".php';"
         }
 
         const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
@@ -1219,7 +1219,7 @@ class Transpiler {
         const phpFilename = './ccxt.php'
 
         log.bright.cyan (message, phpFilename.yellow)
-        const phpRegex = /require_once PATH_TO_CCXT_BASE \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT_BASE[^\n]+\n)+\n/m
+        const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
         replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
 
         // TypeScript ---------------------------------------------------------
@@ -1530,7 +1530,7 @@ class Transpiler {
         result.push (space + ');')
         const string = result.join ('\n')
 
-        const phpBaseClass = './php/base/Exchange.php';
+        const phpBaseClass = './php/Exchange.php';
         const phpBody = fs.readFileSync (phpBaseClass, 'utf8')
         const regex = /public static \$camelcase_methods = array\([\s\S]+?\);/g
         const bodyArray = phpBody.split (regex)
