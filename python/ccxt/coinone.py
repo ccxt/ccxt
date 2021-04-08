@@ -11,6 +11,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.precise import Precise
 
 
 class coinone(Exchange):
@@ -268,12 +269,11 @@ class coinone(Exchange):
                 side = 'sell'
             elif side == 'bid':
                 side = 'buy'
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'qty')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'qty')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = self.safe_string(trade, 'orderId')
         feeCost = self.safe_number(trade, 'fee')
         fee = None

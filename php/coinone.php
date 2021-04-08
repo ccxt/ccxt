@@ -282,14 +282,11 @@ class coinone extends Exchange {
                 $side = 'buy';
             }
         }
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'qty');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'qty');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $orderId = $this->safe_string($trade, 'orderId');
         $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
