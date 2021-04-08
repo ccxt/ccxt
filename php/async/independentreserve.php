@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\Precise;
 
 class independentreserve extends Exchange {
 
@@ -379,14 +380,11 @@ class independentreserve extends Exchange {
         $timestamp = $this->parse8601($trade['TradeTimestampUtc']);
         $id = $this->safe_string($trade, 'TradeGuid');
         $orderId = $this->safe_string($trade, 'OrderGuid');
-        $price = $this->safe_number_2($trade, 'Price', 'SecondaryCurrencyTradePrice');
-        $amount = $this->safe_number_2($trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string_2($trade, 'Price', 'SecondaryCurrencyTradePrice');
+        $amountString = $this->safe_string_2($trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $baseId = $this->safe_string($trade, 'PrimaryCurrencyCode');
         $quoteId = $this->safe_string($trade, 'SecondaryCurrencyCode');
         $marketId = null;

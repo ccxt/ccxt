@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.base.precise import Precise
 
 
 class independentreserve(Exchange):
@@ -351,12 +352,11 @@ class independentreserve(Exchange):
         timestamp = self.parse8601(trade['TradeTimestampUtc'])
         id = self.safe_string(trade, 'TradeGuid')
         orderId = self.safe_string(trade, 'OrderGuid')
-        price = self.safe_number_2(trade, 'Price', 'SecondaryCurrencyTradePrice')
-        amount = self.safe_number_2(trade, 'VolumeTraded', 'PrimaryCurrencyAmount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string_2(trade, 'Price', 'SecondaryCurrencyTradePrice')
+        amountString = self.safe_string_2(trade, 'VolumeTraded', 'PrimaryCurrencyAmount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         baseId = self.safe_string(trade, 'PrimaryCurrencyCode')
         quoteId = self.safe_string(trade, 'SecondaryCurrencyCode')
         marketId = None
