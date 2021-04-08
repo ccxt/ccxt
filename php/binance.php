@@ -1562,8 +1562,11 @@ class binance extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer_2($trade, 'T', 'time');
-        $price = $this->safe_number_2($trade, 'p', 'price');
-        $amount = $this->safe_number_2($trade, 'q', 'qty');
+        $priceString = $this->safe_string_2($trade, 'p', 'price');
+        $amountString = $this->safe_string_2($trade, 'q', 'qty');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string_2($trade, 'a', 'id');
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
@@ -1594,10 +1597,6 @@ class binance extends Exchange {
         }
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
-        }
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,

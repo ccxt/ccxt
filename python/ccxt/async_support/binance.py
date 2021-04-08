@@ -23,6 +23,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.precise import Precise
 
 
 class binance(Exchange):
@@ -1526,8 +1527,11 @@ class binance(Exchange):
         #     }
         #
         timestamp = self.safe_integer_2(trade, 'T', 'time')
-        price = self.safe_number_2(trade, 'p', 'price')
-        amount = self.safe_number_2(trade, 'q', 'qty')
+        priceString = self.safe_string_2(trade, 'p', 'price')
+        amountString = self.safe_string_2(trade, 'q', 'qty')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string_2(trade, 'a', 'id')
         side = None
         orderId = self.safe_string(trade, 'orderId')
@@ -1553,9 +1557,6 @@ class binance(Exchange):
             takerOrMaker = 'maker' if trade['maker'] else 'taker'
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
         return {
             'info': trade,
             'timestamp': timestamp,
