@@ -26,6 +26,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class gemini(Exchange):
@@ -544,12 +545,11 @@ class gemini(Exchange):
             'cost': self.safe_number(trade, 'fee_amount'),
             'currency': feeCurrencyCode,
         }
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         type = None
         side = self.safe_string_lower(trade, 'type')
         symbol = self.safe_symbol(None, market)
