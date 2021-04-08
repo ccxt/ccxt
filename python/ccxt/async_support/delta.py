@@ -15,6 +15,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class delta(Exchange):
@@ -646,11 +647,11 @@ class delta(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         timestamp = self.safe_integer_product(trade, 'timestamp', 0.001, timestamp)
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'size')
-        cost = None
-        if (amount is not None) and (price is not None):
-            cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         product = self.safe_value(trade, 'product', {})
         marketId = self.safe_string(product, 'symbol')
         symbol = self.safe_symbol(marketId, market)

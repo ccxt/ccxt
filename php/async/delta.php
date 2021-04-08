@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class delta extends Exchange {
 
@@ -658,12 +659,11 @@ class delta extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $timestamp = $this->safe_integer_product($trade, 'timestamp', 0.001, $timestamp);
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'size');
-        $cost = null;
-        if (($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $product = $this->safe_value($trade, 'product', array());
         $marketId = $this->safe_string($product, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
