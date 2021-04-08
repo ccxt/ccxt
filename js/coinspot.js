@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -214,11 +215,13 @@ module.exports = class coinspot extends Exchange {
         //         "market":"BTC/AUD"
         //     }
         //
-        const price = this.safeNumber (trade, 'rate');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'rate');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         let cost = this.safeNumber (trade, 'total');
-        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const timestamp = this.safeInteger (trade, 'solddate');
         const marketId = this.safeString (trade, 'market');
