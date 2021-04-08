@@ -11,6 +11,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.precise import Precise
 
 
 class coinex(Exchange):
@@ -296,13 +297,15 @@ class coinex(Exchange):
             timestamp = self.safe_integer(trade, 'date_ms')
         tradeId = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order_id')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         marketId = self.safe_string(trade, 'market')
         symbol = self.safe_symbol(marketId, market)
         cost = self.safe_number(trade, 'deal_money')
-        if not cost:
-            cost = float(self.cost_to_precision(symbol, price * amount))
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:

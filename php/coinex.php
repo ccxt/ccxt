@@ -304,13 +304,15 @@ class coinex extends Exchange {
         }
         $tradeId = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order_id');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $marketId = $this->safe_string($trade, 'market');
         $symbol = $this->safe_symbol($marketId, $market);
         $cost = $this->safe_number($trade, 'deal_money');
-        if (!$cost) {
-            $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $fee = null;
         $feeCost = $this->safe_number($trade, 'fee');
