@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -479,14 +480,11 @@ module.exports = class hollaex extends Exchange {
         const datetime = this.safeString (trade, 'timestamp');
         const timestamp = this.parse8601 (datetime);
         const side = this.safeString (trade, 'side');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'size');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'size');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {

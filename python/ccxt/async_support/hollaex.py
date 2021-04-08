@@ -11,6 +11,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NetworkError
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class hollaex(Exchange):
@@ -471,12 +472,11 @@ class hollaex(Exchange):
         datetime = self.safe_string(trade, 'timestamp')
         timestamp = self.parse8601(datetime)
         side = self.safe_string(trade, 'side')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'size')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
