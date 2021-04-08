@@ -291,9 +291,14 @@ class kuna extends Exchange {
             );
             $side = $this->safe_string($sideMap, $side, $side);
         }
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'volume');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'volume');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $cost = $this->safe_number($trade, 'funds');
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        }
         $orderId = $this->safe_string($trade, 'order_id');
         $id = $this->safe_string($trade, 'id');
         return array(

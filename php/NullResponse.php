@@ -2,6 +2,6 @@
 
 namespace ccxt;
 
-require_once PATH_TO_CCXT_BASE . 'BadResponse.php';
+require_once PATH_TO_CCXT . 'BadResponse.php';
 
 class NullResponse extends BadResponse {};

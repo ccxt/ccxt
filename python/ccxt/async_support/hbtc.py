@@ -23,6 +23,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class hbtc(Exchange):
@@ -1651,12 +1652,11 @@ class hbtc(Exchange):
         timestamp = self.safe_number(trade, 'time')
         type = None
         orderId = self.safe_string(trade, 'orderId')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'qty')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'qty')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = None
         takerOrMaker = None
         if 'isBuyerMaker' in trade:

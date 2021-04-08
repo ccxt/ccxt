@@ -552,14 +552,11 @@ class gemini extends Exchange {
             'cost' => $this->safe_number($trade, 'fee_amount'),
             'currency' => $feeCurrencyCode,
         );
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $type = null;
         $side = $this->safe_string_lower($trade, 'type');
         $symbol = $this->safe_symbol(null, $market);

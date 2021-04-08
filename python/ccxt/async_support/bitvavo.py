@@ -904,7 +904,6 @@ class bitvavo(Exchange):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
-        await self.load_markets()
         market = self.market(symbol)
         request = {
             'orderId': id,

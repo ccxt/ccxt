@@ -224,6 +224,7 @@ class ascendex(Exchange):
                 'broad': {},
             },
             'commonCurrencies': {
+                'BOND': 'BONDED',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
             },

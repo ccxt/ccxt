@@ -940,7 +940,6 @@ class bitvavo extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         yield $this->load_markets();
-        yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'orderId' => $id,

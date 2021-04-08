@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -288,9 +289,14 @@ module.exports = class kuna extends Exchange {
             };
             side = this.safeString (sideMap, side, side);
         }
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'volume');
-        const cost = this.safeNumber (trade, 'funds');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'volume');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        let cost = this.safeNumber (trade, 'funds');
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        }
         const orderId = this.safeString (trade, 'order_id');
         const id = this.safeString (trade, 'id');
         return {

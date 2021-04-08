@@ -2,6 +2,6 @@
 
 namespace ccxt;
 
-require_once PATH_TO_CCXT_BASE . 'DDoSProtection.php';
+require_once PATH_TO_CCXT . 'DDoSProtection.php';
 
 class RateLimitExceeded extends DDoSProtection {};

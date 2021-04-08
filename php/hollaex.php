@@ -480,14 +480,11 @@ class hollaex extends Exchange {
         $datetime = $this->safe_string($trade, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $side = $this->safe_string($trade, 'side');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'size');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
