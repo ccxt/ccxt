@@ -1740,14 +1740,11 @@ class hbtc extends Exchange {
         $timestamp = $this->safe_number($trade, 'time');
         $type = null;
         $orderId = $this->safe_string($trade, 'orderId');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'qty');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'qty');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $side = null;
         $takerOrMaker = null;
         if (is_array($trade) && array_key_exists('isBuyerMaker', $trade)) {
