@@ -253,7 +253,7 @@ class coincheck extends Exchange {
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $id = $this->safe_string($trade, 'id');
-        $price = $this->safe_number($trade, 'rate');
+        $priceString = $this->safe_string($trade, 'rate');
         $marketId = $this->safe_string($trade, 'pair');
         $market = $this->safe_value($this->markets_by_id, $marketId, $market);
         $symbol = null;
@@ -280,7 +280,7 @@ class coincheck extends Exchange {
             }
         }
         $takerOrMaker = null;
-        $amount = null;
+        $amountString = null;
         $cost = null;
         $side = null;
         $fee = null;
@@ -292,7 +292,7 @@ class coincheck extends Exchange {
                 $takerOrMaker = 'maker';
             }
             $funds = $this->safe_value($trade, 'funds', array());
-            $amount = $this->safe_number($funds, $baseId);
+            $amountString = $this->safe_string($funds, $baseId);
             $cost = $this->safe_number($funds, $quoteId);
             $fee = array(
                 'currency' => $this->safe_string($trade, 'fee_currency'),
@@ -301,15 +301,13 @@ class coincheck extends Exchange {
             $side = $this->safe_string($trade, 'side');
             $orderId = $this->safe_string($trade, 'order_id');
         } else {
-            $amount = $this->safe_number($trade, 'amount');
+            $amountString = $this->safe_string($trade, 'amount');
             $side = $this->safe_string($trade, 'order_type');
         }
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         if ($cost === null) {
-            if ($amount !== null) {
-                if ($price !== null) {
-                    $cost = $amount * $price;
-                }
-            }
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         return array(
             'id' => $id,

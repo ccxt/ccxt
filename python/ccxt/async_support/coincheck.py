@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
+from ccxt.base.precise import Precise
 
 
 class coincheck(Exchange):
@@ -241,7 +242,7 @@ class coincheck(Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         id = self.safe_string(trade, 'id')
-        price = self.safe_number(trade, 'rate')
+        priceString = self.safe_string(trade, 'rate')
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_value(self.markets_by_id, marketId, market)
         symbol = None
@@ -264,7 +265,7 @@ class coincheck(Exchange):
             if market is not None:
                 symbol = market['symbol']
         takerOrMaker = None
-        amount = None
+        amountString = None
         cost = None
         side = None
         fee = None
@@ -275,7 +276,7 @@ class coincheck(Exchange):
             elif self.safe_string(trade, 'liquidity') == 'M':
                 takerOrMaker = 'maker'
             funds = self.safe_value(trade, 'funds', {})
-            amount = self.safe_number(funds, baseId)
+            amountString = self.safe_string(funds, baseId)
             cost = self.safe_number(funds, quoteId)
             fee = {
                 'currency': self.safe_string(trade, 'fee_currency'),
@@ -284,12 +285,12 @@ class coincheck(Exchange):
             side = self.safe_string(trade, 'side')
             orderId = self.safe_string(trade, 'order_id')
         else:
-            amount = self.safe_number(trade, 'amount')
+            amountString = self.safe_string(trade, 'amount')
             side = self.safe_string(trade, 'order_type')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         if cost is None:
-            if amount is not None:
-                if price is not None:
-                    cost = amount * price
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'id': id,
             'info': trade,
