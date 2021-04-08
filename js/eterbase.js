@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, InvalidOrder, ExchangeError, BadRequest, BadSymbol } = require ('./base/errors');
 const { TRUNCATE, SIGNIFICANT_DIGITS } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
 
@@ -457,8 +458,10 @@ module.exports = class eterbase extends Exchange {
         //         "filledAt": 1556355722341
         //     }
         //
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'qty');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'qty');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
@@ -470,8 +473,8 @@ module.exports = class eterbase extends Exchange {
             };
         }
         let cost = this.safeNumber (trade, 'qty');
-        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const timestamp = this.safeInteger2 (trade, 'executedAt', 'filledAt');
         const tradeSide = this.safeString (trade, 'side');
