@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class coinspot(Exchange):
@@ -209,11 +210,13 @@ class coinspot(Exchange):
         #         "market":"BTC/AUD"
         #     }
         #
-        price = self.safe_number(trade, 'rate')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string(trade, 'rate')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number(trade, 'total')
-        if (cost is None) and (price is not None) and (amount is not None):
-            cost = price * amount
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         timestamp = self.safe_integer(trade, 'solddate')
         marketId = self.safe_string(trade, 'market')
         symbol = self.safe_symbol(marketId, market, '/')

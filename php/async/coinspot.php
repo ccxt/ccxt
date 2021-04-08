@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class coinspot extends Exchange {
 
@@ -218,11 +219,13 @@ class coinspot extends Exchange {
         //         "$market":"BTC/AUD"
         //     }
         //
-        $price = $this->safe_number($trade, 'rate');
-        $amount = $this->safe_number($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'rate');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $cost = $this->safe_number($trade, 'total');
-        if (($cost === null) && ($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $timestamp = $this->safe_integer($trade, 'solddate');
         $marketId = $this->safe_string($trade, 'market');
