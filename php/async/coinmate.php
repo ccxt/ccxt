@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class coinmate extends Exchange {
 
@@ -456,14 +457,11 @@ class coinmate extends Exchange {
         //
         $marketId = $this->safe_string($trade, 'currencyPair');
         $market = $this->safe_market($marketId, $market, '_');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $side = $this->safe_string_lower_2($trade, 'type', 'tradeType');
         $type = $this->safe_string_lower($trade, 'orderType');
         $orderId = $this->safe_string($trade, 'orderId');
