@@ -8,6 +8,7 @@ import math
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.precise import Precise
 
 
 class kuna(Exchange):
@@ -274,9 +275,13 @@ class kuna(Exchange):
                 'bid': 'buy',
             }
             side = self.safe_string(sideMap, side, side)
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'volume')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'volume')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number(trade, 'funds')
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string(trade, 'id')
         return {
