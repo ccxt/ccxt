@@ -217,6 +217,7 @@ class ascendex extends Exchange {
                 'broad' => array(),
             ),
             'commonCurrencies' => array(
+                'BOND' => 'BONDED',
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
             ),
