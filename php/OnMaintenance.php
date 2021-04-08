@@ -2,6 +2,6 @@
 
 namespace ccxt;
 
-require_once PATH_TO_CCXT_BASE . 'ExchangeNotAvailable.php';
+require_once PATH_TO_CCXT . 'ExchangeNotAvailable.php';
 
 class OnMaintenance extends ExchangeNotAvailable {};

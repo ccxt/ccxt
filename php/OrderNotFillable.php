@@ -2,6 +2,6 @@
 
 namespace ccxt;
 
-require_once PATH_TO_CCXT_BASE . 'InvalidOrder.php';
+require_once PATH_TO_CCXT . 'InvalidOrder.php';
 
 class OrderNotFillable extends InvalidOrder {};
