@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable, CancelPending, ArgumentsRequired, PermissionDenied } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -766,16 +767,15 @@ module.exports = class ftx extends Exchange {
             }
         }
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'size');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'size');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const side = this.safeString (trade, 'side');
-        let cost = undefined;
-        if (price !== undefined && amount !== undefined) {
-            cost = price * amount;
-        }
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
