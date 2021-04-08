@@ -214,6 +214,7 @@ module.exports = class ascendex extends Exchange {
                 'broad': {},
             },
             'commonCurrencies': {
+                'BOND': 'BONDED',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
             },
