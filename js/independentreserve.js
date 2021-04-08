@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -377,14 +378,11 @@ module.exports = class independentreserve extends Exchange {
         const timestamp = this.parse8601 (trade['TradeTimestampUtc']);
         const id = this.safeString (trade, 'TradeGuid');
         const orderId = this.safeString (trade, 'OrderGuid');
-        const price = this.safeNumber2 (trade, 'Price', 'SecondaryCurrencyTradePrice');
-        const amount = this.safeNumber2 (trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString2 (trade, 'Price', 'SecondaryCurrencyTradePrice');
+        const amountString = this.safeString2 (trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const baseId = this.safeString (trade, 'PrimaryCurrencyCode');
         const quoteId = this.safeString (trade, 'SecondaryCurrencyCode');
         let marketId = undefined;
