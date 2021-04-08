@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -1337,7 +1338,6 @@ module.exports = class kucoin extends Exchange {
         const id = this.safeString2 (trade, 'tradeId', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeString (trade, 'liquidity');
-        const amount = this.safeNumber2 (trade, 'size', 'amount');
         let timestamp = this.safeInteger (trade, 'time');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp / 1000000);
@@ -1348,7 +1348,10 @@ module.exports = class kucoin extends Exchange {
                 timestamp = timestamp * 1000;
             }
         }
-        const price = this.safeNumber2 (trade, 'price', 'dealPrice');
+        const priceString = this.safeString2 (trade, 'price', 'dealPrice');
+        const amountString = this.safeString2 (trade, 'size', 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const side = this.safeString (trade, 'side');
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
@@ -1372,11 +1375,7 @@ module.exports = class kucoin extends Exchange {
         }
         let cost = this.safeNumber2 (trade, 'funds', 'dealValue');
         if (cost === undefined) {
-            if (amount !== undefined) {
-                if (price !== undefined) {
-                    cost = amount * price;
-                }
-            }
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         return {
             'info': trade,
