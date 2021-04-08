@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection, NotSupported, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -601,14 +602,11 @@ module.exports = class liquid extends Exchange {
         if (mySide !== undefined) {
             takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
         }
-        let cost = undefined;
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'quantity');
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (market !== undefined) {
