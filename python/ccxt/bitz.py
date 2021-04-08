@@ -71,7 +71,7 @@ class bitz(Exchange):
                     'assets': 'https://{hostname}',
                 },
                 'www': 'https://www.bitz.com',
-                'doc': 'https://apidoc.bitz.com/en/',
+                'doc': 'https://apidocv2.bitz.plus/en/',
                 'fees': 'https://www.bitz.com/fee?type=1',
                 'referral': 'https://u.bitz.com/register?invite_code=1429193',
             },
@@ -88,6 +88,11 @@ class bitz(Exchange):
                         'currencyRate',
                         'currencyCoinRate',
                         'coinRate',
+                        'getContractCoin',
+                        'getContractKline',
+                        'getContractOrderBook',
+                        'getContractTradesHistory',
+                        'getContractTickers',
                     ],
                 },
                 'trade': {
@@ -100,11 +105,29 @@ class bitz(Exchange):
                         'getUserNowEntrustSheet',  # open orders
                         'getEntrustSheetInfo',  # order
                         'depositOrWithdraw',  # transactions
+                        'getCoinAddress',
+                        'getCoinAddressList',
+                        'marketTrade',
+                        'addEntrustSheetBatch',
                     ],
                 },
                 'assets': {
                     'post': [
                         'getUserAssets',
+                    ],
+                },
+                'contract': {
+                    'post': [
+                        'addContractTrade',
+                        'cancelContractTrade',
+                        'getContractActivePositions',
+                        'getContractAccountInfo',
+                        'getContractMyPositions',
+                        'getContractOrderResult',
+                        'getContractTradeResult',
+                        'getContractOrder',
+                        'getContractMyHistoryTrade',
+                        'getContractMyTrades',
                     ],
                 },
             },
