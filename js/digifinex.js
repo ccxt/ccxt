@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -636,14 +637,11 @@ module.exports = class digifinex extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const timestamp = this.safeTimestamp2 (trade, 'date', 'timestamp');
         const side = this.safeString2 (trade, 'type', 'side');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         const takerOrMaker = this.safeValue (trade, 'is_maker');
