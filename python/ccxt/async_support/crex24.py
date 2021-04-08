@@ -18,6 +18,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class crex24(Exchange):
@@ -509,12 +510,11 @@ class crex24(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'volume')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'volume')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'orderId')

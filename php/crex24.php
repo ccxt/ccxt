@@ -519,14 +519,11 @@ class crex24 extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'volume');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'volume');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string($trade, 'id');
         $side = $this->safe_string($trade, 'side');
         $orderId = $this->safe_string($trade, 'orderId');
