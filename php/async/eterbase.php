@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class eterbase extends Exchange {
 
@@ -460,8 +461,10 @@ class eterbase extends Exchange {
         //         "filledAt" => 1556355722341
         //     }
         //
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'qty');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'qty');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $fee = null;
         $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
@@ -473,8 +476,8 @@ class eterbase extends Exchange {
             );
         }
         $cost = $this->safe_number($trade, 'qty');
-        if (($cost === null) && ($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $timestamp = $this->safe_integer_2($trade, 'executedAt', 'filledAt');
         $tradeSide = $this->safe_string($trade, 'side');

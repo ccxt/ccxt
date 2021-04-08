@@ -13,6 +13,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
+from ccxt.base.precise import Precise
 
 
 class eterbase(Exchange):
@@ -453,8 +454,10 @@ class eterbase(Exchange):
         #         "filledAt": 1556355722341
         #     }
         #
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'qty')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'qty')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         fee = None
         feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
@@ -465,8 +468,8 @@ class eterbase(Exchange):
                 'currency': feeCurrencyCode,
             }
         cost = self.safe_number(trade, 'qty')
-        if (cost is None) and (price is not None) and (amount is not None):
-            cost = price * amount
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         timestamp = self.safe_integer_2(trade, 'executedAt', 'filledAt')
         tradeSide = self.safe_string(trade, 'side')
         side = 'buy' if (tradeSide == '1') else 'sell'
