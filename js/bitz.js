@@ -59,7 +59,7 @@ module.exports = class bitz extends Exchange {
                     'assets': 'https://{hostname}',
                 },
                 'www': 'https://www.bitz.com',
-                'doc': 'https://apidoc.bitz.com/en/',
+                'doc': 'https://apidocv2.bitz.plus/en/',
                 'fees': 'https://www.bitz.com/fee?type=1',
                 'referral': 'https://u.bitz.com/register?invite_code=1429193',
             },
