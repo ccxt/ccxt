@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\ExchangeNotAvailable;
+use \ccxt\Precise;
 
 class hitbtc extends Exchange {
 
@@ -636,9 +637,11 @@ class hitbtc extends Exchange {
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $orderId = $this->safe_string($trade, 'clientOrderId');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'quantity');
-        $cost = $price * $amount;
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'quantity');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $side = $this->safe_string($trade, 'side');
         $id = $this->safe_string($trade, 'id');
         return array(
