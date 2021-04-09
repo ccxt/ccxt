@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -927,14 +928,11 @@ module.exports = class bitbay extends Exchange {
         if (wasTaker !== undefined) {
             takerOrMaker = wasTaker ? 'taker' : 'maker';
         }
-        const price = this.safeNumber2 (trade, 'rate', 'r');
-        const amount = this.safeNumber2 (trade, 'amount', 'a');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString2 (trade, 'rate', 'r');
+        const amountString = this.safeString2 (trade, 'amount', 'a');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const feeCost = this.safeNumber (trade, 'commissionValue');
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, '-');
