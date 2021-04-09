@@ -82,11 +82,11 @@ module.exports = class bl3p extends Exchange {
             const available = this.safeValue (wallet, 'available', {});
             const balance = this.safeValue (wallet, 'balance', {});
             const account = this.account ();
-            account['free'] = this.safeNumber (available, 'value');
-            account['total'] = this.safeNumber (balance, 'value');
+            account['free'] = this.safeString (available, 'value');
+            account['total'] = this.safeString (balance, 'value');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {

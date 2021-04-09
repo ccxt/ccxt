@@ -533,11 +533,11 @@ module.exports = class deribit extends Exchange {
         const currencyId = this.safeString (balance, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        account['free'] = this.safeNumber (balance, 'availableFunds');
-        account['used'] = this.safeNumber (balance, 'maintenanceMargin');
-        account['total'] = this.safeNumber (balance, 'equity');
+        account['free'] = this.safeString (balance, 'availableFunds');
+        account['used'] = this.safeString (balance, 'maintenanceMargin');
+        account['total'] = this.safeString (balance, 'equity');
         result[currencyCode] = account;
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createDepositAddress (code, params = {}) {

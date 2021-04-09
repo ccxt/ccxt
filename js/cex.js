@@ -380,13 +380,13 @@ module.exports = class cex extends Exchange {
             const currencyId = currencyIds[i];
             const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'available');
+            account['free'] = this.safeString (balance, 'available');
             // https://github.com/ccxt/ccxt/issues/5484
-            account['used'] = this.safeNumber (balance, 'orders', 0.0);
+            account['used'] = this.safeString (balance, 'orders', '0');
             const code = this.safeCurrencyCode (currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

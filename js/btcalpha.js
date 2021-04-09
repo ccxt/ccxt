@@ -293,8 +293,8 @@ module.exports = class btcalpha extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeNumber (balance, 'reserve');
-            account['total'] = this.safeNumber (balance, 'balance');
+            account['used'] = this.safeString (balance, 'reserve');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
         return this.parseBalance (result);
