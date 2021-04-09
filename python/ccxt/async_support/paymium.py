@@ -97,10 +97,10 @@ class paymium(Exchange):
             if free in response:
                 account = self.account()
                 used = 'locked_' + currencyId
-                account['free'] = self.safe_number(response, free)
-                account['used'] = self.safe_number(response, used)
+                account['free'] = self.safe_string(response, free)
+                account['used'] = self.safe_string(response, used)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

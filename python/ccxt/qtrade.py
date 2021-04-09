@@ -691,7 +691,7 @@ class qtrade(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = result[code] if (code in result) else self.account()
-            account['free'] = self.safe_number(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'balance')
             account['used'] = 0
             result[code] = account
         balances = self.safe_value(data, 'order_balances', [])
@@ -700,9 +700,9 @@ class qtrade(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = result[code] if (code in result) else self.account()
-            account['used'] = self.safe_number(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':

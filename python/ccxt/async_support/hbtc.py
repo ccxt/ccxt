@@ -707,8 +707,8 @@ class hbtc(Exchange):
                 currencyId = self.safe_string_2(balance, 'asset', 'tokenName')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['free'] = self.safe_number(balance, 'free')
-                account['used'] = self.safe_number(balance, 'locked')
+                account['free'] = self.safe_string(balance, 'free')
+                account['used'] = self.safe_string(balance, 'locked')
                 result[code] = account
         else:
             currencyIds = list(response.keys())
@@ -717,10 +717,10 @@ class hbtc(Exchange):
                 code = self.safe_currency_code(currencyId)
                 balance = response[currencyId]
                 account = self.account()
-                account['free'] = self.safe_number(balance, 'availableMargin')
-                account['total'] = self.safe_number(balance, 'total')
+                account['free'] = self.safe_string(balance, 'availableMargin')
+                account['total'] = self.safe_string(balance, 'total')
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_trades(self, symbol, since=None, limit=50, params={}):
         await self.load_markets()

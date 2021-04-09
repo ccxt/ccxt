@@ -127,7 +127,7 @@ class coinspot(Exchange):
                     balance = currencies[currencyId]
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
-                    account['total'] = self.safe_number(balance, 'balance')
+                    account['total'] = self.safe_string(balance, 'balance')
                     result[code] = account
         else:
             currencyIds = list(balances.keys())
@@ -135,9 +135,9 @@ class coinspot(Exchange):
                 currencyId = currencyIds[i]
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['total'] = self.safe_number(balances, currencyId)
+                account['total'] = self.safe_string(balances, currencyId)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

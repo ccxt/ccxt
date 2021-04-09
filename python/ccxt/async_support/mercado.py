@@ -287,10 +287,10 @@ class mercado(Exchange):
             if currencyId in balances:
                 balance = self.safe_value(balances, currencyId, {})
                 account = self.account()
-                account['free'] = self.safe_number(balance, 'available')
-                account['total'] = self.safe_number(balance, 'total')
+                account['free'] = self.safe_string(balance, 'available')
+                account['total'] = self.safe_string(balance, 'total')
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

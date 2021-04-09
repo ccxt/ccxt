@@ -763,10 +763,10 @@ class aax(Exchange):
                 currencyId = self.safe_string(balance, 'currency')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['free'] = self.safe_number(balance, 'available')
-                account['used'] = self.safe_number(balance, 'unavailable')
+                account['free'] = self.safe_string(balance, 'available')
+                account['used'] = self.safe_string(balance, 'unavailable')
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         orderType = type.upper()

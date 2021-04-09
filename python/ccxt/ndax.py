@@ -852,10 +852,10 @@ class ndax(Exchange):
             currencyId = self.safe_string(balance, 'ProductId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_number(balance, 'Amount')
-            account['used'] = self.safe_number(balance, 'Hold')
+            account['total'] = self.safe_string(balance, 'Amount')
+            account['used'] = self.safe_string(balance, 'Hold')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_ledger_entry_type(self, type):
         types = {

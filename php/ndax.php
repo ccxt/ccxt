@@ -874,11 +874,11 @@ class ndax extends Exchange {
             $currencyId = $this->safe_string($balance, 'ProductId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'Amount');
-            $account['used'] = $this->safe_number($balance, 'Hold');
+            $account['total'] = $this->safe_string($balance, 'Amount');
+            $account['used'] = $this->safe_string($balance, 'Hold');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_ledger_entry_type($type) {

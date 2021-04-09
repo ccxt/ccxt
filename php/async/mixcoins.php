@@ -75,11 +75,11 @@ class mixcoins extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($balances, $currencyId, array());
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'avail');
-            $account['used'] = $this->safe_number($balance, 'lock');
+            $account['free'] = $this->safe_string($balance, 'avail');
+            $account['used'] = $this->safe_string($balance, 'lock');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

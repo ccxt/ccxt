@@ -297,12 +297,12 @@ class mercado extends Exchange {
             if (is_array($balances) && array_key_exists($currencyId, $balances)) {
                 $balance = $this->safe_value($balances, $currencyId, array());
                 $account = $this->account();
-                $account['free'] = $this->safe_number($balance, 'available');
-                $account['total'] = $this->safe_number($balance, 'total');
+                $account['free'] = $this->safe_string($balance, 'available');
+                $account['total'] = $this->safe_string($balance, 'total');
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

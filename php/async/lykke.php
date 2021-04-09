@@ -257,11 +257,11 @@ class lykke extends Exchange {
             $currencyId = $this->safe_string($balance, 'AssetId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'Balance');
-            $account['used'] = $this->safe_number($balance, 'Reserved');
+            $account['total'] = $this->safe_string($balance, 'Balance');
+            $account['used'] = $this->safe_string($balance, 'Reserved');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

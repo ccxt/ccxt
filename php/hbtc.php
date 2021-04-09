@@ -713,8 +713,8 @@ class hbtc extends Exchange {
                 $currencyId = $this->safe_string_2($balance, 'asset', 'tokenName');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                $account['free'] = $this->safe_number($balance, 'free');
-                $account['used'] = $this->safe_number($balance, 'locked');
+                $account['free'] = $this->safe_string($balance, 'free');
+                $account['used'] = $this->safe_string($balance, 'locked');
                 $result[$code] = $account;
             }
         } else {
@@ -724,12 +724,12 @@ class hbtc extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $balance = $response[$currencyId];
                 $account = $this->account();
-                $account['free'] = $this->safe_number($balance, 'availableMargin');
-                $account['total'] = $this->safe_number($balance, 'total');
+                $account['free'] = $this->safe_string($balance, 'availableMargin');
+                $account['total'] = $this->safe_string($balance, 'total');
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = 50, $params = array ()) {
