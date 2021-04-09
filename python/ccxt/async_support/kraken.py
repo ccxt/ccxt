@@ -29,6 +29,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.precise import Precise
 
 
 class kraken(Exchange):
@@ -818,9 +819,8 @@ class kraken(Exchange):
         timestamp = None
         side = None
         type = None
-        price = None
-        amount = None
-        cost = None
+        priceString = None
+        amountString = None
         id = None
         orderId = None
         fee = None
@@ -829,8 +829,8 @@ class kraken(Exchange):
             timestamp = self.safe_timestamp(trade, 2)
             side = 'sell' if (trade[3] == 's') else 'buy'
             type = 'limit' if (trade[4] == 'l') else 'market'
-            price = self.safe_number(trade, 0)
-            amount = self.safe_number(trade, 1)
+            priceString = self.safe_string(trade, 0)
+            amountString = self.safe_string(trade, 1)
             tradeLength = len(trade)
             if tradeLength > 6:
                 id = self.safe_string(trade, 6)  # artificially added as per  #1794
@@ -849,8 +849,8 @@ class kraken(Exchange):
             timestamp = self.safe_timestamp(trade, 'time')
             side = self.safe_string(trade, 'type')
             type = self.safe_string(trade, 'ordertype')
-            price = self.safe_number(trade, 'price')
-            amount = self.safe_number(trade, 'vol')
+            priceString = self.safe_string(trade, 'price')
+            amountString = self.safe_string(trade, 'vol')
             if 'fee' in trade:
                 currency = None
                 if market is not None:
@@ -861,9 +861,9 @@ class kraken(Exchange):
                 }
         if market is not None:
             symbol = market['symbol']
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'id': id,
             'order': orderId,

@@ -852,9 +852,8 @@ class kraken extends Exchange {
         $timestamp = null;
         $side = null;
         $type = null;
-        $price = null;
-        $amount = null;
-        $cost = null;
+        $priceString = null;
+        $amountString = null;
         $id = null;
         $orderId = null;
         $fee = null;
@@ -863,8 +862,8 @@ class kraken extends Exchange {
             $timestamp = $this->safe_timestamp($trade, 2);
             $side = ($trade[3] === 's') ? 'sell' : 'buy';
             $type = ($trade[4] === 'l') ? 'limit' : 'market';
-            $price = $this->safe_number($trade, 0);
-            $amount = $this->safe_number($trade, 1);
+            $priceString = $this->safe_string($trade, 0);
+            $amountString = $this->safe_string($trade, 1);
             $tradeLength = is_array($trade) ? count($trade) : 0;
             if ($tradeLength > 6) {
                 $id = $this->safe_string($trade, 6); // artificially added as per #1794
@@ -885,8 +884,8 @@ class kraken extends Exchange {
             $timestamp = $this->safe_timestamp($trade, 'time');
             $side = $this->safe_string($trade, 'type');
             $type = $this->safe_string($trade, 'ordertype');
-            $price = $this->safe_number($trade, 'price');
-            $amount = $this->safe_number($trade, 'vol');
+            $priceString = $this->safe_string($trade, 'price');
+            $amountString = $this->safe_string($trade, 'vol');
             if (is_array($trade) && array_key_exists('fee', $trade)) {
                 $currency = null;
                 if ($market !== null) {
@@ -901,11 +900,9 @@ class kraken extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         return array(
             'id' => $id,
             'order' => $orderId,
