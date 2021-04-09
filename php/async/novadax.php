@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class novadax extends Exchange {
 
@@ -426,11 +427,13 @@ class novadax extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $side = $this->safe_string_lower($trade, 'side');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $cost = $this->safe_number($trade, 'volume');
-        if (($cost === null) && ($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');

@@ -17,6 +17,7 @@ from ccxt.base.errors import CancelPending
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.precise import Precise
 
 
 class novadax(Exchange):
@@ -425,11 +426,13 @@ class novadax(Exchange):
         orderId = self.safe_string(trade, 'orderId')
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string_lower(trade, 'side')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number(trade, 'volume')
-        if (cost is None) and (amount is not None) and (price is not None):
-            cost = amount * price
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         takerOrMaker = self.safe_string_lower(trade, 'role')
