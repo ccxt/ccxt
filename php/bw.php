@@ -633,11 +633,11 @@ class bw extends Exchange {
             $currencyId = $this->safe_string($balance, 'currencyTypeId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'amount');
-            $account['used'] = $this->safe_number($balance, 'freeze');
+            $account['free'] = $this->safe_string($balance, 'amount');
+            $account['used'] = $this->safe_string($balance, 'freeze');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

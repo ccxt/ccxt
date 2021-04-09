@@ -386,13 +386,13 @@ class cex extends Exchange {
             $currencyId = $currencyIds[$i];
             $balance = $this->safe_value($balances, $currencyId, array());
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
+            $account['free'] = $this->safe_string($balance, 'available');
             // https://github.com/ccxt/ccxt/issues/5484
-            $account['used'] = $this->safe_number($balance, 'orders', 0.0);
+            $account['used'] = $this->safe_string($balance, 'orders', '0');
             $code = $this->safe_currency_code($currencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

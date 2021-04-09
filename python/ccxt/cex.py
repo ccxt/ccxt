@@ -390,12 +390,12 @@ class cex(Exchange):
             currencyId = currencyIds[i]
             balance = self.safe_value(balances, currencyId, {})
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
+            account['free'] = self.safe_string(balance, 'available')
             # https://github.com/ccxt/ccxt/issues/5484
-            account['used'] = self.safe_number(balance, 'orders', 0.0)
+            account['used'] = self.safe_string(balance, 'orders', '0')
             code = self.safe_currency_code(currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

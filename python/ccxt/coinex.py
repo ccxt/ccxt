@@ -419,10 +419,10 @@ class coinex(Exchange):
             code = self.safe_currency_code(currencyId)
             balance = self.safe_value(balances, currencyId, {})
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            account['used'] = self.safe_number(balance, 'frozen')
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'frozen')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order_status(self, status):
         statuses = {

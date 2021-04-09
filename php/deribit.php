@@ -534,11 +534,11 @@ class deribit extends Exchange {
         $currencyId = $this->safe_string($balance, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
         $account = $this->account();
-        $account['free'] = $this->safe_number($balance, 'availableFunds');
-        $account['used'] = $this->safe_number($balance, 'maintenanceMargin');
-        $account['total'] = $this->safe_number($balance, 'equity');
+        $account['free'] = $this->safe_string($balance, 'availableFunds');
+        $account['used'] = $this->safe_string($balance, 'maintenanceMargin');
+        $account['total'] = $this->safe_string($balance, 'equity');
         $result[$currencyCode] = $account;
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_deposit_address($code, $params = array ()) {

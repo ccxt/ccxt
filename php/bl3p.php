@@ -83,11 +83,11 @@ class bl3p extends Exchange {
             $available = $this->safe_value($wallet, 'available', array());
             $balance = $this->safe_value($wallet, 'balance', array());
             $account = $this->account();
-            $account['free'] = $this->safe_number($available, 'value');
-            $account['total'] = $this->safe_number($balance, 'value');
+            $account['free'] = $this->safe_string($available, 'value');
+            $account['total'] = $this->safe_string($balance, 'value');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {

@@ -617,10 +617,10 @@ class bw(Exchange):
             currencyId = self.safe_string(balance, 'currencyTypeId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'amount')
-            account['used'] = self.safe_number(balance, 'freeze')
+            account['free'] = self.safe_string(balance, 'amount')
+            account['used'] = self.safe_string(balance, 'freeze')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if price is None:

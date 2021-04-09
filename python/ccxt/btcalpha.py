@@ -281,10 +281,10 @@ class btcalpha(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_number(balance, 'reserve')
-            account['total'] = self.safe_number(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'reserve')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order_status(self, status):
         statuses = {

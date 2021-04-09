@@ -802,10 +802,10 @@ class delta(Exchange):
             currency = self.safe_value(currenciesByNumericId, currencyId)
             code = currencyId if (currency is None) else currency['code']
             account = self.account()
-            account['total'] = self.safe_number(balance, 'balance')
-            account['free'] = self.safe_number(balance, 'available_balance')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'available_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_position(self, symbol, params=None):
         self.load_markets()

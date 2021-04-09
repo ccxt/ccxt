@@ -540,11 +540,11 @@ class deribit(Exchange):
         currencyId = self.safe_string(balance, 'currency')
         currencyCode = self.safe_currency_code(currencyId)
         account = self.account()
-        account['free'] = self.safe_number(balance, 'availableFunds')
-        account['used'] = self.safe_number(balance, 'maintenanceMargin')
-        account['total'] = self.safe_number(balance, 'equity')
+        account['free'] = self.safe_string(balance, 'availableFunds')
+        account['used'] = self.safe_string(balance, 'maintenanceMargin')
+        account['total'] = self.safe_string(balance, 'equity')
         result[currencyCode] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
