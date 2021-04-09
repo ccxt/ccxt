@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 const { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -488,15 +489,13 @@ module.exports = class bithumb extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber2 (trade, 'units_traded', 'units');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'units_traded', 'units');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         let cost = this.safeNumber (trade, 'total');
         if (cost === undefined) {
-            if (amount !== undefined) {
-                if (price !== undefined) {
-                    cost = price * amount;
-                }
-            }
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
