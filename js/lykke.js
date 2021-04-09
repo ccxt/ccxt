@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -184,18 +185,16 @@ module.exports = class lykke extends Exchange {
         const id = this.safeString2 (trade, 'id', 'Id');
         const orderId = this.safeString (trade, 'OrderId');
         const timestamp = this.parse8601 (this.safeString2 (trade, 'dateTime', 'DateTime'));
-        const price = this.safeNumber2 (trade, 'price', 'Price');
-        let amount = this.safeNumber2 (trade, 'volume', 'Amount');
+        const priceString = this.safeString2 (trade, 'price', 'Price');
+        let amountString = this.safeString2 (trade, 'volume', 'Amount');
         let side = this.safeStringLower (trade, 'action');
         if (side === undefined) {
-            if (amount < 0) {
-                side = 'sell';
-            } else {
-                side = 'buy';
-            }
+            side = (amountString[0] === '-') ? 'sell' : 'buy';
         }
-        amount = Math.abs (amount);
-        const cost = price * amount;
+        amountString = (amountString[0] === '-') ? amountString.slice (1) : amountString;
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const fee = {
             'cost': 0, // There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
             'currency': market['quote'],
