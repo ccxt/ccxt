@@ -17,6 +17,7 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class bitbay(Exchange):
@@ -913,12 +914,11 @@ class bitbay(Exchange):
         takerOrMaker = None
         if wasTaker is not None:
             takerOrMaker = 'taker' if wasTaker else 'maker'
-        price = self.safe_number_2(trade, 'rate', 'r')
-        amount = self.safe_number_2(trade, 'amount', 'a')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
+        priceString = self.safe_string_2(trade, 'rate', 'r')
+        amountString = self.safe_string_2(trade, 'amount', 'a')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         feeCost = self.safe_number(trade, 'commissionValue')
         marketId = self.safe_string(trade, 'market')
         market = self.safe_market(marketId, market, '-')

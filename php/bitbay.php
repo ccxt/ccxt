@@ -929,14 +929,11 @@ class bitbay extends Exchange {
         if ($wasTaker !== null) {
             $takerOrMaker = $wasTaker ? 'taker' : 'maker';
         }
-        $price = $this->safe_number_2($trade, 'rate', 'r');
-        $amount = $this->safe_number_2($trade, 'amount', 'a');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string_2($trade, 'rate', 'r');
+        $amountString = $this->safe_string_2($trade, 'amount', 'a');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $feeCost = $this->safe_number($trade, 'commissionValue');
         $marketId = $this->safe_string($trade, 'market');
         $market = $this->safe_market($marketId, $market, '-');
