@@ -862,11 +862,11 @@ class huobipro(Exchange):
             else:
                 account = self.account()
             if balance['type'] == 'trade':
-                account['free'] = self.safe_number(balance, 'balance')
+                account['free'] = self.safe_string(balance, 'balance')
             if balance['type'] == 'frozen':
-                account['used'] = self.safe_number(balance, 'balance')
+                account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

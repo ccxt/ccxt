@@ -576,11 +576,11 @@ class ascendex extends Exchange {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'asset'));
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'availableBalance');
-            $account['total'] = $this->safe_number($balance, 'totalBalance');
+            $account['free'] = $this->safe_string($balance, 'availableBalance');
+            $account['total'] = $this->safe_string($balance, 'totalBalance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

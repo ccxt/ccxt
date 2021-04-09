@@ -479,18 +479,18 @@ class liquid(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_number(balance, 'balance')
-            account['used'] = self.safe_number(balance, 'reserved_balance')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'reserved_balance')
             result[code] = account
         for i in range(0, len(fiat)):
             balance = fiat[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_number(balance, 'balance')
-            account['used'] = self.safe_number(balance, 'reserved_balance')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'reserved_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

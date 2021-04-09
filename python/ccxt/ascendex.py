@@ -574,10 +574,10 @@ class ascendex(Exchange):
             balance = balances[i]
             code = self.safe_currency_code(self.safe_string(balance, 'asset'))
             account = self.account()
-            account['free'] = self.safe_number(balance, 'availableBalance')
-            account['total'] = self.safe_number(balance, 'totalBalance')
+            account['free'] = self.safe_string(balance, 'availableBalance')
+            account['total'] = self.safe_string(balance, 'totalBalance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

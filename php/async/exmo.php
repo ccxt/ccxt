@@ -775,14 +775,14 @@ class exmo extends Exchange {
             $currencyId = $this->currency_id($code);
             $account = $this->account();
             if (is_array($free) && array_key_exists($currencyId, $free)) {
-                $account['free'] = $this->safe_number($free, $currencyId);
+                $account['free'] = $this->safe_string($free, $currencyId);
             }
             if (is_array($used) && array_key_exists($currencyId, $used)) {
-                $account['used'] = $this->safe_number($used, $currencyId);
+                $account['used'] = $this->safe_string($used, $currencyId);
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

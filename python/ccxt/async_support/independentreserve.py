@@ -124,10 +124,10 @@ class independentreserve(Exchange):
             currencyId = self.safe_string(balance, 'CurrencyCode')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'AvailableBalance')
-            account['total'] = self.safe_number(balance, 'TotalBalance')
+            account['free'] = self.safe_string(balance, 'AvailableBalance')
+            account['total'] = self.safe_string(balance, 'TotalBalance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

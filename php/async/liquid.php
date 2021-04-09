@@ -482,8 +482,8 @@ class liquid extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'balance');
-            $account['used'] = $this->safe_number($balance, 'reserved_balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'reserved_balance');
             $result[$code] = $account;
         }
         for ($i = 0; $i < count($fiat); $i++) {
@@ -491,11 +491,11 @@ class liquid extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'balance');
-            $account['used'] = $this->safe_number($balance, 'reserved_balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'reserved_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

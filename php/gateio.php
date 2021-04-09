@@ -366,11 +366,11 @@ class gateio extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($available, $currencyId);
-            $account['used'] = $this->safe_number($locked, $currencyId);
+            $account['free'] = $this->safe_string($available, $currencyId);
+            $account['used'] = $this->safe_string($locked, $currencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

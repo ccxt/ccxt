@@ -763,11 +763,11 @@ class exmo(Exchange):
             currencyId = self.currency_id(code)
             account = self.account()
             if currencyId in free:
-                account['free'] = self.safe_number(free, currencyId)
+                account['free'] = self.safe_string(free, currencyId)
             if currencyId in used:
-                account['used'] = self.safe_number(used, currencyId)
+                account['used'] = self.safe_string(used, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

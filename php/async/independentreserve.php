@@ -129,11 +129,11 @@ class independentreserve extends Exchange {
             $currencyId = $this->safe_string($balance, 'CurrencyCode');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'AvailableBalance');
-            $account['total'] = $this->safe_number($balance, 'TotalBalance');
+            $account['free'] = $this->safe_string($balance, 'AvailableBalance');
+            $account['total'] = $this->safe_string($balance, 'TotalBalance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

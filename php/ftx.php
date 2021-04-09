@@ -920,11 +920,11 @@ class ftx extends Exchange {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'free');
-            $account['total'] = $this->safe_number($balance, 'total');
+            $account['free'] = $this->safe_string($balance, 'free');
+            $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order_status($status) {

@@ -908,10 +908,10 @@ class ftx(Exchange):
             balance = balances[i]
             code = self.safe_currency_code(self.safe_string(balance, 'coin'))
             account = self.account()
-            account['free'] = self.safe_number(balance, 'free')
-            account['total'] = self.safe_number(balance, 'total')
+            account['free'] = self.safe_string(balance, 'free')
+            account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order_status(self, status):
         statuses = {

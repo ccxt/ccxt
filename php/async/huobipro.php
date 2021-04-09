@@ -897,14 +897,14 @@ class huobipro extends Exchange {
                 $account = $this->account();
             }
             if ($balance['type'] === 'trade') {
-                $account['free'] = $this->safe_number($balance, 'balance');
+                $account['free'] = $this->safe_string($balance, 'balance');
             }
             if ($balance['type'] === 'frozen') {
-                $account['used'] = $this->safe_number($balance, 'balance');
+                $account['used'] = $this->safe_string($balance, 'balance');
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {

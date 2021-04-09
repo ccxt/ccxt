@@ -219,10 +219,10 @@ class indodax(Exchange):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(free, currencyId)
-            account['used'] = self.safe_number(used, currencyId)
+            account['free'] = self.safe_string(free, currencyId)
+            account['used'] = self.safe_string(used, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
