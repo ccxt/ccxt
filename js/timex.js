@@ -1032,17 +1032,18 @@ module.exports = class timex extends Exchange {
         // fetchMyTrades, fetchOrder (private)
         //
         //     {
-        //         "fee": "0.3",
-        //         "id": 100,
-        //         "makerOrTaker": "MAKER",
-        //         "makerOrderId": "string",
-        //         "price": "0.017",
-        //         "quantity": "0.3",
+        //         "id": "7613414",
+        //         "makerOrderId": "0x8420af060722f560098f786a2894d4358079b6ea5d14b395969ed77bc87a623a",
+        //         "takerOrderId": "0x1235ef158a361815b54c9988b6241c85aedcbc1fe81caf8df8587d5ab0373d1a",
+        //         "symbol": "LTCUSDT",
         //         "side": "BUY",
-        //         "symbol": "TIMEETH",
-        //         "takerOrderId": "string",
-        //         "timestamp": "2019-12-08T04:54:11.171Z"
-        //     }
+        //         "quantity": "0.2",
+        //         "fee": "0.22685",
+        //         "feeToken": "USDT",
+        //         "price": "226.85",
+        //         "makerOrTaker": "TAKER",
+        //         "timestamp": "2021-04-09T15:39:45.608"
+        //    }
         //
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -1061,8 +1062,8 @@ module.exports = class timex extends Exchange {
         }
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
+        const feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'feeToken'));
         if (feeCost !== undefined) {
-            const feeCurrency = (market === undefined) ? undefined : market['quote'];
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -1138,10 +1139,8 @@ module.exports = class timex extends Exchange {
         const amount = this.safeNumber (order, 'quantity');
         const filled = this.safeNumber (order, 'filledQuantity');
         const canceledQuantity = this.safeNumber (order, 'cancelledQuantity');
-        let remaining = undefined;
         let status = undefined;
         if ((amount !== undefined) && (filled !== undefined)) {
-            remaining = Math.max (amount - filled, 0.0);
             if (filled >= amount) {
                 status = 'closed';
             } else if ((canceledQuantity !== undefined) && (canceledQuantity > 0)) {
@@ -1150,30 +1149,19 @@ module.exports = class timex extends Exchange {
                 status = 'open';
             }
         }
-        const cost = parseFloat (this.costToPrecision (symbol, price * filled));
-        const fee = undefined;
-        let lastTradeTimestamp = undefined;
-        let trades = undefined;
-        const rawTrades = this.safeValue (order, 'trades');
-        if (rawTrades !== undefined) {
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                'order': id,
-            });
-        }
-        if (trades !== undefined) {
-            const numTrades = trades.length;
-            if (numTrades > 0) {
-                lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
-            }
-        }
+        const rawTrades = this.safeValue (order, 'trades', []);
+        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+            'order': id,
+            'type': type,
+        });
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
@@ -1182,14 +1170,14 @@ module.exports = class timex extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': undefined,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
-            'fee': fee,
+            'fee': undefined,
             'trades': trades,
-        };
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
