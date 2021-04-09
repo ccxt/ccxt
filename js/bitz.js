@@ -354,12 +354,12 @@ module.exports = class bitz extends Exchange {
             const currencyId = this.safeString (balance, 'name');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeNumber (balance, 'lock');
-            account['total'] = this.safeNumber (balance, 'num');
-            account['free'] = this.safeNumber (balance, 'over');
+            account['used'] = this.safeString (balance, 'lock');
+            account['total'] = this.safeString (balance, 'num');
+            account['free'] = this.safeString (balance, 'over');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseTicker (ticker, market = undefined) {

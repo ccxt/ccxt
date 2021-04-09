@@ -238,11 +238,11 @@ module.exports = class yobit extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (free, currencyId);
-            account['total'] = this.safeNumber (total, currencyId);
+            account['free'] = this.safeString (free, currencyId);
+            account['total'] = this.safeString (total, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchMarkets (params = {}) {
