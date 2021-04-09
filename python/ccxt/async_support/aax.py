@@ -24,6 +24,7 @@ from ccxt.base.errors import CancelPending
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class aax(Exchange):
@@ -593,8 +594,8 @@ class aax(Exchange):
         market = self.safe_market(marketId, market)
         if market is not None:
             symbol = market['symbol']
-        price = self.safe_number_2(trade, 'p', 'filledPrice')
-        amount = self.safe_number_2(trade, 'q', 'filledQty')
+        priceString = self.safe_string_2(trade, 'p', 'filledPrice')
+        amountString = self.safe_string_2(trade, 'q', 'filledQty')
         orderId = self.safe_string(trade, 'orderID')
         isTaker = self.safe_value(trade, 'taker')
         takerOrMaker = None
@@ -606,11 +607,11 @@ class aax(Exchange):
         elif side == '2':
             side = 'sell'
         if side is None:
-            side = 'buy' if (price > 0) else 'sell'
-        price = abs(price)
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
+            side = 'sell' if (priceString[0] == '-') else 'buy'
+        priceString = priceString[1:] if (priceString[0] == '-') else priceString
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderType = self.parse_order_type(self.safe_string(trade, 'orderType'))
         fee = None
         feeCost = self.safe_number(trade, 'commission')

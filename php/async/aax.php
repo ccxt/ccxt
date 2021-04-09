@@ -10,6 +10,7 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
 use \ccxt\OrderNotFound;
+use \ccxt\Precise;
 
 class aax extends Exchange {
 
@@ -597,8 +598,8 @@ class aax extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $price = $this->safe_number_2($trade, 'p', 'filledPrice');
-        $amount = $this->safe_number_2($trade, 'q', 'filledQty');
+        $priceString = $this->safe_string_2($trade, 'p', 'filledPrice');
+        $amountString = $this->safe_string_2($trade, 'q', 'filledQty');
         $orderId = $this->safe_string($trade, 'orderID');
         $isTaker = $this->safe_value($trade, 'taker');
         $takerOrMaker = null;
@@ -612,13 +613,12 @@ class aax extends Exchange {
             $side = 'sell';
         }
         if ($side === null) {
-            $side = ($price > 0) ? 'buy' : 'sell';
+            $side = ($priceString[0] === '-') ? 'sell' : 'buy';
         }
-        $price = abs($price);
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
-        }
+        $priceString = ($priceString[0] === '-') ? mb_substr($priceString, 1) : $priceString;
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $orderType = $this->parse_order_type($this->safe_string($trade, 'orderType'));
         $fee = null;
         $feeCost = $this->safe_number($trade, 'commission');
