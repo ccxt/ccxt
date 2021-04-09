@@ -802,10 +802,10 @@ class stex(Exchange):
             balance = balances[i]
             code = self.safe_currency_code(self.safe_string(balance, 'currency_id'))
             account = self.account()
-            account['free'] = self.safe_number(balance, 'balance')
-            account['used'] = self.safe_number(balance, 'frozen_balance')
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'frozen_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order_status(self, status):
         statuses = {

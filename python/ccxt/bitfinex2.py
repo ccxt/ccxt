@@ -589,10 +589,10 @@ class bitfinex2(bitfinex):
             if (accountType == type) and derivativeCondition:
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['total'] = self.safe_number(balance, 2)
-                account['free'] = self.safe_number(balance, 4)
+                account['total'] = self.safe_string(balance, 2)
+                account['free'] = self.safe_string(balance, 4)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         # transferring between derivatives wallet and regular wallet is not documented in their API

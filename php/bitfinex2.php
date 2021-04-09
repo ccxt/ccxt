@@ -593,12 +593,12 @@ class bitfinex2 extends bitfinex {
             if (($accountType === $type) && $derivativeCondition) {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                $account['total'] = $this->safe_number($balance, 2);
-                $account['free'] = $this->safe_number($balance, 4);
+                $account['total'] = $this->safe_string($balance, 2);
+                $account['free'] = $this->safe_string($balance, 4);
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

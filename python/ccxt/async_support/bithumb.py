@@ -202,11 +202,11 @@ class bithumb(Exchange):
             account = self.account()
             currency = self.currency(code)
             lowerCurrencyId = self.safe_string_lower(currency, 'id')
-            account['total'] = self.safe_number(balances, 'total_' + lowerCurrencyId)
-            account['used'] = self.safe_number(balances, 'in_use_' + lowerCurrencyId)
-            account['free'] = self.safe_number(balances, 'available_' + lowerCurrencyId)
+            account['total'] = self.safe_string(balances, 'total_' + lowerCurrencyId)
+            account['used'] = self.safe_string(balances, 'in_use_' + lowerCurrencyId)
+            account['free'] = self.safe_string(balances, 'available_' + lowerCurrencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

@@ -90,12 +90,12 @@ class btcbox extends Exchange {
             if (is_array($response) && array_key_exists($free, $response)) {
                 $account = $this->account();
                 $used = $currencyId . '_lock';
-                $account['free'] = $this->safe_number($response, $free);
-                $account['used'] = $this->safe_number($response, $used);
+                $account['free'] = $this->safe_string($response, $free);
+                $account['used'] = $this->safe_string($response, $used);
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

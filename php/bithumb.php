@@ -201,12 +201,12 @@ class bithumb extends Exchange {
             $account = $this->account();
             $currency = $this->currency($code);
             $lowerCurrencyId = $this->safe_string_lower($currency, 'id');
-            $account['total'] = $this->safe_number($balances, 'total_' . $lowerCurrencyId);
-            $account['used'] = $this->safe_number($balances, 'in_use_' . $lowerCurrencyId);
-            $account['free'] = $this->safe_number($balances, 'available_' . $lowerCurrencyId);
+            $account['total'] = $this->safe_string($balances, 'total_' . $lowerCurrencyId);
+            $account['used'] = $this->safe_string($balances, 'in_use_' . $lowerCurrencyId);
+            $account['free'] = $this->safe_string($balances, 'available_' . $lowerCurrencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
