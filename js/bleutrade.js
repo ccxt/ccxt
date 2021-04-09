@@ -411,11 +411,11 @@ module.exports = class bleutrade extends Exchange {
             const currencyId = this.safeString (item, 'Asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (item, 'Available');
-            account['total'] = this.safeNumber (item, 'Balance');
+            account['free'] = this.safeString (item, 'Available');
+            account['total'] = this.safeString (item, 'Balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

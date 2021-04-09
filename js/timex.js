@@ -451,11 +451,11 @@ module.exports = class timex extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'totalBalance');
-            account['used'] = this.safeNumber (balance, 'lockedBalance');
+            account['total'] = this.safeString (balance, 'totalBalance');
+            account['used'] = this.safeString (balance, 'lockedBalance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
