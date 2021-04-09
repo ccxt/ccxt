@@ -199,12 +199,12 @@ module.exports = class bithumb extends Exchange {
             const account = this.account ();
             const currency = this.currency (code);
             const lowerCurrencyId = this.safeStringLower (currency, 'id');
-            account['total'] = this.safeNumber (balances, 'total_' + lowerCurrencyId);
-            account['used'] = this.safeNumber (balances, 'in_use_' + lowerCurrencyId);
-            account['free'] = this.safeNumber (balances, 'available_' + lowerCurrencyId);
+            account['total'] = this.safeString (balances, 'total_' + lowerCurrencyId);
+            account['used'] = this.safeString (balances, 'in_use_' + lowerCurrencyId);
+            account['free'] = this.safeString (balances, 'available_' + lowerCurrencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
