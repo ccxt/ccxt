@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.precise import Precise
 
 
 class paymium(Exchange):
@@ -152,13 +153,12 @@ class paymium(Exchange):
         if market is not None:
             symbol = market['symbol']
         side = self.safe_string(trade, 'side')
-        price = self.safe_number(trade, 'price')
+        priceString = self.safe_string(trade, 'price')
         amountField = 'traded_' + market['base'].lower()
-        amount = self.safe_number(trade, amountField)
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        amountString = self.safe_string(trade, amountField)
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'info': trade,
             'id': id,

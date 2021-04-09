@@ -161,15 +161,12 @@ class paymium extends Exchange {
             $symbol = $market['symbol'];
         }
         $side = $this->safe_string($trade, 'side');
-        $price = $this->safe_number($trade, 'price');
+        $priceString = $this->safe_string($trade, 'price');
         $amountField = 'traded_' . strtolower($market['base']);
-        $amount = $this->safe_number($trade, $amountField);
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $amountString = $this->safe_string($trade, $amountField);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         return array(
             'info' => $trade,
             'id' => $id,
