@@ -430,7 +430,7 @@ module.exports = class novadax extends Exchange {
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         let cost = this.safeNumber (trade, 'volume');
-        if ((cost === undefined)) {
+        if (cost === undefined) {
             cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const marketId = this.safeString (trade, 'symbol');
