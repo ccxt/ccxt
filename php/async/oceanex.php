@@ -151,10 +151,10 @@ class oceanex extends Exchange {
                 'active' => true,
                 'info' => $market,
                 'precision' => array(
-                    'amount' => $this->safe_value($market, 'amount_precision'),
-                    'price' => $this->safe_value($market, 'price_precision'),
-                    'base' => $this->safe_value($market, 'ask_precision'),
-                    'quote' => $this->safe_value($market, 'bid_precision'),
+                    'amount' => $this->safe_integer($market, 'amount_precision'),
+                    'price' => $this->safe_integer($market, 'price_precision'),
+                    'base' => $this->safe_integer($market, 'ask_precision'),
+                    'quote' => $this->safe_integer($market, 'bid_precision'),
                 ),
                 'limits' => array(
                     'amount' => array(
@@ -166,7 +166,7 @@ class oceanex extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $this->safe_value($market, 'minimum_trading_amount'),
+                        'min' => $this->safe_number($market, 'minimum_trading_amount'),
                         'max' => null,
                     ),
                 ),

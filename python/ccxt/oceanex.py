@@ -154,10 +154,10 @@ class oceanex(Exchange):
                 'active': True,
                 'info': market,
                 'precision': {
-                    'amount': self.safe_value(market, 'amount_precision'),
-                    'price': self.safe_value(market, 'price_precision'),
-                    'base': self.safe_value(market, 'ask_precision'),
-                    'quote': self.safe_value(market, 'bid_precision'),
+                    'amount': self.safe_integer(market, 'amount_precision'),
+                    'price': self.safe_integer(market, 'price_precision'),
+                    'base': self.safe_integer(market, 'ask_precision'),
+                    'quote': self.safe_integer(market, 'bid_precision'),
                 },
                 'limits': {
                     'amount': {
@@ -169,7 +169,7 @@ class oceanex(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': self.safe_value(market, 'minimum_trading_amount'),
+                        'min': self.safe_number(market, 'minimum_trading_amount'),
                         'max': None,
                     },
                 },
