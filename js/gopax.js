@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound, InvalidAddress, BadRequest } = require ('./base/errors');
 const { TRUNCATE, ROUND, TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -570,13 +571,13 @@ module.exports = class gopax extends Exchange {
         } else if (type === '2') {
             type = 'market';
         }
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber2 (trade, 'amount', 'baseAmount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'amount', 'baseAmount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         let cost = this.safeNumber (trade, 'quoteAmount');
         if (cost === undefined) {
-            if ((price !== undefined) && (amount !== undefined)) {
-                cost = price * amount;
-            }
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
