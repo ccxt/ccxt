@@ -343,12 +343,12 @@ module.exports = class bitforex extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeNumber (balance, 'frozen');
-            account['free'] = this.safeNumber (balance, 'active');
-            account['total'] = this.safeNumber (balance, 'fix');
+            account['used'] = this.safeString (balance, 'frozen');
+            account['free'] = this.safeString (balance, 'active');
+            account['total'] = this.safeString (balance, 'fix');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchTicker (symbol, params = {}) {

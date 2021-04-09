@@ -128,12 +128,12 @@ module.exports = class coincheck extends Exchange {
             if (currencyId in balances) {
                 const account = this.account ();
                 const reserved = currencyId + '_reserved';
-                account['free'] = this.safeNumber (balances, currencyId);
-                account['used'] = this.safeNumber (balances, reserved);
+                account['free'] = this.safeString (balances, currencyId);
+                account['used'] = this.safeString (balances, reserved);
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

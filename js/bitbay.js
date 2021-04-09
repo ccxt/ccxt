@@ -422,11 +422,11 @@ module.exports = class bitbay extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeNumber (balance, 'lockedFunds');
-            account['free'] = this.safeNumber (balance, 'availableFunds');
+            account['used'] = this.safeString (balance, 'lockedFunds');
+            account['free'] = this.safeString (balance, 'availableFunds');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
