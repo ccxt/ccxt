@@ -12,6 +12,7 @@ use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
 use \ccxt\ExchangeNotAvailable;
+use \ccxt\Precise;
 
 class okex extends Exchange {
 
@@ -1243,9 +1244,12 @@ class okex extends Exchange {
             $quote = $market['quote'];
         }
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'timestamp', 'created_at'));
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'size', 'qty');
-        $amount = $this->safe_number($trade, 'order_qty', $amount);
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'size', 'qty');
+        $amountString = $this->safe_string($trade, 'order_qty', $amountString);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $takerOrMaker = $this->safe_string_2($trade, 'exec_type', 'liquidity');
         if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
@@ -1253,12 +1257,6 @@ class okex extends Exchange {
             $takerOrMaker = 'taker';
         }
         $side = $this->safe_string($trade, 'side');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
-        }
         $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {

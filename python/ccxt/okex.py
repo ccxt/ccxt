@@ -33,6 +33,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class okex(Exchange):
@@ -1237,19 +1238,18 @@ class okex(Exchange):
             base = market['base']
             quote = market['quote']
         timestamp = self.parse8601(self.safe_string_2(trade, 'timestamp', 'created_at'))
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'size', 'qty')
-        amount = self.safe_number(trade, 'order_qty', amount)
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'size', 'qty')
+        amountString = self.safe_string(trade, 'order_qty', amountString)
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         takerOrMaker = self.safe_string_2(trade, 'exec_type', 'liquidity')
         if takerOrMaker == 'M':
             takerOrMaker = 'maker'
         elif takerOrMaker == 'T':
             takerOrMaker = 'taker'
         side = self.safe_string(trade, 'side')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
         feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
