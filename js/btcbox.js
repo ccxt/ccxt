@@ -88,12 +88,12 @@ module.exports = class btcbox extends Exchange {
             if (free in response) {
                 const account = this.account ();
                 const used = currencyId + '_lock';
-                account['free'] = this.safeNumber (response, free);
-                account['used'] = this.safeNumber (response, used);
+                account['free'] = this.safeString (response, free);
+                account['used'] = this.safeString (response, used);
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

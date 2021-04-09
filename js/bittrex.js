@@ -309,11 +309,11 @@ module.exports = class bittrex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const balance = indexed[currencyId];
-            account['free'] = this.safeNumber (balance, 'available');
-            account['total'] = this.safeNumber (balance, 'total');
+            account['free'] = this.safeString (balance, 'available');
+            account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

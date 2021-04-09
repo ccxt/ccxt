@@ -586,12 +586,12 @@ module.exports = class bitfinex2 extends bitfinex {
             if ((accountType === type) && derivativeCondition) {
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['total'] = this.safeNumber (balance, 2);
-                account['free'] = this.safeNumber (balance, 4);
+                account['total'] = this.safeString (balance, 2);
+                account['free'] = this.safeString (balance, 4);
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
