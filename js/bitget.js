@@ -1640,11 +1640,11 @@ module.exports = class bitget extends Exchange {
             }
             const account = this.account ();
             // it may be incorrect to use total, free and used for swap accounts
-            account['total'] = this.safeNumber (balance, 'equity');
-            account['free'] = this.safeNumber (balance, 'total_avail_balance');
+            account['total'] = this.safeString (balance, 'equity');
+            account['free'] = this.safeString (balance, 'total_avail_balance');
             result[symbol] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchAccounts (params = {}) {

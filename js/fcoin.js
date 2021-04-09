@@ -320,12 +320,12 @@ module.exports = class fcoin extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'available');
-            account['total'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'frozen');
+            account['free'] = this.safeString (balance, 'available');
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseBidsAsks (orders, priceKey = 0, amountKey = 1) {

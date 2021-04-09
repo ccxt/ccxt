@@ -321,11 +321,11 @@ module.exports = class poloniex extends Exchange {
             const balance = this.safeValue (response, currencyId, {});
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'available');
-            account['used'] = this.safeNumber (balance, 'onOrders');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'onOrders');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchTradingFees (params = {}) {

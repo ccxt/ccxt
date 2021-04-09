@@ -132,11 +132,11 @@ module.exports = class flowbtc extends Exchange {
             const currencyId = balance['name'];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'balance');
-            account['total'] = this.safeNumber (balance, 'hold');
+            account['free'] = this.safeString (balance, 'balance');
+            account['total'] = this.safeString (balance, 'hold');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

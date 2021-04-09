@@ -599,11 +599,11 @@ module.exports = class hollaex extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (response, currencyId + '_available');
-            account['total'] = this.safeNumber (response, currencyId + '_balance');
+            account['free'] = this.safeString (response, currencyId + '_available');
+            account['total'] = this.safeString (response, currencyId + '_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
