@@ -1791,7 +1791,7 @@ class Exchange {
         );
     }
 
-    public function parse_balance($balance) {
+    public function parse_balance($balance, $legacy = true) {
         $currencies = $this->omit($balance, array('info', 'free', 'used', 'total'));
 
         $balance['free'] = array();
@@ -1801,19 +1801,34 @@ class Exchange {
         foreach ($currencies as $code => $value) {
             if (!isset($value['total'])) {
                 if (isset($value['free']) && isset($value['used'])) {
-                    $balance[$code]['total'] = static::sum($value['free'], $value['used']);
+                    if ($legacy) {
+                        $balance[$code]['total'] = static::sum($value['free'], $value['used']);
+                    } else {
+                        $balance[$code]['total'] = Precise::string_add($value['free'], $value['used']);
+                    }
                 }
             }
             if (!isset($value['used'])) {
                 if (isset($value['total']) && isset($value['free'])) {
-                    $balance[$code]['used'] = static::sum($value['total'], -$value['free']);
+                    if ($legacy) {
+                        $balance[$code]['used'] = static::sum($value['total'], -$value['free']);
+                    } else {
+                        $balance[$code]['used'] = Precise::string_sub($value['total'], $value['free']);
+                    }
                 }
             }
             if (!isset($value['free'])) {
                 if (isset($value['total']) && isset($value['used'])) {
-                    $balance[$code]['free'] = static::sum($value['total'], -$value['used']);
+                    if ($legacy) {
+                        $balance[$code]['free'] = static::sum($value['total'], -$value['used']);
+                    } else {
+                        $balance[$code]['free'] = Precise::string_sub($value['total'], $value['used']);
+                    }
                 }
             }
+            $balance[$code]['free'] = $this->parse_number($balance[$code]['free']);
+            $balance[$code]['used'] = $this->parse_number($balance[$code]['used']);
+            $balance[$code]['total'] = $this->parse_number($balance[$code]['total']);
             $balance['free'][$code] = $balance[$code]['free'];
             $balance['used'][$code] = $balance[$code]['used'];
             $balance['total'][$code] = $balance[$code]['total'];
