@@ -872,11 +872,11 @@ module.exports = class ndax extends Exchange {
             const currencyId = this.safeString (balance, 'ProductId');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'Amount');
-            account['used'] = this.safeNumber (balance, 'Hold');
+            account['total'] = this.safeString (balance, 'Amount');
+            account['used'] = this.safeString (balance, 'Hold');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseLedgerEntryType (type) {

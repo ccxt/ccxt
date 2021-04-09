@@ -73,11 +73,11 @@ module.exports = class mixcoins extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'avail');
-            account['used'] = this.safeNumber (balance, 'lock');
+            account['free'] = this.safeString (balance, 'avail');
+            account['used'] = this.safeString (balance, 'lock');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

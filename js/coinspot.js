@@ -124,7 +124,7 @@ module.exports = class coinspot extends Exchange {
                     const balance = currencies[currencyId];
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
-                    account['total'] = this.safeNumber (balance, 'balance');
+                    account['total'] = this.safeString (balance, 'balance');
                     result[code] = account;
                 }
             }
@@ -134,11 +134,11 @@ module.exports = class coinspot extends Exchange {
                 const currencyId = currencyIds[i];
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['total'] = this.safeNumber (balances, currencyId);
+                account['total'] = this.safeString (balances, currencyId);
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
