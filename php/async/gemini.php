@@ -610,11 +610,11 @@ class gemini extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['total'] = $this->safe_number($balance, 'amount');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['total'] = $this->safe_string($balance, 'amount');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order($order, $market = null) {

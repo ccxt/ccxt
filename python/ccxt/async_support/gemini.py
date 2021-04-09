@@ -600,10 +600,10 @@ class gemini(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            account['total'] = self.safe_number(balance, 'amount')
+            account['free'] = self.safe_string(balance, 'available')
+            account['total'] = self.safe_string(balance, 'amount')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order(self, order, market=None):
         timestamp = self.safe_integer(order, 'timestampms')

@@ -327,10 +327,10 @@ class poloniex(Exchange):
             balance = self.safe_value(response, currencyId, {})
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            account['used'] = self.safe_number(balance, 'onOrders')
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'onOrders')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()

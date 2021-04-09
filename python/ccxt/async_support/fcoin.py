@@ -325,11 +325,11 @@ class fcoin(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            account['total'] = self.safe_number(balance, 'balance')
-            account['used'] = self.safe_number(balance, 'frozen')
+            account['free'] = self.safe_string(balance, 'available')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'frozen')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_bids_asks(self, orders, priceKey=0, amountKey=1):
         result = []

@@ -324,11 +324,11 @@ class poloniex extends Exchange {
             $balance = $this->safe_value($response, $currencyId, array());
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['used'] = $this->safe_number($balance, 'onOrders');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'onOrders');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_trading_fees($params = array ()) {

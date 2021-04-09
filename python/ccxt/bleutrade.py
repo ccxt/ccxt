@@ -396,10 +396,10 @@ class bleutrade(Exchange):
             currencyId = self.safe_string(item, 'Asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(item, 'Available')
-            account['total'] = self.safe_number(item, 'Balance')
+            account['free'] = self.safe_string(item, 'Available')
+            account['total'] = self.safe_string(item, 'Balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

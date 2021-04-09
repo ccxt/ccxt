@@ -323,12 +323,12 @@ class fcoin extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['total'] = $this->safe_number($balance, 'balance');
-            $account['used'] = $this->safe_number($balance, 'frozen');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'frozen');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_bids_asks($orders, $priceKey = 0, $amountKey = 1) {

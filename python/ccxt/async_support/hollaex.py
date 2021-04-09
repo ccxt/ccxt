@@ -584,10 +584,10 @@ class hollaex(Exchange):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(response, currencyId + '_available')
-            account['total'] = self.safe_number(response, currencyId + '_balance')
+            account['free'] = self.safe_string(response, currencyId + '_available')
+            account['total'] = self.safe_string(response, currencyId + '_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_open_order(self, id, symbol=None, params={}):
         await self.load_markets()

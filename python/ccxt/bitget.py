@@ -1599,10 +1599,10 @@ class bitget(Exchange):
                 symbol = self.markets_by_id[marketId]['symbol']
             account = self.account()
             # it may be incorrect to use total, free and used for swap accounts
-            account['total'] = self.safe_number(balance, 'equity')
-            account['free'] = self.safe_number(balance, 'total_avail_balance')
+            account['total'] = self.safe_string(balance, 'equity')
+            account['free'] = self.safe_string(balance, 'total_avail_balance')
             result[symbol] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_accounts(self, params={}):
         request = {

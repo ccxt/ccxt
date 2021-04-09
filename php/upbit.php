@@ -437,11 +437,11 @@ class upbit extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'balance');
-            $account['used'] = $this->safe_number($balance, 'locked');
+            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {

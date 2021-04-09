@@ -1644,11 +1644,11 @@ class bitget extends Exchange {
             }
             $account = $this->account();
             // it may be incorrect to use total, free and used for swap accounts
-            $account['total'] = $this->safe_number($balance, 'equity');
-            $account['free'] = $this->safe_number($balance, 'total_avail_balance');
+            $account['total'] = $this->safe_string($balance, 'equity');
+            $account['free'] = $this->safe_string($balance, 'total_avail_balance');
             $result[$symbol] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_accounts($params = array ()) {

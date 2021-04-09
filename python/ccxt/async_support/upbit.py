@@ -434,10 +434,10 @@ class upbit(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'balance')
-            account['used'] = self.safe_number(balance, 'locked')
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()

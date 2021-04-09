@@ -599,11 +599,11 @@ class hollaex extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($response, $currencyId . '_available');
-            $account['total'] = $this->safe_number($response, $currencyId . '_balance');
+            $account['free'] = $this->safe_string($response, $currencyId . '_available');
+            $account['total'] = $this->safe_string($response, $currencyId . '_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_open_order($id, $symbol = null, $params = array ()) {

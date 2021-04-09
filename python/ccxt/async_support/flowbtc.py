@@ -130,10 +130,10 @@ class flowbtc(Exchange):
             currencyId = balance['name']
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'balance')
-            account['total'] = self.safe_number(balance, 'hold')
+            account['free'] = self.safe_string(balance, 'balance')
+            account['total'] = self.safe_string(balance, 'hold')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

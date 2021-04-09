@@ -450,10 +450,10 @@ class timex(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_number(balance, 'totalBalance')
-            account['used'] = self.safe_number(balance, 'lockedBalance')
+            account['total'] = self.safe_string(balance, 'totalBalance')
+            account['used'] = self.safe_string(balance, 'lockedBalance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
