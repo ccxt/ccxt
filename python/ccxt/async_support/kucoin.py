@@ -20,6 +20,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class kucoin(Exchange):
@@ -1290,7 +1291,6 @@ class kucoin(Exchange):
         id = self.safe_string_2(trade, 'tradeId', 'id')
         orderId = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string(trade, 'liquidity')
-        amount = self.safe_number_2(trade, 'size', 'amount')
         timestamp = self.safe_integer(trade, 'time')
         if timestamp is not None:
             timestamp = int(timestamp / 1000000)
@@ -1299,7 +1299,10 @@ class kucoin(Exchange):
             # if it's a historical v1 trade, the exchange returns timestamp in seconds
             if ('dealValue' in trade) and (timestamp is not None):
                 timestamp = timestamp * 1000
-        price = self.safe_number_2(trade, 'price', 'dealPrice')
+        priceString = self.safe_string_2(trade, 'price', 'dealPrice')
+        amountString = self.safe_string_2(trade, 'size', 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         side = self.safe_string(trade, 'side')
         fee = None
         feeCost = self.safe_number(trade, 'fee')
@@ -1319,9 +1322,7 @@ class kucoin(Exchange):
             type = None
         cost = self.safe_number_2(trade, 'funds', 'dealValue')
         if cost is None:
-            if amount is not None:
-                if price is not None:
-                    cost = amount * price
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'info': trade,
             'id': id,

@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class kucoin extends Exchange {
 
@@ -1341,7 +1342,6 @@ class kucoin extends Exchange {
         $id = $this->safe_string_2($trade, 'tradeId', 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
-        $amount = $this->safe_number_2($trade, 'size', 'amount');
         $timestamp = $this->safe_integer($trade, 'time');
         if ($timestamp !== null) {
             $timestamp = intval($timestamp / 1000000);
@@ -1352,7 +1352,10 @@ class kucoin extends Exchange {
                 $timestamp = $timestamp * 1000;
             }
         }
-        $price = $this->safe_number_2($trade, 'price', 'dealPrice');
+        $priceString = $this->safe_string_2($trade, 'price', 'dealPrice');
+        $amountString = $this->safe_string_2($trade, 'size', 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $side = $this->safe_string($trade, 'side');
         $fee = null;
         $feeCost = $this->safe_number($trade, 'fee');
@@ -1376,11 +1379,7 @@ class kucoin extends Exchange {
         }
         $cost = $this->safe_number_2($trade, 'funds', 'dealValue');
         if ($cost === null) {
-            if ($amount !== null) {
-                if ($price !== null) {
-                    $cost = $amount * $price;
-                }
-            }
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         return array(
             'info' => $trade,
