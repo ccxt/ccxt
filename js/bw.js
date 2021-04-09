@@ -631,11 +631,11 @@ module.exports = class bw extends Exchange {
             const currencyId = this.safeString (balance, 'currencyTypeId');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'amount');
-            account['used'] = this.safeNumber (balance, 'freeze');
+            account['free'] = this.safeString (balance, 'amount');
+            account['used'] = this.safeString (balance, 'freeze');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

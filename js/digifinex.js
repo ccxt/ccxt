@@ -457,12 +457,12 @@ module.exports = class digifinex extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeNumber (balance, 'frozen');
-            account['free'] = this.safeNumber (balance, 'free');
-            account['total'] = this.safeNumber (balance, 'total');
+            account['used'] = this.safeString (balance, 'frozen');
+            account['free'] = this.safeString (balance, 'free');
+            account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

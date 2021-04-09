@@ -298,11 +298,11 @@ module.exports = class bytetrade extends Exchange {
             const currencyId = this.safeString (balance, 'code');
             const code = this.safeCurrencyCode (currencyId, undefined);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'free');
-            account['used'] = this.safeNumber (balance, 'used');
+            account['free'] = this.safeString (balance, 'free');
+            account['used'] = this.safeString (balance, 'used');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

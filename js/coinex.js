@@ -431,11 +431,11 @@ module.exports = class coinex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'available');
-            account['used'] = this.safeNumber (balance, 'frozen');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrderStatus (status) {

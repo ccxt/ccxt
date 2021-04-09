@@ -821,11 +821,11 @@ module.exports = class delta extends Exchange {
             const currency = this.safeValue (currenciesByNumericId, currencyId);
             const code = (currency === undefined) ? currencyId : currency['code'];
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'balance');
-            account['free'] = this.safeNumber (balance, 'available_balance');
+            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString (balance, 'available_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchPosition (symbol, params = undefined) {

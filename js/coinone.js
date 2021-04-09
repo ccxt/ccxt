@@ -143,11 +143,11 @@ module.exports = class coinone extends Exchange {
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'avail');
-            account['total'] = this.safeNumber (balance, 'balance');
+            account['free'] = this.safeString (balance, 'avail');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
