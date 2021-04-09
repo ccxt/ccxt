@@ -574,11 +574,11 @@ module.exports = class ascendex extends Exchange {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'availableBalance');
-            account['total'] = this.safeNumber (balance, 'totalBalance');
+            account['free'] = this.safeString (balance, 'availableBalance');
+            account['total'] = this.safeString (balance, 'totalBalance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

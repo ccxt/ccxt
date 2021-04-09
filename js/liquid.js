@@ -477,8 +477,8 @@ module.exports = class liquid extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'reserved_balance');
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'reserved_balance');
             result[code] = account;
         }
         for (let i = 0; i < fiat.length; i++) {
@@ -486,11 +486,11 @@ module.exports = class liquid extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'reserved_balance');
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'reserved_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

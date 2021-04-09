@@ -127,11 +127,11 @@ module.exports = class independentreserve extends Exchange {
             const currencyId = this.safeString (balance, 'CurrencyCode');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'AvailableBalance');
-            account['total'] = this.safeNumber (balance, 'TotalBalance');
+            account['free'] = this.safeString (balance, 'AvailableBalance');
+            account['total'] = this.safeString (balance, 'TotalBalance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

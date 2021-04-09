@@ -770,14 +770,14 @@ module.exports = class exmo extends Exchange {
             const currencyId = this.currencyId (code);
             const account = this.account ();
             if (currencyId in free) {
-                account['free'] = this.safeNumber (free, currencyId);
+                account['free'] = this.safeString (free, currencyId);
             }
             if (currencyId in used) {
-                account['used'] = this.safeNumber (used, currencyId);
+                account['used'] = this.safeString (used, currencyId);
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

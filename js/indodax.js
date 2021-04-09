@@ -217,11 +217,11 @@ module.exports = class indodax extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (free, currencyId);
-            account['used'] = this.safeNumber (used, currencyId);
+            account['free'] = this.safeString (free, currencyId);
+            account['used'] = this.safeString (used, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

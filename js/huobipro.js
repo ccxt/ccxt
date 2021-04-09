@@ -892,14 +892,14 @@ module.exports = class huobipro extends Exchange {
                 account = this.account ();
             }
             if (balance['type'] === 'trade') {
-                account['free'] = this.safeNumber (balance, 'balance');
+                account['free'] = this.safeString (balance, 'balance');
             }
             if (balance['type'] === 'frozen') {
-                account['used'] = this.safeNumber (balance, 'balance');
+                account['used'] = this.safeString (balance, 'balance');
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
