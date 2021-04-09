@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -424,11 +425,13 @@ module.exports = class novadax extends Exchange {
         const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'timestamp');
         const side = this.safeStringLower (trade, 'side');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         let cost = this.safeNumber (trade, 'volume');
-        if ((cost === undefined) && (amount !== undefined) && (price !== undefined)) {
-            cost = amount * price;
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
