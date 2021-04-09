@@ -918,11 +918,11 @@ module.exports = class ftx extends Exchange {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'free');
-            account['total'] = this.safeNumber (balance, 'total');
+            account['free'] = this.safeString (balance, 'free');
+            account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrderStatus (status) {
