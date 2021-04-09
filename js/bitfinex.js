@@ -648,13 +648,13 @@ module.exports = class bitfinex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4989
                 if (!(code in result)) {
                     const account = this.account ();
-                    account['free'] = this.safeNumber (balance, 'available');
-                    account['total'] = this.safeNumber (balance, 'amount');
+                    account['free'] = this.safeString (balance, 'available');
+                    account['total'] = this.safeString (balance, 'amount');
                     result[code] = account;
                 }
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

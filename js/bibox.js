@@ -625,12 +625,12 @@ module.exports = class bibox extends Exchange {
                 account['used'] = 0.0;
                 account['total'] = balance;
             } else {
-                account['free'] = this.safeNumber (balance, 'balance');
-                account['used'] = this.safeNumber (balance, 'freeze');
+                account['free'] = this.safeString (balance, 'balance');
+                account['used'] = this.safeString (balance, 'freeze');
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
