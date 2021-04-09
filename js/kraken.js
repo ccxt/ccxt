@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -842,9 +843,8 @@ module.exports = class kraken extends Exchange {
         let timestamp = undefined;
         let side = undefined;
         let type = undefined;
-        let price = undefined;
-        let amount = undefined;
-        let cost = undefined;
+        let priceString = undefined;
+        let amountString = undefined;
         let id = undefined;
         let orderId = undefined;
         let fee = undefined;
@@ -853,8 +853,8 @@ module.exports = class kraken extends Exchange {
             timestamp = this.safeTimestamp (trade, 2);
             side = (trade[3] === 's') ? 'sell' : 'buy';
             type = (trade[4] === 'l') ? 'limit' : 'market';
-            price = this.safeNumber (trade, 0);
-            amount = this.safeNumber (trade, 1);
+            priceString = this.safeString (trade, 0);
+            amountString = this.safeString (trade, 1);
             const tradeLength = trade.length;
             if (tradeLength > 6) {
                 id = this.safeString (trade, 6); // artificially added as per #1794
@@ -875,8 +875,8 @@ module.exports = class kraken extends Exchange {
             timestamp = this.safeTimestamp (trade, 'time');
             side = this.safeString (trade, 'type');
             type = this.safeString (trade, 'ordertype');
-            price = this.safeNumber (trade, 'price');
-            amount = this.safeNumber (trade, 'vol');
+            priceString = this.safeString (trade, 'price');
+            amountString = this.safeString (trade, 'vol');
             if ('fee' in trade) {
                 let currency = undefined;
                 if (market !== undefined) {
@@ -891,11 +891,9 @@ module.exports = class kraken extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         return {
             'id': id,
             'order': orderId,
