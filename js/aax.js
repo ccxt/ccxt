@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder, CancelPending, RateLimitExceeded, InsufficientFunds, BadRequest, BadSymbol, PermissionDenied } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
 
@@ -593,8 +594,8 @@ module.exports = class aax extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let price = this.safeNumber2 (trade, 'p', 'filledPrice');
-        const amount = this.safeNumber2 (trade, 'q', 'filledQty');
+        let priceString = this.safeString2 (trade, 'p', 'filledPrice');
+        const amountString = this.safeString2 (trade, 'q', 'filledQty');
         const orderId = this.safeString (trade, 'orderID');
         const isTaker = this.safeValue (trade, 'taker');
         let takerOrMaker = undefined;
@@ -608,13 +609,12 @@ module.exports = class aax extends Exchange {
             side = 'sell';
         }
         if (side === undefined) {
-            side = (price > 0) ? 'buy' : 'sell';
+            side = (priceString[0] === '-') ? 'sell' : 'buy';
         }
-        price = Math.abs (price);
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
+        priceString = (priceString[0] === '-') ? priceString.slice (1) : priceString;
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderType = this.parseOrderType (this.safeString (trade, 'orderType'));
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'commission');
