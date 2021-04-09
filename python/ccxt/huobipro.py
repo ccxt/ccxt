@@ -20,6 +20,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.precise import Precise
 
 
 class huobipro(Exchange):
@@ -620,12 +621,11 @@ class huobipro(Exchange):
             side = typeParts[0]
             type = typeParts[1]
         takerOrMaker = self.safe_string(trade, 'role')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'filled-amount', 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'filled-amount', 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         feeCost = self.safe_number(trade, 'filled-fees')
         feeCurrency = None
