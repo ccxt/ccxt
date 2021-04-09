@@ -415,9 +415,14 @@ class idex extends Exchange {
         //   txStatus => 'mined'
         // }
         $id = $this->safe_string($trade, 'fillId');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'quantity');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'quantity');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $cost = $this->safe_number($trade, 'quoteQuantity');
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        }
         $timestamp = $this->safe_integer($trade, 'time');
         $marketId = $this->safe_string($trade, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');

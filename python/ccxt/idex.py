@@ -16,6 +16,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
+from ccxt.base.precise import Precise
 
 
 class idex(Exchange):
@@ -406,9 +407,13 @@ class idex(Exchange):
         #   txStatus: 'mined'
         # }
         id = self.safe_string(trade, 'fillId')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'quantity')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'quantity')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number(trade, 'quoteQuantity')
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         timestamp = self.safe_integer(trade, 'time')
         marketId = self.safe_string(trade, 'market')
         symbol = self.safe_symbol(marketId, market, '-')
