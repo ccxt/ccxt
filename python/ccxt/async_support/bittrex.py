@@ -28,6 +28,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.precise import Precise
 
 
 class bittrex(Exchange):
@@ -574,12 +575,11 @@ class bittrex(Exchange):
         order = self.safe_string(trade, 'orderId')
         marketId = self.safe_string(trade, 'marketSymbol')
         market = self.safe_market(marketId, market, '-')
-        cost = None
-        price = self.safe_number(trade, 'rate')
-        amount = self.safe_number(trade, 'quantity')
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'rate')
+        amountString = self.safe_string(trade, 'quantity')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         takerOrMaker = None
         isTaker = self.safe_value(trade, 'isTaker')
         if isTaker is not None:

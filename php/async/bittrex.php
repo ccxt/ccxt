@@ -14,6 +14,7 @@ use \ccxt\AddressPending;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\DDoSProtection;
+use \ccxt\Precise;
 
 class bittrex extends Exchange {
 
@@ -575,14 +576,11 @@ class bittrex extends Exchange {
         $order = $this->safe_string($trade, 'orderId');
         $marketId = $this->safe_string($trade, 'marketSymbol');
         $market = $this->safe_market($marketId, $market, '-');
-        $cost = null;
-        $price = $this->safe_number($trade, 'rate');
-        $amount = $this->safe_number($trade, 'quantity');
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'rate');
+        $amountString = $this->safe_string($trade, 'quantity');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $takerOrMaker = null;
         $isTaker = $this->safe_value($trade, 'isTaker');
         if ($isTaker !== null) {
