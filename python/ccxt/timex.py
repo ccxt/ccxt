@@ -999,17 +999,18 @@ class timex(Exchange):
         # fetchMyTrades, fetchOrder(private)
         #
         #     {
-        #         "fee": "0.3",
-        #         "id": 100,
-        #         "makerOrTaker": "MAKER",
-        #         "makerOrderId": "string",
-        #         "price": "0.017",
-        #         "quantity": "0.3",
+        #         "id": "7613414",
+        #         "makerOrderId": "0x8420af060722f560098f786a2894d4358079b6ea5d14b395969ed77bc87a623a",
+        #         "takerOrderId": "0x1235ef158a361815b54c9988b6241c85aedcbc1fe81caf8df8587d5ab0373d1a",
+        #         "symbol": "LTCUSDT",
         #         "side": "BUY",
-        #         "symbol": "TIMEETH",
-        #         "takerOrderId": "string",
-        #         "timestamp": "2019-12-08T04:54:11.171Z"
-        #     }
+        #         "quantity": "0.2",
+        #         "fee": "0.22685",
+        #         "feeToken": "USDT",
+        #         "price": "226.85",
+        #         "makerOrTaker": "TAKER",
+        #         "timestamp": "2021-04-09T15:39:45.608"
+        #    }
         #
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -1027,8 +1028,8 @@ class timex(Exchange):
             orderId = self.safe_string(trade, takerOrMaker + 'OrderId')
         fee = None
         feeCost = self.safe_number(trade, 'fee')
+        feeCurrency = self.safe_currency_code(self.safe_string(trade, 'feeToken'))
         if feeCost is not None:
-            feeCurrency = None if (market is None) else market['quote']
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -1101,37 +1102,27 @@ class timex(Exchange):
         amount = self.safe_number(order, 'quantity')
         filled = self.safe_number(order, 'filledQuantity')
         canceledQuantity = self.safe_number(order, 'cancelledQuantity')
-        remaining = None
         status = None
         if (amount is not None) and (filled is not None):
-            remaining = max(amount - filled, 0.0)
             if filled >= amount:
                 status = 'closed'
             elif (canceledQuantity is not None) and (canceledQuantity > 0):
                 status = 'canceled'
             else:
                 status = 'open'
-        cost = float(self.cost_to_precision(symbol, price * filled))
-        fee = None
-        lastTradeTimestamp = None
-        trades = None
-        rawTrades = self.safe_value(order, 'trades')
-        if rawTrades is not None:
-            trades = self.parse_trades(rawTrades, market, None, None, {
-                'order': id,
-            })
-        if trades is not None:
-            numTrades = len(trades)
-            if numTrades > 0:
-                lastTradeTimestamp = trades[numTrades - 1]['timestamp']
+        rawTrades = self.safe_value(order, 'trades', [])
+        trades = self.parse_trades(rawTrades, market, None, None, {
+            'order': id,
+            'type': type,
+        })
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
@@ -1140,14 +1131,14 @@ class timex(Exchange):
             'price': price,
             'stopPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': None,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
-            'fee': fee,
+            'fee': None,
             'trades': trades,
-        }
+        })
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + api + '/' + path
