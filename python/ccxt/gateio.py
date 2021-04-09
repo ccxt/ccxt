@@ -15,6 +15,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.precise import Precise
 
 
 class gateio(Exchange):
@@ -494,14 +495,13 @@ class gateio(Exchange):
         id = self.safe_string_2(trade, 'tradeID', 'id')
         # take either of orderid or orderId
         orderId = self.safe_string_2(trade, 'orderid', 'orderNumber')
-        price = self.safe_number_2(trade, 'rate', 'price')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string_2(trade, 'rate', 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         type = self.safe_string(trade, 'type')
         takerOrMaker = self.safe_string(trade, 'role')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
         symbol = None
         if market is not None:
             symbol = market['symbol']

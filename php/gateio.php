@@ -508,16 +508,13 @@ class gateio extends Exchange {
         $id = $this->safe_string_2($trade, 'tradeID', 'id');
         // take either of orderid or $orderId
         $orderId = $this->safe_string_2($trade, 'orderid', 'orderNumber');
-        $price = $this->safe_number_2($trade, 'rate', 'price');
-        $amount = $this->safe_number($trade, 'amount');
+        $priceString = $this->safe_string_2($trade, 'rate', 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $type = $this->safe_string($trade, 'type');
         $takerOrMaker = $this->safe_string($trade, 'role');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
