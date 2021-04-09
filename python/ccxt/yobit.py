@@ -255,10 +255,10 @@ class yobit(Exchange):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(free, currencyId)
-            account['total'] = self.safe_number(total, currencyId)
+            account['free'] = self.safe_string(free, currencyId)
+            account['total'] = self.safe_string(total, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_markets(self, params={}):
         response = self.publicGetInfo(params)

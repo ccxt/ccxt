@@ -973,11 +973,11 @@ class bybit(Exchange):
             balance = balances[currencyId]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available_balance')
-            account['used'] = self.safe_number(balance, 'used_margin')
-            account['total'] = self.safe_number(balance, 'equity')
+            account['free'] = self.safe_string(balance, 'available_balance')
+            account['used'] = self.safe_string(balance, 'used_margin')
+            account['total'] = self.safe_string(balance, 'equity')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order_status(self, status):
         statuses = {

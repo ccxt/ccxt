@@ -363,11 +363,11 @@ class bitz(Exchange):
             currencyId = self.safe_string(balance, 'name')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_number(balance, 'lock')
-            account['total'] = self.safe_number(balance, 'num')
-            account['free'] = self.safe_number(balance, 'over')
+            account['used'] = self.safe_string(balance, 'lock')
+            account['total'] = self.safe_string(balance, 'num')
+            account['free'] = self.safe_string(balance, 'over')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_ticker(self, ticker, market=None):
         #

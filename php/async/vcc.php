@@ -311,11 +311,11 @@ class vcc extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($data, $currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available_balance');
-            $account['total'] = $this->safe_number($balance, 'balance');
+            $account['free'] = $this->safe_string($balance, 'available_balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

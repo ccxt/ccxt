@@ -998,12 +998,12 @@ class bybit extends Exchange {
             $balance = $balances[$currencyId];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available_balance');
-            $account['used'] = $this->safe_number($balance, 'used_margin');
-            $account['total'] = $this->safe_number($balance, 'equity');
+            $account['free'] = $this->safe_string($balance, 'available_balance');
+            $account['used'] = $this->safe_string($balance, 'used_margin');
+            $account['total'] = $this->safe_string($balance, 'equity');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order_status($status) {

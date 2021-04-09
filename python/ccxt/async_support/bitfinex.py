@@ -654,10 +654,10 @@ class bitfinex(Exchange):
                 # https://github.com/ccxt/ccxt/issues/4989
                 if not (code in result):
                     account = self.account()
-                    account['free'] = self.safe_number(balance, 'available')
-                    account['total'] = self.safe_number(balance, 'amount')
+                    account['free'] = self.safe_string(balance, 'available')
+                    account['total'] = self.safe_string(balance, 'amount')
                     result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         # transferring between derivatives wallet and regular wallet is not documented in their API

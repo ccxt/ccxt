@@ -357,12 +357,12 @@ class bitz extends Exchange {
             $currencyId = $this->safe_string($balance, 'name');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['used'] = $this->safe_number($balance, 'lock');
-            $account['total'] = $this->safe_number($balance, 'num');
-            $account['free'] = $this->safe_number($balance, 'over');
+            $account['used'] = $this->safe_string($balance, 'lock');
+            $account['total'] = $this->safe_string($balance, 'num');
+            $account['free'] = $this->safe_string($balance, 'over');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_ticker($ticker, $market = null) {

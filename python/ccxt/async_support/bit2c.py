@@ -168,10 +168,10 @@ class bit2c(Exchange):
             currencyId = self.currency_id(code)
             uppercase = currencyId.upper()
             if uppercase in balance:
-                account['free'] = self.safe_number(balance, 'AVAILABLE_' + uppercase)
-                account['total'] = self.safe_number(balance, uppercase)
+                account['free'] = self.safe_string(balance, 'AVAILABLE_' + uppercase)
+                account['total'] = self.safe_string(balance, uppercase)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

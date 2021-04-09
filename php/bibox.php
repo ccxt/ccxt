@@ -629,12 +629,12 @@ class bibox extends Exchange {
                 $account['used'] = 0.0;
                 $account['total'] = $balance;
             } else {
-                $account['free'] = $this->safe_number($balance, 'balance');
-                $account['used'] = $this->safe_number($balance, 'freeze');
+                $account['free'] = $this->safe_string($balance, 'balance');
+                $account['used'] = $this->safe_string($balance, 'freeze');
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {

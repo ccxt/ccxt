@@ -313,10 +313,10 @@ class vcc(Exchange):
             code = self.safe_currency_code(currencyId)
             balance = self.safe_value(data, currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available_balance')
-            account['total'] = self.safe_number(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'available_balance')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
