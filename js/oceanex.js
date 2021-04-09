@@ -147,10 +147,10 @@ module.exports = class oceanex extends Exchange {
                 'active': true,
                 'info': market,
                 'precision': {
-                    'amount': this.safeValue (market, 'amount_precision'),
-                    'price': this.safeValue (market, 'price_precision'),
-                    'base': this.safeValue (market, 'ask_precision'),
-                    'quote': this.safeValue (market, 'bid_precision'),
+                    'amount': this.safeInteger (market, 'amount_precision'),
+                    'price': this.safeInteger (market, 'price_precision'),
+                    'base': this.safeInteger (market, 'ask_precision'),
+                    'quote': this.safeInteger (market, 'bid_precision'),
                 },
                 'limits': {
                     'amount': {
@@ -162,7 +162,7 @@ module.exports = class oceanex extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeValue (market, 'minimum_trading_amount'),
+                        'min': this.safeNumber (market, 'minimum_trading_amount'),
                         'max': undefined,
                     },
                 },
