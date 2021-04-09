@@ -710,8 +710,8 @@ module.exports = class hbtc extends Exchange {
                 const currencyId = this.safeString2 (balance, 'asset', 'tokenName');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['free'] = this.safeNumber (balance, 'free');
-                account['used'] = this.safeNumber (balance, 'locked');
+                account['free'] = this.safeString (balance, 'free');
+                account['used'] = this.safeString (balance, 'locked');
                 result[code] = account;
             }
         } else {
@@ -721,12 +721,12 @@ module.exports = class hbtc extends Exchange {
                 const code = this.safeCurrencyCode (currencyId);
                 const balance = response[currencyId];
                 const account = this.account ();
-                account['free'] = this.safeNumber (balance, 'availableMargin');
-                account['total'] = this.safeNumber (balance, 'total');
+                account['free'] = this.safeString (balance, 'availableMargin');
+                account['total'] = this.safeString (balance, 'total');
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {

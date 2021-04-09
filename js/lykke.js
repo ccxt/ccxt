@@ -255,11 +255,11 @@ module.exports = class lykke extends Exchange {
             const currencyId = this.safeString (balance, 'AssetId');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'Balance');
-            account['used'] = this.safeNumber (balance, 'Reserved');
+            account['total'] = this.safeString (balance, 'Balance');
+            account['used'] = this.safeString (balance, 'Reserved');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

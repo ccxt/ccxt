@@ -279,11 +279,11 @@ module.exports = class zb extends Exchange {
             const account = this.account ();
             const currencyId = this.safeString (balance, 'key');
             const code = this.safeCurrencyCode (currencyId);
-            account['free'] = this.safeNumber (balance, 'available');
-            account['used'] = this.safeNumber (balance, 'freez');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'freez');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {

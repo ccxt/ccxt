@@ -704,7 +704,7 @@ module.exports = class qtrade extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in result) ? result[code] : this.account ();
-            account['free'] = this.safeNumber (balance, 'balance');
+            account['free'] = this.safeString (balance, 'balance');
             account['used'] = 0;
             result[code] = account;
         }
@@ -714,10 +714,10 @@ module.exports = class qtrade extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in result) ? result[code] : this.account ();
-            account['used'] = this.safeNumber (balance, 'balance');
+            account['used'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
