@@ -186,18 +186,16 @@ class lykke extends Exchange {
         $id = $this->safe_string_2($trade, 'id', 'Id');
         $orderId = $this->safe_string($trade, 'OrderId');
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'dateTime', 'DateTime'));
-        $price = $this->safe_number_2($trade, 'price', 'Price');
-        $amount = $this->safe_number_2($trade, 'volume', 'Amount');
+        $priceString = $this->safe_string_2($trade, 'price', 'Price');
+        $amountString = $this->safe_string_2($trade, 'volume', 'Amount');
         $side = $this->safe_string_lower($trade, 'action');
         if ($side === null) {
-            if ($amount < 0) {
-                $side = 'sell';
-            } else {
-                $side = 'buy';
-            }
+            $side = ($amountString[0] === '-') ? 'sell' : 'buy';
         }
-        $amount = abs($amount);
-        $cost = $price * $amount;
+        $amountString = ($amountString[0] === '-') ? mb_substr($amountString, 1) : $amountString;
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = array(
             'cost' => 0, // There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
             'currency' => $market['quote'],

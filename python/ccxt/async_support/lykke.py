@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import math
+from ccxt.base.precise import Precise
 
 
 class lykke(Exchange):
@@ -185,16 +186,15 @@ class lykke(Exchange):
         id = self.safe_string_2(trade, 'id', 'Id')
         orderId = self.safe_string(trade, 'OrderId')
         timestamp = self.parse8601(self.safe_string_2(trade, 'dateTime', 'DateTime'))
-        price = self.safe_number_2(trade, 'price', 'Price')
-        amount = self.safe_number_2(trade, 'volume', 'Amount')
+        priceString = self.safe_string_2(trade, 'price', 'Price')
+        amountString = self.safe_string_2(trade, 'volume', 'Amount')
         side = self.safe_string_lower(trade, 'action')
         if side is None:
-            if amount < 0:
-                side = 'sell'
-            else:
-                side = 'buy'
-        amount = abs(amount)
-        cost = price * amount
+            side = 'sell' if (amountString[0] == '-') else 'buy'
+        amountString = amountString[1:] if (amountString[0] == '-') else amountString
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = {
             'cost': 0,  # There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
             'currency': market['quote'],
