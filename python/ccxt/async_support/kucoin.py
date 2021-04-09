@@ -1626,11 +1626,11 @@ class kucoin(Exchange):
             currencyId = self.safe_string(data, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(data, 'availableBalance')
-            account['total'] = self.safe_number(data, 'accountEquity')
+            account['free'] = self.safe_string(data, 'availableBalance')
+            account['total'] = self.safe_string(data, 'accountEquity')
             result = {'info': response}
             result[code] = account
-            return self.parse_balance(result)
+            return self.parse_balance(result, False)
         else:
             request = {
                 'type': type,
@@ -1655,11 +1655,11 @@ class kucoin(Exchange):
                     currencyId = self.safe_string(balance, 'currency')
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
-                    account['total'] = self.safe_number(balance, 'balance')
-                    account['free'] = self.safe_number(balance, 'available')
-                    account['used'] = self.safe_number(balance, 'holds')
+                    account['total'] = self.safe_string(balance, 'balance')
+                    account['free'] = self.safe_string(balance, 'available')
+                    account['used'] = self.safe_string(balance, 'holds')
                     result[code] = account
-            return self.parse_balance(result)
+            return self.parse_balance(result, False)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()

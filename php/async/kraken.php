@@ -978,10 +978,10 @@ class kraken extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balances, $currencyId);
+            $account['total'] = $this->safe_string($balances, $currencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

@@ -1709,11 +1709,11 @@ class kucoin extends Exchange {
             $currencyId = $this->safe_string($data, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($data, 'availableBalance');
-            $account['total'] = $this->safe_number($data, 'accountEquity');
+            $account['free'] = $this->safe_string($data, 'availableBalance');
+            $account['total'] = $this->safe_string($data, 'accountEquity');
             $result = array( 'info' => $response );
             $result[$code] = $account;
-            return $this->parse_balance($result);
+            return $this->parse_balance($result, false);
         } else {
             $request = array(
                 'type' => $type,
@@ -1738,13 +1738,13 @@ class kucoin extends Exchange {
                     $currencyId = $this->safe_string($balance, 'currency');
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
-                    $account['total'] = $this->safe_number($balance, 'balance');
-                    $account['free'] = $this->safe_number($balance, 'available');
-                    $account['used'] = $this->safe_number($balance, 'holds');
+                    $account['total'] = $this->safe_string($balance, 'balance');
+                    $account['free'] = $this->safe_string($balance, 'available');
+                    $account['used'] = $this->safe_string($balance, 'holds');
                     $result[$code] = $account;
                 }
             }
-            return $this->parse_balance($result);
+            return $this->parse_balance($result, false);
         }
     }
 

@@ -932,9 +932,9 @@ class kraken(Exchange):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_number(balances, currencyId)
+            account['total'] = self.safe_string(balances, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
