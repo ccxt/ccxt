@@ -373,11 +373,11 @@ module.exports = class probit extends Exchange {
             const currencyId = this.safeString (balance, 'currency_id');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'total');
-            account['free'] = this.safeNumber (balance, 'available');
+            account['total'] = this.safeString (balance, 'total');
+            account['free'] = this.safeString (balance, 'available');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

@@ -666,11 +666,11 @@ module.exports = class bigone extends Exchange {
             const symbol = this.safeString (balance, 'asset_symbol');
             const code = this.safeCurrencyCode (symbol);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'locked_balance');
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'locked_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrder (order, market = undefined) {

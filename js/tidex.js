@@ -293,11 +293,11 @@ module.exports = class tidex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeValue (funds, currencyId, {});
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'value');
-            account['used'] = this.safeNumber (balance, 'inOrders');
+            account['free'] = this.safeString (balance, 'value');
+            account['used'] = this.safeString (balance, 'inOrders');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

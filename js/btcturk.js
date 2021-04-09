@@ -125,13 +125,13 @@ module.exports = class btcturk extends Exchange {
             const used = currency['id'] + '_reserved';
             if (free in response) {
                 const account = this.account ();
-                account['free'] = this.safeNumber (response, free);
-                account['total'] = this.safeNumber (response, total);
-                account['used'] = this.safeNumber (response, used);
+                account['free'] = this.safeString (response, free);
+                account['total'] = this.safeString (response, total);
+                account['used'] = this.safeString (response, used);
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

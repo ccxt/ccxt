@@ -190,12 +190,12 @@ module.exports = class bitstamp1 extends Exchange {
             const currency = this.currency (code);
             const currencyId = currency['id'];
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, currencyId + '_available');
-            account['used'] = this.safeNumber (balance, currencyId + '_reserved');
-            account['total'] = this.safeNumber (balance, currencyId + '_balance');
+            account['free'] = this.safeString (balance, currencyId + '_available');
+            account['used'] = this.safeString (balance, currencyId + '_reserved');
+            account['total'] = this.safeString (balance, currencyId + '_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
