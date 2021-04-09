@@ -16,6 +16,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class gopax(Exchange):
@@ -563,12 +564,13 @@ class gopax(Exchange):
             type = 'limit'
         elif type == '2':
             type = 'market'
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'amount', 'baseAmount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'amount', 'baseAmount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number(trade, 'quoteAmount')
         if cost is None:
-            if (price is not None) and (amount is not None):
-                cost = price * amount
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:

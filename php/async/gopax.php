@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class gopax extends Exchange {
 
@@ -573,13 +574,13 @@ class gopax extends Exchange {
         } else if ($type === '2') {
             $type = 'market';
         }
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'amount', 'baseAmount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'amount', 'baseAmount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $cost = $this->safe_number($trade, 'quoteAmount');
         if ($cost === null) {
-            if (($price !== null) && ($amount !== null)) {
-                $cost = $price * $amount;
-            }
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
