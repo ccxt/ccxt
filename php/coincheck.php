@@ -130,12 +130,12 @@ class coincheck extends Exchange {
             if (is_array($balances) && array_key_exists($currencyId, $balances)) {
                 $account = $this->account();
                 $reserved = $currencyId . '_reserved';
-                $account['free'] = $this->safe_number($balances, $currencyId);
-                $account['used'] = $this->safe_number($balances, $reserved);
+                $account['free'] = $this->safe_string($balances, $currencyId);
+                $account['used'] = $this->safe_string($balances, $reserved);
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

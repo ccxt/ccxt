@@ -425,10 +425,10 @@ class bitbay(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_number(balance, 'lockedFunds')
-            account['free'] = self.safe_number(balance, 'availableFunds')
+            account['used'] = self.safe_string(balance, 'lockedFunds')
+            account['free'] = self.safe_string(balance, 'availableFunds')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

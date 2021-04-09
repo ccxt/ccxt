@@ -378,11 +378,11 @@ class probit extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency_id');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'total');
-            $account['free'] = $this->safe_number($balance, 'available');
+            $account['total'] = $this->safe_string($balance, 'total');
+            $account['free'] = $this->safe_string($balance, 'available');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

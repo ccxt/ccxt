@@ -308,10 +308,10 @@ class tidex(Exchange):
             code = self.safe_currency_code(currencyId)
             balance = self.safe_value(funds, currencyId, {})
             account = self.account()
-            account['free'] = self.safe_number(balance, 'value')
-            account['used'] = self.safe_number(balance, 'inOrders')
+            account['free'] = self.safe_string(balance, 'value')
+            account['used'] = self.safe_string(balance, 'inOrders')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

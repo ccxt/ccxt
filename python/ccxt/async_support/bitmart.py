@@ -1447,10 +1447,10 @@ class bitmart(Exchange):
             currencyId = self.safe_string(balance, 'coind_code', currencyId)
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number_2(balance, 'available', 'available_vol')
-            account['used'] = self.safe_number_2(balance, 'frozen', 'freeze_vol')
+            account['free'] = self.safe_string_2(balance, 'available', 'available_vol')
+            account['used'] = self.safe_string_2(balance, 'frozen', 'freeze_vol')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order(self, order, market=None):
         #

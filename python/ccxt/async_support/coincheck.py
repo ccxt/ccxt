@@ -129,10 +129,10 @@ class coincheck(Exchange):
             if currencyId in balances:
                 account = self.account()
                 reserved = currencyId + '_reserved'
-                account['free'] = self.safe_number(balances, currencyId)
-                account['used'] = self.safe_number(balances, reserved)
+                account['free'] = self.safe_string(balances, currencyId)
+                account['used'] = self.safe_string(balances, reserved)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

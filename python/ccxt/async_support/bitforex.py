@@ -350,11 +350,11 @@ class bitforex(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_number(balance, 'frozen')
-            account['free'] = self.safe_number(balance, 'active')
-            account['total'] = self.safe_number(balance, 'fix')
+            account['used'] = self.safe_string(balance, 'frozen')
+            account['free'] = self.safe_string(balance, 'active')
+            account['total'] = self.safe_string(balance, 'fix')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

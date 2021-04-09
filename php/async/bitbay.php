@@ -424,11 +424,11 @@ class bitbay extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['used'] = $this->safe_number($balance, 'lockedFunds');
-            $account['free'] = $this->safe_number($balance, 'availableFunds');
+            $account['used'] = $this->safe_string($balance, 'lockedFunds');
+            $account['free'] = $this->safe_string($balance, 'availableFunds');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

@@ -193,12 +193,12 @@ class bitstamp1 extends Exchange {
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, $currencyId . '_available');
-            $account['used'] = $this->safe_number($balance, $currencyId . '_reserved');
-            $account['total'] = $this->safe_number($balance, $currencyId . '_balance');
+            $account['free'] = $this->safe_string($balance, $currencyId . '_available');
+            $account['used'] = $this->safe_string($balance, $currencyId . '_reserved');
+            $account['total'] = $this->safe_string($balance, $currencyId . '_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
