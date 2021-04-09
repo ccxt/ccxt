@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -567,14 +568,11 @@ module.exports = class bittrex extends Exchange {
         const order = this.safeString (trade, 'orderId');
         const marketId = this.safeString (trade, 'marketSymbol');
         market = this.safeMarket (marketId, market, '-');
-        let cost = undefined;
-        const price = this.safeNumber (trade, 'rate');
-        const amount = this.safeNumber (trade, 'quantity');
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'rate');
+        const amountString = this.safeString (trade, 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let takerOrMaker = undefined;
         const isTaker = this.safeValue (trade, 'isTaker');
         if (isTaker !== undefined) {
