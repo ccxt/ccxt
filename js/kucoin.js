@@ -1705,11 +1705,11 @@ module.exports = class kucoin extends Exchange {
             const currencyId = this.safeString (data, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (data, 'availableBalance');
-            account['total'] = this.safeNumber (data, 'accountEquity');
+            account['free'] = this.safeString (data, 'availableBalance');
+            account['total'] = this.safeString (data, 'accountEquity');
             const result = { 'info': response };
             result[code] = account;
-            return this.parseBalance (result);
+            return this.parseBalance (result, false);
         } else {
             const request = {
                 'type': type,
@@ -1734,13 +1734,13 @@ module.exports = class kucoin extends Exchange {
                     const currencyId = this.safeString (balance, 'currency');
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
-                    account['total'] = this.safeNumber (balance, 'balance');
-                    account['free'] = this.safeNumber (balance, 'available');
-                    account['used'] = this.safeNumber (balance, 'holds');
+                    account['total'] = this.safeString (balance, 'balance');
+                    account['free'] = this.safeString (balance, 'available');
+                    account['used'] = this.safeString (balance, 'holds');
                     result[code] = account;
                 }
             }
-            return this.parseBalance (result);
+            return this.parseBalance (result, false);
         }
     }
 
