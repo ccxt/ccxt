@@ -314,14 +314,13 @@ module.exports = class bitbank extends Exchange {
             const balance = assets[i];
             const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeNumber (balance, 'free_amount'),
-                'used': this.safeNumber (balance, 'locked_amount'),
-                'total': this.safeNumber (balance, 'onhand_amount'),
-            };
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'free_amount');
+            account['used'] = this.safeString (balance, 'locked_amount');
+            account['total'] = this.safeString (balance, 'onhand_amount');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrderStatus (status) {

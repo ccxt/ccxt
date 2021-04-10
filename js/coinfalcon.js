@@ -256,14 +256,13 @@ module.exports = class coinfalcon extends Exchange {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency_code');
             const code = this.safeCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeNumber (balance, 'available_balance'),
-                'used': this.safeNumber (balance, 'hold_balance'),
-                'total': this.safeNumber (balance, 'balance'),
-            };
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available_balance');
+            account['used'] = this.safeString (balance, 'hold_balance');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrderStatus (status) {

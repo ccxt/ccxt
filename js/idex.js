@@ -589,16 +589,13 @@ module.exports = class idex extends Exchange {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'asset');
             const code = this.safeCurrencyCode (currencyId);
-            const total = this.safeNumber (entry, 'quantity');
-            const free = this.safeNumber (entry, 'availableForTrade');
-            const used = this.safeNumber (entry, 'locked');
-            result[code] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const account = this.account ();
+            account['total'] = this.safeString (entry, 'quantity');
+            account['free'] = this.safeString (entry, 'availableForTrade');
+            account['used'] = this.safeString (entry, 'locked');
+            result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

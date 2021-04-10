@@ -267,14 +267,13 @@ module.exports = class exx extends Exchange {
             const currencyId = currencies[i];
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeNumber (balance, 'balance'),
-                'used': this.safeNumber (balance, 'freeze'),
-                'total': this.safeNumber (balance, 'total'),
-            };
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'freeze');
+            account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrder (order, market = undefined) {
