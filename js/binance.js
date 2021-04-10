@@ -1237,8 +1237,8 @@ module.exports = class binance extends Exchange {
                 const currencyId = this.safeString (balance, 'asset');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['free'] = this.safeNumber (balance, 'free');
-                account['used'] = this.safeNumber (balance, 'locked');
+                account['free'] = this.safeString (balance, 'free');
+                account['used'] = this.safeString (balance, 'locked');
                 result[code] = account;
             }
         } else {
@@ -1251,13 +1251,13 @@ module.exports = class binance extends Exchange {
                 const currencyId = this.safeString (balance, 'asset');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['free'] = this.safeNumber (balance, 'availableBalance');
-                account['used'] = this.safeNumber (balance, 'initialMargin');
-                account['total'] = this.safeNumber2 (balance, 'marginBalance', 'balance');
+                account['free'] = this.safeString (balance, 'availableBalance');
+                account['used'] = this.safeString (balance, 'initialMargin');
+                account['total'] = this.safeString2 (balance, 'marginBalance', 'balance');
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
