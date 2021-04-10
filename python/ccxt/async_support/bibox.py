@@ -610,9 +610,7 @@ class bibox(Exchange):
             account = self.account()
             balance = indexed[id]
             if isinstance(balance, basestring):
-                balance = float(balance)
                 account['free'] = balance
-                account['used'] = 0.0
                 account['total'] = balance
             else:
                 account['free'] = self.safe_string(balance, 'balance')

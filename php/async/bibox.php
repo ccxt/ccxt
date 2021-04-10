@@ -625,9 +625,7 @@ class bibox extends Exchange {
             $account = $this->account();
             $balance = $indexed[$id];
             if (gettype($balance) === 'string') {
-                $balance = floatval($balance);
                 $account['free'] = $balance;
-                $account['used'] = 0.0;
                 $account['total'] = $balance;
             } else {
                 $account['free'] = $this->safe_string($balance, 'balance');
