@@ -44,11 +44,18 @@ class Precise {
     }
 
     public function div ($other, $precision = 18) {
-        $distance = $precision - $this->decimals;
-        $exponent = (new BN ($this->base))->pow (new BN ($distance));
-        $numerator = $this->integer->mul ($exponent);
+        $distance = $precision - $this->decimals + $other->decimals;
+        if ($distance === 0) {
+            $numerator = $this->integer;
+        } elseif ($distance < 0) {
+            $exponent = (new BN ($this->base))->pow (new BN (-$distance));
+            $numerator = $this->integer->div($exponent);
+        } else {
+            $exponent = (new BN ($this->base))->pow (new BN ($distance));
+            $numerator = $this->integer->mul($exponent);
+        }
         $result = $numerator->div ($other->integer);
-        return new Precise ($result, $this->decimals + $distance);
+        return new Precise ($result, $precision);
     }
 
     public function add ($other) {
@@ -113,11 +120,11 @@ class Precise {
         return strval((new Precise($string1))->mul(new Precise($string2)));
     }
 
-    public static function string_div($string1, $string2) {
+    public static function string_div($string1, $string2, $precision = 18) {
         if (($string1 === null) || ($string2 === null)) {
             return null;
         }
-        return strval((new Precise($string1))->div(new Precise($string2)));
+        return strval((new Precise($string1))->div(new Precise($string2), $precision));
     }
 
     public static function string_add($string1, $string2) {
