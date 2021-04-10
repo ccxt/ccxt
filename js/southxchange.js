@@ -115,14 +115,14 @@ module.exports = class southxchange extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'Currency');
             const code = this.safeCurrencyCode (currencyId);
-            const deposited = this.safeNumber (balance, 'Deposited');
-            const unconfirmed = this.safeNumber (balance, 'Unconfirmed');
+            const deposited = this.safeString (balance, 'Deposited');
+            const unconfirmed = this.safeString (balance, 'Unconfirmed');
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'Available');
-            account['total'] = this.sum (deposited, unconfirmed);
+            account['free'] = this.safeString (balance, 'Available');
+            account['total'] = Precise.stringAdd (deposited, unconfirmed);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
