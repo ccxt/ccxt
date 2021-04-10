@@ -1231,8 +1231,8 @@ class binance(Exchange):
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['free'] = self.safe_number(balance, 'free')
-                account['used'] = self.safe_number(balance, 'locked')
+                account['free'] = self.safe_string(balance, 'free')
+                account['used'] = self.safe_string(balance, 'locked')
                 result[code] = account
         else:
             balances = response
@@ -1243,11 +1243,11 @@ class binance(Exchange):
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['free'] = self.safe_number(balance, 'availableBalance')
-                account['used'] = self.safe_number(balance, 'initialMargin')
-                account['total'] = self.safe_number_2(balance, 'marginBalance', 'balance')
+                account['free'] = self.safe_string(balance, 'availableBalance')
+                account['used'] = self.safe_string(balance, 'initialMargin')
+                account['total'] = self.safe_string_2(balance, 'marginBalance', 'balance')
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

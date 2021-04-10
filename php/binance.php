@@ -1242,8 +1242,8 @@ class binance extends Exchange {
                 $currencyId = $this->safe_string($balance, 'asset');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                $account['free'] = $this->safe_number($balance, 'free');
-                $account['used'] = $this->safe_number($balance, 'locked');
+                $account['free'] = $this->safe_string($balance, 'free');
+                $account['used'] = $this->safe_string($balance, 'locked');
                 $result[$code] = $account;
             }
         } else {
@@ -1256,13 +1256,13 @@ class binance extends Exchange {
                 $currencyId = $this->safe_string($balance, 'asset');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                $account['free'] = $this->safe_number($balance, 'availableBalance');
-                $account['used'] = $this->safe_number($balance, 'initialMargin');
-                $account['total'] = $this->safe_number_2($balance, 'marginBalance', 'balance');
+                $account['free'] = $this->safe_string($balance, 'availableBalance');
+                $account['used'] = $this->safe_string($balance, 'initialMargin');
+                $account['total'] = $this->safe_string_2($balance, 'marginBalance', 'balance');
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
