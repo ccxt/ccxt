@@ -277,17 +277,15 @@ module.exports = class latoken extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'symbol');
             const code = this.safeCurrencyCode (currencyId);
-            const frozen = this.safeNumber (balance, 'frozen');
-            const pending = this.safeNumber (balance, 'pending');
-            const used = this.sum (frozen, pending);
-            const account = {
-                'free': this.safeNumber (balance, 'available'),
-                'used': used,
-                'total': this.safeNumber (balance, 'amount'),
-            };
+            const frozen = this.safeString (balance, 'frozen');
+            const pending = this.safeString (balance, 'pending');
+            const account = this.account ();
+            account['used'] = Precise.stringAdd (frozen, pending);
+            account['free'] = this.safeString (balance, 'available');
+            account['total'] = this.safeString (balance, 'amount');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

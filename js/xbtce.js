@@ -152,14 +152,13 @@ module.exports = class xbtce extends Exchange {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'Currency');
             const code = this.safeCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeNumber (balance, 'FreeAmount'),
-                'used': this.safeNumber (balance, 'LockedAmount'),
-                'total': this.safeNumber (balance, 'Amount'),
-            };
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'FreeAmount');
+            account['used'] = this.safeString (balance, 'LockedAmount');
+            account['total'] = this.safeString (balance, 'Amount');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

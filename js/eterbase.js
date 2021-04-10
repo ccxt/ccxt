@@ -639,14 +639,13 @@ module.exports = class eterbase extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'assetId');
             const code = this.safeCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeNumber (balance, 'available'),
-                'used': this.safeNumber (balance, 'reserved'),
-                'total': this.safeNumber (balance, 'balance'),
-            };
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'reserved');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

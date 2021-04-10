@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -213,20 +214,22 @@ module.exports = class luno extends Exchange {
             const wallet = wallets[i];
             const currencyId = this.safeString (wallet, 'asset');
             const code = this.safeCurrencyCode (currencyId);
-            const reserved = this.safeNumber (wallet, 'reserved');
-            const unconfirmed = this.safeNumber (wallet, 'unconfirmed');
-            const balance = this.safeNumber (wallet, 'balance');
+            const reserved = this.safeString (wallet, 'reserved');
+            const unconfirmed = this.safeString (wallet, 'unconfirmed');
+            const balance = this.safeString (wallet, 'balance');
+            const reservedUnconfirmed = Precise.stringAdd (reserved, unconfirmed);
+            const balanceUnconfirmed = Precise.stringAdd (balance, unconfirmed);
             if (code in result) {
-                result[code]['used'] = this.sum (result[code]['used'], reserved, unconfirmed);
-                result[code]['total'] = this.sum (result[code]['total'], balance, unconfirmed);
+                result[code]['used'] = Precise.stringAdd (result[code]['used'], reservedUnconfirmed);
+                result[code]['total'] = Precise.stringAdd (result[code]['total'], balanceUnconfirmed);
             } else {
                 const account = this.account ();
-                account['used'] = this.sum (reserved, unconfirmed);
-                account['total'] = this.sum (balance, unconfirmed);
+                account['used'] = reservedUnconfirmed;
+                account['total'] = balanceUnconfirmed;
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

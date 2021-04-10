@@ -365,14 +365,12 @@ module.exports = class btcmarkets extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'assetName');
             const code = this.safeCurrencyCode (currencyId);
-            const total = this.safeNumber (balance, 'balance');
-            const used = this.safeNumber (balance, 'locked');
             const account = this.account ();
-            account['used'] = used;
-            account['total'] = total;
+            account['used'] = this.safeString (balance, 'locked');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
