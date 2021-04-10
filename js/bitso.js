@@ -232,14 +232,13 @@ module.exports = class bitso extends Exchange {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeNumber (balance, 'available'),
-                'used': this.safeNumber (balance, 'locked'),
-                'total': this.safeNumber (balance, 'total'),
-            };
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'locked');
+            account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

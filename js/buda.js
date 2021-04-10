@@ -453,11 +453,11 @@ module.exports = class buda extends Exchange {
             const currencyId = this.safeString (balance, 'id');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = parseFloat (balance['available_amount'][0]);
-            account['total'] = parseFloat (balance['amount'][0]);
+            account['free'] = this.safeString (balance['available_amount'], 0);
+            account['total'] = this.safeString (balance['amount'], 0);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
