@@ -295,6 +295,7 @@ const w = '-1.123e-6';
 const x = '0.00000002';
 const y = '69696900000';
 const z = '0';
+const a = '1e8';
 
 assert (Precise.stringMul (x, y) === '1393.938');
 assert (Precise.stringMul (y, x) === '1393.938');
@@ -326,3 +327,10 @@ assert (Precise.stringAdd (z, y) === '69696900000');
 assert (Precise.stringAdd (w, z) === '-0.000001123');
 assert (Precise.stringAdd (x, z) === '0.00000002');
 assert (Precise.stringAdd (y, z) === '69696900000');
+
+assert (Precise.stringMul (x, a) === '2');
+assert (Precise.stringMul (a, x) === '2');
+assert (Precise.stringMul (y, a) === '6969690000000000000');
+assert (Precise.stringMul (a, y) === '6969690000000000000');
+assert (Precise.stringDiv (y, a) === '696.969');
+//assert (Precise.stringDiv (a, y) === '696.969');
