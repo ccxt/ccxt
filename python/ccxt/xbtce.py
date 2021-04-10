@@ -153,13 +153,12 @@ class xbtce(Exchange):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'Currency')
             code = self.safe_currency_code(currencyId)
-            account = {
-                'free': self.safe_number(balance, 'FreeAmount'),
-                'used': self.safe_number(balance, 'LockedAmount'),
-                'total': self.safe_number(balance, 'Amount'),
-            }
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'FreeAmount')
+            account['used'] = self.safe_string(balance, 'LockedAmount')
+            account['total'] = self.safe_string(balance, 'Amount')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

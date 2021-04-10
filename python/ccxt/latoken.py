@@ -279,16 +279,14 @@ class latoken(Exchange):
             balance = response[i]
             currencyId = self.safe_string(balance, 'symbol')
             code = self.safe_currency_code(currencyId)
-            frozen = self.safe_number(balance, 'frozen')
-            pending = self.safe_number(balance, 'pending')
-            used = self.sum(frozen, pending)
-            account = {
-                'free': self.safe_number(balance, 'available'),
-                'used': used,
-                'total': self.safe_number(balance, 'amount'),
-            }
+            frozen = self.safe_string(balance, 'frozen')
+            pending = self.safe_string(balance, 'pending')
+            account = self.account()
+            account['used'] = Precise.string_add(frozen, pending)
+            account['free'] = self.safe_string(balance, 'available')
+            account['total'] = self.safe_string(balance, 'amount')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

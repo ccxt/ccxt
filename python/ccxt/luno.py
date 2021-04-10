@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class luno(Exchange):
@@ -210,18 +211,20 @@ class luno(Exchange):
             wallet = wallets[i]
             currencyId = self.safe_string(wallet, 'asset')
             code = self.safe_currency_code(currencyId)
-            reserved = self.safe_number(wallet, 'reserved')
-            unconfirmed = self.safe_number(wallet, 'unconfirmed')
-            balance = self.safe_number(wallet, 'balance')
+            reserved = self.safe_string(wallet, 'reserved')
+            unconfirmed = self.safe_string(wallet, 'unconfirmed')
+            balance = self.safe_string(wallet, 'balance')
+            reservedUnconfirmed = Precise.string_add(reserved, unconfirmed)
+            balanceUnconfirmed = Precise.string_add(balance, unconfirmed)
             if code in result:
-                result[code]['used'] = self.sum(result[code]['used'], reserved, unconfirmed)
-                result[code]['total'] = self.sum(result[code]['total'], balance, unconfirmed)
+                result[code]['used'] = Precise.string_add(result[code]['used'], reservedUnconfirmed)
+                result[code]['total'] = Precise.string_add(result[code]['total'], balanceUnconfirmed)
             else:
                 account = self.account()
-                account['used'] = self.sum(reserved, unconfirmed)
-                account['total'] = self.sum(balance, unconfirmed)
+                account['used'] = reservedUnconfirmed
+                account['total'] = balanceUnconfirmed
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

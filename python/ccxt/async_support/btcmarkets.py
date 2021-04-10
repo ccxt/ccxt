@@ -355,13 +355,11 @@ class btcmarkets(Exchange):
             balance = response[i]
             currencyId = self.safe_string(balance, 'assetName')
             code = self.safe_currency_code(currencyId)
-            total = self.safe_number(balance, 'balance')
-            used = self.safe_number(balance, 'locked')
             account = self.account()
-            account['used'] = used
-            account['total'] = total
+            account['used'] = self.safe_string(balance, 'locked')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

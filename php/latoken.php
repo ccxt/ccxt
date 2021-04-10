@@ -279,17 +279,15 @@ class latoken extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'symbol');
             $code = $this->safe_currency_code($currencyId);
-            $frozen = $this->safe_number($balance, 'frozen');
-            $pending = $this->safe_number($balance, 'pending');
-            $used = $this->sum($frozen, $pending);
-            $account = array(
-                'free' => $this->safe_number($balance, 'available'),
-                'used' => $used,
-                'total' => $this->safe_number($balance, 'amount'),
-            );
+            $frozen = $this->safe_string($balance, 'frozen');
+            $pending = $this->safe_string($balance, 'pending');
+            $account = $this->account();
+            $account['used'] = Precise::string_add($frozen, $pending);
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['total'] = $this->safe_string($balance, 'amount');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

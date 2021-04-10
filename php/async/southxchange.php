@@ -117,14 +117,14 @@ class southxchange extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'Currency');
             $code = $this->safe_currency_code($currencyId);
-            $deposited = $this->safe_number($balance, 'Deposited');
-            $unconfirmed = $this->safe_number($balance, 'Unconfirmed');
+            $deposited = $this->safe_string($balance, 'Deposited');
+            $unconfirmed = $this->safe_string($balance, 'Unconfirmed');
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'Available');
-            $account['total'] = $this->sum($deposited, $unconfirmed);
+            $account['free'] = $this->safe_string($balance, 'Available');
+            $account['total'] = Precise::string_add($deposited, $unconfirmed);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

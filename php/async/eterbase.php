@@ -642,14 +642,13 @@ class eterbase extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'assetId');
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_number($balance, 'available'),
-                'used' => $this->safe_number($balance, 'reserved'),
-                'total' => $this->safe_number($balance, 'balance'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'reserved');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

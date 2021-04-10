@@ -368,14 +368,12 @@ class btcmarkets extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'assetName');
             $code = $this->safe_currency_code($currencyId);
-            $total = $this->safe_number($balance, 'balance');
-            $used = $this->safe_number($balance, 'locked');
             $account = $this->account();
-            $account['used'] = $used;
-            $account['total'] = $total;
+            $account['used'] = $this->safe_string($balance, 'locked');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

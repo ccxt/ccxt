@@ -156,14 +156,13 @@ class xbtce extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'Currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_number($balance, 'FreeAmount'),
-                'used' => $this->safe_number($balance, 'LockedAmount'),
-                'total' => $this->safe_number($balance, 'Amount'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'FreeAmount');
+            $account['used'] = $this->safe_string($balance, 'LockedAmount');
+            $account['total'] = $this->safe_string($balance, 'Amount');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

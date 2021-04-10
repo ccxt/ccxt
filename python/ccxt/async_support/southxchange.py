@@ -115,13 +115,13 @@ class southxchange(Exchange):
             balance = response[i]
             currencyId = self.safe_string(balance, 'Currency')
             code = self.safe_currency_code(currencyId)
-            deposited = self.safe_number(balance, 'Deposited')
-            unconfirmed = self.safe_number(balance, 'Unconfirmed')
+            deposited = self.safe_string(balance, 'Deposited')
+            unconfirmed = self.safe_string(balance, 'Unconfirmed')
             account = self.account()
-            account['free'] = self.safe_number(balance, 'Available')
-            account['total'] = self.sum(deposited, unconfirmed)
+            account['free'] = self.safe_string(balance, 'Available')
+            account['total'] = Precise.string_add(deposited, unconfirmed)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
