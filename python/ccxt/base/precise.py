@@ -41,14 +41,20 @@ class Precise:
         return Precise(integer_result, self.decimals + other.decimals)
 
     def div(self, other, precision=18):
-        distance = precision - self.decimals
-        exponent = self.base ** distance
-        numerator = self.integer * exponent
+        distance = precision - self.decimals + other.decimals
+        if distance == 0:
+            numerator = self.integer
+        elif distance < 0:
+            exponent = self.base ** -distance
+            numerator = self.integer // exponent
+        else:
+            exponent = self.base ** distance
+            numerator = self.integer * exponent
         result, mod = divmod(numerator, other.integer)
         # python floors negative numbers down instead of truncating
         # if mod is zero it will be floored to itself so we do not add one
         result = result + 1 if result < 0 and mod else result
-        return Precise(result, self.decimals + distance)
+        return Precise(result, precision)
 
     def add(self, other):
         if self.decimals == other.decimals:
@@ -98,10 +104,10 @@ class Precise:
         return str(Precise(string1).mul(Precise(string2)))
 
     @staticmethod
-    def string_div(string1, string2):
+    def string_div(string1, string2, precision=18):
         if string1 is None or string2 is None:
             return None
-        return str(Precise(string1).div(Precise(string2)))
+        return str(Precise(string1).div(Precise(string2), precision))
 
     @staticmethod
     def string_add(string1, string2):

@@ -39,11 +39,19 @@ class Precise {
     }
 
     div (other, precision = 18) {
-        const distance = precision - this.decimals
-        const exponent = new BN (this.base).pow (new BN (distance))
-        const numerator = this.integer.mul (exponent)
+        const distance = precision - this.decimals + other.decimals
+        let numerator
+        if (distance === 0) {
+            numerator = this.integer
+        } else if (distance < 0) {
+            const exponent = new BN (this.base).pow (new BN (-distance))
+            numerator = this.integer.div (exponent)
+        } else {
+            const exponent = new BN (this.base).pow (new BN (distance))
+            numerator = this.integer.mul (exponent)
+        }
         const result = numerator.div (other.integer)
-        return new Precise (result, this.decimals + distance)
+        return new Precise (result, precision)
     }
 
     add (other) {
@@ -107,11 +115,11 @@ class Precise {
         return (new Precise (string1)).mul (new Precise (string2)).toString ()
     }
 
-    static stringDiv (string1, string2) {
+    static stringDiv (string1, string2, precision = 18) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined
         }
-        return (new Precise (string1)).div (new Precise (string2)).toString ()
+        return (new Precise (string1)).div (new Precise (string2), precision).toString ()
     }
 
     static stringAdd (string1, string2) {
