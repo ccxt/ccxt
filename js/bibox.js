@@ -618,11 +618,9 @@ module.exports = class bibox extends Exchange {
                 code = this.currencies_by_id[code]['code'];
             }
             const account = this.account ();
-            let balance = indexed[id];
+            const balance = indexed[id];
             if (typeof balance === 'string') {
-                balance = parseFloat (balance);
                 account['free'] = balance;
-                account['used'] = 0.0;
                 account['total'] = balance;
             } else {
                 account['free'] = this.safeString (balance, 'balance');
