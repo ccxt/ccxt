@@ -245,13 +245,12 @@ class coinfalcon(Exchange):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
-            account = {
-                'free': self.safe_number(balance, 'available_balance'),
-                'used': self.safe_number(balance, 'hold_balance'),
-                'total': self.safe_number(balance, 'balance'),
-            }
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available_balance')
+            account['used'] = self.safe_string(balance, 'hold_balance')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order_status(self, status):
         statuses = {

@@ -592,16 +592,13 @@ class idex extends Exchange {
             $entry = $response[$i];
             $currencyId = $this->safe_string($entry, 'asset');
             $code = $this->safe_currency_code($currencyId);
-            $total = $this->safe_number($entry, 'quantity');
-            $free = $this->safe_number($entry, 'availableForTrade');
-            $used = $this->safe_number($entry, 'locked');
-            $result[$code] = array(
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $account = $this->account();
+            $account['total'] = $this->safe_string($entry, 'quantity');
+            $account['free'] = $this->safe_string($entry, 'availableForTrade');
+            $account['used'] = $this->safe_string($entry, 'locked');
+            $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

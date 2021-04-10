@@ -434,10 +434,10 @@ class buda(Exchange):
             currencyId = self.safe_string(balance, 'id')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = float(balance['available_amount'][0])
-            account['total'] = float(balance['amount'][0])
+            account['free'] = self.safe_string(balance['available_amount'], 0)
+            account['total'] = self.safe_string(balance['amount'], 0)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

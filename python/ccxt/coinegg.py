@@ -323,8 +323,8 @@ class coinegg(Exchange):
             if not (code in result):
                 result[code] = self.account()
             type = 'used' if (accountType == 'lock') else 'free'
-            result[code][type] = self.safe_number(balances, key)
-        return self.parse_balance(result)
+            result[code][type] = self.safe_string(balances, key)
+        return self.parse_balance(result, False)
 
     def parse_order(self, order, market=None):
         symbol = None

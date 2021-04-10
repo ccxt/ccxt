@@ -458,11 +458,11 @@ class buda extends Exchange {
             $currencyId = $this->safe_string($balance, 'id');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = floatval($balance['available_amount'][0]);
-            $account['total'] = floatval($balance['amount'][0]);
+            $account['free'] = $this->safe_string($balance['available_amount'], 0);
+            $account['total'] = $this->safe_string($balance['amount'], 0);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

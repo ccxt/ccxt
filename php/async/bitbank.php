@@ -317,14 +317,13 @@ class bitbank extends Exchange {
             $balance = $assets[$i];
             $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_number($balance, 'free_amount'),
-                'used' => $this->safe_number($balance, 'locked_amount'),
-                'total' => $this->safe_number($balance, 'onhand_amount'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'free_amount');
+            $account['used'] = $this->safe_string($balance, 'locked_amount');
+            $account['total'] = $this->safe_string($balance, 'onhand_amount');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order_status($status) {

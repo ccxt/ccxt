@@ -310,13 +310,12 @@ class bitbank(Exchange):
             balance = assets[i]
             currencyId = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(currencyId)
-            account = {
-                'free': self.safe_number(balance, 'free_amount'),
-                'used': self.safe_number(balance, 'locked_amount'),
-                'total': self.safe_number(balance, 'onhand_amount'),
-            }
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'free_amount')
+            account['used'] = self.safe_string(balance, 'locked_amount')
+            account['total'] = self.safe_string(balance, 'onhand_amount')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order_status(self, status):
         statuses = {

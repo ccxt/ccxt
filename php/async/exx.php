@@ -271,14 +271,13 @@ class exx extends Exchange {
             $currencyId = $currencies[$i];
             $balance = $balances[$currencyId];
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_number($balance, 'balance'),
-                'used' => $this->safe_number($balance, 'freeze'),
-                'total' => $this->safe_number($balance, 'total'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'freeze');
+            $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order($order, $market = null) {

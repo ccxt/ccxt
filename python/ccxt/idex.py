@@ -572,15 +572,12 @@ class idex(Exchange):
             entry = response[i]
             currencyId = self.safe_string(entry, 'asset')
             code = self.safe_currency_code(currencyId)
-            total = self.safe_number(entry, 'quantity')
-            free = self.safe_number(entry, 'availableForTrade')
-            used = self.safe_number(entry, 'locked')
-            result[code] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
-        return self.parse_balance(result)
+            account = self.account()
+            account['total'] = self.safe_string(entry, 'quantity')
+            account['free'] = self.safe_string(entry, 'availableForTrade')
+            account['used'] = self.safe_string(entry, 'locked')
+            result[code] = account
+        return self.parse_balance(result, False)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.check_required_credentials()

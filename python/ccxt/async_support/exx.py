@@ -261,13 +261,12 @@ class exx(Exchange):
             currencyId = currencies[i]
             balance = balances[currencyId]
             code = self.safe_currency_code(currencyId)
-            account = {
-                'free': self.safe_number(balance, 'balance'),
-                'used': self.safe_number(balance, 'freeze'),
-                'total': self.safe_number(balance, 'total'),
-            }
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'freeze')
+            account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order(self, order, market=None):
         #
