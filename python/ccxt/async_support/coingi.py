@@ -171,13 +171,13 @@ class coingi(Exchange):
             currencyId = self.safe_string(balance['currency'], 'name')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            blocked = self.safe_number(balance, 'blocked')
-            inOrders = self.safe_number(balance, 'inOrders')
-            withdrawing = self.safe_number(balance, 'withdrawing')
-            account['used'] = self.sum(blocked, inOrders, withdrawing)
+            account['free'] = self.safe_string(balance, 'available')
+            blocked = self.safe_string(balance, 'blocked')
+            inOrders = self.safe_string(balance, 'inOrders')
+            withdrawing = self.safe_string(balance, 'withdrawing')
+            account['used'] = Precise.string_add(Precise.string_add(blocked, inOrders), withdrawing)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=512, params={}):
         await self.load_markets()

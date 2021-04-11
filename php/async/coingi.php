@@ -168,14 +168,14 @@ class coingi extends Exchange {
             $currencyId = $this->safe_string($balance['currency'], 'name');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $blocked = $this->safe_number($balance, 'blocked');
-            $inOrders = $this->safe_number($balance, 'inOrders');
-            $withdrawing = $this->safe_number($balance, 'withdrawing');
-            $account['used'] = $this->sum($blocked, $inOrders, $withdrawing);
+            $account['free'] = $this->safe_string($balance, 'available');
+            $blocked = $this->safe_string($balance, 'blocked');
+            $inOrders = $this->safe_string($balance, 'inOrders');
+            $withdrawing = $this->safe_string($balance, 'withdrawing');
+            $account['used'] = Precise::string_add(Precise::string_add($blocked, $inOrders), $withdrawing);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = 512, $params = array ()) {

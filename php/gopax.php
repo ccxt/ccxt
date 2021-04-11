@@ -692,14 +692,14 @@ class gopax extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string_2($balance, 'asset', 'isoAlpha3');
             $code = $this->safe_currency_code($currencyId);
-            $hold = $this->safe_number($balance, 'hold');
-            $pendingWithdrawal = $this->safe_number($balance, 'pendingWithdrawal');
+            $hold = $this->safe_string($balance, 'hold');
+            $pendingWithdrawal = $this->safe_string($balance, 'pendingWithdrawal');
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'avail');
-            $account['used'] = $this->sum($hold, $pendingWithdrawal);
+            $account['free'] = $this->safe_string($balance, 'avail');
+            $account['used'] = Precise::string_add($hold, $pendingWithdrawal);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_balance($params = array ()) {

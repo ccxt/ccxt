@@ -674,13 +674,13 @@ class gopax(Exchange):
             balance = response[i]
             currencyId = self.safe_string_2(balance, 'asset', 'isoAlpha3')
             code = self.safe_currency_code(currencyId)
-            hold = self.safe_number(balance, 'hold')
-            pendingWithdrawal = self.safe_number(balance, 'pendingWithdrawal')
+            hold = self.safe_string(balance, 'hold')
+            pendingWithdrawal = self.safe_string(balance, 'pendingWithdrawal')
             account = self.account()
-            account['free'] = self.safe_number(balance, 'avail')
-            account['used'] = self.sum(hold, pendingWithdrawal)
+            account['free'] = self.safe_string(balance, 'avail')
+            account['used'] = Precise.string_add(hold, pendingWithdrawal)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

@@ -1614,13 +1614,13 @@ class bitget extends Exchange {
             }
             $type = $this->safe_value($balance, 'type');
             if ($type === 'trade') {
-                $result[$code]['free'] = $this->safe_number($balance, 'balance');
+                $result[$code]['free'] = $this->safe_string($balance, 'balance');
             } else if (($type === 'frozen') || ($type === 'lock')) {
-                $used = $this->safe_number($result[$code], 'used');
-                $result[$code]['used'] = $this->sum($used, $this->safe_number($balance, 'balance'));
+                $used = $this->safe_string($result[$code], 'used');
+                $result[$code]['used'] = Precise::string_add($used, $this->safe_string($balance, 'balance'));
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_swap_balance($response) {

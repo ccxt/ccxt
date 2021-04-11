@@ -25,6 +25,7 @@ from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class bitget(Exchange):
@@ -1573,11 +1574,11 @@ class bitget(Exchange):
                 result[code] = account
             type = self.safe_value(balance, 'type')
             if type == 'trade':
-                result[code]['free'] = self.safe_number(balance, 'balance')
+                result[code]['free'] = self.safe_string(balance, 'balance')
             elif (type == 'frozen') or (type == 'lock'):
-                used = self.safe_number(result[code], 'used')
-                result[code]['used'] = self.sum(used, self.safe_number(balance, 'balance'))
-        return self.parse_balance(result)
+                used = self.safe_string(result[code], 'used')
+                result[code]['used'] = Precise.string_add(used, self.safe_string(balance, 'balance'))
+        return self.parse_balance(result, False)
 
     def parse_swap_balance(self, response):
         #
