@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -381,24 +382,25 @@ module.exports = class buda extends Exchange {
         let timestamp = undefined;
         let side = undefined;
         const type = undefined;
-        let price = undefined;
-        let amount = undefined;
+        let priceString = undefined;
+        let amountString = undefined;
         let id = undefined;
         const order = undefined;
         const fee = undefined;
         let symbol = undefined;
-        let cost = undefined;
         if (market) {
             symbol = market['symbol'];
         }
         if (Array.isArray (trade)) {
-            timestamp = parseInt (trade[0]);
-            price = parseFloat (trade[1]);
-            amount = parseFloat (trade[2]);
-            cost = price * amount;
-            side = trade[3];
-            id = trade[4].toString ();
+            timestamp = this.safeInteger (trade, 0);
+            priceString = this.safeNumber (trade, 1);
+            amountString = this.safeNumber (trade, 2);
+            side = this.safeString (trade, 3);
+            id = this.safeString (trade, 4);
         }
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         return {
             'id': id,
             'order': order,
