@@ -690,14 +690,14 @@ module.exports = class gopax extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString2 (balance, 'asset', 'isoAlpha3');
             const code = this.safeCurrencyCode (currencyId);
-            const hold = this.safeNumber (balance, 'hold');
-            const pendingWithdrawal = this.safeNumber (balance, 'pendingWithdrawal');
+            const hold = this.safeString (balance, 'hold');
+            const pendingWithdrawal = this.safeString (balance, 'pendingWithdrawal');
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'avail');
-            account['used'] = this.sum (hold, pendingWithdrawal);
+            account['free'] = this.safeString (balance, 'avail');
+            account['used'] = Precise.stringAdd (hold, pendingWithdrawal);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchBalance (params = {}) {

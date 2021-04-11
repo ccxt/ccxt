@@ -166,14 +166,14 @@ module.exports = class coingi extends Exchange {
             const currencyId = this.safeString (balance['currency'], 'name');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'available');
-            const blocked = this.safeNumber (balance, 'blocked');
-            const inOrders = this.safeNumber (balance, 'inOrders');
-            const withdrawing = this.safeNumber (balance, 'withdrawing');
-            account['used'] = this.sum (blocked, inOrders, withdrawing);
+            account['free'] = this.safeString (balance, 'available');
+            const blocked = this.safeString (balance, 'blocked');
+            const inOrders = this.safeString (balance, 'inOrders');
+            const withdrawing = this.safeString (balance, 'withdrawing');
+            account['used'] = Precise.stringAdd (Precise.stringAdd (blocked, inOrders), withdrawing);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = 512, params = {}) {

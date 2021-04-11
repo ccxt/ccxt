@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -1610,13 +1611,13 @@ module.exports = class bitget extends Exchange {
             }
             const type = this.safeValue (balance, 'type');
             if (type === 'trade') {
-                result[code]['free'] = this.safeNumber (balance, 'balance');
+                result[code]['free'] = this.safeString (balance, 'balance');
             } else if ((type === 'frozen') || (type === 'lock')) {
-                const used = this.safeNumber (result[code], 'used');
-                result[code]['used'] = this.sum (used, this.safeNumber (balance, 'balance'));
+                const used = this.safeString (result[code], 'used');
+                result[code]['used'] = Precise.stringAdd (used, this.safeString (balance, 'balance'));
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseSwapBalance (response) {
