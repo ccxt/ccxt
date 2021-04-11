@@ -202,6 +202,7 @@ class digifinex(Exchange):
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
+                'EPS': 'Epanus',
                 'MBN': 'Mobilian Coin',
                 'TEL': 'TEL666',
             },
