@@ -393,8 +393,8 @@ module.exports = class buda extends Exchange {
         }
         if (Array.isArray (trade)) {
             timestamp = this.safeInteger (trade, 0);
-            priceString = this.safeNumber (trade, 1);
-            amountString = this.safeNumber (trade, 2);
+            priceString = this.safeString (trade, 1);
+            amountString = this.safeString (trade, 2);
             side = this.safeString (trade, 3);
             id = this.safeString (trade, 4);
         }
