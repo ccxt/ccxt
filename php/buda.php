@@ -386,24 +386,25 @@ class buda extends Exchange {
         $timestamp = null;
         $side = null;
         $type = null;
-        $price = null;
-        $amount = null;
+        $priceString = null;
+        $amountString = null;
         $id = null;
         $order = null;
         $fee = null;
         $symbol = null;
-        $cost = null;
         if ($market) {
             $symbol = $market['symbol'];
         }
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
-            $timestamp = intval($trade[0]);
-            $price = floatval($trade[1]);
-            $amount = floatval($trade[2]);
-            $cost = $price * $amount;
-            $side = $trade[3];
-            $id = (string) $trade[4];
+            $timestamp = $this->safe_integer($trade, 0);
+            $priceString = $this->safe_string($trade, 1);
+            $amountString = $this->safe_string($trade, 2);
+            $side = $this->safe_string($trade, 3);
+            $id = $this->safe_string($trade, 4);
         }
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         return array(
             'id' => $id,
             'order' => $order,

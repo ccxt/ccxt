@@ -12,6 +12,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class buda(Exchange):
@@ -368,22 +369,23 @@ class buda(Exchange):
         timestamp = None
         side = None
         type = None
-        price = None
-        amount = None
+        priceString = None
+        amountString = None
         id = None
         order = None
         fee = None
         symbol = None
-        cost = None
         if market:
             symbol = market['symbol']
         if isinstance(trade, list):
-            timestamp = int(trade[0])
-            price = float(trade[1])
-            amount = float(trade[2])
-            cost = price * amount
-            side = trade[3]
-            id = str(trade[4])
+            timestamp = self.safe_integer(trade, 0)
+            priceString = self.safe_string(trade, 1)
+            amountString = self.safe_string(trade, 2)
+            side = self.safe_string(trade, 3)
+            id = self.safe_string(trade, 4)
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'id': id,
             'order': order,
