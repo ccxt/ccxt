@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -714,8 +715,8 @@ module.exports = class ndax extends Exchange {
         //         "OMSId":1
         //     }
         //
-        let price = undefined;
-        let amount = undefined;
+        let priceString = undefined;
+        let amountString = undefined;
         let cost = undefined;
         let timestamp = undefined;
         let id = undefined;
@@ -726,11 +727,8 @@ module.exports = class ndax extends Exchange {
         let fee = undefined;
         let type = undefined;
         if (Array.isArray (trade)) {
-            price = this.safeNumber (trade, 3);
-            amount = this.safeNumber (trade, 2);
-            if ((price !== undefined) && (amount !== undefined)) {
-                cost = price * amount;
-            }
+            priceString = this.safeString (trade, 3);
+            amountString = this.safeString (trade, 2);
             timestamp = this.safeInteger (trade, 6);
             id = this.safeString (trade, 0);
             marketId = this.safeInteger (trade, 1);
@@ -742,8 +740,8 @@ module.exports = class ndax extends Exchange {
             id = this.safeString (trade, 'TradeId');
             orderId = this.safeString2 (trade, 'OrderId', 'OrigOrderId');
             marketId = this.safeString2 (trade, 'InstrumentId', 'Instrument');
-            price = this.safeNumber (trade, 'Price');
-            amount = this.safeNumber (trade, 'Quantity');
+            priceString = this.safeString (trade, 'Price');
+            amountString = this.safeString (trade, 'Quantity');
             cost = this.safeNumber2 (trade, 'Value', 'GrossValueExecuted');
             takerOrMaker = this.safeStringLower (trade, 'MakerTaker');
             side = this.safeStringLower (trade, 'Side');
@@ -757,6 +755,11 @@ module.exports = class ndax extends Exchange {
                     'currency': feeCurrencyCode,
                 };
             }
+        }
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const symbol = this.safeSymbol (marketId, market);
         return {
