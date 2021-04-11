@@ -716,8 +716,8 @@ class ndax extends Exchange {
         //         "OMSId":1
         //     }
         //
-        $price = null;
-        $amount = null;
+        $priceString = null;
+        $amountString = null;
         $cost = null;
         $timestamp = null;
         $id = null;
@@ -728,11 +728,8 @@ class ndax extends Exchange {
         $fee = null;
         $type = null;
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
-            $price = $this->safe_number($trade, 3);
-            $amount = $this->safe_number($trade, 2);
-            if (($price !== null) && ($amount !== null)) {
-                $cost = $price * $amount;
-            }
+            $priceString = $this->safe_string($trade, 3);
+            $amountString = $this->safe_string($trade, 2);
             $timestamp = $this->safe_integer($trade, 6);
             $id = $this->safe_string($trade, 0);
             $marketId = $this->safe_integer($trade, 1);
@@ -744,8 +741,8 @@ class ndax extends Exchange {
             $id = $this->safe_string($trade, 'TradeId');
             $orderId = $this->safe_string_2($trade, 'OrderId', 'OrigOrderId');
             $marketId = $this->safe_string_2($trade, 'InstrumentId', 'Instrument');
-            $price = $this->safe_number($trade, 'Price');
-            $amount = $this->safe_number($trade, 'Quantity');
+            $priceString = $this->safe_string($trade, 'Price');
+            $amountString = $this->safe_string($trade, 'Quantity');
             $cost = $this->safe_number_2($trade, 'Value', 'GrossValueExecuted');
             $takerOrMaker = $this->safe_string_lower($trade, 'MakerTaker');
             $side = $this->safe_string_lower($trade, 'Side');
@@ -759,6 +756,11 @@ class ndax extends Exchange {
                     'currency' => $feeCurrencyCode,
                 );
             }
+        }
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $symbol = $this->safe_symbol($marketId, $market);
         return array(

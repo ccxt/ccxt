@@ -11,6 +11,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class ndax(Exchange):
@@ -702,8 +703,8 @@ class ndax(Exchange):
         #         "OMSId":1
         #     }
         #
-        price = None
-        amount = None
+        priceString = None
+        amountString = None
         cost = None
         timestamp = None
         id = None
@@ -714,10 +715,8 @@ class ndax(Exchange):
         fee = None
         type = None
         if isinstance(trade, list):
-            price = self.safe_number(trade, 3)
-            amount = self.safe_number(trade, 2)
-            if (price is not None) and (amount is not None):
-                cost = price * amount
+            priceString = self.safe_string(trade, 3)
+            amountString = self.safe_string(trade, 2)
             timestamp = self.safe_integer(trade, 6)
             id = self.safe_string(trade, 0)
             marketId = self.safe_integer(trade, 1)
@@ -729,8 +728,8 @@ class ndax(Exchange):
             id = self.safe_string(trade, 'TradeId')
             orderId = self.safe_string_2(trade, 'OrderId', 'OrigOrderId')
             marketId = self.safe_string_2(trade, 'InstrumentId', 'Instrument')
-            price = self.safe_number(trade, 'Price')
-            amount = self.safe_number(trade, 'Quantity')
+            priceString = self.safe_string(trade, 'Price')
+            amountString = self.safe_string(trade, 'Quantity')
             cost = self.safe_number_2(trade, 'Value', 'GrossValueExecuted')
             takerOrMaker = self.safe_string_lower(trade, 'MakerTaker')
             side = self.safe_string_lower(trade, 'Side')
@@ -743,6 +742,10 @@ class ndax(Exchange):
                     'cost': feeCost,
                     'currency': feeCurrencyCode,
                 }
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = self.safe_symbol(marketId, market)
         return {
             'info': trade,
