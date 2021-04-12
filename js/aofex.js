@@ -194,8 +194,10 @@ module.exports = class aofex extends Exchange {
             const symbol = base + '/' + quote;
             const numericId = this.safeInteger (market, 'id');
             const precision = this.safeValue (precisions, id, {});
-            const makerFee = this.safeNumber (market, 'maker_fee');
-            const takerFee = this.safeNumber (market, 'taker_fee');
+            const makerFeeString = this.safeString (market, 'maker_fee');
+            const takerFeeString = this.safeString (market, 'taker_fee');
+            const makerFee = this.parseNumber (Precise.stringDiv (makerFeeString, '1000'));
+            const takerFee = this.parseNumber (Precise.stringDiv (takerFeeString, '1000'));
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -205,8 +207,8 @@ module.exports = class aofex extends Exchange {
                 'base': base,
                 'quote': quote,
                 'active': undefined,
-                'maker': makerFee / 1000,
-                'taker': takerFee / 1000,
+                'maker': makerFee,
+                'taker': takerFee,
                 'precision': {
                     'amount': this.safeInteger (precision, 'amount'),
                     'price': this.safeInteger (precision, 'price'),
