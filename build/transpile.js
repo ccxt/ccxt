@@ -142,6 +142,8 @@ class Transpiler {
             [ /\.safeCurrency\s/g, '.safe_currency'],
             [ /\.safeSymbol\s/g, '.safe_symbol'],
             [ /\.safeMarket\s/g, '.safe_market'],
+            [ /\.safeOrder\s/g, '.safe_order'],
+            [ /\.safeTicker\s/g, '.safe_ticker'],
             [ /\.roundTimeframe/g, '.round_timeframe'],
             [ /\.integerDivide/g, '.integer_divide'],
             [ /\.integerModulo/g, '.integer_modulo'],
