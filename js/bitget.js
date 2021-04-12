@@ -1338,9 +1338,9 @@ module.exports = class bitget extends Exchange {
         }
         let timestamp = this.safeInteger (trade, 'created_at');
         timestamp = this.safeInteger2 (trade, 'timestamp', 'ts', timestamp);
-        const priceString = this.safeNumber (trade, 'price');
-        let amountString = this.safeNumber2 (trade, 'filled_amount', 'order_qty');
-        amountString = this.safeNumber2 (trade, 'size', 'amount', amountString);
+        const priceString = this.safeString (trade, 'price');
+        let amountString = this.safeString2 (trade, 'filled_amount', 'order_qty');
+        amountString = this.safeString2 (trade, 'size', 'amount', amountString);
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
