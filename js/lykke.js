@@ -191,7 +191,7 @@ module.exports = class lykke extends Exchange {
         if (side === undefined) {
             side = (amountString[0] === '-') ? 'sell' : 'buy';
         }
-        amountString = (amountString[0] === '-') ? amountString.slice (1) : amountString;
+        amountString = Precise.stringAbs (amountString);
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));

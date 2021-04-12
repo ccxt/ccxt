@@ -611,7 +611,7 @@ module.exports = class aax extends Exchange {
         if (side === undefined) {
             side = (priceString[0] === '-') ? 'sell' : 'buy';
         }
-        priceString = (priceString[0] === '-') ? priceString.slice (1) : priceString;
+        priceString = Precise.stringAbs (priceString);
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
