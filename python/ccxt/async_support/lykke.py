@@ -191,7 +191,7 @@ class lykke(Exchange):
         side = self.safe_string_lower(trade, 'action')
         if side is None:
             side = 'sell' if (amountString[0] == '-') else 'buy'
-        amountString = amountString[1:] if (amountString[0] == '-') else amountString
+        amountString = Precise.string_abs(amountString)
         price = self.parse_number(priceString)
         amount = self.parse_number(amountString)
         cost = self.parse_number(Precise.string_mul(priceString, amountString))

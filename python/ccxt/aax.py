@@ -608,7 +608,7 @@ class aax(Exchange):
             side = 'sell'
         if side is None:
             side = 'sell' if (priceString[0] == '-') else 'buy'
-        priceString = priceString[1:] if (priceString[0] == '-') else priceString
+        priceString = Precise.string_abs(priceString)
         price = self.parse_number(priceString)
         amount = self.parse_number(amountString)
         cost = self.parse_number(Precise.string_mul(priceString, amountString))

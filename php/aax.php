@@ -614,7 +614,7 @@ class aax extends Exchange {
         if ($side === null) {
             $side = ($priceString[0] === '-') ? 'sell' : 'buy';
         }
-        $priceString = ($priceString[0] === '-') ? mb_substr($priceString, 1) : $priceString;
+        $priceString = Precise::string_abs($priceString);
         $price = $this->parse_number($priceString);
         $amount = $this->parse_number($amountString);
         $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));

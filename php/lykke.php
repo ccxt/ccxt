@@ -192,7 +192,7 @@ class lykke extends Exchange {
         if ($side === null) {
             $side = ($amountString[0] === '-') ? 'sell' : 'buy';
         }
-        $amountString = ($amountString[0] === '-') ? mb_substr($amountString, 1) : $amountString;
+        $amountString = Precise::string_abs($amountString);
         $price = $this->parse_number($priceString);
         $amount = $this->parse_number($amountString);
         $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));

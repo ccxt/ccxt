@@ -1350,7 +1350,7 @@ class bitget(Exchange):
         if feeCostString is None:
             feeCostString = self.safe_string(trade, 'filled_fees')
         else:
-            feeCostString = feeCostString[1:] if (feeCostString[0] == '-') else feeCostString
+            feeCostString = Precise.string_neg(feeCostString)
         feeCost = self.parse_number(feeCostString)
         fee = None
         if feeCost is not None:

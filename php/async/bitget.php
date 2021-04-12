@@ -1370,7 +1370,7 @@ class bitget extends Exchange {
         if ($feeCostString === null) {
             $feeCostString = $this->safe_string($trade, 'filled_fees');
         } else {
-            $feeCostString = ($feeCostString[0] === '-') ? mb_substr($feeCostString, 1) : $feeCostString;
+            $feeCostString = Precise::string_neg($feeCostString);
         }
         $feeCost = $this->parse_number($feeCostString);
         $fee = null;

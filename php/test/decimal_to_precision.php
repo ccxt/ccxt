@@ -374,3 +374,13 @@ assert (Precise::string_div($y, $a, 0) === '696');
 assert (Precise::string_div($y, $a, 1) === '696.9');
 assert (Precise::string_div($y, $a, 2) === '696.96');
 assert (Precise::string_div($a, $y) === '0.001434784043479695');
+
+assert (Precise::string_abs('0') === '0');
+assert (Precise::string_abs('-0') === '0');
+assert (Precise::string_abs('-500.1') === '500.1');
+assert (Precise::string_abs('213') === '213');
+
+assert (Precise::string_neg('0') === '0');
+assert (Precise::string_neg('-0') === '0');
+assert (Precise::string_neg('-500.1') === '500.1');
+assert (Precise::string_neg('213') === '-213');
