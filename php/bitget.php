@@ -1341,9 +1341,12 @@ class bitget extends Exchange {
         }
         $timestamp = $this->safe_integer($trade, 'created_at');
         $timestamp = $this->safe_integer_2($trade, 'timestamp', 'ts', $timestamp);
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'filled_amount', 'order_qty');
-        $amount = $this->safe_number_2($trade, 'size', 'amount', $amount);
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'filled_amount', 'order_qty');
+        $amountString = $this->safe_string_2($trade, 'size', 'amount', $amountString);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $takerOrMaker = $this->safe_string_2($trade, 'exec_type', 'liquidity');
         if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
@@ -1362,18 +1365,13 @@ class bitget extends Exchange {
             $type = $this->parse_order_type($side);
             $side = $this->parse_order_side($side);
         }
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
-        }
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost === null) {
-            $feeCost = $this->safe_number($trade, 'filled_fees');
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString === null) {
+            $feeCostString = $this->safe_string($trade, 'filled_fees');
         } else {
-            $feeCost = -$feeCost;
+            $feeCostString = ($feeCostString[0] === '-') ? mb_substr($feeCostString, 1) : $feeCostString;
         }
+        $feeCost = $this->parse_number($feeCostString);
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrency = ($side === 'buy') ? $base : $quote;

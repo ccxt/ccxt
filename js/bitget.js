@@ -1338,9 +1338,12 @@ module.exports = class bitget extends Exchange {
         }
         let timestamp = this.safeInteger (trade, 'created_at');
         timestamp = this.safeInteger2 (trade, 'timestamp', 'ts', timestamp);
-        const price = this.safeNumber (trade, 'price');
-        let amount = this.safeNumber2 (trade, 'filled_amount', 'order_qty');
-        amount = this.safeNumber2 (trade, 'size', 'amount', amount);
+        const priceString = this.safeString (trade, 'price');
+        let amountString = this.safeString2 (trade, 'filled_amount', 'order_qty');
+        amountString = this.safeString2 (trade, 'size', 'amount', amountString);
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
         if (takerOrMaker === 'M') {
             takerOrMaker = 'maker';
@@ -1359,18 +1362,13 @@ module.exports = class bitget extends Exchange {
             type = this.parseOrderType (side);
             side = this.parseOrderSide (side);
         }
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
-            }
-        }
-        let feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost === undefined) {
-            feeCost = this.safeNumber (trade, 'filled_fees');
+        let feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString === undefined) {
+            feeCostString = this.safeString (trade, 'filled_fees');
         } else {
-            feeCost = -feeCost;
+            feeCostString = (feeCostString[0] === '-') ? feeCostString.slice (1) : feeCostString;
         }
+        const feeCost = this.parseNumber (feeCostString);
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrency = (side === 'buy') ? base : quote;
