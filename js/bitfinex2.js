@@ -843,7 +843,7 @@ module.exports = class bitfinex2 extends bitfinex {
         }
         const amount = this.parseNumber (amountString);
         const price = this.parseNumber (priceString);
-        const cost = Precise.stringMul (priceString, amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let orderId = undefined;
         let takerOrMaker = undefined;
         let type = undefined;
@@ -862,7 +862,9 @@ module.exports = class bitfinex2 extends bitfinex {
             orderId = this.safeString (trade, 3);
             const maker = this.safeInteger (trade, 8);
             takerOrMaker = (maker === 1) ? 'maker' : 'taker';
-            const feeCost = this.safeNumber (trade, 9);
+            let feeCostString = this.safeString (trade, 9);
+            feeCostString = (feeCostString[0] === '-') ? feeCostString.slice (1) : feeCostString;
+            const feeCost = this.parseNumber (feeCostString);
             const feeCurrencyId = this.safeString (trade, 10);
             const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             fee = {
