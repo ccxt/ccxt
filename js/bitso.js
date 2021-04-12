@@ -196,13 +196,11 @@ module.exports = class bitso extends Exchange {
                 const volume = this.safeNumber (tier, 'volume');
                 const takerFee = this.safeNumber (tier, 'taker');
                 const makerFee = this.safeNumber (tier, 'maker');
-                const takerFeeToPrecision = parseFloat (this.decimalToPrecision (takerFee / 100, ROUND, 0.00000001, TICK_SIZE));
-                const makerFeeToPrecision = parseFloat (this.decimalToPrecision (makerFee / 100, ROUND, 0.00000001, TICK_SIZE));
-                takerFees.push ([ volume, takerFeeToPrecision ]);
-                makerFees.push ([ volume, makerFeeToPrecision ]);
+                takerFees.push ([ volume, takerFee ]);
+                makerFees.push ([ volume, makerFee ]);
                 if (j === 0) {
-                    fee['taker'] = parseFloat (this.decimalToPrecision (taker / 100, ROUND, 0.00000001, TICK_SIZE));
-                    fee['maker'] = parseFloat (this.decimalToPrecision (maker / 100, ROUND, 0.00000001, TICK_SIZE));
+                    fee['taker'] = takerFee;
+                    fee['maker'] = makerFee;
                 }
             }
             const tiers = {
