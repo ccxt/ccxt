@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\OrderNotFound;
+use \ccxt\Precise;
 
 class bitso extends Exchange {
 
@@ -179,12 +180,14 @@ class bitso extends Exchange {
             );
             $fees = $this->safe_value($market, 'fees', array());
             $flatRate = $this->safe_value($fees, 'flat_rate', array());
-            $maker = $this->safe_number($flatRate, 'maker');
-            $taker = $this->safe_number($flatRate, 'taker');
+            $makerString = $this->safe_string($flatRate, 'maker');
+            $takerString = $this->safe_string($flatRate, 'taker');
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
             $feeTiers = $this->safe_value($fees, 'structure', array());
             $fee = array(
-                'taker' => floatval($this->decimal_to_precision($taker / 100, ROUND, 0.00000001, TICK_SIZE)),
-                'maker' => floatval($this->decimal_to_precision($maker / 100, ROUND, 0.00000001, TICK_SIZE)),
+                'taker' => $taker,
+                'maker' => $maker,
                 'percentage' => true,
                 'tierBased' => true,
             );
@@ -195,13 +198,11 @@ class bitso extends Exchange {
                 $volume = $this->safe_number($tier, 'volume');
                 $takerFee = $this->safe_number($tier, 'taker');
                 $makerFee = $this->safe_number($tier, 'maker');
-                $takerFeeToPrecision = floatval($this->decimal_to_precision($takerFee / 100, ROUND, 0.00000001, TICK_SIZE));
-                $makerFeeToPrecision = floatval($this->decimal_to_precision($makerFee / 100, ROUND, 0.00000001, TICK_SIZE));
-                $takerFees[] = array( $volume, $takerFeeToPrecision );
-                $makerFees[] = array( $volume, $makerFeeToPrecision );
+                $takerFees[] = array( $volume, $takerFee );
+                $makerFees[] = array( $volume, $makerFee );
                 if ($j === 0) {
-                    $fee['taker'] = floatval($this->decimal_to_precision($taker / 100, ROUND, 0.00000001, TICK_SIZE));
-                    $fee['maker'] = floatval($this->decimal_to_precision($maker / 100, ROUND, 0.00000001, TICK_SIZE));
+                    $fee['taker'] = $takerFee;
+                    $fee['maker'] = $makerFee;
                 }
             }
             $tiers = array(

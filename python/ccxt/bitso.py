@@ -15,8 +15,8 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class bitso(Exchange):
@@ -188,12 +188,14 @@ class bitso(Exchange):
             }
             fees = self.safe_value(market, 'fees', {})
             flatRate = self.safe_value(fees, 'flat_rate', {})
-            maker = self.safe_number(flatRate, 'maker')
-            taker = self.safe_number(flatRate, 'taker')
+            makerString = self.safe_string(flatRate, 'maker')
+            takerString = self.safe_string(flatRate, 'taker')
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
             feeTiers = self.safe_value(fees, 'structure', [])
             fee = {
-                'taker': float(self.decimal_to_precision(taker / 100, ROUND, 0.00000001, TICK_SIZE)),
-                'maker': float(self.decimal_to_precision(maker / 100, ROUND, 0.00000001, TICK_SIZE)),
+                'taker': taker,
+                'maker': maker,
                 'percentage': True,
                 'tierBased': True,
             }
@@ -204,13 +206,11 @@ class bitso(Exchange):
                 volume = self.safe_number(tier, 'volume')
                 takerFee = self.safe_number(tier, 'taker')
                 makerFee = self.safe_number(tier, 'maker')
-                takerFeeToPrecision = float(self.decimal_to_precision(takerFee / 100, ROUND, 0.00000001, TICK_SIZE))
-                makerFeeToPrecision = float(self.decimal_to_precision(makerFee / 100, ROUND, 0.00000001, TICK_SIZE))
-                takerFees.append([volume, takerFeeToPrecision])
-                makerFees.append([volume, makerFeeToPrecision])
+                takerFees.append([volume, takerFee])
+                makerFees.append([volume, makerFee])
                 if j == 0:
-                    fee['taker'] = float(self.decimal_to_precision(taker / 100, ROUND, 0.00000001, TICK_SIZE))
-                    fee['maker'] = float(self.decimal_to_precision(maker / 100, ROUND, 0.00000001, TICK_SIZE))
+                    fee['taker'] = takerFee
+                    fee['maker'] = makerFee
             tiers = {
                 'taker': takerFees,
                 'maker': makerFees,
