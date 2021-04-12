@@ -1714,6 +1714,27 @@ class Exchange(object):
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
+    def safe_ticker(self, ticker, market=None):
+        symbol = self.safe_value(ticker, 'symbol')
+        if symbol is None:
+            ticker['symbol'] = self.safe_symbol(None, market)
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        if timestamp is not None:
+            ticker['timestamp'] = timestamp
+            ticker['datetime'] = self.iso8601(timestamp)
+        baseVolume = self.safe_value(ticker, 'baseVolume')
+        quoteVolume = self.safe_value(ticker, 'quoteVolume')
+        vwap = self.safe_value(ticker, 'vwap')
+        if vwap is None:
+            ticker['vwap'] = self.vwap(baseVolume, quoteVolume)
+        close = self.safe_value(ticker, 'close')
+        last = self.safe_value(ticker, 'last')
+        if (close is None) and (last is not None):
+            ticker['close'] = last
+        elif (last is None) and (close is not None):
+            ticker['last'] = close
+        return ticker
+
     def parse_tickers(self, tickers, symbols=None):
         result = []
         for i in range(0, len(tickers)):
