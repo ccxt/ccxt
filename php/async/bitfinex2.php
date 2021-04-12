@@ -12,6 +12,7 @@ use \ccxt\InsufficientFunds;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\NotSupported;
+use \ccxt\Precise;
 
 class bitfinex2 extends bitfinex {
 
@@ -837,11 +838,19 @@ class bitfinex2 extends bitfinex {
         $isPrivate = ($tradeLength > 5);
         $id = $this->safe_string($trade, 0);
         $amountIndex = $isPrivate ? 4 : 2;
-        $amount = $this->safe_number($trade, $amountIndex);
-        $cost = null;
-        $priceIndex = $isPrivate ? 5 : 3;
-        $price = $this->safe_number($trade, $priceIndex);
         $side = null;
+        $amountString = $this->safe_string($trade, $amountIndex);
+        $priceIndex = $isPrivate ? 5 : 3;
+        $priceString = $this->safe_string($trade, $priceIndex);
+        if ($amountString[0] === '-') {
+            $side = 'sell';
+            $amountString = mb_substr($amountString, 1);
+        } else {
+            $side = 'buy';
+        }
+        $amount = $this->parse_number($amountString);
+        $price = $this->parse_number($priceString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $orderId = null;
         $takerOrMaker = null;
         $type = null;
@@ -860,40 +869,21 @@ class bitfinex2 extends bitfinex {
             $orderId = $this->safe_string($trade, 3);
             $maker = $this->safe_integer($trade, 8);
             $takerOrMaker = ($maker === 1) ? 'maker' : 'taker';
-            $feeCost = $this->safe_number($trade, 9);
+            $feeCostString = $this->safe_string($trade, 9);
+            $feeCostString = Precise::string_neg($feeCostString);
+            $feeCost = $this->parse_number($feeCostString);
             $feeCurrencyId = $this->safe_string($trade, 10);
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
-            if ($feeCost !== null) {
-                $feeCost = -$feeCost;
-                if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-                    $feeCost = $this->fee_to_precision($symbol, $feeCost);
-                } else {
-                    $currencyId = 'f' . $feeCurrency;
-                    if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                        $currency = $this->currencies_by_id[$currencyId];
-                        $feeCost = $this->currency_to_precision($currency['code'], $feeCost);
-                    }
-                }
-                $fee = array(
-                    'cost' => floatval($feeCost),
-                    'currency' => $feeCurrency,
-                );
-            }
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
             $orderType = $trade[6];
             $type = $this->safe_string($this->options['exchangeTypes'], $orderType);
         }
         if ($symbol === null) {
             if ($market !== null) {
                 $symbol = $market['symbol'];
-            }
-        }
-        if ($amount !== null) {
-            $side = ($amount < 0) ? 'sell' : 'buy';
-            $amount = abs($amount);
-            if ($cost === null) {
-                if ($price !== null) {
-                    $cost = $amount * $price;
-                }
             }
         }
         return array(

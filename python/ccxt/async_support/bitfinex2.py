@@ -18,6 +18,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class bitfinex2(bitfinex):
@@ -809,11 +810,18 @@ class bitfinex2(bitfinex):
         isPrivate = (tradeLength > 5)
         id = self.safe_string(trade, 0)
         amountIndex = 4 if isPrivate else 2
-        amount = self.safe_number(trade, amountIndex)
-        cost = None
-        priceIndex = 5 if isPrivate else 3
-        price = self.safe_number(trade, priceIndex)
         side = None
+        amountString = self.safe_string(trade, amountIndex)
+        priceIndex = 5 if isPrivate else 3
+        priceString = self.safe_string(trade, priceIndex)
+        if amountString[0] == '-':
+            side = 'sell'
+            amountString = amountString[1:]
+        else:
+            side = 'buy'
+        amount = self.parse_number(amountString)
+        price = self.parse_number(priceString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = None
         takerOrMaker = None
         type = None
@@ -831,33 +839,20 @@ class bitfinex2(bitfinex):
             orderId = self.safe_string(trade, 3)
             maker = self.safe_integer(trade, 8)
             takerOrMaker = 'maker' if (maker == 1) else 'taker'
-            feeCost = self.safe_number(trade, 9)
+            feeCostString = self.safe_string(trade, 9)
+            feeCostString = Precise.string_neg(feeCostString)
+            feeCost = self.parse_number(feeCostString)
             feeCurrencyId = self.safe_string(trade, 10)
             feeCurrency = self.safe_currency_code(feeCurrencyId)
-            if feeCost is not None:
-                feeCost = -feeCost
-                if symbol in self.markets:
-                    feeCost = self.fee_to_precision(symbol, feeCost)
-                else:
-                    currencyId = 'f' + feeCurrency
-                    if currencyId in self.currencies_by_id:
-                        currency = self.currencies_by_id[currencyId]
-                        feeCost = self.currency_to_precision(currency['code'], feeCost)
-                fee = {
-                    'cost': float(feeCost),
-                    'currency': feeCurrency,
-                }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
             orderType = trade[6]
             type = self.safe_string(self.options['exchangeTypes'], orderType)
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
-        if amount is not None:
-            side = 'sell' if (amount < 0) else 'buy'
-            amount = abs(amount)
-            if cost is None:
-                if price is not None:
-                    cost = amount * price
         return {
             'id': id,
             'timestamp': timestamp,
