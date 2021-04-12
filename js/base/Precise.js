@@ -73,6 +73,10 @@ class Precise {
         return this.add (negative)
     }
 
+    abs () {
+        return new Precise (this.integer.abs (), this.decimals)
+    }
+
     reduce () {
         const zero = new BN (0)
         if (this.integer.eq (zero)) {
@@ -139,6 +143,13 @@ class Precise {
             return undefined
         }
         return (new Precise (string1)).sub (new Precise (string2)).toString ()
+    }
+
+    static stringAbs (string) {
+        if (string === undefined) {
+            return undefined
+        }
+        return (new Precise (string)).abs ().toString ()
     }
 }
 

@@ -71,6 +71,9 @@ class Precise:
         negative = Precise(-other.integer, other.decimals)
         return self.add(negative)
 
+    def abs(self):
+        return Precise(abs(self.integer), self.decimals)
+
     def reduce(self):
         if self.integer == 0:
             self.decimals = 0
@@ -124,3 +127,9 @@ class Precise:
         if string1 is None or string2 is None:
             return None
         return str(Precise(string1).sub(Precise(string2)))
+
+    @staticmethod
+    def string_abs(string):
+        if string is None:
+            return None
+        return str(Precise(string).abs())
