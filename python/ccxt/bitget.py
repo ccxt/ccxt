@@ -1324,9 +1324,12 @@ class bitget(Exchange):
             quote = market['quote']
         timestamp = self.safe_integer(trade, 'created_at')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'ts', timestamp)
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'filled_amount', 'order_qty')
-        amount = self.safe_number_2(trade, 'size', 'amount', amount)
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'filled_amount', 'order_qty')
+        amountString = self.safe_string_2(trade, 'size', 'amount', amountString)
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         takerOrMaker = self.safe_string_2(trade, 'exec_type', 'liquidity')
         if takerOrMaker == 'M':
             takerOrMaker = 'maker'
@@ -1343,15 +1346,12 @@ class bitget(Exchange):
             side = self.safe_string_2(trade, 'side', 'direction')
             type = self.parse_order_type(side)
             side = self.parse_order_side(side)
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is None:
-            feeCost = self.safe_number(trade, 'filled_fees')
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is None:
+            feeCostString = self.safe_string(trade, 'filled_fees')
         else:
-            feeCost = -feeCost
+            feeCostString = feeCostString[1:] if (feeCostString[0] == '-') else feeCostString
+        feeCost = self.parse_number(feeCostString)
         fee = None
         if feeCost is not None:
             feeCurrency = base if (side == 'buy') else quote
