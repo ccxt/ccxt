@@ -1366,7 +1366,7 @@ module.exports = class bitget extends Exchange {
         if (feeCostString === undefined) {
             feeCostString = this.safeString (trade, 'filled_fees');
         } else {
-            feeCostString = Precise.stringAbs (feeCostString);
+            feeCostString = Precise.stringNeg (feeCostString);
         }
         const feeCost = this.parseNumber (feeCostString);
         let fee = undefined;
