@@ -4,6 +4,7 @@
 
 const bitfinex = require ('./bitfinex.js');
 const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -830,11 +831,19 @@ module.exports = class bitfinex2 extends bitfinex {
         const isPrivate = (tradeLength > 5);
         const id = this.safeString (trade, 0);
         const amountIndex = isPrivate ? 4 : 2;
-        let amount = this.safeNumber (trade, amountIndex);
-        let cost = undefined;
-        const priceIndex = isPrivate ? 5 : 3;
-        const price = this.safeNumber (trade, priceIndex);
         let side = undefined;
+        let amountString = this.safeString (trade, amountIndex);
+        const priceIndex = isPrivate ? 5 : 3;
+        const priceString = this.safeString (trade, priceIndex);
+        if (amountString[0] === '-') {
+            side = 'sell';
+            amountString = amountString.slice (1);
+        } else {
+            side = 'buy';
+        }
+        const amount = this.parseNumber (amountString);
+        const price = this.parseNumber (priceString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let orderId = undefined;
         let takerOrMaker = undefined;
         let type = undefined;
@@ -853,40 +862,21 @@ module.exports = class bitfinex2 extends bitfinex {
             orderId = this.safeString (trade, 3);
             const maker = this.safeInteger (trade, 8);
             takerOrMaker = (maker === 1) ? 'maker' : 'taker';
-            let feeCost = this.safeNumber (trade, 9);
+            let feeCostString = this.safeString (trade, 9);
+            feeCostString = Precise.stringNeg (feeCostString);
+            const feeCost = this.parseNumber (feeCostString);
             const feeCurrencyId = this.safeString (trade, 10);
             const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-            if (feeCost !== undefined) {
-                feeCost = -feeCost;
-                if (symbol in this.markets) {
-                    feeCost = this.feeToPrecision (symbol, feeCost);
-                } else {
-                    const currencyId = 'f' + feeCurrency;
-                    if (currencyId in this.currencies_by_id) {
-                        const currency = this.currencies_by_id[currencyId];
-                        feeCost = this.currencyToPrecision (currency['code'], feeCost);
-                    }
-                }
-                fee = {
-                    'cost': parseFloat (feeCost),
-                    'currency': feeCurrency,
-                };
-            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
             const orderType = trade[6];
             type = this.safeString (this.options['exchangeTypes'], orderType);
         }
         if (symbol === undefined) {
             if (market !== undefined) {
                 symbol = market['symbol'];
-            }
-        }
-        if (amount !== undefined) {
-            side = (amount < 0) ? 'sell' : 'buy';
-            amount = Math.abs (amount);
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = amount * price;
-                }
             }
         }
         return {
