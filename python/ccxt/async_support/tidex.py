@@ -280,7 +280,9 @@ class tidex(Exchange):
             }
             hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
-            takerFee = self.safe_number(market, 'fee')
+            takerFeeString = self.safe_string(market, 'fee')
+            takerFeeString = Precise.string_div(takerFeeString, '100')
+            takerFee = self.parse_number(takerFeeString)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -289,7 +291,7 @@ class tidex(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': takerFee / 100,
+                'taker': takerFee,
                 'precision': precision,
                 'limits': limits,
                 'info': market,

@@ -270,7 +270,9 @@ class tidex extends Exchange {
             );
             $hidden = $this->safe_integer($market, 'hidden');
             $active = ($hidden === 0);
-            $takerFee = $this->safe_number($market, 'fee');
+            $takerFeeString = $this->safe_string($market, 'fee');
+            $takerFeeString = Precise::string_div($takerFeeString, '100');
+            $takerFee = $this->parse_number($takerFeeString);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -279,7 +281,7 @@ class tidex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
-                'taker' => $takerFee / 100,
+                'taker' => $takerFee,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
