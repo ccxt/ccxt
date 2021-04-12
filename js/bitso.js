@@ -4,7 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound } = require ('./base/errors');
-const { TICK_SIZE, ROUND } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -177,12 +178,14 @@ module.exports = class bitso extends Exchange {
             };
             const fees = this.safeValue (market, 'fees', {});
             const flatRate = this.safeValue (fees, 'flat_rate', {});
-            const maker = this.safeNumber (flatRate, 'maker');
-            const taker = this.safeNumber (flatRate, 'taker');
+            const makerString = this.safeString (flatRate, 'maker');
+            const takerString = this.safeString (flatRate, 'taker');
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
             const feeTiers = this.safeValue (fees, 'structure', []);
             const fee = {
-                'taker': parseFloat (this.decimalToPrecision (taker / 100, ROUND, 0.00000001, TICK_SIZE)),
-                'maker': parseFloat (this.decimalToPrecision (maker / 100, ROUND, 0.00000001, TICK_SIZE)),
+                'taker': taker,
+                'maker': maker,
                 'percentage': true,
                 'tierBased': true,
             };
@@ -193,13 +196,11 @@ module.exports = class bitso extends Exchange {
                 const volume = this.safeNumber (tier, 'volume');
                 const takerFee = this.safeNumber (tier, 'taker');
                 const makerFee = this.safeNumber (tier, 'maker');
-                const takerFeeToPrecision = parseFloat (this.decimalToPrecision (takerFee / 100, ROUND, 0.00000001, TICK_SIZE));
-                const makerFeeToPrecision = parseFloat (this.decimalToPrecision (makerFee / 100, ROUND, 0.00000001, TICK_SIZE));
-                takerFees.push ([ volume, takerFeeToPrecision ]);
-                makerFees.push ([ volume, makerFeeToPrecision ]);
+                takerFees.push ([ volume, takerFee ]);
+                makerFees.push ([ volume, makerFee ]);
                 if (j === 0) {
-                    fee['taker'] = parseFloat (this.decimalToPrecision (taker / 100, ROUND, 0.00000001, TICK_SIZE));
-                    fee['maker'] = parseFloat (this.decimalToPrecision (maker / 100, ROUND, 0.00000001, TICK_SIZE));
+                    fee['taker'] = takerFee;
+                    fee['maker'] = makerFee;
                 }
             }
             const tiers = {
