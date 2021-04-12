@@ -16,6 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.precise import Precise
 
 
 class bitz(Exchange):
@@ -598,12 +599,11 @@ class bitz(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        price = self.safe_number(trade, 'p')
-        amount = self.safe_number(trade, 'n')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = self.price_to_precision(symbol, amount * price)
+        priceString = self.safe_string(trade, 'p')
+        amountString = self.safe_string(trade, 'n')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string(trade, 's')
         return {
             'timestamp': timestamp,

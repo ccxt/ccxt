@@ -609,14 +609,11 @@ class bitz extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $price = $this->safe_number($trade, 'p');
-        $amount = $this->safe_number($trade, 'n');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $this->price_to_precision($symbol, $amount * $price);
-            }
-        }
+        $priceString = $this->safe_string($trade, 'p');
+        $amountString = $this->safe_string($trade, 'n');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $side = $this->safe_string($trade, 's');
         return array(
             'timestamp' => $timestamp,
