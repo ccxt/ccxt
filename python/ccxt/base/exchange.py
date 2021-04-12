@@ -66,6 +66,8 @@ import gzip
 import hashlib
 import hmac
 import io
+import os
+import contextlib
 import json
 import math
 import random
@@ -105,9 +107,10 @@ except ImportError:
 
 # -----------------------------------------------------------------------------
 # web3/0x imports
-
 try:
-    from web3 import Web3, HTTPProvider
+    with open(os.devnull, 'w') as f:
+        with contextlib.redirect_stderr(f):
+            from web3 import Web3, HTTPProvider
 except ImportError:
     Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
 # -----------------------------------------------------------------------------
