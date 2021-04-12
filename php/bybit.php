@@ -814,15 +814,13 @@ class bybit extends Exchange {
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $amount = $this->safe_number_2($trade, 'qty', 'exec_qty');
+        $amountString = $this->safe_string_2($trade, 'qty', 'exec_qty');
+        $priceString = $this->safe_string_2($trade, 'exec_price', 'price');
         $cost = $this->safe_number($trade, 'exec_value');
-        $price = $this->safe_number_2($trade, 'exec_price', 'price');
+        $amount = $this->parse_number($amountString);
+        $price = $this->parse_number($priceString);
         if ($cost === null) {
-            if ($amount !== null) {
-                if ($price !== null) {
-                    $cost = $amount * $price;
-                }
-            }
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         if ($timestamp === null) {

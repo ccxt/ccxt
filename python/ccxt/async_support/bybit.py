@@ -15,6 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class bybit(Exchange):
@@ -802,13 +803,13 @@ class bybit(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        amount = self.safe_number_2(trade, 'qty', 'exec_qty')
+        amountString = self.safe_string_2(trade, 'qty', 'exec_qty')
+        priceString = self.safe_string_2(trade, 'exec_price', 'price')
         cost = self.safe_number(trade, 'exec_value')
-        price = self.safe_number_2(trade, 'exec_price', 'price')
+        amount = self.parse_number(amountString)
+        price = self.parse_number(priceString)
         if cost is None:
-            if amount is not None:
-                if price is not None:
-                    cost = amount * price
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         if timestamp is None:
             timestamp = self.safe_integer(trade, 'trade_time_ms')
