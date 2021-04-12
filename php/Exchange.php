@@ -324,6 +324,7 @@ class Exchange {
         'filterBySymbolSinceLimit' => 'filter_by_symbol_since_limit',
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
         'filterByArray' => 'filter_by_array',
+        'safeTicker' => 'safe_ticker',
         'parseTickers' => 'parse_tickers',
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
@@ -1911,6 +1912,32 @@ class Exchange {
             }
         }
         return $result;
+    }
+
+    public function safe_ticker($ticker, $market = null) {
+        $symbol = $this->safe_value($ticker, 'symbol');
+        if ($symbol === null) {
+            $ticker['symbol'] = $this->safe_symbol(null, $market);
+        }
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        if ($timestamp !== null) {
+            $ticker['timestamp'] = $timestamp;
+            $ticker['datetime'] = $this->iso8601($timestamp);
+        }
+        $baseVolume = $this->safe_value($ticker, 'baseVolume');
+        $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
+        $vwap = $this->safe_value($ticker, 'vwap');
+        if ($vwap === null) {
+            $ticker['vwap'] = $this->vwap($baseVolume, $quoteVolume);
+        }
+        $close = $this->safe_value($ticker, 'close');
+        $last = $this->safe_value($ticker, 'last');
+        if (($close === null) && ($last !== null)) {
+            $ticker['close'] = $last;
+        } else if (($last === null) && ($close !== null)) {
+            $ticker['last'] = $close;
+        }
+        return $ticker;
     }
 
     public function parse_tickers($tickers, $symbols = null) {
