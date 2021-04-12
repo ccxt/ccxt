@@ -1116,6 +1116,32 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
+    safeTicker (ticker, market = undefined) {
+        const symbol = this.safeValue (ticker, 'symbol');
+        if (symbol === undefined) {
+            ticker['symbol'] = this.safeSymbol (undefined, market);
+        }
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        if (timestamp !== undefined) {
+            ticker['timestamp'] = timestamp;
+            ticker['datetime'] = this.iso8601 (timestamp);
+        }
+        const baseVolume = this.safeValue (ticker, 'baseVolume');
+        const quoteVolume = this.safeValue (ticker, 'quoteVolume');
+        const vwap = this.safeValue (ticker, 'vwap');
+        if (vwap === undefined) {
+            ticker['vwap'] = this.vwap (baseVolume, quoteVolume);
+        }
+        const close = this.safeValue (ticker, 'close');
+        const last = this.safeValue (ticker, 'last');
+        if ((close === undefined) && (last !== undefined)) {
+            ticker['close'] = last;
+        } else if ((last === undefined) && (close !== undefined)) {
+            ticker['last'] = close;
+        }
+        return ticker;
+    }
+
     parseTickers (tickers, symbols = undefined) {
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
