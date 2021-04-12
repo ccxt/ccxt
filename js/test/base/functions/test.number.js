@@ -348,3 +348,8 @@ assert (Precise.stringAbs ('0') === '0');
 assert (Precise.stringAbs ('-0') === '0');
 assert (Precise.stringAbs ('-500.1') === '500.1');
 assert (Precise.stringAbs ('213') === '213');
+
+assert (Precise.stringNeg ('0') === '0');
+assert (Precise.stringNeg ('-0') === '0');
+assert (Precise.stringNeg ('-500.1') === '500.1');
+assert (Precise.stringNeg ('213') === '-213');

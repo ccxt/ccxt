@@ -81,6 +81,10 @@ class Precise {
         return new Precise($this->integer->abs(), $this->decimals);
     }
 
+    public function neg() {
+        return new Precise($this->integer->neg(), $this->decimals);
+    }
+
     public function reduce() {
         $zero = new BN(0);
         if ($this->integer->eq($zero)) {
@@ -155,5 +159,12 @@ class Precise {
             return null;
         }
         return strval((new Precise($string))->abs());
+    }
+
+    public static function string_neg($string) {
+        if ($string === null) {
+            return null;
+        }
+        return strval((new Precise($string))->neg());
     }
 }
