@@ -198,8 +198,10 @@ class aofex extends Exchange {
             $symbol = $base . '/' . $quote;
             $numericId = $this->safe_integer($market, 'id');
             $precision = $this->safe_value($precisions, $id, array());
-            $makerFee = $this->safe_number($market, 'maker_fee');
-            $takerFee = $this->safe_number($market, 'taker_fee');
+            $makerFeeString = $this->safe_string($market, 'maker_fee');
+            $takerFeeString = $this->safe_string($market, 'taker_fee');
+            $makerFee = $this->parse_number(Precise::string_div($makerFeeString, '1000'));
+            $takerFee = $this->parse_number(Precise::string_div($takerFeeString, '1000'));
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -209,8 +211,8 @@ class aofex extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'active' => null,
-                'maker' => $makerFee / 1000,
-                'taker' => $takerFee / 1000,
+                'maker' => $makerFee,
+                'taker' => $takerFee,
                 'precision' => array(
                     'amount' => $this->safe_integer($precision, 'amount'),
                     'price' => $this->safe_integer($precision, 'price'),

@@ -204,8 +204,10 @@ class aofex(Exchange):
             symbol = base + '/' + quote
             numericId = self.safe_integer(market, 'id')
             precision = self.safe_value(precisions, id, {})
-            makerFee = self.safe_number(market, 'maker_fee')
-            takerFee = self.safe_number(market, 'taker_fee')
+            makerFeeString = self.safe_string(market, 'maker_fee')
+            takerFeeString = self.safe_string(market, 'taker_fee')
+            makerFee = self.parse_number(Precise.string_div(makerFeeString, '1000'))
+            takerFee = self.parse_number(Precise.string_div(takerFeeString, '1000'))
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -215,8 +217,8 @@ class aofex(Exchange):
                 'base': base,
                 'quote': quote,
                 'active': None,
-                'maker': makerFee / 1000,
-                'taker': takerFee / 1000,
+                'maker': makerFee,
+                'taker': takerFee,
                 'precision': {
                     'amount': self.safe_integer(precision, 'amount'),
                     'price': self.safe_integer(precision, 'price'),
