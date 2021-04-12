@@ -4,7 +4,6 @@
     "bibox":         { "has": { "fetchCurrencies": false }},
     "bitforex":      { "skip": true },
     "btcmarkets":    { "skip": true },
-    "btctradeua":    { "skip": true },
     "btcturk":       { "skip": true },
     "buda":          { "skip": true },
     "coinegg":       { "skip": true },
@@ -32,6 +31,5 @@
     "rightbtc":      { "skip": true },
     "stronghold":    { "skip": true },
     "tidebit":       { "skip": true },
-    "vaultoro":      { "skip": true },
     "xbtce":         { "skip": true }
 }
