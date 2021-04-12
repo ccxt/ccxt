@@ -301,7 +301,11 @@ class yobit extends Exchange {
             );
             $hidden = $this->safe_integer($market, 'hidden');
             $active = ($hidden === 0);
-            $takerFee = $this->safe_number($market, 'fee');
+            $feeString = $this->safe_string($market, 'fee');
+            $feeString = Precise::string_div($feeString, '100');
+            // yobit maker = taker
+            $takerFee = $this->parse_number($feeString);
+            $makerFee = $this->parse_number($feeString);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -310,7 +314,8 @@ class yobit extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
-                'taker' => $takerFee / 100,
+                'taker' => $takerFee,
+                'maker' => $makerFee,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,

@@ -314,7 +314,11 @@ class yobit(Exchange):
             }
             hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
-            takerFee = self.safe_number(market, 'fee')
+            feeString = self.safe_string(market, 'fee')
+            feeString = Precise.string_div(feeString, '100')
+            # yobit maker = taker
+            takerFee = self.parse_number(feeString)
+            makerFee = self.parse_number(feeString)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -323,7 +327,8 @@ class yobit(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': takerFee / 100,
+                'taker': takerFee,
+                'maker': makerFee,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
