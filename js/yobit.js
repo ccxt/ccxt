@@ -299,7 +299,11 @@ module.exports = class yobit extends Exchange {
             };
             const hidden = this.safeInteger (market, 'hidden');
             const active = (hidden === 0);
-            const takerFee = this.safeNumber (market, 'fee');
+            let feeString = this.safeString (market, 'fee');
+            feeString = Precise.stringDiv (feeString, '100');
+            // yobit maker = taker
+            const takerFee = this.parseNumber (feeString);
+            const makerFee = this.parseNumber (feeString);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -308,7 +312,8 @@ module.exports = class yobit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': takerFee / 100,
+                'taker': takerFee,
+                'maker': makerFee,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
