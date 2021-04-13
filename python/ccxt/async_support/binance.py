@@ -636,7 +636,7 @@ class binance(Exchange):
                 '-1125': AuthenticationError,  # This listenKey does not exist.
                 '-1127': BadRequest,  # More than %s hours between startTime and endTime.
                 '-1128': BadRequest,  # {"code":-1128,"msg":"Combination of optional parameters invalid."}
-                '-1130': BadRequest,  # Data sent for paramter %s is not valid.
+                '-1130': BadRequest,  # Data sent for parameter %s is not valid.
                 '-1131': BadRequest,  # recvWindow must be less than 60000
                 '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                 '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
