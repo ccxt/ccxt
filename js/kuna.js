@@ -125,7 +125,7 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const quotes = [ 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt', 'gol' ];
+        const quotes = [ 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' ];
         const pricePrecisions = {
             'UAH': 0,
         };
