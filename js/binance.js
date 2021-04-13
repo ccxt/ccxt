@@ -118,6 +118,7 @@ module.exports = class binance extends Exchange {
                         // these endpoints require this.apiKey + this.secret
                         'asset/assetDividend',
                         'asset/transfer',
+                        'asset/assetDetail',
                         'margin/loan',
                         'margin/repay',
                         'margin/account',
@@ -2805,7 +2806,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
-        const response = await this.wapiGetAssetDetail (params);
+        const response = await this.sapiGetAssetAssetDetail (params);
         //
         //     {
         //         "success": true,
@@ -2826,13 +2827,12 @@ module.exports = class binance extends Exchange {
         //         }
         //     }
         //
-        const detail = this.safeValue (response, 'assetDetail', {});
-        const ids = Object.keys (detail);
+        const ids = Object.keys (response);
         const withdrawFees = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const code = this.safeCurrencyCode (id);
-            withdrawFees[code] = this.safeNumber (detail[id], 'withdrawFee');
+            withdrawFees[code] = this.safeNumber (response[id], 'withdrawFee');
         }
         return {
             'withdraw': withdrawFees,
