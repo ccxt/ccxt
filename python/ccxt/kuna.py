@@ -127,7 +127,7 @@ class kuna(Exchange):
         return response * 1000
 
     def fetch_markets(self, params={}):
-        quotes = ['btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt', 'gol']
+        quotes = ['btc', 'rub', 'uah', 'usd', 'usdt', 'usdc']
         pricePrecisions = {
             'UAH': 0,
         }

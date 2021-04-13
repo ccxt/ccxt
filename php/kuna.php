@@ -127,7 +127,7 @@ class kuna extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $quotes = array( 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt', 'gol' );
+        $quotes = array( 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' );
         $pricePrecisions = array(
             'UAH' => 0,
         );
