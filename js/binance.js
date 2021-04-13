@@ -1034,12 +1034,8 @@ module.exports = class binance extends Exchange {
                 // therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 entry['limits']['price'] = {
                     'min': this.safeNumber (filter, 'minPrice'),
-                    'max': undefined,
+                    'max': this.safeNumber (filter, 'maxPrice'),
                 };
-                const maxPrice = this.safeNumber (filter, 'maxPrice');
-                if ((maxPrice !== undefined) && (maxPrice > 0)) {
-                    entry['limits']['price']['max'] = maxPrice;
-                }
                 entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
             }
             if ('LOT_SIZE' in filtersByType) {
