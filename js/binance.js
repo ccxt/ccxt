@@ -2874,7 +2874,7 @@ module.exports = class binance extends Exchange {
         //     {
         //         "symbol": "ADABNB",
         //         "makerCommission": 0.001,
-        //         "takerCommission": 0.001,
+        //         "takerCommission": 0.001
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
