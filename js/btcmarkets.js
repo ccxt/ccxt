@@ -846,23 +846,13 @@ module.exports = class btcmarkets extends Exchange {
         const price = this.safeNumber (order, 'price');
         const amount = this.safeNumber (order, 'amount');
         const remaining = this.safeNumber (order, 'openAmount');
-        let filled = undefined;
-        if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (0, amount - remaining);
-        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let cost = undefined;
-        if (price !== undefined) {
-            if (filled !== undefined) {
-                cost = price * filled;
-            }
-        }
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'triggerPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -876,15 +866,15 @@ module.exports = class btcmarkets extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'average': undefined,
             'status': status,
             'trades': undefined,
             'fee': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
