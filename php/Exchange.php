@@ -2918,10 +2918,11 @@ class Exchange {
         $parseFee = $this->safe_value($order, 'fee') === null;
         $parseFees = $this->safe_value($order, 'fees') === null;
         $shouldParseFees = $parseFee || $parseFees;
-        $fees = $shouldParseFees ? array() : null;
+        $fees = $this->safe_value($order, 'fees', array());
         if ($parseFilled || $parseCost || $shouldParseFees) {
-            $trades = $this->safe_value($order, 'trades');
-            if ($trades !== null) {
+            $trades = $this->safe_value($order, 'trades', array());
+            $tradesLength = count($trades);
+            if ($tradesLength) {
                 if ($parseFilled) {
                     $filled = 0;
                 }
@@ -2996,7 +2997,7 @@ class Exchange {
         }
         // ensure that the $average field is calculated correctly
         if ($average === null) {
-            if (($filled !== null) && ($cost !== null) && ($cost > 0)) {
+            if (($filled !== null) && ($cost !== null) && ($filled > 0)) {
                 $average = $cost / $filled;
             }
         }

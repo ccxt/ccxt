@@ -1536,10 +1536,11 @@ module.exports = class Exchange {
         const parseFee = this.safeValue (order, 'fee') === undefined;
         const parseFees = this.safeValue (order, 'fees') === undefined;
         const shouldParseFees = parseFee || parseFees;
-        const fees = shouldParseFees ? [] : undefined;
+        const fees = this.safeValue (order, 'fees', []);
         if (parseFilled || parseCost || shouldParseFees) {
-            const trades = this.safeValue (order, 'trades');
-            if (trades !== undefined) {
+            const trades = this.safeValue (order, 'trades', []);
+            const tradesLength = trades.length;
+            if (tradesLength) {
                 if (parseFilled) {
                     filled = 0;
                 }
@@ -1614,7 +1615,7 @@ module.exports = class Exchange {
         }
         // ensure that the average field is calculated correctly
         if (average === undefined) {
-            if ((filled !== undefined) && (cost !== undefined) && (cost > 0)) {
+            if ((filled !== undefined) && (cost !== undefined) && (filled > 0)) {
                 average = cost / filled;
             }
         }

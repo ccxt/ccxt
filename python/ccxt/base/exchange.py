@@ -2234,10 +2234,11 @@ class Exchange(object):
         parseFee = self.safe_value(order, 'fee') is None
         parseFees = self.safe_value(order, 'fees') is None
         shouldParseFees = parseFee or parseFees
-        fees = [] if shouldParseFees else None
+        fees = self.safe_value(order, 'fees', [])
         if parseFilled or parseCost or shouldParseFees:
-            trades = self.safe_value(order, 'trades')
-            if trades is not None:
+            trades = self.safe_value(order, 'trades', [])
+            tradesLength = len(trades)
+            if tradesLength:
                 if parseFilled:
                     filled = 0
                 if parseCost:
@@ -2289,7 +2290,7 @@ class Exchange(object):
                 remaining = max(self.sum(amount, -filled), 0)
         # ensure that the average field is calculated correctly
         if average is None:
-            if (filled is not None) and (cost is not None) and (cost > 0):
+            if (filled is not None) and (cost is not None) and (filled > 0):
                 average = cost / filled
         # also ensure the cost field is calculated correctly
         costPriceExists = (average is not None) or (price is not None)
