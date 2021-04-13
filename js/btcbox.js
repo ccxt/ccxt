@@ -265,19 +265,7 @@ module.exports = class btcbox extends Exchange {
         }
         const amount = this.safeNumber (order, 'amount_original');
         const remaining = this.safeNumber (order, 'amount_outstanding');
-        let filled = undefined;
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = amount - remaining;
-            }
-        }
         const price = this.safeNumber (order, 'price');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (filled !== undefined) {
-                cost = filled * price;
-            }
-        }
         // status is set by fetchOrder method only
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         // fetchOrders do not return status, use heuristic
@@ -292,7 +280,7 @@ module.exports = class btcbox extends Exchange {
             symbol = market['symbol'];
         }
         const side = this.safeString (order, 'type');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -300,7 +288,7 @@ module.exports = class btcbox extends Exchange {
             'lastTradeTimestamp': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': undefined,
             'side': side,
             'type': undefined,
             'timeInForce': undefined,
@@ -309,12 +297,12 @@ module.exports = class btcbox extends Exchange {
             'symbol': symbol,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'trades': trades,
             'fee': undefined,
             'info': order,
             'average': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
