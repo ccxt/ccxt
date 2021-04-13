@@ -2810,22 +2810,24 @@ module.exports = class binance extends Exchange {
         const response = await this.sapiGetAssetAssetDetail (params);
         //
         //     {
-        //         "success": true,
-        //         "assetDetail": {
-        //             "CTR": {
-        //                 "minWithdrawAmount": "70.00000000", //min withdraw amount
-        //                 "depositStatus": false,//deposit status
-        //                 "withdrawFee": 35, // withdraw fee
-        //                 "withdrawStatus": true, //withdraw status
-        //                 "depositTip": "Delisted, Deposit Suspended" //reason
-        //             },
-        //             "SKY": {
-        //                 "minWithdrawAmount": "0.02000000",
-        //                 "depositStatus": true,
-        //                 "withdrawFee": 0.01,
-        //                 "withdrawStatus": true
-        //             }
-        //         }
+        //       "VRAB": {
+        //         "withdrawFee": "100",
+        //         "minWithdrawAmount": "200",
+        //         "withdrawStatus": true,
+        //         "depositStatus": true
+        //       },
+        //       "NZD": {
+        //         "withdrawFee": "0",
+        //         "minWithdrawAmount": "0",
+        //         "withdrawStatus": false,
+        //         "depositStatus": false
+        //       },
+        //       "AKRO": {
+        //         "withdrawFee": "313",
+        //         "minWithdrawAmount": "626",
+        //         "withdrawStatus": true,
+        //         "depositStatus": true
+        //       },
         //     }
         //
         const ids = Object.keys (response);
