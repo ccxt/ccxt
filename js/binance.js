@@ -119,6 +119,7 @@ module.exports = class binance extends Exchange {
                         'asset/assetDividend',
                         'asset/transfer',
                         'asset/assetDetail',
+                        'asset/tradeFee',
                         'margin/loan',
                         'margin/repay',
                         'margin/account',
@@ -2870,8 +2871,8 @@ module.exports = class binance extends Exchange {
         //
         //     {
         //         "symbol": "ADABNB",
-        //         "maker": 0.9000,
-        //         "taker": 1.0000
+        //         "makerCommission": 0.001,
+        //         "takerCommission": 0.001,
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
@@ -2879,8 +2880,8 @@ module.exports = class binance extends Exchange {
         return {
             'info': fee,
             'symbol': symbol,
-            'maker': this.safeNumber (fee, 'maker'),
-            'taker': this.safeNumber (fee, 'taker'),
+            'maker': this.safeNumber (fee, 'makerCommission'),
+            'taker': this.safeNumber (fee, 'takerCommission'),
         };
     }
 
@@ -2890,18 +2891,15 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.wapiGetTradeFee (this.extend (request, params));
+        const response = await this.sapiGetAssetTradeFee (this.extend (request, params));
         //
-        //     {
-        //         "tradeFee": [
-        //             {
-        //                 "symbol": "ADABNB",
-        //                 "maker": 0.9000,
-        //                 "taker": 1.0000
-        //             }
-        //         ],
-        //         "success": true
-        //     }
+        //     [
+        //       {
+        //         "symbol": "BTCUSDT",
+        //         "makerCommission": "0.001",
+        //         "takerCommission": "0.001"
+        //       }
+        //     ]
         //
         const tradeFee = this.safeValue (response, 'tradeFee', []);
         const first = this.safeValue (tradeFee, 0, {});
@@ -2910,23 +2908,24 @@ module.exports = class binance extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.wapiGetTradeFee (params);
+        const response = await this.sapiGetAssetTradeFee (params);
         //
-        //     {
-        //         "tradeFee": [
-        //             {
-        //                 "symbol": "ADABNB",
-        //                 "maker": 0.9000,
-        //                 "taker": 1.0000
-        //             }
-        //         ],
-        //         "success": true
-        //     }
+        //    [
+        //       {
+        //         "symbol": "ZRXBNB",
+        //         "makerCommission": "0.001",
+        //         "takerCommission": "0.001"
+        //       },
+        //       {
+        //         "symbol": "ZRXBTC",
+        //         "makerCommission": "0.001",
+        //         "takerCommission": "0.001"
+        //       },
+        //    ]
         //
-        const tradeFee = this.safeValue (response, 'tradeFee', []);
         const result = {};
-        for (let i = 0; i < tradeFee.length; i++) {
-            const fee = this.parseTradingFee (tradeFee[i]);
+        for (let i = 0; i < response.length; i++) {
+            const fee = this.parseTradingFee (response[i]);
             const symbol = fee['symbol'];
             result[symbol] = fee;
         }
