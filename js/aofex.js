@@ -736,6 +736,10 @@ module.exports = class aofex extends Exchange {
             'order': id,
             'type': type,
         });
+        let filled = undefined;
+        if ((type === 'limit') && (orderStatus === '3')) {
+            filled = amount;
+        }
         if (type === 'limit') {
             cost = totalPrice;
         } else if (side === 'buy') {
