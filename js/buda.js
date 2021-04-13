@@ -581,10 +581,6 @@ module.exports = class buda extends Exchange {
                 price = limitPrice;
             }
         }
-        let average = undefined;
-        if ((cost !== undefined) && (filled !== undefined) && (filled > 0)) {
-            average = this.priceToPrecision (symbol, cost / filled);
-        }
         const paidFee = this.safeValue (order, 'paid_fee', []);
         const feeCost = this.safeNumber (paidFee, 0);
         let fee = undefined;
@@ -596,7 +592,7 @@ module.exports = class buda extends Exchange {
                 'code': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -611,14 +607,14 @@ module.exports = class buda extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'average': average,
+            'average': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'trades': undefined,
             'fee': fee,
-        };
+        });
     }
 
     isFiat (code) {
