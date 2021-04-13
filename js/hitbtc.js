@@ -249,8 +249,10 @@ module.exports = class hitbtc extends Exchange {
             if (id.indexOf ('_') >= 0) {
                 symbol = id;
             }
-            const lot = this.safeNumber (market, 'quantityIncrement');
-            const step = this.safeNumber (market, 'tickSize');
+            const lotString = this.safeString (market, 'quantityIncrement');
+            const stepString = this.safeString (market, 'tickSize');
+            const lot = this.parseNumber (lotString);
+            const step = this.parseNumber (stepString);
             const precision = {
                 'price': step,
                 'amount': lot,
@@ -282,7 +284,7 @@ module.exports = class hitbtc extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': lot * step,
+                        'min': this.parseNumber (Precise.stringMul (lotString, stepString)),
                         'max': undefined,
                     },
                 },
