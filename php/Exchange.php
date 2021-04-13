@@ -2996,7 +2996,7 @@ class Exchange {
         }
         // ensure that the $average field is calculated correctly
         if ($average === null) {
-            if (($filled !== null) && ($cost !== null) && ($cost > 0)) {
+            if (($filled !== null) && ($cost !== null) && ($filled > 0)) {
                 $average = $cost / $filled;
             }
         }

@@ -2289,7 +2289,7 @@ class Exchange(object):
                 remaining = max(self.sum(amount, -filled), 0)
         # ensure that the average field is calculated correctly
         if average is None:
-            if (filled is not None) and (cost is not None) and (cost > 0):
+            if (filled is not None) and (cost is not None) and (filled > 0):
                 average = cost / filled
         # also ensure the cost field is calculated correctly
         costPriceExists = (average is not None) or (price is not None)
