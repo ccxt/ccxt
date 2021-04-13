@@ -1536,10 +1536,11 @@ module.exports = class Exchange {
         const parseFee = this.safeValue (order, 'fee') === undefined;
         const parseFees = this.safeValue (order, 'fees') === undefined;
         const shouldParseFees = parseFee || parseFees;
-        const fees = shouldParseFees ? [] : undefined;
+        const fees = this.safeValue (order, 'fees', []);
         if (parseFilled || parseCost || shouldParseFees) {
             const trades = this.safeValue (order, 'trades');
-            if (trades !== undefined) {
+            const tradesLength = trades.length;
+            if ((trades !== undefined) && tradesLength) {
                 if (parseFilled) {
                     filled = 0;
                 }

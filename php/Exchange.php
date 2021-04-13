@@ -2918,10 +2918,11 @@ class Exchange {
         $parseFee = $this->safe_value($order, 'fee') === null;
         $parseFees = $this->safe_value($order, 'fees') === null;
         $shouldParseFees = $parseFee || $parseFees;
-        $fees = $shouldParseFees ? array() : null;
+        $fees = $this->safe_value($order, 'fees', array());
         if ($parseFilled || $parseCost || $shouldParseFees) {
             $trades = $this->safe_value($order, 'trades');
-            if ($trades !== null) {
+            $tradesLength = count($trades);
+            if (($trades !== null) && $tradesLength) {
                 if ($parseFilled) {
                     $filled = 0;
                 }
