@@ -347,6 +347,19 @@ class indodax extends Exchange {
         //         "remain_ltc" => "100000000"
         //     }
         //
+        // $market closed orders - note that the $price is very high
+        // and does not reflect actual $price the $order executed at
+        //
+        //     {
+        //       "order_id" => "49326856",
+        //       "type" => "sell",
+        //       "$price" => "1000000000",
+        //       "submit_time" => "1618314671",
+        //       "finish_time" => "1618314671",
+        //       "$status" => "filled",
+        //       "order_xrp" => "30.45000000",
+        //       "remain_xrp" => "0.00000000"
+        //     }
         $side = null;
         if (is_array($order) && array_key_exists('type', $order)) {
             $side = $order['type'];
@@ -357,7 +370,6 @@ class indodax extends Exchange {
         $price = $this->safe_number($order, 'price');
         $amount = null;
         $remaining = null;
-        $filled = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
             $quoteId = $market['quoteId'];
@@ -369,28 +381,15 @@ class indodax extends Exchange {
                 $baseId = 'rp';
             }
             $cost = $this->safe_number($order, 'order_' . $quoteId);
-            if ($cost) {
-                $amount = $cost / $price;
-                $remainingCost = $this->safe_number($order, 'remain_' . $quoteId);
-                if ($remainingCost !== null) {
-                    $remaining = $remainingCost / $price;
-                    $filled = $amount - $remaining;
-                }
-            } else {
+            if (!$cost) {
                 $amount = $this->safe_number($order, 'order_' . $baseId);
-                $cost = $price * $amount;
                 $remaining = $this->safe_number($order, 'remain_' . $baseId);
-                $filled = $amount - $remaining;
             }
-        }
-        $average = null;
-        if ($filled) {
-            $average = $cost / $filled;
         }
         $timestamp = $this->safe_integer($order, 'submit_time');
         $fee = null;
         $id = $this->safe_string($order, 'order_id');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -405,14 +404,14 @@ class indodax extends Exchange {
             'price' => $price,
             'stopPrice' => null,
             'cost' => $cost,
-            'average' => $average,
+            'average' => null,
             'amount' => $amount,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

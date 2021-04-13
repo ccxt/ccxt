@@ -338,6 +338,19 @@ class indodax(Exchange):
         #         "remain_ltc": "100000000"
         #     }
         #
+        # market closed orders - note that the price is very high
+        # and does not reflect actual price the order executed at
+        #
+        #     {
+        #       "order_id": "49326856",
+        #       "type": "sell",
+        #       "price": "1000000000",
+        #       "submit_time": "1618314671",
+        #       "finish_time": "1618314671",
+        #       "status": "filled",
+        #       "order_xrp": "30.45000000",
+        #       "remain_xrp": "0.00000000"
+        #     }
         side = None
         if 'type' in order:
             side = order['type']
@@ -347,7 +360,6 @@ class indodax(Exchange):
         price = self.safe_number(order, 'price')
         amount = None
         remaining = None
-        filled = None
         if market is not None:
             symbol = market['symbol']
             quoteId = market['quoteId']
@@ -357,24 +369,13 @@ class indodax(Exchange):
             if (market['baseId'] == 'idr') and ('remain_rp' in order):
                 baseId = 'rp'
             cost = self.safe_number(order, 'order_' + quoteId)
-            if cost:
-                amount = cost / price
-                remainingCost = self.safe_number(order, 'remain_' + quoteId)
-                if remainingCost is not None:
-                    remaining = remainingCost / price
-                    filled = amount - remaining
-            else:
+            if not cost:
                 amount = self.safe_number(order, 'order_' + baseId)
-                cost = price * amount
                 remaining = self.safe_number(order, 'remain_' + baseId)
-                filled = amount - remaining
-        average = None
-        if filled:
-            average = cost / filled
         timestamp = self.safe_integer(order, 'submit_time')
         fee = None
         id = self.safe_string(order, 'order_id')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -389,14 +390,14 @@ class indodax(Exchange):
             'price': price,
             'stopPrice': None,
             'cost': cost,
-            'average': average,
+            'average': None,
             'amount': amount,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
