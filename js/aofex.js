@@ -763,7 +763,7 @@ module.exports = class aofex extends Exchange {
             'cost': cost,
             'average': average,
             'amount': amount,
-            'filled': undefined,
+            'filled': filled,
             'remaining': undefined,
             'trades': trades,
             'fee': undefined,
