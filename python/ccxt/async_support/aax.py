@@ -442,7 +442,7 @@ class aax(Exchange):
             if base is not None and quote is not None:
                 symbol = base + '/' + quote
         price = self.safe_float_2(trade, 'p', 'avgPrice')
-        amount = self.safe_float_2(trade, 'q', 'orderQty')
+        amount = self.safe_float_2(trade, 'q', 'filledQty')
         sideType = self.safe_integer(trade, 'side')
         side = None
         if sideType is not None:
@@ -715,7 +715,10 @@ class aax(Exchange):
         #     "message":"success",
         #     "ts":1573530401264
         #  }
-        return self.parse_order(self.safe_value(response, 'data'), market, self.safe_string(response, 'ts'))
+        order = self.parse_order(self.safe_value(response, 'data'), market, self.safe_string(response, 'ts'))
+        if order['status'] == 'rejected':
+            raise InvalidOrder(' order was rejected by the exchange ' + self.safeValue(order.info, 'rejectReason'))
+        return order
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
