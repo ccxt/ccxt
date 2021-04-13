@@ -344,6 +344,19 @@ module.exports = class indodax extends Exchange {
         //         "remain_ltc": "100000000"
         //     }
         //
+        // market closed orders - note that the price is very high
+        // and does not reflect actual price the order executed at
+        //
+        //     {
+        //       "order_id": "49326856",
+        //       "type": "sell",
+        //       "price": "1000000000",
+        //       "submit_time": "1618314671",
+        //       "finish_time": "1618314671",
+        //       "status": "filled",
+        //       "order_xrp": "30.45000000",
+        //       "remain_xrp": "0.00000000"
+        //     }
         let side = undefined;
         if ('type' in order) {
             side = order['type'];
@@ -354,7 +367,6 @@ module.exports = class indodax extends Exchange {
         const price = this.safeNumber (order, 'price');
         let amount = undefined;
         let remaining = undefined;
-        let filled = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
             let quoteId = market['quoteId'];
@@ -366,28 +378,15 @@ module.exports = class indodax extends Exchange {
                 baseId = 'rp';
             }
             cost = this.safeNumber (order, 'order_' + quoteId);
-            if (cost) {
-                amount = cost / price;
-                const remainingCost = this.safeNumber (order, 'remain_' + quoteId);
-                if (remainingCost !== undefined) {
-                    remaining = remainingCost / price;
-                    filled = amount - remaining;
-                }
-            } else {
+            if (!cost) {
                 amount = this.safeNumber (order, 'order_' + baseId);
-                cost = price * amount;
                 remaining = this.safeNumber (order, 'remain_' + baseId);
-                filled = amount - remaining;
             }
-        }
-        let average = undefined;
-        if (filled) {
-            average = cost / filled;
         }
         const timestamp = this.safeInteger (order, 'submit_time');
         const fee = undefined;
         const id = this.safeString (order, 'order_id');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -402,14 +401,14 @@ module.exports = class indodax extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'cost': cost,
-            'average': average,
+            'average': undefined,
             'amount': amount,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
