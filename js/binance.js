@@ -882,6 +882,7 @@ module.exports = class binance extends ccxt.binance {
         const accountType = subscriptions[0];
         const messageHash = accountType + ':balance';
         message = this.safeValue (message, 'a', message);
+        this.balance[accountType]['info'] = message;
         const balances = this.safeValue (message, 'B', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
