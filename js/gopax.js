@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound, InvalidAddress, BadRequest } = require ('./base/errors');
-const { TRUNCATE, ROUND, TICK_SIZE } = require ('./base/functions/number');
+const { TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -219,10 +219,10 @@ module.exports = class gopax extends Exchange {
             const minimums = this.safeValue (market, 'restApiOrderAmountMin', {});
             const marketAsk = this.safeValue (minimums, 'marketAsk', {});
             const marketBid = this.safeValue (minimums, 'marketBid', {});
-            const takerFeePercent = this.safeNumber (market, 'takerFeePercent');
-            const makerFeePercent = this.safeNumber (market, 'makerFeePercent');
-            const taker = parseFloat (this.decimalToPrecision (takerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE));
-            const maker = parseFloat (this.decimalToPrecision (makerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE));
+            const takerFeePercentString = this.safeString (market, 'takerFeePercent');
+            const makerFeePercentString = this.safeString (market, 'makerFeePercent');
+            const taker = this.parseNumber (Precise.stringDiv (takerFeePercentString, '100'));
+            const maker = this.parseNumber (Precise.stringDiv (makerFeePercentString, '100'));
             result.push ({
                 'id': id,
                 'info': market,
