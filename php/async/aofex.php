@@ -694,7 +694,7 @@ class aofex extends Exchange {
         //                 $price => '123.9',
         //                 $number => '0.010688626311541565',
         //                 total_price => '1.324320799999999903',
-        //                 $fee => '0.000021377252623083'
+        //                 fee => '0.000021377252623083'
         //             }
         //         )
         //     }
@@ -730,82 +730,32 @@ class aofex extends Exchange {
                 $amount = $number;
             }
         }
-        $fee = null;
-        $trades = null;
-        $filled = null;
-        $feeCost = null;
-        $remaining = null;
-        $lastTradeTimestamp = null;
         // all orders except new orders and canceled orders
-        if (($orderStatus !== '1') && ($orderStatus !== '6')) {
-            $rawTrades = $this->safe_value($order, 'trades');
-            if ($rawTrades !== null) {
-                for ($i = 0; $i < count($rawTrades); $i++) {
-                    $rawTrades[$i]['direction'] = $side;
-                }
-                $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-                    'symbol' => $market['symbol'],
-                    'order' => $id,
-                    'side' => $side,
-                    'type' => $type,
-                ));
-                $tradesLength = is_array($trades) ? count($trades) : 0;
-                if ($tradesLength > 0) {
-                    $firstTrade = $trades[0];
-                    $feeCost = $firstTrade['fee']['cost'];
-                    $lastTradeTimestamp = $firstTrade['timestamp'];
-                    $filled = $firstTrade['amount'];
-                    $cost = $firstTrade['cost'];
-                    for ($i = 1; $i < count($trades); $i++) {
-                        $trade = $trades[$i];
-                        $feeCost = $this->sum($feeCost, $trade['fee']['cost']);
-                        $filled = $this->sum($filled, $trade['amount']);
-                        $cost = $this->sum($cost, $trade['cost']);
-                        $lastTradeTimestamp = max ($lastTradeTimestamp, $trade['timestamp']);
-                    }
-                    if ($amount !== null) {
-                        $filled = min ($amount, $filled);
-                    }
-                    if ($filled > 0) {
-                        $average = $cost / $filled;
-                    }
-                }
-                if ($feeCost !== null) {
-                    $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
-                    $fee = array(
-                        'cost' => $feeCost,
-                        'currency' => $feeCurrencyCode,
-                    );
-                }
-            }
-        } else {
-            $filled = 0;
-            $cost = 0;
+        $rawTrades = $this->safe_value($order, 'trades', array());
+        for ($i = 0; $i < count($rawTrades); $i++) {
+            $rawTrades[$i]['direction'] = $side;
         }
-        if ($cost === null) {
-            if ($type === 'limit') {
-                $cost = $totalPrice;
-            } else if ($side === 'buy') {
-                $cost = $number;
-            }
+        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
+            'symbol' => $market['symbol'],
+            'order' => $id,
+            'type' => $type,
+        ));
+        if ($type === 'limit') {
+            $cost = $totalPrice;
+        } else if ($side === 'buy') {
+            $cost = $number;
         }
-        if ($filled === null) {
-            if (($type === 'limit') && ($orderStatus === '3')) {
-                $filled = $amount;
-            }
+        $filled = null;
+        if (($type === 'limit') && ($orderStatus === '3')) {
+            $filled = $amount;
         }
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = max ($amount - $filled, 0);
-            }
-        }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $market['symbol'],
             'type' => $type,
@@ -818,10 +768,10 @@ class aofex extends Exchange {
             'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'trades' => $trades,
-            'fee' => $fee,
-        );
+            'fee' => null,
+        ));
     }
 
     public function fetch_closed_order($id, $symbol = null, $params = array ()) {

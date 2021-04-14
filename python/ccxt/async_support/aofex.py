@@ -708,68 +708,29 @@ class aofex(Exchange):
                 amount = self.safe_number(order, 'deal_number')
             else:
                 amount = number
-        fee = None
-        trades = None
-        filled = None
-        feeCost = None
-        remaining = None
-        lastTradeTimestamp = None
         # all orders except new orders and canceled orders
-        if (orderStatus != '1') and (orderStatus != '6'):
-            rawTrades = self.safe_value(order, 'trades')
-            if rawTrades is not None:
-                for i in range(0, len(rawTrades)):
-                    rawTrades[i]['direction'] = side
-                trades = self.parse_trades(rawTrades, market, None, None, {
-                    'symbol': market['symbol'],
-                    'order': id,
-                    'side': side,
-                    'type': type,
-                })
-                tradesLength = len(trades)
-                if tradesLength > 0:
-                    firstTrade = trades[0]
-                    feeCost = firstTrade['fee']['cost']
-                    lastTradeTimestamp = firstTrade['timestamp']
-                    filled = firstTrade['amount']
-                    cost = firstTrade['cost']
-                    for i in range(1, len(trades)):
-                        trade = trades[i]
-                        feeCost = self.sum(feeCost, trade['fee']['cost'])
-                        filled = self.sum(filled, trade['amount'])
-                        cost = self.sum(cost, trade['cost'])
-                        lastTradeTimestamp = max(lastTradeTimestamp, trade['timestamp'])
-                    if amount is not None:
-                        filled = min(amount, filled)
-                    if filled > 0:
-                        average = cost / filled
-                if feeCost is not None:
-                    feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
-                    fee = {
-                        'cost': feeCost,
-                        'currency': feeCurrencyCode,
-                    }
-        else:
-            filled = 0
-            cost = 0
-        if cost is None:
-            if type == 'limit':
-                cost = totalPrice
-            elif side == 'buy':
-                cost = number
-        if filled is None:
-            if (type == 'limit') and (orderStatus == '3'):
-                filled = amount
-        if filled is not None:
-            if amount is not None:
-                remaining = max(amount - filled, 0)
-        return {
+        rawTrades = self.safe_value(order, 'trades', [])
+        for i in range(0, len(rawTrades)):
+            rawTrades[i]['direction'] = side
+        trades = self.parse_trades(rawTrades, market, None, None, {
+            'symbol': market['symbol'],
+            'order': id,
+            'type': type,
+        })
+        if type == 'limit':
+            cost = totalPrice
+        elif side == 'buy':
+            cost = number
+        filled = None
+        if (type == 'limit') and (orderStatus == '3'):
+            filled = amount
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': market['symbol'],
             'type': type,
@@ -782,10 +743,10 @@ class aofex(Exchange):
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'trades': trades,
-            'fee': fee,
-        }
+            'fee': None,
+        })
 
     async def fetch_closed_order(self, id, symbol=None, params={}):
         await self.load_markets()
