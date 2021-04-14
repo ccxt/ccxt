@@ -747,8 +747,6 @@ Each market is an associative array (aka dictionary) with the following keys:
             'min': 0.01,     // order amount should be > min
             'max': 1000,     // order amount should be < max
         },
-        'price':    { ... }, // same min/max limits for the price of the order
-        'cost':     { ... }, // same limits for order cost = price * amount
         'withdraw': { ... }, // withdrawal limits
     },
     'info': { ... }, // the original unparsed currency info from the exchange
@@ -767,7 +765,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
     - If `exchange.precisionMode` is `DECIMAL_PLACES` then the `currency['precision']` designates the number of decimal digits after the dot.
     - If `exchange.precisionMode` is `SIGNIFICANT_DIGITS` then the `currency['precision']` designates the number of non-zero digits after the dot.
     - When `exchange.precisionMode` is `TICK_SIZE` then the `currency['precision']` designates the smallest possible float fractions.
-- `limits`. The minimums and maximums for prices, amounts (volumes), costs (where cost = price * amount) and withdrawals.
+- `limits`. The minimums and maximums for amounts (volumes) and withdrawals.
 
 ## Precision And Limits
 
