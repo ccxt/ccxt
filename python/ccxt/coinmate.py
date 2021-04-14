@@ -592,20 +592,12 @@ class coinmate(Exchange):
             remaining = self.safe_number(order, 'amount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.parse_order_type(self.safe_string(order, 'orderTradeType'))
-        filled = None
-        cost = None
-        if (amount is not None) and (remaining is not None):
-            filled = max(amount - remaining, 0)
-            if remaining == 0:
-                status = 'closed'
-            if price is not None:
-                cost = filled * price
         average = self.safe_number(order, 'avgPrice')
         marketId = self.safe_string(order, 'currencyPair')
         symbol = self.safe_symbol(marketId, market, '_')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         stopPrice = self.safe_number(order, 'stopPrice')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
@@ -619,15 +611,15 @@ class coinmate(Exchange):
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'trades': None,
             'info': order,
             'fee': None,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
