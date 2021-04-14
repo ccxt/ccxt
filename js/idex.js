@@ -825,24 +825,13 @@ module.exports = class idex extends Exchange {
         const price = this.safeNumber (order, 'price');
         const rawStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (rawStatus);
-        const fee = {
-            'currency': undefined,
-            'cost': undefined,
-        };
-        let lastTrade = undefined;
-        for (let i = 0; i < trades.length; i++) {
-            lastTrade = trades[i];
-            fee['currency'] = lastTrade['fee']['currency'];
-            fee['cost'] = this.sum (fee['cost'], lastTrade['fee']['cost']);
-        }
-        const lastTradeTimestamp = this.safeInteger (lastTrade, 'timestamp');
         return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
@@ -856,7 +845,7 @@ module.exports = class idex extends Exchange {
             'filled': filled,
             'remaining': undefined,
             'status': status,
-            'fee': fee,
+            'fee': undefined,
             'trades': trades,
         });
     }
