@@ -320,11 +320,8 @@ module.exports = class phemex extends ccxt.phemex {
     }
 
     handleDelta (bookside, delta, market = undefined) {
-        if (market !== undefined) {
-            const price = this.fromEp (this.safeFloat (delta, 0), market);
-            const amount = this.fromEv (this.safeFloat (delta, 1), market);
-            bookside.store (price, amount);
-        }
+        const bidAsk = this.parseBidAsk (delta, 0, 1, market);
+        bookside.storeArray (bidAsk);
     }
 
     handleDeltas (bookside, deltas, market = undefined) {
