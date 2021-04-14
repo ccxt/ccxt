@@ -820,6 +820,7 @@ class binance(Exchange, ccxt.binance):
         accountType = subscriptions[0]
         messageHash = accountType + ':balance'
         message = self.safe_value(message, 'a', message)
+        self.balance[accountType]['info'] = message
         balances = self.safe_value(message, 'B', [])
         for i in range(0, len(balances)):
             entry = balances[i]

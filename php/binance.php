@@ -885,6 +885,7 @@ class binance extends \ccxt\async\binance {
         $accountType = $subscriptions[0];
         $messageHash = $accountType . ':balance';
         $message = $this->safe_value($message, 'a', $message);
+        $this->balance[$accountType]['info'] = $message;
         $balances = $this->safe_value($message, 'B', array());
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $balances[$i];
