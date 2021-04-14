@@ -258,8 +258,10 @@ class hitbtc(Exchange):
             # bequant fix
             if id.find('_') >= 0:
                 symbol = id
-            lot = self.safe_number(market, 'quantityIncrement')
-            step = self.safe_number(market, 'tickSize')
+            lotString = self.safe_string(market, 'quantityIncrement')
+            stepString = self.safe_string(market, 'tickSize')
+            lot = self.parse_number(lotString)
+            step = self.parse_number(stepString)
             precision = {
                 'price': step,
                 'amount': lot,
@@ -291,7 +293,7 @@ class hitbtc(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': lot * step,
+                        'min': self.parse_number(Precise.string_mul(lotString, stepString)),
                         'max': None,
                     },
                 },

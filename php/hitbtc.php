@@ -252,8 +252,10 @@ class hitbtc extends Exchange {
             if (mb_strpos($id, '_') !== false) {
                 $symbol = $id;
             }
-            $lot = $this->safe_number($market, 'quantityIncrement');
-            $step = $this->safe_number($market, 'tickSize');
+            $lotString = $this->safe_string($market, 'quantityIncrement');
+            $stepString = $this->safe_string($market, 'tickSize');
+            $lot = $this->parse_number($lotString);
+            $step = $this->parse_number($stepString);
             $precision = array(
                 'price' => $step,
                 'amount' => $lot,
@@ -285,7 +287,7 @@ class hitbtc extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $lot * $step,
+                        'min' => $this->parse_number(Precise::string_mul($lotString, $stepString)),
                         'max' => null,
                     ),
                 ),
