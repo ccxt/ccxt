@@ -803,7 +803,7 @@ class idex extends Exchange {
         //             "time" => 1598873478650,
         //             "makerSide" => "sell",
         //             "sequence" => 5053,
-        //             "$fee" => "0.00080000",
+        //             "fee" => "0.00080000",
         //             "feeAsset" => "DIL",
         //             "gas" => "0.00857497",
         //             "liquidity" => "taker",
@@ -828,24 +828,13 @@ class idex extends Exchange {
         $price = $this->safe_number($order, 'price');
         $rawStatus = $this->safe_string($order, 'status');
         $status = $this->parse_order_status($rawStatus);
-        $fee = array(
-            'currency' => null,
-            'cost' => null,
-        );
-        $lastTrade = null;
-        for ($i = 0; $i < count($trades); $i++) {
-            $lastTrade = $trades[$i];
-            $fee['currency'] = $lastTrade['fee']['currency'];
-            $fee['cost'] = $this->sum($fee['cost'], $lastTrade['fee']['cost']);
-        }
-        $lastTradeTimestamp = $this->safe_integer($lastTrade, 'timestamp');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,
@@ -859,7 +848,7 @@ class idex extends Exchange {
             'filled' => $filled,
             'remaining' => null,
             'status' => $status,
-            'fee' => $fee,
+            'fee' => null,
             'trades' => $trades,
         ));
     }

@@ -789,23 +789,13 @@ class idex(Exchange):
         price = self.safe_number(order, 'price')
         rawStatus = self.safe_string(order, 'status')
         status = self.parse_order_status(rawStatus)
-        fee = {
-            'currency': None,
-            'cost': None,
-        }
-        lastTrade = None
-        for i in range(0, len(trades)):
-            lastTrade = trades[i]
-            fee['currency'] = lastTrade['fee']['currency']
-            fee['cost'] = self.sum(fee['cost'], lastTrade['fee']['cost'])
-        lastTradeTimestamp = self.safe_integer(lastTrade, 'timestamp')
         return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
@@ -819,7 +809,7 @@ class idex(Exchange):
             'filled': filled,
             'remaining': None,
             'status': status,
-            'fee': fee,
+            'fee': None,
             'trades': trades,
         })
 
