@@ -302,10 +302,8 @@ class phemex(Exchange, ccxt.phemex):
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_delta(self, bookside, delta, market=None):
-        if market is not None:
-            price = self.from_ep(self.safe_float(delta, 0), market)
-            amount = self.from_ev(self.safe_float(delta, 1), market)
-            bookside.store(price, amount)
+        bidAsk = self.parse_bid_ask(delta, 0, 1, market)
+        bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas, market=None):
         for i in range(0, len(deltas)):

@@ -322,11 +322,8 @@ class phemex extends \ccxt\async\phemex {
     }
 
     public function handle_delta($bookside, $delta, $market = null) {
-        if ($market !== null) {
-            $price = $this->from_ep($this->safe_float($delta, 0), $market);
-            $amount = $this->from_ev($this->safe_float($delta, 1), $market);
-            $bookside->store ($price, $amount);
-        }
+        $bidAsk = $this->parse_bid_ask($delta, 0, 1, $market);
+        $bookside->storeArray ($bidAsk);
     }
 
     public function handle_deltas($bookside, $deltas, $market = null) {
