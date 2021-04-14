@@ -192,14 +192,6 @@ module.exports = class tidex extends Exchange {
                         'min': undefined,
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'withdrawMinAmount'),
                         'max': undefined,

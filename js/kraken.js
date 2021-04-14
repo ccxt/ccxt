@@ -442,14 +442,6 @@ module.exports = class kraken extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': Math.pow (10, precision),

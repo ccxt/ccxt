@@ -848,14 +848,6 @@ module.exports = class huobipro extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'deposit': {
                         'min': this.safeNumber (currency, 'deposit-min-amount'),
                         'max': Math.pow (10, precision),

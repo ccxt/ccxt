@@ -1002,8 +1002,6 @@ module.exports = class okex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'min_withdrawal'),
                         'max': undefined,

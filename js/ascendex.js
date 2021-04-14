@@ -316,14 +316,6 @@ module.exports = class ascendex extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': undefined,
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minWithdrawalAmt'),
                         'max': undefined,

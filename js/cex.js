@@ -259,14 +259,6 @@ module.exports = class cex extends Exchange {
                         'min': this.safeNumber (currency, 'minimumCurrencyAmount'),
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minimalWithdrawalAmount'),
                         'max': undefined,

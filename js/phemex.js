@@ -714,14 +714,6 @@ module.exports = class phemex extends Exchange {
                         'min': minAmount,
                         'max': maxAmount,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': undefined,

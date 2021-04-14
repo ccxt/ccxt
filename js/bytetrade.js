@@ -204,8 +204,6 @@ module.exports = class bytetrade extends Exchange {
                 'fee': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'deposit': {
                         'min': this.safeNumber (deposit, 'min'),
                         'max': maxDeposit,

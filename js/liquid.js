@@ -249,14 +249,6 @@ module.exports = class liquid extends Exchange {
                         'min': Math.pow (10, -amountPrecision),
                         'max': Math.pow (10, amountPrecision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -pricePrecision),
-                        'max': Math.pow (10, pricePrecision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minimum_withdrawal'),
                         'max': undefined,

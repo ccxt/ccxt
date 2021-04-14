@@ -280,8 +280,6 @@ module.exports = class bitpanda extends Exchange {
                 'precision': this.safeInteger (currency, 'precision'),
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
             };

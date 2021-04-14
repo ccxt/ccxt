@@ -315,14 +315,6 @@ module.exports = class eterbase extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'withdrawalMin'),
                         'max': this.safeNumber (currency, 'withdrawalMax'),

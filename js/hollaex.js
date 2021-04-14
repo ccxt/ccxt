@@ -252,14 +252,6 @@ module.exports = class hollaex extends Exchange {
                         'min': this.safeNumber (currency, 'min'),
                         'max': this.safeNumber (currency, 'max'),
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': this.safeValue (withdrawalLimits, 0),

@@ -371,14 +371,6 @@ module.exports = class xena extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (withdraw, 'minAmount'),
                         'max': undefined,

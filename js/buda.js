@@ -236,14 +236,6 @@ module.exports = class buda extends Exchange {
                         'min': minimum,
                         'max': undefined,
                     },
-                    'price': {
-                        'min': minimum,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'deposit': {
                         'min': parseFloat (currency['deposit_minimum'][0]),
                         'max': undefined,

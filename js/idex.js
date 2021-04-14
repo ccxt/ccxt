@@ -540,8 +540,6 @@ module.exports = class idex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': { 'min': lot, 'max': undefined },
-                    'price': { 'min': lot, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': lot, 'max': undefined },
                 },
             };

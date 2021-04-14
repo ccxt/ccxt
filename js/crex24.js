@@ -300,8 +300,8 @@ module.exports = class crex24 extends Exchange {
                         'max': Math.pow (10, precision),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'cost': {
                         'min': undefined,

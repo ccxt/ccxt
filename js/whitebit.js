@@ -229,14 +229,6 @@ module.exports = class whitebit extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minWithdrawal'),
                         'max': this.safeNumber (currency, 'maxWithdrawal'),
