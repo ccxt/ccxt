@@ -152,13 +152,15 @@ module.exports = class idex extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const basePrecision = this.safeInteger (entry, 'baseAssetPrecision');
-            const quotePrecision = this.safeInteger (entry, 'quoteAssetPrecision');
+            const basePrecisionString = this.safeString (entry, 'baseAssetPrecision');
+            const quotePrecisionString = this.safeString (entry, 'quoteAssetPrecision');
+            const basePrecision = (basePrecisionString === undefined) ? undefined : '1e-' + basePrecisionString;
+            const quotePrecision = (quotePrecisionString === undefined) ? undefined : '1e-' + quotePrecisionString;
             const status = this.safeString (entry, 'status');
             const active = status === 'active';
             const precision = {
-                'amount': basePrecision,
-                'price': quotePrecision,
+                'amount': parseInt (basePrecisionString),
+                'price': parseInt (quotePrecisionString),
             };
             result.push ({
                 'symbol': symbol,
@@ -172,11 +174,11 @@ module.exports = class idex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': this.parseNumber (basePrecision),
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
+                        'min': this.parseNumber (quotePrecision),
                         'max': undefined,
                     },
                     'cost': {
@@ -526,9 +528,10 @@ module.exports = class idex extends Exchange {
             const entry = response[i];
             const name = this.safeString (entry, 'name');
             const currencyId = this.safeString (entry, 'symbol');
-            const precision = this.safeInteger (entry, 'exchangeDecimals');
+            const precisionString = this.safeString (entry, 'exchangeDecimals');
             const code = this.safeCurrencyCode (currencyId);
-            const lot = Math.pow (-10, precision);
+            const precision = (precisionString === undefined) ? undefined : '1e-' + precisionString;
+            const lot = this.parseNumber (precision);
             result[code] = {
                 'id': currencyId,
                 'code': code,
@@ -537,7 +540,7 @@ module.exports = class idex extends Exchange {
                 'name': name,
                 'active': undefined,
                 'fee': undefined,
-                'precision': precision,
+                'precision': parseInt (precisionString),
                 'limits': {
                     'amount': { 'min': lot, 'max': undefined },
                     'price': { 'min': lot, 'max': undefined },
