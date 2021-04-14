@@ -190,12 +190,14 @@ module.exports = class probit extends Exchange {
             const symbol = base + '/' + quote;
             const closed = this.safeValue (market, 'closed', false);
             const active = !closed;
-            const amountPrecision = this.safeInteger (market, 'quantity_precision');
-            const costPrecision = this.safeInteger (market, 'cost_precision');
+            const amountPrecisionString = this.safeString (market, 'quantity_precision', false);
+            const costPrecisionString = this.safeString (market, 'cost_precision', false);
+            const amountPrecision = amountPrecisionString ? '1e-' + amountPrecisionString : undefined;
+            const costPrecision = costPrecisionString ? '1e-' + costPrecisionString : undefined;
             const precision = {
-                'amount': 1 / Math.pow (10, amountPrecision),
+                'amount': this.parseNumber (amounPrecision),
                 'price': this.safeNumber (market, 'price_increment'),
-                'cost': 1 / Math.pow (10, costPrecision),
+                'cost': this.parseNumber (costPrecision),
             };
             const takerFeeRate = this.safeNumber (market, 'taker_fee_rate');
             const makerFeeRate = this.safeNumber (market, 'maker_fee_rate');
