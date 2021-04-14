@@ -258,9 +258,13 @@ module.exports = class bitstamp extends Exchange {
             const symbol = base + '/' + quote;
             const symbolId = baseId + '_' + quoteId;
             const id = this.safeString (market, 'url_symbol');
+            const amountPrecisionString = this.safeString (market, 'base_decimals');
+            const pricePrecisionString = this.safeString (market, 'counter_decimals');
+            const amountLimit = (amountPrecisionString === undefined) ? undefined : '1e-' + amountPrecisionString;
+            const priceLimit = (pricePrecisionString === undefined) ? undefined : '1e-' + pricePrecisionString;
             const precision = {
-                'amount': this.safeInteger (market, 'base_decimals'),
-                'price': this.safeInteger (market, 'counter_decimals'),
+                'amount': parseInt (amountPrecisionString),
+                'price': parseInt (pricePrecisionString),
             };
             const minimumOrder = this.safeString (market, 'minimum_order');
             const parts = minimumOrder.split (' ');
@@ -281,15 +285,15 @@ module.exports = class bitstamp extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': this.parseNumber (amountLimit),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': this.parseNumber (priceLimit),
                         'max': undefined,
                     },
                     'cost': {
-                        'min': parseFloat (cost),
+                        'min': this.parseNumber (cost),
                         'max': undefined,
                     },
                 },
