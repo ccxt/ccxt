@@ -123,6 +123,8 @@ class binance extends Exchange {
                         // these endpoints require $this->apiKey . $this->secret
                         'asset/assetDividend',
                         'asset/transfer',
+                        'asset/assetDetail',
+                        'asset/tradeFee',
                         'margin/loan',
                         'margin/repay',
                         'margin/account',
@@ -2810,34 +2812,35 @@ class binance extends Exchange {
     }
 
     public function fetch_funding_fees($codes = null, $params = array ()) {
-        $response = $this->wapiGetAssetDetail ($params);
+        $response = $this->sapiGetAssetAssetDetail ($params);
         //
         //     {
-        //         "success" => true,
-        //         "assetDetail" => {
-        //             "CTR" => array(
-        //                 "minWithdrawAmount" => "70.00000000", //min withdraw amount
-        //                 "depositStatus" => false,//deposit status
-        //                 "withdrawFee" => 35, // withdraw fee
-        //                 "withdrawStatus" => true, //withdraw status
-        //                 "depositTip" => "Delisted, Deposit Suspended" //reason
-        //             ),
-        //             "SKY" => {
-        //                 "minWithdrawAmount" => "0.02000000",
-        //                 "depositStatus" => true,
-        //                 "withdrawFee" => 0.01,
-        //                 "withdrawStatus" => true
-        //             }
-        //         }
+        //       "VRAB" => array(
+        //         "withdrawFee" => "100",
+        //         "minWithdrawAmount" => "200",
+        //         "withdrawStatus" => true,
+        //         "depositStatus" => true
+        //       ),
+        //       "NZD" => array(
+        //         "withdrawFee" => "0",
+        //         "minWithdrawAmount" => "0",
+        //         "withdrawStatus" => false,
+        //         "depositStatus" => false
+        //       ),
+        //       "AKRO" => array(
+        //         "withdrawFee" => "313",
+        //         "minWithdrawAmount" => "626",
+        //         "withdrawStatus" => true,
+        //         "depositStatus" => true
+        //       ),
         //     }
         //
-        $detail = $this->safe_value($response, 'assetDetail', array());
-        $ids = is_array($detail) ? array_keys($detail) : array();
+        $ids = is_array($response) ? array_keys($response) : array();
         $withdrawFees = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $code = $this->safe_currency_code($id);
-            $withdrawFees[$code] = $this->safe_number($detail[$id], 'withdrawFee');
+            $withdrawFees[$code] = $this->safe_number($response[$id], 'withdrawFee');
         }
         return array(
             'withdraw' => $withdrawFees,
@@ -2875,8 +2878,8 @@ class binance extends Exchange {
         //
         //     {
         //         "$symbol" => "ADABNB",
-        //         "maker" => 0.9000,
-        //         "taker" => 1.0000
+        //         "makerCommission" => 0.001,
+        //         "takerCommission" => 0.001
         //     }
         //
         $marketId = $this->safe_string($fee, 'symbol');
@@ -2884,8 +2887,8 @@ class binance extends Exchange {
         return array(
             'info' => $fee,
             'symbol' => $symbol,
-            'maker' => $this->safe_number($fee, 'maker'),
-            'taker' => $this->safe_number($fee, 'taker'),
+            'maker' => $this->safe_number($fee, 'makerCommission'),
+            'taker' => $this->safe_number($fee, 'takerCommission'),
         );
     }
 
@@ -2895,18 +2898,15 @@ class binance extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->wapiGetTradeFee (array_merge($request, $params));
+        $response = $this->sapiGetAssetTradeFee (array_merge($request, $params));
         //
-        //     {
-        //         "$tradeFee" => array(
-        //             {
-        //                 "$symbol" => "ADABNB",
-        //                 "maker" => 0.9000,
-        //                 "taker" => 1.0000
-        //             }
-        //         ),
-        //         "success" => true
-        //     }
+        //     array(
+        //       {
+        //         "$symbol" => "BTCUSDT",
+        //         "makerCommission" => "0.001",
+        //         "takerCommission" => "0.001"
+        //       }
+        //     )
         //
         $tradeFee = $this->safe_value($response, 'tradeFee', array());
         $first = $this->safe_value($tradeFee, 0, array());
@@ -2915,23 +2915,24 @@ class binance extends Exchange {
 
     public function fetch_trading_fees($params = array ()) {
         $this->load_markets();
-        $response = $this->wapiGetTradeFee ($params);
+        $response = $this->sapiGetAssetTradeFee ($params);
         //
-        //     {
-        //         "$tradeFee" => array(
-        //             {
-        //                 "$symbol" => "ADABNB",
-        //                 "maker" => 0.9000,
-        //                 "taker" => 1.0000
-        //             }
-        //         ),
-        //         "success" => true
-        //     }
+        //    array(
+        //       array(
+        //         "$symbol" => "ZRXBNB",
+        //         "makerCommission" => "0.001",
+        //         "takerCommission" => "0.001"
+        //       ),
+        //       array(
+        //         "$symbol" => "ZRXBTC",
+        //         "makerCommission" => "0.001",
+        //         "takerCommission" => "0.001"
+        //       ),
+        //    )
         //
-        $tradeFee = $this->safe_value($response, 'tradeFee', array());
         $result = array();
-        for ($i = 0; $i < count($tradeFee); $i++) {
-            $fee = $this->parse_trading_fee($tradeFee[$i]);
+        for ($i = 0; $i < count($response); $i++) {
+            $fee = $this->parse_trading_fee($response[$i]);
             $symbol = $fee['symbol'];
             $result[$symbol] = $fee;
         }

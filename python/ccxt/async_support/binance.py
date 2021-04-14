@@ -136,6 +136,8 @@ class binance(Exchange):
                         # these endpoints require self.apiKey + self.secret
                         'asset/assetDividend',
                         'asset/transfer',
+                        'asset/assetDetail',
+                        'asset/tradeFee',
                         'margin/loan',
                         'margin/repay',
                         'margin/account',
@@ -2674,34 +2676,35 @@ class binance(Exchange):
         }
 
     async def fetch_funding_fees(self, codes=None, params={}):
-        response = await self.wapiGetAssetDetail(params)
+        response = await self.sapiGetAssetAssetDetail(params)
         #
         #     {
-        #         "success": True,
-        #         "assetDetail": {
-        #             "CTR": {
-        #                 "minWithdrawAmount": "70.00000000",  #min withdraw amount
-        #                 "depositStatus": False,//deposit status
-        #                 "withdrawFee": 35,  # withdraw fee
-        #                 "withdrawStatus": True,  #withdraw status
-        #                 "depositTip": "Delisted, Deposit Suspended"  #reason
-        #             },
-        #             "SKY": {
-        #                 "minWithdrawAmount": "0.02000000",
-        #                 "depositStatus": True,
-        #                 "withdrawFee": 0.01,
-        #                 "withdrawStatus": True
-        #             }
-        #         }
+        #       "VRAB": {
+        #         "withdrawFee": "100",
+        #         "minWithdrawAmount": "200",
+        #         "withdrawStatus": True,
+        #         "depositStatus": True
+        #       },
+        #       "NZD": {
+        #         "withdrawFee": "0",
+        #         "minWithdrawAmount": "0",
+        #         "withdrawStatus": False,
+        #         "depositStatus": False
+        #       },
+        #       "AKRO": {
+        #         "withdrawFee": "313",
+        #         "minWithdrawAmount": "626",
+        #         "withdrawStatus": True,
+        #         "depositStatus": True
+        #       },
         #     }
         #
-        detail = self.safe_value(response, 'assetDetail', {})
-        ids = list(detail.keys())
+        ids = list(response.keys())
         withdrawFees = {}
         for i in range(0, len(ids)):
             id = ids[i]
             code = self.safe_currency_code(id)
-            withdrawFees[code] = self.safe_number(detail[id], 'withdrawFee')
+            withdrawFees[code] = self.safe_number(response[id], 'withdrawFee')
         return {
             'withdraw': withdrawFees,
             'deposit': {},
@@ -2735,8 +2738,8 @@ class binance(Exchange):
         #
         #     {
         #         "symbol": "ADABNB",
-        #         "maker": 0.9000,
-        #         "taker": 1.0000
+        #         "makerCommission": 0.001,
+        #         "takerCommission": 0.001
         #     }
         #
         marketId = self.safe_string(fee, 'symbol')
@@ -2744,8 +2747,8 @@ class binance(Exchange):
         return {
             'info': fee,
             'symbol': symbol,
-            'maker': self.safe_number(fee, 'maker'),
-            'taker': self.safe_number(fee, 'taker'),
+            'maker': self.safe_number(fee, 'makerCommission'),
+            'taker': self.safe_number(fee, 'takerCommission'),
         }
 
     async def fetch_trading_fee(self, symbol, params={}):
@@ -2754,18 +2757,15 @@ class binance(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = await self.wapiGetTradeFee(self.extend(request, params))
+        response = await self.sapiGetAssetTradeFee(self.extend(request, params))
         #
-        #     {
-        #         "tradeFee": [
-        #             {
-        #                 "symbol": "ADABNB",
-        #                 "maker": 0.9000,
-        #                 "taker": 1.0000
-        #             }
-        #         ],
-        #         "success": True
-        #     }
+        #     [
+        #       {
+        #         "symbol": "BTCUSDT",
+        #         "makerCommission": "0.001",
+        #         "takerCommission": "0.001"
+        #       }
+        #     ]
         #
         tradeFee = self.safe_value(response, 'tradeFee', [])
         first = self.safe_value(tradeFee, 0, {})
@@ -2773,23 +2773,24 @@ class binance(Exchange):
 
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()
-        response = await self.wapiGetTradeFee(params)
+        response = await self.sapiGetAssetTradeFee(params)
         #
-        #     {
-        #         "tradeFee": [
-        #             {
-        #                 "symbol": "ADABNB",
-        #                 "maker": 0.9000,
-        #                 "taker": 1.0000
-        #             }
-        #         ],
-        #         "success": True
-        #     }
+        #    [
+        #       {
+        #         "symbol": "ZRXBNB",
+        #         "makerCommission": "0.001",
+        #         "takerCommission": "0.001"
+        #       },
+        #       {
+        #         "symbol": "ZRXBTC",
+        #         "makerCommission": "0.001",
+        #         "takerCommission": "0.001"
+        #       },
+        #    ]
         #
-        tradeFee = self.safe_value(response, 'tradeFee', [])
         result = {}
-        for i in range(0, len(tradeFee)):
-            fee = self.parse_trading_fee(tradeFee[i])
+        for i in range(0, len(response)):
+            fee = self.parse_trading_fee(response[i])
             symbol = fee['symbol']
             result[symbol] = fee
         return result
