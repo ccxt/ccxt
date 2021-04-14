@@ -656,26 +656,7 @@ class kucoin(Exchange):
         #    }
         #
         data = self.safe_value(response, 'data', {})
-        timestamp = self.milliseconds()
-        order = {
-            'id': self.safe_string(data, 'orderId'),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': None,
-            'filled': None,
-            'remaining': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'fee': None,
-            'status': 'open',
-            'clientOid': clientOid,
-            'info': data,
-        }
-        if not self.safe_value(params, 'quoteAmount'):
-            order['amount'] = amount
-        return order
+        return await self.fetch_order(self.safe_string(data, 'orderId'))
 
     async def cancel_order(self, id, symbol=None, params={}):
         request = {'orderId': id}
@@ -824,6 +805,7 @@ class kucoin(Exchange):
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'dealSize')
         cost = self.safe_float(order, 'dealFunds')
+        clientOrderId = self.safeString(order, 'clientOid')
         remaining = amount - filled
         # bool
         status = 'open' if order['isActive'] else 'closed'
@@ -851,6 +833,7 @@ class kucoin(Exchange):
             'datetime': datetime,
             'fee': fee,
             'status': status,
+            'clientOid': clientOrderId,
             'info': order,
         }
 

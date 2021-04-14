@@ -662,7 +662,7 @@ class kucoin extends Exchange {
             $request['size'] = $this->amount_to_precision($symbol, $amount);
         } else {
             if ($this->safe_value($params, 'quoteAmount')) {
-                // used to create market $order by quote $amount - https://github.com/ccxt/ccxt/issues/4876
+                // used to create market order by quote $amount - https://github.com/ccxt/ccxt/issues/4876
                 $request['funds'] = $this->amount_to_precision($symbol, $amount);
             } else {
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
@@ -678,27 +678,7 @@ class kucoin extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
-        $timestamp = $this->milliseconds ();
-        $order = array(
-            'id' => $this->safe_string($data, 'orderId'),
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'price' => $price,
-            'cost' => null,
-            'filled' => null,
-            'remaining' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'fee' => null,
-            'status' => 'open',
-            'clientOid' => $clientOid,
-            'info' => $data,
-        );
-        if (!$this->safe_value($params, 'quoteAmount')) {
-            $order['amount'] = $amount;
-        }
-        return $order;
+        return $this->fetch_order($this->safe_string($data, 'orderId'));
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -861,6 +841,7 @@ class kucoin extends Exchange {
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'dealSize');
         $cost = $this->safe_float($order, 'dealFunds');
+        $clientOrderId = $this->safeString($order, 'clientOid');
         $remaining = $amount - $filled;
         // bool
         $status = $order['isActive'] ? 'open' : 'closed';
@@ -892,6 +873,7 @@ class kucoin extends Exchange {
             'datetime' => $datetime,
             'fee' => $fee,
             'status' => $status,
+            'clientOid' => $clientOrderId,
             'info' => $order,
         );
     }

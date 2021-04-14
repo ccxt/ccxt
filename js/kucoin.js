@@ -675,27 +675,7 @@ module.exports = class kucoin extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data', {});
-        const timestamp = this.milliseconds ();
-        const order = {
-            'id': this.safeString (data, 'orderId'),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fee': undefined,
-            'status': 'open',
-            'clientOid': clientOid,
-            'info': data,
-        };
-        if (!this.safeValue (params, 'quoteAmount')) {
-            order['amount'] = amount;
-        }
-        return order;
+        return await this.fetchOrder (this.safeString (data, 'orderId'));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -858,6 +838,7 @@ module.exports = class kucoin extends Exchange {
         const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'dealSize');
         const cost = this.safeFloat (order, 'dealFunds');
+        const clientOrderId = this.safeString(order, 'clientOid');
         const remaining = amount - filled;
         // bool
         let status = order['isActive'] ? 'open' : 'closed';
@@ -889,6 +870,7 @@ module.exports = class kucoin extends Exchange {
             'datetime': datetime,
             'fee': fee,
             'status': status,
+            'clientOid': clientOrderId,
             'info': order,
         };
     }
