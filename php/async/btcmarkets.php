@@ -849,23 +849,13 @@ class btcmarkets extends Exchange {
         $price = $this->safe_number($order, 'price');
         $amount = $this->safe_number($order, 'amount');
         $remaining = $this->safe_number($order, 'openAmount');
-        $filled = null;
-        if (($amount !== null) && ($remaining !== null)) {
-            $filled = max (0, $amount - $remaining);
-        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $cost = null;
-        if ($price !== null) {
-            if ($filled !== null) {
-                $cost = $price * $filled;
-            }
-        }
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_number($order, 'triggerPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -879,15 +869,15 @@ class btcmarkets extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
-            'cost' => $cost,
+            'cost' => null,
             'amount' => $amount,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'average' => null,
             'status' => $status,
             'trades' => null,
             'fee' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

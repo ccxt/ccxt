@@ -798,20 +798,13 @@ class btcmarkets(Exchange):
         price = self.safe_number(order, 'price')
         amount = self.safe_number(order, 'amount')
         remaining = self.safe_number(order, 'openAmount')
-        filled = None
-        if (amount is not None) and (remaining is not None):
-            filled = max(0, amount - remaining)
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        cost = None
-        if price is not None:
-            if filled is not None:
-                cost = price * filled
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_value(order, 'postOnly')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -825,15 +818,15 @@ class btcmarkets(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'average': None,
             'status': status,
             'trades': None,
             'fee': None,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
