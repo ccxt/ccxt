@@ -30,7 +30,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         if ($size) {
             $this->index->put($price, $size);
         } else {
-            $this->index->remove($price);
+            $this->index->remove($price, null);
         }
     }
 
