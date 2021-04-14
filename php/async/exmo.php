@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\NotSupported;
+use \ccxt\Precise;
 
 class exmo extends Exchange {
 
@@ -659,8 +660,10 @@ class exmo extends Exchange {
             list($baseId, $quoteId) = explode('/', $symbol);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $taker = $this->safe_number($market, 'commission_taker_percent');
-            $maker = $this->safe_number($market, 'commission_maker_percent');
+            $takerString = $this->safe_string($market, 'commission_taker_percent');
+            $makerString = $this->safe_string($market, 'commission_maker_percent');
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -669,8 +672,8 @@ class exmo extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
-                'taker' => $taker / 100,
-                'maker' => $maker / 100,
+                'taker' => $taker,
+                'maker' => $maker,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($market, 'min_quantity'),

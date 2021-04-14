@@ -24,6 +24,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class exmo(Exchange):
@@ -656,8 +657,10 @@ class exmo(Exchange):
             baseId, quoteId = symbol.split('/')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            taker = self.safe_number(market, 'commission_taker_percent')
-            maker = self.safe_number(market, 'commission_maker_percent')
+            takerString = self.safe_string(market, 'commission_taker_percent')
+            makerString = self.safe_string(market, 'commission_maker_percent')
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -666,8 +669,8 @@ class exmo(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'taker': taker / 100,
-                'maker': maker / 100,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': self.safe_number(market, 'min_quantity'),
