@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
@@ -162,13 +161,15 @@ class idex(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            basePrecision = self.safe_integer(entry, 'baseAssetPrecision')
-            quotePrecision = self.safe_integer(entry, 'quoteAssetPrecision')
+            basePrecisionString = self.safe_string(entry, 'baseAssetPrecision')
+            quotePrecisionString = self.safe_string(entry, 'quoteAssetPrecision')
+            basePrecision = None if (basePrecisionString is None) else '1e-' + basePrecisionString
+            quotePrecision = None if (quotePrecisionString is None) else '1e-' + quotePrecisionString
             status = self.safe_string(entry, 'status')
             active = status == 'active'
             precision = {
-                'amount': basePrecision,
-                'price': quotePrecision,
+                'amount': int(basePrecisionString),
+                'price': int(quotePrecisionString),
             }
             result.append({
                 'symbol': symbol,
@@ -182,11 +183,11 @@ class idex(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': self.parse_number(basePrecision),
                         'max': None,
                     },
                     'price': {
-                        'min': None,
+                        'min': self.parse_number(quotePrecision),
                         'max': None,
                     },
                     'cost': {
@@ -514,9 +515,10 @@ class idex(Exchange):
             entry = response[i]
             name = self.safe_string(entry, 'name')
             currencyId = self.safe_string(entry, 'symbol')
-            precision = self.safe_integer(entry, 'exchangeDecimals')
+            precisionString = self.safe_string(entry, 'exchangeDecimals')
             code = self.safe_currency_code(currencyId)
-            lot = math.pow(-10, precision)
+            precision = None if (precisionString is None) else '1e-' + precisionString
+            lot = self.parse_number(precision)
             result[code] = {
                 'id': currencyId,
                 'code': code,
@@ -525,7 +527,7 @@ class idex(Exchange):
                 'name': name,
                 'active': None,
                 'fee': None,
-                'precision': precision,
+                'precision': int(precisionString),
                 'limits': {
                     'amount': {'min': lot, 'max': None},
                     'price': {'min': lot, 'max': None},
