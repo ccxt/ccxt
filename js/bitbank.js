@@ -46,6 +46,7 @@ module.exports = class bitbank extends Exchange {
                 'api': {
                     'public': 'https://public.bitbank.cc',
                     'private': 'https://api.bitbank.cc',
+                    'markets': 'https://api.bitbank.cc',
                 },
                 'www': 'https://bitbank.cc/',
                 'doc': 'https://docs.bitbank.cc/',
@@ -77,46 +78,11 @@ module.exports = class bitbank extends Exchange {
                         'user/request_withdrawal',
                     ],
                 },
-            },
-            'markets': {
-                'BAT/JPY': { 'id': 'bat_jpy', 'symbol': 'BAT/JPY', 'base': 'BAT', 'quote': 'JPY', 'baseId': 'bat', 'quoteId': 'jpy' },
-                'BAT/BTC': { 'id': 'bat_btc', 'symbol': 'BAT/BTC', 'base': 'BAT', 'quote': 'BTC', 'baseId': 'bat', 'quoteId': 'btc' },
-                'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bcc', 'quoteId': 'btc' },
-                'BCH/JPY': { 'id': 'bcc_jpy', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bcc', 'quoteId': 'jpy' },
-                'BTC/JPY': { 'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy' },
-                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc' },
-                'ETH/JPY': { 'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy' },
-                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc' },
-                'LTC/JPY': { 'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy' },
-                'MONA/BTC': { 'id': 'mona_btc', 'symbol': 'MONA/BTC', 'base': 'MONA', 'quote': 'BTC', 'baseId': 'mona', 'quoteId': 'btc' },
-                'MONA/JPY': { 'id': 'mona_jpy', 'symbol': 'MONA/JPY', 'base': 'MONA', 'quote': 'JPY', 'baseId': 'mona', 'quoteId': 'jpy' },
-                'QTUM/BTC': { 'id': 'qtum_btc', 'symbol': 'QTUM/BTC', 'base': 'QTUM', 'quote': 'BTC', 'baseId': 'qtum', 'quoteId': 'btc' },
-                'QTUM/JPY': { 'id': 'qtum_jpy', 'symbol': 'QTUM/JPY', 'base': 'QTUM', 'quote': 'JPY', 'baseId': 'qtum', 'quoteId': 'jpy' },
-                'XLM/BTC': { 'id': 'xlm_btc', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'baseId': 'xlm', 'quoteId': 'btc' },
-                'XLM/JPY': { 'id': 'xlm_jpy', 'symbol': 'XLM/JPY', 'base': 'XLM', 'quote': 'JPY', 'baseId': 'xlm', 'quoteId': 'jpy' },
-                'XRP/BTC': { 'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc' },
-                'XRP/JPY': { 'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy' },
-            },
-            'fees': {
-                'trading': {
-                    'maker': -0.02 / 100,
-                    'taker': 0.12 / 100,
+                'markets': {
+                    'get': [
+                        'spot/pairs',
+                    ],
                 },
-                'funding': {
-                    'withdraw': {
-                        // 'JPY': (amount > 30000) ? 756 : 540,
-                        'BTC': 0.001,
-                        'LTC': 0.001,
-                        'XRP': 0.15,
-                        'ETH': 0.0005,
-                        'MONA': 0.001,
-                        'BCC': 0.001,
-                    },
-                },
-            },
-            'precision': {
-                'price': 8,
-                'amount': 8,
             },
             'exceptions': {
                 '20001': AuthenticationError,
@@ -136,6 +102,92 @@ module.exports = class bitbank extends Exchange {
                 '60005': InvalidOrder,
             },
         });
+    }
+
+    async fetchMarkets (params = {}) {
+        const response = await this.marketsGetSpotPairs (params);
+        //
+        //     {
+        //       "success": 1,
+        //       "data": {
+        //         "pairs": [
+        //           {
+        //             "name": "btc_jpy",
+        //             "base_asset": "btc",
+        //             "quote_asset": "jpy",
+        //             "maker_fee_rate_base": "0",
+        //             "taker_fee_rate_base": "0",
+        //             "maker_fee_rate_quote": "-0.0002",
+        //             "taker_fee_rate_quote": "0.0012",
+        //             "unit_amount": "0.0001",
+        //             "limit_max_amount": "1000",
+        //             "market_max_amount": "10",
+        //             "market_allowance_rate": "0.2",
+        //             "price_digits": 0,
+        //             "amount_digits": 4,
+        //             "is_enabled": true,
+        //             "stop_order": false,
+        //             "stop_order_and_cancel": false
+        //           }
+        //         ]
+        //       }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const pairs = this.safeValue (data, 'pairs', []);
+        const result = [];
+        for (let i = 0; i < pairs.length; i++) {
+            const entry = pairs[i];
+            const id = this.safeString (entry, 'name');
+            const baseId = this.safeString (entry, 'base_asset');
+            const quoteId = this.safeString (entry, 'quote_asset');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const maker = this.safeNumber (entry, 'maker_fee_rate_quote');
+            const taker = this.safeNumber (entry, 'taker_fee_rate_quote');
+            const pricePrecisionString = this.safeString (entry, 'price_digits');
+            const priceLimit = (pricePrecisionString === undefined) ? undefined : '1e-' + pricePrecisionString;
+            const precision = {
+                'price': parseInt (pricePrecisionString),
+                'amount': this.safeInteger (entry, 'amount_digits'),
+            };
+            const active = this.safeValue (entry, 'is_enabled');
+            const minAmountString = this.safeString (entry, 'unit_amount');
+            const minCost = Precise.stringMul (minAmountString, priceLimit);
+            const maxAmountString = this.safeString (entry, 'limit_max_amount');
+            const maxPriceString = this.safeString (entry, 'market_max_amount');
+            const maxCost = Precise.stringMul (maxAmountString, maxPriceString);
+            const limits = {
+                'amount': {
+                    'min': this.safeNumber (entry, 'unit_amount'),
+                    'max': this.parseNumber (maxAmountString),
+                },
+                'price': {
+                    'min': this.parseNumber (priceLimit),
+                    'max': this.parseNumber (maxPriceString),
+                },
+                'cost': {
+                    'min': this.parseNumber (minCost),
+                    'max': this.parseNumber (maxCost),
+                },
+            };
+            result.push ({
+                'info': entry,
+                'id': id,
+                'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'base': base,
+                'quote': quote,
+                'precision': precision,
+                'limits': limits,
+                'active': active,
+                'maker': maker,
+                'taker': taker,
+            });
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -506,7 +558,7 @@ module.exports = class bitbank extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/';
-        if (api === 'public') {
+        if ((api === 'public') || (api === 'markets')) {
             url += this.implodeParams (path, params);
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
