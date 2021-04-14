@@ -586,10 +586,6 @@ class buda extends Exchange {
                 $price = $limitPrice;
             }
         }
-        $average = null;
-        if (($cost !== null) && ($filled !== null) && ($filled > 0)) {
-            $average = $this->price_to_precision($symbol, $cost / $filled);
-        }
         $paidFee = $this->safe_value($order, 'paid_fee', array());
         $feeCost = $this->safe_number($paidFee, 0);
         $fee = null;
@@ -601,7 +597,7 @@ class buda extends Exchange {
                 'code' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -616,14 +612,14 @@ class buda extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'average' => $average,
+            'average' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'trades' => null,
             'fee' => $fee,
-        );
+        ));
     }
 
     public function is_fiat($code) {
