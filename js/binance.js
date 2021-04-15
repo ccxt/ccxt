@@ -2458,25 +2458,44 @@ module.exports = class binance extends Exchange {
         const request = {};
         if (code !== undefined) {
             currency = this.currency (code);
-            request['asset'] = currency['id'];
+            request['coin'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
             request['endTime'] = this.sum (since, 7776000000);
         }
-        const response = await this.wapiGetDepositHistory (this.extend (request, params));
-        //
-        //     {     success:    true,
-        //       depositList: [ { insertTime:  1517425007000,
-        //                            amount:  0.3,
-        //                           address: "0x0123456789abcdef",
-        //                        addressTag: "",
-        //                              txId: "0x0123456789abcdef",
-        //                             asset: "ETH",
-        //                            status:  1                                                                    } ] }
-        //
-        return this.parseTransactions (response['depositList'], currency, since, limit);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.sapiGetCapitalDepositHisrec (this.extend (request, params));
+        //     [
+        //       {
+        //         "amount": "0.01844487",
+        //         "coin": "BCH",
+        //         "network": "BCH",
+        //         "status": 1,
+        //         "address": "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
+        //         "addressTag": "",
+        //         "txId": "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
+        //         "insertTime": 1610784980000,
+        //         "transferType": 0,
+        //         "confirmTimes": "2/2"
+        //       },
+        //       {
+        //         "amount": "4500",
+        //         "coin": "USDT",
+        //         "network": "BSC",
+        //         "status": 1,
+        //         "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+        //         "addressTag": "",
+        //         "txId": "Internal transfer 51376627901",
+        //         "insertTime": 1618394381000,
+        //         "transferType": 1,
+        //         "confirmTimes": "1/15"
+        //     }
+        //   ]
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2485,38 +2504,57 @@ module.exports = class binance extends Exchange {
         const request = {};
         if (code !== undefined) {
             currency = this.currency (code);
-            request['asset'] = currency['id'];
+            request['coin'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
             request['endTime'] = this.sum (since, 7776000000);
         }
-        const response = await this.wapiGetWithdrawHistory (this.extend (request, params));
-        //
-        //     { withdrawList: [ {      amount:  14,
-        //                             address: "0x0123456789abcdef...",
-        //                         successTime:  1514489710000,
-        //                      transactionFee:  0.01,
-        //                          addressTag: "",
-        //                                txId: "0x0123456789abcdef...",
-        //                                  id: "0123456789abcdef...",
-        //                               asset: "ETH",
-        //                           applyTime:  1514488724000,
-        //                              status:  6                       },
-        //                       {      amount:  7600,
-        //                             address: "0x0123456789abcdef...",
-        //                         successTime:  1515323226000,
-        //                      transactionFee:  0.01,
-        //                          addressTag: "",
-        //                                txId: "0x0123456789abcdef...",
-        //                                  id: "0123456789abcdef...",
-        //                               asset: "ICN",
-        //                           applyTime:  1515322539000,
-        //                              status:  6                       }  ],
-        //            success:    true                                         }
-        //
-        return this.parseTransactions (response['withdrawList'], currency, since, limit);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
+        //     [
+        //       {
+        //         "id": "69e53ad305124b96b43668ceab158a18",
+        //         "amount": "28.75",
+        //         "transactionFee": "0.25",
+        //         "coin": "XRP",
+        //         "status": 6,
+        //         "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+        //         "addressTag": "101286922",
+        //         "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+        //         "applyTime": "2021-04-15 12:09:16",
+        //         "network": "XRP",
+        //         "transferType": 0
+        //       },
+        //       {
+        //         "id": "9a67628b16ba4988ae20d329333f16bc",
+        //         "amount": "20",
+        //         "transactionFee": "20",
+        //         "coin": "USDT",
+        //         "status": 6,
+        //         "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //         "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
+        //         "applyTime": "2021-04-15 12:06:53",
+        //         "network": "ETH",
+        //         "transferType": 0
+        //       },
+        //       {
+        //         "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
+        //         "amount": "51",
+        //         "transactionFee": "1",
+        //         "coin": "USDT",
+        //         "status": 6,
+        //         "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
+        //         "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
+        //         "applyTime": "2021-04-13 12:46:59",
+        //         "network": "TRX",
+        //         "transferType": 0
+        //       }
+        //     ]
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -2544,28 +2582,32 @@ module.exports = class binance extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         insertTime:  1517425007000,
-        //         amount:  0.3,
-        //         address: "0x0123456789abcdef",
-        //         addressTag: "",
-        //         txId: "0x0123456789abcdef",
-        //         asset: "ETH",
-        //         status:  1
+        //       "amount": "4500",
+        //       "coin": "USDT",
+        //       "network": "BSC",
+        //       "status": 1,
+        //       "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+        //       "addressTag": "",
+        //       "txId": "Internal transfer 51376627901",
+        //       "insertTime": 1618394381000,
+        //       "transferType": 1,
+        //       "confirmTimes": "1/15"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         amount:  14,
-        //         address: "0x0123456789abcdef...",
-        //         successTime:  1514489710000,
-        //         transactionFee:  0.01,
-        //         addressTag: "",
-        //         txId: "0x0123456789abcdef...",
-        //         id: "0123456789abcdef...",
-        //         asset: "ETH",
-        //         applyTime:  1514488724000,
-        //         status:  6
+        //       "id": "69e53ad305124b96b43668ceab158a18",
+        //       "amount": "28.75",
+        //       "transactionFee": "0.25",
+        //       "coin": "XRP",
+        //       "status": 6,
+        //       "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+        //       "addressTag": "101286922",
+        //       "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+        //       "applyTime": "2021-04-15 12:09:16",
+        //       "network": "XRP",
+        //       "transferType": 0
         //     }
         //
         const id = this.safeString (transaction, 'id');
@@ -2580,11 +2622,11 @@ module.exports = class binance extends Exchange {
         if ((txid !== undefined) && (txid.indexOf ('Internal transfer ') >= 0)) {
             txid = txid.slice (18);
         }
-        const currencyId = this.safeString (transaction, 'asset');
+        const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
         const insertTime = this.safeInteger (transaction, 'insertTime');
-        const applyTime = this.safeInteger (transaction, 'applyTime');
+        const applyTime = this.parse8601 (this.safeString (transaction, 'applyTime'));
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
             if ((insertTime !== undefined) && (applyTime === undefined)) {
@@ -2603,6 +2645,8 @@ module.exports = class binance extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         const updated = this.safeInteger (transaction, 'successTime');
+        let internal = this.safeInteger (transaction, 'transferType', false);
+        internal = internal ? true : false;
         return {
             'info': transaction,
             'id': id,
@@ -2620,6 +2664,7 @@ module.exports = class binance extends Exchange {
             'currency': code,
             'status': status,
             'updated': updated,
+            'internal': internal,
             'fee': fee,
         };
     }
