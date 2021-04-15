@@ -2236,9 +2236,8 @@ class Exchange(object):
         shouldParseFees = parseFee or parseFees
         fees = self.safe_value(order, 'fees', [])
         if parseFilled or parseCost or shouldParseFees:
-            trades = self.safe_value(order, 'trades', [])
-            tradesLength = len(trades)
-            if tradesLength:
+            trades = self.safe_value(order, 'trades')
+            if isinstance(trades, list):
                 if parseFilled:
                     filled = 0
                 if parseCost:
