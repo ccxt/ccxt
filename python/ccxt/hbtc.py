@@ -277,6 +277,9 @@ class hbtc(Exchange):
                     'method': 'quoteGetTicker24hr',
                 },
             },
+            'commonCurrencies': {
+                'MIS': 'Themis Protocol',
+            },
         })
 
     def fetch_time(self, params={}):

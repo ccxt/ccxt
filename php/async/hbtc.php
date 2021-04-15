@@ -263,6 +263,9 @@ class hbtc extends Exchange {
                     'method' => 'quoteGetTicker24hr',
                 ),
             ),
+            'commonCurrencies' => array(
+                'MIS' => 'Themis Protocol',
+            ),
         ));
     }
 
