@@ -149,6 +149,7 @@ module.exports = class mercado extends Exchange {
                 'amount': 8,
                 'price': 5,
             };
+            const priceLimit = '1e-5';
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -165,7 +166,7 @@ module.exports = class mercado extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': 1 / Math.pow (10, precision['price']),
+                        'min': this.parseNumber (priceLimit),
                         'max': undefined,
                     },
                     'cost': {
