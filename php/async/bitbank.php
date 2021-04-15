@@ -49,6 +49,7 @@ class bitbank extends Exchange {
                 'api' => array(
                     'public' => 'https://public.bitbank.cc',
                     'private' => 'https://api.bitbank.cc',
+                    'markets' => 'https://api.bitbank.cc',
                 ),
                 'www' => 'https://bitbank.cc/',
                 'doc' => 'https://docs.bitbank.cc/',
@@ -80,46 +81,11 @@ class bitbank extends Exchange {
                         'user/request_withdrawal',
                     ),
                 ),
-            ),
-            'markets' => array(
-                'BAT/JPY' => array( 'id' => 'bat_jpy', 'symbol' => 'BAT/JPY', 'base' => 'BAT', 'quote' => 'JPY', 'baseId' => 'bat', 'quoteId' => 'jpy' ),
-                'BAT/BTC' => array( 'id' => 'bat_btc', 'symbol' => 'BAT/BTC', 'base' => 'BAT', 'quote' => 'BTC', 'baseId' => 'bat', 'quoteId' => 'btc' ),
-                'BCH/BTC' => array( 'id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bcc', 'quoteId' => 'btc' ),
-                'BCH/JPY' => array( 'id' => 'bcc_jpy', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bcc', 'quoteId' => 'jpy' ),
-                'BTC/JPY' => array( 'id' => 'btc_jpy', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy' ),
-                'ETH/BTC' => array( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc' ),
-                'ETH/JPY' => array( 'id' => 'eth_jpy', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy' ),
-                'LTC/BTC' => array( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc' ),
-                'LTC/JPY' => array( 'id' => 'ltc_jpy', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy' ),
-                'MONA/BTC' => array( 'id' => 'mona_btc', 'symbol' => 'MONA/BTC', 'base' => 'MONA', 'quote' => 'BTC', 'baseId' => 'mona', 'quoteId' => 'btc' ),
-                'MONA/JPY' => array( 'id' => 'mona_jpy', 'symbol' => 'MONA/JPY', 'base' => 'MONA', 'quote' => 'JPY', 'baseId' => 'mona', 'quoteId' => 'jpy' ),
-                'QTUM/BTC' => array( 'id' => 'qtum_btc', 'symbol' => 'QTUM/BTC', 'base' => 'QTUM', 'quote' => 'BTC', 'baseId' => 'qtum', 'quoteId' => 'btc' ),
-                'QTUM/JPY' => array( 'id' => 'qtum_jpy', 'symbol' => 'QTUM/JPY', 'base' => 'QTUM', 'quote' => 'JPY', 'baseId' => 'qtum', 'quoteId' => 'jpy' ),
-                'XLM/BTC' => array( 'id' => 'xlm_btc', 'symbol' => 'XLM/BTC', 'base' => 'XLM', 'quote' => 'BTC', 'baseId' => 'xlm', 'quoteId' => 'btc' ),
-                'XLM/JPY' => array( 'id' => 'xlm_jpy', 'symbol' => 'XLM/JPY', 'base' => 'XLM', 'quote' => 'JPY', 'baseId' => 'xlm', 'quoteId' => 'jpy' ),
-                'XRP/BTC' => array( 'id' => 'xrp_btc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'baseId' => 'xrp', 'quoteId' => 'btc' ),
-                'XRP/JPY' => array( 'id' => 'xrp_jpy', 'symbol' => 'XRP/JPY', 'base' => 'XRP', 'quote' => 'JPY', 'baseId' => 'xrp', 'quoteId' => 'jpy' ),
-            ),
-            'fees' => array(
-                'trading' => array(
-                    'maker' => -0.02 / 100,
-                    'taker' => 0.12 / 100,
-                ),
-                'funding' => array(
-                    'withdraw' => array(
-                        // 'JPY' => (amount > 30000) ? 756 : 540,
-                        'BTC' => 0.001,
-                        'LTC' => 0.001,
-                        'XRP' => 0.15,
-                        'ETH' => 0.0005,
-                        'MONA' => 0.001,
-                        'BCC' => 0.001,
+                'markets' => array(
+                    'get' => array(
+                        'spot/pairs',
                     ),
                 ),
-            ),
-            'precision' => array(
-                'price' => 8,
-                'amount' => 8,
             ),
             'exceptions' => array(
                 '20001' => '\\ccxt\\AuthenticationError',
@@ -139,6 +105,89 @@ class bitbank extends Exchange {
                 '60005' => '\\ccxt\\InvalidOrder',
             ),
         ));
+    }
+
+    public function fetch_markets($params = array ()) {
+        $response = yield $this->marketsGetSpotPairs ($params);
+        //
+        //     {
+        //       "success" => 1,
+        //       "$data" => {
+        //         "$pairs" => array(
+        //           {
+        //             "name" => "btc_jpy",
+        //             "base_asset" => "btc",
+        //             "quote_asset" => "jpy",
+        //             "maker_fee_rate_base" => "0",
+        //             "taker_fee_rate_base" => "0",
+        //             "maker_fee_rate_quote" => "-0.0002",
+        //             "taker_fee_rate_quote" => "0.0012",
+        //             "unit_amount" => "0.0001",
+        //             "limit_max_amount" => "1000",
+        //             "market_max_amount" => "10",
+        //             "market_allowance_rate" => "0.2",
+        //             "price_digits" => 0,
+        //             "amount_digits" => 4,
+        //             "is_enabled" => true,
+        //             "stop_order" => false,
+        //             "stop_order_and_cancel" => false
+        //           }
+        //         )
+        //       }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $pairs = $this->safe_value($data, 'pairs', array());
+        $result = array();
+        for ($i = 0; $i < count($pairs); $i++) {
+            $entry = $pairs[$i];
+            $id = $this->safe_string($entry, 'name');
+            $baseId = $this->safe_string($entry, 'base_asset');
+            $quoteId = $this->safe_string($entry, 'quote_asset');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $maker = $this->safe_number($entry, 'maker_fee_rate_quote');
+            $taker = $this->safe_number($entry, 'taker_fee_rate_quote');
+            $pricePrecisionString = $this->safe_string($entry, 'price_digits');
+            $priceLimit = ($pricePrecisionString === null) ? null : '1e-' . $pricePrecisionString;
+            $precision = array(
+                'price' => intval($pricePrecisionString),
+                'amount' => $this->safe_integer($entry, 'amount_digits'),
+            );
+            $active = $this->safe_value($entry, 'is_enabled');
+            $minAmountString = $this->safe_string($entry, 'unit_amount');
+            $minCost = Precise::string_mul($minAmountString, $priceLimit);
+            $limits = array(
+                'amount' => array(
+                    'min' => $this->safe_number($entry, 'unit_amount'),
+                    'max' => $this->safe_number($entry, 'limit_max_amount'),
+                ),
+                'price' => array(
+                    'min' => $this->parse_number($priceLimit),
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => $this->parse_number($minCost),
+                    'max' => null,
+                ),
+            );
+            $result[] = array(
+                'info' => $entry,
+                'id' => $id,
+                'symbol' => $symbol,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'base' => $base,
+                'quote' => $quote,
+                'precision' => $precision,
+                'limits' => $limits,
+                'active' => $active,
+                'maker' => $maker,
+                'taker' => $taker,
+            );
+        }
+        return $result;
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -509,7 +558,7 @@ class bitbank extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/';
-        if ($api === 'public') {
+        if (($api === 'public') || ($api === 'markets')) {
             $url .= $this->implode_params($path, $params);
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
