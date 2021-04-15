@@ -628,14 +628,6 @@ class coinbase(Exchange):
                         'min': self.safe_number(currency, 'min_size'),
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': None,

@@ -269,8 +269,6 @@ class stex extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array( 'min' => pow(10, -$precision), 'max' => null ),
-                    'price' => array( 'min' => pow(10, -$precision), 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'deposit' => array(
                         'min' => $this->safe_number($currency, 'minimum_deposit_amount'),
                         'max' => null,

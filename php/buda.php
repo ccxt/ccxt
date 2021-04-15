@@ -240,14 +240,6 @@ class buda extends Exchange {
                         'min' => $minimum,
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => $minimum,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'deposit' => array(
                         'min' => floatval($currency['deposit_minimum'][0]),
                         'max' => null,

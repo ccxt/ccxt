@@ -475,14 +475,6 @@ class bibox(Exchange):
                         'min': math.pow(10, -precision),
                         'max': None,
                     },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(currency, 'withdraw_min'),
                         'max': None,
@@ -564,14 +556,6 @@ class bibox(Exchange):
                     'amount': {
                         'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
                     },
                     'withdraw': {
                         'min': None,

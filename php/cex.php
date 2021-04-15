@@ -265,14 +265,6 @@ class cex extends Exchange {
                         'min' => $this->safe_number($currency, 'minimumCurrencyAmount'),
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'minimalWithdrawalAmount'),
                         'max' => null,

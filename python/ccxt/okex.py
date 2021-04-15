@@ -1017,8 +1017,6 @@ class okex(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {
                         'min': self.safe_number(currency, 'min_withdrawal'),
                         'max': None,

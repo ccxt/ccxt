@@ -283,8 +283,6 @@ class bitpanda extends Exchange {
                 'precision' => $this->safe_integer($currency, 'precision'),
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
                 ),
             );

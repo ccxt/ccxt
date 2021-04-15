@@ -962,8 +962,6 @@ class timex extends Exchange {
             'limits' => array(
                 'withdraw' => array( 'min' => $fee, 'max' => null ),
                 'amount' => array( 'min' => null, 'max' => null ),
-                'price' => array( 'min' => null, 'max' => null ),
-                'cost' => array( 'min' => null, 'max' => null ),
             ),
         );
     }

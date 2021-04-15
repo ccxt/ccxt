@@ -1008,8 +1008,6 @@ class okex extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'min_withdrawal'),
                         'max' => null,

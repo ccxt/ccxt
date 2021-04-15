@@ -401,14 +401,6 @@ class hitbtc extends Exchange {
                         'min' => 1 / pow(10, $decimals),
                         'max' => pow(10, $decimals),
                     ),
-                    'price' => array(
-                        'min' => 1 / pow(10, $decimals),
-                        'max' => pow(10, $decimals),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => null,
                         'max' => pow(10, $precision),

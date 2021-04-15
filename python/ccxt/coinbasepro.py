@@ -275,14 +275,6 @@ class coinbasepro(Exchange):
                         'min': self.safe_number(details, 'min_size'),
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(details, 'min_withdrawal_amount'),
                         'max': None,

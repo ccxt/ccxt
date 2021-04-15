@@ -276,14 +276,6 @@ class cex(Exchange):
                         'min': self.safe_number(currency, 'minimumCurrencyAmount'),
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(currency, 'minimalWithdrawalAmount'),
                         'max': None,

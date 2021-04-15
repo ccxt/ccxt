@@ -549,14 +549,6 @@ class bitfinex2 extends bitfinex {
                         'min' => 1 / pow(10, $precision),
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => 1 / pow(10, $precision),
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $fee,
                         'max' => null,

@@ -481,14 +481,6 @@ class bibox extends Exchange {
                         'min' => pow(10, -$precision),
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'withdraw_min'),
                         'max' => null,
@@ -573,14 +565,6 @@ class bibox extends Exchange {
                     'amount' => array(
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
-                    ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => null,

@@ -281,14 +281,6 @@ class qtrade(Exchange):
                         'min': self.safe_number(currency, 'minimum_order'),
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': None,

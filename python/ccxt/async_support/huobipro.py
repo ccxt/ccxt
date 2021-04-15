@@ -821,14 +821,6 @@ class huobipro(Exchange):
                         'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
                     },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'deposit': {
                         'min': self.safe_number(currency, 'deposit-min-amount'),
                         'max': math.pow(10, precision),

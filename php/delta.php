@@ -264,8 +264,6 @@ class delta extends Exchange {
                 'precision' => 1 / pow(10, $precision),
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'min_withdrawal_amount'),
                         'max' => null,

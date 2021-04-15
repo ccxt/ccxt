@@ -237,14 +237,6 @@ class whitebit(Exchange):
                         'min': None,
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(currency, 'minWithdrawal'),
                         'max': self.safe_number(currency, 'maxWithdrawal'),

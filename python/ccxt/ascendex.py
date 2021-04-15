@@ -324,14 +324,6 @@ class ascendex(Exchange):
                         'min': math.pow(10, -precision),
                         'max': None,
                     },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(currency, 'minWithdrawalAmt'),
                         'max': None,

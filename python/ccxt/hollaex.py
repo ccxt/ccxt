@@ -255,14 +255,6 @@ class hollaex(Exchange):
                         'min': self.safe_number(currency, 'min'),
                         'max': self.safe_number(currency, 'max'),
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': self.safe_value(withdrawalLimits, 0),

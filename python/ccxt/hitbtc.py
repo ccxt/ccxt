@@ -397,14 +397,6 @@ class hitbtc(Exchange):
                         'min': 1 / math.pow(10, decimals),
                         'max': math.pow(10, decimals),
                     },
-                    'price': {
-                        'min': 1 / math.pow(10, decimals),
-                        'max': math.pow(10, decimals),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': math.pow(10, precision),

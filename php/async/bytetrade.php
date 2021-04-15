@@ -208,8 +208,6 @@ class bytetrade extends Exchange {
                 'fee' => null,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'deposit' => array(
                         'min' => $this->safe_number($deposit, 'min'),
                         'max' => $maxDeposit,

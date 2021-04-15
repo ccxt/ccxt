@@ -231,14 +231,6 @@ class whitebit extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'minWithdrawal'),
                         'max' => $this->safe_number($currency, 'maxWithdrawal'),

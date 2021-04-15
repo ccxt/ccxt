@@ -318,8 +318,6 @@ class ftx(Exchange):
                 'limits': {
                     'withdraw': {'min': None, 'max': None},
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                 },
             }
         return result

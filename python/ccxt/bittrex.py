@@ -403,14 +403,6 @@ class bittrex(Exchange):
                         'min': 1 / math.pow(10, precision),
                         'max': None,
                     },
-                    'price': {
-                        'min': 1 / math.pow(10, precision),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': fee,
                         'max': None,

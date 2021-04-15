@@ -209,8 +209,6 @@ class bytetrade(Exchange):
                 'fee': None,
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'deposit': {
                         'min': self.safe_number(deposit, 'min'),
                         'max': maxDeposit,

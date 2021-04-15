@@ -236,10 +236,7 @@ class liquid extends Exchange {
             $id = $this->safe_string($currency, 'currency');
             $code = $this->safe_currency_code($id);
             $active = $currency['depositable'] && $currency['withdrawable'];
-            $amountPrecision = $this->safe_integer($currency, 'display_precision');
-            $pricePrecision = $this->safe_integer($currency, 'quoting_precision');
-            $precision = max ($amountPrecision, $pricePrecision);
-            $decimalPrecision = 1 / pow(10, $precision);
+            $amountPrecision = $this->safe_integer($currency, 'assets_precision');
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -247,19 +244,11 @@ class liquid extends Exchange {
                 'name' => $code,
                 'active' => $active,
                 'fee' => $this->safe_number($currency, 'withdrawal_fee'),
-                'precision' => $decimalPrecision,
+                'precision' => $amountPrecision,
                 'limits' => array(
                     'amount' => array(
                         'min' => pow(10, -$amountPrecision),
                         'max' => pow(10, $amountPrecision),
-                    ),
-                    'price' => array(
-                        'min' => pow(10, -$pricePrecision),
-                        'max' => pow(10, $pricePrecision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'minimum_withdrawal'),

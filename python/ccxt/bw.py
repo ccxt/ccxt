@@ -304,14 +304,6 @@ class bw(Exchange):
                         'min': self.safe_number(currency, 'limitAmount', 0),
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': self.safe_number(currency, 'onceDrawLimit'),

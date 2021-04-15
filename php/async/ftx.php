@@ -303,8 +303,6 @@ class ftx extends Exchange {
                 'limits' => array(
                     'withdraw' => array( 'min' => null, 'max' => null ),
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                 ),
             );
         }

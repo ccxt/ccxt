@@ -717,14 +717,6 @@ class phemex(Exchange):
                         'min': minAmount,
                         'max': maxAmount,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': None,

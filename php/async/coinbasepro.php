@@ -261,14 +261,6 @@ class coinbasepro extends Exchange {
                         'min' => $this->safe_number($details, 'min_size'),
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($details, 'min_withdrawal_amount'),
                         'max' => null,

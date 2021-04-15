@@ -927,8 +927,6 @@ class timex(Exchange):
             'limits': {
                 'withdraw': {'min': fee, 'max': None},
                 'amount': {'min': None, 'max': None},
-                'price': {'min': None, 'max': None},
-                'cost': {'min': None, 'max': None},
             },
         }
 

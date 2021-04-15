@@ -270,8 +270,6 @@ class delta(Exchange):
                 'precision': 1 / math.pow(10, precision),
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {
                         'min': self.safe_number(currency, 'min_withdrawal_amount'),
                         'max': None,

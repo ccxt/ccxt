@@ -252,14 +252,6 @@ class hollaex extends Exchange {
                         'min' => $this->safe_number($currency, 'min'),
                         'max' => $this->safe_number($currency, 'max'),
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => null,
                         'max' => $this->safe_value($withdrawalLimits, 0),

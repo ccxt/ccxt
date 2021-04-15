@@ -546,8 +546,6 @@ class idex extends Exchange {
                 'precision' => intval($precisionString),
                 'limits' => array(
                     'amount' => array( 'min' => $lot, 'max' => null ),
-                    'price' => array( 'min' => $lot, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => $lot, 'max' => null ),
                 ),
             );

@@ -236,14 +236,6 @@ class buda(Exchange):
                         'min': minimum,
                         'max': None,
                     },
-                    'price': {
-                        'min': minimum,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'deposit': {
                         'min': float(currency['deposit_minimum'][0]),
                         'max': None,

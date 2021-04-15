@@ -530,8 +530,6 @@ class idex(Exchange):
                 'precision': int(precisionString),
                 'limits': {
                     'amount': {'min': lot, 'max': None},
-                    'price': {'min': lot, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': lot, 'max': None},
                 },
             }

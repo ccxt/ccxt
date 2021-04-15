@@ -289,8 +289,6 @@ class bitpanda(Exchange):
                 'precision': self.safe_integer(currency, 'precision'),
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
             }

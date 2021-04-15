@@ -244,14 +244,6 @@ class gateio extends Exchange {
                             'min' => null,
                             'max' => null,
                         ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
                         'withdraw' => array(
                             'min' => null,
                             'max' => null,

@@ -652,14 +652,6 @@ class coinbase extends Exchange {
                         'min' => $this->safe_number($currency, 'min_size'),
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => null,
                         'max' => null,
