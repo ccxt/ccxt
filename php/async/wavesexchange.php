@@ -11,6 +11,7 @@ use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\InsufficientFunds;
+use \ccxt\Precise;
 
 class wavesexchange extends Exchange {
 
@@ -1495,8 +1496,11 @@ class wavesexchange extends Exchange {
         $datetime = $this->safe_string($data, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $id = $this->safe_string($data, 'id');
-        $price = $this->safe_number($data, 'price');
-        $amount = $this->safe_number($data, 'amount');
+        $priceString = $this->safe_string($data, 'price');
+        $amountString = $this->safe_string($data, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $order1 = $this->safe_value($data, 'order1');
         $order2 = $this->safe_value($data, 'order2');
         $order = null;
@@ -1515,10 +1519,6 @@ class wavesexchange extends Exchange {
         }
         $side = $this->safe_string($order, 'orderType');
         $orderId = $this->safe_string($order, 'id');
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
-        }
         $fee = array(
             'cost' => $this->safe_number($data, 'fee'),
             'currency' => $this->safe_currency_code($this->safe_string($order, 'matcherFeeAssetId', 'WAVES')),

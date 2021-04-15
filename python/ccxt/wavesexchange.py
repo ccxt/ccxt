@@ -16,6 +16,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class wavesexchange(Exchange):
@@ -1409,8 +1410,11 @@ class wavesexchange(Exchange):
         datetime = self.safe_string(data, 'timestamp')
         timestamp = self.parse8601(datetime)
         id = self.safe_string(data, 'id')
-        price = self.safe_number(data, 'price')
-        amount = self.safe_number(data, 'amount')
+        priceString = self.safe_string(data, 'price')
+        amountString = self.safe_string(data, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         order1 = self.safe_value(data, 'order1')
         order2 = self.safe_value(data, 'order2')
         order = None
@@ -1427,9 +1431,6 @@ class wavesexchange(Exchange):
             symbol = market['symbol']
         side = self.safe_string(order, 'orderType')
         orderId = self.safe_string(order, 'id')
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
         fee = {
             'cost': self.safe_number(data, 'fee'),
             'currency': self.safe_currency_code(self.safe_string(order, 'matcherFeeAssetId', 'WAVES')),
