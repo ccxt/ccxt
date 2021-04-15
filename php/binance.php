@@ -2463,25 +2463,44 @@ class binance extends Exchange {
         $request = array();
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['asset'] = $currency['id'];
+            $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
             $request['startTime'] = $since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
             $request['endTime'] = $this->sum($since, 7776000000);
         }
-        $response = $this->wapiGetDepositHistory (array_merge($request, $params));
-        //
-        //     {     success =>    true,
-        //       depositList => array( { insertTime =>  1517425007000,
-        //                            amount =>  0.3,
-        //                           address => "0x0123456789abcdef",
-        //                        addressTag => "",
-        //                              txId => "0x0123456789abcdef",
-        //                             asset => "ETH",
-        //                            status =>  1                                                                    } ) }
-        //
-        return $this->parse_transactions($response['depositList'], $currency, $since, $limit);
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->sapiGetCapitalDepositHisrec (array_merge($request, $params));
+        //     array(
+        //       array(
+        //         "amount" => "0.01844487",
+        //         "coin" => "BCH",
+        //         "network" => "BCH",
+        //         "status" => 1,
+        //         "address" => "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
+        //         "addressTag" => "",
+        //         "txId" => "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
+        //         "insertTime" => 1610784980000,
+        //         "transferType" => 0,
+        //         "confirmTimes" => "2/2"
+        //       ),
+        //       {
+        //         "amount" => "4500",
+        //         "coin" => "USDT",
+        //         "network" => "BSC",
+        //         "status" => 1,
+        //         "address" => "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+        //         "addressTag" => "",
+        //         "txId" => "Internal transfer 51376627901",
+        //         "insertTime" => 1618394381000,
+        //         "transferType" => 1,
+        //         "confirmTimes" => "1/15"
+        //     }
+        //   )
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -2490,38 +2509,57 @@ class binance extends Exchange {
         $request = array();
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['asset'] = $currency['id'];
+            $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
             $request['startTime'] = $since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
             $request['endTime'] = $this->sum($since, 7776000000);
         }
-        $response = $this->wapiGetWithdrawHistory (array_merge($request, $params));
-        //
-        //     { withdrawList => array( array(      amount =>  14,
-        //                             address => "0x0123456789abcdef...",
-        //                         successTime =>  1514489710000,
-        //                      transactionFee =>  0.01,
-        //                          addressTag => "",
-        //                                txId => "0x0123456789abcdef...",
-        //                                  id => "0123456789abcdef...",
-        //                               asset => "ETH",
-        //                           applyTime =>  1514488724000,
-        //                              status =>  6                       ),
-        //                       {      amount =>  7600,
-        //                             address => "0x0123456789abcdef...",
-        //                         successTime =>  1515323226000,
-        //                      transactionFee =>  0.01,
-        //                          addressTag => "",
-        //                                txId => "0x0123456789abcdef...",
-        //                                  id => "0123456789abcdef...",
-        //                               asset => "ICN",
-        //                           applyTime =>  1515322539000,
-        //                              status =>  6                       }  ),
-        //            success =>    true                                         }
-        //
-        return $this->parse_transactions($response['withdrawList'], $currency, $since, $limit);
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->sapiGetCapitalWithdrawHistory (array_merge($request, $params));
+        //     array(
+        //       array(
+        //         "id" => "69e53ad305124b96b43668ceab158a18",
+        //         "amount" => "28.75",
+        //         "transactionFee" => "0.25",
+        //         "coin" => "XRP",
+        //         "status" => 6,
+        //         "address" => "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+        //         "addressTag" => "101286922",
+        //         "txId" => "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+        //         "applyTime" => "2021-04-15 12:09:16",
+        //         "network" => "XRP",
+        //         "transferType" => 0
+        //       ),
+        //       array(
+        //         "id" => "9a67628b16ba4988ae20d329333f16bc",
+        //         "amount" => "20",
+        //         "transactionFee" => "20",
+        //         "coin" => "USDT",
+        //         "status" => 6,
+        //         "address" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //         "txId" => "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
+        //         "applyTime" => "2021-04-15 12:06:53",
+        //         "network" => "ETH",
+        //         "transferType" => 0
+        //       ),
+        //       {
+        //         "id" => "a7cdc0afbfa44a48bd225c9ece958fe2",
+        //         "amount" => "51",
+        //         "transactionFee" => "1",
+        //         "coin" => "USDT",
+        //         "status" => 6,
+        //         "address" => "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
+        //         "txId" => "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
+        //         "applyTime" => "2021-04-13 12:46:59",
+        //         "network" => "TRX",
+        //         "transferType" => 0
+        //       }
+        //     )
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function parse_transaction_status_by_type($status, $type = null) {
@@ -2549,28 +2587,32 @@ class binance extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         $insertTime =>  1517425007000,
-        //         $amount =>  0.3,
-        //         $address => "0x0123456789abcdef",
-        //         addressTag => "",
-        //         txId => "0x0123456789abcdef",
-        //         asset => "ETH",
-        //         $status =>  1
+        //       "$amount" => "4500",
+        //       "coin" => "USDT",
+        //       "network" => "BSC",
+        //       "$status" => 1,
+        //       "$address" => "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+        //       "addressTag" => "",
+        //       "txId" => "Internal transfer 51376627901",
+        //       "$insertTime" => 1618394381000,
+        //       "transferType" => 1,
+        //       "confirmTimes" => "1/15"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         $amount =>  14,
-        //         $address => "0x0123456789abcdef...",
-        //         successTime =>  1514489710000,
-        //         transactionFee =>  0.01,
-        //         addressTag => "",
-        //         txId => "0x0123456789abcdef...",
-        //         $id => "0123456789abcdef...",
-        //         asset => "ETH",
-        //         $applyTime =>  1514488724000,
-        //         $status =>  6
+        //       "$id" => "69e53ad305124b96b43668ceab158a18",
+        //       "$amount" => "28.75",
+        //       "transactionFee" => "0.25",
+        //       "coin" => "XRP",
+        //       "$status" => 6,
+        //       "$address" => "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+        //       "addressTag" => "101286922",
+        //       "txId" => "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+        //       "$applyTime" => "2021-04-15 12:09:16",
+        //       "network" => "XRP",
+        //       "transferType" => 0
         //     }
         //
         $id = $this->safe_string($transaction, 'id');
@@ -2585,11 +2627,11 @@ class binance extends Exchange {
         if (($txid !== null) && (mb_strpos($txid, 'Internal transfer ') !== false)) {
             $txid = mb_substr($txid, 18);
         }
-        $currencyId = $this->safe_string($transaction, 'asset');
+        $currencyId = $this->safe_string($transaction, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
         $insertTime = $this->safe_integer($transaction, 'insertTime');
-        $applyTime = $this->safe_integer($transaction, 'applyTime');
+        $applyTime = $this->parse8601($this->safe_string($transaction, 'applyTime'));
         $type = $this->safe_string($transaction, 'type');
         if ($type === null) {
             if (($insertTime !== null) && ($applyTime === null)) {
@@ -2608,6 +2650,8 @@ class binance extends Exchange {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
         $updated = $this->safe_integer($transaction, 'successTime');
+        $internal = $this->safe_integer($transaction, 'transferType', false);
+        $internal = $internal ? true : false;
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -2625,6 +2669,7 @@ class binance extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
+            'internal' => $internal,
             'fee' => $fee,
         );
     }
