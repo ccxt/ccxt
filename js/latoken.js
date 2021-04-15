@@ -165,7 +165,7 @@ module.exports = class latoken extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const pricePrecisionString = this.safeString (market, 'pricePrecision');
-            const pricePrecision = (pricePrecisionString === undefined) ? undefined : '1e-' + pricePrecisionString;
+            const priceLimit = (pricePrecisionString === undefined) ? undefined : '1e-' + pricePrecisionString;
             const precision = {
                 'price': parseInt (pricePrecisionString),
                 'amount': this.safeInteger (market, 'amountPrecision'),
@@ -176,7 +176,7 @@ module.exports = class latoken extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': this.parseNumber (pricePrecision),
+                    'min': this.parseNumber (priceLimit),
                     'max': undefined,
                 },
                 'cost': {
