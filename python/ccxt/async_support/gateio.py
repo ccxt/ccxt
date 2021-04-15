@@ -114,6 +114,8 @@ class gateio(Exchange):
                         'tradeHistory',
                         'feelist',
                         'withdraw',
+                        'get_sub_account_available',
+                        'sub_account_transfer',
                     ],
                 },
             },
