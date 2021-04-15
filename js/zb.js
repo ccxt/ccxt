@@ -225,9 +225,13 @@ module.exports = class zb extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const amountPrecisionString = this.safeString (market, 'amountScale');
+            const pricePrecisionString = this.safeString (market, 'priceScale');
+            const amountLimit = (amountPrecisionString === undefined) ? undefined : '1e-' + amountPrecisionString;
+            const priceLimit = (pricePrecisionString === undefined) ? undefined : '1e-' + pricePrecisionString;
             const precision = {
-                'amount': this.safeInteger (market, 'amountScale'),
-                'price': this.safeInteger (market, 'priceScale'),
+                'amount': parseInt (amountPrecisionString),
+                'price': parseInt (pricePrecisionString),
             };
             result.push ({
                 'id': id,
@@ -240,11 +244,11 @@ module.exports = class zb extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': this.parseNumber (amountLimit),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': this.parseNumber (priceLimit),
                         'max': undefined,
                     },
                     'cost': {
