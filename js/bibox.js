@@ -477,14 +477,6 @@ module.exports = class bibox extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': undefined,
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'withdraw_min'),
                         'max': undefined,
@@ -569,14 +561,6 @@ module.exports = class bibox extends Exchange {
                     'amount': {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
                     },
                     'withdraw': {
                         'min': undefined,

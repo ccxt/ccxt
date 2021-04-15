@@ -398,14 +398,6 @@ module.exports = class hitbtc extends Exchange {
                         'min': 1 / Math.pow (10, decimals),
                         'max': Math.pow (10, decimals),
                     },
-                    'price': {
-                        'min': 1 / Math.pow (10, decimals),
-                        'max': Math.pow (10, decimals),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': Math.pow (10, precision),

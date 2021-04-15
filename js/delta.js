@@ -263,8 +263,6 @@ module.exports = class delta extends Exchange {
                 'precision': 1 / Math.pow (10, precision),
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'min_withdrawal_amount'),
                         'max': undefined,

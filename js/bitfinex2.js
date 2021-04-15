@@ -543,14 +543,6 @@ module.exports = class bitfinex2 extends bitfinex {
                         'min': 1 / Math.pow (10, precision),
                         'max': undefined,
                     },
-                    'price': {
-                        'min': 1 / Math.pow (10, precision),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': fee,
                         'max': undefined,

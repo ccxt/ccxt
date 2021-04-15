@@ -273,14 +273,6 @@ module.exports = class qtrade extends Exchange {
                         'min': this.safeNumber (currency, 'minimum_order'),
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': undefined,

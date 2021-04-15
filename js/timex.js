@@ -956,8 +956,6 @@ module.exports = class timex extends Exchange {
             'limits': {
                 'withdraw': { 'min': fee, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
-                'price': { 'min': undefined, 'max': undefined },
-                'cost': { 'min': undefined, 'max': undefined },
             },
         };
     }

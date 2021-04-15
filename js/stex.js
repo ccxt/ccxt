@@ -265,8 +265,6 @@ module.exports = class stex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': { 'min': Math.pow (10, -precision), 'max': undefined },
-                    'price': { 'min': Math.pow (10, -precision), 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'deposit': {
                         'min': this.safeNumber (currency, 'minimum_deposit_amount'),
                         'max': undefined,

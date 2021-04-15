@@ -257,14 +257,6 @@ module.exports = class coinbasepro extends Exchange {
                         'min': this.safeNumber (details, 'min_size'),
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (details, 'min_withdrawal_amount'),
                         'max': undefined,
