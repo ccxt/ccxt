@@ -263,9 +263,13 @@ class bitstamp extends Exchange {
             $symbol = $base . '/' . $quote;
             $symbolId = $baseId . '_' . $quoteId;
             $id = $this->safe_string($market, 'url_symbol');
+            $amountPrecisionString = $this->safe_string($market, 'base_decimals');
+            $pricePrecisionString = $this->safe_string($market, 'counter_decimals');
+            $amountLimit = ($amountPrecisionString === null) ? null : '1e-' . $amountPrecisionString;
+            $priceLimit = ($pricePrecisionString === null) ? null : '1e-' . $pricePrecisionString;
             $precision = array(
-                'amount' => $this->safe_integer($market, 'base_decimals'),
-                'price' => $this->safe_integer($market, 'counter_decimals'),
+                'amount' => intval($amountPrecisionString),
+                'price' => intval($pricePrecisionString),
             );
             $minimumOrder = $this->safe_string($market, 'minimum_order');
             $parts = explode(' ', $minimumOrder);
@@ -286,15 +290,15 @@ class bitstamp extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => $this->parse_number($amountLimit),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $this->parse_number($priceLimit),
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => floatval($cost),
+                        'min' => $this->parse_number($cost),
                         'max' => null,
                     ),
                 ),

@@ -278,9 +278,13 @@ class bitstamp(Exchange):
             symbol = base + '/' + quote
             symbolId = baseId + '_' + quoteId
             id = self.safe_string(market, 'url_symbol')
+            amountPrecisionString = self.safe_string(market, 'base_decimals')
+            pricePrecisionString = self.safe_string(market, 'counter_decimals')
+            amountLimit = None if (amountPrecisionString is None) else '1e-' + amountPrecisionString
+            priceLimit = None if (pricePrecisionString is None) else '1e-' + pricePrecisionString
             precision = {
-                'amount': self.safe_integer(market, 'base_decimals'),
-                'price': self.safe_integer(market, 'counter_decimals'),
+                'amount': int(amountPrecisionString),
+                'price': int(pricePrecisionString),
             }
             minimumOrder = self.safe_string(market, 'minimum_order')
             parts = minimumOrder.split(' ')
@@ -301,15 +305,15 @@ class bitstamp(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': self.parse_number(amountLimit),
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': self.parse_number(priceLimit),
                         'max': None,
                     },
                     'cost': {
-                        'min': float(cost),
+                        'min': self.parse_number(cost),
                         'max': None,
                     },
                 },
