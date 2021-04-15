@@ -155,21 +155,18 @@ module.exports = class bitbank extends Exchange {
             const active = this.safeValue (entry, 'is_enabled');
             const minAmountString = this.safeString (entry, 'unit_amount');
             const minCost = Precise.stringMul (minAmountString, priceLimit);
-            const maxAmountString = this.safeString (entry, 'limit_max_amount');
-            const maxPriceString = this.safeString (entry, 'market_max_amount');
-            const maxCost = Precise.stringMul (maxAmountString, maxPriceString);
             const limits = {
                 'amount': {
                     'min': this.safeNumber (entry, 'unit_amount'),
-                    'max': this.parseNumber (maxAmountString),
+                    'max': this.safeNumber (entry, 'limit_max_amount'),
                 },
                 'price': {
                     'min': this.parseNumber (priceLimit),
-                    'max': this.parseNumber (maxPriceString),
+                    'max': undefined,
                 },
                 'cost': {
                     'min': this.parseNumber (minCost),
-                    'max': this.parseNumber (maxCost),
+                    'max': undefined,
                 },
             };
             result.push ({
