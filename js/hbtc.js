@@ -259,6 +259,9 @@ module.exports = class hbtc extends Exchange {
                     'method': 'quoteGetTicker24hr',
                 },
             },
+            'commonCurrencies': {
+                'MIS': 'Themis Protocol',
+            },
         });
     }
 
