@@ -316,6 +316,7 @@ class binance(Exchange):
                         'broker/subAccountApi/ipRestriction/ipList',
                     ],
                 },
+                # deprecated
                 'wapi': {
                     'post': [
                         'withdraw',
@@ -2712,20 +2713,18 @@ class binance(Exchange):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        # name is optional, can be overrided via params
-        name = address[0:20]
         request = {
-            'asset': currency['id'],
+            'coin': currency['id'],
             'address': address,
-            'amount': float(amount),
-            'name': name,  # name is optional, can be overrided via params
+            'amount': amount,
             # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
             # issue sapiGetCapitalConfigGetall() to get networks for withdrawing USDT ERC20 vs USDT Omni
             # 'network': 'ETH',  # 'BTC', 'TRX', etc, optional
         }
         if tag is not None:
             request['addressTag'] = tag
-        response = self.wapiPostWithdraw(self.extend(request, params))
+        response = self.sapiPostCapitalWithdrawApply(self.extend(request, params))
+        #     {id: '9a67628b16ba4988ae20d329333f16bc'}
         return {
             'info': response,
             'id': self.safe_string(response, 'id'),

@@ -303,6 +303,7 @@ class binance extends Exchange {
                         'broker/subAccountApi/ipRestriction/ipList',
                     ),
                 ),
+                // deprecated
                 'wapi' => array(
                     'post' => array(
                         'withdraw',
@@ -2849,13 +2850,10 @@ class binance extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
-        // $name is optional, can be overrided via $params
-        $name = mb_substr($address, 0, 20 - 0);
         $request = array(
-            'asset' => $currency['id'],
+            'coin' => $currency['id'],
             'address' => $address,
-            'amount' => floatval($amount),
-            'name' => $name, // $name is optional, can be overrided via $params
+            'amount' => $amount,
             // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
             // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
             // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
@@ -2863,7 +2861,8 @@ class binance extends Exchange {
         if ($tag !== null) {
             $request['addressTag'] = $tag;
         }
-        $response = $this->wapiPostWithdraw (array_merge($request, $params));
+        $response = $this->sapiPostCapitalWithdrawApply (array_merge($request, $params));
+        //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
         return array(
             'info' => $response,
             'id' => $this->safe_string($response, 'id'),
