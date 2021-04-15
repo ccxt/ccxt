@@ -715,7 +715,10 @@ class aax(Exchange):
         #     "message":"success",
         #     "ts":1573530401264
         #  }
-        return self.parse_order(self.safe_value(response, 'data'), market, self.safe_string(response, 'ts'))
+        order = self.parse_order(self.safe_value(response, 'data'), market, self.safe_string(response, 'ts'))
+        if order['status'] == 'rejected':
+            raise InvalidOrder(' order was rejected by the exchange ' + self.safeValue(order.info, 'rejectReason'))
+        return order
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()

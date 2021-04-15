@@ -710,7 +710,7 @@ class aax extends Exchange {
             // $side : string // BUY or SELL
             // === Required according to ordeType ===
             // $price : string // limit $price in limit and stop-limit orders
-            // $stopPrice : string // Trigger $price for stop-limit order and stop order
+            // $stopPrice : string // Trigger $price for stop-limit $order and stop $order
             // === Optional ===
             // clOrdID : string
             // timeInForce :string // GTC/IOC/FOK，default is GTC
@@ -767,7 +767,11 @@ class aax extends Exchange {
         //     "message":"success",
         //     "ts":1573530401264
         //  }
-        return $this->parse_order($this->safe_value($response, 'data'), $market, $this->safe_string($response, 'ts'));
+        $order = $this->parse_order($this->safe_value($response, 'data'), $market, $this->safe_string($response, 'ts'));
+        if ($order['status'] === 'rejected') {
+            throw new InvalidOrder(' $order was rejected by the exchange ' . $this->safeValue($order->info, 'rejectReason'));
+        }
+        return $order;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
