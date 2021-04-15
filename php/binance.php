@@ -855,7 +855,7 @@ class binance extends Exchange {
         //                 "isSpotTradingAllowed":true,
         //                 "isMarginTradingAllowed":true,
         //                 "$filters":array(
-        //                     array("filterType":"PRICE_FILTER","minPrice":"0.00000100","$maxPrice":"100000.00000000","tickSize":"0.00000100"),
+        //                     array("filterType":"PRICE_FILTER","minPrice":"0.00000100","maxPrice":"100000.00000000","tickSize":"0.00000100"),
         //                     array("filterType":"PERCENT_PRICE","multiplierUp":"5","multiplierDown":"0.2","avgPriceMins":5),
         //                     array("filterType":"LOT_SIZE","minQty":"0.00100000","maxQty":"100000.00000000","$stepSize":"0.00100000"),
         //                     array("filterType":"MIN_NOTIONAL","minNotional":"0.00010000","applyToMarket":true,"avgPriceMins":5),
@@ -890,7 +890,7 @@ class binance extends Exchange {
         //                 "baseAssetPrecision":8,
         //                 "quotePrecision":8,
         //                 "$filters":[
-        //                     array("minPrice":"0.01","$maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.01"),
+        //                     array("minPrice":"0.01","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.01"),
         //                     array("$stepSize":"0.001","filterType":"LOT_SIZE","maxQty":"1000","minQty":"0.001"),
         //                     array("$stepSize":"0.001","filterType":"MARKET_LOT_SIZE","maxQty":"1000","minQty":"0.001"),
         //                     array("limit":200,"filterType":"MAX_NUM_ORDERS"),
@@ -932,7 +932,7 @@ class binance extends Exchange {
         //                 "quotePrecision" => 8,
         //                 "equalQtyPrecision" => 4,
         //                 "$filters" => [
-        //                     array("minPrice":"0.1","$maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.1"),
+        //                     array("minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.1"),
         //                     array("$stepSize":"1","filterType":"LOT_SIZE","maxQty":"100000","minQty":"1"),
         //                     array("$stepSize":"0","filterType":"MARKET_LOT_SIZE","maxQty":"100000","minQty":"1"),
         //                     array("limit":200,"filterType":"MAX_NUM_ORDERS"),
@@ -960,7 +960,7 @@ class binance extends Exchange {
         //                 "quotePrecision" => 8,
         //                 "equalQtyPrecision" => 4,
         //                 "$filters" => array(
-        //                     array("minPrice":"0.1","$maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.1"),
+        //                     array("minPrice":"0.1","maxPrice":"100000","filterType":"PRICE_FILTER","tickSize":"0.1"),
         //                     array("$stepSize":"1","filterType":"LOT_SIZE","maxQty":"100000","minQty":"1"),
         //                     array("$stepSize":"1","filterType":"MARKET_LOT_SIZE","maxQty":"100000","minQty":"1"),
         //                     array("limit":200,"filterType":"MAX_NUM_ORDERS"),
@@ -1035,18 +1035,14 @@ class binance extends Exchange {
             );
             if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
-                // PRICE_FILTER reports zero values for $maxPrice
+                // PRICE_FILTER reports zero values for maxPrice
                 // since they updated $filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
                 // therefore limits['price']['max'] doesn't have any meaningful value except null
                 $entry['limits']['price'] = array(
                     'min' => $this->safe_number($filter, 'minPrice'),
-                    'max' => null,
+                    'max' => $this->safe_number($filter, 'maxPrice'),
                 );
-                $maxPrice = $this->safe_number($filter, 'maxPrice');
-                if (($maxPrice !== null) && ($maxPrice > 0)) {
-                    $entry['limits']['price']['max'] = $maxPrice;
-                }
                 $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
             }
             if (is_array($filtersByType) && array_key_exists('LOT_SIZE', $filtersByType)) {

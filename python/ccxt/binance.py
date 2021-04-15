@@ -1038,11 +1038,8 @@ class binance(Exchange):
                 # therefore limits['price']['max'] doesn't have any meaningful value except None
                 entry['limits']['price'] = {
                     'min': self.safe_number(filter, 'minPrice'),
-                    'max': None,
+                    'max': self.safe_number(filter, 'maxPrice'),
                 }
-                maxPrice = self.safe_number(filter, 'maxPrice')
-                if (maxPrice is not None) and (maxPrice > 0):
-                    entry['limits']['price']['max'] = maxPrice
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
             if 'LOT_SIZE' in filtersByType:
                 filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
