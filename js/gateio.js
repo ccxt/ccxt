@@ -305,16 +305,18 @@ module.exports = class gateio extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const pricePrecisionString = this.safeString (details, 'decimal_places');
+            const priceLimit = (pricePrecisionString === undefined) ? undefined : '1e-' + pricePrecisionString;
             const precision = {
                 'amount': this.safeInteger (details, 'amount_decimal_places'),
-                'price': this.safeInteger (details, 'decimal_places'),
+                'price': parseInt (pricePrecisionString),
             };
             const amountLimits = {
                 'min': this.safeNumber (details, 'min_amount'),
                 'max': undefined,
             };
             const priceLimits = {
-                'min': Math.pow (10, -precision['price']),
+                'min': this.parseNumber (priceLimit),
                 'max': undefined,
             };
             const defaultCost = amountLimits['min'] * priceLimits['min'];
@@ -331,7 +333,8 @@ module.exports = class gateio extends Exchange {
             const disabled = this.safeInteger (details, 'trade_disabled');
             const active = !disabled;
             const uppercaseId = id.toUpperCase ();
-            const fee = this.safeNumber (details, 'fee');
+            const feeString = this.safeString (details, 'fee');
+            const feeScaled = Precise.stringDiv (feeString, '100');
             result.push ({
                 'id': id,
                 'uppercaseId': uppercaseId,
@@ -342,8 +345,8 @@ module.exports = class gateio extends Exchange {
                 'quoteId': quoteId,
                 'info': market,
                 'active': active,
-                'maker': fee / 100,
-                'taker': fee / 100,
+                'maker': this.parseNumber (feeScaled),
+                'taker': this.parseNumber (feeScaled),
                 'precision': precision,
                 'limits': limits,
             });
