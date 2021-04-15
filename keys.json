@@ -6,6 +6,7 @@
     "btcmarkets":    { "skip": true },
     "btctradeua":    { "skip": true },
     "btcturk":       { "skip": true },
+    "braziliex":     { "skip":  true },
     "buda":          { "skip": true },
     "coinegg":       { "skip": true },
     "coinfalcon":    { "skip": true },
