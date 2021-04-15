@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -170,8 +169,10 @@ class latoken(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            pricePrecisionString = self.safe_string(market, 'pricePrecision')
+            priceLimit = None if (pricePrecisionString is None) else '1e-' + pricePrecisionString
             precision = {
-                'price': self.safe_integer(market, 'pricePrecision'),
+                'price': int(pricePrecisionString),
                 'amount': self.safe_integer(market, 'amountPrecision'),
             }
             limits = {
@@ -180,7 +181,7 @@ class latoken(Exchange):
                     'max': None,
                 },
                 'price': {
-                    'min': math.pow(10, -precision['price']),
+                    'min': self.parse_number(priceLimit),
                     'max': None,
                 },
                 'cost': {

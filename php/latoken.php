@@ -166,8 +166,10 @@ class latoken extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $pricePrecisionString = $this->safe_string($market, 'pricePrecision');
+            $priceLimit = ($pricePrecisionString === null) ? null : '1e-' . $pricePrecisionString;
             $precision = array(
-                'price' => $this->safe_integer($market, 'pricePrecision'),
+                'price' => intval($pricePrecisionString),
                 'amount' => $this->safe_integer($market, 'amountPrecision'),
             );
             $limits = array(
@@ -176,7 +178,7 @@ class latoken extends Exchange {
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision['price']),
+                    'min' => $this->parse_number($priceLimit),
                     'max' => null,
                 ),
                 'cost' => array(
