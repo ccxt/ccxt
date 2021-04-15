@@ -152,6 +152,7 @@ class mercado extends Exchange {
                 'amount' => 8,
                 'price' => 5,
             );
+            $priceLimit = '1e-5';
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -168,7 +169,7 @@ class mercado extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => 1 / pow(10, $precision['price']),
+                        'min' => $this->parse_number($priceLimit),
                         'max' => null,
                     ),
                     'cost' => array(
