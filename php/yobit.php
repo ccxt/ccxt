@@ -140,6 +140,7 @@ class yobit extends Exchange {
                 'LUN' => 'LunarCoin',  // they just change the ticker if it is already taken
                 'MASK' => 'Yobit MASK',
                 'MDT' => 'Midnight',
+                'MIS' => 'MIScoin',
                 'NAV' => 'NavajoCoin',
                 'NBT' => 'NiceBytes',
                 'OMG' => 'OMGame',
