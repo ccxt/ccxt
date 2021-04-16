@@ -221,8 +221,8 @@ class aax extends Exchange {
                 $active = (strtoupper($status) === 'ENABLE');
             }
             $precision = array(
-                'price' => $this->precision_from_string($market['tickSize']),
-                'amount' => $this->precision_from_string($market['lotSize']),
+                'price' => $this->precision_from_string($this->safe_string($market, 'tickSize')),
+                'amount' => $this->precision_from_string($this->safe_string($market, 'lotSize')),
             );
             $entry = array(
                 'id' => $id,

@@ -219,8 +219,8 @@ class aax(Exchange):
             if status is not None:
                 active = (status.upper() == 'ENABLE')
             precision = {
-                'price': self.precision_from_string(market['tickSize']),
-                'amount': self.precision_from_string(market['lotSize']),
+                'price': self.precision_from_string(self.safe_string(market, 'tickSize')),
+                'amount': self.precision_from_string(self.safe_string(market, 'lotSize')),
             }
             entry = {
                 'id': id,
