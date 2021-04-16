@@ -697,7 +697,7 @@ module.exports = class qtrade extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in result) ? result[code] : this.account ();
             account['free'] = this.safeString (balance, 'balance');
-            account['used'] = 0;
+            account['used'] = '0';
             result[code] = account;
         }
         balances = this.safeValue (data, 'order_balances', []);
