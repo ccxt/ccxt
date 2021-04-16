@@ -115,6 +115,7 @@ class qtrade extends Exchange {
                 'exact' => array(
                     'invalid_auth' => '\\ccxt\\AuthenticationError',
                     'insuff_funds' => '\\ccxt\\InsufficientFunds',
+                    'market_not_found' => '\\ccxt\\BadSymbol', // array("errors":[array("code":"market_not_found","title":"Requested market does not exist")])
                 ),
             ),
         ));
