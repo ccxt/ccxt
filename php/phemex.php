@@ -22,6 +22,7 @@ class phemex extends Exchange {
             'version' => 'v1',
             'certified' => false,
             'pro' => true,
+            'hostname' => 'api.phemex.com',
             'has' => array(
                 'cancelAllOrders' => true, // swap contracts only
                 'cancelOrder' => true,
@@ -50,9 +51,9 @@ class phemex extends Exchange {
                     'private' => 'https://testnet-api.phemex.com',
                 ),
                 'api' => array(
-                    'v1' => 'https://api.phemex.com/v1',
-                    'public' => 'https://api.phemex.com/exchange/public',
-                    'private' => 'https://api.phemex.com',
+                    'v1' => 'https://{hostname}/v1',
+                    'public' => 'https://{hostname}/exchange/public',
+                    'private' => 'https://{hostname}',
                 ),
                 'www' => 'https://phemex.com',
                 'doc' => 'https://github.com/phemex/phemex-api-docs',
@@ -2496,7 +2497,7 @@ class phemex extends Exchange {
             $auth = $requestPath . $queryString . $expiryString . $payload;
             $headers['x-phemex-request-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
         }
-        $url = $this->urls['api'][$api] . $url;
+        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

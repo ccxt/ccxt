@@ -35,6 +35,7 @@ class phemex(Exchange):
             'version': 'v1',
             'certified': False,
             'pro': True,
+            'hostname': 'api.phemex.com',
             'has': {
                 'cancelAllOrders': True,  # swap contracts only
                 'cancelOrder': True,
@@ -63,9 +64,9 @@ class phemex(Exchange):
                     'private': 'https://testnet-api.phemex.com',
                 },
                 'api': {
-                    'v1': 'https://api.phemex.com/v1',
-                    'public': 'https://api.phemex.com/exchange/public',
-                    'private': 'https://api.phemex.com',
+                    'v1': 'https://{hostname}/v1',
+                    'public': 'https://{hostname}/exchange/public',
+                    'private': 'https://{hostname}',
                 },
                 'www': 'https://phemex.com',
                 'doc': 'https://github.com/phemex/phemex-api-docs',
@@ -2376,7 +2377,7 @@ class phemex(Exchange):
                 headers['Content-Type'] = 'application/json'
             auth = requestPath + queryString + expiryString + payload
             headers['x-phemex-request-signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
-        url = self.urls['api'][api] + url
+        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
