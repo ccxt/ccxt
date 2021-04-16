@@ -141,6 +141,8 @@ class binance extends Exchange {
                         'margin/isolated/account',
                         'margin/isolated/pair',
                         'margin/isolated/allPairs',
+                        'fiatpayment/query/deposit/history',
+                        'fiatpayment/query/withdraw/history',
                         'futures/transfer',
                         'futures/loan/borrow/history',
                         'futures/loan/repay/history',
