@@ -13,6 +13,7 @@ except NameError:
     basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.precise import Precise
@@ -123,6 +124,7 @@ class qtrade(Exchange):
                 'exact': {
                     'invalid_auth': AuthenticationError,
                     'insuff_funds': InsufficientFunds,
+                    'market_not_found': BadSymbol,  # {"errors":[{"code":"market_not_found","title":"Requested market does not exist"}]}
                 },
             },
         })
