@@ -16,6 +16,7 @@ module.exports = class aofex extends Exchange {
             'name': 'AOFEX',
             'countries': [ 'GB' ],
             'rateLimit': 1000,
+            'hostname': 'openapi.aofex.com',
             'has': {
                 'fetchMarkets': true,
                 'fetchCurrencies': false,
@@ -48,8 +49,8 @@ module.exports = class aofex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg',
                 'api': {
-                    'public': 'https://openapi.aofex.com/openApi',
-                    'private': 'https://openapi.aofex.com/openApi',
+                    'public': 'https://{hostname}/openApi',
+                    'private': 'https://{hostname}/openApi',
                 },
                 'www': 'https://aofex.com',
                 'doc': 'https://aofex.zendesk.com/hc/en-us/sections/360005576574-API',
@@ -989,7 +990,7 @@ module.exports = class aofex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
+        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + '/' + path;
         let keys = Object.keys (params);
         const keysLength = keys.length;
         if (api === 'public') {
