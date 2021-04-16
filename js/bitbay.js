@@ -45,15 +45,16 @@ module.exports = class bitbay extends Exchange {
                 '3d': '259200',
                 '1w': '604800',
             },
+            'hostname': 'bitbay.net',
             'urls': {
                 'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
                 'www': 'https://bitbay.net',
                 'api': {
-                    'public': 'https://bitbay.net/API/Public',
-                    'private': 'https://bitbay.net/API/Trading/tradingApi.php',
-                    'v1_01Public': 'https://api.bitbay.net/rest',
-                    'v1_01Private': 'https://api.bitbay.net/rest',
+                    'public': 'https://{hostname}/API/Public',
+                    'private': 'https://{hostname}/API/Trading/tradingApi.php',
+                    'v1_01Public': 'https://api.{hostname}/rest',
+                    'v1_01Private': 'https://api.{hostname}/rest',
                 },
                 'doc': [
                     'https://bitbay.net/public-api',
@@ -1163,7 +1164,7 @@ module.exports = class bitbay extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
+        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
         if (api === 'public') {
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params) + '.json';
