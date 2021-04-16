@@ -27,6 +27,7 @@ class aofex(Exchange):
             'name': 'AOFEX',
             'countries': ['GB'],
             'rateLimit': 1000,
+            'hostname': 'openapi.aofex.com',
             'has': {
                 'fetchMarkets': True,
                 'fetchCurrencies': False,
@@ -59,8 +60,8 @@ class aofex(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg',
                 'api': {
-                    'public': 'https://openapi.aofex.com/openApi',
-                    'private': 'https://openapi.aofex.com/openApi',
+                    'public': 'https://{hostname}/openApi',
+                    'private': 'https://{hostname}/openApi',
                 },
                 'www': 'https://aofex.com',
                 'doc': 'https://aofex.zendesk.com/hc/en-us/sections/360005576574-API',
@@ -950,7 +951,7 @@ class aofex(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/' + path
+        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + '/' + path
         keys = list(params.keys())
         keysLength = len(keys)
         if api == 'public':
