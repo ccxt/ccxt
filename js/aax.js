@@ -214,8 +214,8 @@ module.exports = class aax extends Exchange {
                 active = (status.toUpperCase () === 'ENABLE');
             }
             const precision = {
-                'price': this.precisionFromString (market['tickSize']),
-                'amount': this.precisionFromString (market['lotSize']),
+                'price': this.precisionFromString (this.safeString (market, 'tickSize')),
+                'amount': this.precisionFromString (this.safeString (market, 'lotSize')),
             };
             const entry = {
                 'id': id,
