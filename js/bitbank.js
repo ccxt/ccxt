@@ -41,12 +41,13 @@ module.exports = class bitbank extends Exchange {
                 '1d': '1day',
                 '1w': '1week',
             },
+            'hostname': 'bitbank.cc',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
                 'api': {
-                    'public': 'https://public.bitbank.cc',
-                    'private': 'https://api.bitbank.cc',
-                    'markets': 'https://api.bitbank.cc',
+                    'public': 'https://public.{hostname}',
+                    'private': 'https://api.{hostname}',
+                    'markets': 'https://api.{hostname}',
                 },
                 'www': 'https://bitbank.cc/',
                 'doc': 'https://docs.bitbank.cc/',
@@ -554,7 +555,7 @@ module.exports = class bitbank extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'][api] + '/';
+        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + '/';
         if ((api === 'public') || (api === 'markets')) {
             url += this.implodeParams (path, params);
             if (Object.keys (query).length) {
