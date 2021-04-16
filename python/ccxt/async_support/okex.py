@@ -1037,6 +1037,8 @@ class okex(Exchange):
             request['size'] = limit  # max 200
         response = await getattr(self, method)(self.extend(request, params))
         #
+        # spot
+        #
         #     {     asks: [["0.02685268", "0.242571", "1"],
         #                    ["0.02685493", "0.164085", "1"],
         #                    ...
@@ -1049,7 +1051,19 @@ class okex(Exchange):
         #                    ["0.02634962", "0.264838", "2"]    ],
         #       timestamp:   "2018-12-17T20:24:16.159Z"            }
         #
-        timestamp = self.parse8601(self.safe_string(response, 'timestamp'))
+        # swap
+        #
+        #     {
+        #         "asks":[
+        #             ["916.21","94","0","1"]
+        #         ],
+        #         "bids":[
+        #             ["916.1","15","0","1"]
+        #         ],
+        #         "time":"2021-04-16T02:04:48.282Z"
+        #     }
+        #
+        timestamp = self.parse8601(self.safe_string_2(response, 'timestamp', 'time'))
         return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market=None):
