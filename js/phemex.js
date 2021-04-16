@@ -18,6 +18,7 @@ module.exports = class phemex extends Exchange {
             'version': 'v1',
             'certified': false,
             'pro': true,
+            'hostname': 'api.phemex.com',
             'has': {
                 'cancelAllOrders': true, // swap contracts only
                 'cancelOrder': true,
@@ -46,9 +47,9 @@ module.exports = class phemex extends Exchange {
                     'private': 'https://testnet-api.phemex.com',
                 },
                 'api': {
-                    'v1': 'https://api.phemex.com/v1',
-                    'public': 'https://api.phemex.com/exchange/public',
-                    'private': 'https://api.phemex.com',
+                    'v1': 'https://{hostname}/v1',
+                    'public': 'https://{hostname}/exchange/public',
+                    'private': 'https://{hostname}',
                 },
                 'www': 'https://phemex.com',
                 'doc': 'https://github.com/phemex/phemex-api-docs',
@@ -2492,7 +2493,7 @@ module.exports = class phemex extends Exchange {
             const auth = requestPath + queryString + expiryString + payload;
             headers['x-phemex-request-signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
         }
-        url = this.urls['api'][api] + url;
+        url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
