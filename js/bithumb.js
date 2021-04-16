@@ -32,11 +32,12 @@ module.exports = class bithumb extends Exchange {
                 'fetchTrades': true,
                 'withdraw': true,
             },
+            'hostname': 'bithumb.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
                 'api': {
-                    'public': 'https://api.bithumb.com/public',
-                    'private': 'https://api.bithumb.com',
+                    'public': 'https://api.{hostname}/public',
+                    'private': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bithumb.com',
                 'doc': 'https://apidocs.bithumb.com',
@@ -856,7 +857,7 @@ module.exports = class bithumb extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + endpoint;
+        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + endpoint;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
