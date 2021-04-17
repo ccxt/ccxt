@@ -373,8 +373,10 @@ module.exports = class kucoin extends Exchange {
             const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'enableTrading');
             const baseMaxSize = this.safeNumber (market, 'baseMaxSize');
-            const baseMinSize = this.safeNumber (market, 'baseMinSize');
-            const quoteMaxSize = this.safeNumber (market, 'quoteMaxSize');
+            const baseMinSizeString = this.safeString (market, 'baseMinSize');
+            const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
+            const baseMinSize = this.parseNumber (baseMinSizeString);
+            const quoteMaxSize = this.parseNumber (quoteMaxSizeString);
             const quoteMinSize = this.safeNumber (market, 'quoteMinSize');
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             const precision = {
@@ -388,7 +390,7 @@ module.exports = class kucoin extends Exchange {
                 },
                 'price': {
                     'min': this.safeNumber (market, 'priceIncrement'),
-                    'max': quoteMaxSize / baseMinSize,
+                    'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
                 },
                 'cost': {
                     'min': quoteMinSize,
