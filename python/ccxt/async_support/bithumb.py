@@ -43,11 +43,12 @@ class bithumb(Exchange):
                 'fetchTrades': True,
                 'withdraw': True,
             },
+            'hostname': 'bithumb.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
                 'api': {
-                    'public': 'https://api.bithumb.com/public',
-                    'private': 'https://api.bithumb.com',
+                    'public': 'https://api.{hostname}/public',
+                    'private': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bithumb.com',
                 'doc': 'https://apidocs.bithumb.com',
@@ -810,7 +811,7 @@ class bithumb(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)
-        url = self.urls['api'][api] + endpoint
+        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + endpoint
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
