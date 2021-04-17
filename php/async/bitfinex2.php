@@ -382,18 +382,20 @@ class bitfinex2 extends bitfinex {
                 'price' => $this->safe_integer($market, 'price_precision'),
                 'amount' => 8, // https://github.com/ccxt/ccxt/issues/7310
             );
+            $minOrderSizeString = $this->safe_string($market, 'minimum_order_size');
+            $maxOrderSizeString = $this->safe_string($market, 'maximum_order_size');
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_number($market, 'minimum_order_size'),
-                    'max' => $this->safe_number($market, 'maximum_order_size'),
+                    'min' => $this->parse_number($minOrderSizeString),
+                    'max' => $this->parse_number($maxOrderSizeString),
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision['price']),
-                    'max' => pow(10, $precision['price']),
+                    'min' => $this->parse_number('1e-8'),
+                    'max' => null,
                 ),
             );
             $limits['cost'] = array(
-                'min' => $limits['amount']['min'] * $limits['price']['min'],
+                'min' => $this->parse_number(Precise::string_mul($minOrderSizeString, $maxOrderSizeString)),
                 'max' => null,
             );
             $margin = $this->safe_value($market, 'margin');
