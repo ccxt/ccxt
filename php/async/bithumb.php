@@ -35,11 +35,12 @@ class bithumb extends Exchange {
                 'fetchTrades' => true,
                 'withdraw' => true,
             ),
+            'hostname' => 'bithumb.com',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
                 'api' => array(
-                    'public' => 'https://api.bithumb.com/public',
-                    'private' => 'https://api.bithumb.com',
+                    'public' => 'https://api.{hostname}/public',
+                    'private' => 'https://api.{hostname}',
                 ),
                 'www' => 'https://www.bithumb.com',
                 'doc' => 'https://apidocs.bithumb.com',
@@ -859,7 +860,7 @@ class bithumb extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'][$api] . $endpoint;
+        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $endpoint;
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
