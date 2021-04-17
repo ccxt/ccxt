@@ -823,7 +823,7 @@ module.exports = class gateio extends Exchange {
         const response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,
-            'id': undefined,
+            'id': this.safeString (response, 'withdrawid'),
         };
     }
 

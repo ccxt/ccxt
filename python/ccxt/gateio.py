@@ -783,7 +783,7 @@ class gateio(Exchange):
         response = self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,
-            'id': None,
+            'id': self.safe_string(response, 'withdrawid'),
         }
 
     def fetch_transactions_by_type(self, type=None, code=None, since=None, limit=None, params={}):
