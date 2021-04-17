@@ -560,18 +560,20 @@ class bitfinex extends Exchange {
                 // Anything exceeding this will be rounded to the 8th decimal.
                 'amount' => 8,
             );
+            $minAmountString = $this->safe_string($market, 'minimum_order_size');
+            $maxAmountString = $this->safe_string($market, 'maximum_order_size');
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_number($market, 'minimum_order_size'),
-                    'max' => $this->safe_number($market, 'maximum_order_size'),
+                    'min' => $this->parse_number($minAmountString),
+                    'max' => $this->parse_number($maxAmountString),
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision['price']),
-                    'max' => pow(10, $precision['price']),
+                    'min' => $this->parse_number('1e-8'),
+                    'max' => null,
                 ),
             );
             $limits['cost'] = array(
-                'min' => $limits['amount']['min'] * $limits['price']['min'],
+                'min' => $this->parse_number(Precise::string_mul($minAmountString, $maxAmountString)),
                 'max' => null,
             );
             $margin = $this->safe_value($market, 'margin');
