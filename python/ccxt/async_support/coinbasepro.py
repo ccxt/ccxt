@@ -73,6 +73,7 @@ class coinbasepro(Exchange):
                 '6h': 21600,
                 '1d': 86400,
             },
+            'hostname': 'pro.coinbase.com',
             'urls': {
                 'test': {
                     'public': 'https://api-public.sandbox.pro.coinbase.com',
@@ -80,8 +81,8 @@ class coinbasepro(Exchange):
                 },
                 'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
                 'api': {
-                    'public': 'https://api.pro.coinbase.com',
-                    'private': 'https://api.pro.coinbase.com',
+                    'public': 'https://api.{hostname}',
+                    'private': 'https://api.{hostname}',
                 },
                 'www': 'https://pro.coinbase.com/',
                 'doc': 'https://docs.pro.coinbase.com',
@@ -1051,33 +1052,6 @@ class coinbasepro(Exchange):
             'fee': fee,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/' + self.implode_params(path, params)
-        query = self.omit(params, self.extract_params(path))
-        if method == 'GET':
-            if query:
-                request += '?' + self.urlencode(query)
-        url = self.urls['api'][api] + request
-        if api == 'private':
-            self.check_required_credentials()
-            nonce = str(self.nonce())
-            payload = ''
-            if method != 'GET':
-                if query:
-                    body = self.json(query)
-                    payload = body
-            what = nonce + method + request + payload
-            secret = self.base64_to_binary(self.secret)
-            signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')
-            headers = {
-                'CB-ACCESS-KEY': self.apiKey,
-                'CB-ACCESS-SIGN': signature,
-                'CB-ACCESS-TIMESTAMP': nonce,
-                'CB-ACCESS-PASSPHRASE': self.password,
-                'Content-Type': 'application/json',
-            }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
@@ -1103,6 +1077,33 @@ class coinbasepro(Exchange):
             'tag': tag,
             'info': response,
         }
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        request = '/' + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        if method == 'GET':
+            if query:
+                request += '?' + self.urlencode(query)
+        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + request
+        if api == 'private':
+            self.check_required_credentials()
+            nonce = str(self.nonce())
+            payload = ''
+            if method != 'GET':
+                if query:
+                    body = self.json(query)
+                    payload = body
+            what = nonce + method + request + payload
+            secret = self.base64_to_binary(self.secret)
+            signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')
+            headers = {
+                'CB-ACCESS-KEY': self.apiKey,
+                'CB-ACCESS-SIGN': signature,
+                'CB-ACCESS-TIMESTAMP': nonce,
+                'CB-ACCESS-PASSPHRASE': self.password,
+                'Content-Type': 'application/json',
+            }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if (code == 400) or (code == 404):
