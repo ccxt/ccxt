@@ -826,7 +826,7 @@ class gateio extends Exchange {
         $response = $this->privatePostWithdraw (array_merge($request, $params));
         return array(
             'info' => $response,
-            'id' => null,
+            'id' => $this->safe_string($response, 'withdrawid'),
         );
     }
 
