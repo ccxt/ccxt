@@ -565,8 +565,8 @@ module.exports = class bitfinex extends Exchange {
                     'max': this.parseNumber (maxAmountString),
                 },
                 'price': {
-                    'min': Math.pow (10, -precision['price']),
-                    'max': Math.pow (10, precision['price']),
+                    'min': this.parseNumber ('1e-8'),
+                    'max': undefined,
                 },
             };
             limits['cost'] = {
