@@ -2798,7 +2798,7 @@ To place an order you will need the following information:
 
 A successful call to a unified method for placing market or limit orders returns the unified [order structure](#order-structure).
 
-Note, that some fields from the order structure returned from `createOrder` may be `undefined / None / null` if the underlying exchange API does not return that information in the response. In general, the user is guaranteed that the `createOrder` method will return a structure that will contain at least the order `id` and the `info`:
+Note, that some fields from the order structure returned from `createOrder` may be `undefined / None / null` if the underlying exchange API does not return that information in the response. In general, the user is guaranteed that the `createOrder` method will return a unified [order structure](#order-structure) that will contain at least the order `id` and the `info` (a raw response from the exchange "as is"):
 
 ```JavaScript
 {
@@ -2806,6 +2806,8 @@ Note, that some fields from the order structure returned from `createOrder` may 
     'info': { ... }, // decoded original JSON response from the exchange as is
 }
 ```
+
+You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later.
 
 - **Some exchanges will allow to trade with limit orders only.** See [their docs](#exchanges) for details.
 
