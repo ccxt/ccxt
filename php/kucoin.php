@@ -376,8 +376,10 @@ class kucoin extends Exchange {
             $symbol = $base . '/' . $quote;
             $active = $this->safe_value($market, 'enableTrading');
             $baseMaxSize = $this->safe_number($market, 'baseMaxSize');
-            $baseMinSize = $this->safe_number($market, 'baseMinSize');
-            $quoteMaxSize = $this->safe_number($market, 'quoteMaxSize');
+            $baseMinSizeString = $this->safe_string($market, 'baseMinSize');
+            $quoteMaxSizeString = $this->safe_string($market, 'quoteMaxSize');
+            $baseMinSize = $this->parse_number($baseMinSizeString);
+            $quoteMaxSize = $this->parse_number($quoteMaxSizeString);
             $quoteMinSize = $this->safe_number($market, 'quoteMinSize');
             // $quoteIncrement = $this->safe_number($market, 'quoteIncrement');
             $precision = array(
@@ -391,7 +393,7 @@ class kucoin extends Exchange {
                 ),
                 'price' => array(
                     'min' => $this->safe_number($market, 'priceIncrement'),
-                    'max' => $quoteMaxSize / $baseMinSize,
+                    'max' => $this->parse_number(Precise::string_div($quoteMaxSizeString, $baseMinSizeString)),
                 ),
                 'cost' => array(
                     'min' => $quoteMinSize,
