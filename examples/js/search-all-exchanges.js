@@ -154,4 +154,6 @@ const checkAgainst = strict ?
         log (currencies.length.toString ().yellow, 'currencies')
     }
 
+    process.exit ()
+
 }) ()
