@@ -20,6 +20,7 @@ class aofex extends Exchange {
             'name' => 'AOFEX',
             'countries' => array( 'GB' ),
             'rateLimit' => 1000,
+            'hostname' => 'openapi.aofex.com',
             'has' => array(
                 'fetchMarkets' => true,
                 'fetchCurrencies' => false,
@@ -52,8 +53,8 @@ class aofex extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg',
                 'api' => array(
-                    'public' => 'https://openapi.aofex.com/openApi',
-                    'private' => 'https://openapi.aofex.com/openApi',
+                    'public' => 'https://{hostname}/openApi',
+                    'private' => 'https://{hostname}/openApi',
                 ),
                 'www' => 'https://aofex.com',
                 'doc' => 'https://aofex.zendesk.com/hc/en-us/sections/360005576574-API',
@@ -993,7 +994,7 @@ class aofex extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api] . '/' . $path;
+        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . '/' . $path;
         $keys = is_array($params) ? array_keys($params) : array();
         $keysLength = is_array($keys) ? count($keys) : 0;
         if ($api === 'public') {

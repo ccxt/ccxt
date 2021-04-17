@@ -44,12 +44,13 @@ class bitbank extends Exchange {
                 '1d' => '1day',
                 '1w' => '1week',
             ),
+            'hostname' => 'bitbank.cc',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
                 'api' => array(
-                    'public' => 'https://public.bitbank.cc',
-                    'private' => 'https://api.bitbank.cc',
-                    'markets' => 'https://api.bitbank.cc',
+                    'public' => 'https://public.{hostname}',
+                    'private' => 'https://api.{hostname}',
+                    'markets' => 'https://api.{hostname}',
                 ),
                 'www' => 'https://bitbank.cc/',
                 'doc' => 'https://docs.bitbank.cc/',
@@ -557,7 +558,7 @@ class bitbank extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api'][$api] . '/';
+        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . '/';
         if (($api === 'public') || ($api === 'markets')) {
             $url .= $this->implode_params($path, $params);
             if ($query) {
