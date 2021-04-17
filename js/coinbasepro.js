@@ -54,6 +54,7 @@ module.exports = class coinbasepro extends Exchange {
                 '6h': 21600,
                 '1d': 86400,
             },
+            'hostname': 'pro.coinbase.com',
             'urls': {
                 'test': {
                     'public': 'https://api-public.sandbox.pro.coinbase.com',
@@ -61,8 +62,8 @@ module.exports = class coinbasepro extends Exchange {
                 },
                 'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
                 'api': {
-                    'public': 'https://api.pro.coinbase.com',
-                    'private': 'https://api.pro.coinbase.com',
+                    'public': 'https://api.{hostname}',
+                    'private': 'https://api.{hostname}',
                 },
                 'www': 'https://pro.coinbase.com/',
                 'doc': 'https://docs.pro.coinbase.com',
@@ -1111,39 +1112,6 @@ module.exports = class coinbasepro extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
-            if (Object.keys (query).length) {
-                request += '?' + this.urlencode (query);
-            }
-        }
-        const url = this.urls['api'][api] + request;
-        if (api === 'private') {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            let payload = '';
-            if (method !== 'GET') {
-                if (Object.keys (query).length) {
-                    body = this.json (query);
-                    payload = body;
-                }
-            }
-            const what = nonce + method + request + payload;
-            const secret = this.base64ToBinary (this.secret);
-            const signature = this.hmac (this.encode (what), secret, 'sha256', 'base64');
-            headers = {
-                'CB-ACCESS-KEY': this.apiKey,
-                'CB-ACCESS-SIGN': signature,
-                'CB-ACCESS-TIMESTAMP': nonce,
-                'CB-ACCESS-PASSPHRASE': this.password,
-                'Content-Type': 'application/json',
-            };
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1171,6 +1139,39 @@ module.exports = class coinbasepro extends Exchange {
             'tag': tag,
             'info': response,
         };
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        if (method === 'GET') {
+            if (Object.keys (query).length) {
+                request += '?' + this.urlencode (query);
+            }
+        }
+        const url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + request;
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ().toString ();
+            let payload = '';
+            if (method !== 'GET') {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                    payload = body;
+                }
+            }
+            const what = nonce + method + request + payload;
+            const secret = this.base64ToBinary (this.secret);
+            const signature = this.hmac (this.encode (what), secret, 'sha256', 'base64');
+            headers = {
+                'CB-ACCESS-KEY': this.apiKey,
+                'CB-ACCESS-SIGN': signature,
+                'CB-ACCESS-TIMESTAMP': nonce,
+                'CB-ACCESS-PASSPHRASE': this.password,
+                'Content-Type': 'application/json',
+            };
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
