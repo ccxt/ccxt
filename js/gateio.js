@@ -159,9 +159,9 @@ module.exports = class gateio extends Exchange {
                 'limits': {
                     'cost': {
                         'min': {
-                            'BTC': 0.0001,
-                            'ETH': 0.001,
-                            'USDT': 1,
+                            'BTC': '0.0001',
+                            'ETH': '0.001',
+                            'USDT': '1',
                         },
                     },
                 },
@@ -303,15 +303,16 @@ module.exports = class gateio extends Exchange {
                 'amount': this.safeInteger (details, 'amount_decimal_places'),
                 'price': parseInt (pricePrecisionString),
             };
+            const amountLimit = this.safeString (details, 'min_amount');
             const amountLimits = {
-                'min': this.safeNumber (details, 'min_amount'),
+                'min': this.parseNumber (amountLimit),
                 'max': undefined,
             };
             const priceLimits = {
                 'min': this.parseNumber (priceLimit),
                 'max': undefined,
             };
-            const defaultCost = amountLimits['min'] * priceLimits['min'];
+            const defaultCost = this.parseNumber (Precise.stringMul (amountLimit, priceLimit));
             const minCost = this.safeNumber (this.options['limits']['cost']['min'], quote, defaultCost);
             const costLimits = {
                 'min': minCost,
