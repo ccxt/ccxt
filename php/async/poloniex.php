@@ -463,12 +463,28 @@ class poloniex extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = yield $this->publicGetReturnCurrencies ($params);
+        //     {
+        //       "$id" => "293",
+        //       "name" => "0x",
+        //       "humanType" => "Sweep to Main Account",
+        //       "currencyType" => "address",
+        //       "txFee" => "17.21877546",
+        //       "minConf" => "12",
+        //       "depositAddress" => null,
+        //       "disabled" => "0",
+        //       "frozen" => "0",
+        //       "hexColor" => "003831",
+        //       "blockchain" => "ETH",
+        //       "delisted" => "0",
+        //       "isGeofenced" => 0
+        //     }
         $ids = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $currency = $response[$id];
             $precision = 8; // default $precision, todo => fix "magic constants"
+            $amountLimit = '1e-8';
             $code = $this->safe_currency_code($id);
             $active = ($currency['delisted'] === 0) && !$currency['disabled'];
             $numericId = $this->safe_integer($currency, 'id');
@@ -484,12 +500,12 @@ class poloniex extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => $this->parse_number($amountLimit),
+                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => $fee,
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                 ),
             );
