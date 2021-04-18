@@ -91,21 +91,17 @@ class foxbit extends Exchange {
                 // otherwise we will lose the info if the currency balance has been funded or traded or not
                 if (is_array($balances) && array_key_exists($currencyId, $balances)) {
                     $account = $this->account();
-                    $used = $this->safe_number($balances, $currencyId . '_locked');
-                    if ($used !== null) {
-                        $used *= 1e-8;
-                    }
-                    $total = $this->safe_number($balances, $currencyId);
-                    if ($total !== null) {
-                        $total *= 1e-8;
-                    }
+                    $used = $this->safe_string($balances, $currencyId . '_locked');
+                    $used = Precise::string_div($used, '1e8');
+                    $total = $this->safe_string($balances, $currencyId);
+                    $total = Precise::string_div($total, '1e8');
                     $account['used'] = $used;
                     $account['total'] = $total;
                     $result[$code] = $account;
                 }
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

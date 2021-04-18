@@ -90,16 +90,14 @@ class foxbit(Exchange):
                 # otherwise we will lose the info if the currency balance has been funded or traded or not
                 if currencyId in balances:
                     account = self.account()
-                    used = self.safe_number(balances, currencyId + '_locked')
-                    if used is not None:
-                        used *= 1e-8
-                    total = self.safe_number(balances, currencyId)
-                    if total is not None:
-                        total *= 1e-8
+                    used = self.safe_string(balances, currencyId + '_locked')
+                    used = Precise.string_div(used, '1e8')
+                    total = self.safe_string(balances, currencyId)
+                    total = Precise.string_div(total, '1e8')
                     account['used'] = used
                     account['total'] = total
                     result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
