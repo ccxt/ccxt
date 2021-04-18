@@ -224,6 +224,7 @@ module.exports = class bitforex extends Exchange {
             },
             'commonCurrencies': {
                 'CREDIT': 'TerraCredit',
+                'CTC': 'Culture Ticket Chain',
                 'HBC': 'Hybrid Bank Cash',
                 'IQ': 'IQ.Cash',
                 'UOS': 'UOS Network',
