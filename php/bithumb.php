@@ -898,6 +898,9 @@ class bithumb extends Exchange {
             if ($status !== null) {
                 if ($status === '0000') {
                     return; // no error
+                } else if ($status === '5600') {
+                    // https://github.com/ccxt/ccxt/issues/9017
+                    return; // no error
                 }
                 $feedback = $this->id . ' ' . $body;
                 $this->throw_exactly_matched_exception($this->exceptions, $status, $feedback);
