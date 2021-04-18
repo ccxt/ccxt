@@ -608,7 +608,7 @@ module.exports = class Exchange {
     }
 
     onJsonResponse (responseBody) {
-        return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+),/g, '":"$1",') : responseBody;
+        return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)[,}]/g, '":"$1",') : responseBody;
     }
 
     setMarkets (markets, currencies = undefined) {
