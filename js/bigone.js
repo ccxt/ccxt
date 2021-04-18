@@ -192,9 +192,13 @@ module.exports = class bigone extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const amountPrecisionString = this.safeString (market, 'base_scale');
+            const pricePrecisionString = this.safeString (market, 'quote_scale');
+            const amountLimit = (amountPrecisionString === undefined) ? undefined : '1e-' + amountPrecisionString;
+            const priceLimit = (pricePrecisionString === undefined) ? undefined : '1e-' + pricePrecisionString;
             const precision = {
-                'amount': this.safeInteger (market, 'base_scale'),
-                'price': this.safeInteger (market, 'quote_scale'),
+                'amount': parseInt (amountPrecisionString),
+                'price': parseInt (pricePrecisionString),
             };
             const minCost = this.safeInteger (market, 'min_quote_value');
             const entry = {
@@ -209,11 +213,11 @@ module.exports = class bigone extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': this.parseNumber (amountLimit),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': this.parseNumber (priceLimit),
                         'max': undefined,
                     },
                     'cost': {
