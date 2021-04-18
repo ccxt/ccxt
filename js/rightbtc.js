@@ -152,9 +152,13 @@ module.exports = class rightbtc extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const amountPrecision = this.safeString (market, 'bid_asset_decimals');
+            const pricePrecision = this.safeString (market, 'ask_asset_decimals');
+            const amountLimit = (amountPrecision === undefined) ? undefined : '1e-' + amountPrecision;
+            const priceLimit = (pricePrecision === undefined) ? undefined : '1e-' + pricePrecision;
             const precision = {
-                'amount': this.safeInteger (market, 'bid_asset_decimals'),
-                'price': this.safeInteger (market, 'ask_asset_decimals'),
+                'amount': parseInt (amountPrecision),
+                'price': parseInt (pricePrecision),
             };
             result.push ({
                 'id': id,
@@ -167,12 +171,12 @@ module.exports = class rightbtc extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': this.parseNumber (amountLimit),
+                        'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': this.parseNumber (priceLimit),
+                        'max': undefined,
                     },
                     'cost': {
                         'min': undefined,
