@@ -90,21 +90,17 @@ module.exports = class foxbit extends Exchange {
                 // otherwise we will lose the info if the currency balance has been funded or traded or not
                 if (currencyId in balances) {
                     const account = this.account ();
-                    let used = this.safeNumber (balances, currencyId + '_locked');
-                    if (used !== undefined) {
-                        used *= 1e-8;
-                    }
-                    let total = this.safeNumber (balances, currencyId);
-                    if (total !== undefined) {
-                        total *= 1e-8;
-                    }
+                    let used = this.safeString (balances, currencyId + '_locked');
+                    used = Precise.stringDiv (used, '1e8');
+                    let total = this.safeString (balances, currencyId);
+                    total = Precise.stringDiv (total, '1e8');
                     account['used'] = used;
                     account['total'] = total;
                     result[code] = account;
                 }
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
