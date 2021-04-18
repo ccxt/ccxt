@@ -169,9 +169,9 @@ class gateio(Exchange):
                 'limits': {
                     'cost': {
                         'min': {
-                            'BTC': 0.0001,
-                            'ETH': 0.001,
-                            'USDT': 1,
+                            'BTC': '0.0001',
+                            'ETH': '0.001',
+                            'USDT': '1',
                         },
                     },
                 },
@@ -306,15 +306,16 @@ class gateio(Exchange):
                 'amount': self.safe_integer(details, 'amount_decimal_places'),
                 'price': int(pricePrecisionString),
             }
+            amountLimit = self.safe_string(details, 'min_amount')
             amountLimits = {
-                'min': self.safe_number(details, 'min_amount'),
+                'min': self.parse_number(amountLimit),
                 'max': None,
             }
             priceLimits = {
                 'min': self.parse_number(priceLimit),
                 'max': None,
             }
-            defaultCost = amountLimits['min'] * priceLimits['min']
+            defaultCost = self.parse_number(Precise.string_mul(amountLimit, priceLimit))
             minCost = self.safe_number(self.options['limits']['cost']['min'], quote, defaultCost)
             costLimits = {
                 'min': minCost,
