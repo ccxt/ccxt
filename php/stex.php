@@ -253,7 +253,8 @@ class stex extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->safe_currency_code($this->safe_string($currency, 'code'));
-            $precision = $this->safe_integer($currency, 'precision');
+            $precision = $this->safe_string($currency, 'precision');
+            $amountLimit = ($precision === null) ? null : '1e-' . $precision;
             $fee = $this->safe_number($currency, 'withdrawal_fee_const'); // todo => redesign
             $active = $this->safe_value($currency, 'active', true);
             $result[$code] = array(
@@ -265,9 +266,9 @@ class stex extends Exchange {
                 'name' => $this->safe_string($currency, 'name'),
                 'active' => $active,
                 'fee' => $fee,
-                'precision' => $precision,
+                'precision' => intval($precision),
                 'limits' => array(
-                    'amount' => array( 'min' => pow(10, -$precision), 'max' => null ),
+                    'amount' => array( 'min' => $this->parse_number($amountLimit), 'max' => null ),
                     'deposit' => array(
                         'min' => $this->safe_number($currency, 'minimum_deposit_amount'),
                         'max' => null,
