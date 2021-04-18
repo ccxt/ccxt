@@ -1444,7 +1444,7 @@ class Exchange {
     }
 
     public function on_json_response($response_body) {
-        return (is_string($response_body) && $this->quoteJsonNumbers) ? preg_replace('/":([+.0-9eE-]+),/', '":"$1",', $response_body) : $response_body;
+        return (is_string($response_body) && $this->quoteJsonNumbers) ? preg_replace('/":([+.0-9eE-]+)([,}])/', '":"$1"$2', $response_body) : $response_body;
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
