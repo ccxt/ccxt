@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.precise import Precise
 
 
@@ -345,8 +344,10 @@ class lykke(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            pricePrecision = self.safe_string(market, 'Accuracy')
+            priceLimit = None if (pricePrecision is None) else '1e-' + pricePrecision
             precision = {
-                'price': self.safe_integer(market, 'Accuracy'),
+                'price': int(pricePrecision),
                 'amount': self.safe_integer(market, 'InvertedAccuracy'),
             }
             result.append({
@@ -359,15 +360,15 @@ class lykke(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'min': self.safe_number(market, 'MinVolume'),
+                        'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': self.parse_number(priceLimit),
+                        'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'MinInvertedVolume'),
                         'max': None,
                     },
                 },

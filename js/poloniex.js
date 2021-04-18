@@ -460,12 +460,28 @@ module.exports = class poloniex extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetReturnCurrencies (params);
+        //     {
+        //       "id": "293",
+        //       "name": "0x",
+        //       "humanType": "Sweep to Main Account",
+        //       "currencyType": "address",
+        //       "txFee": "17.21877546",
+        //       "minConf": "12",
+        //       "depositAddress": null,
+        //       "disabled": "0",
+        //       "frozen": "0",
+        //       "hexColor": "003831",
+        //       "blockchain": "ETH",
+        //       "delisted": "0",
+        //       "isGeofenced": 0
+        //     }
         const ids = Object.keys (response);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = response[id];
             const precision = 8; // default precision, todo: fix "magic constants"
+            const amountLimit = '1e-8';
             const code = this.safeCurrencyCode (id);
             const active = (currency['delisted'] === 0) && !currency['disabled'];
             const numericId = this.safeInteger (currency, 'id');
@@ -481,12 +497,12 @@ module.exports = class poloniex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': this.parseNumber (amountLimit),
+                        'max': undefined,
                     },
                     'withdraw': {
                         'min': fee,
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                 },
             };

@@ -360,8 +360,10 @@ class lykke extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $pricePrecision = $this->safe_string($market, 'Accuracy');
+            $priceLimit = ($pricePrecision === null) ? null : '1e-' . $pricePrecision;
             $precision = array(
-                'price' => $this->safe_integer($market, 'Accuracy'),
+                'price' => intval($pricePrecision),
                 'amount' => $this->safe_integer($market, 'InvertedAccuracy'),
             );
             $result[] = array(
@@ -374,15 +376,15 @@ class lykke extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
-                        'max' => pow(10, $precision['amount']),
+                        'min' => $this->safe_number($market, 'MinVolume'),
+                        'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
-                        'max' => pow(10, $precision['price']),
+                        'min' => $this->parse_number($priceLimit),
+                        'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'MinInvertedVolume'),
                         'max' => null,
                     ),
                 ),

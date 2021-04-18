@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -451,12 +450,28 @@ class poloniex(Exchange):
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetReturnCurrencies(params)
+        #     {
+        #       "id": "293",
+        #       "name": "0x",
+        #       "humanType": "Sweep to Main Account",
+        #       "currencyType": "address",
+        #       "txFee": "17.21877546",
+        #       "minConf": "12",
+        #       "depositAddress": null,
+        #       "disabled": "0",
+        #       "frozen": "0",
+        #       "hexColor": "003831",
+        #       "blockchain": "ETH",
+        #       "delisted": "0",
+        #       "isGeofenced": 0
+        #     }
         ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
             currency = response[id]
             precision = 8  # default precision, todo: fix "magic constants"
+            amountLimit = '1e-8'
             code = self.safe_currency_code(id)
             active = (currency['delisted'] == 0) and not currency['disabled']
             numericId = self.safe_integer(currency, 'id')
@@ -472,12 +487,12 @@ class poloniex(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': self.parse_number(amountLimit),
+                        'max': None,
                     },
                     'withdraw': {
                         'min': fee,
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                 },
             }

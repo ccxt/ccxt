@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -162,9 +161,13 @@ class rightbtc(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            amountPrecision = self.safe_string(market, 'bid_asset_decimals')
+            pricePrecision = self.safe_string(market, 'ask_asset_decimals')
+            amountLimit = None if (amountPrecision is None) else '1e-' + amountPrecision
+            priceLimit = None if (pricePrecision is None) else '1e-' + pricePrecision
             precision = {
-                'amount': self.safe_integer(market, 'bid_asset_decimals'),
-                'price': self.safe_integer(market, 'ask_asset_decimals'),
+                'amount': int(amountPrecision),
+                'price': int(pricePrecision),
             }
             result.append({
                 'id': id,
@@ -177,12 +180,12 @@ class rightbtc(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['price']),
+                        'min': self.parse_number(amountLimit),
+                        'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': self.parse_number(priceLimit),
+                        'max': None,
                     },
                     'cost': {
                         'min': None,
