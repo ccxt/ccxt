@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -201,9 +200,13 @@ class bigone(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            amountPrecisionString = self.safe_string(market, 'base_scale')
+            pricePrecisionString = self.safe_string(market, 'quote_scale')
+            amountLimit = None if (amountPrecisionString is None) else '1e-' + amountPrecisionString
+            priceLimit = None if (pricePrecisionString is None) else '1e-' + pricePrecisionString
             precision = {
-                'amount': self.safe_integer(market, 'base_scale'),
-                'price': self.safe_integer(market, 'quote_scale'),
+                'amount': int(amountPrecisionString),
+                'price': int(pricePrecisionString),
             }
             minCost = self.safe_integer(market, 'min_quote_value')
             entry = {
@@ -218,11 +221,11 @@ class bigone(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': self.parse_number(amountLimit),
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': self.parse_number(priceLimit),
                         'max': None,
                     },
                     'cost': {
