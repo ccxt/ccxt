@@ -133,10 +133,13 @@ module.exports = class btcalpha extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const pricePrecision = this.safeString (market, 'price_precision');
+            const priceLimit = (pricePrecision === undefined) ? undefined : '1e-' + pricePrecision;
             const precision = {
                 'amount': 8,
-                'price': this.safeInteger (market, 'price_precision'),
+                'price': parseInt (pricePrecision),
             };
+            const amountLimit = this.safeString (market, 'minimum_order_size');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -146,15 +149,15 @@ module.exports = class btcalpha extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeNumber (market, 'minimum_order_size'),
+                        'min': this.parseNumber (amountLimit),
                         'max': this.safeNumber (market, 'maximum_order_size'),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': this.parseNumber (priceLimit),
+                        'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.parseNumber (Precise.stringMul (priceLimit, amountLimit)),
                         'max': undefined,
                     },
                 },
