@@ -557,18 +557,20 @@ module.exports = class bitfinex extends Exchange {
                 // Anything exceeding this will be rounded to the 8th decimal.
                 'amount': 8,
             };
+            const minAmountString = this.safeString (market, 'minimum_order_size');
+            const maxAmountString = this.safeString (market, 'maximum_order_size');
             const limits = {
                 'amount': {
-                    'min': this.safeNumber (market, 'minimum_order_size'),
-                    'max': this.safeNumber (market, 'maximum_order_size'),
+                    'min': this.parseNumber (minAmountString),
+                    'max': this.parseNumber (maxAmountString),
                 },
                 'price': {
-                    'min': Math.pow (10, -precision['price']),
-                    'max': Math.pow (10, precision['price']),
+                    'min': this.parseNumber ('1e-8'),
+                    'max': undefined,
                 },
             };
             limits['cost'] = {
-                'min': limits['amount']['min'] * limits['price']['min'],
+                'min': this.parseNumber (Precise.stringMul (minAmountString, maxAmountString)),
                 'max': undefined,
             };
             const margin = this.safeValue (market, 'margin');

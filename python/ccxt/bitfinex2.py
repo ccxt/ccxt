@@ -383,18 +383,20 @@ class bitfinex2(bitfinex):
                 'price': self.safe_integer(market, 'price_precision'),
                 'amount': 8,  # https://github.com/ccxt/ccxt/issues/7310
             }
+            minOrderSizeString = self.safe_string(market, 'minimum_order_size')
+            maxOrderSizeString = self.safe_string(market, 'maximum_order_size')
             limits = {
                 'amount': {
-                    'min': self.safe_number(market, 'minimum_order_size'),
-                    'max': self.safe_number(market, 'maximum_order_size'),
+                    'min': self.parse_number(minOrderSizeString),
+                    'max': self.parse_number(maxOrderSizeString),
                 },
                 'price': {
-                    'min': math.pow(10, -precision['price']),
-                    'max': math.pow(10, precision['price']),
+                    'min': self.parse_number('1e-8'),
+                    'max': None,
                 },
             }
             limits['cost'] = {
-                'min': limits['amount']['min'] * limits['price']['min'],
+                'min': self.parse_number(Precise.string_mul(minOrderSizeString, maxOrderSizeString)),
                 'max': None,
             }
             margin = self.safe_value(market, 'margin')

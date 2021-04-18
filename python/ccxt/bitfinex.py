@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -568,18 +567,20 @@ class bitfinex(Exchange):
                 # Anything exceeding self will be rounded to the 8th decimal.
                 'amount': 8,
             }
+            minAmountString = self.safe_string(market, 'minimum_order_size')
+            maxAmountString = self.safe_string(market, 'maximum_order_size')
             limits = {
                 'amount': {
-                    'min': self.safe_number(market, 'minimum_order_size'),
-                    'max': self.safe_number(market, 'maximum_order_size'),
+                    'min': self.parse_number(minAmountString),
+                    'max': self.parse_number(maxAmountString),
                 },
                 'price': {
-                    'min': math.pow(10, -precision['price']),
-                    'max': math.pow(10, precision['price']),
+                    'min': self.parse_number('1e-8'),
+                    'max': None,
                 },
             }
             limits['cost'] = {
-                'min': limits['amount']['min'] * limits['price']['min'],
+                'min': self.parse_number(Precise.string_mul(minAmountString, maxAmountString)),
                 'max': None,
             }
             margin = self.safe_value(market, 'margin')

@@ -375,18 +375,20 @@ module.exports = class bitfinex2 extends bitfinex {
                 'price': this.safeInteger (market, 'price_precision'),
                 'amount': 8, // https://github.com/ccxt/ccxt/issues/7310
             };
+            const minOrderSizeString = this.safeString (market, 'minimum_order_size');
+            const maxOrderSizeString = this.safeString (market, 'maximum_order_size');
             const limits = {
                 'amount': {
-                    'min': this.safeNumber (market, 'minimum_order_size'),
-                    'max': this.safeNumber (market, 'maximum_order_size'),
+                    'min': this.parseNumber (minOrderSizeString),
+                    'max': this.parseNumber (maxOrderSizeString),
                 },
                 'price': {
-                    'min': Math.pow (10, -precision['price']),
-                    'max': Math.pow (10, precision['price']),
+                    'min': this.parseNumber ('1e-8'),
+                    'max': undefined,
                 },
             };
             limits['cost'] = {
-                'min': limits['amount']['min'] * limits['price']['min'],
+                'min': this.parseNumber (Precise.stringMul (minOrderSizeString, maxOrderSizeString)),
                 'max': undefined,
             };
             const margin = this.safeValue (market, 'margin');
