@@ -388,7 +388,7 @@ class ndax extends Exchange {
                 $nonce = max ($nonce, $newNonce);
             }
             $bidask = $this->parse_bid_ask($level, $priceKey, $amountKey);
-            $levelSide = $this->safe_value($level, 9);
+            $levelSide = $this->safe_integer($level, 9);
             $side = $levelSide ? $asksKey : $bidsKey;
             $result[$side][] = $bidask;
         }
