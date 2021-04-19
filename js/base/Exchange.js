@@ -1661,4 +1661,11 @@ module.exports = class Exchange {
         const value = this.safeString2 (object, key1, key2)
         return this.parseNumber (value, d)
     }
+
+    parseLimit (precision) {
+        if (precision === undefined) {
+            return undefined
+        }
+        return '1e' + Precise.stringNeg (precision)
+    }
 }
