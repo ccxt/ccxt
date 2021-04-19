@@ -386,7 +386,7 @@ module.exports = class ndax extends Exchange {
                 nonce = Math.max (nonce, newNonce);
             }
             const bidask = this.parseBidAsk (level, priceKey, amountKey);
-            const levelSide = this.safeValue (level, 9);
+            const levelSide = this.safeInteger (level, 9);
             const side = levelSide ? asksKey : bidsKey;
             result[side].push (bidask);
         }
