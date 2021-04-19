@@ -1855,7 +1855,7 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'data', [])
-        return self.parse_transactions(data, currency, since, limit)
+        return self.parse_transactions(data, currency, since, limit, {'type': 'deposit'})
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1908,7 +1908,7 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'data', [])
-        return self.parse_transactions(data, currency, since, limit, params)
+        return self.parse_transactions(data, currency, since, limit, {'type': 'withdrawal'})
 
     def parse_transaction_status(self, status):
         statuses = {
