@@ -3043,4 +3043,11 @@ class Exchange {
         $value = $this->safe_string_2($object, $key1, $key2);
         return $this->parse_number($value, $default);
     }
+
+    public function parse_precision($precision) {
+        if ($precision === null) {
+            return null;
+        }
+        return '1e' . Precise::string_neg($precision);
+    }
 }
