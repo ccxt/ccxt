@@ -1662,7 +1662,7 @@ module.exports = class Exchange {
         return this.parseNumber (value, d)
     }
 
-    parseLimit (precision) {
+    parsePrecision (precision) {
         if (precision === undefined) {
             return undefined
         }
