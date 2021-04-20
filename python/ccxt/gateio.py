@@ -185,6 +185,7 @@ class gateio(Exchange):
                 'MPH': 'Morpher',  # conflict with 88MPH
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
+                'VAI': 'VAIOT',
             },
         })
 
