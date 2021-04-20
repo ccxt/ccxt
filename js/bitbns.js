@@ -20,6 +20,7 @@ module.exports = class bitbns extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'fetchStatus': true,
             },
             'timeframes': {
             },
@@ -799,10 +800,22 @@ module.exports = class bitbns extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const response = await this.wapiGetSystemStatus (params);
+        const response = await this.v1GetPlatformStatus (params);
+        //
+        //     {
+        //         "data":{
+        //             "BTC":{"status":1},
+        //             "ETH":{"status":1},
+        //             "XRP":{"status":1},
+        //         },
+        //         "status":1,
+        //         "error":null,
+        //         "code":200
+        //     }
+        //
         let status = this.safeString (response, 'status');
         if (status !== undefined) {
-            status = (status === '0') ? 'ok' : 'maintenance';
+            status = (status === '1') ? 'ok' : 'maintenance';
             this.status = this.extend (this.status, {
                 'status': status,
                 'updated': this.milliseconds (),
@@ -2445,6 +2458,9 @@ module.exports = class bitbns extends Exchange {
         if (Object.keys (query).length) {
             url += '?' + this.urlencode (query);
         }
+        headers = {
+            'X-BITBNS-APIKEY': this.apiKey,
+        };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
