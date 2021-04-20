@@ -250,7 +250,7 @@ module.exports = class btcturk extends Exchange {
         //       }
         //     }
         const data = this.safeValue (response, 'data');
-        const timestamp = this.safeTimestamp (data, 'timestamp');
+        const timestamp = this.safeInteger (data, 'timestamp');
         return this.parseOrderBook (data, timestamp, 'bids', 'asks', 0, 1);
     }
 
@@ -681,10 +681,11 @@ module.exports = class btcturk extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString (response, 'code', '0');
-        const message = this.safeString (response, 'message', '');
-        this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
+        const message = this.safeString (response, 'message');
+        const output = (message === undefined) ? body : message;
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + output);
         if (errorCode !== '0') {
-            throw new ExchangeError (this.id + ' ' + message);
+            throw new ExchangeError (this.id + ' ' + output);
         }
     }
 };
