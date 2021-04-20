@@ -266,8 +266,8 @@ module.exports = class bitstamp extends Exchange {
             const id = this.safeString (market, 'url_symbol');
             const amountPrecisionString = this.safeString (market, 'base_decimals');
             const pricePrecisionString = this.safeString (market, 'counter_decimals');
-            const amountLimit = (amountPrecisionString === undefined) ? undefined : '1e-' + amountPrecisionString;
-            const priceLimit = (pricePrecisionString === undefined) ? undefined : '1e-' + pricePrecisionString;
+            const amountLimit = this.parsePrecision (amountPrecisionString);
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
                 'amount': parseInt (amountPrecisionString),
                 'price': parseInt (pricePrecisionString),

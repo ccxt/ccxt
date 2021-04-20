@@ -359,7 +359,7 @@ module.exports = class lykke extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const pricePrecision = this.safeString (market, 'Accuracy');
-            const priceLimit = (pricePrecision === undefined) ? undefined : '1e-' + pricePrecision;
+            const priceLimit = this.parsePrecision (pricePrecision);
             const precision = {
                 'price': parseInt (pricePrecision),
                 'amount': this.safeInteger (market, 'InvertedAccuracy'),
