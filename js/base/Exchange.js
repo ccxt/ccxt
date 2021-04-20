@@ -183,6 +183,7 @@ module.exports = class Exchange {
                 'DRK': 'DASH',
                 'BCHABC': 'BCH',
                 'BCHSV': 'BSV',
+                'BYN': 'Beyond Finance',
             },
             'precisionMode': DECIMAL_PLACES,
             'paddingMode': NO_PADDING,
