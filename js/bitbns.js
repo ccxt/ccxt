@@ -26,13 +26,8 @@ module.exports = class bitbns extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': {
-                    'public': {
-                        'v1': 'https://api.bitbns.com/api/trade/v1',
-                    },
-                    'private': {
-                        'v1': 'https://api.bitbns.com/api/trade/v1',
-                        'v2': 'https://api.bitbns.com/api/trade/v2',
-                    },
+                    'v1': 'https://api.bitbns.com/api/trade/v1',
+                    'v2': 'https://api.bitbns.com/api/trade/v2',
                 },
                 'www': 'https://bitbns.com',
                 'referral': 'https://ref.bitbns.com/1090961',
@@ -42,22 +37,41 @@ module.exports = class bitbns extends Exchange {
                 'fees': 'https://bitbns.com/fees',
             },
             'api': {
-                'public': {
-                    'v1': {
-                        'get': [
-
-                        ],
-                    },
+                'v1': {
+                    'get': [
+                        'platform/status',
+                        'tickers',
+                        'orderbook/sell/{symbol}',
+                        'orderbook/buy/{symbol}',
+                    ],
+                    'post': [
+                        'currentCoinBalance/EVERYTHING',
+                        'getApiUsageStatus/USAGE',
+                        'getOrderSocketToken/USAGE',
+                        'currentCoinBalance/{symbol}',
+                        'orderStatus/{symbol}',
+                        'depositHistory/{symbol}',
+                        'withdrawHistory/{symbol}',
+                        'listOpenOrders/{symbol}',
+                        'listOpenStopOrders/{symbol}',
+                        'getCoinAddress/{symbol}',
+                        'getCoinAddress/{symbol}',
+                        'placeSellOrder/{symbol}',
+                        'placeBuyOrder/{symbol}',
+                        'buyStopLoss/{symbol}',
+                        'placeSellOrder/{symbol}',
+                        'cancelOrder/{symbol}',
+                        'cancelStopLossOrder/{symbol}',
+                        'listExecutedOrders/{symbol}',
+                    ],
                 },
-                'private': {
-                    'v1': {
-                        'post': [
-                        ],
-                    },
-                    'v2': {
-                        'post': [
-                        ],
-                    },
+                'v2': {
+                    'post': [
+                        'orders',
+                        'cancel',
+                        'getordersnew',
+                        'marginOrders',
+                    ],
                 },
             },
             'fees': {
@@ -77,14 +91,6 @@ module.exports = class bitbns extends Exchange {
             'exceptions': {
             },
         });
-    }
-
-    currencyToPrecision (currency, fee) {
-        return this.numberToString (fee);
-    }
-
-    nonce () {
-        return this.milliseconds () - this.options['timeDifference'];
     }
 
     async fetchTime (params = {}) {
@@ -2432,73 +2438,12 @@ module.exports = class bitbns extends Exchange {
         return result;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!(api in this.urls['api'])) {
-            throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
-        }
-        let url = this.urls['api'][api];
-        url += '/' + path;
-        if (api === 'wapi') {
-            url += '.html';
-        }
-        if (path === 'historicalTrades') {
-            if (this.apiKey) {
-                headers = {
-                    'X-MBX-APIKEY': this.apiKey,
-                };
-            } else {
-                throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
-            }
-        }
-        const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
-        if (userDataStream) {
-            if (this.apiKey) {
-                // v1 special case for userDataStream
-                headers = {
-                    'X-MBX-APIKEY': this.apiKey,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                };
-                if (method !== 'GET') {
-                    body = this.urlencode (params);
-                }
-            } else {
-                throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
-            }
-        } else if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
-            this.checkRequiredCredentials ();
-            let query = undefined;
-            const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
-            if ((api === 'sapi') && (path === 'asset/dust')) {
-                query = this.urlencodeWithArrayRepeat (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
-            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0)) {
-                query = this.rawencode (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
-            } else {
-                query = this.urlencode (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
-            }
-            const signature = this.hmac (this.encode (query), this.encode (this.secret));
-            query += '&' + 'signature=' + signature;
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-            };
-            if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
-                url += '?' + query;
-            } else {
-                body = query;
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
-            }
-        } else {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
+    sign (path, api = 'v1', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const baseUrl = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
+        let url = baseUrl + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        if (Object.keys (query).length) {
+            url += '?' + this.urlencode (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
