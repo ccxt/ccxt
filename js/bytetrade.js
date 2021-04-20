@@ -822,6 +822,9 @@ module.exports = class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        if (since !== undefined) {
+            request['since'] = since;
+        }
         const response = await this.publicGetOrdersOpen (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
@@ -842,6 +845,9 @@ module.exports = class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        if (since !== undefined) {
+            request['since'] = since;
+        }
         const response = await this.publicGetOrdersClosed (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
@@ -861,6 +867,9 @@ module.exports = class bytetrade extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['since'] = since;
         }
         const response = await this.publicGetOrdersAll (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
@@ -1088,6 +1097,9 @@ module.exports = class bytetrade extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['since'] = since;
         }
         const response = await this.publicGetOrdersTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
