@@ -680,7 +680,7 @@ module.exports = class btcturk extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        const errorCode = this.safeString (response, 'code');
+        const errorCode = this.safeString (response, 'code', '0');
         const message = this.safeString (response, 'message');
         this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
         if (errorCode !== '0') {
