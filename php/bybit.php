@@ -1934,7 +1934,7 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($result, 'data', array());
-        return $this->parse_transactions($data, $currency, $since, $limit);
+        return $this->parse_transactions($data, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1991,7 +1991,7 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($result, 'data', array());
-        return $this->parse_transactions($data, $currency, $since, $limit, $params);
+        return $this->parse_transactions($data, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
     public function parse_transaction_status($status) {
