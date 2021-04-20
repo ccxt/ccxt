@@ -809,8 +809,8 @@ module.exports = class bitget extends Exchange {
         const tickSize = this.safeString (market, 'tick_size');
         const sizeIncrement = this.safeString (market, 'size_increment');
         const precision = {
-            'amount': parseFloat ('1e-' + sizeIncrement),
-            'price': parseFloat ('1e-' + tickSize),
+            'amount': this.parseNumber (this.parsePrecision (sizeIncrement)),
+            'price': this.parseNumber (this.parsePrecision (tickSize)),
         };
         const minAmount = this.safeNumber2 (market, 'min_size', 'base_min_size');
         const status = this.safeString (market, 'status');

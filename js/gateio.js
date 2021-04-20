@@ -298,7 +298,7 @@ module.exports = class gateio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const pricePrecisionString = this.safeString (details, 'decimal_places');
-            const priceLimit = (pricePrecisionString === undefined) ? undefined : '1e-' + pricePrecisionString;
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
                 'amount': this.safeInteger (details, 'amount_decimal_places'),
                 'price': parseInt (pricePrecisionString),
