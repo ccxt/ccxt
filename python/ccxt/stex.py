@@ -258,7 +258,7 @@ class stex(Exchange):
             # differentiated fees for each particular method
             code = self.safe_currency_code(self.safe_string(currency, 'code'))
             precision = self.safe_string(currency, 'precision')
-            amountLimit = None if (precision is None) else '1e-' + precision
+            amountLimit = self.parse_precision(precision)
             fee = self.safe_number(currency, 'withdrawal_fee_const')  # todo: redesign
             active = self.safe_value(currency, 'active', True)
             result[code] = {

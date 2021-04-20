@@ -302,7 +302,7 @@ class gateio(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             pricePrecisionString = self.safe_string(details, 'decimal_places')
-            priceLimit = None if (pricePrecisionString is None) else '1e-' + pricePrecisionString
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
                 'amount': self.safe_integer(details, 'amount_decimal_places'),
                 'price': int(pricePrecisionString),
