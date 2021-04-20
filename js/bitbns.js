@@ -27,6 +27,7 @@ module.exports = class bitbns extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': {
+                    'ccxt': 'https://bitbns.com/order',
                     'v1': 'https://api.bitbns.com/api/trade/v1',
                     'v2': 'https://api.bitbns.com/api/trade/v2',
                 },
@@ -38,6 +39,13 @@ module.exports = class bitbns extends Exchange {
                 'fees': 'https://bitbns.com/fees',
             },
             'api': {
+                'ccxt': {
+                    'get': [
+                        'fetchMarkets',
+                        'fetchTickers',
+                        'fetchOrderbook',
+                    ],
+                },
                 'v1': {
                     'get': [
                         'platform/status',
@@ -254,18 +262,6 @@ module.exports = class bitbns extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        if ((type !== 'spot') && (type !== 'future') && (type !== 'margin') && (type !== 'delivery')) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
-        }
-        let method = 'publicGetExchangeInfo';
-        if (type === 'future') {
-            method = 'fapiPublicGetExchangeInfo';
-        } else if (type === 'delivery') {
-            method = 'dapiPublicGetExchangeInfo';
-        }
         const response = await this[method] (query);
         //
         // spot / margin
@@ -2528,14 +2524,5 @@ module.exports = class bitbns extends Exchange {
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if ((api === 'private') || (api === 'wapi')) {
-            this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
-        }
-        return response;
     }
 };
