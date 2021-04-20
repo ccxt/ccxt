@@ -248,6 +248,7 @@ module.exports = class kucoin extends Exchange {
                 'EDGE': 'DADI', // https://github.com/ccxt/ccxt/issues/5756
                 'WAX': 'WAXP',
                 'TRY': 'Trias',
+                'VAI': 'VAIOT',
             },
             'options': {
                 'version': 'v1',
