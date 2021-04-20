@@ -28,6 +28,7 @@ module.exports = class btcturk extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchMyTrades': true,
             },
             'timeframes': {
                 '1d': '1d',
