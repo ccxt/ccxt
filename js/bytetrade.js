@@ -487,7 +487,6 @@ module.exports = class bytetrade extends Exchange {
         const side = this.safeString (trade, 'side');
         const datetime = this.iso8601 (timestamp); // this.safeString (trade, 'datetime');
         const order = this.safeString (trade, 'order');
-        const fee = this.safeValue (trade, 'fee');
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (trade, 'symbol');
@@ -496,6 +495,16 @@ module.exports = class bytetrade extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
+        const feeData = this.safeValue (trade, 'fee');
+        const feeCost = this.safeNumber (feeData, 'cost');
+        const feeRate = this.safeNumber (feeData, 'rate');
+        const feeCode = this.safeString (feeData, 'code');
+        const feeCurrency = this.safeCurrencyCode (feeCode);
+        const fee = {
+            'currency': feeCurrency,
+            'cost': feeCost,
+            'rate': feeRate,
+        };
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -559,7 +568,16 @@ module.exports = class bytetrade extends Exchange {
         const id = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
-        const fee = this.safeValue (order, 'fee');
+        const feeData = this.safeValue (trade, 'fee');
+        const feeCost = this.safeNumber (feeData, 'cost');
+        const feeRate = this.safeNumber (feeData, 'rate');
+        const feeCode = this.safeString (feeData, 'code');
+        const feeCurrency = this.safeCurrencyCode (feeCode);
+        const fee = {
+            'currency': feeCurrency,
+            'cost': feeCost,
+            'rate': feeRate,
+        };
         return {
             'info': order,
             'id': id,
