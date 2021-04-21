@@ -203,15 +203,19 @@ class probit(Exchange):
             symbol = base + '/' + quote
             closed = self.safe_value(market, 'closed', False)
             active = not closed
-            amountPrecision = self.safe_integer(market, 'quantity_precision')
-            costPrecision = self.safe_integer(market, 'cost_precision')
+            amountPrecision = self.safe_string(market, 'quantity_precision')
+            costPrecision = self.safe_string(market, 'cost_precision')
+            amountTickSize = self.parse_precision(amountPrecision)
+            costTickSize = self.parse_precision(costPrecision)
             precision = {
-                'amount': 1 / math.pow(10, amountPrecision),
+                'amount': self.parse_number(amountTickSize),
                 'price': self.safe_number(market, 'price_increment'),
-                'cost': 1 / math.pow(10, costPrecision),
+                'cost': self.parse_number(costTickSize),
             }
-            takerFeeRate = self.safe_number(market, 'taker_fee_rate')
-            makerFeeRate = self.safe_number(market, 'maker_fee_rate')
+            takerFeeRate = self.safe_string(market, 'taker_fee_rate')
+            taker = Precise.string_div(takerFeeRate, '100')
+            makerFeeRate = self.safe_string(market, 'maker_fee_rate')
+            maker = Precise.string_div(makerFeeRate, '100')
             result.append({
                 'id': id,
                 'info': market,
@@ -222,8 +226,8 @@ class probit(Exchange):
                 'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
-                'taker': takerFeeRate / 100,
-                'maker': makerFeeRate / 100,
+                'taker': self.parse_number(taker),
+                'maker': self.parse_number(maker),
                 'limits': {
                     'amount': {
                         'min': self.safe_number(market, 'min_quantity'),

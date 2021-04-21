@@ -196,15 +196,19 @@ class probit extends Exchange {
             $symbol = $base . '/' . $quote;
             $closed = $this->safe_value($market, 'closed', false);
             $active = !$closed;
-            $amountPrecision = $this->safe_integer($market, 'quantity_precision');
-            $costPrecision = $this->safe_integer($market, 'cost_precision');
+            $amountPrecision = $this->safe_string($market, 'quantity_precision');
+            $costPrecision = $this->safe_string($market, 'cost_precision');
+            $amountTickSize = $this->parse_precision($amountPrecision);
+            $costTickSize = $this->parse_precision($costPrecision);
             $precision = array(
-                'amount' => 1 / pow(10, $amountPrecision),
+                'amount' => $this->parse_number($amountTickSize),
                 'price' => $this->safe_number($market, 'price_increment'),
-                'cost' => 1 / pow(10, $costPrecision),
+                'cost' => $this->parse_number($costTickSize),
             );
-            $takerFeeRate = $this->safe_number($market, 'taker_fee_rate');
-            $makerFeeRate = $this->safe_number($market, 'maker_fee_rate');
+            $takerFeeRate = $this->safe_string($market, 'taker_fee_rate');
+            $taker = Precise::string_div($takerFeeRate, '100');
+            $makerFeeRate = $this->safe_string($market, 'maker_fee_rate');
+            $maker = Precise::string_div($makerFeeRate, '100');
             $result[] = array(
                 'id' => $id,
                 'info' => $market,
@@ -215,8 +219,8 @@ class probit extends Exchange {
                 'quoteId' => $quoteId,
                 'active' => $active,
                 'precision' => $precision,
-                'taker' => $takerFeeRate / 100,
-                'maker' => $makerFeeRate / 100,
+                'taker' => $this->parse_number($taker),
+                'maker' => $this->parse_number($maker),
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($market, 'min_quantity'),
