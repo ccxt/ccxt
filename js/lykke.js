@@ -143,6 +143,7 @@ module.exports = class lykke extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'CAN': 'CanYaCoin',
                 'XPD': 'Lykke XPD',
             },
         });
