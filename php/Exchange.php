@@ -1552,47 +1552,39 @@ class Exchange {
         curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($this->curl, CURLOPT_FAILONERROR, false);
 
-        $response_headers = array();
-        $http_status_text = '';
-
-        // this function is called by curl for each header received
-        curl_setopt($this->curl, CURLOPT_HEADERFUNCTION,
-            function ($curl, $header) use (&$response_headers, &$http_status_text) {
-                $length = strlen($header);
-                $tuple = explode(':', $header, 2);
-                if (count($tuple) !== 2) { // ignore invalid headers
-                    // if it's a "GET https://example.com/path 200 OK" line
-                    // try to parse the "OK" HTTP status string
-                    if (substr($header, 0, 4) === 'HTTP') {
-                        $parts = explode(' ', $header);
-                        if (count($parts) === 3) {
-                            $http_status_text = trim($parts[2]);
-                        }
-                    }
-                    return $length;
-                }
-                $key = trim($tuple[0]);
-                $key = implode('-', array_map(get_called_class() . '::capitalize', explode('-', $key)));
-                $value = trim($tuple[1]);
-                if (!array_key_exists($key, $response_headers)) {
-                    $response_headers[$key] = $value;
-                } else {
-                    if (is_array($response_headers[$key])) {
-                        $response_headers[$key][] = $value;
-                    } else {
-                        $response_headers[$key] = array($response_headers[$key], $value);
-                    }
-                }
-                return $length;
-            }
-        );
+        curl_setopt($this->curl, CURLOPT_HEADER, 1);
+        // match the same http version as python and js
+        curl_setopt($this->curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 
         // user-defined cURL options (if any)
         if (!empty($this->curl_options)) {
             curl_setopt_array($this->curl, $this->curl_options);
         }
 
-        $result = curl_exec($this->curl);
+        $response_headers = array();
+
+        $response = curl_exec($this->curl);
+
+        $headers_length = curl_getinfo($this->curl, CURLINFO_HEADER_SIZE);
+
+        $raw_headers = mb_substr($response, 0, $headers_length);
+
+        $raw_headers_array = explode("\r\n", $raw_headers);
+        $status_line = $raw_headers_array[0];
+        $parts = explode(' ', $status_line);
+        $http_status_text = count($parts) === 3 ? $parts[2] : null;
+        $raw_headers = array_slice($raw_headers_array, 1);
+        foreach ($raw_headers as $key => $value) {
+            // don't overwrite headers
+            // https://stackoverflow.com/a/4371395/4802441
+            if (array_key_exists($key, $response_headers)) {
+                $response_headers[$key] = $response_headers[$key] . ', ' . $value;
+            } else {
+                $response_headers[$key] = $value;
+            }
+        }
+
+        $result = mb_substr($response, $headers_length);
 
         $curl_errno = curl_errno($this->curl);
         $curl_error = curl_error($this->curl);
@@ -2494,6 +2486,12 @@ class Exchange {
         $this->curl = curl_init();
         if ($this->api) {
             $this->define_rest_api($this->api, 'request');
+        }
+    }
+
+    public function __destruct() {
+        if ($this->curl !== null) {
+            curl_close($this->curl);
         }
     }
 
