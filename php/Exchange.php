@@ -1569,12 +1569,13 @@ class Exchange {
 
         $raw_headers = mb_substr($response, 0, $headers_length);
 
-        $raw_headers_array = explode("\r\n", $raw_headers);
+        $raw_headers_array = explode("\r\n", trim($raw_headers));
         $status_line = $raw_headers_array[0];
         $parts = explode(' ', $status_line);
         $http_status_text = count($parts) === 3 ? $parts[2] : null;
         $raw_headers = array_slice($raw_headers_array, 1);
-        foreach ($raw_headers as $key => $value) {
+        foreach ($raw_headers as $raw_header) {
+            list($key, $value) = explode(': ', $raw_header);
             // don't overwrite headers
             // https://stackoverflow.com/a/4371395/4802441
             if (array_key_exists($key, $response_headers)) {
