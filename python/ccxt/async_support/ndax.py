@@ -385,7 +385,7 @@ class ndax(Exchange):
                 newNonce = self.safe_integer(level, 0)
                 nonce = max(nonce, newNonce)
             bidask = self.parse_bid_ask(level, priceKey, amountKey)
-            levelSide = self.safe_value(level, 9)
+            levelSide = self.safe_integer(level, 9)
             side = asksKey if levelSide else bidsKey
             result[side].append(bidask)
         result['bids'] = self.sort_by(result['bids'], 0, True)

@@ -846,6 +846,9 @@ class bithumb(Exchange):
             if status is not None:
                 if status == '0000':
                     return  # no error
+                elif status == '5600':
+                    # https://github.com/ccxt/ccxt/issues/9017
+                    return  # no error
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, status, feedback)
                 self.throw_exactly_matched_exception(self.exceptions, message, feedback)

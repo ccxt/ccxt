@@ -163,9 +163,9 @@ class gateio extends Exchange {
                 'limits' => array(
                     'cost' => array(
                         'min' => array(
-                            'BTC' => 0.0001,
-                            'ETH' => 0.001,
-                            'USDT' => 1,
+                            'BTC' => '0.0001',
+                            'ETH' => '0.001',
+                            'USDT' => '1',
                         ),
                     ),
                 ),
@@ -307,15 +307,16 @@ class gateio extends Exchange {
                 'amount' => $this->safe_integer($details, 'amount_decimal_places'),
                 'price' => intval($pricePrecisionString),
             );
+            $amountLimit = $this->safe_string($details, 'min_amount');
             $amountLimits = array(
-                'min' => $this->safe_number($details, 'min_amount'),
+                'min' => $this->parse_number($amountLimit),
                 'max' => null,
             );
             $priceLimits = array(
                 'min' => $this->parse_number($priceLimit),
                 'max' => null,
             );
-            $defaultCost = $amountLimits['min'] * $priceLimits['min'];
+            $defaultCost = $this->parse_number(Precise::string_mul($amountLimit, $priceLimit));
             $minCost = $this->safe_number($this->options['limits']['cost']['min'], $quote, $defaultCost);
             $costLimits = array(
                 'min' => $minCost,

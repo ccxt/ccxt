@@ -107,16 +107,16 @@ class coinfloor(Exchange):
         baseIdLower = self.safe_string_lower(market, 'baseId')
         quoteIdLower = self.safe_string_lower(market, 'quoteId')
         result[base] = {
-            'free': self.safe_number(response, baseIdLower + '_available'),
-            'used': self.safe_number(response, baseIdLower + '_reserved'),
-            'total': self.safe_number(response, baseIdLower + '_balance'),
+            'free': self.safe_string(response, baseIdLower + '_available'),
+            'used': self.safe_string(response, baseIdLower + '_reserved'),
+            'total': self.safe_string(response, baseIdLower + '_balance'),
         }
         result[quote] = {
-            'free': self.safe_number(response, quoteIdLower + '_available'),
-            'used': self.safe_number(response, quoteIdLower + '_reserved'),
-            'total': self.safe_number(response, quoteIdLower + '_balance'),
+            'free': self.safe_string(response, quoteIdLower + '_available'),
+            'used': self.safe_string(response, quoteIdLower + '_reserved'),
+            'total': self.safe_string(response, quoteIdLower + '_balance'),
         }
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

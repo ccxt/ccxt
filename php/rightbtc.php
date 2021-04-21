@@ -159,9 +159,13 @@ class rightbtc extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $amountPrecision = $this->safe_string($market, 'bid_asset_decimals');
+            $pricePrecision = $this->safe_string($market, 'ask_asset_decimals');
+            $amountLimit = ($amountPrecision === null) ? null : '1e-' . $amountPrecision;
+            $priceLimit = ($pricePrecision === null) ? null : '1e-' . $pricePrecision;
             $precision = array(
-                'amount' => $this->safe_integer($market, 'bid_asset_decimals'),
-                'price' => $this->safe_integer($market, 'ask_asset_decimals'),
+                'amount' => intval($amountPrecision),
+                'price' => intval($pricePrecision),
             );
             $result[] = array(
                 'id' => $id,
@@ -174,12 +178,12 @@ class rightbtc extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
-                        'max' => pow(10, $precision['price']),
+                        'min' => $this->parse_number($amountLimit),
+                        'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
-                        'max' => pow(10, $precision['price']),
+                        'min' => $this->parse_number($priceLimit),
+                        'max' => null,
                     ),
                     'cost' => array(
                         'min' => null,

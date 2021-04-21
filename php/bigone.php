@@ -194,9 +194,13 @@ class bigone extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $amountPrecisionString = $this->safe_string($market, 'base_scale');
+            $pricePrecisionString = $this->safe_string($market, 'quote_scale');
+            $amountLimit = ($amountPrecisionString === null) ? null : '1e-' . $amountPrecisionString;
+            $priceLimit = ($pricePrecisionString === null) ? null : '1e-' . $pricePrecisionString;
             $precision = array(
-                'amount' => $this->safe_integer($market, 'base_scale'),
-                'price' => $this->safe_integer($market, 'quote_scale'),
+                'amount' => intval($amountPrecisionString),
+                'price' => intval($pricePrecisionString),
             );
             $minCost = $this->safe_integer($market, 'min_quote_value');
             $entry = array(
@@ -211,11 +215,11 @@ class bigone extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => $this->parse_number($amountLimit),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $this->parse_number($priceLimit),
                         'max' => null,
                     ),
                     'cost' => array(

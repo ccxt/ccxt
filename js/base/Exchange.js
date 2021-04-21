@@ -608,7 +608,7 @@ module.exports = class Exchange {
     }
 
     onJsonResponse (responseBody) {
-        return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+),/g, '":"$1",') : responseBody;
+        return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
     }
 
     setMarkets (markets, currencies = undefined) {
@@ -1660,5 +1660,12 @@ module.exports = class Exchange {
     safeNumber2 (object, key1, key2, d = undefined) {
         const value = this.safeString2 (object, key1, key2)
         return this.parseNumber (value, d)
+    }
+
+    parsePrecision (precision) {
+        if (precision === undefined) {
+            return undefined
+        }
+        return '1e' + Precise.stringNeg (precision)
     }
 }
