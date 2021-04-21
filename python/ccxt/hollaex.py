@@ -1152,7 +1152,7 @@ class hollaex(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         path = '/' + self.version + '/' + self.implode_params(path, params)
-        if method == 'GET':
+        if (method == 'GET') or (method == 'DELETE'):
             if query:
                 path += '?' + self.urlencode(query)
         url = self.urls['api'] + path

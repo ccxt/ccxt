@@ -1206,7 +1206,7 @@ class hollaex extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $path = '/' . $this->version . '/' . $this->implode_params($path, $params);
-        if ($method === 'GET') {
+        if (($method === 'GET') || ($method === 'DELETE')) {
             if ($query) {
                 $path .= '?' . $this->urlencode($query);
             }
