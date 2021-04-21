@@ -196,8 +196,8 @@ class bigone extends Exchange {
             $symbol = $base . '/' . $quote;
             $amountPrecisionString = $this->safe_string($market, 'base_scale');
             $pricePrecisionString = $this->safe_string($market, 'quote_scale');
-            $amountLimit = ($amountPrecisionString === null) ? null : '1e-' . $amountPrecisionString;
-            $priceLimit = ($pricePrecisionString === null) ? null : '1e-' . $pricePrecisionString;
+            $amountLimit = $this->parse_precision($amountPrecisionString);
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
                 'amount' => intval($amountPrecisionString),
                 'price' => intval($pricePrecisionString),

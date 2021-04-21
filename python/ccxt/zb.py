@@ -237,8 +237,8 @@ class zb(Exchange):
             symbol = base + '/' + quote
             amountPrecisionString = self.safe_string(market, 'amountScale')
             pricePrecisionString = self.safe_string(market, 'priceScale')
-            amountLimit = None if (amountPrecisionString is None) else '1e-' + amountPrecisionString
-            priceLimit = None if (pricePrecisionString is None) else '1e-' + pricePrecisionString
+            amountLimit = self.parse_precision(amountPrecisionString)
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
                 'amount': int(amountPrecisionString),
                 'price': int(pricePrecisionString),

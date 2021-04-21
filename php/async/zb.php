@@ -233,8 +233,8 @@ class zb extends Exchange {
             $symbol = $base . '/' . $quote;
             $amountPrecisionString = $this->safe_string($market, 'amountScale');
             $pricePrecisionString = $this->safe_string($market, 'priceScale');
-            $amountLimit = ($amountPrecisionString === null) ? null : '1e-' . $amountPrecisionString;
-            $priceLimit = ($pricePrecisionString === null) ? null : '1e-' . $pricePrecisionString;
+            $amountLimit = $this->parse_precision($amountPrecisionString);
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
                 'amount' => intval($amountPrecisionString),
                 'price' => intval($pricePrecisionString),

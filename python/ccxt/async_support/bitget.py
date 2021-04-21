@@ -820,8 +820,8 @@ class bitget(Exchange):
         tickSize = self.safe_string(market, 'tick_size')
         sizeIncrement = self.safe_string(market, 'size_increment')
         precision = {
-            'amount': float('1e-' + sizeIncrement),
-            'price': float('1e-' + tickSize),
+            'amount': self.parse_number(self.parse_precision(sizeIncrement)),
+            'price': self.parse_number(self.parse_precision(tickSize)),
         }
         minAmount = self.safe_number_2(market, 'min_size', 'base_min_size')
         status = self.safe_string(market, 'status')

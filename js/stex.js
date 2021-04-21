@@ -251,7 +251,7 @@ module.exports = class stex extends Exchange {
             // differentiated fees for each particular method
             const code = this.safeCurrencyCode (this.safeString (currency, 'code'));
             const precision = this.safeString (currency, 'precision');
-            const amountLimit = (precision === undefined) ? undefined : '1e-' + precision;
+            const amountLimit = this.parsePrecision (precision);
             const fee = this.safeNumber (currency, 'withdrawal_fee_const'); // todo: redesign
             const active = this.safeValue (currency, 'active', true);
             result[code] = {

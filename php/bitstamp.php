@@ -271,8 +271,8 @@ class bitstamp extends Exchange {
             $id = $this->safe_string($market, 'url_symbol');
             $amountPrecisionString = $this->safe_string($market, 'base_decimals');
             $pricePrecisionString = $this->safe_string($market, 'counter_decimals');
-            $amountLimit = ($amountPrecisionString === null) ? null : '1e-' . $amountPrecisionString;
-            $priceLimit = ($pricePrecisionString === null) ? null : '1e-' . $pricePrecisionString;
+            $amountLimit = $this->parse_precision($amountPrecisionString);
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
                 'amount' => intval($amountPrecisionString),
                 'price' => intval($pricePrecisionString),

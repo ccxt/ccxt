@@ -179,6 +179,7 @@ class gateio extends Exchange {
                 'MPH' => 'Morpher', // conflict with 88MPH
                 'SBTC' => 'Super Bitcoin',
                 'TNC' => 'Trinity Network Credit',
+                'VAI' => 'VAIOT',
             ),
         ));
     }
@@ -302,7 +303,7 @@ class gateio extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $pricePrecisionString = $this->safe_string($details, 'decimal_places');
-            $priceLimit = ($pricePrecisionString === null) ? null : '1e-' . $pricePrecisionString;
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
                 'amount' => $this->safe_integer($details, 'amount_decimal_places'),
                 'price' => intval($pricePrecisionString),

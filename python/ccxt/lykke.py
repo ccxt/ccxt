@@ -345,7 +345,7 @@ class lykke(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             pricePrecision = self.safe_string(market, 'Accuracy')
-            priceLimit = None if (pricePrecision is None) else '1e-' + pricePrecision
+            priceLimit = self.parse_precision(pricePrecision)
             precision = {
                 'price': int(pricePrecision),
                 'amount': self.safe_integer(market, 'InvertedAccuracy'),
