@@ -224,7 +224,7 @@ module.exports = class btctradeua extends Exchange {
         const year = parts[2];
         let hms = parts[4];
         const hmsLength = hms.length;
-        if (hmsLength === 7) {
+        if ((hmsLength === 7) || (hmsLength === 4)) {
             hms = '0' + hms;
         }
         if (day.length === 1) {
@@ -287,7 +287,7 @@ module.exports = class btctradeua extends Exchange {
         // deduplicate trades for that reason
         const trades = [];
         for (let i = 0; i < response.length; i++) {
-            if (response[i]['id'] % 2) {
+            if (this.safeInteger (response[i], 'id') % 2) {
                 trades.push (response[i]);
             }
         }
