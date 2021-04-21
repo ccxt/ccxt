@@ -144,6 +144,7 @@ class lykke extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'CAN' => 'CanYaCoin',
                 'XPD' => 'Lykke XPD',
             ),
         ));

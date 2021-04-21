@@ -144,6 +144,7 @@ class lykke(Exchange):
                 },
             },
             'commonCurrencies': {
+                'CAN': 'CanYaCoin',
                 'XPD': 'Lykke XPD',
             },
         })
