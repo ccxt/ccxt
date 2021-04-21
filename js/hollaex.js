@@ -1205,7 +1205,7 @@ module.exports = class hollaex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         path = '/' + this.version + '/' + this.implodeParams (path, params);
-        if (method === 'GET') {
+        if ((method === 'GET') || (method === 'DELETE')) {
             if (Object.keys (query).length) {
                 path += '?' + this.urlencode (query);
             }
