@@ -628,9 +628,7 @@ class huobipro(Exchange):
         cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         feeCost = self.safe_number(trade, 'filled-fees')
-        feeCurrency = None
-        if market is not None:
-            feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
+        feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
         filledPoints = self.safe_number(trade, 'filled-points')
         if filledPoints is not None:
             if (feeCost is None) or (feeCost == 0.0):
