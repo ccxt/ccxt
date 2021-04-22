@@ -21,7 +21,6 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![Binance Filecoin FIL Trading Competition](https://user-images.githubusercontent.com/1294454/114904265-59f06180-9e20-11eb-8778-0c823433d799.png)](https://www.binance.com/en/market-activity/1ec0e9582f554074bceb81ff04cdcb56)
 [![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png)](https://ccxt.pro)
 
 ## See Also
