@@ -642,10 +642,7 @@ class huobipro extends Exchange {
         $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
         $feeCost = $this->safe_number($trade, 'filled-fees');
-        $feeCurrency = null;
-        if ($market !== null) {
-            $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
-        }
+        $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
         $filledPoints = $this->safe_number($trade, 'filled-points');
         if ($filledPoints !== null) {
             if (($feeCost === null) || ($feeCost === 0.0)) {
