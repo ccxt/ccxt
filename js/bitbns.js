@@ -115,146 +115,6 @@ module.exports = class bitbns extends Exchange {
         return this.options['timeDifference'];
     }
 
-    async fetchCurrencies (params = {}) {
-        const fetchCurrenciesEnabled = this.safeValue (this.options, 'fetchCurrencies');
-        if (!fetchCurrenciesEnabled) {
-            return undefined;
-        }
-        // this endpoint requires authentication
-        // while fetchCurrencies is a public API method by design
-        // therefore we check the keys here
-        // and fallback to generating the currencies from the markets
-        if (!this.checkRequiredCredentials (false)) {
-            return undefined;
-        }
-        // sandbox/testnet does not support sapi endpoints
-        const apiBackup = this.safeString (this.urls, 'apiBackup');
-        if (apiBackup !== undefined) {
-            return undefined;
-        }
-        const response = await this.sapiGetCapitalConfigGetall (params);
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            //
-            //     {
-            //         coin: 'LINK',
-            //         depositAllEnable: true,
-            //         withdrawAllEnable: true,
-            //         name: 'ChainLink',
-            //         free: '0.06168',
-            //         locked: '0',
-            //         freeze: '0',
-            //         withdrawing: '0',
-            //         ipoing: '0',
-            //         ipoable: '0',
-            //         storage: '0',
-            //         isLegalMoney: false,
-            //         trading: true,
-            //         networkList: [
-            //             {
-            //                 network: 'BNB',
-            //                 coin: 'LINK',
-            //                 withdrawIntegerMultiple: '0',
-            //                 isDefault: false,
-            //                 depositEnable: true,
-            //                 withdrawEnable: true,
-            //                 depositDesc: '',
-            //                 withdrawDesc: '',
-            //                 specialTips: 'Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.',
-            //                 name: 'BEP2',
-            //                 resetAddressStatus: false,
-            //                 addressRegex: '^(bnb1)[0-9a-z]{38}$',
-            //                 memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
-            //                 withdrawFee: '0.002',
-            //                 withdrawMin: '0.01',
-            //                 withdrawMax: '9999999',
-            //                 minConfirm: 1,
-            //                 unLockConfirm: 0
-            //             },
-            //             {
-            //                 network: 'BSC',
-            //                 coin: 'LINK',
-            //                 withdrawIntegerMultiple: '0.00000001',
-            //                 isDefault: false,
-            //                 depositEnable: true,
-            //                 withdrawEnable: true,
-            //                 depositDesc: '',
-            //                 withdrawDesc: '',
-            //                 specialTips: '',
-            //                 name: 'BEP20 (BSC)',
-            //                 resetAddressStatus: false,
-            //                 addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
-            //                 memoRegex: '',
-            //                 withdrawFee: '0.005',
-            //                 withdrawMin: '0.01',
-            //                 withdrawMax: '9999999',
-            //                 minConfirm: 15,
-            //                 unLockConfirm: 0
-            //             },
-            //             {
-            //                 network: 'ETH',
-            //                 coin: 'LINK',
-            //                 withdrawIntegerMultiple: '0.00000001',
-            //                 isDefault: true,
-            //                 depositEnable: true,
-            //                 withdrawEnable: true,
-            //                 depositDesc: '',
-            //                 withdrawDesc: '',
-            //                 name: 'ERC20',
-            //                 resetAddressStatus: false,
-            //                 addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
-            //                 memoRegex: '',
-            //                 withdrawFee: '0.34',
-            //                 withdrawMin: '0.68',
-            //                 withdrawMax: '0',
-            //                 minConfirm: 12,
-            //                 unLockConfirm: 0
-            //             }
-            //         ]
-            //     }
-            //
-            const entry = response[i];
-            const id = this.safeString (entry, 'coin');
-            const name = this.safeString (entry, 'name');
-            const code = this.safeCurrencyCode (id);
-            const precision = undefined;
-            let isWithdrawEnabled = true;
-            let isDepositEnabled = true;
-            const networkList = this.safeValue (entry, 'networkList', []);
-            const fees = {};
-            let fee = undefined;
-            for (let j = 0; j < networkList.length; j++) {
-                const networkItem = networkList[j];
-                const network = this.safeString (networkItem, 'network');
-                // const name = this.safeString (networkItem, 'name');
-                const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
-                const depositEnable = this.safeValue (networkItem, 'depositEnable');
-                const withdrawEnable = this.safeValue (networkItem, 'withdrawEnable');
-                isDepositEnabled = isDepositEnabled || depositEnable;
-                isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
-                fees[network] = withdrawFee;
-                const isDefault = this.safeValue (networkItem, 'isDefault');
-                if (isDefault || fee === undefined) {
-                    fee = withdrawFee;
-                }
-            }
-            const trading = this.safeValue (entry, 'trading');
-            const active = (isWithdrawEnabled && isDepositEnabled && trading);
-            result[code] = {
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': precision,
-                'info': entry,
-                'active': active,
-                'fee': fee,
-                'fees': fees,
-                'limits': this.limits,
-            };
-        }
-        return result;
-    }
-
     async fetchMarkets (params = {}) {
         const response = await this.ccxtGetFetchMarkets (params);
         //
@@ -285,7 +145,7 @@ module.exports = class bitbns extends Exchange {
             const market = response[i];
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'base');
-            const quoteId = this.safeString (market, 'base');
+            const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -529,13 +389,7 @@ module.exports = class bitbns extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
-        let method = 'publicGetDepth';
-        if (market['future']) {
-            method = 'fapiPublicGetDepth';
-        } else if (market['delivery']) {
-            method = 'dapiPublicGetDepth';
-        }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.ccxtGetFetchOrderbook (this.extend (request, params));
         //
         // future
         //
@@ -679,19 +533,39 @@ module.exports = class bitbns extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        let defaultMethod = undefined;
-        if (type === 'future') {
-            defaultMethod = 'fapiPublicGetTicker24hr';
-        } else if (type === 'delivery') {
-            defaultMethod = 'dapiPublicGetTicker24hr';
-        } else {
-            defaultMethod = 'publicGetTicker24hr';
-        }
-        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
-        const response = await this[method] (query);
+        const response = await this.ccxtGetFetchTickers (params);
+        //
+        //     {
+        //         "BTC/INR":{
+        //             "symbol":"BTC/INR",
+        //             "info":{
+        //                 "highest_buy_bid":4368494.31,
+        //                 "lowest_sell_bid":4374835.09,
+        //                 "last_traded_price":4374835.09,
+        //                 "yes_price":4531016.27,
+        //                 "volume":{"max":"4569119.23","min":"4254552.13","volume":62.17722344}
+        //             },
+        //             "timestamp":1619100020845,
+        //             "datetime":1619100020845,
+        //             "high":"4569119.23",
+        //             "low":"4254552.13",
+        //             "bid":4368494.31,
+        //             "bidVolume":"",
+        //             "ask":4374835.09,
+        //             "askVolume":"",
+        //             "vwap":"",
+        //             "open":4531016.27,
+        //             "close":4374835.09,
+        //             "last":4374835.09,
+        //             "baseVolume":62.17722344,
+        //             "quoteVolume":"",
+        //             "previousClose":"",
+        //             "change":-156181.1799999997,
+        //             "percentage":-3.446934874943623,
+        //             "average":4452925.68
+        //         }
+        //     }
+        //
         return this.parseTickers (response, symbols);
     }
 
