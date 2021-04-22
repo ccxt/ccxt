@@ -805,7 +805,7 @@ class kucoin(Exchange):
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'dealSize')
         cost = self.safe_float(order, 'dealFunds')
-        clientOrderId = self.safeString(order, 'clientOid')
+        clientOrderId = self.safe_string(order, 'clientOid')
         remaining = amount - filled
         # bool
         status = 'open' if order['isActive'] else 'closed'
@@ -1513,9 +1513,10 @@ class kucoin(Exchange):
             self.check_required_credentials()
             timestamp = str(self.nonce())
             headers = self.extend({
+                'KC-API-KEY-VERSION': '2',
                 'KC-API-KEY': self.apiKey,
                 'KC-API-TIMESTAMP': timestamp,
-                'KC-API-PASSPHRASE': self.password,
+                'KC-API-PASSPHRASE': self.hmac(self.encode(self.password), self.encode(self.secret), hashlib.sha256, 'base64'),
             }, headers)
             payload = timestamp + method + endpoint + endpart
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
