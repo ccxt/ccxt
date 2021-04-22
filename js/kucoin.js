@@ -838,7 +838,7 @@ module.exports = class kucoin extends Exchange {
         const amount = this.safeFloat (order, 'size');
         const filled = this.safeFloat (order, 'dealSize');
         const cost = this.safeFloat (order, 'dealFunds');
-        const clientOrderId = this.safeString(order, 'clientOid');
+        const clientOrderId = this.safeString (order, 'clientOid');
         const remaining = amount - filled;
         // bool
         let status = order['isActive'] ? 'open' : 'closed';
@@ -1616,9 +1616,10 @@ module.exports = class kucoin extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             headers = this.extend ({
+                'KC-API-KEY-VERSION': '2',
                 'KC-API-KEY': this.apiKey,
                 'KC-API-TIMESTAMP': timestamp,
-                'KC-API-PASSPHRASE': this.password,
+                'KC-API-PASSPHRASE': this.hmac (this.encode (this.password), this.encode (this.secret), 'sha256', 'base64'),
             }, headers);
             const payload = timestamp + method + endpoint + endpart;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');

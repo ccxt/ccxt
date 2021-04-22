@@ -841,7 +841,7 @@ class kucoin extends Exchange {
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'dealSize');
         $cost = $this->safe_float($order, 'dealFunds');
-        $clientOrderId = $this->safeString($order, 'clientOid');
+        $clientOrderId = $this->safe_string($order, 'clientOid');
         $remaining = $amount - $filled;
         // bool
         $status = $order['isActive'] ? 'open' : 'closed';
@@ -1619,9 +1619,10 @@ class kucoin extends Exchange {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce ();
             $headers = array_merge(array(
+                'KC-API-KEY-VERSION' => '2',
                 'KC-API-KEY' => $this->apiKey,
                 'KC-API-TIMESTAMP' => $timestamp,
-                'KC-API-PASSPHRASE' => $this->password,
+                'KC-API-PASSPHRASE' => $this->hmac ($this->encode ($this->password), $this->encode ($this->secret), 'sha256', 'base64'),
             ), $headers);
             $payload = $timestamp . $method . $endpoint . $endpart;
             $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
