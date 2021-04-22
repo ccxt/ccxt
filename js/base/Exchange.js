@@ -1144,8 +1144,9 @@ module.exports = class Exchange {
 
     parseTickers (tickers, symbols = undefined) {
         const result = [];
-        for (let i = 0; i < tickers.length; i++) {
-            result.push (this.parseTicker (tickers[i]));
+        const values = Object.values (tickers || []);
+        for (let i = 0; i < values.length; i++) {
+            result.push (this.parseTicker (values[i]));
         }
         return this.filterByArray (result, 'symbol', symbols);
     }

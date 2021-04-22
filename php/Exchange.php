@@ -1943,8 +1943,9 @@ class Exchange {
 
     public function parse_tickers($tickers, $symbols = null) {
         $result = array();
-        for ($i = 0; $i < count($tickers); $i++) {
-            $result[] = $this->parse_ticker($tickers[$i]);
+        $values = is_array($tickers) ? array_values($tickers) : array();
+        for ($i = 0; $i < count($values); $i++) {
+            $result[] = $this->parse_ticker($values[$i]);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
