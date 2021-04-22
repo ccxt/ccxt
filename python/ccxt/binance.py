@@ -10,7 +10,6 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
-from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -71,7 +70,6 @@ class binance(Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api': {
                     'web': 'https://www.binance.com',
-                    'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
@@ -99,6 +97,7 @@ class binance(Exchange):
                 'sapi': {
                     'get': [
                         'accountSnapshot',
+                        'account/status',
                         # these endpoints require self.apiKey
                         'margin/asset',
                         'margin/pair',
@@ -107,6 +106,9 @@ class binance(Exchange):
                         'margin/priceIndex',
                         # these endpoints require self.apiKey + self.secret
                         'asset/assetDividend',
+                        'asset/assetDetail',
+                        'asset/tradeFee',
+                        'asset/dribblet',
                         'margin/loan',
                         'margin/repay',
                         'margin/account',
@@ -133,6 +135,7 @@ class binance(Exchange):
                         'sub-account/margin/account',
                         'sub-account/margin/accountSummary',
                         'sub-account/status',
+                        'system/status',
                         # lending endpoints
                         'lending/daily/product/list',
                         'lending/daily/userLeftQuota',
@@ -167,26 +170,6 @@ class binance(Exchange):
                     'delete': [
                         'margin/order',
                         'userDataStream',
-                    ],
-                },
-                'wapi': {
-                    'post': [
-                        'withdraw',
-                        'sub-account/transfer',
-                    ],
-                    'get': [
-                        'depositHistory',
-                        'withdrawHistory',
-                        'depositAddress',
-                        'accountStatus',
-                        'systemStatus',
-                        'apiTradingStatus',
-                        'userAssetDribbletLog',
-                        'tradeFee',
-                        'assetDetail',
-                        'sub-account/list',
-                        'sub-account/transfer/history',
-                        'sub-account/assets',
                     ],
                 },
                 'fapiPublic': {
@@ -661,7 +644,7 @@ class binance(Exchange):
         }
 
     def fetch_status(self, params={}):
-        response = self.wapiGetSystemStatus()
+        response = self.sapiGetSystemStatus(params)
         status = self.safe_value(response, 'status')
         if status is not None:
             status = 'ok' if (status == 0) else 'maintenance'
@@ -1246,28 +1229,41 @@ class binance(Exchange):
         # Binance provides an opportunity to trade insignificant(i.e. non-tradable and non-withdrawable)
         # token leftovers(of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
         # The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
-        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
-        #
+        # https://binance-docs.github.io/apidocs/spot/en/#dustlog-user_data
         self.load_markets()
-        response = self.wapiGetUserAssetDribbletLog(params)
-        # {success:    True,
-        #   results: {total:    1,
-        #               rows: [{    transfered_total: "1.06468458",
-        #                         service_charge_total: "0.02172826",
-        #                                      tran_id: 2701371634,
-        #                                         logs: [{             tranId:  2701371634,
-        #                                                   serviceChargeAmount: "0.00012819",
-        #                                                                   uid: "35103861",
-        #                                                                amount: "0.8012",
-        #                                                           operateTime: "2018-10-07 17:56:07",
-        #                                                      transferedAmount: "0.00628141",
-        #                                                             fromAsset: "ADA"                  }],
-        #                                 operate_time: "2018-10-07 17:56:06"                                }]}}
-        results = self.safe_value(response, 'results', {})
-        rows = self.safe_value(results, 'rows', [])
+        results = self.sapiGetAssetDribblet(params)
+        # {
+        #     "total": 8,   #Total counts of exchange
+        #     "userAssetDribblets": [
+        #         {
+        #             "totalTransferedAmount": "0.00132256",   # Total transfered BNB amount for self exchange.
+        #             "totalServiceChargeAmount": "0.00002699",    #Total service charge amount for self exchange.
+        #             "transId": 45178372831,
+        #             "userAssetDribbletDetails": [          #Details of  self exchange.
+        #                 {
+        #                     "transId": 4359321,
+        #                     "serviceChargeAmount": "0.000009",
+        #                     "amount": "0.0009",
+        #                     "operateTime": 1615985535000,
+        #                     "transferedAmount": "0.000441",
+        #                     "fromAsset": "USDT"
+        #                 },
+        #                 {
+        #                     "transId": 4359321,
+        #                     "serviceChargeAmount": "0.00001799",
+        #                     "amount": "0.0009",
+        #                     "operateTime": "2018-05-03 17:07:04",
+        #                     "transferedAmount": "0.00088156",
+        #                     "fromAsset": "ETH"
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        # }
+        rows = self.safe_value(results, 'userAssetDribblets', [])
         data = []
         for i in range(0, len(rows)):
-            logs = rows[i]['logs']
+            logs = rows[i]['userAssetDribbletDetails']
             for j in range(0, len(logs)):
                 logs[j]['isDustTrade'] = True
                 data.append(logs[j])
@@ -1275,15 +1271,16 @@ class binance(Exchange):
         return self.filter_by_since_limit(trades, since, limit)
 
     def parse_dust_trade(self, trade, market=None):
-        # {             tranId:  2701371634,
-        #   serviceChargeAmount: "0.00012819",
-        #                   uid: "35103861",
-        #                amount: "0.8012",
-        #           operateTime: "2018-10-07 17:56:07",
-        #      transferedAmount: "0.00628141",
-        #             fromAsset: "ADA"                  },
-        orderId = self.safe_string(trade, 'tranId')
-        timestamp = self.parse8601(self.safe_string(trade, 'operateTime'))
+        # {
+        # "transId": 4359321,
+        # "serviceChargeAmount": "0.000009",
+        # "amount": "0.0009",
+        # "operateTime": 1615985535000,
+        # "transferedAmount": "0.000441",
+        # "fromAsset": "USDT"
+        # }
+        orderId = self.safe_string(trade, 'transId')
+        timestamp = self.safe_integer(trade, 'operateTime')
         tradedCurrency = self.safe_currency_code(self.safe_string(trade, 'fromAsset'))
         earnedCurrency = self.currency('BNB')['code']
         applicantSymbol = earnedCurrency + '/' + tradedCurrency
@@ -1344,23 +1341,41 @@ class binance(Exchange):
         request = {}
         if code is not None:
             currency = self.currency(code)
-            request['asset'] = currency['id']
+            request['coin'] = currency['id']
         if since is not None:
             request['startTime'] = since
             # max 3 months range https://github.com/ccxt/ccxt/issues/6495
             request['endTime'] = self.sum(since, 7776000000)
-        response = self.wapiGetDepositHistory(self.extend(request, params))
-        #
-        #     {    success:    True,
-        #       depositList: [{insertTime:  1517425007000,
-        #                            amount:  0.3,
-        #                           address: "0x0123456789abcdef",
-        #                        addressTag: "",
-        #                              txId: "0x0123456789abcdef",
-        #                             asset: "ETH",
-        #                            status:  1                                                                    }]}
-        #
-        return self.parse_transactions(response['depositList'], currency, since, limit)
+        if limit is not None:
+            request['limit'] = limit
+        response = self.sapiGetCapitalDepositHisrec(self.extend(request, params))
+        # [
+        #     {
+        #         "amount":"0.00999800",
+        #         "coin":"PAXG",
+        #         "network":"ETH",
+        #         "status":1,
+        #         "address":"0x788cabe9236ce061e5a892e1a59395a81fc8d62c",
+        #         "addressTag":"",
+        #         "txId":"0xaad4654a3234aa6118af9b4b335f5ae81c360b2394721c019b5d1e75328b09f3",
+        #         "insertTime":1599621997000,
+        #         "transferType":0,
+        #         "confirmTimes":"12/12"
+        #     },
+        #     {
+        #         "amount":"0.50000000",
+        #         "coin":"IOTA",
+        #         "network":"IOTA",
+        #         "status":1,
+        #         "address":"SIZ9VLMHWATXKV99LH99CIGFJFUMLEHGWVZVNNZXRJJVWBPHYWPPBOSDORZ9EQSHCZAMPVAPGFYQAUUV9DROOXJLNW",
+        #         "addressTag":"",
+        #         "txId":"ESBFVQUTPIWQNJSPXFNHNYHSQNTGKRVKPRABQWTAXCDWOAKDKYWPTVG9BGXNVNKTLEJGESAVXIKIZ9999",
+        #         "insertTime":1599620082000,
+        #         "transferType":0,
+        #         "confirmTimes":"1/1"
+        #     }
+        # ]
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1368,36 +1383,39 @@ class binance(Exchange):
         request = {}
         if code is not None:
             currency = self.currency(code)
-            request['asset'] = currency['id']
+            request['coin'] = currency['id']
         if since is not None:
             request['startTime'] = since
             # max 3 months range https://github.com/ccxt/ccxt/issues/6495
             request['endTime'] = self.sum(since, 7776000000)
-        response = self.wapiGetWithdrawHistory(self.extend(request, params))
-        #
-        #     {withdrawList: [{     amount:  14,
-        #                             address: "0x0123456789abcdef...",
-        #                         successTime:  1514489710000,
-        #                      transactionFee:  0.01,
-        #                          addressTag: "",
-        #                                txId: "0x0123456789abcdef...",
-        #                                  id: "0123456789abcdef...",
-        #                               asset: "ETH",
-        #                           applyTime:  1514488724000,
-        #                              status:  6                       },
-        #                       {     amount:  7600,
-        #                             address: "0x0123456789abcdef...",
-        #                         successTime:  1515323226000,
-        #                      transactionFee:  0.01,
-        #                          addressTag: "",
-        #                                txId: "0x0123456789abcdef...",
-        #                                  id: "0123456789abcdef...",
-        #                               asset: "ICN",
-        #                           applyTime:  1515322539000,
-        #                              status:  6                       }  ],
-        #            success:    True                                         }
-        #
-        return self.parse_transactions(response['withdrawList'], currency, since, limit)
+        if limit is not None:
+            request['limit'] = limit
+        response = self.sapiGetCapitalWithdrawHistory(self.extend(request, params))
+        # [
+        #     {
+        #         "address": "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
+        #         "amount": "8.91000000",
+        #         "applyTime": "2019-10-12 11:12:02",
+        #         "coin": "USDT",
+        #         "id": "b6ae22b3aa844210a7041aee7589627c",
+        #         "withdrawOrderId": "WITHDRAWtest123",  # will not be returned if there's no withdrawOrderId for self withdraw.
+        #         "network": "ETH",
+        #         "transferType": 0,   # 1 for internal transfer, 0 for external transfer
+        #         "status": 6,
+        #         "txId": "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
+        #     },
+        #     {
+        #         "address": "1FZdVHtiBqMrWdjPyRPULCUceZPJ2WLCsB",
+        #         "amount": "0.00150000",
+        #         "applyTime": "2019-09-24 12:43:45",
+        #         "coin": "BTC",
+        #         "id": "156ec387f49b41df8724fa744fa82719",
+        #         "network": "BTC",
+        #         "status": 6,
+        #         "txId": "60fd9007ebfddc753455f95fafa808c4302c836e4d1eebc5a132c36c1d8ac354"
+        #     }
+        # ]
+        return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
         if type is None:
@@ -1420,41 +1438,46 @@ class binance(Exchange):
         return statuses[type][status] if (status in statuses[type]) else status
 
     def parse_transaction(self, transaction, currency=None):
-        #
-        # fetchDeposits
-        #      {insertTime:  1517425007000,
-        #            amount:  0.3,
-        #           address: "0x0123456789abcdef",
-        #        addressTag: "",
-        #              txId: "0x0123456789abcdef",
-        #             asset: "ETH",
-        #            status:  1                                                                    }
-        #
+        # FetchDeposits
+        # {
+        #         "amount":"0.00999800",
+        #         "coin":"PAXG",
+        #         "network":"ETH",
+        #         "status":1,
+        #         "address":"0x788cabe9236ce061e5a892e1a59395a81fc8d62c",
+        #         "addressTag":"",
+        #         "txId":"0xaad4654a3234aa6118af9b4b335f5ae81c360b2394721c019b5d1e75328b09f3",
+        #         "insertTime":1599621997000,
+        #         "transferType":0,
+        #         "confirmTimes":"12/12"
+        #     }
         # fetchWithdrawals
-        #
-        #       {     amount:  14,
-        #             address: "0x0123456789abcdef...",
-        #         successTime:  1514489710000,
-        #      transactionFee:  0.01,
-        #          addressTag: "",
-        #                txId: "0x0123456789abcdef...",
-        #                  id: "0123456789abcdef...",
-        #               asset: "ETH",
-        #           applyTime:  1514488724000,
-        #              status:  6                       }
-        #
+        # {
+        #     "address": "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
+        #     "amount": "8.91000000",
+        #     "applyTime": "2019-10-12 11:12:02",
+        #     "coin": "USDT",
+        #     "id": "b6ae22b3aa844210a7041aee7589627c",
+        #     "withdrawOrderId": "WITHDRAWtest123",  # will not be returned if there's no withdrawOrderId for self withdraw.
+        #     "network": "ETH",
+        #     "transferType": 0,   # 1 for internal transfer, 0 for external transfer
+        #     "status": 6,
+        #     "txId": "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
+        # }
         id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')  # set but unused
         if tag is not None:
             if len(tag) < 1:
                 tag = None
-        txid = self.safe_value(transaction, 'txId')
-        currencyId = self.safe_string(transaction, 'asset')
+        txid = self.safe_string(transaction, 'txId')
+        if (txid is not None) and (txid.find('Internal transfer ') >= 0):
+            txid = txid[18:]
+        currencyId = self.safe_string(transaction, 'coin')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None
         insertTime = self.safe_integer(transaction, 'insertTime')
-        applyTime = self.safe_integer(transaction, 'applyTime')
+        applyTime = self.parse8601(self.safe_string(transaction, 'applyTime'))
         type = self.safe_string(transaction, 'type')
         if type is None:
             if (insertTime is not None) and (applyTime is None):
@@ -1469,6 +1492,9 @@ class binance(Exchange):
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
+        updated = self.safe_integer(transaction, 'successTime')
+        internal = self.safe_integer(transaction, 'transferType', False)
+        internal = True if internal else False
         return {
             'info': transaction,
             'id': id,
@@ -1476,12 +1502,16 @@ class binance(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': address,
+            'addressTo': address,
             'tag': tag,
+            'tagTo': tag,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': None,
+            'updated': updated,
+            'internal': internal,
             'fee': fee,
         }
 
@@ -1489,51 +1519,58 @@ class binance(Exchange):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'asset': currency['id'],
+            'coin': currency['id'],
+            # 'network': 'ETH',  # 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         }
-        response = self.wapiGetDepositAddress(self.extend(request, params))
-        success = self.safe_value(response, 'success')
-        if (success is None) or not success:
-            raise InvalidAddress(self.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.')
+        # has support for the 'network' parameter
+        # https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
+        response = self.sapiGetCapitalDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         currency: 'XRP',
+        #         address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
+        #         tag: '108618262',
+        #         info: {
+        #             coin: 'XRP',
+        #             address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
+        #             tag: '108618262',
+        #             url: 'https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh'
+        #         }
+        #     }
+        #
         address = self.safe_string(response, 'address')
-        tag = self.safe_string(response, 'addressTag')
+        tag = self.safe_string(response, 'tag')
         self.check_address(address)
         return {
             'currency': code,
-            'address': self.check_address(address),
+            'address': address,
             'tag': tag,
             'info': response,
         }
 
     def fetch_funding_fees(self, codes=None, params={}):
-        response = self.wapiGetAssetDetail(params)
-        #
-        #     {
-        #         "success": True,
-        #         "assetDetail": {
-        #             "CTR": {
-        #                 "minWithdrawAmount": "70.00000000",  #min withdraw amount
-        #                 "depositStatus": False,//deposit status
-        #                 "withdrawFee": 35,  # withdraw fee
-        #                 "withdrawStatus": True,  #withdraw status
-        #                 "depositTip": "Delisted, Deposit Suspended"  #reason
-        #             },
-        #             "SKY": {
-        #                 "minWithdrawAmount": "0.02000000",
-        #                 "depositStatus": True,
-        #                 "withdrawFee": 0.01,
-        #                 "withdrawStatus": True
-        #             }
-        #         }
+        response = self.sapiGetAssetAssetDetail(params)
+        # {
+        #     "CTR": {
+        #         "minWithdrawAmount": "70.00000000",  #min withdraw amount
+        #         "depositStatus": False,//deposit status(False if ALL of networks' are False)
+        #         "withdrawFee": 35,  # withdraw fee
+        #         "withdrawStatus": True,  #withdraw status(False if ALL of networks' are False)
+        #         "depositTip": "Delisted, Deposit Suspended"  #reason
+        #     },
+        #     "SKY": {
+        #         "minWithdrawAmount": "0.02000000",
+        #         "depositStatus": True,
+        #         "withdrawFee": 0.01,
+        #         "withdrawStatus": True
         #     }
-        #
-        detail = self.safe_value(response, 'assetDetail', {})
-        ids = list(detail.keys())
+        # }
+        ids = list(response.keys())
         withdrawFees = {}
         for i in range(0, len(ids)):
             id = ids[i]
             code = self.safe_currency_code(id)
-            withdrawFees[code] = self.safe_float(detail[id], 'withdrawFee')
+            withdrawFees[code] = self.safe_float(response[id], 'withdrawFee')
         return {
             'withdraw': withdrawFees,
             'deposit': {},
@@ -1544,20 +1581,17 @@ class binance(Exchange):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        # name is optional, can be overrided via params
-        name = address[0:20]
         request = {
-            'asset': currency['id'],
+            'coin': currency['id'],
             'address': address,
-            'amount': float(amount),
-            'name': name,  # name is optional, can be overrided via params
+            'amount': amount,
             # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
             # issue sapiGetCapitalConfigGetall() to get networks for withdrawing USDT ERC20 vs USDT Omni
             # 'network': 'ETH',  # 'BTC', 'TRX', etc, optional
         }
         if tag is not None:
             request['addressTag'] = tag
-        response = self.wapiPostWithdraw(self.extend(request, params))
+        response = self.sapiPostCapitalWithdrawApply(self.extend(request, params))
         return {
             'info': response,
             'id': self.safe_string(response, 'id'),
@@ -1567,8 +1601,8 @@ class binance(Exchange):
         #
         #     {
         #         "symbol": "ADABNB",
-        #         "maker": 0.9000,
-        #         "taker": 1.0000
+        #         "makerCommission": 0.001,
+        #         "takerCommission": 0.001,
         #     }
         #
         marketId = self.safe_string(fee, 'symbol')
@@ -1579,8 +1613,8 @@ class binance(Exchange):
         return {
             'info': fee,
             'symbol': symbol,
-            'maker': self.safe_float(fee, 'maker'),
-            'taker': self.safe_float(fee, 'taker'),
+            'maker': self.safe_float(fee, 'makerCommission'),
+            'taker': self.safe_float(fee, 'takerCommission'),
         }
 
     def fetch_trading_fee(self, symbol, params={}):
@@ -1589,42 +1623,34 @@ class binance(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = self.wapiGetTradeFee(self.extend(request, params))
-        #
-        #     {
-        #         "tradeFee": [
-        #             {
-        #                 "symbol": "ADABNB",
-        #                 "maker": 0.9000,
-        #                 "taker": 1.0000
-        #             }
-        #         ],
-        #         "success": True
-        #     }
-        #
-        tradeFee = self.safe_value(response, 'tradeFee', [])
-        first = self.safe_value(tradeFee, 0, {})
-        return self.parse_trading_fee(first)
+        response = self.sapiGetAssetTradeFee(self.extend(request, params))
+        #     [
+        #       {
+        #         "symbol": "BTCUSDT",
+        #         "makerCommission": "0.001",
+        #         "takerCommission": "0.001"
+        #       }
+        #     ]
+        return self.parse_trading_fee(response[0])
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()
-        response = self.wapiGetTradeFee(params)
-        #
-        #     {
-        #         "tradeFee": [
-        #             {
-        #                 "symbol": "ADABNB",
-        #                 "maker": 0.9000,
-        #                 "taker": 1.0000
-        #             }
-        #         ],
-        #         "success": True
-        #     }
-        #
-        tradeFee = self.safe_value(response, 'tradeFee', [])
+        response = self.sapiGetAssetTradeFee(params)
+        #    [
+        #       {
+        #         "symbol": "ZRXBNB",
+        #         "makerCommission": "0.001",
+        #         "takerCommission": "0.001"
+        #       },
+        #       {
+        #         "symbol": "ZRXBTC",
+        #         "makerCommission": "0.001",
+        #         "takerCommission": "0.001"
+        #       },
+        #    ]
         result = {}
-        for i in range(0, len(tradeFee)):
-            fee = self.parse_trading_fee(tradeFee[i])
+        for i in range(0, len(response)):
+            fee = self.parse_trading_fee(response[i])
             symbol = fee['symbol']
             result[symbol] = fee
         return result
@@ -1632,8 +1658,6 @@ class binance(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         url += '/' + path
-        if api == 'wapi':
-            url += '.html'
         userDataStream = (path == 'userDataStream')
         if path == 'historicalTrades':
             if self.apiKey:
@@ -1652,7 +1676,7 @@ class binance(Exchange):
                 }
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'fapiPrivate'):
+        if (api == 'private') or (api == 'sapi') or (api == 'fapiPrivate'):
             self.check_required_credentials()
             query = None
             if (api == 'sapi') and (path == 'asset/dust'):
@@ -1670,7 +1694,7 @@ class binance(Exchange):
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-            if (method == 'GET') or (method == 'DELETE') or (api == 'wapi'):
+            if (method == 'GET') or (method == 'DELETE'):
                 url += '?' + query
             else:
                 body = query
@@ -1736,6 +1760,6 @@ class binance(Exchange):
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if (api == 'private') or (api == 'wapi'):
+        if (api == 'private'):
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response

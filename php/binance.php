@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
 use \ccxt\DDoSProtection;
 
@@ -64,7 +63,6 @@ class binance extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
                 'api' => array(
                     'web' => 'https://www.binance.com',
-                    'wapi' => 'https://api.binance.com/wapi/v3',
                     'sapi' => 'https://api.binance.com/sapi/v1',
                     'fapiPublic' => 'https://fapi.binance.com/fapi/v1',
                     'fapiPrivate' => 'https://fapi.binance.com/fapi/v1',
@@ -92,6 +90,7 @@ class binance extends Exchange {
                 'sapi' => array(
                     'get' => array(
                         'accountSnapshot',
+                        'account/status',
                         // these endpoints require $this->apiKey
                         'margin/asset',
                         'margin/pair',
@@ -100,6 +99,9 @@ class binance extends Exchange {
                         'margin/priceIndex',
                         // these endpoints require $this->apiKey . $this->secret
                         'asset/assetDividend',
+                        'asset/assetDetail',
+                        'asset/tradeFee',
+                        'asset/dribblet',
                         'margin/loan',
                         'margin/repay',
                         'margin/account',
@@ -126,6 +128,7 @@ class binance extends Exchange {
                         'sub-account/margin/account',
                         'sub-account/margin/accountSummary',
                         'sub-account/status',
+                        'system/status',
                         // lending endpoints
                         'lending/daily/product/list',
                         'lending/daily/userLeftQuota',
@@ -160,26 +163,6 @@ class binance extends Exchange {
                     'delete' => array(
                         'margin/order',
                         'userDataStream',
-                    ),
-                ),
-                'wapi' => array(
-                    'post' => array(
-                        'withdraw',
-                        'sub-account/transfer',
-                    ),
-                    'get' => array(
-                        'depositHistory',
-                        'withdrawHistory',
-                        'depositAddress',
-                        'accountStatus',
-                        'systemStatus',
-                        'apiTradingStatus',
-                        'userAssetDribbletLog',
-                        'tradeFee',
-                        'assetDetail',
-                        'sub-account/list',
-                        'sub-account/transfer/history',
-                        'sub-account/assets',
                     ),
                 ),
                 'fapiPublic' => array(
@@ -676,7 +659,7 @@ class binance extends Exchange {
     }
 
     public function fetch_status ($params = array ()) {
-        $response = $this->wapiGetSystemStatus ();
+        $response = $this->sapiGetSystemStatus ($params);
         $status = $this->safe_value($response, 'status');
         if ($status !== null) {
             $status = ($status === 0) ? 'ok' : 'maintenance';
@@ -1336,28 +1319,41 @@ class binance extends Exchange {
         // Binance provides an opportunity to trade insignificant ($i->e. non-tradable and non-withdrawable)
         // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
         // The corresponding $trades history is called the `Dust Log` and can be requested via the following end-point:
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
-        //
+        // https://binance-docs.github.io/apidocs/spot/en/#dustlog-user_data
         $this->load_markets();
-        $response = $this->wapiGetUserAssetDribbletLog ($params);
-        // { success =>    true,
-        //   $results => { total =>    1,
-        //               $rows => array( {     transfered_total => "1.06468458",
-        //                         service_charge_total => "0.02172826",
-        //                                      tran_id => 2701371634,
-        //                                         $logs => array( {              tranId =>  2701371634,
-        //                                                   serviceChargeAmount => "0.00012819",
-        //                                                                   uid => "35103861",
-        //                                                                amount => "0.8012",
-        //                                                           operateTime => "2018-10-07 17:56:07",
-        //                                                      transferedAmount => "0.00628141",
-        //                                                             fromAsset => "ADA"                  } ),
-        //                                 operate_time => "2018-10-07 17:56:06"                                } ) } }
-        $results = $this->safe_value($response, 'results', array());
-        $rows = $this->safe_value($results, 'rows', array());
+        $results = $this->sapiGetAssetDribblet ($params);
+        // {
+        //     "total" => 8,   //Total counts of exchange
+        //     "userAssetDribblets" => array(
+        //         {
+        //             "totalTransferedAmount" => "0.00132256",   // Total transfered BNB amount for this exchange.
+        //             "totalServiceChargeAmount" => "0.00002699",    //Total service charge amount for this exchange.
+        //             "transId" => 45178372831,
+        //             "userAssetDribbletDetails" => array(           //Details of  this exchange.
+        //                 array(
+        //                     "transId" => 4359321,
+        //                     "serviceChargeAmount" => "0.000009",
+        //                     "amount" => "0.0009",
+        //                     "operateTime" => 1615985535000,
+        //                     "transferedAmount" => "0.000441",
+        //                     "fromAsset" => "USDT"
+        //                 ),
+        //                 array(
+        //                     "transId" => 4359321,
+        //                     "serviceChargeAmount" => "0.00001799",
+        //                     "amount" => "0.0009",
+        //                     "operateTime" => "2018-05-03 17:07:04",
+        //                     "transferedAmount" => "0.00088156",
+        //                     "fromAsset" => "ETH"
+        //                 }
+        //             )
+        //         ),
+        //     )
+        // }
+        $rows = $this->safe_value($results, 'userAssetDribblets', array());
         $data = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $logs = $rows[$i]['logs'];
+            $logs = $rows[$i]['userAssetDribbletDetails'];
             for ($j = 0; $j < count($logs); $j++) {
                 $logs[$j]['isDustTrade'] = true;
                 $data[] = $logs[$j];
@@ -1368,15 +1364,16 @@ class binance extends Exchange {
     }
 
     public function parse_dust_trade ($trade, $market = null) {
-        // array(              tranId =>  2701371634,
-        //   serviceChargeAmount => "0.00012819",
-        //                   uid => "35103861",
-        //                $amount => "0.8012",
-        //           operateTime => "2018-10-07 17:56:07",
-        //      transferedAmount => "0.00628141",
-        //             fromAsset => "ADA"                  ),
-        $orderId = $this->safe_string($trade, 'tranId');
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'operateTime'));
+        // {
+        // "transId" => 4359321,
+        // "serviceChargeAmount" => "0.000009",
+        // "$amount" => "0.0009",
+        // "operateTime" => 1615985535000,
+        // "transferedAmount" => "0.000441",
+        // "fromAsset" => "USDT"
+        // }
+        $orderId = $this->safe_string($trade, 'transId');
+        $timestamp = $this->safe_integer($trade, 'operateTime');
         $tradedCurrency = $this->safe_currency_code($this->safe_string($trade, 'fromAsset'));
         $earnedCurrency = $this->currency ('BNB')['code'];
         $applicantSymbol = $earnedCurrency . '/' . $tradedCurrency;
@@ -1442,25 +1439,44 @@ class binance extends Exchange {
         $request = array();
         if ($code !== null) {
             $currency = $this->currency ($code);
-            $request['asset'] = $currency['id'];
+            $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
             $request['startTime'] = $since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
             $request['endTime'] = $this->sum ($since, 7776000000);
         }
-        $response = $this->wapiGetDepositHistory (array_merge($request, $params));
-        //
-        //     {     success =>    true,
-        //       depositList => array( { insertTime =>  1517425007000,
-        //                            amount =>  0.3,
-        //                           address => "0x0123456789abcdef",
-        //                        addressTag => "",
-        //                              txId => "0x0123456789abcdef",
-        //                             asset => "ETH",
-        //                            status =>  1                                                                    } ) }
-        //
-        return $this->parse_transactions($response['depositList'], $currency, $since, $limit);
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->sapiGetCapitalDepositHisrec (array_merge($request, $params));
+        // array(
+        //     array(
+        //         "amount":"0.00999800",
+        //         "coin":"PAXG",
+        //         "network":"ETH",
+        //         "status":1,
+        //         "address":"0x788cabe9236ce061e5a892e1a59395a81fc8d62c",
+        //         "addressTag":"",
+        //         "txId":"0xaad4654a3234aa6118af9b4b335f5ae81c360b2394721c019b5d1e75328b09f3",
+        //         "insertTime":1599621997000,
+        //         "transferType":0,
+        //         "confirmTimes":"12/12"
+        //     ),
+        //     {
+        //         "amount":"0.50000000",
+        //         "coin":"IOTA",
+        //         "network":"IOTA",
+        //         "status":1,
+        //         "address":"SIZ9VLMHWATXKV99LH99CIGFJFUMLEHGWVZVNNZXRJJVWBPHYWPPBOSDORZ9EQSHCZAMPVAPGFYQAUUV9DROOXJLNW",
+        //         "addressTag":"",
+        //         "txId":"ESBFVQUTPIWQNJSPXFNHNYHSQNTGKRVKPRABQWTAXCDWOAKDKYWPTVG9BGXNVNKTLEJGESAVXIKIZ9999",
+        //         "insertTime":1599620082000,
+        //         "transferType":0,
+        //         "confirmTimes":"1/1"
+        //     }
+        // )
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1469,38 +1485,42 @@ class binance extends Exchange {
         $request = array();
         if ($code !== null) {
             $currency = $this->currency ($code);
-            $request['asset'] = $currency['id'];
+            $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
             $request['startTime'] = $since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
             $request['endTime'] = $this->sum ($since, 7776000000);
         }
-        $response = $this->wapiGetWithdrawHistory (array_merge($request, $params));
-        //
-        //     { withdrawList => array( array(      amount =>  14,
-        //                             address => "0x0123456789abcdef...",
-        //                         successTime =>  1514489710000,
-        //                      transactionFee =>  0.01,
-        //                          addressTag => "",
-        //                                txId => "0x0123456789abcdef...",
-        //                                  id => "0123456789abcdef...",
-        //                               asset => "ETH",
-        //                           applyTime =>  1514488724000,
-        //                              status =>  6                       ),
-        //                       {      amount =>  7600,
-        //                             address => "0x0123456789abcdef...",
-        //                         successTime =>  1515323226000,
-        //                      transactionFee =>  0.01,
-        //                          addressTag => "",
-        //                                txId => "0x0123456789abcdef...",
-        //                                  id => "0123456789abcdef...",
-        //                               asset => "ICN",
-        //                           applyTime =>  1515322539000,
-        //                              status =>  6                       }  ),
-        //            success =>    true                                         }
-        //
-        return $this->parse_transactions($response['withdrawList'], $currency, $since, $limit);
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->sapiGetCapitalWithdrawHistory (array_merge($request, $params));
+        // array(
+        //     array(
+        //         "address" => "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
+        //         "amount" => "8.91000000",
+        //         "applyTime" => "2019-10-12 11:12:02",
+        //         "coin" => "USDT",
+        //         "id" => "b6ae22b3aa844210a7041aee7589627c",
+        //         "withdrawOrderId" => "WITHDRAWtest123", // will not be returned if there's no withdrawOrderId for this withdraw.
+        //         "network" => "ETH",
+        //         "transferType" => 0,   // 1 for internal transfer, 0 for external transfer
+        //         "status" => 6,
+        //         "txId" => "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
+        //     ),
+        //     {
+        //         "address" => "1FZdVHtiBqMrWdjPyRPULCUceZPJ2WLCsB",
+        //         "amount" => "0.00150000",
+        //         "applyTime" => "2019-09-24 12:43:45",
+        //         "coin" => "BTC",
+        //         "id" => "156ec387f49b41df8724fa744fa82719",
+        //         "network" => "BTC",
+        //         "status" => 6,
+        //         "txId" => "60fd9007ebfddc753455f95fafa808c4302c836e4d1eebc5a132c36c1d8ac354"
+        //     }
+        // )
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function parse_transaction_status_by_type ($status, $type = null) {
@@ -1526,29 +1546,32 @@ class binance extends Exchange {
     }
 
     public function parse_transaction ($transaction, $currency = null) {
-        //
-        // fetchDeposits
-        //      { $insertTime =>  1517425007000,
-        //            $amount =>  0.3,
-        //           $address => "0x0123456789abcdef",
-        //        addressTag => "",
-        //              txId => "0x0123456789abcdef",
-        //             asset => "ETH",
-        //            $status =>  1                                                                    }
-        //
+        // FetchDeposits
+        // {
+        //         "$amount":"0.00999800",
+        //         "coin":"PAXG",
+        //         "network":"ETH",
+        //         "$status":1,
+        //         "$address":"0x788cabe9236ce061e5a892e1a59395a81fc8d62c",
+        //         "addressTag":"",
+        //         "txId":"0xaad4654a3234aa6118af9b4b335f5ae81c360b2394721c019b5d1e75328b09f3",
+        //         "$insertTime":1599621997000,
+        //         "transferType":0,
+        //         "confirmTimes":"12/12"
+        //     }
         // fetchWithdrawals
-        //
-        //       {      $amount =>  14,
-        //             $address => "0x0123456789abcdef...",
-        //         successTime =>  1514489710000,
-        //      transactionFee =>  0.01,
-        //          addressTag => "",
-        //                txId => "0x0123456789abcdef...",
-        //                  $id => "0123456789abcdef...",
-        //               asset => "ETH",
-        //           $applyTime =>  1514488724000,
-        //              $status =>  6                       }
-        //
+        // {
+        //     "$address" => "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
+        //     "$amount" => "8.91000000",
+        //     "$applyTime" => "2019-10-12 11:12:02",
+        //     "coin" => "USDT",
+        //     "$id" => "b6ae22b3aa844210a7041aee7589627c",
+        //     "withdrawOrderId" => "WITHDRAWtest123", // will not be returned if there's no withdrawOrderId for this withdraw.
+        //     "network" => "ETH",
+        //     "transferType" => 0,   // 1 for $internal transfer, 0 for external transfer
+        //     "$status" => 6,
+        //     "txId" => "0xb5ef8c13b968a406cc62a93a8bd80f9e9a906ef1b3fcf20a2e48573c17659268"
+        // }
         $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
@@ -1557,12 +1580,15 @@ class binance extends Exchange {
                 $tag = null;
             }
         }
-        $txid = $this->safe_value($transaction, 'txId');
-        $currencyId = $this->safe_string($transaction, 'asset');
+        $txid = $this->safe_string($transaction, 'txId');
+        if (($txid !== null) && (mb_strpos($txid, 'Internal transfer ') !== false)) {
+            $txid = mb_substr($txid, 18);
+        }
+        $currencyId = $this->safe_string($transaction, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
         $insertTime = $this->safe_integer($transaction, 'insertTime');
-        $applyTime = $this->safe_integer($transaction, 'applyTime');
+        $applyTime = $this->parse8601 ($this->safe_string($transaction, 'applyTime'));
         $type = $this->safe_string($transaction, 'type');
         if ($type === null) {
             if (($insertTime !== null) && ($applyTime === null)) {
@@ -1580,6 +1606,9 @@ class binance extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
+        $updated = $this->safe_integer($transaction, 'successTime');
+        $internal = $this->safe_integer($transaction, 'transferType', false);
+        $internal = $internal ? true : false;
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1587,12 +1616,16 @@ class binance extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'address' => $address,
+            'addressTo' => $address,
             'tag' => $tag,
+            'tagTo' => $tag,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
             'status' => $status,
-            'updated' => null,
+            'updated' => $updated,
+            'internal' => $internal,
             'fee' => $fee,
         );
     }
@@ -1601,53 +1634,59 @@ class binance extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         $request = array(
-            'asset' => $currency['id'],
+            'coin' => $currency['id'],
+            // 'network' => 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the $response of sapiGetCapitalConfigDetail
         );
-        $response = $this->wapiGetDepositAddress (array_merge($request, $params));
-        $success = $this->safe_value($response, 'success');
-        if (($success === null) || !$success) {
-            throw new InvalidAddress($this->id . ' fetchDepositAddress returned an empty $response – create the deposit $address in the user settings first.');
-        }
+        // has support for the 'network' parameter
+        // https://binance-docs.github.io/apidocs/spot/en/#deposit-$address-supporting-network-user_data
+        $response = $this->sapiGetCapitalDepositAddress (array_merge($request, $params));
+        //
+        //     {
+        //         $currency => 'XRP',
+        //         $address => 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
+        //         $tag => '108618262',
+        //         info => {
+        //             coin => 'XRP',
+        //             $address => 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
+        //             $tag => '108618262',
+        //             url => 'https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh'
+        //         }
+        //     }
+        //
         $address = $this->safe_string($response, 'address');
-        $tag = $this->safe_string($response, 'addressTag');
+        $tag = $this->safe_string($response, 'tag');
         $this->check_address($address);
         return array(
             'currency' => $code,
-            'address' => $this->check_address($address),
+            'address' => $address,
             'tag' => $tag,
             'info' => $response,
         );
     }
 
     public function fetch_funding_fees ($codes = null, $params = array ()) {
-        $response = $this->wapiGetAssetDetail ($params);
-        //
-        //     {
-        //         "success" => true,
-        //         "assetDetail" => {
-        //             "CTR" => array(
-        //                 "minWithdrawAmount" => "70.00000000", //min withdraw amount
-        //                 "depositStatus" => false,//deposit status
-        //                 "withdrawFee" => 35, // withdraw fee
-        //                 "withdrawStatus" => true, //withdraw status
-        //                 "depositTip" => "Delisted, Deposit Suspended" //reason
-        //             ),
-        //             "SKY" => {
-        //                 "minWithdrawAmount" => "0.02000000",
-        //                 "depositStatus" => true,
-        //                 "withdrawFee" => 0.01,
-        //                 "withdrawStatus" => true
-        //             }
-        //         }
+        $response = $this->sapiGetAssetAssetDetail ($params);
+        // {
+        //     "CTR" => array(
+        //         "minWithdrawAmount" => "70.00000000", //min withdraw amount
+        //         "depositStatus" => false,//deposit status (false if ALL of networks' are false)
+        //         "withdrawFee" => 35, // withdraw fee
+        //         "withdrawStatus" => true, //withdraw status (false if ALL of networks' are false)
+        //         "depositTip" => "Delisted, Deposit Suspended" //reason
+        //     ),
+        //     "SKY" => {
+        //         "minWithdrawAmount" => "0.02000000",
+        //         "depositStatus" => true,
+        //         "withdrawFee" => 0.01,
+        //         "withdrawStatus" => true
         //     }
-        //
-        $detail = $this->safe_value($response, 'assetDetail', array());
-        $ids = is_array($detail) ? array_keys($detail) : array();
+        // }
+        $ids = is_array($response) ? array_keys($response) : array();
         $withdrawFees = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $code = $this->safe_currency_code($id);
-            $withdrawFees[$code] = $this->safe_float($detail[$id], 'withdrawFee');
+            $withdrawFees[$code] = $this->safe_float($response[$id], 'withdrawFee');
         }
         return array(
             'withdraw' => $withdrawFees,
@@ -1660,13 +1699,10 @@ class binance extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        // $name is optional, can be overrided via $params
-        $name = mb_substr($address, 0, 20 - 0);
         $request = array(
-            'asset' => $currency['id'],
+            'coin' => $currency['id'],
             'address' => $address,
-            'amount' => floatval ($amount),
-            'name' => $name, // $name is optional, can be overrided via $params
+            'amount' => $amount,
             // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
             // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
             // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
@@ -1674,7 +1710,7 @@ class binance extends Exchange {
         if ($tag !== null) {
             $request['addressTag'] = $tag;
         }
-        $response = $this->wapiPostWithdraw (array_merge($request, $params));
+        $response = $this->sapiPostCapitalWithdrawApply (array_merge($request, $params));
         return array(
             'info' => $response,
             'id' => $this->safe_string($response, 'id'),
@@ -1685,8 +1721,8 @@ class binance extends Exchange {
         //
         //     {
         //         "$symbol" => "ADABNB",
-        //         "maker" => 0.9000,
-        //         "taker" => 1.0000
+        //         "makerCommission" => 0.001,
+        //         "takerCommission" => 0.001,
         //     }
         //
         $marketId = $this->safe_string($fee, 'symbol');
@@ -1698,8 +1734,8 @@ class binance extends Exchange {
         return array(
             'info' => $fee,
             'symbol' => $symbol,
-            'maker' => $this->safe_float($fee, 'maker'),
-            'taker' => $this->safe_float($fee, 'taker'),
+            'maker' => $this->safe_float($fee, 'makerCommission'),
+            'taker' => $this->safe_float($fee, 'takerCommission'),
         );
     }
 
@@ -1709,43 +1745,35 @@ class binance extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->wapiGetTradeFee (array_merge($request, $params));
-        //
-        //     {
-        //         "$tradeFee" => array(
-        //             {
-        //                 "$symbol" => "ADABNB",
-        //                 "maker" => 0.9000,
-        //                 "taker" => 1.0000
-        //             }
-        //         ),
-        //         "success" => true
-        //     }
-        //
-        $tradeFee = $this->safe_value($response, 'tradeFee', array());
-        $first = $this->safe_value($tradeFee, 0, array());
-        return $this->parse_trading_fee ($first);
+        $response = $this->sapiGetAssetTradeFee (array_merge($request, $params));
+        //     array(
+        //       {
+        //         "$symbol" => "BTCUSDT",
+        //         "makerCommission" => "0.001",
+        //         "takerCommission" => "0.001"
+        //       }
+        //     )
+        return $this->parse_trading_fee ($response[0]);
     }
 
     public function fetch_trading_fees ($params = array ()) {
         $this->load_markets();
-        $response = $this->wapiGetTradeFee ($params);
-        //
-        //     {
-        //         "$tradeFee" => array(
-        //             {
-        //                 "$symbol" => "ADABNB",
-        //                 "maker" => 0.9000,
-        //                 "taker" => 1.0000
-        //             }
-        //         ),
-        //         "success" => true
-        //     }
-        //
-        $tradeFee = $this->safe_value($response, 'tradeFee', array());
+        $response = $this->sapiGetAssetTradeFee ($params);
+        //    array(
+        //       array(
+        //         "$symbol" => "ZRXBNB",
+        //         "makerCommission" => "0.001",
+        //         "takerCommission" => "0.001"
+        //       ),
+        //       array(
+        //         "$symbol" => "ZRXBTC",
+        //         "makerCommission" => "0.001",
+        //         "takerCommission" => "0.001"
+        //       ),
+        //    )
         $result = array();
-        for ($i = 0; $i < count($tradeFee); $i++) {
-            $fee = $this->parse_trading_fee ($tradeFee[$i]);
+        for ($i = 0; $i < count($response); $i++) {
+            $fee = $this->parse_trading_fee ($response[$i]);
             $symbol = $fee['symbol'];
             $result[$symbol] = $fee;
         }
@@ -1755,9 +1783,6 @@ class binance extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $url .= '/' . $path;
-        if ($api === 'wapi') {
-            $url .= '.html';
-        }
         $userDataStream = ($path === 'userDataStream');
         if ($path === 'historicalTrades') {
             if ($this->apiKey) {
@@ -1779,7 +1804,7 @@ class binance extends Exchange {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
         }
-        if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'fapiPrivate')) {
+        if (($api === 'private') || ($api === 'sapi') || ($api === 'fapiPrivate')) {
             $this->check_required_credentials();
             $query = null;
             if (($api === 'sapi') && ($path === 'asset/dust')) {
@@ -1798,7 +1823,7 @@ class binance extends Exchange {
             $headers = array(
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-            if (($method === 'GET') || ($method === 'DELETE') || ($api === 'wapi')) {
+            if (($method === 'GET') || ($method === 'DELETE')) {
                 $url .= '?' . $query;
             } else {
                 $body = $query;
@@ -1886,7 +1911,7 @@ class binance extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
-        if (($api === 'private') || ($api === 'wapi')) {
+        if (($api === 'private')) {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return $response;

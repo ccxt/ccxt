@@ -18,7 +18,7 @@ class binanceus(binance):
                 'logo': 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
                 'api': {
                     'web': 'https://www.binance.us',
-                    'wapi': 'https://api.binance.us/wapi/v3',
+                    'sapi': 'https://api.binance.com/sapi/v1',
                     'public': 'https://api.binance.us/api/v1',
                     'private': 'https://api.binance.us/api/v3',
                     'v3': 'https://api.binance.us/api/v3',
