@@ -163,8 +163,8 @@ class idex(Exchange):
             symbol = base + '/' + quote
             basePrecisionString = self.safe_string(entry, 'baseAssetPrecision')
             quotePrecisionString = self.safe_string(entry, 'quoteAssetPrecision')
-            basePrecision = None if (basePrecisionString is None) else '1e-' + basePrecisionString
-            quotePrecision = None if (quotePrecisionString is None) else '1e-' + quotePrecisionString
+            basePrecision = self.parse_precision(basePrecisionString)
+            quotePrecision = self.parse_precision(quotePrecisionString)
             status = self.safe_string(entry, 'status')
             active = status == 'active'
             precision = {
@@ -517,7 +517,7 @@ class idex(Exchange):
             currencyId = self.safe_string(entry, 'symbol')
             precisionString = self.safe_string(entry, 'exchangeDecimals')
             code = self.safe_currency_code(currencyId)
-            precision = None if (precisionString is None) else '1e-' + precisionString
+            precision = self.parse_precision(precisionString)
             lot = self.parse_number(precision)
             result[code] = {
                 'id': currencyId,

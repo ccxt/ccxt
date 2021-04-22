@@ -150,7 +150,7 @@ class bitbank extends Exchange {
             $maker = $this->safe_number($entry, 'maker_fee_rate_quote');
             $taker = $this->safe_number($entry, 'taker_fee_rate_quote');
             $pricePrecisionString = $this->safe_string($entry, 'price_digits');
-            $priceLimit = ($pricePrecisionString === null) ? null : '1e-' . $pricePrecisionString;
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
                 'price' => intval($pricePrecisionString),
                 'amount' => $this->safe_integer($entry, 'amount_digits'),

@@ -1,11 +1,12 @@
 {
     "aax":           { "skip": true },
+    "aofex":         { "skip": true },
     "bcex":          { "skip": true },
     "bibox":         { "has": { "fetchCurrencies": false }},
     "bitforex":      { "skip": true },
+    "bitmart":       { "skip": true },
     "btcmarkets":    { "skip": true },
     "btctradeua":    { "skip": true },
-    "btcturk":       { "skip": true },
     "braziliex":     { "skip":  true },
     "buda":          { "skip": true },
     "coinegg":       { "skip": true },

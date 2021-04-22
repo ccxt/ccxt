@@ -138,7 +138,7 @@ class btcalpha(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             pricePrecision = self.safe_string(market, 'price_precision')
-            priceLimit = None if (pricePrecision is None) else '1e-' + pricePrecision
+            priceLimit = self.parse_precision(pricePrecision)
             precision = {
                 'amount': 8,
                 'price': int(pricePrecision),

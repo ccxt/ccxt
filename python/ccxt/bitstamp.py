@@ -286,8 +286,8 @@ class bitstamp(Exchange):
             id = self.safe_string(market, 'url_symbol')
             amountPrecisionString = self.safe_string(market, 'base_decimals')
             pricePrecisionString = self.safe_string(market, 'counter_decimals')
-            amountLimit = None if (amountPrecisionString is None) else '1e-' + amountPrecisionString
-            priceLimit = None if (pricePrecisionString is None) else '1e-' + pricePrecisionString
+            amountLimit = self.parse_precision(amountPrecisionString)
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
                 'amount': int(amountPrecisionString),
                 'price': int(pricePrecisionString),

@@ -170,7 +170,7 @@ class latoken(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             pricePrecisionString = self.safe_string(market, 'pricePrecision')
-            priceLimit = None if (pricePrecisionString is None) else '1e-' + pricePrecisionString
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
                 'price': int(pricePrecisionString),
                 'amount': self.safe_integer(market, 'amountPrecision'),

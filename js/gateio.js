@@ -175,6 +175,7 @@ module.exports = class gateio extends Exchange {
                 'MPH': 'Morpher', // conflict with 88MPH
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
+                'VAI': 'VAIOT',
             },
         });
     }
@@ -298,7 +299,7 @@ module.exports = class gateio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const pricePrecisionString = this.safeString (details, 'decimal_places');
-            const priceLimit = (pricePrecisionString === undefined) ? undefined : '1e-' + pricePrecisionString;
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
                 'amount': this.safeInteger (details, 'amount_decimal_places'),
                 'price': parseInt (pricePrecisionString),

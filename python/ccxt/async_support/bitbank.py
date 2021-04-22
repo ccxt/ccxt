@@ -154,7 +154,7 @@ class bitbank(Exchange):
             maker = self.safe_number(entry, 'maker_fee_rate_quote')
             taker = self.safe_number(entry, 'taker_fee_rate_quote')
             pricePrecisionString = self.safe_string(entry, 'price_digits')
-            priceLimit = None if (pricePrecisionString is None) else '1e-' + pricePrecisionString
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
                 'price': int(pricePrecisionString),
                 'amount': self.safe_integer(entry, 'amount_digits'),

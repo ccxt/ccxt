@@ -139,7 +139,7 @@ class btcalpha extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $pricePrecision = $this->safe_string($market, 'price_precision');
-            $priceLimit = ($pricePrecision === null) ? null : '1e-' . $pricePrecision;
+            $priceLimit = $this->parse_precision($pricePrecision);
             $precision = array(
                 'amount' => 8,
                 'price' => intval($pricePrecision),

@@ -108,6 +108,8 @@ module.exports = class hollaex extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
+                    'taker': 0.001,
+                    'maker': 0.001,
                 },
             },
             'exceptions': {
@@ -193,6 +195,8 @@ module.exports = class hollaex extends Exchange {
             const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
             const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'active');
+            const maker = this.fees['trading']['maker'];
+            const taker = this.fees['trading']['taker'];
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -216,6 +220,8 @@ module.exports = class hollaex extends Exchange {
                     },
                     'cost': { 'min': undefined, 'max': undefined },
                 },
+                'taker': taker,
+                'maker': maker,
                 'info': market,
             });
         }
@@ -1205,7 +1211,7 @@ module.exports = class hollaex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         path = '/' + this.version + '/' + this.implodeParams (path, params);
-        if (method === 'GET') {
+        if ((method === 'GET') || (method === 'DELETE')) {
             if (Object.keys (query).length) {
                 path += '?' + this.urlencode (query);
             }

@@ -148,7 +148,7 @@ module.exports = class bitbank extends Exchange {
             const maker = this.safeNumber (entry, 'maker_fee_rate_quote');
             const taker = this.safeNumber (entry, 'taker_fee_rate_quote');
             const pricePrecisionString = this.safeString (entry, 'price_digits');
-            const priceLimit = (pricePrecisionString === undefined) ? undefined : '1e-' + pricePrecisionString;
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
                 'price': parseInt (pricePrecisionString),
                 'amount': this.safeInteger (entry, 'amount_digits'),

@@ -202,8 +202,8 @@ class bigone(Exchange):
             symbol = base + '/' + quote
             amountPrecisionString = self.safe_string(market, 'base_scale')
             pricePrecisionString = self.safe_string(market, 'quote_scale')
-            amountLimit = None if (amountPrecisionString is None) else '1e-' + amountPrecisionString
-            priceLimit = None if (pricePrecisionString is None) else '1e-' + pricePrecisionString
+            amountLimit = self.parse_precision(amountPrecisionString)
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
                 'amount': int(amountPrecisionString),
                 'price': int(pricePrecisionString),

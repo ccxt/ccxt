@@ -21,7 +21,6 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![Binance Filecoin FIL Trading Competition](https://user-images.githubusercontent.com/1294454/114904265-59f06180-9e20-11eb-8778-0c823433d799.png)](https://www.binance.com/en/market-activity/1ec0e9582f554074bceb81ff04cdcb56)
 [![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png)](https://ccxt.pro)
 
 ## See Also
@@ -225,13 +224,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.48.25/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.48.25/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.48.37/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.48.37/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.48.25/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.48.37/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:

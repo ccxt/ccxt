@@ -108,6 +108,8 @@ class hollaex extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
+                    'taker' => 0.001,
+                    'maker' => 0.001,
                 ),
             ),
             'exceptions' => array(
@@ -193,6 +195,8 @@ class hollaex extends Exchange {
             $quote = $this->common_currency_code(strtoupper($quoteId));
             $symbol = $base . '/' . $quote;
             $active = $this->safe_value($market, 'active');
+            $maker = $this->fees['trading']['maker'];
+            $taker = $this->fees['trading']['taker'];
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -216,6 +220,8 @@ class hollaex extends Exchange {
                     ),
                     'cost' => array( 'min' => null, 'max' => null ),
                 ),
+                'taker' => $taker,
+                'maker' => $maker,
                 'info' => $market,
             );
         }
@@ -1205,7 +1211,7 @@ class hollaex extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $path = '/' . $this->version . '/' . $this->implode_params($path, $params);
-        if ($method === 'GET') {
+        if (($method === 'GET') || ($method === 'DELETE')) {
             if ($query) {
                 $path .= '?' . $this->urlencode($query);
             }

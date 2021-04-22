@@ -467,13 +467,22 @@ class bytetrade(Exchange):
         side = self.safe_string(trade, 'side')
         datetime = self.iso8601(timestamp)  # self.safe_string(trade, 'datetime')
         order = self.safe_string(trade, 'order')
-        fee = self.safe_value(trade, 'fee')
         symbol = None
         if market is None:
             marketId = self.safe_string(trade, 'symbol')
             market = self.safe_value(self.markets_by_id, marketId)
         if market is not None:
             symbol = market['symbol']
+        feeData = self.safe_value(trade, 'fee')
+        feeCost = self.safe_number(feeData, 'cost')
+        feeRate = self.safe_number(feeData, 'rate')
+        feeCode = self.safe_string(feeData, 'code')
+        feeCurrency = self.safe_currency_code(feeCode)
+        fee = {
+            'currency': feeCurrency,
+            'cost': feeCost,
+            'rate': feeRate,
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -530,7 +539,16 @@ class bytetrade(Exchange):
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
-        fee = self.safe_value(order, 'fee')
+        feeData = self.safe_value(order, 'fee')
+        feeCost = self.safe_number(feeData, 'cost')
+        feeRate = self.safe_number(feeData, 'rate')
+        feeCode = self.safe_string(feeData, 'code')
+        feeCurrency = self.safe_currency_code(feeCode)
+        fee = {
+            'currency': feeCurrency,
+            'cost': feeCost,
+            'rate': feeRate,
+        }
         return {
             'info': order,
             'id': id,
@@ -764,6 +782,8 @@ class bytetrade(Exchange):
             request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['since'] = since
         response = self.publicGetOrdersOpen(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
@@ -780,6 +800,8 @@ class bytetrade(Exchange):
             request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['since'] = since
         response = self.publicGetOrdersClosed(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
@@ -796,6 +818,8 @@ class bytetrade(Exchange):
             request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['since'] = since
         response = self.publicGetOrdersAll(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
@@ -1013,6 +1037,8 @@ class bytetrade(Exchange):
             request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['since'] = since
         response = self.publicGetOrdersTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 

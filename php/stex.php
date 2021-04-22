@@ -254,7 +254,7 @@ class stex extends Exchange {
             // differentiated fees for each particular method
             $code = $this->safe_currency_code($this->safe_string($currency, 'code'));
             $precision = $this->safe_string($currency, 'precision');
-            $amountLimit = ($precision === null) ? null : '1e-' . $precision;
+            $amountLimit = $this->parse_precision($precision);
             $fee = $this->safe_number($currency, 'withdrawal_fee_const'); // todo => redesign
             $active = $this->safe_value($currency, 'active', true);
             $result[$code] = array(

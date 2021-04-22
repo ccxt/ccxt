@@ -134,7 +134,7 @@ module.exports = class btcalpha extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const pricePrecision = this.safeString (market, 'price_precision');
-            const priceLimit = (pricePrecision === undefined) ? undefined : '1e-' + pricePrecision;
+            const priceLimit = this.parsePrecision (pricePrecision);
             const precision = {
                 'amount': 8,
                 'price': parseInt (pricePrecision),
