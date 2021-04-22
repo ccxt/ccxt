@@ -638,10 +638,7 @@ module.exports = class huobipro extends Exchange {
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
         let feeCost = this.safeNumber (trade, 'filled-fees');
-        let feeCurrency = undefined;
-        if (market !== undefined) {
-            feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-currency'));
-        }
+        let feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-currency'));
         const filledPoints = this.safeNumber (trade, 'filled-points');
         if (filledPoints !== undefined) {
             if ((feeCost === undefined) || (feeCost === 0.0)) {
