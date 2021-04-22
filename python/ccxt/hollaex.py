@@ -114,6 +114,8 @@ class hollaex(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
+                    'taker': 0.001,
+                    'maker': 0.001,
                 },
             },
             'exceptions': {
@@ -198,6 +200,8 @@ class hollaex(Exchange):
             quote = self.common_currency_code(quoteId.upper())
             symbol = base + '/' + quote
             active = self.safe_value(market, 'active')
+            maker = self.fees['trading']['maker']
+            taker = self.fees['trading']['taker']
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -221,6 +225,8 @@ class hollaex(Exchange):
                     },
                     'cost': {'min': None, 'max': None},
                 },
+                'taker': taker,
+                'maker': maker,
                 'info': market,
             })
         return result
