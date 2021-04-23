@@ -414,7 +414,7 @@ class whitebit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $timestamp = $this->parse8601($this->safe_string($result, 'lastUpdateTimestamp'));
-        return $this->parse_order_book($result, $timestamp);
+        return $this->parse_order_book($result, $symbol, $timestamp);
     }
 
     public function fetch_trades_v1($symbol, $since = null, $limit = null, $params = array ()) {

@@ -589,7 +589,7 @@ class bitz extends Exchange {
         //
         $orderbook = $this->safe_value($response, 'data');
         $timestamp = $this->parse_microtime($this->safe_string($response, 'microtime'));
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {

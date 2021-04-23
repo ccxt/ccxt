@@ -363,9 +363,10 @@ class ndax(Exchange):
             })
         return result
 
-    def parse_order_book(self, orderbook, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=6, amountKey=8):
+    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=6, amountKey=8):
         nonce = None
         result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': None,
@@ -428,7 +429,7 @@ class ndax(Exchange):
         #         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
         #     ]
         #
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def parse_ticker(self, ticker, market=None):
         #

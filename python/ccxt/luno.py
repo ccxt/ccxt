@@ -237,7 +237,7 @@ class luno(Exchange):
         }
         response = getattr(self, method)(self.extend(request, params))
         timestamp = self.safe_integer(response, 'timestamp')
-        return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'volume')
+        return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'volume')
 
     def parse_order_status(self, status):
         statuses = {

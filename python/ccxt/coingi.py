@@ -189,7 +189,7 @@ class coingi(Exchange):
             'bidCount': limit,  # maximum returned number of bids 1-512
         }
         orderbook = self.currentGetOrderBookPairAskCountBidCountDepth(self.extend(request, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'baseAmount')
+        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'baseAmount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

@@ -876,7 +876,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_trades(result, market, since, limit)
 
-    def parse_order_book(self, orderbook, timestamp=None, bidsKey='Buy', asksKey='Sell', priceKey='price', amountKey='size'):
+    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='Buy', asksKey='Sell', priceKey='price', amountKey='size'):
         bids = []
         asks = []
         for i in range(0, len(orderbook)):
@@ -889,6 +889,7 @@ class bybit(Exchange):
             else:
                 raise ExchangeError(self.id + ' parseOrderBook encountered an unrecognized bidask format: ' + self.json(bidask))
         return {
+            'symbol': symbol,
             'bids': self.sort_by(bids, 0, True),
             'asks': self.sort_by(asks, 0),
             'timestamp': timestamp,
@@ -922,7 +923,7 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result', [])
         timestamp = self.safe_timestamp(response, 'time_now')
-        return self.parse_order_book(result, timestamp, 'Buy', 'Sell', 'price', 'size')
+        return self.parse_order_book(result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size')
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

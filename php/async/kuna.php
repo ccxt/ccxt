@@ -193,7 +193,7 @@ class kuna extends Exchange {
         }
         $orderbook = yield $this->publicGetDepth (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function parse_ticker($ticker, $market = null) {

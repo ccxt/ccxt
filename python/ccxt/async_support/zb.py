@@ -405,7 +405,7 @@ class zb(Exchange):
         if limit is not None:
             request['size'] = limit
         response = await self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

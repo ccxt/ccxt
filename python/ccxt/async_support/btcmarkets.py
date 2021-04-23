@@ -432,7 +432,7 @@ class btcmarkets(Exchange):
         #     }
         #
         timestamp = self.safe_integer_product(response, 'snapshotId', 0.001)
-        orderbook = self.parse_order_book(response, timestamp)
+        orderbook = self.parse_order_book(response, symbol, timestamp)
         orderbook['nonce'] = self.safe_integer(response, 'snapshotId')
         return orderbook
 

@@ -399,7 +399,7 @@ class cex(Exchange):
             request['depth'] = limit
         response = self.publicGetOrderBookPair(self.extend(request, params))
         timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

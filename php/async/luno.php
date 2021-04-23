@@ -248,7 +248,7 @@ class luno extends Exchange {
         );
         $response = yield $this->$method (array_merge($request, $params));
         $timestamp = $this->safe_integer($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp, 'bids', 'asks', 'price', 'volume');
+        return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
     public function parse_order_status($status) {

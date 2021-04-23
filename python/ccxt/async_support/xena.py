@@ -507,7 +507,7 @@ class xena(Exchange):
         mdEntriesByType = self.group_by(mdEntry, 'mdEntryType')
         lastUpdateTime = self.safe_integer(response, 'lastUpdateTime')
         timestamp = int(lastUpdateTime / 1000000)
-        return self.parse_order_book(mdEntriesByType, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
+        return self.parse_order_book(mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
 
     async def fetch_accounts(self, params={}):
         response = await self.privateGetTradingAccounts(params)

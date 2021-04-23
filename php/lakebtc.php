@@ -126,7 +126,7 @@ class lakebtc extends Exchange {
             'symbol' => $this->market_id($symbol),
         );
         $response = $this->publicGetBcorderbook (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function parse_ticker($ticker, $market = null) {

@@ -480,6 +480,7 @@ class idex(Exchange):
         response = await self.publicGetOrderbook(self.extend(request, params))
         nonce = self.safe_integer(response, 'sequence')
         return {
+            'symbol': symbol,
             'timestamp': None,
             'datetime': None,
             'nonce': nonce,

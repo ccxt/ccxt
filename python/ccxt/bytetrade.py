@@ -308,7 +308,7 @@ class bytetrade(Exchange):
             request['limit'] = limit  # default = maximum = 100
         response = self.marketGetDepth(self.extend(request, params))
         timestamp = self.safe_value(response, 'timestamp')
-        orderbook = self.parse_order_book(response, timestamp)
+        orderbook = self.parse_order_book(response, symbol, timestamp)
         return orderbook
 
     def parse_ticker(self, ticker, market=None):

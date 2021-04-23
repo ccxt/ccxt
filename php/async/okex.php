@@ -1058,7 +1058,7 @@ class okex extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string_2($response, 'timestamp', 'time'));
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_ticker($ticker, $market = null) {

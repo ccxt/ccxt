@@ -493,6 +493,7 @@ class idex extends Exchange {
         $response = $this->publicGetOrderbook (array_merge($request, $params));
         $nonce = $this->safe_integer($response, 'sequence');
         return array(
+            'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
             'nonce' => $nonce,

@@ -668,7 +668,7 @@ class bitpanda extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($response, 'time'));
-        return $this->parse_order_book($response, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

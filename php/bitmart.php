@@ -939,9 +939,9 @@ class bitmart extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         if ($market['spot']) {
-            return $this->parse_order_book($data, null, 'buys', 'sells', 'price', 'amount');
+            return $this->parse_order_book($data, $symbol, null, 'buys', 'sells', 'price', 'amount');
         } else if ($market['swap'] || $market['future']) {
-            return $this->parse_order_book($data, null, 'buys', 'sells', 'price', 'vol');
+            return $this->parse_order_book($data, $symbol, null, 'buys', 'sells', 'price', 'vol');
         }
     }
 

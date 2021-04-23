@@ -333,7 +333,7 @@ class gopax(Exchange):
         #     }
         #
         nonce = self.safe_integer(response, 'sequence')
-        result = self.parse_order_book(response, None, 'bid', 'ask', 1, 2)
+        result = self.parse_order_book(response, symbol, None, 'bid', 'ask', 1, 2)
         result['nonce'] = nonce
         return result
 

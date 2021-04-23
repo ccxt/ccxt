@@ -318,7 +318,7 @@ class bytetrade extends Exchange {
         }
         $response = $this->marketGetDepth (array_merge($request, $params));
         $timestamp = $this->safe_value($response, 'timestamp');
-        $orderbook = $this->parse_order_book($response, $timestamp);
+        $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
         return $orderbook;
     }
 

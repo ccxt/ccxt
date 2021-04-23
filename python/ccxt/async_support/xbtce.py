@@ -169,7 +169,7 @@ class xbtce(Exchange):
         response = await self.privateGetLevel2Filter(self.extend(request, params))
         orderbook = response[0]
         timestamp = self.safe_integer(orderbook, 'Timestamp')
-        return self.parse_order_book(orderbook, timestamp, 'Bids', 'Asks', 'Price', 'Volume')
+        return self.parse_order_book(orderbook, symbol, timestamp, 'Bids', 'Asks', 'Price', 'Volume')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = 0

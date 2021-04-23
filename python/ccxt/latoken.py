@@ -304,7 +304,7 @@ class latoken(Exchange):
         #         ]
         #     }
         #
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'quantity')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'quantity')
 
     def parse_ticker(self, ticker, market=None):
         #

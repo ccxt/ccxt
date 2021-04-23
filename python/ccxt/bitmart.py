@@ -935,9 +935,9 @@ class bitmart(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         if market['spot']:
-            return self.parse_order_book(data, None, 'buys', 'sells', 'price', 'amount')
+            return self.parse_order_book(data, symbol, None, 'buys', 'sells', 'price', 'amount')
         elif market['swap'] or market['future']:
-            return self.parse_order_book(data, None, 'buys', 'sells', 'price', 'vol')
+            return self.parse_order_book(data, symbol, None, 'buys', 'sells', 'price', 'vol')
 
     def parse_trade(self, trade, market=None):
         #

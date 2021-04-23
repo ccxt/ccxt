@@ -1064,7 +1064,7 @@ class okex(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string_2(response, 'timestamp', 'time'))
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         #

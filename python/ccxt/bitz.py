@@ -581,7 +581,7 @@ class bitz(Exchange):
         #
         orderbook = self.safe_value(response, 'data')
         timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         #

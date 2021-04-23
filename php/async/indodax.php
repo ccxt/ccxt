@@ -233,7 +233,7 @@ class indodax extends Exchange {
             'pair' => $this->market_id($symbol),
         );
         $orderbook = yield $this->publicGetPairDepth (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, null, 'buy', 'sell');
+        return $this->parse_order_book($orderbook, $symbol, null, 'buy', 'sell');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

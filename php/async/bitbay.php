@@ -438,7 +438,7 @@ class bitbay extends Exchange {
             'id' => $this->market_id($symbol),
         );
         $orderbook = yield $this->publicGetIdOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

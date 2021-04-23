@@ -148,7 +148,7 @@ class flowbtc extends Exchange {
             'productPair' => $market['id'],
         );
         $response = yield $this->publicPostGetOrderBook (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'px', 'qty');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'px', 'qty');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

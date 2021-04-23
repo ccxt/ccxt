@@ -230,7 +230,7 @@ class indodax(Exchange):
             'pair': self.market_id(symbol),
         }
         orderbook = self.publicGetPairDepth(self.extend(request, params))
-        return self.parse_order_book(orderbook, None, 'buy', 'sell')
+        return self.parse_order_book(orderbook, symbol, None, 'buy', 'sell')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
