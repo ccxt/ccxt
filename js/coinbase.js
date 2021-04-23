@@ -711,26 +711,28 @@ module.exports = class coinbase extends Exchange {
         const result = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
             const balance = balances[b];
-            if (this.inArray (balance['type'], accounts)) {
-                const currencyId = this.safeString (balance['balance'], 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                const total = this.safeNumber (balance['balance'], 'amount');
-                const free = total;
-                const used = undefined;
-                if (code in result) {
-                    result[code]['free'] = this.sum (result[code]['free'], total);
-                    result[code]['total'] = this.sum (result[code]['total'], total);
-                } else {
-                    const account = {
-                        'free': free,
-                        'used': used,
-                        'total': total,
-                    };
+            const type = this.safeString (balance, 'type');
+            if (this.inArray (type, accounts)) {
+                const value = this.safeValue (balance, 'balance');
+                if (value !== undefined) {
+                    const currencyId = this.safeString (value, 'currency');
+                    const code = this.safeCurrencyCode (currencyId);
+                    const total = this.safeString (value, 'amount');
+                    const free = total;
+                    let account = this.safeValue (result, code);
+                    if (account === undefined) {
+                        account = this.account ();
+                        account['free'] = free;
+                        account['total'] = total;
+                    } else {
+                        account['free'] = Precise.stringAdd (account['free'], total);
+                        account['total'] = Precise.stringAdd (account['total'], total);
+                    }
                     result[code] = account;
                 }
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
