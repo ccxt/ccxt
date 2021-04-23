@@ -91,7 +91,7 @@ class hitbtc(Exchange, ccxt.hitbtc):
         nonce = self.safe_integer(params, 'sequence')
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
-        snapshot = self.parse_order_book(params, timestamp, 'bid', 'ask', 'price', 'size')
+        snapshot = self.parse_order_book(params, symbol, timestamp, 'bid', 'ask', 'price', 'size')
         orderbook = self.order_book(snapshot)
         orderbook['nonce'] = nonce
         self.orderbooks[symbol] = orderbook

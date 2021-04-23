@@ -365,7 +365,7 @@ class phemex extends \ccxt\async\phemex {
         $timestamp = $this->safe_integer_product($message, 'timestamp', 0.000001);
         if ($type === 'snapshot') {
             $book = $this->safe_value($message, 'book', array());
-            $snapshot = $this->parse_order_book($book, $timestamp, 'bids', 'asks', 0, 1, $market);
+            $snapshot = $this->parse_order_book($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
             $snapshot['nonce'] = $nonce;
             $orderbook = $this->order_book($snapshot, $depth);
             $this->orderbooks[$symbol] = $orderbook;

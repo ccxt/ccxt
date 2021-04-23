@@ -329,7 +329,7 @@ class bitvavo(Exchange, ccxt.bitvavo):
         name = 'book'
         messageHash = name + '@' + marketId
         orderbook = self.orderbooks[symbol]
-        snapshot = self.parse_order_book(response)
+        snapshot = self.parse_order_book(response, symbol)
         snapshot['nonce'] = self.safe_integer(response, 'nonce')
         orderbook.reset(snapshot)
         # unroll the accumulated deltas

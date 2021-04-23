@@ -403,8 +403,8 @@ class ndax(Exchange, ccxt.ndax):
         #         ],
         #     ]
         #
-        snapshot = self.parse_order_book(payload)
         symbol = self.safe_string(subscription, 'symbol')
+        snapshot = self.parse_order_book(payload, symbol)
         limit = self.safe_integer(subscription, 'limit')
         orderbook = self.order_book(snapshot, limit)
         self.orderbooks[symbol] = orderbook

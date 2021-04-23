@@ -431,8 +431,8 @@ class ndax extends \ccxt\async\ndax {
         //         ),
         //     )
         //
-        $snapshot = $this->parse_order_book($payload);
         $symbol = $this->safe_string($subscription, 'symbol');
+        $snapshot = $this->parse_order_book($payload, $symbol);
         $limit = $this->safe_integer($subscription, 'limit');
         $orderbook = $this->order_book($snapshot, $limit);
         $this->orderbooks[$symbol] = $orderbook;

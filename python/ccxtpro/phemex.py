@@ -342,7 +342,7 @@ class phemex(Exchange, ccxt.phemex):
         timestamp = self.safe_integer_product(message, 'timestamp', 0.000001)
         if type == 'snapshot':
             book = self.safe_value(message, 'book', {})
-            snapshot = self.parse_order_book(book, timestamp, 'bids', 'asks', 0, 1, market)
+            snapshot = self.parse_order_book(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
             snapshot['nonce'] = nonce
             orderbook = self.order_book(snapshot, depth)
             self.orderbooks[symbol] = orderbook

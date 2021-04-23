@@ -97,7 +97,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
-        $snapshot = $this->parse_order_book($params, $timestamp, 'bid', 'ask', 'price', 'size');
+        $snapshot = $this->parse_order_book($params, $symbol, $timestamp, 'bid', 'ask', 'price', 'size');
         $orderbook = $this->order_book($snapshot);
         $orderbook['nonce'] = $nonce;
         $this->orderbooks[$symbol] = $orderbook;

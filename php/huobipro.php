@@ -296,7 +296,7 @@ class huobipro extends \ccxt\async\huobipro {
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $orderbook = $this->orderbooks[$symbol];
         $data = $this->safe_value($message, 'data');
-        $snapshot = $this->parse_order_book($data);
+        $snapshot = $this->parse_order_book($data, $symbol);
         $snapshot['nonce'] = $this->safe_integer($data, 'seqNum');
         $orderbook->reset ($snapshot);
         // unroll the accumulated deltas

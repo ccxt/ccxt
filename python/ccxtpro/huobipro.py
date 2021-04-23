@@ -280,7 +280,7 @@ class huobipro(Exchange, ccxt.huobipro):
         messageHash = self.safe_string(subscription, 'messageHash')
         orderbook = self.orderbooks[symbol]
         data = self.safe_value(message, 'data')
-        snapshot = self.parse_order_book(data)
+        snapshot = self.parse_order_book(data, symbol)
         snapshot['nonce'] = self.safe_integer(data, 'seqNum')
         orderbook.reset(snapshot)
         # unroll the accumulated deltas

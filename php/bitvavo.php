@@ -357,7 +357,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $name = 'book';
         $messageHash = $name . '@' . $marketId;
         $orderbook = $this->orderbooks[$symbol];
-        $snapshot = $this->parse_order_book($response);
+        $snapshot = $this->parse_order_book($response, $symbol);
         $snapshot['nonce'] = $this->safe_integer($response, 'nonce');
         $orderbook->reset ($snapshot);
         // unroll the accumulated deltas

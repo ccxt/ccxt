@@ -226,7 +226,7 @@ class ftx(Exchange, ccxt.ftx):
             orderbook = self.order_book({}, limit)
             self.orderbooks[symbol] = orderbook
             timestamp = self.safe_timestamp(data, 'time')
-            snapshot = self.parse_order_book(data, timestamp)
+            snapshot = self.parse_order_book(data, symbol, timestamp)
             orderbook.reset(snapshot)
             # checksum = self.safe_string(data, 'checksum')
             # todo: self.checkOrderBookChecksum(client, orderbook, checksum)

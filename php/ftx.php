@@ -246,7 +246,7 @@ class ftx extends \ccxt\async\ftx {
             $orderbook = $this->order_book(array(), $limit);
             $this->orderbooks[$symbol] = $orderbook;
             $timestamp = $this->safe_timestamp($data, 'time');
-            $snapshot = $this->parse_order_book($data, $timestamp);
+            $snapshot = $this->parse_order_book($data, $symbol, $timestamp);
             $orderbook->reset ($snapshot);
             // $checksum = $this->safe_string($data, 'checksum');
             // todo => $this->checkOrderBookChecksum ($client, $orderbook, $checksum);
