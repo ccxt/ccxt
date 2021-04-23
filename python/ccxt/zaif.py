@@ -201,24 +201,22 @@ class zaif(Exchange):
         self.load_markets()
         response = self.privatePostGetInfo(params)
         balances = self.safe_value(response, 'return', {})
+        deposit = self.safe_value(balances, 'deposit')
         result = {'info': response}
         funds = self.safe_value(balances, 'funds', {})
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
-            balance = self.safe_value(funds, currencyId)
-            account = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            }
-            if 'deposit' in balances:
-                if currencyId in balances['deposit']:
-                    account['total'] = self.safe_number(balances['deposit'], currencyId)
-                    account['used'] = account['total'] - account['free']
+            balance = self.safe_string(funds, currencyId)
+            account = self.account()
+            account['free'] = balance
+            account['total'] = balance
+            if deposit is not None:
+                if currencyId in deposit:
+                    account['total'] = self.safe_string(deposit, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

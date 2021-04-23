@@ -179,23 +179,26 @@ class buda(Exchange):
             baseInfo = await self.fetch_currency_info(baseId, currencies)
             quoteInfo = await self.fetch_currency_info(quoteId, currencies)
             symbol = base + '/' + quote
+            pricePrecisionString = self.safe_string(quoteInfo, 'input_decimals')
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
-                'amount': baseInfo['input_decimals'],
-                'price': quoteInfo['input_decimals'],
+                'amount': self.safe_integer(baseInfo, 'input_decimals'),
+                'price': int(pricePrecisionString),
             }
+            minimumOrderAmount = self.safe_value(market, 'minimum_order_amount', [])
             limits = {
                 'amount': {
-                    'min': float(market['minimum_order_amount'][0]),
+                    'min': self.safe_number(minimumOrderAmount, 0),
                     'max': None,
                 },
                 'price': {
-                    'min': math.pow(10, -precision['price']),
+                    'min': priceLimit,
                     'max': None,
                 },
-            }
-            limits['cost'] = {
-                'min': limits['amount']['min'] * limits['price']['min'],
-                'max': None,
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
             }
             result.append({
                 'id': id,

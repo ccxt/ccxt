@@ -303,6 +303,12 @@ class hbtc extends Exchange {
             $spot = false;
             $option = true;
         }
+        $margin = $this->safe_value($market, 'allowMargin', null);
+        $isAggregate = $this->safe_value($market, 'isAggregate', null);
+        $active = true;
+        if ($isAggregate === true) {
+            $active = false;
+        }
         $amountMin = null;
         $amountMax = null;
         $priceMin = null;
@@ -351,11 +357,12 @@ class hbtc extends Exchange {
             'quote' => $quote,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'active' => true,
+            'active' => $active,
             'type' => $type,
             'spot' => $spot,
             'future' => $future,
             'option' => $option,
+            'margin' => $margin,
             'inverse' => $inverse,
             'precision' => $precision,
             'limits' => $limits,
@@ -375,18 +382,22 @@ class hbtc extends Exchange {
         //                 "filters":array(
         //                     array("minPrice":"0.01","maxPrice":"100000.00000000","tickSize":"0.01","filterType":"PRICE_FILTER"),
         //                     array("minQty":"0.0005","maxQty":"100000.00000000","stepSize":"0.000001","filterType":"LOT_SIZE"),
-        //                     array("minNotional":"5","filterType":"MIN_NOTIONAL")
+        //                     array("minNotional":"0.01","filterType":"MIN_NOTIONAL")
         //                 ),
         //                 "exchangeId":"301",
         //                 "symbol":"BTCUSDT",
         //                 "symbolName":"BTCUSDT",
         //                 "status":"TRADING",
         //                 "baseAsset":"BTC",
+        //                 "baseAssetName":"BTC",
         //                 "baseAssetPrecision":"0.000001",
         //                 "quoteAsset":"USDT",
+        //                 "quoteAssetName":"USDT",
         //                 "quotePrecision":"0.01",
-        //                 "icebergAllowed":false
-        //             ),
+        //                 "icebergAllowed":false,
+        //                 "isAggregate":false,
+        //                 "allowMargin":true
+        //            ),
         //         ),
         //         "$options":array(
         //             array(
@@ -400,10 +411,14 @@ class hbtc extends Exchange {
         //                 "symbolName":"BTC0501CS8500",
         //                 "status":"TRADING",
         //                 "baseAsset":"BTC0501CS8500",
+        //                 "baseAssetName":"BTC0306CS3800",
         //                 "baseAssetPrecision":"0.001",
         //                 "quoteAsset":"BUSDT",
+        //                 "quoteAssetName":"BUSDT",
         //                 "quotePrecision":"0.01",
         //                 "icebergAllowed":false
+        //                 "isAggregate":false,
+        //                 "allowMargin":false
         //             ),
         //         ),
         //         "$contracts":array(

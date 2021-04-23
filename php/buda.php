@@ -180,23 +180,26 @@ class buda extends Exchange {
             $baseInfo = $this->fetch_currency_info($baseId, $currencies);
             $quoteInfo = $this->fetch_currency_info($quoteId, $currencies);
             $symbol = $base . '/' . $quote;
+            $pricePrecisionString = $this->safe_string($quoteInfo, 'input_decimals');
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
-                'amount' => $baseInfo['input_decimals'],
-                'price' => $quoteInfo['input_decimals'],
+                'amount' => $this->safe_integer($baseInfo, 'input_decimals'),
+                'price' => intval($pricePrecisionString),
             );
+            $minimumOrderAmount = $this->safe_value($market, 'minimum_order_amount', array());
             $limits = array(
                 'amount' => array(
-                    'min' => floatval($market['minimum_order_amount'][0]),
+                    'min' => $this->safe_number($minimumOrderAmount, 0),
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision['price']),
+                    'min' => $priceLimit,
                     'max' => null,
                 ),
-            );
-            $limits['cost'] = array(
-                'min' => $limits['amount']['min'] * $limits['price']['min'],
-                'max' => null,
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
             );
             $result[] = array(
                 'id' => $id,

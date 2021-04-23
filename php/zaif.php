@@ -201,27 +201,25 @@ class zaif extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetInfo ($params);
         $balances = $this->safe_value($response, 'return', array());
+        $deposit = $this->safe_value($balances, 'deposit');
         $result = array( 'info' => $response );
         $funds = $this->safe_value($balances, 'funds', array());
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $balance = $this->safe_value($funds, $currencyId);
-            $account = array(
-                'free' => $balance,
-                'used' => 0.0,
-                'total' => $balance,
-            );
-            if (is_array($balances) && array_key_exists('deposit', $balances)) {
-                if (is_array($balances['deposit']) && array_key_exists($currencyId, $balances['deposit'])) {
-                    $account['total'] = $this->safe_number($balances['deposit'], $currencyId);
-                    $account['used'] = $account['total'] - $account['free'];
+            $balance = $this->safe_string($funds, $currencyId);
+            $account = $this->account();
+            $account['free'] = $balance;
+            $account['total'] = $balance;
+            if ($deposit !== null) {
+                if (is_array($deposit) && array_key_exists($currencyId, $deposit)) {
+                    $account['total'] = $this->safe_string($deposit, $currencyId);
                 }
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

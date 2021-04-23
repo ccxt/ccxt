@@ -176,23 +176,26 @@ module.exports = class buda extends Exchange {
             const baseInfo = await this.fetchCurrencyInfo (baseId, currencies);
             const quoteInfo = await this.fetchCurrencyInfo (quoteId, currencies);
             const symbol = base + '/' + quote;
+            const pricePrecisionString = this.safeString (quoteInfo, 'input_decimals');
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
-                'amount': baseInfo['input_decimals'],
-                'price': quoteInfo['input_decimals'],
+                'amount': this.safeInteger (baseInfo, 'input_decimals'),
+                'price': parseInt (pricePrecisionString),
             };
+            const minimumOrderAmount = this.safeValue (market, 'minimum_order_amount', []);
             const limits = {
                 'amount': {
-                    'min': parseFloat (market['minimum_order_amount'][0]),
+                    'min': this.safeNumber (minimumOrderAmount, 0),
                     'max': undefined,
                 },
                 'price': {
-                    'min': Math.pow (10, -precision['price']),
+                    'min': priceLimit,
                     'max': undefined,
                 },
-            };
-            limits['cost'] = {
-                'min': limits['amount']['min'] * limits['price']['min'],
-                'max': undefined,
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
             };
             result.push ({
                 'id': id,
