@@ -72,12 +72,7 @@ class OrderBook {
         this.nonce = snapshot.nonce
         this.timestamp = snapshot.timestamp
         this.datetime = iso8601 (this.timestamp)
-        return this.reset (
-            snapshot.nonce,
-            snapshot.timestamp,
-            snapshot.asks,
-            snapshot.bids
-        )
+        return this.reset (snapshot)
     }
 
     reset (snapshot = {}) {
