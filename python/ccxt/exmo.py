@@ -782,7 +782,7 @@ class exmo(Exchange):
             request['limit'] = limit
         response = self.publicGetOrderBook(self.extend(request, params))
         result = self.safe_value(response, market['id'])
-        return self.parse_order_book(result, None, 'bid', 'ask')
+        return self.parse_order_book(result, symbol, None, 'bid', 'ask')
 
     def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()

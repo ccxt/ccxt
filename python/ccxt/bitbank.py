@@ -239,7 +239,7 @@ class bitbank(Exchange):
         response = self.publicGetPairDepth(self.extend(request, params))
         orderbook = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'executed_at')

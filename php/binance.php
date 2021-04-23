@@ -1302,7 +1302,7 @@ class binance extends Exchange {
         //         ]
         //     }
         $timestamp = $this->safe_integer($response, 'T');
-        $orderbook = $this->parse_order_book($response, $timestamp);
+        $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
         $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
         return $orderbook;
     }

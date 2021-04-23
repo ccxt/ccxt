@@ -729,7 +729,7 @@ class bitfinex(Exchange):
             request['limit_bids'] = limit
             request['limit_asks'] = limit
         response = self.publicGetBookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

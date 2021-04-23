@@ -1000,7 +1000,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data', response)
         timestamp = self.safe_integer_2(data, 'timestamp', 'ts')
         nonce = self.safe_integer(data, 'id')
-        orderbook = self.parse_order_book(data, timestamp)
+        orderbook = self.parse_order_book(data, symbol, timestamp)
         orderbook['nonce'] = nonce
         return orderbook
 

@@ -605,7 +605,7 @@ class ascendex(Exchange):
         data = self.safe_value(response, 'data', {})
         orderbook = self.safe_value(data, 'data', {})
         timestamp = self.safe_integer(orderbook, 'ts')
-        result = self.parse_order_book(orderbook, timestamp)
+        result = self.parse_order_book(orderbook, symbol, timestamp)
         result['nonce'] = self.safe_integer(orderbook, 'seqnum')
         return result
 

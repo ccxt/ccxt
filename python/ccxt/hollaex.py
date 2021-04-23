@@ -310,7 +310,7 @@ class hollaex(Exchange):
         #
         orderbook = self.safe_value(response, marketId)
         timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

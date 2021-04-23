@@ -360,7 +360,7 @@ class timex(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(response, 'timestamp'))
-        return self.parse_order_book(response, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount')
+        return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount')
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

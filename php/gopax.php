@@ -332,7 +332,7 @@ class gopax extends Exchange {
         //     }
         //
         $nonce = $this->safe_integer($response, 'sequence');
-        $result = $this->parse_order_book($response, null, 'bid', 'ask', 1, 2);
+        $result = $this->parse_order_book($response, $symbol, null, 'bid', 'ask', 1, 2);
         $result['nonce'] = $nonce;
         return $result;
     }

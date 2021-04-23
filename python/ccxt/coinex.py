@@ -288,7 +288,7 @@ class coinex(Exchange):
             'limit': str(limit),
         }
         response = self.publicGetMarketDepth(self.extend(request, params))
-        return self.parse_order_book(response['data'])
+        return self.parse_order_book(response['data'], symbol)
 
     def parse_trade(self, trade, market=None):
         # self method parses both public and private trades

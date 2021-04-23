@@ -476,7 +476,7 @@ class stex extends Exchange {
         //     }
         //
         $orderbook = $this->safe_value($response, 'data', array());
-        return $this->parse_order_book($orderbook, null, 'bid', 'ask', 'price', 'amount');
+        return $this->parse_order_book($orderbook, $symbol, null, 'bid', 'ask', 'price', 'amount');
     }
 
     public function parse_ticker($ticker, $market = null) {

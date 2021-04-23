@@ -351,7 +351,7 @@ class yobit(Exchange):
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, symbol)
 
     def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()

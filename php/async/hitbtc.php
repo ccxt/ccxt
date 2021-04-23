@@ -511,7 +511,7 @@ class hitbtc extends Exchange {
             $request['limit'] = $limit; // default = 100, 0 = unlimited
         }
         $response = yield $this->publicGetOrderbookSymbol (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bid', 'ask', 'price', 'size');
+        return $this->parse_order_book($response, $symbol, null, 'bid', 'ask', 'price', 'size');
     }
 
     public function parse_ticker($ticker, $market = null) {

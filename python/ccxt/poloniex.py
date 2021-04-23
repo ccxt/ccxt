@@ -360,7 +360,7 @@ class poloniex(Exchange):
         if limit is not None:
             request['depth'] = limit  # 100
         response = self.publicGetReturnOrderBook(self.extend(request, params))
-        orderbook = self.parse_order_book(response)
+        orderbook = self.parse_order_book(response, symbol)
         orderbook['nonce'] = self.safe_integer(response, 'seq')
         return orderbook
 
@@ -384,7 +384,7 @@ class poloniex(Exchange):
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
-            orderbook = self.parse_order_book(response[marketId])
+            orderbook = self.parse_order_book(response[marketId], symbol)
             orderbook['nonce'] = self.safe_integer(response[marketId], 'seq')
             result[symbol] = orderbook
         return result

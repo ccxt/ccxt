@@ -373,7 +373,7 @@ class qtrade extends Exchange {
             $orderbook[$side] = $result;
         }
         $timestamp = $this->safe_integer_product($data, 'last_change', 0.001);
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function parse_ticker($ticker, $market = null) {

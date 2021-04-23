@@ -146,7 +146,7 @@ class coinspot(Exchange):
             'cointype': market['id'],
         }
         orderbook = await self.privatePostOrders(self.extend(request, params))
-        return self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'rate', 'amount')
+        return self.parse_order_book(orderbook, symbol, None, 'buyorders', 'sellorders', 'rate', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

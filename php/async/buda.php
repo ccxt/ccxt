@@ -426,7 +426,7 @@ class buda extends Exchange {
         );
         $response = yield $this->publicGetMarketsMarketOrderBook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'order_book');
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

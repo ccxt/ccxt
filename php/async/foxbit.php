@@ -113,7 +113,7 @@ class foxbit extends Exchange {
             'crypto_currency' => $market['base'],
         );
         $response = yield $this->publicGetCurrencyOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

@@ -129,7 +129,7 @@ class southxchange(Exchange):
             'symbol': self.market_id(symbol),
         }
         response = self.publicGetBookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
+        return self.parse_order_book(response, symbol, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

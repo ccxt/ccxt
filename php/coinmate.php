@@ -278,7 +278,7 @@ class coinmate extends Exchange {
         $response = $this->publicGetOrderBook (array_merge($request, $params));
         $orderbook = $response['data'];
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

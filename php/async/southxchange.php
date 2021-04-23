@@ -133,7 +133,7 @@ class southxchange extends Exchange {
             'symbol' => $this->market_id($symbol),
         );
         $response = yield $this->publicGetBookSymbol (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
+        return $this->parse_order_book($response, $symbol, null, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
     }
 
     public function parse_ticker($ticker, $market = null) {

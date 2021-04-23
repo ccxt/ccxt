@@ -570,7 +570,7 @@ class lykke extends Exchange {
             $sideTimestamp = $this->parse8601($side['Timestamp']);
             $timestamp = ($timestamp === null) ? $sideTimestamp : max ($timestamp, $sideTimestamp);
         }
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'Price', 'Volume');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'Price', 'Volume');
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {

@@ -239,7 +239,7 @@ class therock extends Exchange {
         );
         $orderbook = yield $this->publicGetFundsIdOrderbook (array_merge($request, $params));
         $timestamp = $this->parse8601($this->safe_string($orderbook, 'date'));
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_ticker($ticker, $market = null) {

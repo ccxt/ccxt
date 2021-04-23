@@ -538,7 +538,7 @@ class lykke(Exchange):
                 orderbook['asks'] = self.array_concat(orderbook['asks'], side['Prices'])
             sideTimestamp = self.parse8601(side['Timestamp'])
             timestamp = sideTimestamp if (timestamp is None) else max(timestamp, sideTimestamp)
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume')
+        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'Price', 'Volume')
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
         price = self.safe_number(bidask, priceKey)

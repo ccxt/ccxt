@@ -203,7 +203,7 @@ class coincheck(Exchange):
             'pair': market['id'],
         }
         response = await self.publicGetOrderBooks(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     async def fetch_ticker(self, symbol, params={}):
         if symbol != 'BTC/JPY':

@@ -591,7 +591,7 @@ class delta(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return self.parse_order_book(result, None, 'buy', 'sell', 'price', 'size')
+        return self.parse_order_book(result, symbol, None, 'buy', 'sell', 'price', 'size')
 
     def parse_trade(self, trade, market=None):
         #

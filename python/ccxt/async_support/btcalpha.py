@@ -180,7 +180,7 @@ class btcalpha(Exchange):
             request['limit_sell'] = limit
             request['limit_buy'] = limit
         response = await self.publicGetOrderbookPairName(self.extend(request, params))
-        return self.parse_order_book(response, None, 'buy', 'sell', 'price', 'amount')
+        return self.parse_order_book(response, symbol, None, 'buy', 'sell', 'price', 'amount')
 
     def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):
         result = []

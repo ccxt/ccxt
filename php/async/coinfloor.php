@@ -128,7 +128,7 @@ class coinfloor extends Exchange {
             'id' => $this->market_id($symbol),
         );
         $response = yield $this->publicGetIdOrderBook (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function parse_ticker($ticker, $market = null) {

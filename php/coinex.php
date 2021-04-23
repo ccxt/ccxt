@@ -293,7 +293,7 @@ class coinex extends Exchange {
             'limit' => (string) $limit,
         );
         $response = $this->publicGetMarketDepth (array_merge($request, $params));
-        return $this->parse_order_book($response['data']);
+        return $this->parse_order_book($response['data'], $symbol);
     }
 
     public function parse_trade($trade, $market = null) {

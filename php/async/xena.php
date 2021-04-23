@@ -521,7 +521,7 @@ class xena extends Exchange {
         $mdEntriesByType = $this->group_by($mdEntry, 'mdEntryType');
         $lastUpdateTime = $this->safe_integer($response, 'lastUpdateTime');
         $timestamp = intval($lastUpdateTime / 1000000);
-        return $this->parse_order_book($mdEntriesByType, $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
+        return $this->parse_order_book($mdEntriesByType, $symbol, $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 
     public function fetch_accounts($params = array ()) {

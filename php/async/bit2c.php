@@ -173,7 +173,7 @@ class bit2c extends Exchange {
             'pair' => $this->market_id($symbol),
         );
         $orderbook = yield $this->publicGetExchangesPairOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

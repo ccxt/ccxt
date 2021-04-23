@@ -247,7 +247,7 @@ class bleutrade extends Exchange {
         if (!$orderbook) {
             throw new ExchangeError($this->id . ' no $orderbook data in ' . $this->json($response));
         }
-        return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
+        return $this->parse_order_book($orderbook, $symbol, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

@@ -306,7 +306,7 @@ class oceanex(Exchange):
         #
         orderbook = self.safe_value(response, 'data', {})
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()
@@ -349,7 +349,7 @@ class oceanex(Exchange):
             marketId = self.safe_string(orderbook, 'market')
             symbol = self.safe_symbol(marketId)
             timestamp = self.safe_timestamp(orderbook, 'timestamp')
-            result[symbol] = self.parse_order_book(orderbook, timestamp)
+            result[symbol] = self.parse_order_book(orderbook, symbol, timestamp)
         return result
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

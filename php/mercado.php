@@ -189,7 +189,7 @@ class mercado extends Exchange {
             'coin' => $market['base'],
         );
         $response = $this->publicGetCoinOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

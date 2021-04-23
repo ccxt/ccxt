@@ -1285,7 +1285,7 @@ class binance(Exchange):
         #         ]
         #     }
         timestamp = self.safe_integer(response, 'T')
-        orderbook = self.parse_order_book(response, timestamp)
+        orderbook = self.parse_order_book(response, symbol, timestamp)
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 

@@ -294,7 +294,7 @@ class rightbtc extends Exchange {
                 );
             }
         }
-        return $this->parse_order_book($bidsasks, null, 'bid', 'ask');
+        return $this->parse_order_book($bidsasks, $symbol, null, 'bid', 'ask');
     }
 
     public function parse_trade($trade, $market = null) {

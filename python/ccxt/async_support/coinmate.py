@@ -276,7 +276,7 @@ class coinmate(Exchange):
         response = await self.publicGetOrderBook(self.extend(request, params))
         orderbook = response['data']
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

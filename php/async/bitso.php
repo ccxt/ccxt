@@ -252,7 +252,7 @@ class bitso extends Exchange {
         $response = yield $this->publicGetOrderBook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'payload');
         $timestamp = $this->parse8601($this->safe_string($orderbook, 'updated_at'));
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

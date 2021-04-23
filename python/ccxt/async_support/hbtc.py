@@ -553,7 +553,7 @@ class hbtc(Exchange):
         #     }
         #
         timestamp = self.safe_integer(response, 'time')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

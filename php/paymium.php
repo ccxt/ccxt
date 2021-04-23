@@ -112,7 +112,7 @@ class paymium extends Exchange {
             'currency' => $this->market_id($symbol),
         );
         $response = $this->publicGetDataCurrencyDepth (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

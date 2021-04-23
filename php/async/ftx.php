@@ -570,7 +570,7 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_order_book($result);
+        return $this->parse_order_book($result, $symbol);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

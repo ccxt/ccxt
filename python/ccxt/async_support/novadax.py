@@ -379,7 +379,7 @@ class novadax(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(data, 'timestamp')
-        return self.parse_order_book(data, timestamp, 'bids', 'asks')
+        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
 
     def parse_trade(self, trade, market=None):
         #

@@ -254,7 +254,7 @@ class bitso(Exchange):
         response = self.publicGetOrderBook(self.extend(request, params))
         orderbook = self.safe_value(response, 'payload')
         timestamp = self.parse8601(self.safe_string(orderbook, 'updated_at'))
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

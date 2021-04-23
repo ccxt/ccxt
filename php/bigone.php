@@ -407,7 +407,7 @@ class bigone extends Exchange {
         //     }
         //
         $orderbook = $this->safe_value($response, 'data', array());
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'quantity');
+        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'quantity');
     }
 
     public function parse_trade($trade, $market = null) {

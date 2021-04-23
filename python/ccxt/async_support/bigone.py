@@ -401,7 +401,7 @@ class bigone(Exchange):
         #     }
         #
         orderbook = self.safe_value(response, 'data', {})
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'quantity')
+        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'quantity')
 
     def parse_trade(self, trade, market=None):
         #

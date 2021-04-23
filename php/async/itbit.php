@@ -105,7 +105,7 @@ class itbit extends Exchange {
             'symbol' => $this->market_id($symbol),
         );
         $orderbook = yield $this->publicGetMarketsSymbolOrderBook (array_merge($request, $params));
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

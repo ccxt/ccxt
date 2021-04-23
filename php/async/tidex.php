@@ -316,7 +316,7 @@ class tidex extends Exchange {
             throw new ExchangeError($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
         }
         $orderbook = $response[$market['id']];
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
