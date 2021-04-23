@@ -1236,7 +1236,12 @@ class binance extends Exchange {
         //         }
         //     )
         //
-        $result = array( 'info' => $response );
+        $timestamp = $this->safe_integer($response, 'updateTime');
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         if (($type === 'spot') || ($type === 'margin')) {
             $balances = $this->safe_value_2($response, 'balances', 'userAssets', array());
             for ($i = 0; $i < count($balances); $i++) {
