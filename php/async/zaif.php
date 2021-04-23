@@ -209,18 +209,18 @@ class zaif extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $balance = $this->safe_value($funds, $currencyId);
+            $balance = $this->safe_string($funds, $currencyId);
             $account = $this->account();
             $account['free'] = $balance;
             $account['total'] = $balance;
             if ($deposit !== null) {
                 if (is_array($deposit) && array_key_exists($currencyId, $deposit)) {
-                    $account['total'] = $this->safe_number($deposit, $currencyId);
+                    $account['total'] = $this->safe_string($deposit, $currencyId);
                 }
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
