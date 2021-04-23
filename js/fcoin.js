@@ -362,7 +362,7 @@ module.exports = class fcoin extends Exchange {
         };
         const response = await this.marketGetDepthLevelSymbol (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data');
-        return this.parseOrderBook (orderbook, orderbook['ts'], 'bids', 'asks', 0, 1);
+        return this.parseOrderBook (orderbook, symbol, orderbook['ts'], 'bids', 'asks', 0, 1);
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -371,7 +371,7 @@ module.exports = class qtrade extends Exchange {
             orderbook[side] = result;
         }
         const timestamp = this.safeIntegerProduct (data, 'last_change', 0.001);
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {

@@ -688,6 +688,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const orderbook = await this.publicGetBookSymbolPrecision (fullRequest);
         const timestamp = this.milliseconds ();
         const result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': timestamp,

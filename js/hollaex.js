@@ -311,7 +311,7 @@ module.exports = class hollaex extends Exchange {
         //
         const orderbook = this.safeValue (response, marketId);
         const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -600,7 +600,7 @@ module.exports = class delta extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return this.parseOrderBook (result, undefined, 'buy', 'sell', 'price', 'size');
+        return this.parseOrderBook (result, symbol, undefined, 'buy', 'sell', 'price', 'size');
     }
 
     parseTrade (trade, market = undefined) {

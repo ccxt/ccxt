@@ -148,7 +148,7 @@ module.exports = class coinspot extends Exchange {
             'cointype': market['id'],
         };
         const orderbook = await this.privatePostOrders (this.extend (request, params));
-        return this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {

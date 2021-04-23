@@ -419,7 +419,7 @@ module.exports = class coinbasepro extends Exchange {
         //         ]
         //     }
         //
-        const orderbook = this.parseOrderBook (response);
+        const orderbook = this.parseOrderBook (response, symbol);
         orderbook['nonce'] = this.safeInteger (response, 'sequence');
         return orderbook;
     }

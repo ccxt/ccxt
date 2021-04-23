@@ -587,7 +587,7 @@ module.exports = class bitz extends Exchange {
         //
         const orderbook = this.safeValue (response, 'data');
         const timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {

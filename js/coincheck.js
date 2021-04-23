@@ -209,7 +209,7 @@ module.exports = class coincheck extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetOrderBooks (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {

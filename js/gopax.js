@@ -330,7 +330,7 @@ module.exports = class gopax extends Exchange {
         //     }
         //
         const nonce = this.safeInteger (response, 'sequence');
-        const result = this.parseOrderBook (response, undefined, 'bid', 'ask', 1, 2);
+        const result = this.parseOrderBook (response, symbol, undefined, 'bid', 'ask', 1, 2);
         result['nonce'] = nonce;
         return result;
     }

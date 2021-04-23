@@ -392,7 +392,7 @@ module.exports = class cex extends Exchange {
         }
         const response = await this.publicGetOrderBookPair (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

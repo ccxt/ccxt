@@ -404,7 +404,7 @@ module.exports = class vcc extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeValue (data, 'timestamp');
-        return this.parseOrderBook (data, timestamp, 'bids', 'asks', 0, 1);
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
     }
 
     parseTicker (ticker, market = undefined) {

@@ -227,7 +227,7 @@ module.exports = class zaif extends Exchange {
             'pair': this.marketId (symbol),
         };
         const response = await this.publicGetDepthPair (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {

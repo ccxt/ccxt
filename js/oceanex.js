@@ -307,7 +307,7 @@ module.exports = class oceanex extends Exchange {
         //
         const orderbook = this.safeValue (response, 'data', {});
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
@@ -353,7 +353,7 @@ module.exports = class oceanex extends Exchange {
             const marketId = this.safeString (orderbook, 'market');
             const symbol = this.safeSymbol (marketId);
             const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-            result[symbol] = this.parseOrderBook (orderbook, timestamp);
+            result[symbol] = this.parseOrderBook (orderbook, symbol, timestamp);
         }
         return result;
     }

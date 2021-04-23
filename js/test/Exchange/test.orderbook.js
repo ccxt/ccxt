@@ -27,6 +27,7 @@ const printOrderBookOneLiner = (orderbook, method, symbol) => {
 module.exports = (exchange, orderbook, method, symbol) => {
 
     const format = {
+        'symbol': 'ETH/BTC',
         'bids': [],
         'asks': [],
         'timestamp': 1234567890,

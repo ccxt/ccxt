@@ -394,7 +394,7 @@ module.exports = class aofex extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const timestamp = this.safeInteger (result, 'ts');
-        return this.parseOrderBook (result, timestamp);
+        return this.parseOrderBook (result, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {

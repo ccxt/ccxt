@@ -340,7 +340,7 @@ module.exports = class yobit extends Exchange {
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
         }
         const orderbook = response[market['id']];
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {

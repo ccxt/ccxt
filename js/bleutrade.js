@@ -243,7 +243,7 @@ module.exports = class bleutrade extends Exchange {
         if (!orderbook) {
             throw new ExchangeError (this.id + ' no orderbook data in ' + this.json (response));
         }
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
     async fetchTicker (symbol, params = {}) {

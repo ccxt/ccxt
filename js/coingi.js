@@ -186,7 +186,7 @@ module.exports = class coingi extends Exchange {
             'bidCount': limit, // maximum returned number of bids 1-512
         };
         const orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth (this.extend (request, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'baseAmount');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price', 'baseAmount');
     }
 
     parseTicker (ticker, market = undefined) {

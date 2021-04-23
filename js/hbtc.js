@@ -550,7 +550,7 @@ module.exports = class hbtc extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'time');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     async fetchTicker (symbol, params = {}) {

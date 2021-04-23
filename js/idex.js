@@ -490,6 +490,7 @@ module.exports = class idex extends Exchange {
         const response = await this.publicGetOrderbook (this.extend (request, params));
         const nonce = this.safeInteger (response, 'sequence');
         return {
+            'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
             'nonce': nonce,

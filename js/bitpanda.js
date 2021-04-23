@@ -665,7 +665,7 @@ module.exports = class bitpanda extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (response, 'time'));
-        return this.parseOrderBook (response, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseOHLCV (ohlcv, market = undefined) {

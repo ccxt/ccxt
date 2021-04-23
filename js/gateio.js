@@ -375,7 +375,7 @@ module.exports = class gateio extends Exchange {
             'id': this.marketId (symbol),
         };
         const response = await this.publicGetOrderBookId (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

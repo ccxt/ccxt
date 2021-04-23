@@ -111,7 +111,7 @@ module.exports = class paymium extends Exchange {
             'currency': this.marketId (symbol),
         };
         const response = await this.publicGetDataCurrencyDepth (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
