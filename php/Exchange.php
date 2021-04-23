@@ -1777,8 +1777,9 @@ class Exchange {
         ));
     }
 
-    public function parse_order_book($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
+    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
         return array(
+            'symbol' => $symbol,
             'bids' => $this->sort_by(
                 is_array($orderbook) && array_key_exists($bids_key, $orderbook) ?
                     $this->parse_bids_asks($orderbook[$bids_key], $price_key, $amount_key) : array(),
