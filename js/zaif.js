@@ -200,6 +200,7 @@ module.exports = class zaif extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
         const balances = this.safeValue (response, 'return', {});
+        const deposit = this.safeValue (balances, 'deposit');
         const result = { 'info': response };
         const funds = this.safeValue (balances, 'funds', {});
         const currencyIds = Object.keys (funds);
@@ -207,15 +208,12 @@ module.exports = class zaif extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeValue (funds, currencyId);
-            const account = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            };
-            if ('deposit' in balances) {
-                if (currencyId in balances['deposit']) {
-                    account['total'] = this.safeNumber (balances['deposit'], currencyId);
-                    account['used'] = account['total'] - account['free'];
+            const account = this.account ();
+            account['free'] = balance;
+            account['total'] = balance;
+            if (deposit !== undefined) {
+                if (currencyId in deposit) {
+                    account['total'] = this.safeNumber (deposit, currencyId);
                 }
             }
             result[code] = account;
