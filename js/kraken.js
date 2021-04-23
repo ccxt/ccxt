@@ -525,7 +525,7 @@ module.exports = class kraken extends Exchange {
         if (wsName !== undefined) {
             orderbook = this.safeValue (result, wsName, orderbook);
         }
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
     parseTicker (ticker, market = undefined) {

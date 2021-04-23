@@ -111,7 +111,7 @@ module.exports = class foxbit extends Exchange {
             'crypto_currency': market['base'],
         };
         const response = await this.publicGetCurrencyOrderbook (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {

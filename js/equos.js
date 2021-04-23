@@ -427,7 +427,7 @@ module.exports = class equos extends Exchange {
         //         "auctionVolume":0.0
         //     }
         //
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 0, 1, market);
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 0, 1, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

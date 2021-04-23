@@ -131,7 +131,7 @@ module.exports = class southxchange extends Exchange {
             'symbol': this.marketId (symbol),
         };
         const response = await this.publicGetBookSymbol (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
+        return this.parseOrderBook (response, symbol, undefined, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
     }
 
     parseTicker (ticker, market = undefined) {

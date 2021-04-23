@@ -287,7 +287,7 @@ module.exports = class rightbtc extends Exchange {
                 ]);
             }
         }
-        return this.parseOrderBook (bidsasks, undefined, 'bid', 'ask');
+        return this.parseOrderBook (bidsasks, symbol, undefined, 'bid', 'ask');
     }
 
     parseTrade (trade, market = undefined) {

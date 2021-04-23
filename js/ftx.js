@@ -567,7 +567,7 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return this.parseOrderBook (result);
+        return this.parseOrderBook (result, symbol);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

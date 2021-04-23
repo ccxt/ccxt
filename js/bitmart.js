@@ -934,9 +934,9 @@ module.exports = class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         if (market['spot']) {
-            return this.parseOrderBook (data, undefined, 'buys', 'sells', 'price', 'amount');
+            return this.parseOrderBook (data, symbol, undefined, 'buys', 'sells', 'price', 'amount');
         } else if (market['swap'] || market['future']) {
-            return this.parseOrderBook (data, undefined, 'buys', 'sells', 'price', 'vol');
+            return this.parseOrderBook (data, symbol, undefined, 'buys', 'sells', 'price', 'vol');
         }
     }
 

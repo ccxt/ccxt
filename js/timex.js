@@ -354,7 +354,7 @@ module.exports = class timex extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
-        return this.parseOrderBook (response, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
+        return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

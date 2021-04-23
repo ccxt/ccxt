@@ -794,7 +794,7 @@ module.exports = class exmo extends Exchange {
         }
         const response = await this.publicGetOrderBook (this.extend (request, params));
         const result = this.safeValue (response, market['id']);
-        return this.parseOrderBook (result, undefined, 'bid', 'ask');
+        return this.parseOrderBook (result, symbol, undefined, 'bid', 'ask');
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {

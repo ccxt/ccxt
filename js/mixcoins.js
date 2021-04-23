@@ -86,7 +86,7 @@ module.exports = class mixcoins extends Exchange {
             'market': this.marketId (symbol),
         };
         const response = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (response['result']);
+        return this.parseOrderBook (response['result'], symbol);
     }
 
     async fetchTicker (symbol, params = {}) {

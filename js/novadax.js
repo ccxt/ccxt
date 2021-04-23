@@ -377,7 +377,7 @@ module.exports = class novadax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
-        return this.parseOrderBook (data, timestamp, 'bids', 'asks');
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
     }
 
     parseTrade (trade, market = undefined) {

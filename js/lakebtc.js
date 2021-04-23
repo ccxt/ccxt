@@ -125,7 +125,7 @@ module.exports = class lakebtc extends Exchange {
             'symbol': this.marketId (symbol),
         };
         const response = await this.publicGetBcorderbook (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTicker (ticker, market = undefined) {
