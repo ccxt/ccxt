@@ -238,6 +238,7 @@ class bitforex extends Exchange {
                 '1017' => '\\ccxt\\PermissionDenied', // array("code":"1017","success":false,"time":1602670594367,"message":"IP not allow")
                 '1019' => '\\ccxt\\BadSymbol', // array("code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid")
                 '3002' => '\\ccxt\\InsufficientFunds',
+                '4003' => '\\ccxt\\InvalidOrder', // array("success":false,"code":"4003","message":"amount too small")
                 '10204' => '\\ccxt\\DDoSProtection',
             ),
         ));
