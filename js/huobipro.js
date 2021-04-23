@@ -293,7 +293,7 @@ module.exports = class huobipro extends ccxt.huobipro {
         const messageHash = this.safeString (subscription, 'messageHash');
         const orderbook = this.orderbooks[symbol];
         const data = this.safeValue (message, 'data');
-        const snapshot = this.parseOrderBook (data);
+        const snapshot = this.parseOrderBook (data, symbol);
         snapshot['nonce'] = this.safeInteger (data, 'seqNum');
         orderbook.reset (snapshot);
         // unroll the accumulated deltas
