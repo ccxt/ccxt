@@ -958,7 +958,7 @@ module.exports = class Exchange {
 
     parseBalance (balance, legacy = true) {
 
-        const codes = Object.keys (this.omit (balance, [ 'info', 'free', 'used', 'total' ]));
+        const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
 
         balance['free'] = {}
         balance['used'] = {}
