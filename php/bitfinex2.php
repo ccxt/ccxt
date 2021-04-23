@@ -335,6 +335,9 @@ class bitfinex2 extends bitfinex {
             $id = $this->safe_string_upper($market, 'pair');
             $baseId = null;
             $quoteId = null;
+            if (strtolower(mb_strpos($id), 'test') !== false) {
+                continue;
+            }
             if (mb_strpos($id, ':') !== false) {
                 $parts = explode(':', $id);
                 $baseId = $parts[0];
