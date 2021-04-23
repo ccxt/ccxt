@@ -207,18 +207,18 @@ module.exports = class zaif extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (funds, currencyId);
+            const balance = this.safeString (funds, currencyId);
             const account = this.account ();
             account['free'] = balance;
             account['total'] = balance;
             if (deposit !== undefined) {
                 if (currencyId in deposit) {
-                    account['total'] = this.safeNumber (deposit, currencyId);
+                    account['total'] = this.safeString (deposit, currencyId);
                 }
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
