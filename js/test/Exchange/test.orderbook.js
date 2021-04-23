@@ -36,7 +36,10 @@ module.exports = (exchange, orderbook, method, symbol) => {
         // 'info': {},
     }
 
-    expect (orderbook).to.include.all.keys (format)
+    const keys = Object.keys (format)
+    for (let i = 0; i < keys.length; i++) {
+        assert (keys[i] in orderbook)
+    }
 
     const bids = orderbook.bids
     const asks = orderbook.asks
