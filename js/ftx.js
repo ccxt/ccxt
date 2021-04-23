@@ -242,7 +242,7 @@ module.exports = class ftx extends ccxt.ftx {
             const orderbook = this.orderBook ({}, limit);
             this.orderbooks[symbol] = orderbook;
             const timestamp = this.safeTimestamp (data, 'time');
-            const snapshot = this.parseOrderBook (data, timestamp);
+            const snapshot = this.parseOrderBook (data, symbol, timestamp);
             orderbook.reset (snapshot);
             // const checksum = this.safeString (data, 'checksum');
             // todo: this.checkOrderBookChecksum (client, orderbook, checksum);

@@ -428,8 +428,8 @@ module.exports = class ndax extends ccxt.ndax {
         //         ],
         //     ]
         //
-        const snapshot = this.parseOrderBook (payload);
         const symbol = this.safeString (subscription, 'symbol');
+        const snapshot = this.parseOrderBook (payload, symbol);
         const limit = this.safeInteger (subscription, 'limit');
         const orderbook = this.orderBook (snapshot, limit);
         this.orderbooks[symbol] = orderbook;

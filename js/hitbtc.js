@@ -94,7 +94,7 @@ module.exports = class hitbtc extends ccxt.hitbtc {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        const snapshot = this.parseOrderBook (params, timestamp, 'bid', 'ask', 'price', 'size');
+        const snapshot = this.parseOrderBook (params, symbol, timestamp, 'bid', 'ask', 'price', 'size');
         const orderbook = this.orderBook (snapshot);
         orderbook['nonce'] = nonce;
         this.orderbooks[symbol] = orderbook;

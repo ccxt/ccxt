@@ -363,7 +363,7 @@ module.exports = class phemex extends ccxt.phemex {
         const timestamp = this.safeIntegerProduct (message, 'timestamp', 0.000001);
         if (type === 'snapshot') {
             const book = this.safeValue (message, 'book', {});
-            const snapshot = this.parseOrderBook (book, timestamp, 'bids', 'asks', 0, 1, market);
+            const snapshot = this.parseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
             snapshot['nonce'] = nonce;
             const orderbook = this.orderBook (snapshot, depth);
             this.orderbooks[symbol] = orderbook;

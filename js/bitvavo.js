@@ -353,7 +353,7 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         const name = 'book';
         const messageHash = name + '@' + marketId;
         const orderbook = this.orderbooks[symbol];
-        const snapshot = this.parseOrderBook (response);
+        const snapshot = this.parseOrderBook (response, symbol);
         snapshot['nonce'] = this.safeInteger (response, 'nonce');
         orderbook.reset (snapshot);
         // unroll the accumulated deltas
