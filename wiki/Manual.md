@@ -595,7 +595,8 @@ In case your calls hit a rate limit or get nonce errors, the ccxt library will t
 - `ExchangeError`
 - `InvalidNonce`
 
-A later retry is usually enough to handle that. More on that here:
+A later retry is usually enough to handle that.
+
 ### Notes On Rate Limiter
 
 The rate limiter is a property of the exchange instance, in other words, each exchange instance has its own rate limiter that is not aware of the other instances. In many cases the user should reuse the same exchange instance throughout the program. Do not use multiple instances of the same exchange with the same API keypair from the same IP address.
@@ -1776,6 +1777,7 @@ The structure of a returned order book is as follows:
         [ price, amount ],
         ...
     ],
+    'symbol': 'ETH/BTC', // a unified market symbol
     'timestamp': 1499280391811, // Unix Timestamp in milliseconds (seconds * 1000)
     'datetime': '2017-07-05T18:47:14.692Z', // ISO8601 datetime string with milliseconds
     'nonce': 1499280391811, // an increasing unique identifier of the orderbook snapshot
@@ -4152,8 +4154,6 @@ Raised when your nonce is less than the previous nonce used with your keypair, a
   - Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
 
 # Troubleshooting
-
-
 
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
 
