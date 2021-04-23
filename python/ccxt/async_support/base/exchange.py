@@ -119,7 +119,14 @@ class Exchange(BaseExchange):
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
                 http_response = await response.text()
-                headers = response.headers
+                # CIMultiDictProxy
+                raw_headers = response.headers
+                headers = {}
+                for header in raw_headers:
+                    if header in headers:
+                        headers[header] = headers[header] + ', ' + raw_headers[header]
+                    else:
+                        headers[header] = raw_headers[header]
                 http_status_code = response.status
                 http_status_text = response.reason
                 http_response = self.on_rest_response(http_status_code, http_status_text, url, method, headers, http_response, request_headers, request_body)
