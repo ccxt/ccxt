@@ -201,6 +201,7 @@ class zaif(Exchange):
         await self.load_markets()
         response = await self.privatePostGetInfo(params)
         balances = self.safe_value(response, 'return', {})
+        deposit = self.safe_value(balances, 'deposit')
         result = {'info': response}
         funds = self.safe_value(balances, 'funds', {})
         currencyIds = list(funds.keys())
@@ -208,15 +209,12 @@ class zaif(Exchange):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             balance = self.safe_value(funds, currencyId)
-            account = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            }
-            if 'deposit' in balances:
-                if currencyId in balances['deposit']:
-                    account['total'] = self.safe_number(balances['deposit'], currencyId)
-                    account['used'] = account['total'] - account['free']
+            account = self.account()
+            account['free'] = balance
+            account['total'] = balance
+            if deposit is not None:
+                if currencyId in deposit:
+                    account['total'] = self.safe_number(deposit, currencyId)
             result[code] = account
         return self.parse_balance(result)
 

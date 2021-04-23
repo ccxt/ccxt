@@ -201,6 +201,7 @@ class zaif extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetInfo ($params);
         $balances = $this->safe_value($response, 'return', array());
+        $deposit = $this->safe_value($balances, 'deposit');
         $result = array( 'info' => $response );
         $funds = $this->safe_value($balances, 'funds', array());
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
@@ -208,15 +209,12 @@ class zaif extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($funds, $currencyId);
-            $account = array(
-                'free' => $balance,
-                'used' => 0.0,
-                'total' => $balance,
-            );
-            if (is_array($balances) && array_key_exists('deposit', $balances)) {
-                if (is_array($balances['deposit']) && array_key_exists($currencyId, $balances['deposit'])) {
-                    $account['total'] = $this->safe_number($balances['deposit'], $currencyId);
-                    $account['used'] = $account['total'] - $account['free'];
+            $account = $this->account();
+            $account['free'] = $balance;
+            $account['total'] = $balance;
+            if ($deposit !== null) {
+                if (is_array($deposit) && array_key_exists($currencyId, $deposit)) {
+                    $account['total'] = $this->safe_number($deposit, $currencyId);
                 }
             }
             $result[$code] = $account;
