@@ -208,15 +208,15 @@ class zaif(Exchange):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
-            balance = self.safe_value(funds, currencyId)
+            balance = self.safe_string(funds, currencyId)
             account = self.account()
             account['free'] = balance
             account['total'] = balance
             if deposit is not None:
                 if currencyId in deposit:
-                    account['total'] = self.safe_number(deposit, currencyId)
+                    account['total'] = self.safe_string(deposit, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
