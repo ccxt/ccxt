@@ -227,27 +227,32 @@ module.exports = class bitbns extends Exchange {
     parseTicker (ticker, market = undefined) {
         //
         //     {
-        //         symbol: 'ETHBTC',
-        //         priceChange: '0.00068700',
-        //         priceChangePercent: '2.075',
-        //         weightedAvgPrice: '0.03342681',
-        //         prevClosePrice: '0.03310300',
-        //         lastPrice: '0.03378900',
-        //         lastQty: '0.07700000',
-        //         bidPrice: '0.03378900',
-        //         bidQty: '7.16800000',
-        //         askPrice: '0.03379000',
-        //         askQty: '24.00000000',
-        //         openPrice: '0.03310200',
-        //         highPrice: '0.03388900',
-        //         lowPrice: '0.03306900',
-        //         volume: '205478.41000000',
-        //         quoteVolume: '6868.48826294',
-        //         openTime: 1601469986932,
-        //         closeTime: 1601556386932,
-        //         firstId: 196098772,
-        //         lastId: 196186315,
-        //         count: 87544
+        //         "symbol":"BTC/INR",
+        //         "info":{
+        //             "highest_buy_bid":4368494.31,
+        //             "lowest_sell_bid":4374835.09,
+        //             "last_traded_price":4374835.09,
+        //             "yes_price":4531016.27,
+        //             "volume":{"max":"4569119.23","min":"4254552.13","volume":62.17722344}
+        //         },
+        //         "timestamp":1619100020845,
+        //         "datetime":1619100020845,
+        //         "high":"4569119.23",
+        //         "low":"4254552.13",
+        //         "bid":4368494.31,
+        //         "bidVolume":"",
+        //         "ask":4374835.09,
+        //         "askVolume":"",
+        //         "vwap":"",
+        //         "open":4531016.27,
+        //         "close":4374835.09,
+        //         "last":4374835.09,
+        //         "baseVolume":62.17722344,
+        //         "quoteVolume":"",
+        //         "previousClose":"",
+        //         "change":-156181.1799999997,
+        //         "percentage":-3.446934874943623,
+        //         "average":4452925.68
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'closeTime');
