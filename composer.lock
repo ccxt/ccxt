@@ -4,291 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b4f539de1861015e027814840d1a4aa3",
+    "content-hash": "70a5d85d579012f1e8ace72e9ee218b2",
     "packages": [
-        {
-            "name": "ccxt/ccxt",
-            "version": "1.48.25",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "33e5e3726c1435c997aaf83ac991337ebdb34de2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/33e5e3726c1435c997aaf83ac991337ebdb34de2",
-                "reference": "33e5e3726c1435c997aaf83ac991337ebdb34de2",
-                "shasum": ""
-            },
-            "require": {
-                "ext-bcmath": "*",
-                "ext-curl": "*",
-                "ext-iconv": "*",
-                "ext-json": "*",
-                "ext-openssl": "*",
-                "ext-pcre": "*",
-                "pear/console_table": "1.3.1",
-                "php": ">=5.4.0",
-                "symfony/polyfill-mbstring": "^1.7"
-            },
-            "suggest": {
-                "clue/buzz-react": "Required for asynchronous API calls to exchanges with PHP",
-                "clue/http-proxy-react": "Required for using a proxy when doing asynchronous API calls to exchanges with PHP",
-                "react/event-loop": "Required for asynchronous API calls to exchanges with PHP",
-                "recoil/react": "Required for asynchronous API calls to exchanges with PHP",
-                "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "ccxt\\": "php/",
-                    "ccxt_async\\": "php/async/"
-                },
-                "files": [
-                    "ccxt.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Igor Kroitor",
-                    "email": "igor.kroitor@gmail.com",
-                    "homepage": "https://github.com/kroitor",
-                    "role": "Developer"
-                },
-                {
-                    "name": "Vitaly Gordon",
-                    "email": "rocket.mind@gmail.com",
-                    "homepage": "https://github.com/xpl",
-                    "role": "Developer"
-                },
-                {
-                    "name": "Carlo Revelli",
-                    "email": "carlo.revelli@berkeley.edu",
-                    "homepage": "https://github.com/frosty00",
-                    "role": "Junior Developer"
-                }
-            ],
-            "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for more than 90 bitcoin/altcoin exchanges",
-            "homepage": "https://github.com/ccxt/ccxt",
-            "keywords": [
-                "1BTCXE",
-                "1Broker",
-                "ACX",
-                "ANX",
-                "ANXPro",
-                "BL3P",
-                "BTC Markets",
-                "BTC Trade UA",
-                "BTCC",
-                "BTCChina",
-                "BTCExchange",
-                "BTCTrader",
-                "BTCTurk",
-                "BTCX",
-                "BX.in.th",
-                "Bit2C",
-                "BitBay",
-                "BitBays",
-                "BitMEX",
-                "BitMarket",
-                "Bitcoin.co.id",
-                "Bleutrade",
-                "BlinkTrade",
-                "BtcBox",
-                "Bter.com",
-                "C-CEX",
-                "CEX.IO",
-                "CHBTC",
-                "CNY",
-                "ChileBit",
-                "CoinMate",
-                "CoinSpot",
-                "Coinsecure",
-                "Crypto Capital",
-                "DOGE",
-                "EUR",
-                "EXMO",
-                "FYB-SE",
-                "FYB-SG",
-                "FoxBit",
-                "Gatecoin",
-                "Gemini",
-                "Huobi",
-                "HuobiPRO",
-                "LakeBTC",
-                "Liqui",
-                "LiveCoin",
-                "OKCoin",
-                "OKCoin.cn",
-                "OKCoin.com",
-                "OKEX",
-                "Paymium",
-                "Poloniex",
-                "QUOINE",
-                "Qryptos",
-                "QuadrigaCX",
-                "Southxchange",
-                "SurBitcoin",
-                "TheRockTrading",
-                "Tidex",
-                "USD",
-                "UrduBit",
-                "VBTC",
-                "Vaultoro",
-                "VirWoX",
-                "Wex",
-                "YoBit",
-                "Zaif",
-                "acx.io",
-                "algorithmic",
-                "algotrading",
-                "altcoin",
-                "altcoins",
-                "api",
-                "arbitrage",
-                "backtest",
-                "backtesting",
-                "binance",
-                "binance.com",
-                "bit2c.co.il",
-                "bitcoin",
-                "bitcoincoid",
-                "bitfinex",
-                "bitflyer",
-                "bitflyer.jp",
-                "bithumb",
-                "bithumb.com",
-                "bitlish",
-                "bitso",
-                "bitstamp",
-                "bittrex",
-                "bleutrade.com",
-                "bot",
-                "btc",
-                "btc-e",
-                "btc-trade.com.ua",
-                "btc-x",
-                "btcbox.co.jp",
-                "btce",
-                "btcexchange.ph",
-                "btcmarkets",
-                "btcmarkets.net",
-                "btctrader.com",
-                "btcturk.com",
-                "bter",
-                "ccex",
-                "cex",
-                "chilebit.net",
-                "coin",
-                "coincheck",
-                "coingi",
-                "coingi.com",
-                "coinmarketcap",
-                "coins",
-                "coinspot.com.au",
-                "crypto",
-                "crypto currency",
-                "crypto market",
-                "cryptocapital.co",
-                "cryptocurrency",
-                "currencies",
-                "currency",
-                "darkcoin",
-                "dash",
-                "digital currency",
-                "dogecoin",
-                "dsx",
-                "dsx.uk",
-                "e-commerce",
-                "etc",
-                "eth",
-                "ether",
-                "ethereum",
-                "exchange",
-                "exchanges",
-                "flowBTC",
-                "flowbtc.com",
-                "foxbit.exchange",
-                "framework",
-                "gdax",
-                "hitbtc",
-                "huobi.pro",
-                "independent reserve",
-                "independentreserve.com",
-                "invest",
-                "investing",
-                "investor",
-                "itBit",
-                "jubi.com",
-                "kraken",
-                "lakebtc.com",
-                "library",
-                "light",
-                "liqui.io",
-                "litecoin",
-                "ltc",
-                "luno",
-                "market",
-                "market data",
-                "markets",
-                "mercado",
-                "mercadobitcoin",
-                "mercadobitcoin.br",
-                "merchandise",
-                "merchant",
-                "minimal",
-                "mixcoins",
-                "mixcoins.com",
-                "nova",
-                "novaexchange",
-                "novaexchange.com",
-                "okex.com",
-                "order",
-                "order book",
-                "orderbook",
-                "price",
-                "price data",
-                "pricefeed",
-                "private",
-                "public",
-                "ripple",
-                "strategy",
-                "surbitcoin.com",
-                "tidex.com",
-                "toolkit",
-                "trade",
-                "trader",
-                "trading",
-                "urdubit.com",
-                "vbtc.exchange",
-                "vbtc.vn",
-                "volume",
-                "wex.nz",
-                "xBTCe",
-                "xbt",
-                "xbtce.com",
-                "xrp",
-                "yobit.net",
-                "yunbi",
-                "zec",
-                "zerocoin"
-            ],
-            "support": {
-                "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.48.25"
-            },
-            "funding": [
-                {
-                    "url": "https://opencollective.com/ccxt",
-                    "type": "open_collective"
-                }
-            ],
-            "time": "2021-04-19T22:32:40+00:00"
-        },
         {
             "name": "evenement/evenement",
             "version": "v3.0.1",
@@ -330,86 +47,7 @@
                 "event-dispatcher",
                 "event-emitter"
             ],
-            "support": {
-                "issues": "https://github.com/igorw/evenement/issues",
-                "source": "https://github.com/igorw/evenement/tree/master"
-            },
             "time": "2017-07-23T21:35:13+00:00"
-        },
-        {
-            "name": "guzzlehttp/psr7",
-            "version": "1.8.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/guzzle/psr7.git",
-                "reference": "35ea11d335fd638b5882ff1725228b3d35496ab1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/35ea11d335fd638b5882ff1725228b3d35496ab1",
-                "reference": "35ea11d335fd638b5882ff1725228b3d35496ab1",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.4.0",
-                "psr/http-message": "~1.0",
-                "ralouphie/getallheaders": "^2.0.5 || ^3.0.0"
-            },
-            "provide": {
-                "psr/http-message-implementation": "1.0"
-            },
-            "require-dev": {
-                "ext-zlib": "*",
-                "phpunit/phpunit": "~4.8.36 || ^5.7.27 || ^6.5.14 || ^7.5.20 || ^8.5.8 || ^9.3.10"
-            },
-            "suggest": {
-                "laminas/laminas-httphandlerrunner": "Emit PSR-7 responses"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.7-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "GuzzleHttp\\Psr7\\": "src/"
-                },
-                "files": [
-                    "src/functions_include.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Michael Dowling",
-                    "email": "mtdowling@gmail.com",
-                    "homepage": "https://github.com/mtdowling"
-                },
-                {
-                    "name": "Tobias Schultze",
-                    "homepage": "https://github.com/Tobion"
-                }
-            ],
-            "description": "PSR-7 message implementation that also provides common utility methods",
-            "keywords": [
-                "http",
-                "message",
-                "psr-7",
-                "request",
-                "response",
-                "stream",
-                "uri",
-                "url"
-            ],
-            "support": {
-                "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/1.8.1"
-            },
-            "time": "2021-03-21T16:25:00+00:00"
         },
         {
             "name": "icecave/repr",
@@ -459,10 +97,6 @@
                 "representation",
                 "string"
             ],
-            "support": {
-                "issues": "https://github.com/icecave/repr/issues",
-                "source": "https://github.com/icecave/repr/tree/4.0.0"
-            },
             "time": "2020-08-25T02:05:11+00:00"
         },
         {
@@ -572,164 +206,7 @@
                 "request",
                 "response"
             ],
-            "support": {
-                "source": "https://github.com/php-fig/http-message/tree/master"
-            },
             "time": "2016-08-06T14:39:51+00:00"
-        },
-        {
-            "name": "ralouphie/getallheaders",
-            "version": "3.0.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ralouphie/getallheaders.git",
-                "reference": "120b605dfeb996808c31b6477290a714d356e822"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ralouphie/getallheaders/zipball/120b605dfeb996808c31b6477290a714d356e822",
-                "reference": "120b605dfeb996808c31b6477290a714d356e822",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.6"
-            },
-            "require-dev": {
-                "php-coveralls/php-coveralls": "^2.1",
-                "phpunit/phpunit": "^5 || ^6.5"
-            },
-            "type": "library",
-            "autoload": {
-                "files": [
-                    "src/getallheaders.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ralph Khattar",
-                    "email": "ralph.khattar@gmail.com"
-                }
-            ],
-            "description": "A polyfill for getallheaders.",
-            "support": {
-                "issues": "https://github.com/ralouphie/getallheaders/issues",
-                "source": "https://github.com/ralouphie/getallheaders/tree/develop"
-            },
-            "time": "2019-03-08T08:55:37+00:00"
-        },
-        {
-            "name": "ratchet/pawl",
-            "version": "v0.3.5",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ratchetphp/Pawl.git",
-                "reference": "89ec703c76dc893484a2a0ed44b48a37d445abd5"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ratchetphp/Pawl/zipball/89ec703c76dc893484a2a0ed44b48a37d445abd5",
-                "reference": "89ec703c76dc893484a2a0ed44b48a37d445abd5",
-                "shasum": ""
-            },
-            "require": {
-                "evenement/evenement": "^3.0 || ^2.0",
-                "php": ">=5.4",
-                "ratchet/rfc6455": "^0.3",
-                "react/socket": "^1.0 || ^0.8 || ^0.7"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "~4.8"
-            },
-            "suggest": {
-                "reactivex/rxphp": "~2.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Ratchet\\Client\\": "src"
-                },
-                "files": [
-                    "src/functions_include.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "Asynchronous WebSocket client",
-            "keywords": [
-                "Ratchet",
-                "async",
-                "client",
-                "websocket",
-                "websocket client"
-            ],
-            "support": {
-                "issues": "https://github.com/ratchetphp/Pawl/issues",
-                "source": "https://github.com/ratchetphp/Pawl/tree/master"
-            },
-            "time": "2020-07-17T15:32:47+00:00"
-        },
-        {
-            "name": "ratchet/rfc6455",
-            "version": "v0.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ratchetphp/RFC6455.git",
-                "reference": "c8651c7938651c2d55f5d8c2422ac5e57a183341"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ratchetphp/RFC6455/zipball/c8651c7938651c2d55f5d8c2422ac5e57a183341",
-                "reference": "c8651c7938651c2d55f5d8c2422ac5e57a183341",
-                "shasum": ""
-            },
-            "require": {
-                "guzzlehttp/psr7": "^1.0",
-                "php": ">=5.4.2"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "5.7.*",
-                "react/socket": "^1.3"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Ratchet\\RFC6455\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Chris Boden",
-                    "email": "cboden@gmail.com",
-                    "role": "Developer"
-                },
-                {
-                    "name": "Matt Bonneau",
-                    "role": "Developer"
-                }
-            ],
-            "description": "RFC6455 WebSocket protocol handler",
-            "homepage": "http://socketo.me",
-            "keywords": [
-                "WebSockets",
-                "rfc6455",
-                "websocket"
-            ],
-            "support": {
-                "chat": "https://gitter.im/reactphp/reactphp",
-                "issues": "https://github.com/ratchetphp/RFC6455/issues",
-                "source": "https://github.com/ratchetphp/RFC6455/tree/v0.3"
-            },
-            "time": "2020-05-15T18:31:24+00:00"
         },
         {
             "name": "react/cache",
@@ -791,10 +268,6 @@
                 "promise",
                 "reactphp"
             ],
-            "support": {
-                "issues": "https://github.com/reactphp/cache/issues",
-                "source": "https://github.com/reactphp/cache/tree/v1.1.1"
-            },
             "funding": [
                 {
                     "url": "https://github.com/WyriHaximus",
@@ -871,10 +344,6 @@
                 "dns-resolver",
                 "reactphp"
             ],
-            "support": {
-                "issues": "https://github.com/reactphp/dns/issues",
-                "source": "https://github.com/reactphp/dns/tree/v1.5.0"
-            },
             "funding": [
                 {
                     "url": "https://github.com/WyriHaximus",
@@ -927,10 +396,6 @@
                 "asynchronous",
                 "event-loop"
             ],
-            "support": {
-                "issues": "https://github.com/reactphp/event-loop/issues",
-                "source": "https://github.com/reactphp/event-loop/tree/v1.1.1"
-            },
             "time": "2020-01-01T18:39:52+00:00"
         },
         {
@@ -1011,10 +476,6 @@
                 "server",
                 "streaming"
             ],
-            "support": {
-                "issues": "https://github.com/reactphp/http/issues",
-                "source": "https://github.com/reactphp/http/tree/v1.3.0"
-            },
             "funding": [
                 {
                     "url": "https://github.com/WyriHaximus",
@@ -1071,10 +532,6 @@
                 "promise",
                 "promises"
             ],
-            "support": {
-                "issues": "https://github.com/reactphp/promise/issues",
-                "source": "https://github.com/reactphp/promise/tree/v2.8.0"
-            },
             "time": "2020-05-12T15:16:56+00:00"
         },
         {
@@ -1131,10 +588,6 @@
                 "stream",
                 "unwrap"
             ],
-            "support": {
-                "issues": "https://github.com/reactphp/promise-stream/issues",
-                "source": "https://github.com/reactphp/promise-stream/tree/v1.2.0"
-            },
             "time": "2019-07-03T12:29:10+00:00"
         },
         {
@@ -1188,10 +641,6 @@
                 "timeout",
                 "timer"
             ],
-            "support": {
-                "issues": "https://github.com/reactphp/promise-timer/issues",
-                "source": "https://github.com/reactphp/promise-timer/tree/v1.6.0"
-            },
             "time": "2020-07-10T12:18:06+00:00"
         },
         {
@@ -1262,10 +711,6 @@
                 "reactphp",
                 "stream"
             ],
-            "support": {
-                "issues": "https://github.com/reactphp/socket/issues",
-                "source": "https://github.com/reactphp/socket/tree/v1.6.0"
-            },
             "funding": [
                 {
                     "url": "https://github.com/WyriHaximus",
@@ -1322,10 +767,6 @@
                 "stream",
                 "writable"
             ],
-            "support": {
-                "issues": "https://github.com/reactphp/stream/issues",
-                "source": "https://github.com/reactphp/stream/tree/v1.1.1"
-            },
             "time": "2020-05-04T10:17:57+00:00"
         },
         {
@@ -1382,10 +823,6 @@
                 "multitasking",
                 "react"
             ],
-            "support": {
-                "issues": "https://github.com/recoilphp/api/issues",
-                "source": "https://github.com/recoilphp/api/tree/1.0.2"
-            },
             "time": "2020-12-22T00:48:27+00:00"
         },
         {
@@ -1446,10 +883,6 @@
                 "multitasking",
                 "react"
             ],
-            "support": {
-                "issues": "https://github.com/recoilphp/kernel/issues",
-                "source": "https://github.com/recoilphp/kernel/tree/1.0.3"
-            },
             "time": "2020-08-25T06:12:52+00:00"
         },
         {
@@ -1514,10 +947,6 @@
                 "promise",
                 "react"
             ],
-            "support": {
-                "issues": "https://github.com/recoilphp/react/issues",
-                "source": "https://github.com/recoilphp/react/tree/1.0.2"
-            },
             "time": "2018-04-29T21:00:07+00:00"
         },
         {
@@ -1576,9 +1005,6 @@
                 "stream",
                 "uri"
             ],
-            "support": {
-                "source": "https://github.com/ringcentral/psr7/tree/master"
-            },
             "time": "2018-05-29T20:21:04+00:00"
         },
         {
@@ -1669,10 +1095,14 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.0",
-        "ext-ds": "*",
-        "ext-json": "*"
+        "php": ">=5.4.0",
+        "ext-bcmath": "*",
+        "ext-curl": "*",
+        "ext-iconv": "*",
+        "ext-pcre": "*",
+        "ext-json": "*",
+        "ext-openssl": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "1.1.0"
 }
