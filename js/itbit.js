@@ -101,7 +101,7 @@ module.exports = class itbit extends Exchange {
             'symbol': this.marketId (symbol),
         };
         const orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend (request, params));
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {

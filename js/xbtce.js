@@ -170,7 +170,7 @@ module.exports = class xbtce extends Exchange {
         const response = await this.privateGetLevel2Filter (this.extend (request, params));
         const orderbook = response[0];
         const timestamp = this.safeInteger (orderbook, 'Timestamp');
-        return this.parseOrderBook (orderbook, timestamp, 'Bids', 'Asks', 'Price', 'Volume');
+        return this.parseOrderBook (orderbook, symbol, timestamp, 'Bids', 'Asks', 'Price', 'Volume');
     }
 
     parseTicker (ticker, market = undefined) {

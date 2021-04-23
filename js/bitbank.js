@@ -238,7 +238,7 @@ module.exports = class bitbank extends Exchange {
         const response = await this.publicGetPairDepth (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {

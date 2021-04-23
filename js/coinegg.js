@@ -269,7 +269,7 @@ module.exports = class coinegg extends Exchange {
             'quote': market['quoteId'],
         };
         const response = await this.publicGetDepthRegionQuote (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTrade (trade, market = undefined) {

@@ -362,9 +362,10 @@ module.exports = class ndax extends Exchange {
         return result;
     }
 
-    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8) {
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8) {
         let nonce = undefined;
         const result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': undefined,
@@ -431,7 +432,7 @@ module.exports = class ndax extends Exchange {
         //         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
         //     ]
         //
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTicker (ticker, market = undefined) {

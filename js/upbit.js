@@ -494,6 +494,7 @@ module.exports = class upbit extends Exchange {
             const symbol = this.safeSymbol (marketId, undefined, '-');
             const timestamp = this.safeInteger (orderbook, 'timestamp');
             result[symbol] = {
+                'symbol': symbol,
                 'bids': this.sortBy (this.parseBidsAsks (orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
                 'asks': this.sortBy (this.parseBidsAsks (orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp': timestamp,

@@ -359,7 +359,7 @@ module.exports = class poloniex extends Exchange {
             request['depth'] = limit; // 100
         }
         const response = await this.publicGetReturnOrderBook (this.extend (request, params));
-        const orderbook = this.parseOrderBook (response);
+        const orderbook = this.parseOrderBook (response, symbol);
         orderbook['nonce'] = this.safeInteger (response, 'seq');
         return orderbook;
     }
@@ -386,7 +386,7 @@ module.exports = class poloniex extends Exchange {
                 const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
-            const orderbook = this.parseOrderBook (response[marketId]);
+            const orderbook = this.parseOrderBook (response[marketId], symbol);
             orderbook['nonce'] = this.safeInteger (response[marketId], 'seq');
             result[symbol] = orderbook;
         }

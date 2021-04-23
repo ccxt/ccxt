@@ -485,7 +485,7 @@ module.exports = class digifinex extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (response, 'date');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

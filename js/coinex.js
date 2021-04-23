@@ -291,7 +291,7 @@ module.exports = class coinex extends Exchange {
             'limit': limit.toString (),
         };
         const response = await this.publicGetMarketDepth (this.extend (request, params));
-        return this.parseOrderBook (response['data']);
+        return this.parseOrderBook (response['data'], symbol);
     }
 
     parseTrade (trade, market = undefined) {

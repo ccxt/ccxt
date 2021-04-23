@@ -1297,7 +1297,7 @@ module.exports = class binance extends Exchange {
         //         ]
         //     }
         const timestamp = this.safeInteger (response, 'T');
-        const orderbook = this.parseOrderBook (response, timestamp);
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
     }

@@ -245,7 +245,7 @@ module.exports = class luno extends Exchange {
         };
         const response = await this[method] (this.extend (request, params));
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp, 'bids', 'asks', 'price', 'volume');
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
     parseOrderStatus (status) {

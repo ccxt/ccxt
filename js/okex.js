@@ -1052,7 +1052,7 @@ module.exports = class okex extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString2 (response, 'timestamp', 'time'));
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {

@@ -421,7 +421,7 @@ module.exports = class buda extends Exchange {
         };
         const response = await this.publicGetMarketsMarketOrderBook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'order_book');
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
