@@ -36,7 +36,7 @@ module.exports = (exchange, orderbook, method, symbol) => {
         // 'info': {},
     }
 
-    expect (orderbook).to.have.all.keys (format)
+    expect (orderbook).to.include.all.keys (format)
 
     const bids = orderbook.bids
     const asks = orderbook.asks
