@@ -320,7 +320,7 @@ module.exports = class bybit extends Exchange {
                     'DOT/USDT': 'linear',
                     'UNI/USDT': 'linear',
                 },
-                'defaultType': 'linear',  // may also be inverse or inverseFuture
+                'defaultType': 'linear',  // may also be inverse
                 'code': 'BTC',
                 'cancelAllOrders': {
                     // 'method': 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
@@ -429,8 +429,10 @@ module.exports = class bybit extends Exchange {
             const inverse = !linear;
             let symbol = base + '/' + quote;
             const baseQuote = base + quote;
+            let type = 'swap';
             if (baseQuote !== id) {
                 symbol = id;
+                type = 'future';
             }
             const lotSizeFilter = this.safeValue (market, 'lot_size_filter', {});
             const priceFilter = this.safeValue (market, 'price_filter', {});
@@ -443,6 +445,10 @@ module.exports = class bybit extends Exchange {
             if (status !== undefined) {
                 active = (status === 'Trading');
             }
+            const spot = (type === 'spot');
+            const swap = (type === 'swap');
+            const future = (type === 'future');
+            const option = (type === 'option');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -452,10 +458,11 @@ module.exports = class bybit extends Exchange {
                 'precision': precision,
                 'taker': this.safeNumber (market, 'taker_fee'),
                 'maker': this.safeNumber (market, 'maker_fee'),
-                'type': 'future',
-                'spot': false,
-                'future': true,
-                'option': false,
+                'type': type,
+                'spot': spot,
+                'swap': swap,
+                'future': future,
+                'option': option,
                 'linear': linear,
                 'inverse': inverse,
                 'limits': {
@@ -2196,6 +2203,37 @@ module.exports = class bybit extends Exchange {
         return this.safeString (types, type, type);
     }
 
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (Array.isArray (symbols)) {
+            const length = symbols.length;
+            if (length !== 1) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions takes exactly one symbol');
+            }
+            request['symbol'] = this.marketId (symbols[0]);
+        }
+        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        let response = undefined;
+        if (type === 'linear') {
+            response = await this.privateLinearGetPositionList (this.extend (request, params));
+        } else if (type === 'inverse') {
+            response = await this.v2PrivateGetPositionList (this.extend (request, params));
+        } else if (type === 'inverseFuture') {
+            response = await this.futuresPrivateGetPositionList (this.extend (request, params));
+        }
+        // {
+        //   ret_code: 0,
+        //   ret_msg: 'OK',
+        //   ext_code: '',
+        //   ext_info: '',
+        //   result: [] or {} depending on the request
+        // }
+        return this.safeValue (response, 'result');
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
         const type = this.safeString (api, 0);
@@ -2259,36 +2297,5 @@ module.exports = class bybit extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
-    }
-
-    async fetchPositions (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        if (Array.isArray (symbols)) {
-            const length = symbols.length;
-            if (length !== 1) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions takes exactly one symbol');
-            }
-            request['symbol'] = this.marketId (symbols[0]);
-        }
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        let response = undefined;
-        if (type === 'linear') {
-            response = await this.privateLinearGetPositionList (this.extend (request, params));
-        } else if (type === 'inverse') {
-            response = await this.v2PrivateGetPositionList (this.extend (request, params));
-        } else if (type === 'inverseFuture') {
-            response = await this.futuresPrivateGetPositionList (this.extend (request, params));
-        }
-        // {
-        //   ret_code: 0,
-        //   ret_msg: 'OK',
-        //   ext_code: '',
-        //   ext_info: '',
-        //   result: [] or {} depending on the request
-        // }
-        return this.safeValue (response, 'result');
     }
 };
