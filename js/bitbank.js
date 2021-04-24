@@ -357,7 +357,44 @@ module.exports = class bitbank extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetUserAssets (params);
-        const result = { 'info': response };
+        //
+        //     {
+        //       "success": "1",
+        //       "data": {
+        //         "assets": [
+        //           {
+        //             "asset": "jpy",
+        //             "amount_precision": "4",
+        //             "onhand_amount": "0.0000",
+        //             "locked_amount": "0.0000",
+        //             "free_amount": "0.0000",
+        //             "stop_deposit": false,
+        //             "stop_withdrawal": false,
+        //             "withdrawal_fee": {
+        //               "threshold": "30000.0000",
+        //               "under": "550.0000",
+        //               "over": "770.0000"
+        //             }
+        //           },
+        //           {
+        //             "asset": "btc",
+        //             "amount_precision": "8",
+        //             "onhand_amount": "0.00000000",
+        //             "locked_amount": "0.00000000",
+        //             "free_amount": "0.00000000",
+        //             "stop_deposit": false,
+        //             "stop_withdrawal": false,
+        //             "withdrawal_fee": "0.00060000"
+        //           },
+        //         ]
+        //       }
+        //     }
+        //
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const data = this.safeValue (response, 'data', {});
         const assets = this.safeValue (data, 'assets', []);
         for (let i = 0; i < assets.length; i++) {
