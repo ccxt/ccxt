@@ -416,7 +416,7 @@ class equos(Exchange):
         #         "auctionVolume":0.0
         #     }
         #
-        return self.parse_order_book(response, None, 'bids', 'asks', 0, 1, market)
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 0, 1, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

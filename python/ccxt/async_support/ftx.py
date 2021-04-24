@@ -573,7 +573,7 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return self.parse_order_book(result)
+        return self.parse_order_book(result, symbol)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

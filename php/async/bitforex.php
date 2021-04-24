@@ -448,7 +448,7 @@ class bitforex extends Exchange {
         $response = yield $this->publicGetApiV1MarketDepth (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_integer($response, 'time');
-        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_order_status($status) {

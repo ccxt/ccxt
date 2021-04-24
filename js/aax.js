@@ -538,7 +538,7 @@ module.exports = class aax extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 't'); // need unix type
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {

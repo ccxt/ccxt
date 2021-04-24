@@ -535,7 +535,7 @@ class kraken extends Exchange {
         if ($wsName !== null) {
             $orderbook = $this->safe_value($result, $wsName, $orderbook);
         }
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function parse_ticker($ticker, $market = null) {

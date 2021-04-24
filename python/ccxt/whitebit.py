@@ -410,7 +410,7 @@ class whitebit(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         timestamp = self.parse8601(self.safe_string(result, 'lastUpdateTimestamp'))
-        return self.parse_order_book(result, timestamp)
+        return self.parse_order_book(result, symbol, timestamp)
 
     def fetch_trades_v1(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

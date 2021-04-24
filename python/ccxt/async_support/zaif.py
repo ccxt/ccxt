@@ -224,7 +224,7 @@ class zaif(Exchange):
             'pair': self.market_id(symbol),
         }
         response = await self.publicGetDepthPair(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

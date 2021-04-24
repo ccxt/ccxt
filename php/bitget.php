@@ -999,7 +999,7 @@ class bitget extends Exchange {
         $data = $this->safe_value($response, 'data', $response);
         $timestamp = $this->safe_integer_2($data, 'timestamp', 'ts');
         $nonce = $this->safe_integer($data, 'id');
-        $orderbook = $this->parse_order_book($data, $timestamp);
+        $orderbook = $this->parse_order_book($data, $symbol, $timestamp);
         $orderbook['nonce'] = $nonce;
         return $orderbook;
     }

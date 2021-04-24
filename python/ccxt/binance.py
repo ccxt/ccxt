@@ -1225,7 +1225,12 @@ class binance(Exchange):
         #         }
         #     ]
         #
-        result = {'info': response}
+        timestamp = self.safe_integer(response, 'updateTime')
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
         if (type == 'spot') or (type == 'margin'):
             balances = self.safe_value_2(response, 'balances', 'userAssets', [])
             for i in range(0, len(balances)):
@@ -1285,7 +1290,7 @@ class binance(Exchange):
         #         ]
         #     }
         timestamp = self.safe_integer(response, 'T')
-        orderbook = self.parse_order_book(response, timestamp)
+        orderbook = self.parse_order_book(response, symbol, timestamp)
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 

@@ -170,7 +170,7 @@ module.exports = class bit2c extends Exchange {
             'pair': this.marketId (symbol),
         };
         const orderbook = await this.publicGetExchangesPairOrderbook (this.extend (request, params));
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {

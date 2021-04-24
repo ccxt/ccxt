@@ -607,7 +607,7 @@ module.exports = class ascendex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const orderbook = this.safeValue (data, 'data', {});
         const timestamp = this.safeInteger (orderbook, 'ts');
-        const result = this.parseOrderBook (orderbook, timestamp);
+        const result = this.parseOrderBook (orderbook, symbol, timestamp);
         result['nonce'] = this.safeInteger (orderbook, 'seqnum');
         return result;
     }

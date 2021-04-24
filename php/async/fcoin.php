@@ -366,7 +366,7 @@ class fcoin extends Exchange {
         );
         $response = yield $this->marketGetDepthLevelSymbol (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'data');
-        return $this->parse_order_book($orderbook, $orderbook['ts'], 'bids', 'asks', 0, 1);
+        return $this->parse_order_book($orderbook, $symbol, $orderbook['ts'], 'bids', 'asks', 0, 1);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

@@ -996,7 +996,7 @@ module.exports = class bitget extends Exchange {
         const data = this.safeValue (response, 'data', response);
         const timestamp = this.safeInteger2 (data, 'timestamp', 'ts');
         const nonce = this.safeInteger (data, 'id');
-        const orderbook = this.parseOrderBook (data, timestamp);
+        const orderbook = this.parseOrderBook (data, symbol, timestamp);
         orderbook['nonce'] = nonce;
         return orderbook;
     }

@@ -124,7 +124,7 @@ module.exports = class coinfloor extends Exchange {
             'id': this.marketId (symbol),
         };
         const response = await this.publicGetIdOrderBook (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTicker (ticker, market = undefined) {

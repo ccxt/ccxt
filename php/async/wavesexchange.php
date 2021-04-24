@@ -396,6 +396,7 @@ class wavesexchange extends Exchange {
         $bids = $this->parse_order_book_side($this->safe_value($response, 'bids'), $market, $limit);
         $asks = $this->parse_order_book_side($this->safe_value($response, 'asks'), $market, $limit);
         return array(
+            'symbol' => $symbol,
             'bids' => $bids,
             'asks' => $asks,
             'timestamp' => $timestamp,

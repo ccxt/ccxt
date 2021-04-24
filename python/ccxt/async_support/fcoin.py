@@ -361,7 +361,7 @@ class fcoin(Exchange):
         }
         response = await self.marketGetDepthLevelSymbol(self.extend(request, params))
         orderbook = self.safe_value(response, 'data')
-        return self.parse_order_book(orderbook, orderbook['ts'], 'bids', 'asks', 0, 1)
+        return self.parse_order_book(orderbook, symbol, orderbook['ts'], 'bids', 'asks', 0, 1)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

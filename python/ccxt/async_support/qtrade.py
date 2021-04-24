@@ -374,7 +374,7 @@ class qtrade(Exchange):
                 result.append([price, amount])
             orderbook[side] = result
         timestamp = self.safe_integer_product(data, 'last_change', 0.001)
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         #

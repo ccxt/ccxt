@@ -379,7 +379,7 @@ class bibox extends Exchange {
             $request['size'] = $limit; // default = 200
         }
         $response = yield $this->publicGetMdata (array_merge($request, $params));
-        return $this->parse_order_book($response['result'], $this->safe_number($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
+        return $this->parse_order_book($response['result'], $symbol, $this->safe_number($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

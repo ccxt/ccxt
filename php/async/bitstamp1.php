@@ -95,7 +95,7 @@ class bitstamp1 extends Exchange {
         yield $this->load_markets();
         $orderbook = yield $this->publicGetOrderBook ($params);
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

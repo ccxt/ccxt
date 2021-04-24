@@ -495,7 +495,7 @@ class hitbtc(Exchange):
         if limit is not None:
             request['limit'] = limit  # default = 100, 0 = unlimited
         response = await self.publicGetOrderbookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bid', 'ask', 'price', 'size')
+        return self.parse_order_book(response, symbol, None, 'bid', 'ask', 'price', 'size')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['timestamp'])

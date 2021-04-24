@@ -400,6 +400,7 @@ module.exports = class bitmex extends Exchange {
         }
         const response = await this.publicGetOrderBookL2 (this.extend (request, params));
         const result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': undefined,

@@ -244,7 +244,7 @@ class bleutrade(Exchange):
         orderbook = self.safe_value(response, 'result')
         if not orderbook:
             raise ExchangeError(self.id + ' no orderbook data in ' + self.json(response))
-        return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
+        return self.parse_order_book(orderbook, symbol, None, 'buy', 'sell', 'Rate', 'Quantity')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

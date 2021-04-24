@@ -308,7 +308,7 @@ class latoken extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'quantity');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'quantity');
     }
 
     public function parse_ticker($ticker, $market = null) {

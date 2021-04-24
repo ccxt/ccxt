@@ -744,8 +744,9 @@ class phemex extends Exchange {
         );
     }
 
-    public function parse_order_book($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
+    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
         $result = array(
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'nonce' => null,
@@ -801,7 +802,7 @@ class phemex extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $book = $this->safe_value($result, 'book', array());
         $timestamp = $this->safe_integer_product($result, 'timestamp', 0.000001);
-        $orderbook = $this->parse_order_book($book, $timestamp, 'bids', 'asks', 0, 1, $market);
+        $orderbook = $this->parse_order_book($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
         $orderbook['nonce'] = $this->safe_integer($result, 'sequence');
         return $orderbook;
     }

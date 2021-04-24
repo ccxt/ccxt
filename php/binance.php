@@ -1235,7 +1235,12 @@ class binance extends Exchange {
         //         }
         //     )
         //
-        $result = array( 'info' => $response );
+        $timestamp = $this->safe_integer($response, 'updateTime');
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         if (($type === 'spot') || ($type === 'margin')) {
             $balances = $this->safe_value_2($response, 'balances', 'userAssets', array());
             for ($i = 0; $i < count($balances); $i++) {
@@ -1302,7 +1307,7 @@ class binance extends Exchange {
         //         ]
         //     }
         $timestamp = $this->safe_integer($response, 'T');
-        $orderbook = $this->parse_order_book($response, $timestamp);
+        $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
         $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
         return $orderbook;
     }

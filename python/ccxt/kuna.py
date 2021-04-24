@@ -187,7 +187,7 @@ class kuna(Exchange):
             request['limit'] = limit  # default = 300
         orderbook = self.publicGetDepth(self.extend(request, params))
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'at')

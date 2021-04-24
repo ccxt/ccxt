@@ -492,7 +492,7 @@ class liquid extends Exchange {
             'id' => $this->market_id($symbol),
         );
         $response = $this->publicGetProductsIdPriceLevels (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'buy_price_levels', 'sell_price_levels');
+        return $this->parse_order_book($response, $symbol, null, 'buy_price_levels', 'sell_price_levels');
     }
 
     public function parse_ticker($ticker, $market = null) {

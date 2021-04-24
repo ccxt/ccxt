@@ -541,7 +541,7 @@ class aax(Exchange):
         #     }
         #
         timestamp = self.safe_integer(response, 't')  # need unix type
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         #

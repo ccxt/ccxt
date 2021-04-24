@@ -945,8 +945,9 @@ module.exports = class Exchange {
         })
     }
 
-    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         return {
+            'symbol': symbol,
             'bids': sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
             'asks': sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
             'timestamp': timestamp,
@@ -957,7 +958,7 @@ module.exports = class Exchange {
 
     parseBalance (balance, legacy = true) {
 
-        const codes = Object.keys (this.omit (balance, [ 'info', 'free', 'used', 'total' ]));
+        const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
 
         balance['free'] = {}
         balance['used'] = {}

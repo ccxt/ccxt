@@ -361,7 +361,7 @@ class poloniex extends Exchange {
             $request['depth'] = $limit; // 100
         }
         $response = $this->publicGetReturnOrderBook (array_merge($request, $params));
-        $orderbook = $this->parse_order_book($response);
+        $orderbook = $this->parse_order_book($response, $symbol);
         $orderbook['nonce'] = $this->safe_integer($response, 'seq');
         return $orderbook;
     }
@@ -388,7 +388,7 @@ class poloniex extends Exchange {
                 $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
-            $orderbook = $this->parse_order_book($response[$marketId]);
+            $orderbook = $this->parse_order_book($response[$marketId], $symbol);
             $orderbook['nonce'] = $this->safe_integer($response[$marketId], 'seq');
             $result[$symbol] = $orderbook;
         }

@@ -1230,7 +1230,12 @@ module.exports = class binance extends Exchange {
         //         }
         //     ]
         //
-        const result = { 'info': response };
+        const timestamp = this.safeInteger (response, 'updateTime');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         if ((type === 'spot') || (type === 'margin')) {
             const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
@@ -1297,7 +1302,7 @@ module.exports = class binance extends Exchange {
         //         ]
         //     }
         const timestamp = this.safeInteger (response, 'T');
-        const orderbook = this.parseOrderBook (response, timestamp);
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
     }

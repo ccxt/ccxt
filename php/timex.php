@@ -360,7 +360,7 @@ class timex extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($response, 'timestamp'));
-        return $this->parse_order_book($response, $timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
+        return $this->parse_order_book($response, $symbol, $timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

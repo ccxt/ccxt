@@ -473,7 +473,7 @@ class stex(Exchange):
         #     }
         #
         orderbook = self.safe_value(response, 'data', {})
-        return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'amount')
+        return self.parse_order_book(orderbook, symbol, None, 'bid', 'ask', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         #

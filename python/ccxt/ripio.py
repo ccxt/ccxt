@@ -387,7 +387,7 @@ class ripio(Exchange):
         #         "updated_id":47225
         #     }
         #
-        orderbook = self.parse_order_book(response, None, 'buy', 'sell', 'price', 'amount')
+        orderbook = self.parse_order_book(response, symbol, None, 'buy', 'sell', 'price', 'amount')
         orderbook['nonce'] = self.safe_integer(response, 'updated_id')
         return orderbook
 

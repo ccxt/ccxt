@@ -473,7 +473,7 @@ module.exports = class stex extends Exchange {
         //     }
         //
         const orderbook = this.safeValue (response, 'data', {});
-        return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'amount');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'bid', 'ask', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {

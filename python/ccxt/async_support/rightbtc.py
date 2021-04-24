@@ -283,7 +283,7 @@ class rightbtc(Exchange):
                     amount / 1e8,
                     total / 1e8,
                 ])
-        return self.parse_order_book(bidsasks, None, 'bid', 'ask')
+        return self.parse_order_book(bidsasks, symbol, None, 'bid', 'ask')
 
     def parse_trade(self, trade, market=None):
         #

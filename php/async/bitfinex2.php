@@ -695,6 +695,7 @@ class bitfinex2 extends bitfinex {
         $orderbook = yield $this->publicGetBookSymbolPrecision ($fullRequest);
         $timestamp = $this->milliseconds();
         $result = array(
+            'symbol' => $symbol,
             'bids' => array(),
             'asks' => array(),
             'timestamp' => $timestamp,

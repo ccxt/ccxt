@@ -312,7 +312,7 @@ class hollaex extends Exchange {
         //
         $orderbook = $this->safe_value($response, $marketId);
         $timestamp = $this->parse8601($this->safe_string($orderbook, 'timestamp'));
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

@@ -451,7 +451,7 @@ class btcmarkets extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer_product($response, 'snapshotId', 0.001);
-        $orderbook = $this->parse_order_book($response, $timestamp);
+        $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
         $orderbook['nonce'] = $this->safe_integer($response, 'snapshotId');
         return $orderbook;
     }

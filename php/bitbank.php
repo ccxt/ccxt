@@ -240,7 +240,7 @@ class bitbank extends Exchange {
         $response = $this->publicGetPairDepth (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {

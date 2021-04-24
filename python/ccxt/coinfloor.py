@@ -124,7 +124,7 @@ class coinfloor(Exchange):
             'id': self.market_id(symbol),
         }
         response = self.publicGetIdOrderBook(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def parse_ticker(self, ticker, market=None):
         # rewrite to get the timestamp from HTTP headers

@@ -409,7 +409,7 @@ class zb extends Exchange {
             $request['size'] = $limit;
         }
         $response = $this->publicGetDepth (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

@@ -85,7 +85,7 @@ class mixcoins(Exchange):
             'market': self.market_id(symbol),
         }
         response = self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response['result'])
+        return self.parse_order_book(response['result'], symbol)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

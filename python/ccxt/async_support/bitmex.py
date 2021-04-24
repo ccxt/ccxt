@@ -399,6 +399,7 @@ class bitmex(Exchange):
             request['depth'] = limit
         response = await self.publicGetOrderBookL2(self.extend(request, params))
         result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': None,

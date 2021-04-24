@@ -444,7 +444,7 @@ class bw(Exchange):
         #
         orderbook = self.safe_value(response, 'datas', [])
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         #

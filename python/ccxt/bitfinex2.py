@@ -679,6 +679,7 @@ class bitfinex2(bitfinex):
         orderbook = self.publicGetBookSymbolPrecision(fullRequest)
         timestamp = self.milliseconds()
         result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': timestamp,

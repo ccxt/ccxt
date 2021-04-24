@@ -179,7 +179,7 @@ class bit2c(Exchange):
             'pair': self.market_id(symbol),
         }
         orderbook = self.publicGetExchangesPairOrderbook(self.extend(request, params))
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, symbol)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

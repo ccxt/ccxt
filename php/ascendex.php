@@ -609,7 +609,7 @@ class ascendex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $orderbook = $this->safe_value($data, 'data', array());
         $timestamp = $this->safe_integer($orderbook, 'ts');
-        $result = $this->parse_order_book($orderbook, $timestamp);
+        $result = $this->parse_order_book($orderbook, $symbol, $timestamp);
         $result['nonce'] = $this->safe_integer($orderbook, 'seqnum');
         return $result;
     }

@@ -187,7 +187,7 @@ class mercado(Exchange):
             'coin': market['base'],
         }
         response = self.publicGetCoinOrderbook(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

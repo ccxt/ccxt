@@ -350,7 +350,7 @@ module.exports = class braziliex extends Exchange {
             'market': this.marketId (symbol),
         };
         const response = await this.publicGetOrderbookMarket (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTrade (trade, market = undefined) {

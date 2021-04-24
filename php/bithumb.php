@@ -242,7 +242,7 @@ class bithumb extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'timestamp');
-        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', 'price', 'quantity');
+        return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
     public function parse_ticker($ticker, $market = null) {

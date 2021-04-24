@@ -348,7 +348,7 @@ class braziliex(Exchange):
             'market': self.market_id(symbol),
         }
         response = await self.publicGetOrderbookMarket(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string_2(trade, 'date_exec', 'date'))

@@ -174,7 +174,7 @@ class xbtce extends Exchange {
         $response = $this->privateGetLevel2Filter (array_merge($request, $params));
         $orderbook = $response[0];
         $timestamp = $this->safe_integer($orderbook, 'Timestamp');
-        return $this->parse_order_book($orderbook, $timestamp, 'Bids', 'Asks', 'Price', 'Volume');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'Bids', 'Asks', 'Price', 'Volume');
     }
 
     public function parse_ticker($ticker, $market = null) {

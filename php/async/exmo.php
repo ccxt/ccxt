@@ -799,7 +799,7 @@ class exmo extends Exchange {
         }
         $response = yield $this->publicGetOrderBook (array_merge($request, $params));
         $result = $this->safe_value($response, $market['id']);
-        return $this->parse_order_book($result, null, 'bid', 'ask');
+        return $this->parse_order_book($result, $symbol, null, 'bid', 'ask');
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {

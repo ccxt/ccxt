@@ -656,7 +656,7 @@ class bitpanda(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(response, 'time'))
-        return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

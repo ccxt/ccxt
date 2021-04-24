@@ -525,7 +525,7 @@ class kraken(Exchange):
         wsName = self.safe_value(marketInfo, 'wsname')
         if wsName is not None:
             orderbook = self.safe_value(result, wsName, orderbook)
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, symbol)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

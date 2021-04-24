@@ -203,7 +203,7 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id($symbol),
         );
         $orderbook = yield $this->publicGetGetboard (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'size');
+        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'size');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

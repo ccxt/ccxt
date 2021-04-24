@@ -448,7 +448,7 @@ module.exports = class btcmarkets extends Exchange {
         //     }
         //
         const timestamp = this.safeIntegerProduct (response, 'snapshotId', 0.001);
-        const orderbook = this.parseOrderBook (response, timestamp);
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger (response, 'snapshotId');
         return orderbook;
     }

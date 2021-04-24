@@ -542,7 +542,7 @@ class aax extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($response, 't'); // need unix type
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {

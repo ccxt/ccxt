@@ -447,7 +447,7 @@ class bitforex(Exchange):
         response = self.publicGetApiV1MarketDepth(self.extend(request, params))
         data = self.safe_value(response, 'data')
         timestamp = self.safe_integer(response, 'time')
-        return self.parse_order_book(data, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_order_status(self, status):
         statuses = {

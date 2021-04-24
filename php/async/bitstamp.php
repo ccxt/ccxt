@@ -418,7 +418,7 @@ class bitstamp extends Exchange {
         //
         $microtimestamp = $this->safe_integer($response, 'microtimestamp');
         $timestamp = intval($microtimestamp / 1000);
-        $orderbook = $this->parse_order_book($response, $timestamp);
+        $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
         $orderbook['nonce'] = $microtimestamp;
         return $orderbook;
     }

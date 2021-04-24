@@ -374,7 +374,7 @@ class crex24(Exchange):
         #                     {price: 0.03124, volume: 2.63462933},
         #                     {price: 0.069, volume: 0.004}            ]}
         #
-        return self.parse_order_book(response, None, 'buyLevels', 'sellLevels', 'price', 'volume')
+        return self.parse_order_book(response, symbol, None, 'buyLevels', 'sellLevels', 'price', 'volume')
 
     def parse_ticker(self, ticker, market=None):
         #

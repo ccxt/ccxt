@@ -568,7 +568,7 @@ module.exports = class lykke extends Exchange {
             const sideTimestamp = this.parse8601 (side['Timestamp']);
             timestamp = (timestamp === undefined) ? sideTimestamp : Math.max (timestamp, sideTimestamp);
         }
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume');
+        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'Price', 'Volume');
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {

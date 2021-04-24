@@ -230,7 +230,7 @@ module.exports = class indodax extends Exchange {
             'pair': this.marketId (symbol),
         };
         const orderbook = await this.publicGetPairDepth (this.extend (request, params));
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'buy', 'sell');
     }
 
     async fetchTicker (symbol, params = {}) {
