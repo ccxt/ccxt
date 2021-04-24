@@ -345,175 +345,42 @@ module.exports = class bitbns extends Exchange {
         await this.loadMarkets ();
         const response = await this.v1PostCurrentCoinBalanceEVERYTHING (params);
         //
-        // spot
-        //
         //     {
-        //         makerCommission: 10,
-        //         takerCommission: 10,
-        //         buyerCommission: 0,
-        //         sellerCommission: 0,
-        //         canTrade: true,
-        //         canWithdraw: true,
-        //         canDeposit: true,
-        //         updateTime: 1575357359602,
-        //         accountType: "MARGIN",
-        //         balances: [
-        //             { asset: "BTC", free: "0.00219821", locked: "0.00000000"  },
-        //         ]
+        //         "data":{
+        //             "availableorderMoney":0,
+        //             "availableorderBTC":0,
+        //             "availableorderXRP":0,
+        //             "inorderMoney":0,
+        //             "inorderBTC":0,
+        //             "inorderXRP":0,
+        //             "inorderNEO":0,
+        //         },
+        //         "status":1,
+        //         "error":null,
+        //         "code":200
         //     }
         //
-        // margin
-        //
-        //     {
-        //         "borrowEnabled":true,
-        //         "marginLevel":"999.00000000",
-        //         "totalAssetOfBtc":"0.00000000",
-        //         "totalLiabilityOfBtc":"0.00000000",
-        //         "totalNetAssetOfBtc":"0.00000000",
-        //         "tradeEnabled":true,
-        //         "transferEnabled":true,
-        //         "userAssets":[
-        //             {"asset":"MATIC","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"},
-        //             {"asset":"VET","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"},
-        //             {"asset":"USDT","borrowed":"0.00000000","free":"0.00000000","interest":"0.00000000","locked":"0.00000000","netAsset":"0.00000000"}
-        //         ],
-        //     }
-        //
-        // futures (fapi)
-        //
-        //     fapiPrivateGetAccount
-        //
-        //     {
-        //         "feeTier":0,
-        //         "canTrade":true,
-        //         "canDeposit":true,
-        //         "canWithdraw":true,
-        //         "updateTime":0,
-        //         "totalInitialMargin":"0.00000000",
-        //         "totalMaintMargin":"0.00000000",
-        //         "totalWalletBalance":"4.54000000",
-        //         "totalUnrealizedProfit":"0.00000000",
-        //         "totalMarginBalance":"4.54000000",
-        //         "totalPositionInitialMargin":"0.00000000",
-        //         "totalOpenOrderInitialMargin":"0.00000000",
-        //         "maxWithdrawAmount":"4.54000000",
-        //         "assets":[
-        //             {
-        //                 "asset":"USDT",
-        //                 "walletBalance":"4.54000000",
-        //                 "unrealizedProfit":"0.00000000",
-        //                 "marginBalance":"4.54000000",
-        //                 "maintMargin":"0.00000000",
-        //                 "initialMargin":"0.00000000",
-        //                 "positionInitialMargin":"0.00000000",
-        //                 "openOrderInitialMargin":"0.00000000",
-        //                 "maxWithdrawAmount":"4.54000000"
-        //             }
-        //         ],
-        //         "positions":[
-        //             {
-        //                 "symbol":"BTCUSDT",
-        //                 "initialMargin":"0.00000",
-        //                 "maintMargin":"0.00000",
-        //                 "unrealizedProfit":"0.00000000",
-        //                 "positionInitialMargin":"0.00000",
-        //                 "openOrderInitialMargin":"0.00000"
-        //             }
-        //         ]
-        //     }
-        //
-        //     fapiPrivateV2GetAccount
-        //
-        //     {
-        //         "feeTier":0,
-        //         "canTrade":true,
-        //         "canDeposit":true,
-        //         "canWithdraw":true,
-        //         "updateTime":0,
-        //         "totalInitialMargin":"0.00000000",
-        //         "totalMaintMargin":"0.00000000",
-        //         "totalWalletBalance":"0.00000000",
-        //         "totalUnrealizedProfit":"0.00000000",
-        //         "totalMarginBalance":"0.00000000",
-        //         "totalPositionInitialMargin":"0.00000000",
-        //         "totalOpenOrderInitialMargin":"0.00000000",
-        //         "totalCrossWalletBalance":"0.00000000",
-        //         "totalCrossUnPnl":"0.00000000",
-        //         "availableBalance":"0.00000000",
-        //         "maxWithdrawAmount":"0.00000000",
-        //         "assets":[
-        //             {
-        //                 "asset":"BNB",
-        //                 "walletBalance":"0.01000000",
-        //                 "unrealizedProfit":"0.00000000",
-        //                 "marginBalance":"0.01000000",
-        //                 "maintMargin":"0.00000000",
-        //                 "initialMargin":"0.00000000",
-        //                 "positionInitialMargin":"0.00000000",
-        //                 "openOrderInitialMargin":"0.00000000",
-        //                 "maxWithdrawAmount":"0.01000000",
-        //                 "crossWalletBalance":"0.01000000",
-        //                 "crossUnPnl":"0.00000000",
-        //                 "availableBalance":"0.01000000"
-        //             }
-        //         ],
-        //         "positions":[
-        //             {
-        //                 "symbol":"BTCUSDT",
-        //                 "initialMargin":"0",
-        //                 "maintMargin":"0",
-        //                 "unrealizedProfit":"0.00000000",
-        //                 "positionInitialMargin":"0",
-        //                 "openOrderInitialMargin":"0",
-        //                 "leverage":"20",
-        //                 "isolated":false,
-        //                 "entryPrice":"0.00000",
-        //                 "maxNotional":"5000000",
-        //                 "positionSide":"BOTH"
-        //             },
-        //         ]
-        //     }
-        //
-        //     fapiPrivateV2GetBalance
-        //
-        //     [
-        //         {
-        //             "accountAlias":"FzFzXquXXqoC",
-        //             "asset":"BNB",
-        //             "balance":"0.01000000",
-        //             "crossWalletBalance":"0.01000000",
-        //             "crossUnPnl":"0.00000000",
-        //             "availableBalance":"0.01000000",
-        //             "maxWithdrawAmount":"0.01000000"
-        //         }
-        //     ]
-        //
-        const result = { 'info': response };
-        if ((type === 'spot') || (type === 'margin')) {
-            const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
-            for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
-                const currencyId = this.safeString (balance, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'free');
-                account['used'] = this.safeString (balance, 'locked');
-                result[code] = account;
-            }
-        } else {
-            let balances = response;
-            if (!Array.isArray (response)) {
-                balances = this.safeValue (response, 'assets', []);
-            }
-            for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
-                const currencyId = this.safeString (balance, 'asset');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'availableBalance');
-                account['used'] = this.safeString (balance, 'initialMargin');
-                account['total'] = this.safeString2 (balance, 'marginBalance', 'balance');
-                result[code] = account;
+        const timestamp = undefined;
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const data = this.safeValue (response, 'data', {});
+        const keys = Object.keys (data);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const parts = key.split ('availableorder');
+            const numParts = parts.length;
+            if (numParts > 1) {
+                const currencyId = this.safeString (parts, 1);
+                if (currencyId !== 'Money') {
+                    const code = this.safeCurrencyCode (currencyId);
+                    const account = this.account ();
+                    account['free'] = this.safeString (data, key);
+                    account['used'] = this.safeString (data, 'inorder' + currencyId);
+                    result[code] = account;
+                }
             }
         }
         return this.parseBalance (result, false);
