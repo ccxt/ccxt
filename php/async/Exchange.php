@@ -180,7 +180,7 @@ class Exchange extends \ccxt\Exchange {
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $json_response, $headers, $body);
         $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $response_body);
 
-        return isset($json_response) ? $json_response : $result;
+        return isset($json_response) ? $json_response : $response_body;
     }
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
