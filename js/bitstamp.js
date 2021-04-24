@@ -768,7 +768,29 @@ module.exports = class bitstamp extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const balance = await this.privatePostBalance (params);
-        const result = { 'info': balance };
+        //
+        //     {
+        //         "aave_available": "0.00000000",
+        //         "aave_balance": "0.00000000",
+        //         "aave_reserved": "0.00000000",
+        //         "aave_withdrawal_fee": "0.07000000",
+        //         "aavebtc_fee": "0.000",
+        //         "aaveeur_fee": "0.000",
+        //         "aaveusd_fee": "0.000",
+        //         "bat_available": "0.00000000",
+        //         "bat_balance": "0.00000000",
+        //         "bat_reserved": "0.00000000",
+        //         "bat_withdrawal_fee": "5.00000000",
+        //         "batbtc_fee": "0.000",
+        //         "bateur_fee": "0.000",
+        //         "batusd_fee": "0.000",
+        //     }
+        //
+        const result = {
+            'info': balance,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
