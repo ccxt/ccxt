@@ -343,22 +343,7 @@ module.exports = class bitbns extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        let method = 'privateGetAccount';
-        if (type === 'future') {
-            const options = this.safeValue (this.options, 'future', {});
-            const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
-            method = this.safeString (fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
-        } else if (type === 'delivery') {
-            const options = this.safeValue (this.options, 'delivery', {});
-            const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
-            method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
-        } else if (type === 'margin') {
-            method = 'sapiGetMarginAccount';
-        }
-        const query = this.omit (params, 'type');
-        const response = await this[method] (query);
+        const response = await this.v1PostCurrentCoinBalanceEVERYTHING (params);
         //
         // spot
         //
@@ -1749,16 +1734,35 @@ module.exports = class bitbns extends Exchange {
         };
     }
 
+    nonce () {
+        return this.milliseconds ();
+    }
+
     sign (path, api = 'v1', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        this.checkRequiredCredentials ();
         const baseUrl = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length) {
-            url += '?' + this.urlencode (query);
-        }
+        const nonce = this.nonce ().toString ();
         headers = {
             'X-BITBNS-APIKEY': this.apiKey,
         };
+        if (method === 'GET') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else if (method === 'POST') {
+            body = this.json (query);
+            const auth = {
+                'timeStamp_nonce': nonce,
+                'body': body,
+            };
+            const payload = this.stringToBase64 (this.json (auth));
+            const signature = this.hmac (payload, this.secret, 'sha512');
+            headers['X-BITBNS-PAYLOAD'] = payload;
+            headers['X-BITBNS-SIGNATURE'] = signature;
+            headers['Content-Type'] = 'application/x-www-form-urlencoded';
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
