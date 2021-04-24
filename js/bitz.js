@@ -349,7 +349,12 @@ module.exports = class bitz extends Exchange {
         //     }
         //
         const balances = this.safeValue (response['data'], 'info');
-        const result = { 'info': response };
+        const timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'name');
