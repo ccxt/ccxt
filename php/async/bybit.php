@@ -322,7 +322,7 @@ class bybit extends Exchange {
                     'DOT/USDT' => 'linear',
                     'UNI/USDT' => 'linear',
                 ),
-                'defaultType' => 'linear',  // may also be inverse or inverseFuture
+                'defaultType' => 'linear',  // may also be inverse
                 'code' => 'BTC',
                 'cancelAllOrders' => array(
                     // 'method' => 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
@@ -431,8 +431,10 @@ class bybit extends Exchange {
             $inverse = !$linear;
             $symbol = $base . '/' . $quote;
             $baseQuote = $base . $quote;
+            $type = 'swap';
             if ($baseQuote !== $id) {
                 $symbol = $id;
+                $type = 'future';
             }
             $lotSizeFilter = $this->safe_value($market, 'lot_size_filter', array());
             $priceFilter = $this->safe_value($market, 'price_filter', array());
@@ -445,6 +447,10 @@ class bybit extends Exchange {
             if ($status !== null) {
                 $active = ($status === 'Trading');
             }
+            $spot = ($type === 'spot');
+            $swap = ($type === 'swap');
+            $future = ($type === 'future');
+            $option = ($type === 'option');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -454,10 +460,11 @@ class bybit extends Exchange {
                 'precision' => $precision,
                 'taker' => $this->safe_number($market, 'taker_fee'),
                 'maker' => $this->safe_number($market, 'maker_fee'),
-                'type' => 'future',
-                'spot' => false,
-                'future' => true,
-                'option' => false,
+                'type' => $type,
+                'spot' => $spot,
+                'swap' => $swap,
+                'future' => $future,
+                'option' => $option,
                 'linear' => $linear,
                 'inverse' => $inverse,
                 'limits' => array(
@@ -2198,6 +2205,37 @@ class bybit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
+    public function fetch_positions($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
+            $length = is_array($symbols) ? count($symbols) : 0;
+            if ($length !== 1) {
+                throw new ArgumentsRequired($this->id . ' fetchPositions takes exactly one symbol');
+            }
+            $request['symbol'] = $this->market_id($symbols[0]);
+        }
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
+        $response = null;
+        if ($type === 'linear') {
+            $response = yield $this->privateLinearGetPositionList (array_merge($request, $params));
+        } else if ($type === 'inverse') {
+            $response = yield $this->v2PrivateGetPositionList (array_merge($request, $params));
+        } else if ($type === 'inverseFuture') {
+            $response = yield $this->futuresPrivateGetPositionList (array_merge($request, $params));
+        }
+        // {
+        //   ret_code => 0,
+        //   ret_msg => 'OK',
+        //   ext_code => '',
+        //   ext_info => '',
+        //   result => array() or array() depending on the $request
+        // }
+        return $this->safe_value($response, 'result');
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->implode_params($this->urls['api'], array( 'hostname' => $this->hostname ));
         $type = $this->safe_string($api, 0);
@@ -2261,36 +2299,5 @@ class bybit extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
-    }
-
-    public function fetch_positions($symbols = null, $params = array ()) {
-        yield $this->load_markets();
-        $request = array();
-        if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
-            $length = is_array($symbols) ? count($symbols) : 0;
-            if ($length !== 1) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions takes exactly one symbol');
-            }
-            $request['symbol'] = $this->market_id($symbols[0]);
-        }
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
-        $response = null;
-        if ($type === 'linear') {
-            $response = yield $this->privateLinearGetPositionList (array_merge($request, $params));
-        } else if ($type === 'inverse') {
-            $response = yield $this->v2PrivateGetPositionList (array_merge($request, $params));
-        } else if ($type === 'inverseFuture') {
-            $response = yield $this->futuresPrivateGetPositionList (array_merge($request, $params));
-        }
-        // {
-        //   ret_code => 0,
-        //   ret_msg => 'OK',
-        //   ext_code => '',
-        //   ext_info => '',
-        //   result => array() or array() depending on the $request
-        // }
-        return $this->safe_value($response, 'result');
     }
 }

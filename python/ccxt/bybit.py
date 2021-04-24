@@ -330,7 +330,7 @@ class bybit(Exchange):
                     'DOT/USDT': 'linear',
                     'UNI/USDT': 'linear',
                 },
-                'defaultType': 'linear',  # may also be inverse or inverseFuture
+                'defaultType': 'linear',  # may also be inverse
                 'code': 'BTC',
                 'cancelAllOrders': {
                     # 'method': 'v2PrivatePostOrderCancelAll',  # v2PrivatePostStopOrderCancelAll
@@ -434,8 +434,10 @@ class bybit(Exchange):
             inverse = not linear
             symbol = base + '/' + quote
             baseQuote = base + quote
+            type = 'swap'
             if baseQuote != id:
                 symbol = id
+                type = 'future'
             lotSizeFilter = self.safe_value(market, 'lot_size_filter', {})
             priceFilter = self.safe_value(market, 'price_filter', {})
             precision = {
@@ -446,6 +448,10 @@ class bybit(Exchange):
             active = None
             if status is not None:
                 active = (status == 'Trading')
+            spot = (type == 'spot')
+            swap = (type == 'swap')
+            future = (type == 'future')
+            option = (type == 'option')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -455,10 +461,11 @@ class bybit(Exchange):
                 'precision': precision,
                 'taker': self.safe_number(market, 'taker_fee'),
                 'maker': self.safe_number(market, 'maker_fee'),
-                'type': 'future',
-                'spot': False,
-                'future': True,
-                'option': False,
+                'type': type,
+                'spot': spot,
+                'swap': swap,
+                'future': future,
+                'option': option,
                 'linear': linear,
                 'inverse': inverse,
                 'limits': {
@@ -2103,6 +2110,33 @@ class bybit(Exchange):
         }
         return self.safe_string(types, type, type)
 
+    def fetch_positions(self, symbols=None, params={}):
+        self.load_markets()
+        request = {}
+        if isinstance(symbols, list):
+            length = len(symbols)
+            if length != 1:
+                raise ArgumentsRequired(self.id + ' fetchPositions takes exactly one symbol')
+            request['symbol'] = self.market_id(symbols[0])
+        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        response = None
+        if type == 'linear':
+            response = self.privateLinearGetPositionList(self.extend(request, params))
+        elif type == 'inverse':
+            response = self.v2PrivateGetPositionList(self.extend(request, params))
+        elif type == 'inverseFuture':
+            response = self.futuresPrivateGetPositionList(self.extend(request, params))
+        # {
+        #   ret_code: 0,
+        #   ret_msg: 'OK',
+        #   ext_code: '',
+        #   ext_info: '',
+        #   result: [] or {} depending on the request
+        # }
+        return self.safe_value(response, 'result')
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_params(self.urls['api'], {'hostname': self.hostname})
         type = self.safe_string(api, 0)
@@ -2159,30 +2193,3 @@ class bybit(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
-
-    def fetch_positions(self, symbols=None, params={}):
-        self.load_markets()
-        request = {}
-        if isinstance(symbols, list):
-            length = len(symbols)
-            if length != 1:
-                raise ArgumentsRequired(self.id + ' fetchPositions takes exactly one symbol')
-            request['symbol'] = self.market_id(symbols[0])
-        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
-        response = None
-        if type == 'linear':
-            response = self.privateLinearGetPositionList(self.extend(request, params))
-        elif type == 'inverse':
-            response = self.v2PrivateGetPositionList(self.extend(request, params))
-        elif type == 'inverseFuture':
-            response = self.futuresPrivateGetPositionList(self.extend(request, params))
-        # {
-        #   ret_code: 0,
-        #   ret_msg: 'OK',
-        #   ext_code: '',
-        #   ext_info: '',
-        #   result: [] or {} depending on the request
-        # }
-        return self.safe_value(response, 'result')
