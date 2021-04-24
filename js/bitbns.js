@@ -20,6 +20,8 @@ module.exports = class bitbns extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'fetchBalance': true,
+                'fetchDepositAddress': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
                 'fetchStatus': true,
@@ -1510,27 +1512,22 @@ module.exports = class bitbns extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'coin': currency['id'],
-            // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
+            'symbol': currency['id'],
         };
-        // has support for the 'network' parameter
-        // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        const response = await this.sapiGetCapitalDepositAddress (this.extend (request, params));
+        const response = await this.v1PostGetCoinAddressSymbol (this.extend (request, params));
         //
         //     {
-        //         currency: 'XRP',
-        //         address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
-        //         tag: '108618262',
-        //         info: {
-        //             coin: 'XRP',
-        //             address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
-        //             tag: '108618262',
-        //             url: 'https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh'
-        //         }
+        //         "data":{
+        //             "token":"0x680dee9edfff0c397736e10b017cf6a0aee4ba31",
+        //             "expiry":"2022-04-24 22:30:11"
+        //         },
+        //         "status":1,
+        //         "error":null
         //     }
         //
-        const address = this.safeString (response, 'address');
-        const tag = this.safeString (response, 'tag');
+        const data = this.safeValue (response, 'data', {});
+        const address = this.safeString (data, 'token');
+        const tag = this.safeString (data, 'tag');
         this.checkAddress (address);
         return {
             'currency': code,
