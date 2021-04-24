@@ -72,6 +72,7 @@ const exchanges = {
     'bitz':                    require ('./js/bitz.js'),
     'bl3p':                    require ('./js/bl3p.js'),
     'bleutrade':               require ('./js/bleutrade.js'),
+    'blockbid':               require ('./js/blockbid.js'),
     'braziliex':               require ('./js/braziliex.js'),
     'btcalpha':                require ('./js/btcalpha.js'),
     'btcbox':                  require ('./js/btcbox.js'),
@@ -162,7 +163,7 @@ const exchanges = {
     'xena':                    require ('./js/xena.js'),
     'yobit':                   require ('./js/yobit.js'),
     'zaif':                    require ('./js/zaif.js'),
-    'zb':                      require ('./js/zb.js'),    
+    'zb':                      require ('./js/zb.js'),
 }
 
 //-----------------------------------------------------------------------------
