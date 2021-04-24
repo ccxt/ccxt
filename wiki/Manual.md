@@ -2554,6 +2554,8 @@ The returned balance structure is as follows:
 ```JavaScript
 {
     'info':  { ... },    // the original untouched non-parsed reply with details
+    'timestamp': 1499280391811, // Unix Timestamp in milliseconds (seconds * 1000)
+    'datetime': '2017-07-05T18:47:14.692Z', // ISO8601 datetime string with milliseconds
 
     //-------------------------------------------------------------------------
     // indexed by availability of funds first, then by currency
@@ -2586,6 +2588,8 @@ The returned balance structure is as follows:
     ...
 }
 ```
+
+The `timestamp` and `datetime` values may be undefined or missing if the underlying exchange does not provide them.
 
 Some exchanges may not return full balance info. Many exchanges do not return balances for your empty or unused accounts. In that case some currencies may be missing in returned balance structure.
 
