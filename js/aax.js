@@ -766,7 +766,12 @@ module.exports = class aax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const result = { 'info': response };
+        const timestamp = this.safeInteger (response, 'ts');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const balanceType = this.safeString (balance, 'purseType');
