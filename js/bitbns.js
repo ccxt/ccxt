@@ -26,6 +26,7 @@ module.exports = class bitbns extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchStatus': true,
                 'fetchWithdrawals': true,
@@ -755,97 +756,6 @@ module.exports = class bitbns extends Exchange {
         } else {
             return response;
         }
-    }
-
-    async fetchPositions (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const defaultType = this.safeString (this.options, 'defaultType', 'future');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        const options = this.safeValue (this.options, 'fetchPositions', {});
-        const defaultMethod = (type === 'delivery') ? 'dapiPrivateGetAccount' : 'fapiPrivateV2GetAccount';
-        const method = this.safeString (options, type, defaultMethod);
-        const response = await this[method] (params);
-        //
-        // futures, delivery
-        //
-        //     {
-        //         "feeTier":0,
-        //         "canTrade":true,
-        //         "canDeposit":true,
-        //         "canWithdraw":true,
-        //         "updateTime":0,
-        //         "assets":[
-        //             {
-        //                 "asset":"ETH",
-        //                 "walletBalance":"0.09886711",
-        //                 "unrealizedProfit":"0.00000000",
-        //                 "marginBalance":"0.09886711",
-        //                 "maintMargin":"0.00000000",
-        //                 "initialMargin":"0.00000000",
-        //                 "positionInitialMargin":"0.00000000",
-        //                 "openOrderInitialMargin":"0.00000000",
-        //                 "maxWithdrawAmount":"0.09886711",
-        //                 "crossWalletBalance":"0.09886711",
-        //                 "crossUnPnl":"0.00000000",
-        //                 "availableBalance":"0.09886711"
-        //             }
-        //         ],
-        //         "positions":[
-        //             {
-        //                 "symbol":"BTCUSD_201225",
-        //                 "initialMargin":"0",
-        //                 "maintMargin":"0",
-        //                 "unrealizedProfit":"0.00000000",
-        //                 "positionInitialMargin":"0",
-        //                 "openOrderInitialMargin":"0",
-        //                 "leverage":"20",
-        //                 "isolated":false,
-        //                 "positionSide":"BOTH",
-        //                 "entryPrice":"0.00000000",
-        //                 "maxQty":"250", // "maxNotional" on futures
-        //             },
-        //         ]
-        //     }
-        //
-        // fapiPrivateGetPositionRisk, dapiPrivateGetPositionRisk
-        //
-        // [
-        //   {
-        //     symbol: 'XRPUSD_210625',
-        //     positionAmt: '0',
-        //     entryPrice: '0.00000000',
-        //     markPrice: '0.00000000',
-        //     unRealizedProfit: '0.00000000',
-        //     liquidationPrice: '0',
-        //     leverage: '20',
-        //     maxQty: '500000',
-        //     marginType: 'cross',
-        //     isolatedMargin: '0.00000000',
-        //     isAutoAddMargin: 'false',
-        //     positionSide: 'BOTH',
-        //     notionalValue: '0',
-        //     isolatedWallet: '0'
-        //   },
-        //   {
-        //     symbol: 'BTCUSD_210326',
-        //     positionAmt: '1',
-        //     entryPrice: '60665.79999885',
-        //     markPrice: '60696.76856843',
-        //     unRealizedProfit: '0.00000084',
-        //     liquidationPrice: '58034.68208092',
-        //     leverage: '20',
-        //     maxQty: '50',
-        //     marginType: 'isolated',
-        //     isolatedMargin: '0.00008345',
-        //     isAutoAddMargin: 'false',
-        //     positionSide: 'BOTH',
-        //     notionalValue: '0.00164753',
-        //     isolatedWallet: '0.00008261'
-        //   },
-        // ]
-        //
-        return this.safeValue (response, 'positions', response);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
