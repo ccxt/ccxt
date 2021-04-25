@@ -1298,4 +1298,23 @@ module.exports = class bitbns extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        //
+        //     {"msg":"Invalid Request","status":-1,"code":400}
+        //
+        const status = this.safeString (response, 'costatusde');
+        const message = this.safeString (response, 'msg');
+        const error = (status !== undefined) && (status !== '0');
+        if (error || (message !== undefined)) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
+    }
 };
