@@ -26,6 +26,7 @@ module.exports = class bitbns extends Exchange {
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
                 'fetchStatus': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
             },
@@ -1186,62 +1187,21 @@ module.exports = class bitbns extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
+        }
         await this.loadMarkets ();
-        let currency = undefined;
-        const request = {};
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['coin'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            request['endTime'] = this.sum (since, 7776000000);
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
-        //     [
-        //       {
-        //         "id": "69e53ad305124b96b43668ceab158a18",
-        //         "amount": "28.75",
-        //         "transactionFee": "0.25",
-        //         "coin": "XRP",
-        //         "status": 6,
-        //         "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
-        //         "addressTag": "101286922",
-        //         "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
-        //         "applyTime": "2021-04-15 12:09:16",
-        //         "network": "XRP",
-        //         "transferType": 0
-        //       },
-        //       {
-        //         "id": "9a67628b16ba4988ae20d329333f16bc",
-        //         "amount": "20",
-        //         "transactionFee": "20",
-        //         "coin": "USDT",
-        //         "status": 6,
-        //         "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
-        //         "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
-        //         "applyTime": "2021-04-15 12:06:53",
-        //         "network": "ETH",
-        //         "transferType": 0
-        //       },
-        //       {
-        //         "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
-        //         "amount": "51",
-        //         "transactionFee": "1",
-        //         "coin": "USDT",
-        //         "status": 6,
-        //         "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
-        //         "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
-        //         "applyTime": "2021-04-13 12:46:59",
-        //         "network": "TRX",
-        //         "transferType": 0
-        //       }
-        //     ]
-        return this.parseTransactions (response, currency, since, limit);
+        const currency = this.currency (code);
+        const request = {
+            'symbol': currency['id'],
+            'page': 0,
+        };
+        const response = await this.v1PostWithdrawHistorySymbol (this.extend (request, params));
+        //
+        //     ...
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -1327,151 +1287,6 @@ module.exports = class bitbns extends Exchange {
             'internal': undefined,
             'fee': fee,
         };
-    }
-
-    parseTransferStatus (status) {
-        const statuses = {
-            'CONFIRMED': 'ok',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    parseTransfer (transfer, currency = undefined) {
-        //
-        // transfer
-        //
-        //     {
-        //         "tranId":13526853623
-        //     }
-        //
-        // fetchTransfers
-        //
-        //     {
-        //         timestamp: 1614640878000,
-        //         asset: 'USDT',
-        //         amount: '25',
-        //         type: 'MAIN_UMFUTURE',
-        //         status: 'CONFIRMED',
-        //         tranId: 43000126248
-        //     }
-        //
-        const id = this.safeString (transfer, 'tranId');
-        const currencyId = this.safeString (transfer, 'asset');
-        const code = this.safeCurrencyCode (currencyId, currency);
-        const amount = this.safeNumber (transfer, 'amount');
-        const type = this.safeString (transfer, 'type');
-        let fromAccount = undefined;
-        let toAccount = undefined;
-        const typesByAccount = this.safeValue (this.options, 'typesByAccount', {});
-        if (type !== undefined) {
-            const parts = type.split ('_');
-            fromAccount = this.safeValue (parts, 0);
-            toAccount = this.safeValue (parts, 1);
-            fromAccount = this.safeString (typesByAccount, fromAccount, fromAccount);
-            toAccount = this.safeString (typesByAccount, toAccount, toAccount);
-        }
-        const timestamp = this.safeInteger (transfer, 'timestamp');
-        const status = this.parseTransferStatus (this.safeString (transfer, 'status'));
-        return {
-            'info': transfer,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'currency': code,
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': status,
-        };
-    }
-
-    async transfer (code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        let type = this.safeString (params, 'type');
-        if (type === undefined) {
-            const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-            const toId = this.safeString (accountsByType, toAccount, toAccount);
-            if (fromId === undefined) {
-                const keys = Object.keys (accountsByType);
-                throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', '));
-            }
-            if (toId === undefined) {
-                const keys = Object.keys (accountsByType);
-                throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', '));
-            }
-            type = fromId + '_' + toId;
-        }
-        const request = {
-            'asset': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
-            'type': type,
-        };
-        const response = await this.sapiPostAssetTransfer (this.extend (request, params));
-        //
-        //     {
-        //         "tranId":13526853623
-        //     }
-        //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'amount': amount,
-            'currency': code,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        });
-    }
-
-    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'spot');
-        const fromAccount = this.safeString (params, 'fromAccount', defaultType);
-        const defaultTo = (fromAccount === 'future') ? 'spot' : 'future';
-        const toAccount = this.safeString (params, 'toAccount', defaultTo);
-        let type = this.safeString (params, 'type');
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount);
-        if (type === undefined) {
-            if (fromId === undefined) {
-                const keys = Object.keys (accountsByType);
-                throw new ExchangeError (this.id + ' fromAccount parameter must be one of ' + keys.join (', '));
-            }
-            if (toId === undefined) {
-                const keys = Object.keys (accountsByType);
-                throw new ExchangeError (this.id + ' toAccount parameter must be one of ' + keys.join (', '));
-            }
-            type = fromId + '_' + toId;
-        }
-        const request = {
-            'type': type,
-        };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        }
-        const response = await this.sapiGetAssetTransfer (this.extend (request, params));
-        //
-        //     {
-        //         total: 3,
-        //         rows: [
-        //             {
-        //                 timestamp: 1614640878000,
-        //                 asset: 'USDT',
-        //                 amount: '25',
-        //                 type: 'MAIN_UMFUTURE',
-        //                 status: 'CONFIRMED',
-        //                 tranId: 43000126248
-        //             },
-        //         ]
-        //     }
-        //
-        const rows = this.safeValue (response, 'rows', []);
-        return this.parseTransfers (rows, currency, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
