@@ -148,7 +148,11 @@ module.exports = class bit2c extends Exchange {
         //         }
         //     }
         //
-        const result = { 'info': balance };
+        const result = {
+            'info': balance,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
