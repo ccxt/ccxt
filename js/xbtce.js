@@ -147,7 +147,11 @@ module.exports = class xbtce extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const balances = await this.privateGetAsset (params);
-        const result = { 'info': balances };
+        const result = {
+            'info': balances,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'Currency');
