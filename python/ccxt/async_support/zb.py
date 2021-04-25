@@ -276,7 +276,11 @@ class zb(Exchange):
         # todo: use self somehow
         # permissions = response['result']['base']
         balances = self.safe_value(response['result'], 'coins')
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(balances)):
             balance = balances[i]
             #     {       enName: "BTC",

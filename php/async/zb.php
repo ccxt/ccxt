@@ -274,7 +274,11 @@ class zb extends Exchange {
         // todo => use this somehow
         // $permissions = $response['result']['base'];
         $balances = $this->safe_value($response['result'], 'coins');
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             //     {        enName => "BTC",
