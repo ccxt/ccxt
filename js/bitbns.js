@@ -402,13 +402,13 @@ module.exports = class bitbns extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            'NEW': 'open',
-            'PARTIALLY_FILLED': 'open',
-            'FILLED': 'closed',
-            'CANCELED': 'canceled',
-            'PENDING_CANCEL': 'canceling', // currently unused
-            'REJECTED': 'rejected',
-            'EXPIRED': 'expired',
+            '0': 'open',
+            // 'PARTIALLY_FILLED': 'open',
+            // 'FILLED': 'closed',
+            // 'CANCELED': 'canceled',
+            // 'PENDING_CANCEL': 'canceling', // currently unused
+            // 'REJECTED': 'rejected',
+            // 'EXPIRED': 'expired',
         };
         return this.safeString (statuses, status, status);
     }
@@ -425,34 +425,47 @@ module.exports = class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        // const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        // fetchOrder
+        //
+        //     {
+        //         "entry_id":5424475,
+        //         "btc":0.01,
+        //         "rate":2000,
+        //         "time":"2021-04-25T17:05:42.000Z",
+        //         "type":0,
+        //         "status":0,
+        //         "total":0.01,
+        //         "avg_cost":null,
+        //         "side":"BUY",
+        //         "amount":0.01,
+        //         "remaining":0.01,
+        //         "filled":0,
+        //         "cost":null,
+        //         "fee":0.05
+        //     }
+        //
+        const id = this.safeString2 (order, 'id', 'entry_id');
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const timestamp = undefined;
-        // if ('time' in order) {
-        //     timestamp = this.safeInteger (order, 'time');
-        // } else if ('transactTime' in order) {
-        //     timestamp = this.safeInteger (order, 'transactTime');
-        // }
-        // const price = this.safeNumber (order, 'price');
-        // const amount = this.safeNumber (order, 'origQty');
-        // const filled = this.safeNumber (order, 'executedQty');
-        // // - Spot/Margin market: cummulativeQuoteQty
-        // // - Futures market: cumQuote.
-        // //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
-        // const cost = this.safeNumber2 (order, 'cummulativeQuoteQty', 'cumQuote');
-        // const id = this.safeString (order, 'orderId');
-        // let type = this.safeStringLower (order, 'type');
-        // if (type === 'limit_maker') {
-        //     type = 'limit';
-        // }
-        // const side = this.safeStringLower (order, 'side');
-        // const fills = this.safeValue (order, 'fills', []);
-        // const trades = this.parseTrades (fills, market);
-        // const clientOrderId = this.safeString (order, 'clientOrderId');
-        // const timeInForce = this.safeString (order, 'timeInForce');
-        // const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
-        // const stopPrice = this.safeNumber (order, 'stopPrice');
+        const timestamp = this.parse8601 (this.safeString (order, 'time'));
+        const price = this.safeNumber (order, 'rate');
+        const amount = this.safeNumber (order, 'amount');
+        const filled = this.safeNumber (order, 'filled');
+        const remaining = this.safeNumber (order, 'remaining');
+        const average = this.safeNumber (order, 'avg_cost');
+        const cost = this.safeNumber (order, 'cost');
+        const type = this.safeStringLower (order, 'type');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const side = this.safeStringLower (order, 'side');
+        const feeCost = this.safeNumber (order, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyCode = undefined;
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -461,19 +474,19 @@ module.exports = class bitbns extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': undefined,
+            'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': undefined,
-            'price': undefined,
+            'side': side,
+            'price': price,
             'stopPrice': undefined,
-            'amount': undefined,
-            'cost': undefined,
-            'average': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'status': undefined,
-            'fee': undefined,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
             'trades': undefined,
         });
     }
