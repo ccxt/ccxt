@@ -235,7 +235,12 @@ class yobit extends Exchange {
         //     }
         //
         $balances = $this->safe_value($response, 'return', array());
-        $result = array( 'info' => $response );
+        $timestamp = $this->safe_integer($balances, 'server_time');
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         $free = $this->safe_value($balances, 'funds', array());
         $total = $this->safe_value($balances, 'funds_incl_orders', array());
         $currencyIds = is_array(array_merge($free, $total)) ? array_keys(array_merge($free, $total)) : array();
