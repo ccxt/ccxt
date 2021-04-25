@@ -103,6 +103,7 @@ module.exports = class bitbns extends Exchange {
                 'exact': {
                     '400': BadRequest, // {"msg":"Invalid Request","status":-1,"code":400}
                     '416': InsufficientFunds, // {"data":"Oops ! Not sufficient currency to sell","status":0,"error":null,"code":416}
+                    '417': OrderNotFound, // {"data":[],"status":0,"error":"Nothing to show","code":417}
                 },
                 'broad': {},
             },
@@ -414,122 +415,66 @@ module.exports = class bitbns extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // spot
+        // createOrder
         //
         //     {
-        //         "symbol": "LTCBTC",
-        //         "orderId": 1,
-        //         "clientOrderId": "myOrder1",
-        //         "price": "0.1",
-        //         "origQty": "1.0",
-        //         "executedQty": "0.0",
-        //         "cummulativeQuoteQty": "0.0",
-        //         "status": "NEW",
-        //         "timeInForce": "GTC",
-        //         "type": "LIMIT",
-        //         "side": "BUY",
-        //         "stopPrice": "0.0",
-        //         "icebergQty": "0.0",
-        //         "time": 1499827319559,
-        //         "updateTime": 1499827319559,
-        //         "isWorking": true
+        //         "data":"Successfully placed bid to purchase currency",
+        //         "status":1,
+        //         "error":null,
+        //         "id":5424475,
+        //         "code":200
         //     }
         //
-        // futures
-        //
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "orderId": 1,
-        //         "clientOrderId": "myOrder1",
-        //         "price": "0.1",
-        //         "origQty": "1.0",
-        //         "executedQty": "1.0",
-        //         "cumQuote": "10.0",
-        //         "status": "NEW",
-        //         "timeInForce": "GTC",
-        //         "type": "LIMIT",
-        //         "side": "BUY",
-        //         "stopPrice": "0.0",
-        //         "updateTime": 1499827319559
-        //     }
-        //
-        // createOrder with { "newOrderRespType": "FULL" }
-        //
-        //     {
-        //       "symbol": "BTCUSDT",
-        //       "orderId": 5403233939,
-        //       "orderListId": -1,
-        //       "clientOrderId": "x-R4BD3S825e669e75b6c14f69a2c43e",
-        //       "transactTime": 1617151923742,
-        //       "price": "0.00000000",
-        //       "origQty": "0.00050000",
-        //       "executedQty": "0.00050000",
-        //       "cummulativeQuoteQty": "29.47081500",
-        //       "status": "FILLED",
-        //       "timeInForce": "GTC",
-        //       "type": "MARKET",
-        //       "side": "BUY",
-        //       "fills": [
-        //         {
-        //           "price": "58941.63000000",
-        //           "qty": "0.00050000",
-        //           "commission": "0.00007050",
-        //           "commissionAsset": "BNB",
-        //           "tradeId": 737466631
-        //         }
-        //       ]
-        //     }
-        //
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        // const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        let timestamp = undefined;
-        if ('time' in order) {
-            timestamp = this.safeInteger (order, 'time');
-        } else if ('transactTime' in order) {
-            timestamp = this.safeInteger (order, 'transactTime');
-        }
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'origQty');
-        const filled = this.safeNumber (order, 'executedQty');
-        // - Spot/Margin market: cummulativeQuoteQty
-        // - Futures market: cumQuote.
-        //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
-        const cost = this.safeNumber2 (order, 'cummulativeQuoteQty', 'cumQuote');
-        const id = this.safeString (order, 'orderId');
-        let type = this.safeStringLower (order, 'type');
-        if (type === 'limit_maker') {
-            type = 'limit';
-        }
-        const side = this.safeStringLower (order, 'side');
-        const fills = this.safeValue (order, 'fills', []);
-        const trades = this.parseTrades (fills, market);
-        const clientOrderId = this.safeString (order, 'clientOrderId');
-        const timeInForce = this.safeString (order, 'timeInForce');
-        const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
-        const stopPrice = this.safeNumber (order, 'stopPrice');
+        const timestamp = undefined;
+        // if ('time' in order) {
+        //     timestamp = this.safeInteger (order, 'time');
+        // } else if ('transactTime' in order) {
+        //     timestamp = this.safeInteger (order, 'transactTime');
+        // }
+        // const price = this.safeNumber (order, 'price');
+        // const amount = this.safeNumber (order, 'origQty');
+        // const filled = this.safeNumber (order, 'executedQty');
+        // // - Spot/Margin market: cummulativeQuoteQty
+        // // - Futures market: cumQuote.
+        // //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
+        // const cost = this.safeNumber2 (order, 'cummulativeQuoteQty', 'cumQuote');
+        // const id = this.safeString (order, 'orderId');
+        // let type = this.safeStringLower (order, 'type');
+        // if (type === 'limit_maker') {
+        //     type = 'limit';
+        // }
+        // const side = this.safeStringLower (order, 'side');
+        // const fills = this.safeValue (order, 'fills', []);
+        // const trades = this.parseTrades (fills, market);
+        // const clientOrderId = this.safeString (order, 'clientOrderId');
+        // const timeInForce = this.safeString (order, 'timeInForce');
+        // const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
+        // const stopPrice = this.safeNumber (order, 'stopPrice');
         return this.safeOrder ({
             'info': order,
             'id': id,
-            'clientOrderId': clientOrderId,
+            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
-            'side': side,
-            'price': price,
-            'stopPrice': stopPrice,
-            'amount': amount,
-            'cost': cost,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': undefined,
+            'price': undefined,
+            'stopPrice': undefined,
+            'amount': undefined,
+            'cost': undefined,
             'average': undefined,
-            'filled': filled,
+            'filled': undefined,
             'remaining': undefined,
-            'status': status,
+            'status': undefined,
             'fee': undefined,
-            'trades': trades,
+            'trades': undefined,
         });
     }
 
@@ -590,28 +535,39 @@ module.exports = class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', market['type']);
-        const type = this.safeString (params, 'type', defaultType);
-        let method = 'privateGetOrder';
-        if (type === 'future') {
-            method = 'fapiPrivateGetOrder';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateGetOrder';
-        } else if (type === 'margin') {
-            method = 'sapiGetMarginOrder';
-        }
         const request = {
             'symbol': market['id'],
+            'entry_id': id,
         };
-        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['origClientOrderId'] = clientOrderId;
-        } else {
-            request['orderId'] = id;
-        }
-        const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this[method] (this.extend (request, query));
-        return this.parseOrder (response, market);
+        const response = await this.v1PostOrderStatusSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "entry_id":5424475,
+        //                 "btc":0.01,
+        //                 "rate":2000,
+        //                 "time":"2021-04-25T17:05:42.000Z",
+        //                 "type":0,
+        //                 "status":0,
+        //                 "total":0.01,
+        //                 "avg_cost":null,
+        //                 "side":"BUY",
+        //                 "amount":0.01,
+        //                 "remaining":0.01,
+        //                 "filled":0,
+        //                 "cost":null,
+        //                 "fee":0.05
+        //             }
+        //         ],
+        //         "status":1,
+        //         "error":null,
+        //         "code":200
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0);
+        return this.parseOrder (first, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1326,13 +1282,14 @@ module.exports = class bitbns extends Exchange {
         }
         //
         //     {"msg":"Invalid Request","status":-1,"code":400}
+        //     {"data":[],"status":0,"error":"Nothing to show","code":417}
         //
-        const status = this.safeString (response, 'status');
+        const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        const error = (status !== undefined) && (status !== '200');
+        const error = (code !== undefined) && (code !== '200');
         if (error || (message !== undefined)) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
