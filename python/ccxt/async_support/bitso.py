@@ -233,8 +233,38 @@ class bitso(Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalance(params)
-        balances = self.safe_value(response['payload'], 'balances')
-        result = {'info': response}
+        #
+        #     {
+        #       "success": True,
+        #       "payload": {
+        #         "balances": [
+        #           {
+        #             "currency": "bat",
+        #             "available": "0.00000000",
+        #             "locked": "0.00000000",
+        #             "total": "0.00000000",
+        #             "pending_deposit": "0.00000000",
+        #             "pending_withdrawal": "0.00000000"
+        #           },
+        #           {
+        #             "currency": "bch",
+        #             "available": "0.00000000",
+        #             "locked": "0.00000000",
+        #             "total": "0.00000000",
+        #             "pending_deposit": "0.00000000",
+        #             "pending_withdrawal": "0.00000000"
+        #           },
+        #         ],
+        #       },
+        #     }
+        #
+        payload = self.safe_value(response, 'payload', {})
+        balances = self.safe_value(payload, 'balances')
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
