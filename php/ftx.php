@@ -229,6 +229,7 @@ class ftx extends Exchange {
                     'Not enough balances' => '\\ccxt\\InsufficientFunds', // array("error":"Not enough balances","success":false)
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // array("error":"Invalid price","success":false)
                     'Size too small' => '\\ccxt\\InvalidOrder', // array("error":"Size too small","success":false)
+                    'Size too large' => '\\ccxt\\InvalidOrder', // array("error":"Size too large","success":false)
                     'Missing parameter price' => '\\ccxt\\InvalidOrder', // array("error":"Missing parameter price","success":false)
                     'Order not found' => '\\ccxt\\OrderNotFound', // array("error":"Order not found","success":false)
                     'Order already closed' => '\\ccxt\\InvalidOrder', // array("error":"Order already closed","success":false)

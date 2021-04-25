@@ -246,6 +246,7 @@ class ftx(Exchange):
                     'Not enough balances': InsufficientFunds,  # {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder,  # {"error":"Invalid price","success":false}
                     'Size too small': InvalidOrder,  # {"error":"Size too small","success":false}
+                    'Size too large': InvalidOrder,  # {"error":"Size too large","success":false}
                     'Missing parameter price': InvalidOrder,  # {"error":"Missing parameter price","success":false}
                     'Order not found': OrderNotFound,  # {"error":"Order not found","success":false}
                     'Order already closed': InvalidOrder,  # {"error":"Order already closed","success":false}
