@@ -20,6 +20,8 @@ module.exports = class bitbns extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'cancelOrder': true,
+                'createOrder': true,
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -96,6 +98,13 @@ module.exports = class bitbns extends Exchange {
                     'taker': 0.0025,
                     'maker': 0.0025,
                 },
+            },
+            'exceptions': {
+                'exact': {
+                    '400': BadRequest, // {"msg":"Invalid Request","status":-1,"code":400}
+                    '416': InsufficientFunds, // {"data":"Oops ! Not sufficient currency to sell","status":0,"error":null,"code":416}
+                },
+                'broad': {},
             },
         });
     }
@@ -525,13 +534,16 @@ module.exports = class bitbns extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type !== 'limit') {
+            throw new ExchangeError (this.id + ' allows limit orders only');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'side': side.toUpperCase (),
             'symbol': market['baseId'] + '_' + market['quoteId'],
             'quantity': this.amountToPrecision (symbol, amount),
-            // 'rate': this.priceToPrecision (symbol, price),
+            'rate': this.priceToPrecision (symbol, price),
             // 'target_rate': this.priceToPrecision (symbol, targetRate),
             // 't_rate': this.priceToPrecision (symbol, stopPrice),
             // 'trail_rate': this.priceToPrecision (symbol, trailRate),
@@ -560,6 +572,15 @@ module.exports = class bitbns extends Exchange {
         //     }
         // }
         const response = await this.v2PostOrders (this.extend (request, params));
+        //
+        //     {
+        //         "data":"Successfully placed bid to purchase currency",
+        //         "status":1,
+        //         "error":null,
+        //         "id":5424475,
+        //         "code":200
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
@@ -1306,9 +1327,9 @@ module.exports = class bitbns extends Exchange {
         //
         //     {"msg":"Invalid Request","status":-1,"code":400}
         //
-        const status = this.safeString (response, 'costatusde');
+        const status = this.safeString (response, 'status');
         const message = this.safeString (response, 'msg');
-        const error = (status !== undefined) && (status !== '0');
+        const error = (status !== undefined) && (status !== '200');
         if (error || (message !== undefined)) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
