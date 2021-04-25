@@ -846,7 +846,7 @@ class bithumb(Exchange):
             if status is not None:
                 if status == '0000':
                     return  # no error
-                elif status == '5600':
+                elif message == '거래 진행중인 내역이 존재하지 않습니다':
                     # https://github.com/ccxt/ccxt/issues/9017
                     return  # no error
                 feedback = self.id + ' ' + body
