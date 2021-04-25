@@ -22,6 +22,7 @@ module.exports = class bitbns extends Exchange {
             'has': {
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
                 'fetchStatus': true,
@@ -1147,49 +1148,41 @@ module.exports = class bitbns extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
+        }
         await this.loadMarkets ();
-        let currency = undefined;
-        const request = {};
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['coin'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-            // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            request['endTime'] = this.sum (since, 7776000000);
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.sapiGetCapitalDepositHisrec (this.extend (request, params));
-        //     [
-        //       {
-        //         "amount": "0.01844487",
-        //         "coin": "BCH",
-        //         "network": "BCH",
-        //         "status": 1,
-        //         "address": "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
-        //         "addressTag": "",
-        //         "txId": "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
-        //         "insertTime": 1610784980000,
-        //         "transferType": 0,
-        //         "confirmTimes": "2/2"
-        //       },
-        //       {
-        //         "amount": "4500",
-        //         "coin": "USDT",
-        //         "network": "BSC",
-        //         "status": 1,
-        //         "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
-        //         "addressTag": "",
-        //         "txId": "Internal transfer 51376627901",
-        //         "insertTime": 1618394381000,
-        //         "transferType": 1,
-        //         "confirmTimes": "1/15"
+        const currency = this.currency (code);
+        const request = {
+            'symbol': currency['id'],
+            'page': 0,
+        };
+        const response = await this.v1PostDepositHistorySymbol (this.extend (request, params));
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "type":"USDT deposited",
+        //                 "typeI":1,
+        //                 "amount":100,
+        //                 "date":"2021-04-24T14:56:04.000Z",
+        //                 "unit":"USDT",
+        //                 "factor":100,
+        //                 "fee":0,
+        //                 "delh_btc":0,
+        //                 "delh_inr":0,
+        //                 "rate":0,
+        //                 "del_btc":10000,
+        //                 "del_inr":0
+        //             }
+        //         ],
+        //         "status":1,
+        //         "error":null,
+        //         "code":200
         //     }
-        //   ]
-        return this.parseTransactions (response, currency, since, limit);
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1276,89 +1269,62 @@ module.exports = class bitbns extends Exchange {
         // fetchDeposits
         //
         //     {
-        //       "amount": "4500",
-        //       "coin": "USDT",
-        //       "network": "BSC",
-        //       "status": 1,
-        //       "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
-        //       "addressTag": "",
-        //       "txId": "Internal transfer 51376627901",
-        //       "insertTime": 1618394381000,
-        //       "transferType": 1,
-        //       "confirmTimes": "1/15"
+        //         "type":"USDT deposited",
+        //         "typeI":1,
+        //         "amount":100,
+        //         "date":"2021-04-24T14:56:04.000Z",
+        //         "unit":"USDT",
+        //         "factor":100,
+        //         "fee":0,
+        //         "delh_btc":0,
+        //         "delh_inr":0,
+        //         "rate":0,
+        //         "del_btc":10000,
+        //         "del_inr":0
         //     }
         //
         // fetchWithdrawals
         //
-        //     {
-        //       "id": "69e53ad305124b96b43668ceab158a18",
-        //       "amount": "28.75",
-        //       "transactionFee": "0.25",
-        //       "coin": "XRP",
-        //       "status": 6,
-        //       "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
-        //       "addressTag": "101286922",
-        //       "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
-        //       "applyTime": "2021-04-15 12:09:16",
-        //       "network": "XRP",
-        //       "transferType": 0
-        //     }
+        //     ...
         //
-        const id = this.safeString (transaction, 'id');
-        const address = this.safeString (transaction, 'address');
-        let tag = this.safeString (transaction, 'addressTag'); // set but unused
-        if (tag !== undefined) {
-            if (tag.length < 1) {
-                tag = undefined;
-            }
-        }
-        let txid = this.safeString (transaction, 'txId');
-        if ((txid !== undefined) && (txid.indexOf ('Internal transfer ') >= 0)) {
-            txid = txid.slice (18);
-        }
-        const currencyId = this.safeString (transaction, 'coin');
+        const currencyId = this.safeString (transaction, 'unit');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let timestamp = undefined;
-        const insertTime = this.safeInteger (transaction, 'insertTime');
-        const applyTime = this.parse8601 (this.safeString (transaction, 'applyTime'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'date'));
         let type = this.safeString (transaction, 'type');
-        if (type === undefined) {
-            if ((insertTime !== undefined) && (applyTime === undefined)) {
+        let status = undefined;
+        if (type !== undefined) {
+            if (type.indexOf ('deposit') >= 0) {
                 type = 'deposit';
-                timestamp = insertTime;
-            } else if ((insertTime === undefined) && (applyTime !== undefined)) {
+                status = 'ok';
+            } else if (type.indexOf ('withdraw') >= 0) {
                 type = 'withdrawal';
-                timestamp = applyTime;
             }
         }
-        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        // const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
-        const feeCost = this.safeNumber (transaction, 'transactionFee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const updated = this.safeInteger (transaction, 'successTime');
-        let internal = this.safeInteger (transaction, 'transferType', false);
-        internal = internal ? true : false;
         return {
             'info': transaction,
-            'id': id,
-            'txid': txid,
+            'id': undefined,
+            'txid': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': address,
-            'addressTo': address,
+            'address': undefined,
+            'addressTo': undefined,
             'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': tag,
+            'tag': undefined,
+            'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': updated,
-            'internal': internal,
+            'updated': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }
