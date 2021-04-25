@@ -250,7 +250,12 @@ class yobit(Exchange):
         #     }
         #
         balances = self.safe_value(response, 'return', {})
-        result = {'info': response}
+        timestamp = self.safe_integer(balances, 'server_time')
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
         free = self.safe_value(balances, 'funds', {})
         total = self.safe_value(balances, 'funds_incl_orders', {})
         currencyIds = list(self.extend(free, total).keys())
