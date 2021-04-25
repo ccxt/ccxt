@@ -268,7 +268,11 @@ module.exports = class zb extends Exchange {
         // todo: use this somehow
         // let permissions = response['result']['base'];
         const balances = this.safeValue (response['result'], 'coins');
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             //     {        enName: "BTC",
