@@ -773,7 +773,29 @@ class bitstamp extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $balance = $this->privatePostBalance ($params);
-        $result = array( 'info' => $balance );
+        //
+        //     {
+        //         "aave_available" => "0.00000000",
+        //         "aave_balance" => "0.00000000",
+        //         "aave_reserved" => "0.00000000",
+        //         "aave_withdrawal_fee" => "0.07000000",
+        //         "aavebtc_fee" => "0.000",
+        //         "aaveeur_fee" => "0.000",
+        //         "aaveusd_fee" => "0.000",
+        //         "bat_available" => "0.00000000",
+        //         "bat_balance" => "0.00000000",
+        //         "bat_reserved" => "0.00000000",
+        //         "bat_withdrawal_fee" => "5.00000000",
+        //         "batbtc_fee" => "0.000",
+        //         "bateur_fee" => "0.000",
+        //         "batusd_fee" => "0.000",
+        //     }
+        //
+        $result = array(
+            'info' => $balance,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
