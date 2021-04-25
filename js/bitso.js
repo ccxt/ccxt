@@ -252,7 +252,8 @@ module.exports = class bitso extends Exchange {
         //       },
         //     }
         //
-        const balances = this.safeValue (response['payload'], 'balances');
+        const payload = this.safeValue (response, 'payload', {});
+        const balances = this.safeValue (payload, 'balances');
         const result = {
             'info': response,
             'timestamp': undefined,
