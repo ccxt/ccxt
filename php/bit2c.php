@@ -150,7 +150,11 @@ class bit2c extends Exchange {
         //         }
         //     }
         //
-        $result = array( 'info' => $balance );
+        $result = array(
+            'info' => $balance,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
