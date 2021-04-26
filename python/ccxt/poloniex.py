@@ -319,7 +319,18 @@ class poloniex(Exchange):
             'account': 'all',
         }
         response = self.privatePostReturnCompleteBalances(self.extend(request, params))
-        result = {'info': response}
+        #
+        #     {
+        #         "1CR":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
+        #         "ABY":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
+        #         "AC":{"available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"},
+        #     }
+        #
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         currencyIds = list(response.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
