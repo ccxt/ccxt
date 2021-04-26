@@ -428,7 +428,11 @@ module.exports = class upbit extends Exchange {
         //         avg_krw_buy_price: "250000",
         //                  modified:  false    }   ]
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
