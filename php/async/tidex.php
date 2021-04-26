@@ -285,8 +285,39 @@ class tidex extends Exchange {
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privatePostGetInfoExt ($params);
+        //
+        //     {
+        //         "success":1,
+        //         "return":array(
+        //             "$funds":array(
+        //                 "btc":array("value":0.0000499885629956,"inOrders":0.0),
+        //                 "eth":array("value":0.000000030741708,"inOrders":0.0),
+        //                 "tdx":array("value":0.0000000155385356,"inOrders":0.0)
+        //             ),
+        //             "rights":array(
+        //                 "info":true,
+        //                 "trade":true,
+        //                 "withdraw":false
+        //             ),
+        //             "transaction_count":0,
+        //             "open_orders":0,
+        //             "server_time":1619436907
+        //         ),
+        //         "stat":{
+        //             "isSuccess":true,
+        //             "serverTime":"00:00:00.0001157",
+        //             "time":"00:00:00.0101364",
+        //             "errors":null
+        //         }
+        //     }
+        //
         $balances = $this->safe_value($response, 'return');
-        $result = array( 'info' => $balances );
+        $timestamp = $this->safe_timestamp($balances, 'server_time');
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         $funds = $this->safe_value($balances, 'funds', array());
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {

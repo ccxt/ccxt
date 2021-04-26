@@ -293,8 +293,39 @@ class tidex(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostGetInfoExt(params)
+        #
+        #     {
+        #         "success":1,
+        #         "return":{
+        #             "funds":{
+        #                 "btc":{"value":0.0000499885629956,"inOrders":0.0},
+        #                 "eth":{"value":0.000000030741708,"inOrders":0.0},
+        #                 "tdx":{"value":0.0000000155385356,"inOrders":0.0}
+        #             },
+        #             "rights":{
+        #                 "info":true,
+        #                 "trade":true,
+        #                 "withdraw":false
+        #             },
+        #             "transaction_count":0,
+        #             "open_orders":0,
+        #             "server_time":1619436907
+        #         },
+        #         "stat":{
+        #             "isSuccess":true,
+        #             "serverTime":"00:00:00.0001157",
+        #             "time":"00:00:00.0101364",
+        #             "errors":null
+        #         }
+        #     }
+        #
         balances = self.safe_value(response, 'return')
-        result = {'info': balances}
+        timestamp = self.safe_timestamp(balances, 'server_time')
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
         funds = self.safe_value(balances, 'funds', {})
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
