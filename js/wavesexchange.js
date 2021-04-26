@@ -1351,8 +1351,11 @@ module.exports = class wavesexchange extends Exchange {
         // }
         const balances = this.safeValue (totalBalance, 'balances');
         const result = {};
+        let timestamp = undefined;
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
+            const entryTimestamp = this.safeInteger (entry, 'timestamp');
+            timestamp = (timestamp === undefined) ? entryTimestamp : Math.max (timestamp, entryTimestamp);
             const issueTransaction = this.safeValue (entry, 'issueTransaction');
             const decimals = this.safeInteger (issueTransaction, 'decimals');
             const currencyId = this.safeString (entry, 'assetId');
@@ -1364,10 +1367,10 @@ module.exports = class wavesexchange extends Exchange {
                 result[code]['total'] = this.fromWei (balance, decimals);
             }
         }
-        const timestamp = this.milliseconds ();
+        const currentTimestamp = this.milliseconds ();
         const byteArray = [
             this.base58ToBinary (this.apiKey),
-            this.numberToBE (timestamp, 8),
+            this.numberToBE (currentTimestamp, 8),
         ];
         const binary = this.binaryConcatArray (byteArray);
         const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
@@ -1375,7 +1378,7 @@ module.exports = class wavesexchange extends Exchange {
         const matcherRequest = {
             'publicKey': this.apiKey,
             'signature': signature,
-            'timestamp': timestamp.toString (),
+            'timestamp': currentTimestamp.toString (),
         };
         const reservedBalance = await this.matcherGetMatcherBalanceReservedPublicKey (matcherRequest);
         // { WAVES: 200300000 }
@@ -1407,6 +1410,8 @@ module.exports = class wavesexchange extends Exchange {
                 result[code]['used'] = 0.0;
             }
         }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
         return this.parseBalance (result);
     }
 
