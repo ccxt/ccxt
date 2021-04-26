@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -24,10 +24,14 @@ module.exports = class bitbns extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
+                'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchStatus': true,
+                'fetchTicker': 'emulated',
+                'fetchTickers': true,
+                'fetchTrades': false,
                 'fetchWithdrawals': true,
             },
             'timeframes': {
@@ -298,23 +302,11 @@ module.exports = class bitbns extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        let method = 'publicGetTicker24hr';
-        if (market['future']) {
-            method = 'fapiPublicGetTicker24hr';
-        } else if (market['delivery']) {
-            method = 'dapiPublicGetTicker24hr';
+        const tickers = await this.fetchTickers (undefined, params);
+        if (symbol in tickers) {
+            return tickers[symbol];
         }
-        const response = await this[method] (this.extend (request, params));
-        if (Array.isArray (response)) {
-            const firstTicker = this.safeValue (response, 0, {});
-            return this.parseTicker (firstTicker, market);
-        }
-        return this.parseTicker (response, market);
+        throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' ticker not found');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
