@@ -26,6 +26,7 @@ module.exports = class bitbns extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchStatus': true,
@@ -445,12 +446,23 @@ module.exports = class bitbns extends Exchange {
         //         "fee":0.05
         //     }
         //
+        // fetchOpenOrders
+        //
+        //     {
+        //         "entry_id":5424475,
+        //         "btc":0.01,
+        //         "rate":2000,
+        //         "time":"2021-04-25T17:05:42.000Z",
+        //         "type":0,
+        //         "status":0
+        //     }
+        //
         const id = this.safeString2 (order, 'id', 'entry_id');
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (order, 'time'));
         const price = this.safeNumber (order, 'rate');
-        const amount = this.safeNumber (order, 'amount');
+        const amount = this.safeNumber2 (order, 'amount', 'btc');
         const filled = this.safeNumber (order, 'filled');
         const remaining = this.safeNumber (order, 'remaining');
         const average = this.safeNumber (order, 'avg_cost');
@@ -616,40 +628,6 @@ module.exports = class bitbns extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let query = undefined;
-        let type = undefined;
-        const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', market['type']);
-            type = this.safeString (params, 'type', defaultType);
-            query = this.omit (params, 'type');
-        } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
-            const symbols = this.symbols;
-            const numSymbols = symbols.length;
-            const fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
-            throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
-        } else {
-            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            type = this.safeString (params, 'type', defaultType);
-            query = this.omit (params, 'type');
-        }
-        let method = 'privateGetOpenOrders';
-        if (type === 'future') {
-            method = 'fapiPrivateGetOpenOrders';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateGetOpenOrders';
-        } else if (type === 'margin') {
-            method = 'sapiGetMarginOpenOrders';
-        }
-        const response = await this[method] (this.extend (request, query));
-        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
