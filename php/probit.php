@@ -368,8 +368,12 @@ class probit extends Exchange {
         //         )
         //     }
         //
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $data = $this->safe_value($response, 'data');
-        $result = array( 'info' => $data );
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency_id');

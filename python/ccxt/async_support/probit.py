@@ -370,8 +370,12 @@ class probit(Exchange):
         #         ]
         #     }
         #
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         data = self.safe_value(response, 'data')
-        result = {'info': data}
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency_id')
