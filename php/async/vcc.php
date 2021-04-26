@@ -304,7 +304,11 @@ class vcc extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $currencyIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
