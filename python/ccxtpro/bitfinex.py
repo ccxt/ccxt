@@ -412,7 +412,7 @@ class bitfinex(Exchange, ccxt.bitfinex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client, message):
+    def handle_orders(self, client, message, subscription):
         #
         # order snapshot
         #

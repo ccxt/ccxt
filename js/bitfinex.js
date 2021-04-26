@@ -448,7 +448,7 @@ module.exports = class bitfinex extends ccxt.bitfinex {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client, message, subscription) {
         //
         // order snapshot
         //
