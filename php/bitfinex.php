@@ -452,7 +452,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_orders($client, $message) {
+    public function handle_orders($client, $message, $subscription) {
         //
         // order snapshot
         //
