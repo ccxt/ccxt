@@ -520,26 +520,6 @@ module.exports = class bitbns extends Exchange {
             // To Place Stoploss Buy or Sell Order use rate & t_rate
             // To Place Bracket Buy or Sell Order use rate , t_rate, target_rate & trail_rate
         };
-        // // additional required fields depending on the order type
-        // let stopPriceIsRequired = false;
-        // if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
-        //     stopPriceIsRequired = true;
-        // } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-        //     stopPriceIsRequired = true;
-        // } else if (uppercaseType === 'STOP') {
-        //     stopPriceIsRequired = true;
-        // } else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-        //     stopPriceIsRequired = true;
-        // }
-        // if (stopPriceIsRequired) {
-        //     const stopPrice = this.safeNumber2 (params, 'stopPrice', 't_rate');
-        //     if (stopPrice === undefined) {
-        //         throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice or a t_rate extra param for a ' + type + ' order');
-        //     } else {
-        //         params = this.omit (params, [ 'stopPrice', 't_rate' ]);
-        //         request['t_rate'] = this.priceToPrecision (symbol, stopPrice);
-        //     }
-        // }
         const response = await this.v2PostOrders (this.extend (request, params));
         //
         //     {
