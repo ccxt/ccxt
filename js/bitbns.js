@@ -634,7 +634,7 @@ module.exports = class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtCancelOrder' : 'cancelOrder';
+        const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancelOrder' : 'cancelOrder';
         const request = {
             'entry_id': id,
             'symbol': market['baseId'] + '_' + market['quoteId'],
