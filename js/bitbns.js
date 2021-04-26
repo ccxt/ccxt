@@ -634,31 +634,14 @@ module.exports = class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', market['type']);
-        const type = this.safeString (params, 'type', defaultType);
-        // https://github.com/ccxt/ccxt/issues/6507
-        const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtCancelOrder' : 'cancelOrder';
         const request = {
-            'symbol': market['id'],
-            // 'orderId': id,
-            // 'origClientOrderId': id,
+            'entry_id': id,
+            'symbol': market['baseId'] + '_' + market['quoteId'],
+            'side': quoteSide,
         };
-        if (origClientOrderId === undefined) {
-            request['orderId'] = id;
-        } else {
-            request['origClientOrderId'] = origClientOrderId;
-        }
-        let method = 'privateDeleteOrder';
-        if (type === 'future') {
-            method = 'fapiPrivateDeleteOrder';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateDeleteOrder';
-        } else if (type === 'margin') {
-            method = 'sapiDeleteMarginOrder';
-        }
-        const query = this.omit (params, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
-        const response = await this[method] (this.extend (request, query));
-        return this.parseOrder (response);
+        const response = await this.v2PostCancel (this.extend (request, params));
+        return this.parseOrder (response, market);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
