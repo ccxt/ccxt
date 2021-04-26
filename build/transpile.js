@@ -358,8 +358,8 @@ class Transpiler {
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
-            [ /\{\}/g, 'array()' ],
-            [ /\[\]/g, 'array()' ],
+            [ /([^'])\{\}/g, '$1array()' ],
+            [ /([^'])\[\]/g, '$1array()' ],
 
         // add {}-array syntax conversions up to 20 levels deep in the same line
         ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
