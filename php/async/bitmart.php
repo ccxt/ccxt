@@ -1475,7 +1475,7 @@ class bitmart extends Exchange {
         for ($i = 0; $i < count($wallet); $i++) {
             $balance = $wallet[$i];
             $currencyId = $this->safe_string_2($balance, 'id', 'currency');
-            $currencyId = $this->safe_string($balance, 'coind_code', $currencyId);
+            $currencyId = $this->safe_string($balance, 'coin_code', $currencyId);
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string_2($balance, 'available', 'available_vol');

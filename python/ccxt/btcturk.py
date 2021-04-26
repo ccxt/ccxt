@@ -217,7 +217,11 @@ class btcturk(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(data)):
             entry = data[i]
             currencyId = self.safe_string(entry, 'asset')

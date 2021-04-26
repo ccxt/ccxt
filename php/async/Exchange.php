@@ -28,11 +28,11 @@ use Exception;
 
 include 'throttle.php';
 
-$version = '1.48.54';
+$version = '1.48.78';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.48.54';
+    const VERSION = '1.48.78';
 
     public static $loop;
     public static $kernel;
@@ -180,7 +180,7 @@ class Exchange extends \ccxt\Exchange {
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $json_response, $headers, $body);
         $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $response_body);
 
-        return isset($json_response) ? $json_response : $result;
+        return isset($json_response) ? $json_response : $response_body;
     }
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {

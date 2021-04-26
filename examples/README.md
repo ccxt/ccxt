@@ -57,6 +57,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [What is the Best Crypto Trading Bot in 2020?](https://www.hodlbot.io/blog/ultimate-guide-on-crypto-trading-bots) – Ultimate guide on crypto trading bots in 2020 by HodlBlog.
 
+[Geographic Latency in Crypto: How to Optimally Co-Locate Your AWS Trading Server to Any Exchange API](https://elitwilliams.medium.com/geographic-latency-in-crypto-how-to-optimally-co-locate-your-aws-trading-server-to-any-exchange-58965ea173a8) – An article overviewing the aspects of latencies for global cryptocurrency trading.
+
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
 
 [CC Power Analytics Part 1: How to get the data of the exchanges](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – The first part of a series of articles on cryptocurrency analytics.

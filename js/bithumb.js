@@ -896,7 +896,7 @@ module.exports = class bithumb extends Exchange {
             if (status !== undefined) {
                 if (status === '0000') {
                     return; // no error
-                } else if (status === '5600') {
+                } else if (message === '거래 진행중인 내역이 존재하지 않습니다') {
                     // https://github.com/ccxt/ccxt/issues/9017
                     return; // no error
                 }

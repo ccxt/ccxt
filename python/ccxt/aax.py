@@ -755,7 +755,12 @@ class aax(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        result = {'info': response}
+        timestamp = self.safe_integer(response, 'ts')
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
         for i in range(0, len(data)):
             balance = data[i]
             balanceType = self.safe_string(balance, 'purseType')

@@ -306,7 +306,11 @@ class vcc(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         currencyIds = list(data.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]

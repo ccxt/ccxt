@@ -300,7 +300,11 @@ module.exports = class vcc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const currencyIds = Object.keys (data);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];

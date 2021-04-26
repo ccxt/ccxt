@@ -330,7 +330,11 @@ class aofex(Exchange):
         #         ]
         #     }
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         balances = self.safe_value(response, 'result', [])
         for i in range(0, len(balances)):
             balance = balances[i]

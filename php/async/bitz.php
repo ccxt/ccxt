@@ -352,7 +352,12 @@ class bitz extends Exchange {
         //     }
         //
         $balances = $this->safe_value($response['data'], 'info');
-        $result = array( 'info' => $response );
+        $timestamp = $this->parse_microtime($this->safe_string($response, 'microtime'));
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'name');

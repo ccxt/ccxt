@@ -233,7 +233,12 @@ module.exports = class yobit extends Exchange {
         //     }
         //
         const balances = this.safeValue (response, 'return', {});
-        const result = { 'info': response };
+        const timestamp = this.safeInteger (balances, 'server_time');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         const free = this.safeValue (balances, 'funds', {});
         const total = this.safeValue (balances, 'funds_incl_orders', {});
         const currencyIds = Object.keys (this.extend (free, total));

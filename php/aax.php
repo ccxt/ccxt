@@ -769,7 +769,12 @@ class aax extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $result = array( 'info' => $response );
+        $timestamp = $this->safe_integer($response, 'ts');
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $balanceType = $this->safe_string($balance, 'purseType');

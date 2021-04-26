@@ -738,7 +738,29 @@ class bitstamp(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         balance = self.privatePostBalance(params)
-        result = {'info': balance}
+        #
+        #     {
+        #         "aave_available": "0.00000000",
+        #         "aave_balance": "0.00000000",
+        #         "aave_reserved": "0.00000000",
+        #         "aave_withdrawal_fee": "0.07000000",
+        #         "aavebtc_fee": "0.000",
+        #         "aaveeur_fee": "0.000",
+        #         "aaveusd_fee": "0.000",
+        #         "bat_available": "0.00000000",
+        #         "bat_balance": "0.00000000",
+        #         "bat_reserved": "0.00000000",
+        #         "bat_withdrawal_fee": "5.00000000",
+        #         "batbtc_fee": "0.000",
+        #         "bateur_fee": "0.000",
+        #         "batusd_fee": "0.000",
+        #     }
+        #
+        result = {
+            'info': balance,
+            'timestamp': None,
+            'datetime': None,
+        }
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]

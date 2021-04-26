@@ -1442,7 +1442,7 @@ class bitmart(Exchange):
         for i in range(0, len(wallet)):
             balance = wallet[i]
             currencyId = self.safe_string_2(balance, 'id', 'currency')
-            currencyId = self.safe_string(balance, 'coind_code', currencyId)
+            currencyId = self.safe_string(balance, 'coin_code', currencyId)
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string_2(balance, 'available', 'available_vol')

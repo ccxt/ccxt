@@ -358,7 +358,12 @@ class bitz(Exchange):
         #     }
         #
         balances = self.safe_value(response['data'], 'info')
-        result = {'info': response}
+        timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'name')
