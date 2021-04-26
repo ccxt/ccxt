@@ -1574,16 +1574,20 @@ class Exchange {
         $http_status_text = count($parts) === 3 ? $parts[2] : null;
         $raw_headers = array_slice($raw_headers_array, 1);
         foreach ($raw_headers as $raw_header) {
-            list($key, $value) = explode(': ', $raw_header);
-            // don't overwrite headers
-            // https://stackoverflow.com/a/4371395/4802441
-            if (array_key_exists($key, $response_headers)) {
-                $response_headers[$key] = $response_headers[$key] . ', ' . $value;
-            } else {
-                $response_headers[$key] = $value;
+            if (strlen($raw_header)) {
+                $exploded = explode(': ', $raw_header);
+                if (count($exploded) > 1) {
+                    list($key, $value) = $exploded;
+                    // don't overwrite headers
+                    // https://stackoverflow.com/a/4371395/4802441
+                    if (array_key_exists($key, $response_headers)) {
+                        $response_headers[$key] = $response_headers[$key] . ', ' . $value;
+                    } else {
+                        $response_headers[$key] = $value;
+                    }
+                }
             }
         }
-
         $result = mb_substr($response, $headers_length);
 
         $curl_errno = curl_errno($this->curl);
