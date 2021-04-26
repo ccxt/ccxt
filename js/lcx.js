@@ -511,8 +511,8 @@ module.exports = class lcx extends Exchange {
         const market = this.market(symbol);
         let request = {
             "Pair": market['symbol'],
-            "Amount": Number(this.amountToPrecision(symbol, amount)),
-            "Price": Number(this.priceToPrecision(symbol, price)),
+            "Amount": parseFloat(this.amountToPrecision(symbol, amount)),
+            "Price": parseFloat(this.priceToPrecision(symbol, price)),
             "OrderType": type.toUpperCase(),
             "Side": side.toUpperCase(),
         }
