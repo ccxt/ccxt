@@ -3,9 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,9 +13,9 @@ module.exports = class bitbns extends Exchange {
             'id': 'bitbns',
             'name': 'Bitbns',
             'countries': [ 'IN' ], // India
-            'rateLimit': 500,
-            'certified': true,
-            'pro': true,
+            'rateLimit': 1000,
+            'certified': false,
+            'pro': false,
             // new metainfo interface
             'has': {
                 'cancelOrder': true,
@@ -630,11 +628,6 @@ module.exports = class bitbns extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
-    }
-
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -666,212 +659,6 @@ module.exports = class bitbns extends Exchange {
         const query = this.omit (params, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response);
-    }
-
-    async cancelAllOrders (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const defaultType = this.safeString2 (this.options, 'cancelAllOrders', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        let method = 'privateDeleteOpenOrders';
-        if (type === 'margin') {
-            method = 'sapiDeleteMarginOpenOrders';
-        } else if (type === 'future') {
-            method = 'fapiPrivateDeleteAllOpenOrders';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateDeleteAllOpenOrders';
-        }
-        const response = await this[method] (this.extend (request, query));
-        if (Array.isArray (response)) {
-            return this.parseOrders (response, market);
-        } else {
-            return response;
-        }
-    }
-
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType', market['type']);
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        let method = undefined;
-        if (type === 'spot') {
-            method = 'privateGetMyTrades';
-        } else if (type === 'margin') {
-            method = 'sapiGetMarginMyTrades';
-        } else if (type === 'future') {
-            method = 'fapiPrivateGetUserTrades';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateGetUserTrades';
-        }
-        const request = {
-            'symbol': market['id'],
-        };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        // spot trade
-        //
-        //     [
-        //         {
-        //             "symbol": "BNBBTC",
-        //             "id": 28457,
-        //             "orderId": 100234,
-        //             "price": "4.00000100",
-        //             "qty": "12.00000000",
-        //             "commission": "10.10000000",
-        //             "commissionAsset": "BNB",
-        //             "time": 1499865549590,
-        //             "isBuyer": true,
-        //             "isMaker": false,
-        //             "isBestMatch": true,
-        //         }
-        //     ]
-        //
-        // futures trade
-        //
-        //     [
-        //         {
-        //             "accountId": 20,
-        //             "buyer": False,
-        //             "commission": "-0.07819010",
-        //             "commissionAsset": "USDT",
-        //             "counterPartyId": 653,
-        //             "id": 698759,
-        //             "maker": False,
-        //             "orderId": 25851813,
-        //             "price": "7819.01",
-        //             "qty": "0.002",
-        //             "quoteQty": "0.01563",
-        //             "realizedPnl": "-0.91539999",
-        //             "side": "SELL",
-        //             "symbol": "BTCUSDT",
-        //             "time": 1569514978020
-        //         }
-        //     ]
-        //
-        return this.parseTrades (response, market, since, limit);
-    }
-
-    async fetchMyDustTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        // Binance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
-        // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
-        // The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
-        //
-        await this.loadMarkets ();
-        const response = await this.wapiGetUserAssetDribbletLog (params);
-        // { success:    true,
-        //   results: { total:    1,
-        //               rows: [ {     transfered_total: "1.06468458",
-        //                         service_charge_total: "0.02172826",
-        //                                      tran_id: 2701371634,
-        //                                         logs: [ {              tranId:  2701371634,
-        //                                                   serviceChargeAmount: "0.00012819",
-        //                                                                   uid: "35103861",
-        //                                                                amount: "0.8012",
-        //                                                           operateTime: "2018-10-07 17:56:07",
-        //                                                      transferedAmount: "0.00628141",
-        //                                                             fromAsset: "ADA"                  } ],
-        //                                 operate_time: "2018-10-07 17:56:06"                                } ] } }
-        const results = this.safeValue (response, 'results', {});
-        const rows = this.safeValue (results, 'rows', []);
-        const data = [];
-        for (let i = 0; i < rows.length; i++) {
-            const logs = rows[i]['logs'];
-            for (let j = 0; j < logs.length; j++) {
-                logs[j]['isDustTrade'] = true;
-                data.push (logs[j]);
-            }
-        }
-        const trades = this.parseTrades (data, undefined, since, limit);
-        return this.filterBySinceLimit (trades, since, limit);
-    }
-
-    parseDustTrade (trade, market = undefined) {
-        // {              tranId:  2701371634,
-        //   serviceChargeAmount: "0.00012819",
-        //                   uid: "35103861",
-        //                amount: "0.8012",
-        //           operateTime: "2018-10-07 17:56:07",
-        //      transferedAmount: "0.00628141",
-        //             fromAsset: "ADA"                  },
-        const orderId = this.safeString (trade, 'tranId');
-        const timestamp = this.parse8601 (this.safeString (trade, 'operateTime'));
-        const tradedCurrency = this.safeCurrencyCode (this.safeString (trade, 'fromAsset'));
-        const earnedCurrency = this.currency ('BNB')['code'];
-        const applicantSymbol = earnedCurrency + '/' + tradedCurrency;
-        let tradedCurrencyIsQuote = false;
-        if (applicantSymbol in this.markets) {
-            tradedCurrencyIsQuote = true;
-        }
-        //
-        // Warning
-        // Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
-        // So the parser should either set the `fee.cost` to `0` or add it on top of the earned
-        // BNB `amount` (or `cost` depending on the trade `side`). The second of the above options
-        // is much more illustrative and therefore preferable.
-        //
-        const fee = {
-            'currency': earnedCurrency,
-            'cost': this.safeNumber (trade, 'serviceChargeAmount'),
-        };
-        let symbol = undefined;
-        let amount = undefined;
-        let cost = undefined;
-        let side = undefined;
-        if (tradedCurrencyIsQuote) {
-            symbol = applicantSymbol;
-            amount = this.sum (this.safeNumber (trade, 'transferedAmount'), fee['cost']);
-            cost = this.safeNumber (trade, 'amount');
-            side = 'buy';
-        } else {
-            symbol = tradedCurrency + '/' + earnedCurrency;
-            amount = this.safeNumber (trade, 'amount');
-            cost = this.sum (this.safeNumber (trade, 'transferedAmount'), fee['cost']);
-            side = 'sell';
-        }
-        let price = undefined;
-        if (cost !== undefined) {
-            if (amount) {
-                price = cost / amount;
-            }
-        }
-        const id = undefined;
-        const type = undefined;
-        const takerOrMaker = undefined;
-        return {
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': orderId,
-            'type': type,
-            'takerOrMaker': takerOrMaker,
-            'side': side,
-            'amount': amount,
-            'price': price,
-            'cost': cost,
-            'fee': fee,
-            'info': trade,
-        };
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1040,44 +827,6 @@ module.exports = class bitbns extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'info': response,
-        };
-    }
-
-    async fetchFundingFees (codes = undefined, params = {}) {
-        const response = await this.sapiGetAssetAssetDetail (params);
-        //
-        //     {
-        //       "VRAB": {
-        //         "withdrawFee": "100",
-        //         "minWithdrawAmount": "200",
-        //         "withdrawStatus": true,
-        //         "depositStatus": true
-        //       },
-        //       "NZD": {
-        //         "withdrawFee": "0",
-        //         "minWithdrawAmount": "0",
-        //         "withdrawStatus": false,
-        //         "depositStatus": false
-        //       },
-        //       "AKRO": {
-        //         "withdrawFee": "313",
-        //         "minWithdrawAmount": "626",
-        //         "withdrawStatus": true,
-        //         "depositStatus": true
-        //       },
-        //     }
-        //
-        const ids = Object.keys (response);
-        const withdrawFees = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const code = this.safeCurrencyCode (id);
-            withdrawFees[code] = this.safeNumber (response[id], 'withdrawFee');
-        }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': {},
             'info': response,
         };
     }
