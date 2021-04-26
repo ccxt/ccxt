@@ -338,6 +338,8 @@ class bitfinex2(bitfinex):
             id = self.safe_string_upper(market, 'pair')
             baseId = None
             quoteId = None
+            if id.lower().find('test') >= 0:
+                continue
             if id.find(':') >= 0:
                 parts = id.split(':')
                 baseId = parts[0]

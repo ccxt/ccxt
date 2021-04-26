@@ -329,6 +329,9 @@ module.exports = class bitfinex2 extends bitfinex {
             let id = this.safeStringUpper (market, 'pair');
             let baseId = undefined;
             let quoteId = undefined;
+            if (id.toLowerCase ().indexOf ('test') >= 0) {
+                continue;
+            }
             if (id.indexOf (':') >= 0) {
                 const parts = id.split (':');
                 baseId = parts[0];
