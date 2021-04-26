@@ -151,7 +151,11 @@ class xbtce extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetAsset ($params);
-        $result = array( 'info' => $balances );
+        $result = array(
+            'info' => $balances,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'Currency');

@@ -148,7 +148,11 @@ class xbtce(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         balances = self.privateGetAsset(params)
-        result = {'info': balances}
+        result = {
+            'info': balances,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'Currency')
