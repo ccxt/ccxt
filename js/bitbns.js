@@ -584,78 +584,38 @@ module.exports = class bitbns extends Exchange {
         return this.parseOrder (first, market);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', market['type']);
-        const type = this.safeString (params, 'type', defaultType);
-        let method = 'privateGetAllOrders';
-        if (type === 'future') {
-            method = 'fapiPrivateGetAllOrders';
-        } else if (type === 'delivery') {
-            method = 'dapiPrivateGetAllOrders';
-        } else if (type === 'margin') {
-            method = 'sapiGetMarginAllOrders';
-        }
+        const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtListOpenOrders' : 'listOpenOrders';
         const request = {
-            'symbol': market['id'],
+            'symbol': market['baseId'] + '_' + market['quoteId'],
+            'side': quoteSide,
+            'page': 0,
         };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const query = this.omit (params, 'type');
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v2PostGetordersnew (this.extend (request, params));
         //
-        //  spot
+        //     {
+        //         "data":[
+        //             {
+        //                 "entry_id":5424475,
+        //                 "btc":0.01,
+        //                 "rate":2000,
+        //                 "time":"2021-04-25T17:05:42.000Z",
+        //                 "type":0,
+        //                 "status":0
+        //             }
+        //         ],
+        //         "status":1,
+        //         "error":null,
+        //         "code":200
+        //     }
         //
-        //     [
-        //         {
-        //             "symbol": "LTCBTC",
-        //             "orderId": 1,
-        //             "clientOrderId": "myOrder1",
-        //             "price": "0.1",
-        //             "origQty": "1.0",
-        //             "executedQty": "0.0",
-        //             "cummulativeQuoteQty": "0.0",
-        //             "status": "NEW",
-        //             "timeInForce": "GTC",
-        //             "type": "LIMIT",
-        //             "side": "BUY",
-        //             "stopPrice": "0.0",
-        //             "icebergQty": "0.0",
-        //             "time": 1499827319559,
-        //             "updateTime": 1499827319559,
-        //             "isWorking": true
-        //         }
-        //     ]
-        //
-        //  futures
-        //
-        //     [
-        //         {
-        //             "symbol": "BTCUSDT",
-        //             "orderId": 1,
-        //             "clientOrderId": "myOrder1",
-        //             "price": "0.1",
-        //             "origQty": "1.0",
-        //             "executedQty": "1.0",
-        //             "cumQuote": "10.0",
-        //             "status": "NEW",
-        //             "timeInForce": "GTC",
-        //             "type": "LIMIT",
-        //             "side": "BUY",
-        //             "stopPrice": "0.0",
-        //             "updateTime": 1499827319559
-        //         }
-        //     ]
-        //
-        return this.parseOrders (response, market, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
