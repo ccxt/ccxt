@@ -363,8 +363,12 @@ module.exports = class probit extends Exchange {
         //         ]
         //     }
         //
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const data = this.safeValue (response, 'data');
-        const result = { 'info': data };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency_id');
