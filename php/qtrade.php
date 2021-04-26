@@ -693,6 +693,8 @@ class qtrade extends Exchange {
         $balances = $this->safe_value($data, 'balances', array());
         $result = array(
             'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
         );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];

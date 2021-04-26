@@ -679,6 +679,8 @@ class qtrade(Exchange):
         balances = self.safe_value(data, 'balances', [])
         result = {
             'info': response,
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(balances)):
             balance = balances[i]
