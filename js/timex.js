@@ -435,7 +435,7 @@ module.exports = class timex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const balances = await this.tradingGetBalances (params);
+        const response = await this.tradingGetBalances (params);
         //
         //     [
         //         {"currency":"BTC","totalBalance":"0","lockedBalance":"0"},
@@ -445,9 +445,13 @@ module.exports = class timex extends Exchange {
         //         {"currency":"USDT","totalBalance":"0","lockedBalance":"0"}
         //     ]
         //
-        const result = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();

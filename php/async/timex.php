@@ -442,7 +442,7 @@ class timex extends Exchange {
 
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
-        $balances = yield $this->tradingGetBalances ($params);
+        $response = yield $this->tradingGetBalances ($params);
         //
         //     array(
         //         array("currency":"BTC","totalBalance":"0","lockedBalance":"0"),
@@ -452,9 +452,13 @@ class timex extends Exchange {
         //         array("currency":"USDT","totalBalance":"0","lockedBalance":"0")
         //     )
         //
-        $result = array( 'info' => $balances );
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        for ($i = 0; $i < count($response); $i++) {
+            $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();

@@ -278,8 +278,39 @@ module.exports = class tidex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetInfoExt (params);
+        //
+        //     {
+        //         "success":1,
+        //         "return":{
+        //             "funds":{
+        //                 "btc":{"value":0.0000499885629956,"inOrders":0.0},
+        //                 "eth":{"value":0.000000030741708,"inOrders":0.0},
+        //                 "tdx":{"value":0.0000000155385356,"inOrders":0.0}
+        //             },
+        //             "rights":{
+        //                 "info":true,
+        //                 "trade":true,
+        //                 "withdraw":false
+        //             },
+        //             "transaction_count":0,
+        //             "open_orders":0,
+        //             "server_time":1619436907
+        //         },
+        //         "stat":{
+        //             "isSuccess":true,
+        //             "serverTime":"00:00:00.0001157",
+        //             "time":"00:00:00.0101364",
+        //             "errors":null
+        //         }
+        //     }
+        //
         const balances = this.safeValue (response, 'return');
-        const result = { 'info': balances };
+        const timestamp = this.safeTimestamp (balances, 'server_time');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         const funds = this.safeValue (balances, 'funds', {});
         const currencyIds = Object.keys (funds);
         for (let i = 0; i < currencyIds.length; i++) {
