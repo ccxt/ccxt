@@ -251,21 +251,26 @@ module.exports = class lcx extends Exchange {
             }
         }
         const baseVolume = this.safeFloat (ticker, 'volume');
-        const quoteVolume = this.safeFloat (ticker, 'volume');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bestBid'),
+            'bidVolume': undefined,
+            'ask': this.safeNumber (ticker, 'bestAsk'),
+            'askVolume': undefined,
+            'vwap': undefined,
             'open': open,
             'close': close,
             'last': close,
+            'previousClose': undefined,
             'change': change,
             'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
