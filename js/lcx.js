@@ -549,7 +549,7 @@ module.exports = class lcx extends Exchange {
             path = 'api' + '/' + path;
             const now = this.nonce ();
             this.checkRequiredCredentials ();
-            const payload;
+            let payload;
             if (method === 'GET') {
                 payload = method + '/' + path;
             } else {
