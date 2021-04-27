@@ -19,7 +19,7 @@ module.exports = class lcx extends Exchange {
                 'fetchMarkets': true,
                 'fetchTickers': true,
                 'fetchTicker': true,
-                'fetchOHLCV': true,
+                'fetchOHLCV': false,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchBalance': true,
@@ -331,74 +331,6 @@ module.exports = class lcx extends Exchange {
             'cost': undefined,
             'fee': undefined,
         };
-    }
-
-    normalizeOHLCVTimestamp (timestamp, timeframe, after = false) {
-        const duration = this.parseTimeframe (timeframe);
-        if (timeframe === '1M') {
-            const iso8601 = this.iso8601 (timestamp);
-            const parts = iso8601.split ('-');
-            const year = this.safeString (parts, 0);
-            let month = this.safeInteger (parts, 1);
-            if (after) {
-                month = this.sum (month, 1);
-            }
-            if (month < 10) {
-                month = '0' + month.toString ();
-            } else {
-                month = month.toString ();
-            }
-            return year + '-' + month + '-01T00:00:00.000Z';
-        } else if (timeframe === '1w') {
-            timestamp = parseInt (timestamp / 1000);
-            const firstSunday = 259200; // 1970-01-04T00:00:00.000Z
-            const difference = timestamp - firstSunday;
-            const numWeeks = this.integerDivide (difference, duration);
-            let previousSunday = this.sum (firstSunday, numWeeks * duration);
-            if (after) {
-                previousSunday = this.sum (previousSunday, duration);
-            }
-            return this.iso8601 (previousSunday * 1000);
-        } else {
-            timestamp = parseInt (timestamp / 1000);
-            timestamp = duration * parseInt (timestamp / duration);
-            if (after) {
-                timestamp = this.sum (timestamp, duration);
-            }
-            return this.iso8601 (timestamp * 1000);
-        }
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'pair': market['symbol'],
-            'resolution': this.timeframes[timeframe],
-        };
-        if (since !== undefined) {
-            request['from'] = parseInt (since / 1000);
-        } else {
-            request['from'] = parseInt ((this.nonce () - 86400000) / 1000);
-        }
-        if (params['last'] !== undefined) {
-            request['to'] = parseInt (params['last'] / 1000);
-        } else {
-            request['to'] = parseInt (this.nonce () / 1000);
-        }
-        const response = await this.publicPostMarketKline (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
-    }
-
-    parseOHLCV (ohlcv, market = undefined) {
-        return [
-            this.parse8601 (this.safeString (ohlcv, 'start_time')),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'base_volume'),
-        ];
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
