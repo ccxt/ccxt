@@ -1283,6 +1283,7 @@ module.exports = class phemex extends Exchange {
         //         ]
         //     }
         //
+        let timestamp = undefined;
         const result = { 'info': response };
         const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
@@ -1299,10 +1300,14 @@ module.exports = class phemex extends Exchange {
             const lockedTradingBalance = this.fromEn (lockedTradingBalanceEv, scale, scale, DECIMAL_PLACES);
             const lockedWithdraw = this.fromEn (lockedWithdrawEv, scale, scale, DECIMAL_PLACES);
             const used = this.sum (lockedTradingBalance, lockedWithdraw);
+            const lastUpdateTimeNs = this.safeIntegerProduct (balance, 'lastUpdateTimeNs', 0.000001);
+            timestamp = (timestamp === undefined) ? lastUpdateTimeNs : Math.max (timestamp, lastUpdateTimeNs);
             account['total'] = total;
             account['used'] = used;
             result[code] = account;
         }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
         return this.parseBalance (result);
     }
 
