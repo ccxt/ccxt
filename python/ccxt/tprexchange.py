@@ -91,8 +91,8 @@ class tprexchange(Exchange):
                     'get': [
                     ],
                     'post': [
-                        'uc/api-login',
-                        'uc/member/balance',
+                        'ucenter/api-login',
+                        'ucenter/member/balance',
                         'market/symbol-thumb',
                         'market/coins-info',
                         'market/symbol-info',
@@ -558,7 +558,7 @@ class tprexchange(Exchange):
             'key': self.key,
             'token': self.token,
         }
-        response = self.privatePostUcApiLogin(params)
+        response = self.privatePostUcenterApiLogin(params)
         loginData = response['data']
         self.options['token'] = self.safe_string(loginData, 'token')
         memberId = self.safe_string(loginData, 'id')
@@ -706,7 +706,7 @@ class tprexchange(Exchange):
         status = order['status']
         if status == 'COMPLETED':
             status = 'closed'
-        elif status == 'TRADING':
+        elif status == 'TRADING' or status == 'PAUSED':
             status = 'open'
         else:
             status = 'canceled'
@@ -841,7 +841,6 @@ class tprexchange(Exchange):
         #   'page': for pagination. In self case limit is size of every page. May be set in params
         # }
         default_order_amount_limit = 20
-        params['status'] = 'TRADING'
         if 'page' in params:
             params['pageNo'] = self.safe_string(params, 'page')
         else:
@@ -978,7 +977,7 @@ class tprexchange(Exchange):
             'uid': uid
         }
         try:
-            response = self.privatePostUcMemberBalance(params)
+            response = self.privatePostUcenterMemberBalance(params)
         except Exception as e:
             return e
         return self.parse_balance(response)
