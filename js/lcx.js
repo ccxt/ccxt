@@ -377,14 +377,14 @@ module.exports = class lcx extends Exchange {
             'resolution': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            request['from'] = since;
+            request['from'] = parseInt (since / 1000);
         } else {
-            request['from'] = this.nonce () - 86400000;
+            request['from'] = parseInt ((this.nonce () - 86400000) / 1000);
         }
         if (params['last'] !== undefined) {
-            request['to'] = params['last'];
+            request['to'] = parseInt (params['last'] / 1000);
         } else {
-            request['to'] = this.nonce ();
+            request['to'] = parseInt (this.nonce () / 1000);
         }
         const response = await this.publicPostMarketKline (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
