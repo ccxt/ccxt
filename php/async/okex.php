@@ -1533,7 +1533,11 @@ class okex extends Exchange {
         //         }
         //     )
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
@@ -1578,7 +1582,11 @@ class okex extends Exchange {
         //         ),
         //     )
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $marketId = $this->safe_string($balance, 'instrument_id');
@@ -1658,7 +1666,11 @@ class okex extends Exchange {
         //     }
         //
         // their root field name is "$info", so our $info will contain their $info
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $info = $this->safe_value($response, 'info', array());
         $ids = is_array($info) ? array_keys($info) : array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -1707,7 +1719,7 @@ class okex extends Exchange {
         //                 "margin_mode":"crossed",
         //                 "margin_ratio":"1.0913",
         //                 "realized_pnl":"-0.0006",
-        //                 "timestamp":"2019-03-25T03:46:10.336Z",
+        //                 "$timestamp":"2019-03-25T03:46:10.336Z",
         //                 "total_avail_balance":"3.0000",
         //                 "unrealized_pnl":"0.0145"
         //             }
@@ -1716,6 +1728,7 @@ class okex extends Exchange {
         //
         // their root field name is "$info", so our $info will contain their $info
         $result = array( 'info' => $response );
+        $timestamp = null;
         $info = $this->safe_value($response, 'info', array());
         for ($i = 0; $i < count($info); $i++) {
             $balance = $info[$i];
@@ -1724,12 +1737,16 @@ class okex extends Exchange {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $symbol = $this->markets_by_id[$marketId]['symbol'];
             }
+            $balanceTimestamp = $this->parse8601($this->safe_string($balance, 'timestamp'));
+            $timestamp = ($timestamp === null) ? $balanceTimestamp : max ($timestamp, $balanceTimestamp);
             $account = $this->account();
             // it may be incorrect to use total, free and used for swap accounts
             $account['total'] = $this->safe_number($balance, 'equity');
             $account['free'] = $this->safe_number($balance, 'total_avail_balance');
             $result[$symbol] = $account;
         }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->ios8601 ($timestamp);
         return $this->parse_balance($result);
     }
 

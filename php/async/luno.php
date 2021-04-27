@@ -212,7 +212,11 @@ class luno extends Exchange {
         //     }
         //
         $wallets = $this->safe_value($response, 'balance', array());
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($wallets); $i++) {
             $wallet = $wallets[$i];
             $currencyId = $this->safe_string($wallet, 'asset');

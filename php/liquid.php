@@ -462,7 +462,11 @@ class liquid extends Exchange {
         //         )
         //     }
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $crypto = $this->safe_value($response, 'crypto_accounts', array());
         $fiat = $this->safe_value($response, 'fiat_accounts', array());
         for ($i = 0; $i < count($crypto); $i++) {

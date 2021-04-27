@@ -578,7 +578,11 @@ class novadax extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency');

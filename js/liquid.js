@@ -458,7 +458,11 @@ module.exports = class liquid extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const crypto = this.safeValue (response, 'crypto_accounts', []);
         const fiat = this.safeValue (response, 'fiat_accounts', []);
         for (let i = 0; i < crypto.length; i++) {
