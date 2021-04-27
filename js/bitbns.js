@@ -106,6 +106,7 @@ module.exports = class bitbns extends Exchange {
             'exceptions': {
                 'exact': {
                     '400': BadRequest, // {"msg":"Invalid Request","status":-1,"code":400}
+                    '409': BadSymbol, // {"data":"","status":0,"error":"coin name not supplied or not yet supported","code":409}
                     '416': InsufficientFunds, // {"data":"Oops ! Not sufficient currency to sell","status":0,"error":null,"code":416}
                     '417': OrderNotFound, // {"data":[],"status":0,"error":"Nothing to show","code":417}
                 },
@@ -182,8 +183,11 @@ module.exports = class bitbns extends Exchange {
             const amountLimits = this.safeValue (marketLimits, 'amount', {});
             const priceLimits = this.safeValue (marketLimits, 'price', {});
             const costLimits = this.safeValue (marketLimits, 'cost', {});
+            const usdt = (quoteId === 'USDT');
+            const uppercaseId = usdt ? (baseId + '_' + quoteId) : baseId;
             result.push ({
                 'id': id,
+                'uppercaseId': uppercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -457,7 +461,10 @@ module.exports = class bitbns extends Exchange {
         const remaining = this.safeNumber (order, 'remaining');
         const average = this.safeNumber (order, 'avg_cost');
         const cost = this.safeNumber (order, 'cost');
-        const type = this.safeStringLower (order, 'type');
+        let type = this.safeStringLower (order, 'type');
+        if (type === '0') {
+            type = 'limit';
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeStringLower (order, 'side');
         const feeCost = this.safeNumber (order, 'fee');
@@ -525,6 +532,22 @@ module.exports = class bitbns extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancelOrder' : 'cancelOrder';
+        const request = {
+            'entry_id': id,
+            'symbol': market['uppercaseId'],
+            'side': quoteSide,
+        };
+        const response = await this.v2PostCancel (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -574,7 +597,7 @@ module.exports = class bitbns extends Exchange {
         const market = this.market (symbol);
         const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtListOpenOrders' : 'listOpenOrders';
         const request = {
-            'symbol': market['baseId'] + '_' + market['quoteId'],
+            'symbol': market['uppercaseId'],
             'side': quoteSide,
             'page': 0,
         };
@@ -600,20 +623,105 @@ module.exports = class bitbns extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchMyTrades
+        //
+        //     {
+        //         "type": "BTC Sell order executed",
+        //         "typeI": 6,
+        //         "crypto": 5000,
+        //         "amount": 35.4,
+        //         "rate": 709800,
+        //         "date": "2020-05-22T15:05:34.000Z",
+        //         "unit": "INR",
+        //         "factor": 100000000,
+        //         "fee": 0.09,
+        //         "delh_btc": -5000,
+        //         "delh_inr": 0,
+        //         "del_btc": 0,
+        //         "del_inr": 35.4,
+        //         "id": "2938823"
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString (trade, 'date'));
+        const amount = this.safeNumber (trade, 'amount');
+        const price = this.safeNumber (trade, 'rate');
+        const symbol = this.safeSymbol (undefined, market);
+        return {
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': orderId,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancelOrder' : 'cancelOrder';
         const request = {
-            'entry_id': id,
-            'symbol': market['baseId'] + '_' + market['quoteId'],
-            'side': quoteSide,
+            'symbol': market['id'],
+            'page': 0,
         };
-        const response = await this.v2PostCancel (this.extend (request, params));
-        return this.parseOrder (response, market);
+        if (since !== undefined) {
+            request['since'] = this.iso8601 (since);
+        }
+        const response = await this.v1PostListExecutedOrdersSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "type": "BTC Sell order executed",
+        //                 "typeI": 6,
+        //                 "crypto": 5000,
+        //                 "amount": 35.4,
+        //                 "rate": 709800,
+        //                 "date": "2020-05-22T15:05:34.000Z",
+        //                 "unit": "INR",
+        //                 "factor": 100000000,
+        //                 "fee": 0.09,
+        //                 "delh_btc": -5000,
+        //                 "delh_inr": 0,
+        //                 "del_btc": 0,
+        //                 "del_inr": 35.4,
+        //                 "id": "2938823"
+        //             },
+        //             {
+        //                 "type": "BTC Sell order executed",
+        //                 "typeI": 6,
+        //                 "crypto": 195000,
+        //                 "amount": 1380.58,
+        //                 "rate": 709765.5,
+        //                 "date": "2020-05-22T15:05:34.000Z",
+        //                 "unit": "INR",
+        //                 "factor": 100000000,
+        //                 "fee": 3.47,
+        //                 "delh_btc": -195000,
+        //                 "delh_inr": 0,
+        //                 "del_btc": 0,
+        //                 "del_inr": 1380.58,
+        //                 "id": "2938823"
+        //             }
+        //         ],
+        //         "status": 1,
+        //         "error": null,
+        //         "code": 200
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -827,13 +935,17 @@ module.exports = class bitbns extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         } else if (method === 'POST') {
-            body = this.json (query);
+            if (Object.keys (query).length) {
+                body = this.json (query);
+            } else {
+                body = '{}';
+            }
             const auth = {
                 'timeStamp_nonce': nonce,
                 'body': body,
             };
             const payload = this.stringToBase64 (this.json (auth));
-            const signature = this.hmac (payload, this.secret, 'sha512');
+            const signature = this.hmac (payload, this.encode (this.secret), 'sha512');
             headers['X-BITBNS-PAYLOAD'] = payload;
             headers['X-BITBNS-SIGNATURE'] = signature;
             headers['Content-Type'] = 'application/x-www-form-urlencoded';
