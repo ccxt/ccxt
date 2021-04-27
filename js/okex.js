@@ -1527,7 +1527,11 @@ module.exports = class okex extends Exchange {
         //         }
         //     ]
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -1572,7 +1576,11 @@ module.exports = class okex extends Exchange {
         //         },
         //     ]
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const marketId = this.safeString (balance, 'instrument_id');
@@ -1652,7 +1660,11 @@ module.exports = class okex extends Exchange {
         //     }
         //
         // their root field name is "info", so our info will contain their info
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const info = this.safeValue (response, 'info', {});
         const ids = Object.keys (info);
         for (let i = 0; i < ids.length; i++) {
@@ -1710,6 +1722,7 @@ module.exports = class okex extends Exchange {
         //
         // their root field name is "info", so our info will contain their info
         const result = { 'info': response };
+        let timestamp = undefined;
         const info = this.safeValue (response, 'info', []);
         for (let i = 0; i < info.length; i++) {
             const balance = info[i];
@@ -1718,12 +1731,16 @@ module.exports = class okex extends Exchange {
             if (marketId in this.markets_by_id) {
                 symbol = this.markets_by_id[marketId]['symbol'];
             }
+            const balanceTimestamp = this.parse8601 (this.safeString (balance, 'timestamp'));
+            timestamp = (timestamp === undefined) ? balanceTimestamp : Math.max (timestamp, balanceTimestamp);
             const account = this.account ();
             // it may be incorrect to use total, free and used for swap accounts
             account['total'] = this.safeNumber (balance, 'equity');
             account['free'] = this.safeNumber (balance, 'total_avail_balance');
             result[symbol] = account;
         }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.ios8601 (timestamp);
         return this.parseBalance (result);
     }
 
