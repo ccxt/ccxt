@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, BadRequest, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -96,7 +97,7 @@ module.exports = class bitbns extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'feeSide': 'get',
+                    'feeSide': 'quote',
                     'tierBased': false,
                     'percentage': true,
                     'taker': 0.0025,
@@ -644,20 +645,42 @@ module.exports = class bitbns extends Exchange {
         //         "id": "2938823"
         //     }
         //
+        market = this.safeMarket (undefined, market);
+        const orderId = this.safeString (trade, 'id');
         const timestamp = this.parse8601 (this.safeString (trade, 'date'));
-        const amount = this.safeNumber (trade, 'amount');
-        const price = this.safeNumber (trade, 'rate');
-        const symbol = this.safeSymbol (undefined, market);
+        const amountString = this.safeString (trade, 'amount');
+        const priceString = this.safeString (trade, 'rate');
+        const price = this.parseNumber (priceString);
+        const factor = this.safeString (trade, 'factor');
+        const amountScaled = Precise.stringDiv (amountString, factor);
+        const amount = this.parseNumber (amountScaled);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountScaled));
+        const symbol = market['symbol'];
+        let side = this.safeStringLower (trade, 'type');
+        if (side.indexOf ('sell') >= 0) {
+            side = 'sell';
+        } else if (side.indexOf ('buy') >= 0) {
+            side = 'buy';
+        }
+        let fee = undefined;
+        const feeCost = this.safeNumber (trade, 'fee');
+        if (feeCost !== undefined) {
+            const feeCurrencyCode = market['quote'];
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
+            'id': undefined,
             'order': orderId,
             'type': undefined,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -721,7 +744,7 @@ module.exports = class bitbns extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseOrders (data, market, since, limit);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -946,7 +969,7 @@ module.exports = class bitbns extends Exchange {
             };
             const payload = this.stringToBase64 (this.json (auth));
             const signature = this.hmac (payload, this.encode (this.secret), 'sha512');
-            headers['X-BITBNS-PAYLOAD'] = payload;
+            headers['X-BITBNS-PAYLOAD'] = this.decode (payload);
             headers['X-BITBNS-SIGNATURE'] = signature;
             headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
