@@ -1625,13 +1625,17 @@ class kucoin(Exchange):
             #         }
             #     }
             #
+            result = {
+                'info': response,
+                'timestamp': None,
+                'datetime': None,
+            }
             data = self.safe_value(response, 'data')
             currencyId = self.safe_string(data, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(data, 'availableBalance')
             account['total'] = self.safe_string(data, 'accountEquity')
-            result = {'info': response}
             result[code] = account
             return self.parse_balance(result, False)
         else:
@@ -1650,7 +1654,11 @@ class kucoin(Exchange):
             #     }
             #
             data = self.safe_value(response, 'data', [])
-            result = {'info': response}
+            result = {
+                'info': response,
+                'timestamp': None,
+                'datetime': None,
+            }
             for i in range(0, len(data)):
                 balance = data[i]
                 balanceType = self.safe_string(balance, 'type')
