@@ -208,10 +208,45 @@ module.exports = class indodax extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
+        //
+        //     {
+        //         "success":1,
+        //         "return":{
+        //             "server_time":1619562628,
+        //             "balance":{
+        //                 "idr":167,
+        //                 "btc":"0.00000000",
+        //                 "1inch":"0.00000000",
+        //             },
+        //             "balance_hold":{
+        //                 "idr":0,
+        //                 "btc":"0.00000000",
+        //                 "1inch":"0.00000000",
+        //             },
+        //             "address":{
+        //                 "btc":"1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk",
+        //                 "1inch":"0x1106c8bb3172625e1f411c221be49161dac19355",
+        //                 "xrp":"rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        //                 "zrx":"0x1106c8bb3172625e1f411c221be49161dac19355"
+        //             },
+        //             "user_id":"276011",
+        //             "name":"",
+        //             "email":"testbitcoincoid@mailforspam.com",
+        //             "profile_picture":null,
+        //             "verification_status":"unverified",
+        //             "gauth_enable":true
+        //         }
+        //     }
+        //
         const balances = this.safeValue (response, 'return', {});
         const free = this.safeValue (balances, 'balance', {});
         const used = this.safeValue (balances, 'balance_hold', {});
-        const result = { 'info': response };
+        const timestamp = this.safeTimestamp (balances, 'server_time');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         const currencyIds = Object.keys (free);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
