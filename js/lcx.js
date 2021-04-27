@@ -70,7 +70,7 @@ module.exports = class lcx extends Exchange {
                         'order/book',
                         'market/ticker',
                         'market/kline',
-                        'trade/recent'
+                        'trade/recent',
                     ],
                 },
                 'private': {
@@ -78,7 +78,7 @@ module.exports = class lcx extends Exchange {
                         'orderHistory',
                         'open',
                         'create',
-                        'cancel'
+                        'cancel',
                     ],
                     'get': [
                         'balances'
@@ -113,7 +113,7 @@ module.exports = class lcx extends Exchange {
             'options': {},
             'commonCurrencies': {
                 'LCX': 'LCX',
-                'BTC': 'Bitcoin'
+                'BTC': 'Bitcoin',
             },
         });
     }
@@ -195,16 +195,20 @@ module.exports = class lcx extends Exchange {
             'pair': market['symbol'],
         };
         const response = await this.publicPostOrderBook (this.extend (request, params));
-        let orderbook = this.safeValue (response, 'data', {});
-        if (orderbook.sell) orderbook.sell = orderbook.sell.filter (a => { if (a[1]) return a; });
-        if (orderbook.buy) orderbook.buy = orderbook.buy.filter (a => { if (a[1]) return a; });
+        const orderbook = this.safeValue (response, 'data', {});
+        if (orderbook.sell) {
+             orderbook.sell = orderbook.sell;
+        };
+        if (orderbook.buy) {
+            orderbook.buy = orderbook.buy;
+        };
         return {
             'bids': this.safeValue (orderbook, 'buy', []),
             'asks': this.safeValue (orderbook, 'sell', []),
             'timestamp': undefined,
             'datetime': undefined,
             'nonce': undefined,
-        }
+        };
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -241,7 +245,6 @@ module.exports = class lcx extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeInteger (ticker, 'lastUpdated');
-        const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeString (ticker, 'symbol');
         const close = this.safeFloat (ticker, 'lastPrice');
         const change = this.safeFloat (ticker, 'change');
@@ -278,12 +281,12 @@ module.exports = class lcx extends Exchange {
         const market = this.market (symbol);
         const request = {};
         if (symbol !== undefined) {
-            request["pair"] = market['symbol'];
+            request['pair'] = market['symbol'];
         }
         if (params['page'] !== undefined) {
-            request["offset"] = params['page'];
+            request['offset'] = params['page'];
         } else {
-            request["offset"] = 1;
+            request['offset'] = 1;
         }
         const response = await this.privatePostOrderHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data');
@@ -297,9 +300,9 @@ module.exports = class lcx extends Exchange {
             'pair': market['symbol'],
         };
         if (params['page'] !== undefined) {
-            request["offset"] = params['page'];
+            request['offset'] = params['page'];
         } else {
-            request["offset"] = 1;
+            request['offset'] = 1;
         }
         const response = await this.publicPostTradeRecent (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
@@ -309,15 +312,11 @@ module.exports = class lcx extends Exchange {
     parseTrade (trade, market = undefined) {
         const timestamp = trade[3];
         const id = trade[3];
-        let marketId = undefined;
-        const symbol = undefined
         let side = this.safeString (trade[2], 'side');
-        side = (side == 'BUY') ? "buy" : "sell";
+        side = (side === 'BUY') ? 'buy' : 'sell';
         const price = trade[0];
-        const amount = trade[1]
-        let cost = undefined;
+        const amount = trade[1];
         const orderId = undefined;
-        const feeCost = undefined;
         return {
             'id': id,
             'info': trade,
@@ -412,9 +411,9 @@ module.exports = class lcx extends Exchange {
             request['pair'] = market['symbol'];
         }
         if (params['page'] !== undefined) {
-            request["offset"] = params['page'];
+            request['offset'] = params['page'];
         } else {
-            request["offset"] = 1;
+            request['offset'] = 1;
         }
         if (since) {
             request['fromDate'] = this.iso8601 (since);
@@ -430,12 +429,12 @@ module.exports = class lcx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (symbol !== undefined) {
-            request["pair"] = market['symbol'];
+            request['pair'] = market['symbol'];
         }
         if (params['page'] !== undefined) {
-            request["offset"] = params['page'];
+            request['offset'] = params['page'];
         } else {
-            request["offset"] = 1;
+            request['offset'] = 1;
         }
         if (since) {
             request['fromDate'] = this.iso8601 (since);
@@ -443,7 +442,7 @@ module.exports = class lcx extends Exchange {
         }
         const response = await this.privatePostOrderHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        let orders = this.parseOrders (data, market, since, limit);
+        const orders = this.parseOrders (data, market, since, limit);
         return this.filterBy (orders, 'status', 'closed');
     }
 
@@ -474,12 +473,11 @@ module.exports = class lcx extends Exchange {
             remaining = this.sum (remaining, canceledAmount);
         }
         const amount = this.safeFloat (order, 'Amount');
-        let cost = this.safeFloat2 (order, 'Cost');
+        const cost = this.safeFloat2 (order, 'Cost');
         if (type === 'market') {
             price = undefined;
         }
-        let average = this.safeFloat (order, 'Average');;
-
+        const average = this.safeFloat (order, 'Average');
         let clientOrderId = this.safeString (order, 'client_order_id');
         if (clientOrderId === '') {
             clientOrderId = undefined;
@@ -509,12 +507,12 @@ module.exports = class lcx extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
-            "Pair": market['symbol'],
-            "Amount": parseFloat (this.amountToPrecision (symbol, amount)),
-            "Price": parseFloat (this.priceToPrecision (symbol, price)),
-            "OrderType": type.toUpperCase (),
-            "Side": side.toUpperCase (),
+        const request = {
+            'Pair': market['symbol'],
+            'Amount': parseFloat (this.amountToPrecision (symbol, amount)),
+            'Price': parseFloat (this.priceToPrecision (symbol, price)),
+            'OrderType': type.toUpperCase (),
+            'Side': side.toUpperCase (),
         }
         const response = await this.privatePostCreate (this.extend (request, params));
         const data = this.safeValue (response, 'data');
@@ -537,9 +535,8 @@ module.exports = class lcx extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
         const query = this.omit (params, this.extractParams (path));
-
         if (api === 'public') {
-            if (method == 'POST') {
+            if (method === 'POST') {
                 url += this.implodeParams (path, params);
                 body = this.json (query);
             } else {
@@ -549,20 +546,20 @@ module.exports = class lcx extends Exchange {
                 }
             }
         } else if (api === 'private') {
-            path = "api" + "/" + path;
+            path = 'api' + '/' + path;
             const now = this.nonce ();
             this.checkRequiredCredentials ();
-            let payload;
-            if (method == 'GET') {
-                payload = method + "/" + path;
+            const payload;
+            if (method === 'GET') {
+                payload = method + '/' + path;
             } else {
-                payload = method + "/" + path + this.json (query);
+                payload = method + '/' + path + this.json (query);
             }
-            let signature = this.hmac (payload, this.secret, 'sha256', 'base64');
+            const signature = this.hmac (payload, this.secret, 'sha256', 'base64');
             headers = {
-                "x-access-key": this.apiKey,
-                "x-access-sign": signature,
-                "x-access-timestamp": now
+                'x-access-key': this.apiKey,
+                'x-access-sign': signature,
+                'x-access-timestamp': now,
             };
             url += this.implodeParams (path, params);
             if (method === 'GET') {
@@ -573,7 +570,6 @@ module.exports = class lcx extends Exchange {
                 body = this.json (query);
             }
         }
-
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
