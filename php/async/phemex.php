@@ -1273,7 +1273,7 @@ class phemex extends Exchange {
         //                 "$balanceEv":0,
         //                 "$lockedTradingBalanceEv":0,
         //                 "$lockedWithdrawEv":0,
-        //                 "lastUpdateTimeNs":1592065834511322514,
+        //                 "$lastUpdateTimeNs":1592065834511322514,
         //                 "walletVid":0
         //             ),
         //             {
@@ -1281,12 +1281,13 @@ class phemex extends Exchange {
         //                 "$balanceEv":0,
         //                 "$lockedTradingBalanceEv":0,
         //                 "$lockedWithdrawEv":0,
-        //                 "lastUpdateTimeNs":1592065834511322514,
+        //                 "$lastUpdateTimeNs":1592065834511322514,
         //                 "walletVid":0
         //             }
         //         )
         //     }
         //
+        $timestamp = null;
         $result = array( 'info' => $response );
         $data = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
@@ -1303,10 +1304,14 @@ class phemex extends Exchange {
             $lockedTradingBalance = $this->from_en($lockedTradingBalanceEv, $scale, $scale, DECIMAL_PLACES);
             $lockedWithdraw = $this->from_en($lockedWithdrawEv, $scale, $scale, DECIMAL_PLACES);
             $used = $this->sum($lockedTradingBalance, $lockedWithdraw);
+            $lastUpdateTimeNs = $this->safe_integer_product($balance, 'lastUpdateTimeNs', 0.000001);
+            $timestamp = ($timestamp === null) ? $lastUpdateTimeNs : max ($timestamp, $lastUpdateTimeNs);
             $account['total'] = $total;
             $account['used'] = $used;
             $result[$code] = $account;
         }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
         return $this->parse_balance($result);
     }
 
