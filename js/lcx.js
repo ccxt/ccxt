@@ -19,7 +19,7 @@ module.exports = class lcx extends Exchange {
                 'fetchMarkets': true,
                 'fetchTickers': true,
                 'fetchTicker': true,
-                'fetchOHLCV': true,
+                'fetchOHLCV': false,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchBalance': true,
@@ -334,38 +334,6 @@ module.exports = class lcx extends Exchange {
         };
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'pair': market['symbol'],
-            'resolution': this.timeframes[timeframe],
-        };
-        if (since !== undefined) {
-            request['from'] = parseInt (since / 1000);
-        } else {
-            request['from'] = parseInt ((this.nonce () - 86400000) / 1000);
-        }
-        if (params['last'] !== undefined) {
-            request['to'] = parseInt (params['last'] / 1000);
-        } else {
-            request['to'] = parseInt (this.nonce () / 1000);
-        }
-        const response = await this.publicPostMarketKline (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
-    }
-
-    parseOHLCV (ohlcv, market = undefined) {
-        return [
-            this.safeInteger (ohlcv, 'timestamp'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
-        ];
-    }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         since = this.parse8601 (since);
