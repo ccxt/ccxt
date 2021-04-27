@@ -334,7 +334,6 @@ module.exports = class lcx extends Exchange {
         };
     }
 
-
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         since = this.parse8601 (since);
         const request = {};
