@@ -1708,13 +1708,17 @@ class kucoin extends Exchange {
             //         }
             //     }
             //
+            $result = array(
+                'info' => $response,
+                'timestamp' => null,
+                'datetime' => null,
+            );
             $data = $this->safe_value($response, 'data');
             $currencyId = $this->safe_string($data, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string($data, 'availableBalance');
             $account['total'] = $this->safe_string($data, 'accountEquity');
-            $result = array( 'info' => $response );
             $result[$code] = $account;
             return $this->parse_balance($result, false);
         } else {
@@ -1733,7 +1737,11 @@ class kucoin extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $result = array( 'info' => $response );
+            $result = array(
+                'info' => $response,
+                'timestamp' => null,
+                'datetime' => null,
+            );
             for ($i = 0; $i < count($data); $i++) {
                 $balance = $data[$i];
                 $balanceType = $this->safe_string($balance, 'type');
