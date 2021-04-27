@@ -1510,7 +1510,11 @@ class okex(Exchange):
         #         }
         #     ]
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -1553,7 +1557,11 @@ class okex(Exchange):
         #         },
         #     ]
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(response)):
             balance = response[i]
             marketId = self.safe_string(balance, 'instrument_id')
@@ -1628,7 +1636,11 @@ class okex(Exchange):
         #     }
         #
         # their root field name is "info", so our info will contain their info
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         info = self.safe_value(response, 'info', {})
         ids = list(info.keys())
         for i in range(0, len(ids)):
@@ -1682,6 +1694,7 @@ class okex(Exchange):
         #
         # their root field name is "info", so our info will contain their info
         result = {'info': response}
+        timestamp = None
         info = self.safe_value(response, 'info', [])
         for i in range(0, len(info)):
             balance = info[i]
@@ -1689,11 +1702,15 @@ class okex(Exchange):
             symbol = marketId
             if marketId in self.markets_by_id:
                 symbol = self.markets_by_id[marketId]['symbol']
+            balanceTimestamp = self.parse8601(self.safe_string(balance, 'timestamp'))
+            timestamp = balanceTimestamp if (timestamp is None) else max(timestamp, balanceTimestamp)
             account = self.account()
             # it may be incorrect to use total, free and used for swap accounts
             account['total'] = self.safe_number(balance, 'equity')
             account['free'] = self.safe_number(balance, 'total_avail_balance')
             result[symbol] = account
+        result['timestamp'] = timestamp
+        result['datetime'] = self.ios8601(timestamp)
         return self.parse_balance(result)
 
     def fetch_balance(self, params={}):
