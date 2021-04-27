@@ -586,6 +586,8 @@ module.exports = class idex extends Exchange {
         }
         const result = {
             'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
