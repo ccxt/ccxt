@@ -411,7 +411,7 @@ module.exports = class lcx extends Exchange {
         }
         if (since) {
             request['fromDate'] = this.iso8601 (since);
-            request['toDate'] = this.iso8601 (Date.now ());
+            request['toDate'] = this.iso8601 (this.nonce ());
         }
         const response = await this.privatePostOpen (this.extend (request, params));
         const data = this.safeValue (response, 'data');
@@ -432,7 +432,7 @@ module.exports = class lcx extends Exchange {
         }
         if (since) {
             request['fromDate'] = this.iso8601 (since);
-            request['toDate'] = this.iso8601 (Date.now ());
+            request['toDate'] = this.iso8601 (this.nonce ());
         }
         const response = await this.privatePostOrderHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data');
