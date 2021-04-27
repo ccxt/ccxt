@@ -81,7 +81,7 @@ module.exports = class lcx extends Exchange {
                         'cancel',
                     ],
                     'get': [
-                        'balances'
+                        'balances',
                     ],
                 },
             },
@@ -196,12 +196,6 @@ module.exports = class lcx extends Exchange {
         };
         const response = await this.publicPostOrderBook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data', {});
-        if (orderbook.sell) {
-             orderbook.sell = orderbook.sell;
-        };
-        if (orderbook.buy) {
-            orderbook.buy = orderbook.buy;
-        };
         return {
             'bids': this.safeValue (orderbook, 'buy', []),
             'asks': this.safeValue (orderbook, 'sell', []),
@@ -513,7 +507,7 @@ module.exports = class lcx extends Exchange {
             'Price': parseFloat (this.priceToPrecision (symbol, price)),
             'OrderType': type.toUpperCase (),
             'Side': side.toUpperCase (),
-        }
+        };
         const response = await this.privatePostCreate (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data);
@@ -549,10 +543,8 @@ module.exports = class lcx extends Exchange {
             path = 'api' + '/' + path;
             const now = this.nonce ();
             this.checkRequiredCredentials ();
-            let payload;
-            if (method === 'GET') {
-                payload = method + '/' + path;
-            } else {
+            let payload = method + '/' + path;
+            if (method !== 'GET') {
                 payload = method + '/' + path + this.json (query);
             }
             const signature = this.hmac (payload, this.secret, 'sha256', 'base64');
