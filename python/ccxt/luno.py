@@ -206,7 +206,11 @@ class luno(Exchange):
         #     }
         #
         wallets = self.safe_value(response, 'balance', [])
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(wallets)):
             wallet = wallets[i]
             currencyId = self.safe_string(wallet, 'asset')
