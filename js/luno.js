@@ -209,7 +209,11 @@ module.exports = class luno extends Exchange {
         //     }
         //
         const wallets = this.safeValue (response, 'balance', []);
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < wallets.length; i++) {
             const wallet = wallets[i];
             const currencyId = this.safeString (wallet, 'asset');
