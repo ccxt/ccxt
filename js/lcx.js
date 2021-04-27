@@ -19,7 +19,7 @@ module.exports = class lcx extends Exchange {
                 'fetchMarkets': true,
                 'fetchTickers': true,
                 'fetchTicker': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchBalance': true,
@@ -305,12 +305,13 @@ module.exports = class lcx extends Exchange {
         }
         const response = await this.publicPostTradeRecent (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, undefined, since, limit);
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = trade[3];
-        const id = trade[3];
+        const timestamp = trade[3] * 1000;
+        const id = trade[3].toString ();
+        const symbol = this.safeString (market, 'symbol');
         let side = this.safeString (trade[2], 'side');
         side = (side === 'BUY') ? 'buy' : 'sell';
         const price = trade[0];
@@ -321,7 +322,7 @@ module.exports = class lcx extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': undefined,
+            'symbol': symbol,
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -331,6 +332,39 @@ module.exports = class lcx extends Exchange {
             'cost': undefined,
             'fee': undefined,
         };
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['symbol'],
+            'resolution': this.timeframes[timeframe],
+        };
+        if (since !== undefined) {
+            request['from'] = parseInt (since / 1000);
+        } else {
+            request['from'] = parseInt ((this.nonce () - 86400000) / 1000);
+        }
+        if (params['last'] !== undefined) {
+            request['to'] = parseInt (params['last'] / 1000);
+        } else {
+            request['to'] = parseInt (this.nonce () / 1000);
+        }
+        const response = await this.publicPostMarketKline (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        return [
+            this.safeInteger (ohlcv, 'timestamp'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
