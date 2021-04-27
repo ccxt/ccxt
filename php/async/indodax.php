@@ -211,10 +211,45 @@ class indodax extends Exchange {
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privatePostGetInfo ($params);
+        //
+        //     {
+        //         "success":1,
+        //         "return":{
+        //             "server_time":1619562628,
+        //             "balance":array(
+        //                 "idr":167,
+        //                 "btc":"0.00000000",
+        //                 "1inch":"0.00000000",
+        //             ),
+        //             "balance_hold":array(
+        //                 "idr":0,
+        //                 "btc":"0.00000000",
+        //                 "1inch":"0.00000000",
+        //             ),
+        //             "address":array(
+        //                 "btc":"1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk",
+        //                 "1inch":"0x1106c8bb3172625e1f411c221be49161dac19355",
+        //                 "xrp":"rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        //                 "zrx":"0x1106c8bb3172625e1f411c221be49161dac19355"
+        //             ),
+        //             "user_id":"276011",
+        //             "name":"",
+        //             "email":"testbitcoincoid@mailforspam.com",
+        //             "profile_picture":null,
+        //             "verification_status":"unverified",
+        //             "gauth_enable":true
+        //         }
+        //     }
+        //
         $balances = $this->safe_value($response, 'return', array());
         $free = $this->safe_value($balances, 'balance', array());
         $used = $this->safe_value($balances, 'balance_hold', array());
-        $result = array( 'info' => $response );
+        $timestamp = $this->safe_timestamp($balances, 'server_time');
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         $currencyIds = is_array($free) ? array_keys($free) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];

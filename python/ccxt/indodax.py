@@ -210,10 +210,45 @@ class indodax(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostGetInfo(params)
+        #
+        #     {
+        #         "success":1,
+        #         "return":{
+        #             "server_time":1619562628,
+        #             "balance":{
+        #                 "idr":167,
+        #                 "btc":"0.00000000",
+        #                 "1inch":"0.00000000",
+        #             },
+        #             "balance_hold":{
+        #                 "idr":0,
+        #                 "btc":"0.00000000",
+        #                 "1inch":"0.00000000",
+        #             },
+        #             "address":{
+        #                 "btc":"1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk",
+        #                 "1inch":"0x1106c8bb3172625e1f411c221be49161dac19355",
+        #                 "xrp":"rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        #                 "zrx":"0x1106c8bb3172625e1f411c221be49161dac19355"
+        #             },
+        #             "user_id":"276011",
+        #             "name":"",
+        #             "email":"testbitcoincoid@mailforspam.com",
+        #             "profile_picture":null,
+        #             "verification_status":"unverified",
+        #             "gauth_enable":true
+        #         }
+        #     }
+        #
         balances = self.safe_value(response, 'return', {})
         free = self.safe_value(balances, 'balance', {})
         used = self.safe_value(balances, 'balance_hold', {})
-        result = {'info': response}
+        timestamp = self.safe_timestamp(balances, 'server_time')
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
         currencyIds = list(free.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
