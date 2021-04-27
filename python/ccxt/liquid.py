@@ -460,7 +460,11 @@ class liquid(Exchange):
         #         ]
         #     }
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         crypto = self.safe_value(response, 'crypto_accounts', [])
         fiat = self.safe_value(response, 'fiat_accounts', [])
         for i in range(0, len(crypto)):
