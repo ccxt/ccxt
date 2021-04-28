@@ -19,7 +19,6 @@ module.exports = class lcx extends Exchange {
                 'fetchMarkets': true,
                 'fetchTickers': true,
                 'fetchTicker': true,
-                'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchBalance': true,
@@ -332,47 +331,6 @@ module.exports = class lcx extends Exchange {
             'cost': undefined,
             'fee': undefined,
         };
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'pair': market['symbol'],
-            'resolution': this.timeframes[timeframe],
-        };
-        if (since !== undefined) {
-            request['from'] = since;
-        } else {
-            request['from'] = this.nonce () - 86400000;
-        }
-        if (request['from'] !== undefined) {
-            if (limit === undefined) limit = 1000;
-            const duration = this.parseTimeframe (timeframe);
-            const endTime = this.sum (request['from'], limit * duration * 1000 - 1);
-            const now = this.milliseconds ();
-            request['to'] = Math.min (now, endTime);
-        }
-        if (request['from'] !== undefined) {
-            request['from'] = parseInt (request['from'] / 1000);
-        }
-        if (request['to'] !== undefined) {
-            request['to'] = parseInt (request['to'] / 1000);
-        }
-        const response = await this.publicPostMarketKline (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
-    }
-
-    parseOHLCV (ohlcv, market = undefined) {
-        return [
-            this.safeInteger (ohlcv, 'timestamp'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
-        ];
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
