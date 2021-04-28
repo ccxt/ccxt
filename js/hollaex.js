@@ -591,7 +591,12 @@ module.exports = class hollaex extends Exchange {
         //         // ...
         //     }
         //
-        const result = { 'info': response };
+        const timestamp = this.parse8601 (this.safeString (response, 'updated_at'));
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         const currencyIds = Object.keys (this.currencies_by_id);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
