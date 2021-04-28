@@ -1710,7 +1710,7 @@ class okex(Exchange):
             account['free'] = self.safe_number(balance, 'total_avail_balance')
             result[symbol] = account
         result['timestamp'] = timestamp
-        result['datetime'] = self.ios8601(timestamp)
+        result['datetime'] = self.iso8601(timestamp)
         return self.parse_balance(result)
 
     async def fetch_balance(self, params={}):
