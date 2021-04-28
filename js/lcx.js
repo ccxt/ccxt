@@ -304,7 +304,7 @@ module.exports = class lcx extends Exchange {
         const id = trade[3].toString ();
         const symbol = this.safeString (market, 'symbol');
         let side = this.safeString (trade[2], 'side');
-        side = (side === 'BUY') ? 'buy': 'sell';
+        side = (side === 'BUY') ? 'buy' : 'sell';
         const price = trade[0];
         const amount = trade[1];
         const orderId = id;
