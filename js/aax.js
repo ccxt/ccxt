@@ -13,21 +13,21 @@ module.exports = class aax extends ccxt.aax {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchOHLCV': false, // missing on the exchange side
+                // 'watchOHLCV': false, // missing on the exchange side
                 'watchOrderBook': true,
-                'watchTicker': true,
-                'watchTickers': false, // for now
+                // 'watchTicker': true,
+                // 'watchTickers': false, // for now
                 'watchTrades': true,
-                'watchBalance': false,
-                'watchStatus': false, // for now
-                'watchOrders': true,
-                'watchMyTrades': true,
+                // 'watchBalance': false,
+                // 'watchStatus': false, // for now
+                // 'watchOrders': true,
+                // 'watchMyTrades': true,
             },
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://realtime.aax.com/marketdata',
-                        'private': 'wss://stream.aax.com/notification',
+                        'public': 'wss://realtime.aax.com/marketdata/v2/',
+                        'private': 'wss://stream.aax.com/notification/v2/',
                     },
                 },
             },
@@ -39,6 +39,52 @@ module.exports = class aax extends ccxt.aax {
         });
     }
 
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const name = 'trade';
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = market['id'] + '@' + name;
+        const url = this.urls['api']['ws']['public'];
+        const subscribe = {
+            'e': 'subscribe',
+            'stream': messageHash,
+        };
+        const request = this.extend (subscribe, params);
+        const trades = await this.watch (url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrades (client, message, subscription) {
+        //
+        //     {
+        //         e: 'BTCUSDT@trade',
+        //         p: '-54408.21000000',
+        //         q: '0.007700',
+        //         t: 1619644477710
+        //     }
+        //
+        const messageHash = this.safeString (message, 'e');
+        const parts = messageHash.split ('@');
+        const marketId = this.safeString (parts, 0);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        // const timestamp = this.safeInteger (message, 't');
+        // const amount = this.safeNumber (message, 'q');
+        // const price = this.safeNumber (message, 'p');
+        const trade = this.parseTrade (message, market);
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        stored.append (trade);
+        client.resolve (stored, messageHash);
+    }
+
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         const name = 'book';
         await this.loadMarkets ();
@@ -48,7 +94,7 @@ module.exports = class aax extends ccxt.aax {
             throw new NotSupported (this.id + ' watchOrderBook() accepts limit values of 20 or 50 only');
         }
         const messageHash = market['id'] + '@' + name + '_' + limit.toString ();
-        const url = this.urls['api']['ws']['public'] + '/' + this.version + '/';
+        const url = this.urls['api']['ws']['public'];
         const subscribe = {
             'e': 'subscribe',
             'stream': messageHash,
@@ -107,11 +153,12 @@ module.exports = class aax extends ccxt.aax {
         client.resolve (orderbook, messageHash);
     }
 
-    handleSystem (client, message) {
+    handleSystemStatus (client, message) {
         // { e: 'system', status: [ { all: 'active' } ] }
     }
 
     handleSubscriptionStatus (client, message) {
+        // { e: 'reply', status: 'ok' }
     }
 
     handleMessage (client, message) {
@@ -139,6 +186,10 @@ module.exports = class aax extends ccxt.aax {
         //         t: 1619626148086
         //     }
         //
+        // server may publish empty events if there is nothing to send right after a new connection is established
+        //
+        //     {"e":"empty"}
+        //
         const e = this.safeString (message, 'e');
         const parts = e.split ('@');
         const numParts = parts.length;
@@ -151,11 +202,11 @@ module.exports = class aax extends ccxt.aax {
             name = this.safeString (parts, 0);
         }
         const methods = {
-            'system': this.handleSystem,
+            'reply': this.handleSubscriptionStatus,
+            'system': this.handleSystemStatus,
             'book': this.handleOrderBook,
-            'subscribe': this.handleSubscriptionStatus,
-            'ticker': this.handleTicker,
-            'received': this.handleOrder,
+            'trade': this.handleTrades,
+            'empty': undefined, // server may publish empty events if there is nothing to send right after a new connection is established
             'open': this.handleOrder,
             'change': this.handleOrder,
             'done': this.handleOrder,
