@@ -591,7 +591,12 @@ class hollaex extends Exchange {
         //         // ...
         //     }
         //
-        $result = array( 'info' => $response );
+        $timestamp = $this->parse8601($this->safe_string($response, 'updated_at'));
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         $currencyIds = is_array($this->currencies_by_id) ? array_keys($this->currencies_by_id) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];

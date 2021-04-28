@@ -576,7 +576,12 @@ class hollaex(Exchange):
         #         # ...
         #     }
         #
-        result = {'info': response}
+        timestamp = self.parse8601(self.safe_string(response, 'updated_at'))
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
         currencyIds = list(self.currencies_by_id.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
