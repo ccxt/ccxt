@@ -356,8 +356,8 @@ module.exports = class lcx extends Exchange {
                 request['to'] = Math.min (now, endTime);
             }
         }
-        if(request['from'] !== undefined) request['from'] = parseInt (request['from'] / 1000);
-        if(request['to'] !== undefined) request['to'] = parseInt (request['to'] / 1000);
+        if (request['from'] !== undefined) request['from'] = parseInt (request['from'] / 1000);
+        if (request['to'] !== undefined) request['to'] = parseInt (request['to'] / 1000);
         const response = await this.publicPostMarketKline (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOHLCVs (data, market, timeframe, since, limit);
