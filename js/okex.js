@@ -1740,7 +1740,7 @@ module.exports = class okex extends Exchange {
             result[symbol] = account;
         }
         result['timestamp'] = timestamp;
-        result['datetime'] = this.ios8601 (timestamp);
+        result['datetime'] = this.iso8601 (timestamp);
         return this.parseBalance (result);
     }
 
