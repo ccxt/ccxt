@@ -127,7 +127,7 @@ module.exports = class lcx extends Exchange {
                 'price': this.safeFloat (market, 'pricePrecision'),
                 'cost': costPrecision,
             };
-            const takerFeeRate = this.fees.trading.taker; 
+            const takerFeeRate = this.fees.trading.taker;
             const makerFeeRate = this.fees.trading.maker;
             result.push ({
                 'id': id,
