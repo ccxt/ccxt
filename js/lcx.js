@@ -281,11 +281,7 @@ module.exports = class lcx extends Exchange {
         if (symbol !== undefined) {
             request['pair'] = market['symbol'];
         }
-        if (params['page'] !== undefined) {
-            request['offset'] = params['page'];
-        } else {
-            request['offset'] = 1;
-        }
+        request['offset'] = 1;
         const response = await this.privatePostOrderHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data, market, since, limit);
@@ -297,11 +293,7 @@ module.exports = class lcx extends Exchange {
         const request = {
             'pair': market['symbol'],
         };
-        if (params['page'] !== undefined) {
-            request['offset'] = params['page'];
-        } else {
-            request['offset'] = 1;
-        }
+        request['offset'] = 1;
         const response = await this.publicPostTradeRecent (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
@@ -341,11 +333,7 @@ module.exports = class lcx extends Exchange {
         if (symbol !== undefined) {
             request['pair'] = market['symbol'];
         }
-        if (params['page'] !== undefined) {
-            request['offset'] = params['page'];
-        } else {
-            request['offset'] = 1;
-        }
+        request['offset'] = 1;
         if (since) {
             request['fromDate'] = this.iso8601 (since);
             request['toDate'] = this.iso8601 (this.nonce ());
@@ -362,11 +350,7 @@ module.exports = class lcx extends Exchange {
         if (symbol !== undefined) {
             request['pair'] = market['symbol'];
         }
-        if (params['page'] !== undefined) {
-            request['offset'] = params['page'];
-        } else {
-            request['offset'] = 1;
-        }
+        request['offset'] = 1;
         if (since) {
             request['fromDate'] = this.iso8601 (since);
             request['toDate'] = this.iso8601 (this.nonce ());
