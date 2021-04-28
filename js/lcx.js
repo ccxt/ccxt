@@ -343,19 +343,23 @@ module.exports = class lcx extends Exchange {
             'resolution': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            request['from'] = parseInt (since / 1000);
+            request['from'] = since;
         } else {
-            request['from'] = parseInt ((this.nonce () - 86400000) / 1000);
+            request['from'] = this.nonce () - 86400000;
         }
-        const duration = this.parseTimeframe (timeframe);
         if (request['from'] !== undefined) {
             if (limit === undefined) limit = 1000;
+            const duration = this.parseTimeframe (timeframe);
             const endTime = this.sum (request['from'], limit * duration * 1000 - 1);
             const now = this.milliseconds ();
             request['to'] = Math.min (now, endTime);
         }
-        if (request['from'] !== undefined) request['from'] = parseInt (request['from'] / 1000);
-        if (request['to'] !== undefined) request['to'] = parseInt (request['to'] / 1000);
+        if (request['from'] !== undefined) {
+            request['from'] = parseInt (request['from'] / 1000);
+        }
+        if (request['to'] !== undefined) {
+            request['to'] = parseInt (request['to'] / 1000);
+        }
         const response = await this.publicPostMarketKline (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOHLCVs (data, market, timeframe, since, limit);
