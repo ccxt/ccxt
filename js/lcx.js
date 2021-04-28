@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -127,8 +127,8 @@ module.exports = class lcx extends Exchange {
                 'price': this.safeFloat (market, 'pricePrecision'),
                 'cost': costPrecision,
             };
-            const takerFeeRate = 0.3;
-            const makerFeeRate = 0.3;
+            const takerFeeRate = this.fees.trading.taker; 
+            const makerFeeRate = this.fees.trading.maker;
             result.push ({
                 'id': id,
                 'info': market,
@@ -139,8 +139,8 @@ module.exports = class lcx extends Exchange {
                 'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
-                'taker': takerFeeRate / 100,
-                'maker': makerFeeRate / 100,
+                'taker': takerFeeRate,
+                'maker': makerFeeRate,
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'minBaseOrder'),
