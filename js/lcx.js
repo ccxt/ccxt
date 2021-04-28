@@ -238,7 +238,7 @@ module.exports = class lcx extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.safeInteger (ticker, 'lastUpdated');
+        const timestamp = this.safeInteger (ticker, 'lastUpdated') * 1000;
         const symbol = this.safeString (ticker, 'symbol');
         const close = this.safeFloat (ticker, 'lastPrice');
         const change = this.safeFloat (ticker, 'change');
@@ -255,11 +255,11 @@ module.exports = class lcx extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bestBid'),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bestBid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'bestAsk'),
+            'ask': this.safeFloat (ticker, 'bestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
