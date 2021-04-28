@@ -258,6 +258,7 @@ module.exports = class lcx extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bestBid'),
+            'volume': this.safeFloat (ticker, 'volume'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'bestAsk'),
             'askVolume': undefined,
@@ -346,11 +347,17 @@ module.exports = class lcx extends Exchange {
         } else {
             request['from'] = parseInt ((this.nonce () - 86400000) / 1000);
         }
-        if (params['last'] !== undefined) {
-            request['to'] = parseInt (params['last'] / 1000);
-        } else {
-            request['to'] = parseInt (this.nonce () / 1000);
+        const duration = this.parseTimeframe (timeframe);
+        if (request['from'] !== undefined) {
+            if (request['from'] > 0) {
+                if (limit === undefined) limit = 1000;
+                const endTime = this.sum (request['from'], limit * duration * 1000 - 1);
+                const now = this.milliseconds ();
+                request['to'] = Math.min (now, endTime);
+            }
         }
+        if(request['from'] !== undefined) request['from'] = parseInt (request['from'] / 1000);
+        if(request['to'] !== undefined) request['to'] = parseInt (request['to'] / 1000);
         const response = await this.publicPostMarketKline (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOHLCVs (data, market, timeframe, since, limit);
