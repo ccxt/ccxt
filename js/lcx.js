@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, BadRequest, BadResponse, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,6 +17,8 @@ module.exports = class lcx extends Exchange {
             'has': {
                 'CORS': true,
                 'fetchMarkets': true,
+                'fetchTickers': true,
+                'fetchTicker': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -158,6 +160,76 @@ module.exports = class lcx extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.publicGetMarketTickers (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTickers (data);
+    }
+
+    parseTickers (rawTickers, symbols = undefined) {
+        const tickers = [];
+        rawTickers = Object.values (rawTickers);
+        for (let i = 0; i < rawTickers.length; i++) {
+            tickers.push (this.parseTicker (rawTickers[i]));
+        }
+        return this.filterByArray (tickers, 'symbol', symbols);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['symbol'],
+        };
+        params['pair'] = market['symbol'];
+        const response = await this.publicPostMarketTicker (this.extend (request, params));
+        const ticker = this.safeValue (response, 'data', []);
+        if (ticker === undefined) {
+            throw new BadResponse (this.id + ' fetchTicker () returned an empty response');
+        }
+        return this.parseTicker (ticker);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        const timestamp = this.safeInteger (ticker, 'lastUpdated');
+        const symbol = this.safeString (ticker, 'symbol');
+        const close = this.safeFloat (ticker, 'lastPrice');
+        const change = this.safeFloat (ticker, 'change');
+        let percentage = undefined;
+        let open = undefined;
+        if (change !== undefined) {
+            if (close !== undefined) {
+                open = close - change;
+                percentage = open ? (change / open) * 100 : 0;
+            }
+        }
+        const baseVolume = this.safeFloat (ticker, 'volume');
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bestBid'),
+            'bidVolume': undefined,
+            'ask': this.safeNumber (ticker, 'bestAsk'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
     }
 
     nonce () {
