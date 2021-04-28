@@ -349,12 +349,10 @@ module.exports = class lcx extends Exchange {
         }
         const duration = this.parseTimeframe (timeframe);
         if (request['from'] !== undefined) {
-            if (request['from'] > 0) {
-                if (limit === undefined) limit = 1000;
-                const endTime = this.sum (request['from'], limit * duration * 1000 - 1);
-                const now = this.milliseconds ();
-                request['to'] = Math.min (now, endTime);
-            }
+            if (limit === undefined) limit = 1000;
+            const endTime = this.sum (request['from'], limit * duration * 1000 - 1);
+            const now = this.milliseconds ();
+            request['to'] = Math.min (now, endTime);
         }
         if (request['from'] !== undefined) request['from'] = parseInt (request['from'] / 1000);
         if (request['to'] !== undefined) request['to'] = parseInt (request['to'] / 1000);
