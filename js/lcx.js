@@ -296,7 +296,7 @@ module.exports = class lcx extends Exchange {
         request['offset'] = 1;
         const response = await this.publicPostTradeRecent (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data, market, undefined, undefined);
     }
 
     parseTrade (trade, market = undefined) {
