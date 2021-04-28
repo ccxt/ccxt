@@ -301,13 +301,17 @@ module.exports = class lcx extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const timestamp = trade[3] * 1000;
-        const id = this.safeString (market, 'symbol');
+        const id = trade[3].toString ();
         const symbol = this.safeString (market, 'symbol');
         let side = this.safeString (trade[2], 'side');
-        side = (side === 'BUY') ? 'buy' : 'sell';
+        side = side.toLowerCase ();
         const price = trade[0];
         const amount = trade[1];
-        const orderId = undefined;
+        const orderId = id;
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = price * amount;
+        }
         return {
             'id': id,
             'info': trade,
@@ -320,7 +324,7 @@ module.exports = class lcx extends Exchange {
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': undefined,
+            'cost': cost,
             'fee': undefined,
         };
     }
