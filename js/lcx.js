@@ -308,10 +308,6 @@ module.exports = class lcx extends Exchange {
         const price = trade[0];
         const amount = trade[1];
         const orderId = id;
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
         return {
             'id': id,
             'info': trade,
@@ -324,7 +320,7 @@ module.exports = class lcx extends Exchange {
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
         };
     }
