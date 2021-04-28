@@ -258,7 +258,6 @@ module.exports = class lcx extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bestBid'),
-            'volume': this.safeFloat (ticker, 'volume'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'bestAsk'),
             'askVolume': undefined,
