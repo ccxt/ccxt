@@ -213,15 +213,6 @@ module.exports = class lcx extends Exchange {
         return this.parseTickers (data);
     }
 
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        rawTickers = Object.values (rawTickers);
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
-    }
-
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
