@@ -46,7 +46,7 @@ module.exports = class lcx extends Exchange {
             },
             'version': 'v1',
             'urls': {
-                'logo': 'https://web.lcx.com/wp-content/uploads/2018/12/logo_black.png',
+                'logo': 'https://terminal-files.lcx.com/static/img/ccxt/LCX.jpg',
                 'api': {
                     'accounts': 'https://exchange-api.lcx.com',
                     'public': 'https://exchange-api.lcx.com',
@@ -380,6 +380,12 @@ module.exports = class lcx extends Exchange {
             request['pair'] = market['symbol'];
         }
         request['offset'] = 1;
+        const pageInParams = ('page' in params);
+        if (pageInParams) {
+            params = this.extend (params, {
+                'offset': parseInt (params['page']),
+            });
+        }
         if (since) {
             request['fromDate'] = this.iso8601 (since);
             request['toDate'] = this.iso8601 (this.nonce ());
@@ -397,6 +403,12 @@ module.exports = class lcx extends Exchange {
             request['pair'] = market['symbol'];
         }
         request['offset'] = 1;
+        const pageInParams = ('page' in params);
+        if (pageInParams) {
+            params = this.extend (params, {
+                'offset': parseInt (params['page']),
+            });
+        }
         if (since) {
             request['fromDate'] = this.iso8601 (since);
             request['toDate'] = this.iso8601 (this.nonce ());
