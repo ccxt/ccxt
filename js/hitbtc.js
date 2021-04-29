@@ -439,7 +439,18 @@ module.exports = class hitbtc extends Exchange {
         const method = 'privateGet' + this.capitalize (typeId) + 'Balance';
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
-        const result = { 'info': response };
+        //
+        //     [
+        //         {"currency":"SPI","available":"0","reserved":"0"},
+        //         {"currency":"GRPH","available":"0","reserved":"0"},
+        //         {"currency":"DGTX","available":"0","reserved":"0"},
+        //     ]
+        //
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
