@@ -1217,6 +1217,7 @@ var_dump($bitfinex->markets['XRP/BTC']);
 - [Implicit API Methods](#implicit-api-methods)
 - [Public/Private API](#publicprivate-api)
 - [Synchronous vs Asynchronous Calls](#synchronous-vs-asynchronous-calls)
+- [Passing Parameters To API Methods](#passing-parameters-to-api-methods)
 
 ## API Methods / Endpoints
 
@@ -1359,7 +1360,7 @@ See further examples in the `examples/php` directory; look for filenames that in
 
 All public and private API methods return raw decoded JSON objects in response from the exchanges, as is, untouched. The unified API returns JSON-decoded objects in a common format and structured uniformly across all exchanges.
 
-### Passing Parameters To API Methods
+## Passing Parameters To API Methods
 
 The set of all possible API endpoints differs from exchange to exchange. Most of methods accept a single associative array (or a Python dict) of key-value parameters. The params are passed as follows:
 
