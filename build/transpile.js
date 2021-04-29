@@ -63,6 +63,7 @@ class Transpiler {
             [ /\.parseDate\s/g, '.parse_date'],
             [ /\.parseLedgerEntry\s/g, '.parse_ledger_entry'],
             [ /\.parseLedger\s/g, '.parse_ledger'],
+            [ /\.parseTickers\s/g, '.parse_tickers'],
             [ /\.parseTicker\s/g, '.parse_ticker'],
             [ /\.parseTimeframe\s/g, '.parse_timeframe'],
             [ /\.parseTradesData\s/g, '.parse_trades_data'],
