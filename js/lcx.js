@@ -306,7 +306,7 @@ module.exports = class lcx extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.parseNumber (this.nonce ());
+        const timestamp = this.parseNumber (trade[3]);
         const id = trade[3].toString ();
         const symbol = this.safeString (market, 'symbol');
         let side = this.safeString (trade[2], 'side');
