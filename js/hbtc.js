@@ -721,7 +721,11 @@ module.exports = class hbtc extends Exchange {
         //     }
         //
         const balances = this.safeValue (response, 'balances');
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         if (balances !== undefined) {
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
