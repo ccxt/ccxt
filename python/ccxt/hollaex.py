@@ -352,7 +352,7 @@ class hollaex(Exchange):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_tickers(self, response, symbols=None):
+    def parse_tickers(self, response, symbols=None, params={}):
         result = {}
         keys = list(response.keys())
         for i in range(0, len(keys)):
@@ -361,7 +361,7 @@ class hollaex(Exchange):
             marketId = self.safe_string(ticker, 'symbol', key)
             market = self.safe_market(marketId, None, '-')
             symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
+            result[symbol] = self.extend(self.parse_ticker(ticker, market), params)
         return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker, market=None):

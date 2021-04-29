@@ -356,7 +356,7 @@ class hollaex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_tickers($response, $symbols = null) {
+    public function parse_tickers($response, $symbols = null, $params = array ()) {
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -365,7 +365,7 @@ class hollaex extends Exchange {
             $marketId = $this->safe_string($ticker, 'symbol', $key);
             $market = $this->safe_market($marketId, null, '-');
             $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $result[$symbol] = array_merge($this->parse_ticker($ticker, $market), $params);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
