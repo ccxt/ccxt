@@ -53,8 +53,48 @@ module.exports = class aax extends ccxt.aax {
         return await this.watch (url, messageHash, request, name);
     }
 
-    async handleTicker (client, message) {
-
+    async handleTickers (client, message) {
+        //
+        //     {
+        //         e: 'tickers',
+        //         t: 1619663715213,
+        //         tickers: [
+        //             {
+        //                 a: '0.00000000',
+        //                 c: '47655.65000000',
+        //                 d: '-3.48578544',
+        //                 h: '50451.37000000',
+        //                 l: '47002.45000000',
+        //                 o: '49376.82000000',
+        //                 s: 'YFIUSDT',
+        //                 v: '18140.31675687'
+        //             },
+        //             {
+        //                 a: '0.00000000',
+        //                 c: '1.39127000',
+        //                 d: '-3.09668252',
+        //                 h: '1.43603000',
+        //                 l: '1.28451000',
+        //                 o: '1.43573000',
+        //                 s: 'XRPUSDT',
+        //                 v: '451952.36683000'
+        //             },
+        //         ]
+        //     }
+        //
+        const name = this.safeString (message, 'e');
+        const tickers = this.parseTickers (this.safeValue (message, 'tickers', []));
+        const symbols = Object.keys (tickers);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            if (symbol in this.markets) {
+                const market = this.market (symbol);
+                const ticker = tickers[symbol];
+                this.tickers[symbol] = ticker;
+                const messageHash = market['id'] + '@' + name;
+                client.resolve (ticker, messageHash);
+            }
+        }
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -225,7 +265,7 @@ module.exports = class aax extends ccxt.aax {
             'book': this.handleOrderBook,
             'trade': this.handleTrades,
             'empty': undefined, // server may publish empty events if there is nothing to send right after a new connection is established
-            'open': this.handleOrder,
+            'tickers': this.handleTickers,
             'change': this.handleOrder,
             'done': this.handleOrder,
         };
