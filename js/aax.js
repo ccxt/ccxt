@@ -13,12 +13,12 @@ module.exports = class aax extends ccxt.aax {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                // 'watchOHLCV': false, // missing on the exchange side
+                'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchTicker': true,
                 // 'watchTickers': false, // for now
                 'watchTrades': true,
-                // 'watchBalance': false,
+                'watchBalance': true,
                 // 'watchStatus': false, // for now
                 // 'watchOrders': true,
                 // 'watchMyTrades': true,
@@ -32,6 +32,7 @@ module.exports = class aax extends ccxt.aax {
                 },
             },
             'options': {
+                'OHLCVLimit': 1000,
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'myTradesLimit': 1000,
@@ -59,21 +60,34 @@ module.exports = class aax extends ccxt.aax {
     }
 
     handleOHLCV (client, message) {
-
-        const type = this.safeString (message, 'type');
-        const data = this.safeValue (message, 'data');
-        const marketId = this.safeString (data, 'm');
-        const messageHash = type + ':' + marketId;
+        //
+        //     {
+        //         c: '53876.69000000',
+        //         e: 'BTCUSDT@1m_candles',
+        //         h: '53876.69000000',
+        //         l: '53832.47000000',
+        //         o: '53832.47000000',
+        //         s: 1619707320, // start
+        //         t: 1619707346, // end
+        //         v: '301.70946400'
+        //     }
+        //
+        const messageHash = this.safeString (message, 'e');
+        const parts = messageHash.split ('@');
+        const marketId = this.safeString (parts, 0);
+        const timeframeName = this.safeString (parts, 1);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
         const parsed = [
-            this.safeInteger (data, 's'),
-            this.safeFloat (data, 'o'),
-            this.safeFloat (data, 'h'),
-            this.safeFloat (data, 'l'),
-            this.safeFloat (data, 'c'),
-            this.safeFloat (data, 'v'),
+            this.safeTimestamp (message, 's'),
+            this.safeFloat (message, 'o'),
+            this.safeFloat (message, 'h'),
+            this.safeFloat (message, 'l'),
+            this.safeFloat (message, 'c'),
+            this.safeFloat (message, 'v'),
         ];
-        const symbol = this.safeSymbol (marketId);
-        const interval = this.safeString (data, 'i');
+        const subParts = timeframeName.split ('_');
+        const interval = this.safeString (subParts, 0);
         const timeframe = this.findTimeframe (interval);
         // TODO: move to base class
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -259,9 +273,154 @@ module.exports = class aax extends ccxt.aax {
             this.orderbooks[symbol] = orderbook;
         } else {
             orderbook = this.orderbooks[symbol];
-            orderbook.reset (snapshot)
+            orderbook.reset (snapshot);
         }
         client.resolve (orderbook, messageHash);
+    }
+
+    requestId () {
+        // their support said that reqid must be an int32, not documented
+        const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
+        this.options['reqid'] = reqid;
+        return reqid;
+    }
+
+    async handshake (params = {}) {
+        const url = this.urls['api']['ws']['private'];
+        const client = this.client (url);
+        const future = client.future ('handshake');
+        const event = 'handshake';
+        const authenticated = this.safeValue (client.subscriptions, event);
+        if (authenticated === undefined) {
+            const requestId = this.requestId ();
+            const query = {
+                'event': '#handshake',
+                'data': {},
+                'cid': requestId,
+            };
+            const request = this.extend (query, params);
+            const messageHash = requestId.toString ();
+            const response = await this.watch (url, messageHash, request, messageHash);
+            console.log (response);
+            // this.spawn (this.watch, url, method, request, 1);
+        }
+        return await future;
+    }
+
+    async authenticate (params = {}) {
+        const url = this.urls['api']['ws']['private'];
+        const client = this.client (url);
+        const future = client.future ('authenticated');
+        const event = 'login';
+        const authenticated = this.safeValue (client.subscriptions, event);
+        if (authenticated === undefined) {
+            const nonce = this.milliseconds ();
+            const payload = nonce.toString () + ':' + this.apiKey;
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret));
+            const requestId = this.requestId ();
+            const query = {
+                'event': event,
+                'data': {
+                    'apiKey': this.apiKey,
+                    'nonce': nonce,
+                    'signature': signature,
+                },
+                'cid': requestId,
+            };
+            const request = this.extend (query, params);
+            const messageHash = requestId.toString ();
+            const response = await this.watch (url, messageHash, request);
+            console.log (response);
+            // this.spawn (this.watch, url, method, request, 1);
+        }
+        return await future;
+    }
+
+    async watchBalance (params = {}) {
+        await this.loadMarkets ();
+        await this.handshake (params);
+        await this.authenticate (params);
+        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const url = this.urls['api']['ws']['private'];
+        const client = this.client (url);
+        if (!(type in client.subscriptions)) {
+            // reset this.balances after a disconnect
+            this.balance[type] = {};
+        }
+        const messageHash = type + ':balance';
+        const message = undefined;
+        return await this.watch (url, messageHash, message, type);
+    }
+
+    handleBalance (client, message) {
+        //
+        // sent upon creating or filling an order
+        //
+        //     {
+        //         "e": "outboundAccountPosition", // Event type
+        //         "E": 1564034571105,             // Event Time
+        //         "u": 1564034571073,             // Time of last account update
+        //         "B": [                          // Balances Array
+        //             {
+        //                 "a": "ETH",                 // Asset
+        //                 "f": "10000.000000",        // Free
+        //                 "l": "0.000000"             // Locked
+        //             }
+        //         ]
+        //     }
+        //
+        // future/delivery
+        //
+        //     {
+        //         "e": "ACCOUNT_UPDATE",            // Event Type
+        //         "E": 1564745798939,               // Event Time
+        //         "T": 1564745798938 ,              // Transaction
+        //         "i": "SfsR",                      // Account Alias
+        //         "a": {                            // Update Data
+        //             "m":"ORDER",                  // Event reason type
+        //             "B":[                         // Balances
+        //                 {
+        //                     "a":"BTC",                // Asset
+        //                     "wb":"122624.12345678",   // Wallet Balance
+        //                     "cw":"100.12345678"       // Cross Wallet Balance
+        //                 },
+        //             ],
+        //             "P":[
+        //                 {
+        //                     "s":"BTCUSD_200925",      // Symbol
+        //                     "pa":"0",                 // Position Amount
+        //                     "ep":"0.0",               // Entry Price
+        //                     "cr":"200",               // (Pre-fee) Accumulated Realized
+        //                     "up":"0",                 // Unrealized PnL
+        //                     "mt":"isolated",          // Margin Type
+        //                     "iw":"0.00000000",        // Isolated Wallet (if isolated position)
+        //                     "ps":"BOTH"               // Position Side
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const wallet = this.safeValue (this.options, 'wallet', 'wb'); // cw for cross wallet
+        // each account is connected to a different endpoint
+        // and has exactly one subscriptionhash which is the account type
+        const subscriptions = Object.keys (client.subscriptions);
+        const accountType = subscriptions[0];
+        const messageHash = accountType + ':balance';
+        message = this.safeValue (message, 'a', message);
+        this.balance[accountType]['info'] = message;
+        const balances = this.safeValue (message, 'B', []);
+        for (let i = 0; i < balances.length; i++) {
+            const entry = balances[i];
+            const currencyId = this.safeString (entry, 'a');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (entry, 'f');
+            account['used'] = this.safeFloat (entry, 'l');
+            account['total'] = this.safeFloat (entry, wallet);
+            this.balance[accountType][code] = account;
+        }
+        client.resolve (this.parseBalance (this.balance[accountType]), messageHash);
     }
 
     handleSystemStatus (client, message) {
@@ -301,46 +460,66 @@ module.exports = class aax extends ccxt.aax {
         //
         //     {"e":"empty"}
         //
-        const e = this.safeString (message, 'e');
-        const parts = e.split ('@');
-        const numParts = parts.length;
-        const methods = {
-            'reply': this.handleSubscriptionStatus,
-            'system': this.handleSystemStatus,
-            'book': this.handleOrderBook,
-            'trade': this.handleTrades,
-            'empty': undefined, // server may publish empty events if there is nothing to send right after a new connection is established
-            'tickers': this.handleTickers,
-            'candles': this.handleOHLCV,
-            'done': this.handleOrder,
-        };
-        let method = undefined;
-        if (numParts > 1) {
-            const nameLimit = this.safeString (parts, 1);
-            const subParts = nameLimit.split ('_');
-            const first = this.safeString (subParts, 0);
-            const second = this.safeString (subParts, 0);
-            method = this.safeValue2 (methods, first, second);
-        } else {
-            const name = this.safeString (parts, 0);
-            method = this.safeValue (methods, name);
-        }
-        if (method !== undefined) {
-            return method.call (this, client, message);
-        }
-        console.log (message);
+        // handshake response
         //
-        // if (method === undefined) {
-        //     if (type === 'match') {
-        //         if (authenticated) {
-        //             this.handleMyTrade (client, message);
-        //             this.handleOrder (client, message);
-        //         } else {
-        //             this.handleTrade (client, message);
-        //         }
+        //     {
+        //         data: {
+        //             id: 'SID-fqC6a7VTFG6X',
+        //             info: "Invalid sid 'null', assigned a new one",
+        //             isAuthenticated: false,
+        //             pingTimeout: 68000
+        //         },
+        //         rid: 1
         //     }
-        // } else {
-        // }
-        // process.exit ();
+        //
+        const e = this.safeString (message, 'e');
+        if (e === undefined) {
+            // private
+            const rid = this.safeString (message, 'rid');
+            if (rid !== undefined) {
+                this.handleSubscriptionStatus (client, message);
+            }
+        } else {
+            // public
+            const parts = e.split ('@');
+            const numParts = parts.length;
+            const methods = {
+                'reply': this.handleSubscriptionStatus,
+                'system': this.handleSystemStatus,
+                'book': this.handleOrderBook,
+                'trade': this.handleTrades,
+                'empty': undefined, // server may publish empty events if there is nothing to send right after a new connection is established
+                'tickers': this.handleTickers,
+                'candles': this.handleOHLCV,
+                'done': this.handleOrder,
+            };
+            let method = undefined;
+            if (numParts > 1) {
+                const nameLimit = this.safeString (parts, 1);
+                const subParts = nameLimit.split ('_');
+                const first = this.safeString (subParts, 0);
+                const second = this.safeString (subParts, 1);
+                method = this.safeValue2 (methods, first, second);
+            } else {
+                const name = this.safeString (parts, 0);
+                method = this.safeValue (methods, name);
+            }
+            if (method !== undefined) {
+                return method.call (this, client, message);
+            }
+            //
+            // if (method === undefined) {
+            //     if (type === 'match') {
+            //         if (authenticated) {
+            //             this.handleMyTrade (client, message);
+            //             this.handleOrder (client, message);
+            //         } else {
+            //             this.handleTrade (client, message);
+            //         }
+            //     }
+            // } else {
+            // }
+            // process.exit ();
+        }
     }
 };
