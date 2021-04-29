@@ -48,6 +48,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [**Exchanges**](#exchanges)
 - [**Markets**](#markets)
 - [**Implicit API**](#implicit-api)
+- [**PHP**](#php)
 - [**Unified API**](#unified-api)
 - [**Public API**](#public-api)
 - [**Private API**](#private-api)
@@ -702,7 +703,6 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - [Loading Markets](#loading-markets)
 - [Symbols And Market Ids](#symbols-and-market-ids)
 - [Market Cache Force Reload](#market-cache-force-reload)
-- [API Methods / Endpoints](#api-methods--endpoints)
 
 Each exchange is a place for trading some kinds of valuables. Sometimes they are called with various different terms like instruments, symbols, trading pairs, currencies, tokens, stocks, commodities, contracts, etc, but they all mean the same – a trading pair, a symbol or a financial instrument.
 
@@ -1218,7 +1218,6 @@ var_dump($bitfinex->markets['XRP/BTC']);
 - [Implicit API Methods](#implicit-api-methods)
 - [Public/Private API](#publicprivate-api)
 - [Synchronous vs Asynchronous Calls](#synchronous-vs-asynchronous-calls)
-- [Passing Parameters To API Methods](#passing-parameters-to-api-methods)
 
 ## API Methods / Endpoints
 
@@ -1342,6 +1341,9 @@ To use the async version of the library, use the `ccxt_async` namespace, as in t
 
 ```PHP
 # PHP
+
+- [Passing Parameters To API Methods](#passing-parameters-to-api-methods)
+
 <?php
 include 'ccxt.php';
 
@@ -4158,6 +4160,8 @@ Raised when your nonce is less than the previous nonce used with your keypair, a
   - Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
 
 # Troubleshooting
+
+
 
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
 
