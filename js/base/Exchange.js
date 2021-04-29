@@ -1143,11 +1143,11 @@ module.exports = class Exchange {
         return ticker;
     }
 
-    parseTickers (tickers, symbols = undefined) {
+    parseTickers (tickers, symbols = undefined, params = {}) {
         const result = [];
         const values = Object.values (tickers || []);
         for (let i = 0; i < values.length; i++) {
-            result.push (this.parseTicker (values[i]));
+            result.push (this.extend (this.parseTicker (values[i]), params));
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
