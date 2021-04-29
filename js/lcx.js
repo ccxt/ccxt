@@ -498,7 +498,7 @@ module.exports = class lcx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
-        if (method == 'POST') {
+        if (method === 'POST') {
             if (params['page'] !== undefined) {
                 params['offset'] = params['page'];
             }
