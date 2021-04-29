@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { BadSymbol } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheBySymbolById, NotSupported } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, NotSupported } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -39,6 +39,54 @@ module.exports = class aax extends ccxt.aax {
         });
     }
 
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const name = 'candles';
+        const market = this.market (symbol);
+        const interval = this.timeframes[timeframe];
+        const messageHash = market['id'] + '@' + interval + '_' + name;
+        const url = this.urls['api']['ws']['public'];
+        const subscribe = {
+            'e': 'subscribe',
+            'stream': messageHash,
+        };
+        const request = this.deepExtend (subscribe, params);
+        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client, message) {
+
+        const type = this.safeString (message, 'type');
+        const data = this.safeValue (message, 'data');
+        const marketId = this.safeString (data, 'm');
+        const messageHash = type + ':' + marketId;
+        const parsed = [
+            this.safeInteger (data, 's'),
+            this.safeFloat (data, 'o'),
+            this.safeFloat (data, 'h'),
+            this.safeFloat (data, 'l'),
+            this.safeFloat (data, 'c'),
+            this.safeFloat (data, 'v'),
+        ];
+        const symbol = this.safeSymbol (marketId);
+        const interval = this.safeString (data, 'i');
+        const timeframe = this.findTimeframe (interval);
+        // TODO: move to base class
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        stored.append (parsed);
+        client.resolve (stored, messageHash);
+    }
+
     async watchTicker (symbol, params = {}) {
         const name = 'tickers';
         await this.loadMarkets ();
@@ -53,7 +101,7 @@ module.exports = class aax extends ccxt.aax {
         return await this.watch (url, messageHash, request, name);
     }
 
-    async handleTickers (client, message) {
+    handleTickers (client, message) {
         //
         //     {
         //         e: 'tickers',
@@ -83,7 +131,12 @@ module.exports = class aax extends ccxt.aax {
         //     }
         //
         const name = this.safeString (message, 'e');
-        const tickers = this.parseTickers (this.safeValue (message, 'tickers', []));
+        const timestamp = this.safeInteger (message, 't');
+        const extension = {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const tickers = this.parseTickers (this.safeValue (message, 'tickers', []), undefined, extension);
         const symbols = Object.keys (tickers);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -251,14 +304,6 @@ module.exports = class aax extends ccxt.aax {
         const e = this.safeString (message, 'e');
         const parts = e.split ('@');
         const numParts = parts.length;
-        let name = undefined;
-        if (numParts > 1) {
-            const nameLimit = this.safeString (parts, 1);
-            const subParts = nameLimit.split ('_');
-            name = this.safeString (subParts, 0);
-        } else {
-            name = this.safeString (parts, 0);
-        }
         const methods = {
             'reply': this.handleSubscriptionStatus,
             'system': this.handleSystemStatus,
@@ -266,10 +311,20 @@ module.exports = class aax extends ccxt.aax {
             'trade': this.handleTrades,
             'empty': undefined, // server may publish empty events if there is nothing to send right after a new connection is established
             'tickers': this.handleTickers,
-            'change': this.handleOrder,
+            'candles': this.handleOHLCV,
             'done': this.handleOrder,
         };
-        const method = this.safeValue (methods, name);
+        let method = undefined;
+        if (numParts > 1) {
+            const nameLimit = this.safeString (parts, 1);
+            const subParts = nameLimit.split ('_');
+            const first = this.safeString (subParts, 0);
+            const second = this.safeString (subParts, 0);
+            method = this.safeValue2 (methods, first, second);
+        } else {
+            const name = this.safeString (parts, 0);
+            method = this.safeValue (methods, name);
+        }
         if (method !== undefined) {
             return method.call (this, client, message);
         }
