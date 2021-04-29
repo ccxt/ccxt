@@ -15,7 +15,7 @@ module.exports = class aax extends ccxt.aax {
                 'ws': true,
                 // 'watchOHLCV': false, // missing on the exchange side
                 'watchOrderBook': true,
-                // 'watchTicker': true,
+                'watchTicker': true,
                 // 'watchTickers': false, // for now
                 'watchTrades': true,
                 // 'watchBalance': false,
@@ -37,6 +37,24 @@ module.exports = class aax extends ccxt.aax {
                 'myTradesLimit': 1000,
             },
         });
+    }
+
+    async watchTicker (symbol, params = {}) {
+        const name = 'tickers';
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = market['id'] + '@' + name;
+        const url = this.urls['api']['ws']['public'];
+        const subscribe = {
+            'e': 'subscribe',
+            'stream': name,
+        };
+        const request = this.extend (subscribe, params);
+        return await this.watch (url, messageHash, request, name);
+    }
+
+    async handleTicker (client, message) {
+
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
