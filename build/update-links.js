@@ -36,9 +36,11 @@ function replaceSubLinks () {
         while (link = subLevelLinksRegex.exec (block)) {
             links.push (link[1])
         }
-        const formatted = toLinks (links)
-        const [ before, after ] = file.split (new RegExp ('^' + start + '$', 'm'))
-        file = before + start + '\n\n' + formatted + '\n' + after
+        if (links.length) {
+            const formatted = toLinks (links)
+            const [ before, after ] = file.split (new RegExp ('^' + start + '$', 'm'))
+            file = before + start + '\n\n' + formatted + '\n' + after
+        }
     }
 }
 

@@ -1342,8 +1342,6 @@ To use the async version of the library, use the `ccxt_async` namespace, as in t
 ```PHP
 # PHP
 
-- [Passing Parameters To API Methods](#passing-parameters-to-api-methods)
-
 <?php
 include 'ccxt.php';
 
@@ -1363,7 +1361,7 @@ See further examples in the `examples/php` directory; look for filenames that in
 
 All public and private API methods return raw decoded JSON objects in response from the exchanges, as is, untouched. The unified API returns JSON-decoded objects in a common format and structured uniformly across all exchanges.
 
-## Passing Parameters To API Methods
+### Passing Parameters To API Methods
 
 The set of all possible API endpoints differs from exchange to exchange. Most of methods accept a single associative array (or a Python dict) of key-value parameters. The params are passed as follows:
 
@@ -4160,9 +4158,6 @@ Raised when your nonce is less than the previous nonce used with your keypair, a
   - Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
 
 # Troubleshooting
-
-
-
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
 
 - Make sure that you have the most recent version of ccxt.
