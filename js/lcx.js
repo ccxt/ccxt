@@ -225,7 +225,7 @@ module.exports = class lcx extends Exchange {
         if (ticker === undefined) {
             throw new BadResponse (this.id + ' fetchTicker () returned an empty response');
         }
-        return this.parseTicker (ticker);
+        return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
