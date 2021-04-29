@@ -14,7 +14,7 @@ module.exports = class binance extends Exchange {
             'id': 'binance',
             'name': 'Binance',
             'countries': [ 'JP', 'MT' ], // Japan, Malta
-            'rateLimit': 500,
+            'rateLimit': 600,
             'certified': true,
             // new metainfo interface
             'has': {
