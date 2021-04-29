@@ -1739,11 +1739,11 @@ class Exchange(object):
             ticker['last'] = close
         return ticker
 
-    def parse_tickers(self, tickers, symbols=None):
+    def parse_tickers(self, tickers, symbols=None, params={}):
         result = []
         values = self.to_array(tickers)
         for i in range(0, len(values)):
-            result.append(self.parse_ticker(values[i]))
+            result.append(self.extend(self.parse_ticker(values[i]), params))
         return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_deposit_addresses(self, addresses, codes=None):
