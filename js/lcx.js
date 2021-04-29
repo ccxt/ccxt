@@ -294,10 +294,7 @@ module.exports = class lcx extends Exchange {
         const request = {
             'pair': market['symbol'],
         };
-        request['offset'] = params['page'];
-        if (request['offset'] === undefined) {
-            request['offset'] = 1;
-        }
+        request['offset'] = 1;
         const response = await this.publicPostTradeRecent (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         let result = [];
@@ -501,6 +498,11 @@ module.exports = class lcx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
+        if (method == 'POST') {
+            if (params['page'] !== undefined) {
+                params['offset'] = params['page'];
+            }
+        }
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (method === 'POST') {
