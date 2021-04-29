@@ -1225,13 +1225,12 @@ class binance(Exchange):
         #         }
         #     ]
         #
-        timestamp = self.safe_integer(response, 'updateTime')
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
         }
+        timestamp = None
         if (type == 'spot') or (type == 'margin'):
+            timestamp = self.safe_integer(response, 'updateTime')
             balances = self.safe_value_2(response, 'balances', 'userAssets', [])
             for i in range(0, len(balances)):
                 balance = balances[i]
@@ -1254,6 +1253,8 @@ class binance(Exchange):
                 account['used'] = self.safe_string(balance, 'initialMargin')
                 account['total'] = self.safe_string_2(balance, 'marginBalance', 'balance')
                 result[code] = account
+        result['timestamp'] = timestamp
+        result['datetime'] = self.iso8601(timestamp)
         return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):

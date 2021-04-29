@@ -1236,13 +1236,12 @@ class binance extends Exchange {
         //         }
         //     )
         //
-        $timestamp = $this->safe_integer($response, 'updateTime');
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
         );
+        $timestamp = null;
         if (($type === 'spot') || ($type === 'margin')) {
+            $timestamp = $this->safe_integer($response, 'updateTime');
             $balances = $this->safe_value_2($response, 'balances', 'userAssets', array());
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $balances[$i];
@@ -1269,6 +1268,8 @@ class binance extends Exchange {
                 $result[$code] = $account;
             }
         }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
         return $this->parse_balance($result, false);
     }
 
