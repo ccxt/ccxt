@@ -13,7 +13,7 @@ module.exports = class lcx extends Exchange {
             'id': 'lcx',
             'name': 'lcx',
             'countries': ['LI'],
-            'rateLimit': 250, // ms
+            'rateLimit': 1000, // ms
             'has': {
                 'CORS': true,
                 'fetchMarkets': true,
@@ -46,7 +46,7 @@ module.exports = class lcx extends Exchange {
             },
             'version': 'v1',
             'urls': {
-                'logo': 'https://web.lcx.com/wp-content/uploads/2018/12/logo_black.png',
+                'logo': 'https://terminal-files.lcx.com/static/img/ccxt/LCX.jpg',
                 'api': {
                     'accounts': 'https://exchange-api.lcx.com',
                     'public': 'https://exchange-api.lcx.com',
@@ -57,7 +57,7 @@ module.exports = class lcx extends Exchange {
                     'https://exchange.lcx.com/v1/docs',
                 ],
                 'fees': 'https://exchange.lcx.com/setting/fees',
-                'referral': 'https://accounts.lcx.com/register?referralCode=CCXT_DOCS',
+                'referral': 'https://accounts.lcx.com/register',
             },
             'api': {
                 'public': {
@@ -294,7 +294,7 @@ module.exports = class lcx extends Exchange {
         const request = {
             'pair': market['symbol'],
         };
-        request['offset'] = 1;
+        request['offset'] = params['page'] ? parseInt (params['page']) : 1;
         const response = await this.publicPostTradeRecent (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         let result = [];
