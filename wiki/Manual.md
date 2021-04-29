@@ -4157,9 +4157,6 @@ Raised when your nonce is less than the previous nonce used with your keypair, a
   - Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
 
 # Troubleshooting
-
-
-
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
 
 - Make sure that you have the most recent version of ccxt.
