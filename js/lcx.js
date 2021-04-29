@@ -283,12 +283,6 @@ module.exports = class lcx extends Exchange {
             request['pair'] = market['symbol'];
         }
         request['offset'] = 1;
-        const pageInParams = ('page' in params);
-        if (pageInParams) {
-            params = this.extend (params, {
-                'offset': parseInt (params['page']),
-            });
-        }
         const response = await this.privatePostOrderHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data, market, since, limit);
@@ -389,12 +383,6 @@ module.exports = class lcx extends Exchange {
             request['pair'] = market['symbol'];
         }
         request['offset'] = 1;
-        const pageInParams = ('page' in params);
-        if (pageInParams) {
-            params = this.extend (params, {
-                'offset': parseInt (params['page']),
-            });
-        }
         if (since) {
             request['fromDate'] = this.iso8601 (since);
             request['toDate'] = this.iso8601 (this.nonce ());
@@ -412,12 +400,6 @@ module.exports = class lcx extends Exchange {
             request['pair'] = market['symbol'];
         }
         request['offset'] = 1;
-        const pageInParams = ('page' in params);
-        if (pageInParams) {
-            params = this.extend (params, {
-                'offset': parseInt (params['page']),
-            });
-        }
         if (since) {
             request['fromDate'] = this.iso8601 (since);
             request['toDate'] = this.iso8601 (this.nonce ());
