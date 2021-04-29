@@ -717,7 +717,11 @@ class hbtc(Exchange):
         #     }
         #
         balances = self.safe_value(response, 'balances')
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         if balances is not None:
             for i in range(0, len(balances)):
                 balance = balances[i]
