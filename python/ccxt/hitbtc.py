@@ -434,7 +434,18 @@ class hitbtc(Exchange):
         method = 'privateGet' + self.capitalize(typeId) + 'Balance'
         query = self.omit(params, 'type')
         response = getattr(self, method)(query)
-        result = {'info': response}
+        #
+        #     [
+        #         {"currency":"SPI","available":"0","reserved":"0"},
+        #         {"currency":"GRPH","available":"0","reserved":"0"},
+        #         {"currency":"DGTX","available":"0","reserved":"0"},
+        #     ]
+        #
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
