@@ -46,7 +46,7 @@ module.exports = class lcx extends Exchange {
             },
             'version': 'v1',
             'urls': {
-                'logo': 'https://terminal-files.lcx.com/static/img/ccxt/LCX.jpg',
+                'logo': 'https://web.lcx.com/wp-content/uploads/2018/12/logo_black.png',
                 'api': {
                     'accounts': 'https://exchange-api.lcx.com',
                     'public': 'https://exchange-api.lcx.com',
