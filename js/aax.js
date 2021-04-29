@@ -288,21 +288,20 @@ module.exports = class aax extends ccxt.aax {
     async handshake (params = {}) {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
-        const future = client.future ('handshake');
         const event = 'handshake';
+        const future = client.future (event);
         const authenticated = this.safeValue (client.subscriptions, event);
         if (authenticated === undefined) {
             const requestId = this.requestId ();
             const query = {
-                'event': '#handshake',
+                'event': '#' + event,
                 'data': {},
                 'cid': requestId,
             };
             const request = this.extend (query, params);
             const messageHash = requestId.toString ();
             const response = await this.watch (url, messageHash, request, messageHash);
-            console.log (response);
-            // this.spawn (this.watch, url, method, request, 1);
+            future.resolve (response);
         }
         return await future;
     }
@@ -310,8 +309,8 @@ module.exports = class aax extends ccxt.aax {
     async authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
-        const future = client.future ('authenticated');
         const event = 'login';
+        const future = client.future (event);
         const authenticated = this.safeValue (client.subscriptions, event);
         if (authenticated === undefined) {
             const nonce = this.milliseconds ();
@@ -329,9 +328,31 @@ module.exports = class aax extends ccxt.aax {
             };
             const request = this.extend (query, params);
             const messageHash = requestId.toString ();
-            const response = await this.watch (url, messageHash, request);
-            console.log (response);
-            // this.spawn (this.watch, url, method, request, 1);
+            const response = await this.watch (url, messageHash, request, messageHash);
+            //
+            //     {
+            //         data: {
+            //             isAuthenticated: true,
+            //             uid: '1362494'
+            //         },
+            //         rid: 2
+            //     }
+            //
+            //     {
+            //         data: {
+            //             authError: { name: 'AuthLoginError', message: 'login failed' },
+            //             isAuthenticated: false
+            //         },
+            //         rid: 2
+            //     }
+            //
+            const data = this.safeValue (response, 'data', {});
+            const isAuthenticated = this.safeValue (data, 'isAuthenticated', false);
+            if (isAuthenticated) {
+                future.resolve (response);
+            } else {
+                throw new ccxt.AuthenticationError (this.id + ' ' + this.json (response));
+            }
         }
         return await future;
     }
@@ -340,9 +361,12 @@ module.exports = class aax extends ccxt.aax {
         await this.loadMarkets ();
         await this.handshake (params);
         await this.authenticate (params);
-        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws']['private'];
+
+
+        {"event":"#subscribe","data":{"channel":"user/' + ${USER_ID} + '"},"cid":2}
+
+
         const client = this.client (url);
         if (!(type in client.subscriptions)) {
             // reset this.balances after a disconnect
@@ -428,7 +452,28 @@ module.exports = class aax extends ccxt.aax {
     }
 
     handleSubscriptionStatus (client, message) {
-        // { e: 'reply', status: 'ok' }
+        //
+        // public
+        //
+        //     { e: 'reply', status: 'ok' }
+        //
+        // private handshake response
+        //
+        //     {
+        //         data: {
+        //             id: 'SID-fqC6a7VTFG6X',
+        //             info: "Invalid sid 'null', assigned a new one",
+        //             isAuthenticated: false,
+        //             pingTimeout: 68000
+        //         },
+        //         rid: 1
+        //     }
+        //
+        const rid = this.safeString (message, 'rid');
+        const subscription = this.safeValue (client.subscriptions, rid);
+        if (subscription !== undefined) {
+            client.resolve (message, rid);
+        }
     }
 
     handleMessage (client, message) {
@@ -460,7 +505,7 @@ module.exports = class aax extends ccxt.aax {
         //
         //     {"e":"empty"}
         //
-        // handshake response
+        // private handshake response
         //
         //     {
         //         data: {
