@@ -1340,7 +1340,6 @@ To use the async version of the library, use the `ccxt_async` namespace, as in t
 
 ```PHP
 // PHP
-
 <?php
 include 'ccxt.php';
 
