@@ -28,7 +28,6 @@ class aax extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'editOrder' => true,
-                'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
@@ -730,30 +729,6 @@ class aax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_accounts($params = array ()) {
-        $response = $this->privateGetUserInfo ($params);
-        //
-        //     {
-        //         code => "1",
-        //         message => "success",
-        //         ts => "1619730489929",
-        //         $data => {
-        //             userID => "1362494"
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $userId = $this->safe_string($data, 'userID');
-        return array(
-            array(
-                'id' => $userId,
-                'type' => null,
-                'currency' => null,
-                'info' => $response,
-            ),
-        );
     }
 
     public function fetch_balance($params = array ()) {

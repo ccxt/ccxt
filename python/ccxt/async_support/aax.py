@@ -44,7 +44,6 @@ class aax(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'editOrder': True,
-                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
@@ -717,29 +716,6 @@ class aax(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
-
-    async def fetch_accounts(self, params={}):
-        response = await self.privateGetUserInfo(params)
-        #
-        #     {
-        #         code: "1",
-        #         message: "success",
-        #         ts: "1619730489929",
-        #         data: {
-        #             userID: "1362494"
-        #         }
-        #     }
-        #
-        data = self.safe_value(response, 'data', {})
-        userId = self.safe_string(data, 'userID')
-        return [
-            {
-                'id': userId,
-                'type': None,
-                'currency': None,
-                'info': response,
-            },
-        ]
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
