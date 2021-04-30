@@ -16,6 +16,7 @@ async def symbol_loop(exchange, symbol):
             # raise e  # uncomment to break all loops in case of an error in any one of them
             break  # you can break just this one loop if it fails
 
+
 async def exchange_loop(asyncio_loop, exchange_id, symbols):
     print('Starting the', exchange_id, 'exchange loop with', symbols)
     exchange = getattr(ccxtpro, exchange_id)({
