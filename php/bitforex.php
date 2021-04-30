@@ -224,6 +224,7 @@ class bitforex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'ACE' => 'ACE Entertainment',
                 'CREDIT' => 'TerraCredit',
                 'CTC' => 'Culture Ticket Chain',
                 'HBC' => 'Hybrid Bank Cash',
