@@ -250,6 +250,12 @@ class aax(Exchange):
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultType': 'spot',  # 'spot', 'future'
+                'types': {
+                    'spot': 'SPTP',
+                    'future': 'FUTP',
+                    'otc': 'F2CP',
+                    'saving': 'VLTP',
+                },
             },
         })
 
@@ -721,12 +727,7 @@ class aax(Exchange):
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        types = {
-            'spot': 'SPTP',
-            'future': 'FUTP',
-            'otc': 'F2CP',
-            'saving': 'VLTP',
-        }
+        types = self.safe_value(self.options, 'types', {})
         purseType = self.safe_string(types, type, type)
         request = {
             'purseType': purseType,
