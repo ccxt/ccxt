@@ -25,7 +25,6 @@ module.exports = class aax extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': true,
-                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -727,30 +726,6 @@ module.exports = class aax extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
-    }
-
-    async fetchAccounts (params = {}) {
-        const response = await this.privateGetUserInfo (params);
-        //
-        //     {
-        //         code: "1",
-        //         message: "success",
-        //         ts: "1619730489929",
-        //         data: {
-        //             userID: "1362494"
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data', {});
-        const userId = this.safeString (data, 'userID');
-        return [
-            {
-                'id': userId,
-                'type': undefined,
-                'currency': undefined,
-                'info': response,
-            },
-        ];
     }
 
     async fetchBalance (params = {}) {
