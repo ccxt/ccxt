@@ -256,6 +256,12 @@ class aax(Exchange):
                     'otc': 'F2CP',
                     'saving': 'VLTP',
                 },
+                'accounts': {
+                    'SPTP': 'spot',
+                    'FUTP': 'future',
+                    'F2CP': 'otc',
+                    'VLTP': 'saving',
+                },
             },
         })
 

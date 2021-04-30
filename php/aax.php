@@ -240,6 +240,12 @@ class aax extends Exchange {
                     'otc' => 'F2CP',
                     'saving' => 'VLTP',
                 ),
+                'accounts' => array(
+                    'SPTP' => 'spot',
+                    'FUTP' => 'future',
+                    'F2CP' => 'otc',
+                    'VLTP' => 'saving',
+                ),
             ),
         ));
     }
