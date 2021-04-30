@@ -831,7 +831,8 @@ class binance(Exchange, ccxt.binance):
             account['used'] = self.safe_float(entry, 'l')
             account['total'] = self.safe_float(entry, wallet)
             self.balance[accountType][code] = account
-        client.resolve(self.parse_balance(self.balance[accountType]), messageHash)
+        self.balance[accountType] = self.parse_balance(self.balance[accountType])
+        client.resolve(self.balance[accountType], messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

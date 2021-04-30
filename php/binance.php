@@ -897,7 +897,8 @@ class binance extends \ccxt\async\binance {
             $account['total'] = $this->safe_float($entry, $wallet);
             $this->balance[$accountType][$code] = $account;
         }
-        $client->resolve ($this->parse_balance($this->balance[$accountType]), $messageHash);
+        $this->balance[$accountType] = $this->parse_balance($this->balance[$accountType]);
+        $client->resolve ($this->balance[$accountType], $messageHash);
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
