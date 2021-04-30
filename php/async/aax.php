@@ -235,6 +235,12 @@ class aax extends Exchange {
             'precisionMode' => TICK_SIZE,
             'options' => array(
                 'defaultType' => 'spot', // 'spot', 'future'
+                'types' => array(
+                    'spot' => 'SPTP',
+                    'future' => 'FUTP',
+                    'otc' => 'F2CP',
+                    'saving' => 'VLTP',
+                ),
             ),
         ));
     }
@@ -736,12 +742,7 @@ class aax extends Exchange {
         yield $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $types = array(
-            'spot' => 'SPTP',
-            'future' => 'FUTP',
-            'otc' => 'F2CP',
-            'saving' => 'VLTP',
-        );
+        $types = $this->safe_value($this->options, 'types', array());
         $purseType = $this->safe_string($types, $type, $type);
         $request = array(
             'purseType' => $purseType,
