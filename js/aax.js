@@ -358,40 +358,37 @@ module.exports = class aax extends ccxt.aax {
     }
 
     async watchBalance (params = {}) {
-        await this.loadAccounts ();
         await this.loadMarkets ();
         await this.handshake (params);
-        await this.authenticate (params);
+        const authentication = await this.authenticate (params);
+        //
+        //     {
+        //         data: {
+        //             isAuthenticated: true,
+        //             uid: '1362494'
+        //         },
+        //         rid: 2
+        //     }
+        //
+        const data = this.safeValue (authentication, 'data', {});
+        const uid = this.safeString (data, 'uid');
         const url = this.urls['api']['ws']['private'];
-
-        await this.loadMarkets ();
-        const name = 'candles';
-        const market = this.market (symbol);
-        const interval = this.timeframes[timeframe];
-        const messageHash = market['id'] + '@' + interval + '_' + name;
+        const defaultUserId = this.safeString2 (this.options, 'userId', 'userID', uid);
+        const userId = this.safeString2 (params, 'userId', 'userID', defaultUserId);
+        const query = this.omit (params, [ 'userId', 'userID' ]);
+        const channel = 'user/' + userId;
+        const messageHash = 'balance';
+        const requestId = this.requestId ();
         const subscribe = {
-            'e': 'subscribe',
-            'stream': messageHash,
+            'event': '#subscribe',
+            // 'stream': messageHash,
+            'data': {
+                'channel': channel, // "user/' + ${USER_ID} + '"
+            },
+            'cid': requestId,
         };
-        const request = this.deepExtend (subscribe, params);
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
-
-
-        {"event":"#subscribe","data":{"channel":"user/' + ${USER_ID} + '"},"cid":2}
-
-
-        const client = this.client (url);
-        if (!(type in client.subscriptions)) {
-            // reset this.balances after a disconnect
-            this.balance[type] = {};
-        }
-        const messageHash = type + ':balance';
-        const message = undefined;
-        return await this.watch (url, messageHash, message, type);
+        const request = this.deepExtend (subscribe, query);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     handleBalance (client, message) {
