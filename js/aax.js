@@ -231,6 +231,12 @@ module.exports = class aax extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultType': 'spot', // 'spot', 'future'
+                'types': {
+                    'spot': 'SPTP',
+                    'future': 'FUTP',
+                    'otc': 'F2CP',
+                    'saving': 'VLTP',
+                },
             },
         });
     }
@@ -732,12 +738,7 @@ module.exports = class aax extends Exchange {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const types = {
-            'spot': 'SPTP',
-            'future': 'FUTP',
-            'otc': 'F2CP',
-            'saving': 'VLTP',
-        };
+        const types = this.safeValue (this.options, 'types', {});
         const purseType = this.safeString (types, type, type);
         const request = {
             'purseType': purseType,
