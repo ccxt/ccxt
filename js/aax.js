@@ -358,10 +358,27 @@ module.exports = class aax extends ccxt.aax {
     }
 
     async watchBalance (params = {}) {
+        await this.loadAccounts ();
         await this.loadMarkets ();
         await this.handshake (params);
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'];
+
+        await this.loadMarkets ();
+        const name = 'candles';
+        const market = this.market (symbol);
+        const interval = this.timeframes[timeframe];
+        const messageHash = market['id'] + '@' + interval + '_' + name;
+        const subscribe = {
+            'e': 'subscribe',
+            'stream': messageHash,
+        };
+        const request = this.deepExtend (subscribe, params);
+        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
 
 
         {"event":"#subscribe","data":{"channel":"user/' + ${USER_ID} + '"},"cid":2}
