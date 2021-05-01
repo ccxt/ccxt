@@ -894,7 +894,8 @@ module.exports = class binance extends ccxt.binance {
             account['total'] = this.safeFloat (entry, wallet);
             this.balance[accountType][code] = account;
         }
-        client.resolve (this.parseBalance (this.balance[accountType]), messageHash);
+        this.balance[accountType] = this.parseBalance (this.balance[accountType]);
+        client.resolve (this.balance[accountType], messageHash);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
