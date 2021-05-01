@@ -244,6 +244,7 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 ```shell
 pip install ccxt
+pip install six
 ```
 
 ```Python
