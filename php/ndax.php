@@ -1256,7 +1256,7 @@ class ndax extends Exchange {
             $request['InstrumentId'] = $market['id'];
         }
         if ($since !== null) {
-            $request['StartTimeStamp'] = $since;
+            $request['StartTimeStamp'] = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['Depth'] = $limit;
@@ -1460,7 +1460,7 @@ class ndax extends Exchange {
             $request['InstrumentId'] = $market['id'];
         }
         if ($since !== null) {
-            $request['StartTimeStamp'] = $since;
+            $request['StartTimeStamp'] = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['Depth'] = $limit;

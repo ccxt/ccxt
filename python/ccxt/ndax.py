@@ -1217,7 +1217,7 @@ class ndax(Exchange):
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
         if since is not None:
-            request['StartTimeStamp'] = since
+            request['StartTimeStamp'] = int(since / 1000)
         if limit is not None:
             request['Depth'] = limit
         response = self.privateGetGetTradesHistory(self.extend(request, params))
@@ -1410,7 +1410,7 @@ class ndax(Exchange):
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
         if since is not None:
-            request['StartTimeStamp'] = since
+            request['StartTimeStamp'] = int(since / 1000)
         if limit is not None:
             request['Depth'] = limit
         response = self.privateGetGetOrdersHistory(self.extend(request, params))
