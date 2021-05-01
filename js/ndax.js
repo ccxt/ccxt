@@ -1459,7 +1459,7 @@ module.exports = class ndax extends Exchange {
             request['InstrumentId'] = market['id'];
         }
         if (since !== undefined) {
-            request['StartTimeStamp'] = since;
+            request['StartTimeStamp'] = parseInt (since / 1000);
         }
         if (limit !== undefined) {
             request['Depth'] = limit;
