@@ -1021,27 +1021,28 @@ class bybit(Exchange):
         #
         # createOrder
         #
-        #     {
-        #         "user_id": 1,
-        #         "order_id": "335fd977-e5a5-4781-b6d0-c772d5bfb95b",
-        #         "symbol": "BTCUSD",
-        #         "side": "Buy",
-        #         "order_type": "Limit",
-        #         "price": 8800,
-        #         "qty": 1,
-        #         "time_in_force": "GoodTillCancel",
-        #         "order_status": "Created",
-        #         "last_exec_time": 0,
-        #         "last_exec_price": 0,
-        #         "leaves_qty": 1,
-        #         "cum_exec_qty": 0,  # in contracts, where 1 contract = 1 quote currency unit(USD for inverse contracts)
-        #         "cum_exec_value": 0,  # in contract's underlying currency(BTC for inverse contracts)
-        #         "cum_exec_fee": 0,
-        #         "reject_reason": "",
-        #         "order_link_id": "",
-        #         "created_at": "2019-11-30T11:03:43.452Z",
-        #         "updated_at": "2019-11-30T11:03:43.455Z"
-        #     }
+        # {'close_on_trigger': False,
+        #  'created_time': '2021-05-02T14:27:02Z',
+        #  'cum_exec_fee': '0',
+        #  'cum_exec_qty': '0',
+        #  'cum_exec_value': '0',
+        #  'last_exec_price': '0',
+        #  'order_id': '6ce38163-0cdf-4a60-a18d-a0dc5dfde454',
+        #  'order_link_id': 'O-20210502-142704-001-001-1',
+        #  'order_status': 'New',
+        #  'order_type': 'Limit',
+        #  'price': '56825',
+        #  'qty': '0.001',
+        #  'reduce_only': False,
+        #  'side': 'Buy',
+        #  'sl_trigger_by': 'UNKNOWN',
+        #  'stop_loss': '0',
+        #  'symbol': 'BTCUSDT',
+        #  'take_profit': '0',
+        #  'time_in_force': 'GoodTillCancel',
+        #  'tp_trigger_by': 'UNKNOWN',
+        #  'updated_time': '2021-05-02T14:27:02Z',
+        #  'user_id': '1284872'}
         #
         # fetchOrder
         #
@@ -1112,7 +1113,7 @@ class bybit(Exchange):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         feeCurrency = None
-        timestamp = self.parse8601(self.safe_string(order, 'created_at'))
+        timestamp = self.parse8601(self.safe_string(order, 'created_time'))
         id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         type = self.safe_string_lower(order, 'order_type')
         price = self.safe_number(order, 'price')
