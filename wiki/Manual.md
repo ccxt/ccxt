@@ -701,7 +701,6 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - [Loading Markets](#loading-markets)
 - [Symbols And Market Ids](#symbols-and-market-ids)
 - [Market Cache Force Reload](#market-cache-force-reload)
-- [API Methods / Endpoints](#api-methods--endpoints)
 
 Each exchange is a place for trading some kinds of valuables. Sometimes they are called with various different terms like instruments, symbols, trading pairs, currencies, tokens, stocks, commodities, contracts, etc, but they all mean the same – a trading pair, a symbol or a financial instrument.
 
@@ -1340,7 +1339,7 @@ In the PHP 5-compatible version all API methods are synchronous, but with PHP 7.
 To use the async version of the library, use the `ccxt_async` namespace, as in the following example:
 
 ```PHP
-# PHP
+// PHP
 <?php
 include 'ccxt.php';
 
