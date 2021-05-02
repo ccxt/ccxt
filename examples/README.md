@@ -59,6 +59,10 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Geographic Latency in Crypto: How to Optimally Co-Locate Your AWS Trading Server to Any Exchange API](https://elitwilliams.medium.com/geographic-latency-in-crypto-how-to-optimally-co-locate-your-aws-trading-server-to-any-exchange-58965ea173a8) – An article overviewing the aspects of latencies for global cryptocurrency trading.
 
+[CCXT - Cryptocurrency Exchange Trading Library Tutorial](https://www.youtube.com/watch?v=2Zdm2ISdm1Q) – A YouTube video tutorial on CCXT!
+
+[CCXT Crypto Bot - Order Execution with Python](https://www.youtube.com/watch?v=1PEyddA1y5E) – making a CCXT Bot on YouTube!
+
 [Writing a crypto trading bot](https://www.kleemans.ch/writing-a-crypto-trading-bot) – How to write an automated trading bot, for fun and profit.
 
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
