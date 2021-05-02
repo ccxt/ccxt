@@ -112,11 +112,21 @@ module.exports = class bithumb extends Exchange {
             'options': {
                 'quoteCurrencies': {
                     'BTC': {
-                        'precision': {
-                            'price': 8,
+                        'limits': {
+                            'cost': {
+                                'min': 0.0002,
+                                'max': 100,
+                            },
                         },
                     },
-                    'KRW': {},
+                    'KRW': {
+                        'limits': {
+                            'cost': {
+                                'min': 500,
+                                'max': 5000000000,
+                            },
+                        },
+                    },
                 },
             },
         });
@@ -172,10 +182,7 @@ module.exports = class bithumb extends Exchange {
                             'min': undefined,
                             'max': undefined,
                         },
-                        'cost': {
-                            'min': 500,
-                            'max': 5000000000,
-                        },
+                        'cost': {}, // set via options
                     },
                     'baseId': undefined,
                     'quoteId': undefined,
