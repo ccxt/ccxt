@@ -214,7 +214,7 @@ class bithumb extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'currency' => $market['base'],
+            'currency' => $market['base'] . '_' . $market['quote'],
         );
         if ($limit !== null) {
             $request['count'] = $limit; // default 30, max 30
