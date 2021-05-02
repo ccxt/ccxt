@@ -357,7 +357,7 @@ const ccxt = require ('ccxt');
             'apiKey': 'YOUR_API_KEY',
             'secret': 'YOUR_SECRET',
             'timeout': 30000,
-            'enableRateLimit': true,
+            'enableRateLimit': true, // required! https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
         })
 
     console.log (kraken.id,    await kraken.loadMarkets ())
@@ -408,7 +408,7 @@ exchange = exchange_class({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
     'timeout': 30000,
-    'enableRateLimit': True,
+    'enableRateLimit': True,  # required! https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
 })
 
 hitbtc_markets = hitbtc.load_markets()
@@ -456,7 +456,7 @@ $exchange = new $exchange_class (array (
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
     'timeout' => 30000,
-    'enableRateLimit' => true,
+    'enableRateLimit' => true,  // required! https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
 ));
 
 $poloniex_markets = $poloniex->load_markets ();
