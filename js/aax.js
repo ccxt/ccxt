@@ -20,7 +20,7 @@ module.exports = class aax extends ccxt.aax {
                 'watchTrades': true,
                 'watchBalance': true,
                 // 'watchStatus': false, // for now
-                // 'watchOrders': true,
+                'watchOrders': true,
                 // 'watchMyTrades': true,
             },
             'urls': {
@@ -444,7 +444,7 @@ module.exports = class aax extends ccxt.aax {
         const userId = this.safeString2 (params, 'userId', 'userID', defaultUserId);
         const query = this.omit (params, [ 'userId', 'userID' ]);
         const channel = 'user/' + userId;
-        const messageHash = type + ':orders';
+        let messageHash = 'orders';
         if (symbol !== undefined) {
             messageHash += ':' + symbol;
         }
@@ -465,9 +465,42 @@ module.exports = class aax extends ccxt.aax {
     }
 
     handleOrder (client, message) {
-        console.dir (message, { depth: null });
+        //
+        //     {
+        //         data: {
+        //             symbol: 'ETHUSDT',
+        //             orderType: 2,
+        //             avgPrice: '0',
+        //             orderStatus: 5,
+        //             userID: '1362494',
+        //             quote: 'USDT',
+        //             rejectCode: 0,
+        //             price: '2000',
+        //             orderQty: '0.02',
+        //             commission: '0',
+        //             id: '309458413831172096',
+        //             timeInForce: 1,
+        //             isTriggered: false,
+        //             side: 1,
+        //             orderID: '1qA7O2CnOo',
+        //             leavesQty: '0',
+        //             cumQty: '0',
+        //             updateTime: '2021-05-03T14:37:26.498Z',
+        //             lastQty: '0',
+        //             stopPrice: '0',
+        //             createTime: '2021-05-03T14:37:15.316Z',
+        //             transactTime: '2021-05-03T14:37:26.492Z',
+        //             base: 'ETH',
+        //             lastPrice: '0'
+        //         },
+        //         event: 'SPOT'
+        //     }
+        //
         const messageHash = 'orders';
-        const parsed = this.parseWsOrder (message);
+        const data = this.safeValue (message, 'data');
+        const parsed = this.parseOrder (data);
+        console.dir (parsed, { depth: null });
+        process.exit ()
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
         if (symbol !== undefined) {
@@ -496,92 +529,6 @@ module.exports = class aax extends ccxt.aax {
             const messageHashSymbol = messageHash + ':' + symbol;
             client.resolve (this.orders, messageHashSymbol);
         }
-    }
-
-
-    parseWsOrder (order, market = undefined) {
-        //
-        // spot
-        //
-        //
-        // future
-        //
-        //
-        const executionType = this.safeString (order, 'x');
-        const orderId = this.safeString (order, 'i');
-        const marketId = this.safeString (order, 's');
-        const symbol = this.safeSymbol (marketId);
-        let timestamp = this.safeInteger (order, 'O');
-        const T = this.safeInteger (order, 'T');
-        let lastTradeTimestamp = undefined;
-        if (executionType === 'NEW') {
-            if (timestamp === undefined) {
-                timestamp = T;
-            }
-        } else if (executionType === 'TRADE') {
-            lastTradeTimestamp = T;
-        }
-        let fee = undefined;
-        const feeCost = this.safeFloat (order, 'n');
-        if ((feeCost !== undefined) && (feeCost > 0)) {
-            const feeCurrencyId = this.safeString (order, 'N');
-            const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-            };
-        }
-        const price = this.safeFloat (order, 'p');
-        const amount = this.safeFloat (order, 'q');
-        const side = this.safeStringLower (order, 'S');
-        const type = this.safeStringLower (order, 'o');
-        const filled = this.safeFloat (order, 'z');
-        const cumulativeQuote = this.safeFloat (order, 'Z');
-        let remaining = amount;
-        let average = this.safeFloat (order, 'ap');
-        let cost = cumulativeQuote;
-        if (filled !== undefined) {
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = filled * price;
-                }
-            }
-            if (amount !== undefined) {
-                remaining = Math.max (amount - filled, 0);
-            }
-            if ((average === undefined) && (cumulativeQuote !== undefined) && (filled > 0)) {
-                average = cumulativeQuote / filled;
-            }
-        }
-        const rawStatus = this.safeString (order, 'X');
-        const status = this.parseOrderStatus (rawStatus);
-        const trades = undefined;
-        const clientOrderId = this.safeString (order, 'c');
-        const stopPrice = this.safeFloat2 (order, 'P', 'sp');
-        const timeInForce = this.safeString (order, 'f');
-        return {
-            'info': order,
-            'symbol': symbol,
-            'id': orderId,
-            'clientOrderId': clientOrderId,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'stopPrice': stopPrice,
-            'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
-            'trades': trades,
-        };
     }
 
     handleSystemStatus (client, message) {
