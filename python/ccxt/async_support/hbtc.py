@@ -324,22 +324,26 @@ class hbtc(Exchange):
         priceMin = None
         priceMax = None
         costMin = None
+        pricePrecision = None
+        amountPrecision = None
         for j in range(0, len(filters)):
             filter = filters[j]
             filterType = self.safe_string(filter, 'filterType')
             if filterType == 'LOT_SIZE':
                 amountMin = self.safe_number(filter, 'minQty')
                 amountMax = self.safe_number(filter, 'maxQty')
+                amountPrecision = self.safe_number(filter, 'stepSize')
             if filterType == 'PRICE_FILTER':
                 priceMin = self.safe_number(filter, 'minPrice')
                 priceMax = self.safe_number(filter, 'maxPrice')
-            if filterType == 'MIN_NOTIONAL':
-                costMin = self.safe_number(filter, 'minNotional')
-        if (costMin is None) and (amountMin is not None) and (priceMin is not None):
+                pricePrecision = self.safe_number(filter, 'tickSize')
+        if (amountMin is not None) and (priceMin is not None):
             costMin = amountMin * priceMin
         precision = {
-            'price': self.safe_number_2(market, 'quotePrecision', 'quoteAssetPrecision'),
-            'amount': self.safe_number(market, 'baseAssetPrecision'),
+            'price': pricePrecision,
+            'amount': amountPrecision,
+            'base': self.safe_number(market, 'baseAssetPrecision'),
+            'quote': self.safe_number_2(market, 'quotePrecision', 'quoteAssetPrecision'),
         }
         limits = {
             'amount': {

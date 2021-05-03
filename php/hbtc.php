@@ -313,27 +313,30 @@ class hbtc extends Exchange {
         $priceMin = null;
         $priceMax = null;
         $costMin = null;
+        $pricePrecision = null;
+        $amountPrecision = null;
         for ($j = 0; $j < count($filters); $j++) {
             $filter = $filters[$j];
             $filterType = $this->safe_string($filter, 'filterType');
             if ($filterType === 'LOT_SIZE') {
                 $amountMin = $this->safe_number($filter, 'minQty');
                 $amountMax = $this->safe_number($filter, 'maxQty');
+                $amountPrecision = $this->safe_number($filter, 'stepSize');
             }
             if ($filterType === 'PRICE_FILTER') {
                 $priceMin = $this->safe_number($filter, 'minPrice');
                 $priceMax = $this->safe_number($filter, 'maxPrice');
-            }
-            if ($filterType === 'MIN_NOTIONAL') {
-                $costMin = $this->safe_number($filter, 'minNotional');
+                $pricePrecision = $this->safe_number($filter, 'tickSize');
             }
         }
-        if (($costMin === null) && ($amountMin !== null) && ($priceMin !== null)) {
+        if (($amountMin !== null) && ($priceMin !== null)) {
             $costMin = $amountMin * $priceMin;
         }
         $precision = array(
-            'price' => $this->safe_number_2($market, 'quotePrecision', 'quoteAssetPrecision'),
-            'amount' => $this->safe_number($market, 'baseAssetPrecision'),
+            'price' => $pricePrecision,
+            'amount' => $amountPrecision,
+            'base' => $this->safe_number($market, 'baseAssetPrecision'),
+            'quote' => $this->safe_number_2($market, 'quotePrecision', 'quoteAssetPrecision'),
         );
         $limits = array(
             'amount' => array(
