@@ -570,7 +570,7 @@ module.exports = class bitfinex extends Exchange {
                 },
             };
             limits['cost'] = {
-                'min': this.parseNumber (Precise.stringMul (minAmountString, maxAmountString)),
+                'min': undefined,
                 'max': undefined,
             };
             const margin = this.safeValue (market, 'margin');
