@@ -388,7 +388,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 },
             };
             limits['cost'] = {
-                'min': this.parseNumber (Precise.stringMul (minOrderSizeString, maxOrderSizeString)),
+                'min': undefined,
                 'max': undefined,
             };
             const margin = this.safeValue (market, 'margin');
