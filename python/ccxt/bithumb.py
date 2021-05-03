@@ -123,11 +123,21 @@ class bithumb(Exchange):
             'options': {
                 'quoteCurrencies': {
                     'BTC': {
-                        'precision': {
-                            'price': 8,
+                        'limits': {
+                            'cost': {
+                                'min': 0.0002,
+                                'max': 100,
+                            },
                         },
                     },
-                    'KRW': {},
+                    'KRW': {
+                        'limits': {
+                            'cost': {
+                                'min': 500,
+                                'max': 5000000000,
+                            },
+                        },
+                    },
                 },
             },
         })
@@ -178,10 +188,7 @@ class bithumb(Exchange):
                             'min': None,
                             'max': None,
                         },
-                        'cost': {
-                            'min': 500,
-                            'max': 5000000000,
-                        },
+                        'cost': {},  # set via options
                     },
                     'baseId': None,
                     'quoteId': None,
