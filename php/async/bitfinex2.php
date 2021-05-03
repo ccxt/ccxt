@@ -395,7 +395,7 @@ class bitfinex2 extends bitfinex {
                 ),
             );
             $limits['cost'] = array(
-                'min' => $this->parse_number(Precise::string_mul($minOrderSizeString, $maxOrderSizeString)),
+                'min' => null,
                 'max' => null,
             );
             $margin = $this->safe_value($market, 'margin');

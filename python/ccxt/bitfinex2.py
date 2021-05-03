@@ -396,7 +396,7 @@ class bitfinex2(bitfinex):
                 },
             }
             limits['cost'] = {
-                'min': self.parse_number(Precise.string_mul(minOrderSizeString, maxOrderSizeString)),
+                'min': None,
                 'max': None,
             }
             margin = self.safe_value(market, 'margin')
