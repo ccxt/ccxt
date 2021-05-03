@@ -572,7 +572,7 @@ class bitfinex extends Exchange {
                 ),
             );
             $limits['cost'] = array(
-                'min' => $this->parse_number(Precise::string_mul($minAmountString, $maxAmountString)),
+                'min' => null,
                 'max' => null,
             );
             $margin = $this->safe_value($market, 'margin');
