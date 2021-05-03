@@ -36,9 +36,6 @@ module.exports = class aax extends ccxt.aax {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'myTradesLimit': 1000,
-                'accounts': {
-                    ''
-                }
             },
         });
     }
@@ -303,7 +300,7 @@ module.exports = class aax extends ccxt.aax {
             };
             const request = this.extend (query, params);
             const messageHash = requestId.toString ();
-            const response = await this.watch (url, messageHash, request, messageHash);
+            const response = await this.watch (url, messageHash, request, event);
             future.resolve (response);
         }
         return await future;
@@ -331,7 +328,7 @@ module.exports = class aax extends ccxt.aax {
             };
             const request = this.extend (query, params);
             const messageHash = requestId.toString ();
-            const response = await this.watch (url, messageHash, request, messageHash);
+            const response = await this.watch (url, messageHash, request, event);
             //
             //     {
             //         data: {
@@ -414,14 +411,177 @@ module.exports = class aax extends ccxt.aax {
         const accounts  = this.safeValue (this.options, 'accounts', {});
         const accountType = this.safeString (accounts, purseType);
         const messageHash = accountType + ':balance';
-        const currencyId = this.safeString (message, 'currency');
+        const currencyId = this.safeString (data, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        account['free'] = this.safeFloat (message, 'available');
-        account['used'] = this.safeFloat (entry, 'unavailable');
+        account['free'] = this.safeFloat (data, 'available');
+        account['used'] = this.safeFloat (data, 'unavailable');
+        if (!(accountType in this.balance)) {
+            this.balance[accountType] = {};
+        }
         this.balance[accountType][code] = account;
         this.balance[accountType] = this.parseBalance (this.balance[accountType]);
         client.resolve (this.balance[accountType], messageHash);
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.handshake (params);
+        const authentication = await this.authenticate (params);
+        //
+        //     {
+        //         data: {
+        //             isAuthenticated: true,
+        //             uid: '1362494'
+        //         },
+        //         rid: 2
+        //     }
+        //
+        const data = this.safeValue (authentication, 'data', {});
+        const uid = this.safeString (data, 'uid');
+        const url = this.urls['api']['ws']['private'];
+        const defaultUserId = this.safeString2 (this.options, 'userId', 'userID', uid);
+        const userId = this.safeString2 (params, 'userId', 'userID', defaultUserId);
+        const query = this.omit (params, [ 'userId', 'userID' ]);
+        const channel = 'user/' + userId;
+        const messageHash = type + ':orders';
+        if (symbol !== undefined) {
+            messageHash += ':' + symbol;
+        }
+        const requestId = this.requestId ()
+        const subscribe = {
+            'event': '#subscribe',
+            'data': {
+                'channel': channel,
+            },
+            'cid': requestId,
+        };
+        const request = this.deepExtend (subscribe, query);
+        const orders = await this.watch (url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client, message) {
+        console.dir (message, { depth: null });
+        const messageHash = 'orders';
+        const parsed = this.parseWsOrder (message);
+        const symbol = this.safeString (parsed, 'symbol');
+        const orderId = this.safeString (parsed, 'id');
+        if (symbol !== undefined) {
+            if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const cachedOrders = this.orders;
+            const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+            const order = this.safeValue (orders, orderId);
+            if (order !== undefined) {
+                const fee = this.safeValue (order, 'fee');
+                if (fee !== undefined) {
+                    parsed['fee'] = fee;
+                }
+                const fees = this.safeValue (order, 'fees');
+                if (fees !== undefined) {
+                    parsed['fees'] = fees;
+                }
+                parsed['trades'] = this.safeValue (order, 'trades');
+                parsed['timestamp'] = this.safeInteger (order, 'timestamp');
+                parsed['datetime'] = this.safeString (order, 'datetime');
+            }
+            cachedOrders.append (parsed);
+            client.resolve (this.orders, messageHash);
+            const messageHashSymbol = messageHash + ':' + symbol;
+            client.resolve (this.orders, messageHashSymbol);
+        }
+    }
+
+
+    parseWsOrder (order, market = undefined) {
+        //
+        // spot
+        //
+        //
+        // future
+        //
+        //
+        const executionType = this.safeString (order, 'x');
+        const orderId = this.safeString (order, 'i');
+        const marketId = this.safeString (order, 's');
+        const symbol = this.safeSymbol (marketId);
+        let timestamp = this.safeInteger (order, 'O');
+        const T = this.safeInteger (order, 'T');
+        let lastTradeTimestamp = undefined;
+        if (executionType === 'NEW') {
+            if (timestamp === undefined) {
+                timestamp = T;
+            }
+        } else if (executionType === 'TRADE') {
+            lastTradeTimestamp = T;
+        }
+        let fee = undefined;
+        const feeCost = this.safeFloat (order, 'n');
+        if ((feeCost !== undefined) && (feeCost > 0)) {
+            const feeCurrencyId = this.safeString (order, 'N');
+            const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
+        const price = this.safeFloat (order, 'p');
+        const amount = this.safeFloat (order, 'q');
+        const side = this.safeStringLower (order, 'S');
+        const type = this.safeStringLower (order, 'o');
+        const filled = this.safeFloat (order, 'z');
+        const cumulativeQuote = this.safeFloat (order, 'Z');
+        let remaining = amount;
+        let average = this.safeFloat (order, 'ap');
+        let cost = cumulativeQuote;
+        if (filled !== undefined) {
+            if (cost === undefined) {
+                if (price !== undefined) {
+                    cost = filled * price;
+                }
+            }
+            if (amount !== undefined) {
+                remaining = Math.max (amount - filled, 0);
+            }
+            if ((average === undefined) && (cumulativeQuote !== undefined) && (filled > 0)) {
+                average = cumulativeQuote / filled;
+            }
+        }
+        const rawStatus = this.safeString (order, 'X');
+        const status = this.parseOrderStatus (rawStatus);
+        const trades = undefined;
+        const clientOrderId = this.safeString (order, 'c');
+        const stopPrice = this.safeFloat2 (order, 'P', 'sp');
+        const timeInForce = this.safeString (order, 'f');
+        return {
+            'info': order,
+            'symbol': symbol,
+            'id': orderId,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        };
     }
 
     handleSystemStatus (client, message) {
@@ -447,10 +607,7 @@ module.exports = class aax extends ccxt.aax {
         //     }
         //
         const rid = this.safeString (message, 'rid');
-        const subscription = this.safeValue (client.subscriptions, rid);
-        if (subscription !== undefined) {
-            client.resolve (message, rid);
-        }
+        client.resolve (message, rid);
     }
 
     async pong (client, message) {
@@ -482,8 +639,8 @@ module.exports = class aax extends ccxt.aax {
         const methods = {
             'USER_FUNDS': this.handleBalance,
             'USER_BALANCE': this.handleBalance,
-            'SPOT': this.handleSpot,
-            'FUTURE': this.handleFuture,
+            'SPOT': this.handleOrder,
+            'FUTURE': this.handleOrder,
         };
         const method = this.safeValue (methods, event);
         if (method !== undefined) {
@@ -557,7 +714,45 @@ module.exports = class aax extends ccxt.aax {
         //     #1
         //     #2
         //
-        console.dir (message, { depth: null });
+        // private order update
+        //
+        //     {
+        //         data: {
+        //             channel: 'user/1362494',
+        //             data: {
+        //                 data: {
+        //                     symbol: 'ETHUSDT',
+        //                     orderType: 2,
+        //                     avgPrice: '0',
+        //                     orderStatus: 5,
+        //                     userID: '1362494',
+        //                     quote: 'USDT',
+        //                     rejectCode: 0,
+        //                     price: '2000',
+        //                     orderQty: '0.02',
+        //                     commission: '0',
+        //                     id: '309458413831172096',
+        //                     timeInForce: 1,
+        //                     isTriggered: false,
+        //                     side: 1,
+        //                     orderID: '1qA7O2CnOo',
+        //                     leavesQty: '0',
+        //                     cumQty: '0',
+        //                     updateTime: '2021-05-03T14:37:26.498Z',
+        //                     lastQty: '0',
+        //                     stopPrice: '0',
+        //                     createTime: '2021-05-03T14:37:15.316Z',
+        //                     transactTime: '2021-05-03T14:37:26.492Z',
+        //                     base: 'ETH',
+        //                     lastPrice: '0'
+        //                 },
+        //                 event: 'SPOT'
+        //             }
+        //         },
+        //         event: '#publish'
+        //     }
+        //
+        // console.dir (message, { depth: null });
         if (typeof message === 'string') {
             if (message === '#1') {
                 this.handlePing (client, message);
