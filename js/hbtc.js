@@ -310,27 +310,30 @@ module.exports = class hbtc extends Exchange {
         let priceMin = undefined;
         let priceMax = undefined;
         let costMin = undefined;
+        let pricePrecision = undefined;
+        let amountPrecision = undefined;
         for (let j = 0; j < filters.length; j++) {
             const filter = filters[j];
             const filterType = this.safeString (filter, 'filterType');
             if (filterType === 'LOT_SIZE') {
                 amountMin = this.safeNumber (filter, 'minQty');
                 amountMax = this.safeNumber (filter, 'maxQty');
+                amountPrecision = this.safeNumber (filter, 'stepSize');
             }
             if (filterType === 'PRICE_FILTER') {
                 priceMin = this.safeNumber (filter, 'minPrice');
                 priceMax = this.safeNumber (filter, 'maxPrice');
-            }
-            if (filterType === 'MIN_NOTIONAL') {
-                costMin = this.safeNumber (filter, 'minNotional');
+                pricePrecision = this.safeNumber (filter, 'tickSize');
             }
         }
-        if ((costMin === undefined) && (amountMin !== undefined) && (priceMin !== undefined)) {
+        if ((amountMin !== undefined) && (priceMin !== undefined)) {
             costMin = amountMin * priceMin;
         }
         const precision = {
-            'price': this.safeNumber2 (market, 'quotePrecision', 'quoteAssetPrecision'),
-            'amount': this.safeNumber (market, 'baseAssetPrecision'),
+            'price': pricePrecision,
+            'amount': amountPrecision,
+            'base': this.safeNumber (market, 'baseAssetPrecision'),
+            'quote': this.safeNumber2 (market, 'quotePrecision', 'quoteAssetPrecision'),
         };
         const limits = {
             'amount': {
