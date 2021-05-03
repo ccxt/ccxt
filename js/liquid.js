@@ -386,14 +386,27 @@ module.exports = class liquid extends Exchange {
             if (baseCurrency !== undefined) {
                 minAmount = this.safeNumber (baseCurrency['info'], 'minimum_order_quantity');
             }
+            const lastPrice = this.safeNumber (market, 'last_traded_price');
+            let minPrice = undefined;
+            let maxPrice = undefined;
+            if (lastPrice) {
+                const multiplierDown = this.safeNumber (market, 'multiplier_down');
+                const multiplierUp = this.safeNumber (market, 'multiplier_up');
+                if (multiplierDown !== undefined) {
+                    minPrice = lastPrice * multiplierDown;
+                }
+                if (multiplierUp !== undefined) {
+                    maxPrice = lastPrice * multiplierUp;
+                }
+            }
             const limits = {
                 'amount': {
                     'min': minAmount,
                     'max': undefined,
                 },
                 'price': {
-                    'min': undefined,
-                    'max': undefined,
+                    'min': minPrice,
+                    'max': maxPrice,
                 },
                 'cost': {
                     'min': undefined,
