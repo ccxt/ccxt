@@ -391,14 +391,27 @@ class liquid extends Exchange {
             if ($baseCurrency !== null) {
                 $minAmount = $this->safe_number($baseCurrency['info'], 'minimum_order_quantity');
             }
+            $lastPrice = $this->safe_number($market, 'last_traded_price');
+            $minPrice = null;
+            $maxPrice = null;
+            if ($lastPrice) {
+                $multiplierDown = $this->safe_number($market, 'multiplier_down');
+                $multiplierUp = $this->safe_number($market, 'multiplier_up');
+                if ($multiplierDown !== null) {
+                    $minPrice = $lastPrice * $multiplierDown;
+                }
+                if ($multiplierUp !== null) {
+                    $maxPrice = $lastPrice * $multiplierUp;
+                }
+            }
             $limits = array(
                 'amount' => array(
                     'min' => $minAmount,
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => null,
-                    'max' => null,
+                    'min' => $minPrice,
+                    'max' => $maxPrice,
                 ),
                 'cost' => array(
                     'min' => null,
