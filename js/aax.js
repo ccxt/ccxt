@@ -1586,18 +1586,9 @@ module.exports = class aax extends Exchange {
         if ((filled === 0) && (remaining === 0)) {
             remaining = undefined;
         }
-        let cost = undefined;
-        let lastTradeTimestamp = undefined;
-        if (filled !== undefined) {
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-            if (filled > 0) {
-                lastTradeTimestamp = this.safeValue (order, 'transactTime');
-                if (typeof lastTradeTimestamp === 'string') {
-                    lastTradeTimestamp = this.parse8601 (lastTradeTimestamp);
-                }
-            }
+        let lastTradeTimestamp = this.safeValue (order, 'transactTime');
+        if (typeof lastTradeTimestamp === 'string') {
+            lastTradeTimestamp = this.parse8601 (lastTradeTimestamp);
         }
         let fee = undefined;
         const feeCost = this.safeNumber (order, 'commission');
@@ -1615,7 +1606,7 @@ module.exports = class aax extends Exchange {
                 'cost': feeCost,
             };
         }
-        return {
+        return this.safeOrder ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
@@ -1634,10 +1625,10 @@ module.exports = class aax extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'cost': cost,
+            'cost': undefined,
             'trades': undefined,
             'fee': fee,
-        };
+        });
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
