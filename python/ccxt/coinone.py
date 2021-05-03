@@ -121,6 +121,7 @@ class coinone(Exchange):
                 continue
             base = self.safe_currency_code(baseId)
             result.append({
+                'info': ticker,
                 'id': baseId,
                 'symbol': base + '/' + quote,
                 'base': base,

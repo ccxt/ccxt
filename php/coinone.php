@@ -118,6 +118,7 @@ class coinone extends Exchange {
             }
             $base = $this->safe_currency_code($baseId);
             $result[] = array(
+                'info' => $ticker,
                 'id' => $baseId,
                 'symbol' => $base . '/' . $quote,
                 'base' => $base,
