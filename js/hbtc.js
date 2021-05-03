@@ -325,11 +325,8 @@ module.exports = class hbtc extends Exchange {
                 priceMax = this.safeNumber (filter, 'maxPrice');
                 pricePrecision = this.safeNumber (filter, 'tickSize');
             }
-            if (filterType === 'MIN_NOTIONAL') {
-                costMin = this.safeNumber (filter, 'minNotional');
-            }
         }
-        if ((costMin === undefined) && (amountMin !== undefined) && (priceMin !== undefined)) {
+        if ((amountMin !== undefined) && (priceMin !== undefined)) {
             costMin = amountMin * priceMin;
         }
         const precision = {
