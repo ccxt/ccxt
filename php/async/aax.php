@@ -1590,18 +1590,9 @@ class aax extends Exchange {
         if (($filled === 0) && ($remaining === 0)) {
             $remaining = null;
         }
-        $cost = null;
-        $lastTradeTimestamp = null;
-        if ($filled !== null) {
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-            if ($filled > 0) {
-                $lastTradeTimestamp = $this->safe_value($order, 'transactTime');
-                if (gettype($lastTradeTimestamp) === 'string') {
-                    $lastTradeTimestamp = $this->parse8601($lastTradeTimestamp);
-                }
-            }
+        $lastTradeTimestamp = $this->safe_value($order, 'transactTime');
+        if (gettype($lastTradeTimestamp) === 'string') {
+            $lastTradeTimestamp = $this->parse8601($lastTradeTimestamp);
         }
         $fee = null;
         $feeCost = $this->safe_number($order, 'commission');
@@ -1619,7 +1610,7 @@ class aax extends Exchange {
                 'cost' => $feeCost,
             );
         }
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'info' => $order,
             'clientOrderId' => $clientOrderId,
@@ -1638,10 +1629,10 @@ class aax extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
-            'cost' => $cost,
+            'cost' => null,
             'trades' => null,
             'fee' => $fee,
-        );
+        ));
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
