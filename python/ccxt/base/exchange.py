@@ -68,8 +68,6 @@ import gzip
 import hashlib
 import hmac
 import io
-import os
-import contextlib
 import json
 import math
 import random
