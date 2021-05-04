@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.6.76'
+__version__ = '0.6.77'
 
 # -----------------------------------------------------------------------------
 
@@ -108,8 +108,6 @@ from ccxt.async_support.equos import equos                                # noqa
 from ccxt.async_support.eterbase import eterbase                          # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.exx import exx                                    # noqa: F401
-from ccxt.async_support.fcoin import fcoin                                # noqa: F401
-from ccxt.async_support.fcoinjp import fcoinjp                            # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.foxbit import foxbit                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
