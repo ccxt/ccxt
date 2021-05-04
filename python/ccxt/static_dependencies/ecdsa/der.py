@@ -143,7 +143,7 @@ def read_number(string):
 def encode_length(l):
     assert l >= 0
     if l < 0x80:
-        return int.to_bytes(l)
+        return int.to_bytes(l, 1, 'big')
     s = ("%x" % l).encode()
     if len(s) % 2:
         s = b'0' + s
