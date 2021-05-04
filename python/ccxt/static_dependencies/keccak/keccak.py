@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# pylint: disable=C0103,R0914
+# code modified from https://github.com/zambonin/alice-and-bob
+# thank you @zambonin for your contributions to the open source code that is used by ccxt!
 
 """keccakf1600.py
 
