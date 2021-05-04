@@ -3,8 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { BadSymbol } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, NotSupported } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, NotSupported, AuthenticationError } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -351,7 +350,7 @@ module.exports = class aax extends ccxt.aax {
             if (isAuthenticated) {
                 future.resolve (response);
             } else {
-                throw new ccxt.AuthenticationError (this.id + ' ' + this.json (response));
+                throw new AuthenticationError (this.id + ' ' + this.json (response));
             }
         }
         return await future;
@@ -408,7 +407,7 @@ module.exports = class aax extends ccxt.aax {
         //
         const data = this.safeValue (message, 'data', {});
         const purseType = this.safeString (data, 'purseType');
-        const accounts  = this.safeValue (this.options, 'accounts', {});
+        const accounts = this.safeValue (this.options, 'accounts', {});
         const accountType = this.safeString (accounts, purseType);
         const messageHash = accountType + ':balance';
         const currencyId = this.safeString (data, 'currency');
@@ -448,7 +447,7 @@ module.exports = class aax extends ccxt.aax {
         if (symbol !== undefined) {
             messageHash += ':' + symbol;
         }
-        const requestId = this.requestId ()
+        const requestId = this.requestId ();
         const subscribe = {
             'event': '#subscribe',
             'data': {
@@ -465,6 +464,8 @@ module.exports = class aax extends ccxt.aax {
     }
 
     handleOrder (client, message) {
+        //
+        // spot
         //
         //     {
         //         data: {
@@ -496,11 +497,49 @@ module.exports = class aax extends ccxt.aax {
         //         event: 'SPOT'
         //     }
         //
+        // futures
+        //
+        //     {
+        //         data: {
+        //             opens: { symbol: 'ETHUSDTFP', buy: 1, sell: 0 },
+        //             order: {
+        //                 liqType: 0,
+        //                 symbol: 'ETHUSDTFP',
+        //                 orderType: 2,
+        //                 leverage: '10',
+        //                 marketPrice: '3283.4550000000',
+        //                 code: 'FP',
+        //                 avgPrice: '0',
+        //                 orderStatus: 1,
+        //                 userID: '1362494',
+        //                 quote: 'USDT',
+        //                 rejectCode: 0,
+        //                 price: '2000',
+        //                 orderQty: '1.0',
+        //                 commission: '0',
+        //                 id: '309633415658450944',
+        //                 timeInForce: 1,
+        //                 isTriggered: false,
+        //                 side: 1,
+        //                 orderID: '1qDemW8W1W',
+        //                 leavesQty: '1.0',
+        //                 cumQty: '0',
+        //                 updateTime: '2021-05-04T02:12:39.024Z',
+        //                 lastQty: '0',
+        //                 stopPrice: '0',
+        //                 createTime: '2021-05-04T02:12:39.007Z',
+        //                 transactTime: '2021-05-04T02:12:39.018Z',
+        //                 settleType: 'VANILLA',
+        //                 base: 'ETH',
+        //                 lastPrice: '0'
+        //             }
+        //         },
+        //         event: 'FUTURES'
+        //     }
         const messageHash = 'orders';
         const data = this.safeValue (message, 'data');
-        const parsed = this.parseOrder (data);
-        console.dir (parsed, { depth: null });
-        process.exit ()
+        const order = this.safeValue (data, 'order');
+        const parsed = (order === undefined) ? this.parseOrder (data) : this.parseOrder (order);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
         if (symbol !== undefined) {
@@ -533,6 +572,7 @@ module.exports = class aax extends ccxt.aax {
 
     handleSystemStatus (client, message) {
         // { e: 'system', status: [ { all: 'active' } ] }
+        return message;
     }
 
     handleSubscriptionStatus (client, message) {
@@ -555,6 +595,7 @@ module.exports = class aax extends ccxt.aax {
         //
         const rid = this.safeString (message, 'rid');
         client.resolve (message, rid);
+        return message;
     }
 
     async pong (client, message) {
@@ -587,7 +628,7 @@ module.exports = class aax extends ccxt.aax {
             'USER_FUNDS': this.handleBalance,
             'USER_BALANCE': this.handleBalance,
             'SPOT': this.handleOrder,
-            'FUTURE': this.handleOrder,
+            'FUTURES': this.handleOrder,
         };
         const method = this.safeValue (methods, event);
         if (method !== undefined) {
@@ -661,7 +702,7 @@ module.exports = class aax extends ccxt.aax {
         //     #1
         //     #2
         //
-        // private order update
+        // private spot order update
         //
         //     {
         //         data: {
@@ -699,7 +740,52 @@ module.exports = class aax extends ccxt.aax {
         //         event: '#publish'
         //     }
         //
-        // console.dir (message, { depth: null });
+        // private futures order update
+        //
+        //     {
+        //         data: {
+        //             channel: 'user/1362494',
+        //             data: {
+        //                 data: {
+        //                     opens: { symbol: 'ETHUSDTFP', buy: 1, sell: 0 },
+        //                     order: {
+        //                         liqType: 0,
+        //                         symbol: 'ETHUSDTFP',
+        //                         orderType: 2,
+        //                         leverage: '10',
+        //                         marketPrice: '3283.4550000000',
+        //                         code: 'FP',
+        //                         avgPrice: '0',
+        //                         orderStatus: 1,
+        //                         userID: '1362494',
+        //                         quote: 'USDT',
+        //                         rejectCode: 0,
+        //                         price: '2000',
+        //                         orderQty: '1.0',
+        //                         commission: '0',
+        //                         id: '309633415658450944',
+        //                         timeInForce: 1,
+        //                         isTriggered: false,
+        //                         side: 1,
+        //                         orderID: '1qDemW8W1W',
+        //                         leavesQty: '1.0',
+        //                         cumQty: '0',
+        //                         updateTime: '2021-05-04T02:12:39.024Z',
+        //                         lastQty: '0',
+        //                         stopPrice: '0',
+        //                         createTime: '2021-05-04T02:12:39.007Z',
+        //                         transactTime: '2021-05-04T02:12:39.018Z',
+        //                         settleType: 'VANILLA',
+        //                         base: 'ETH',
+        //                         lastPrice: '0'
+        //                     }
+        //                 },
+        //                 event: 'FUTURES'
+        //             }
+        //         },
+        //         event: '#publish'
+        //     }
+        //
         if (typeof message === 'string') {
             if (message === '#1') {
                 this.handlePing (client, message);
@@ -746,19 +832,6 @@ module.exports = class aax extends ccxt.aax {
                 if (method !== undefined) {
                     return method.call (this, client, message);
                 }
-                //
-                // if (method === undefined) {
-                //     if (type === 'match') {
-                //         if (authenticated) {
-                //             this.handleMyTrade (client, message);
-                //             this.handleOrder (client, message);
-                //         } else {
-                //             this.handleTrade (client, message);
-                //         }
-                //     }
-                // } else {
-                // }
-                // process.exit ();
             }
         }
     }
