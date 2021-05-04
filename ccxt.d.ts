@@ -487,8 +487,6 @@ declare module 'ccxt' {
     export class eterbase extends Exchange {}
     export class exmo extends Exchange {}
     export class exx extends Exchange {}
-    export class fcoin extends Exchange {}
-    export class fcoinjp extends fcoin {}
     export class flowbtc extends Exchange {}
     export class foxbit extends Exchange {}
     export class ftx extends Exchange {}
@@ -611,8 +609,6 @@ declare module 'ccxt' {
         | 'eterbase'
         | 'exmo'
         | 'exx'
-        | 'fcoin'
-        | 'fcoinjp'
         | 'flowbtc'
         | 'foxbit'
         | 'ftx'

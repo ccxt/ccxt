@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.49.40'
+__version__ = '1.49.41'
 
 # ----------------------------------------------------------------------------
 
@@ -131,8 +131,6 @@ from ccxt.equos import equos                                # noqa: F401
 from ccxt.eterbase import eterbase                          # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
 from ccxt.exx import exx                                    # noqa: F401
-from ccxt.fcoin import fcoin                                # noqa: F401
-from ccxt.fcoinjp import fcoinjp                            # noqa: F401
 from ccxt.flowbtc import flowbtc                            # noqa: F401
 from ccxt.foxbit import foxbit                              # noqa: F401
 from ccxt.ftx import ftx                                    # noqa: F401
@@ -253,8 +251,6 @@ exchanges = [
     'eterbase',
     'exmo',
     'exx',
-    'fcoin',
-    'fcoinjp',
     'flowbtc',
     'foxbit',
     'ftx',
