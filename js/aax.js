@@ -15,12 +15,9 @@ module.exports = class aax extends ccxt.aax {
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchTicker': true,
-                // 'watchTickers': false, // for now
                 'watchTrades': true,
                 'watchBalance': true,
-                // 'watchStatus': false, // for now
                 'watchOrders': true,
-                // 'watchMyTrades': true,
             },
             'urls': {
                 'api': {
