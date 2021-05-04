@@ -566,3 +566,4 @@ module.exports = class lcx extends Exchange {
         throw new ExchangeError (feedback);
     }
 };
+
