@@ -1420,26 +1420,6 @@ module.exports = class Exchange {
         return
     }
 
-    soliditySha3 (array) {
-        // we only support address, uint256, and string solidity types
-        const encoded = []
-        for (let i = 0; i < array.length; i++) {
-            const value = array[i]
-            if (Number.isInteger (value) || value.match (/^[0-9]+$/)) {
-                encoded.push (this.numberToBE (this.numberToString (value), 32))
-            } else {
-                const noPrefix = this.remove0xPrefix (value)
-                if (noPrefix.length === 40 && noPrefix.toLowerCase ().match (/^[0-9a-f]+$/)) { // check if it is an address
-                    encoded.push (this.base16ToBinary (noPrefix))
-                } else {
-                    encoded.push (this.stringToBinary (noPrefix))
-                }
-            }
-        }
-        const concated = this.binaryConcatArray (encoded)
-        return '0x' + this.hash (concated, 'keccak', 'hex')
-    }
-
     remove0xPrefix (hexData) {
         if (hexData.slice (0, 2) === '0x') {
             return hexData.slice (2)
