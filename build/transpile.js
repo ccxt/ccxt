@@ -1390,7 +1390,7 @@ class Transpiler {
 
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
-            [ /[^\n]+require[^\n]+\n/g, '' ],
+            [ /[^\n]+require\s[^\n]+\n/g, '' ],
             [ /function equals \([\S\s]+?return true\n}\n/g, '' ],
         ])
 
@@ -1483,7 +1483,7 @@ class Transpiler {
 
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
-            [ /[^\n]+require[^\n]+\n/g, '' ],
+            [ /[^\n]+require\s[^\n]+\n/g, '' ],
             [ /module.exports\s+=\s+[^;]+;/g, '' ],
         ])
 
