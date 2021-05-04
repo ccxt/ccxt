@@ -31,7 +31,6 @@ SOFTWARE.
 namespace ccxt;
 
 use kornrunner\Keccak;
-use kornrunner\Solidity;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
@@ -2773,10 +2772,6 @@ class Exchange {
         } else {
             throw new ExchangeError($this->id . ' requires a non-empty value in $this->twofa property');
         }
-    }
-
-    public function soliditySha3($array) {
-        return @call_user_func_array('\\kornrunner\Solidity::sha3', $array);
     }
 
     public static function base32_decode($s) {
