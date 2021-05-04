@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, DDoSProtection, BadSymbol, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, InvalidAddress, DDoSProtection, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -560,10 +560,19 @@ module.exports = class lcx extends Exchange {
             return;
         }
         const message = this.safeString (response, 'message');
-        const feedback = this.id + ' ' + body;
-        this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-        this.throwExactlyMatchedException (this.exceptions['exact'], reason, feedback);
-        throw new ExchangeError (feedback);
+        if (message !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+        }
+        if ('errorCode' in response) {
+            const errorCode = this.safeString (response, 'errorCode');
+            const message = this.safeString (response, 'message');
+            if (errorCode !== undefined) {
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                throw new ExchangeError (feedback);
+            }
+        }
     }
 };
-
