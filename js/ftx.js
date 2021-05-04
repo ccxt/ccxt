@@ -1671,6 +1671,19 @@ module.exports = class ftx extends Exchange {
         //
         // fetchDeposits
         //
+        //     airdrop
+        //
+        //     {
+        //         "id": 9147072,
+        //         "coin": "SRM_LOCKED",
+        //         "size": 3.12,
+        //         "time": "2021-04-27T23:59:03.565983+00:00",
+        //         "notes": "SRM Airdrop for FTT holdings",
+        //         "status": "complete"
+        //     }
+        //
+        //     regular deposits
+        //
         //     {
         //         "coin": "TUSD",
         //         "confirmations": 64,
@@ -1722,7 +1735,7 @@ module.exports = class ftx extends Exchange {
         if (address === undefined) {
             // parse address from internal transfer
             const notes = this.safeString (transaction, 'notes');
-            if (notes !== undefined) {
+            if ((notes !== undefined) && (notes.indexOf ('Transfer to') >= 0)) {
                 address = notes.slice (12);
             }
         }
