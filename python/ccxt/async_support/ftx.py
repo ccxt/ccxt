@@ -1613,6 +1613,19 @@ class ftx(Exchange):
         #
         # fetchDeposits
         #
+        #     airdrop
+        #
+        #     {
+        #         "id": 9147072,
+        #         "coin": "SRM_LOCKED",
+        #         "size": 3.12,
+        #         "time": "2021-04-27T23:59:03.565983+00:00",
+        #         "notes": "SRM Airdrop for FTT holdings",
+        #         "status": "complete"
+        #     }
+        #
+        #     regular deposits
+        #
         #     {
         #         "coin": "TUSD",
         #         "confirmations": 64,
@@ -1663,7 +1676,7 @@ class ftx(Exchange):
         if address is None:
             # parse address from internal transfer
             notes = self.safe_string(transaction, 'notes')
-            if notes is not None:
+            if (notes is not None) and (notes.find('Transfer to') >= 0):
                 address = notes[12:]
         fee = self.safe_number(transaction, 'fee')
         return {

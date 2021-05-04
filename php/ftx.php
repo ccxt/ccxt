@@ -1673,6 +1673,19 @@ class ftx extends Exchange {
         //
         // fetchDeposits
         //
+        //     airdrop
+        //
+        //     {
+        //         "$id" => 9147072,
+        //         "coin" => "SRM_LOCKED",
+        //         "size" => 3.12,
+        //         "time" => "2021-04-27T23:59:03.565983+00:00",
+        //         "$notes" => "SRM Airdrop for FTT holdings",
+        //         "$status" => "complete"
+        //     }
+        //
+        //     regular deposits
+        //
         //     {
         //         "coin" => "TUSD",
         //         "confirmations" => 64,
@@ -1724,7 +1737,7 @@ class ftx extends Exchange {
         if ($address === null) {
             // parse $address from internal transfer
             $notes = $this->safe_string($transaction, 'notes');
-            if ($notes !== null) {
+            if (($notes !== null) && (mb_strpos($notes, 'Transfer to') !== false)) {
                 $address = mb_substr($notes, 12);
             }
         }
