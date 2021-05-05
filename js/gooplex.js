@@ -200,6 +200,10 @@ module.exports = class gooplex extends Exchange {
         return marketId;
     }
 
+    symbolBinance (displaySymbol) {
+        return displaySymbol.replace ('/', '');
+    }
+
     convertSymbol (market) {
         const trading_fees = this.getFees ();
         const symbol = this.safeString (market, 'symbol');
@@ -848,7 +852,7 @@ module.exports = class gooplex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': this.symbolOriginal (symbol),
+            'symbol': this.symbolBinance (symbol),
         };
         const method = 'publicGetTicker24hr';
         const response = await this[method] (this.extend (request, params));
@@ -891,7 +895,7 @@ module.exports = class gooplex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': this.originalSymbol (symbol),
+            'symbol': this.symbolBinance (symbol),
             'interval': this.timeframes[timeframe],
         };
         if (since !== undefined) {
@@ -920,7 +924,7 @@ module.exports = class gooplex extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const method = 'apiGetV3Trades';
         const request = {
-            'symbol': this.symbolOriginal (symbol),
+            'symbol': this.symbolBinance (symbol),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -956,7 +960,7 @@ module.exports = class gooplex extends Exchange {
 
     parseL2 (entry) {
         const timestamp = this.safeTimestamp (entry, 'T');
-        const datetime = this.iso8601 (timestamp);
+        const datetime = this.iso8601 (timestamp / 1000);
         return {
             'tradeId': this.safeInteger (entry, 'a'),
             'price': this.safeFloat (entry, 'p'),
@@ -973,7 +977,7 @@ module.exports = class gooplex extends Exchange {
     async fetchAggTrades (symbol, limit = undefined, params = {}) {
         const method = 'apiGetV3AggTrades';
         const request = {
-            'symbol': this.symbolOriginal (symbol),
+            'symbol': this.symbolBinance (symbol),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
