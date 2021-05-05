@@ -435,6 +435,7 @@ declare module 'ccxt' {
     export class bit2c extends Exchange {}
     export class bitbank extends Exchange {}
     export class bitbay extends Exchange {}
+    export class bitbns extends Exchange {}
     export class bitcoincom extends hitbtc {}
     export class bitfinex extends Exchange {}
     export class bitfinex2 extends bitfinex {}
@@ -554,6 +555,7 @@ declare module 'ccxt' {
         | 'bit2c'
         | 'bitbank'
         | 'bitbay'
+        | 'bitbns'
         | 'bitcoincom'
         | 'bitfinex'
         | 'bitfinex2'
