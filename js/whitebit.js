@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -164,7 +165,7 @@ module.exports = class whitebit extends Exchange {
                 },
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'minAmount'),
+                        'min': this.safeNumber (market, 'minAmount'),
                         'max': undefined,
                     },
                     'price': {
@@ -172,7 +173,7 @@ module.exports = class whitebit extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeFloat (market, 'minTotal'),
+                        'min': this.safeNumber (market, 'minTotal'),
                         'max': undefined,
                     },
                 },
@@ -228,17 +229,9 @@ module.exports = class whitebit extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'minWithdrawal'),
-                        'max': this.safeFloat (currency, 'maxWithdrawal'),
+                        'min': this.safeNumber (currency, 'minWithdrawal'),
+                        'max': this.safeNumber (currency, 'maxWithdrawal'),
                     },
                 },
             };
@@ -250,8 +243,8 @@ module.exports = class whitebit extends Exchange {
         const response = await this.publicV2GetFee (params);
         const fees = this.safeValue (response, 'result');
         return {
-            'maker': this.safeFloat (fees, 'makerFee'),
-            'taker': this.safeFloat (fees, 'takerFee'),
+            'maker': this.safeNumber (fees, 'makerFee'),
+            'taker': this.safeNumber (fees, 'takerFee'),
         };
     }
 
@@ -321,8 +314,8 @@ module.exports = class whitebit extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
-        const percentage = this.safeFloat (ticker, 'change');
+        const last = this.safeNumber (ticker, 'last');
+        const percentage = this.safeNumber (ticker, 'change');
         let change = undefined;
         if (percentage !== undefined) {
             change = this.numberToString (percentage * 0.01);
@@ -331,22 +324,22 @@ module.exports = class whitebit extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': this.safeNumber (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'deal'),
+            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'quoteVolume': this.safeNumber (ticker, 'deal'),
             'info': ticker,
         };
     }
@@ -380,19 +373,10 @@ module.exports = class whitebit extends Exchange {
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            let market = undefined;
-            let symbol = marketId;
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
+            const market = this.safeMarket (marketId);
             const ticker = this.parseTicker (data[marketId], market);
-            result[symbol] = this.extend (ticker, { 'symbol': symbol });
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -428,7 +412,7 @@ module.exports = class whitebit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const timestamp = this.parse8601 (this.safeString (result, 'lastUpdateTimestamp'));
-        return this.parseOrderBook (result, timestamp);
+        return this.parseOrderBook (result, symbol, timestamp);
     }
 
     async fetchTradesV1 (symbol, since = undefined, limit = undefined, params = {}) {
@@ -523,8 +507,11 @@ module.exports = class whitebit extends Exchange {
         } else {
             timestamp = parseInt (timestamp * 1000);
         }
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat2 (trade, 'amount', 'volume');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'amount', 'volume');
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const id = this.safeString2 (trade, 'id', 'tradeId');
         let side = this.safeString (trade, 'type');
         if (side === undefined) {
@@ -534,10 +521,6 @@ module.exports = class whitebit extends Exchange {
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-        }
-        let cost = undefined;
-        if (amount !== undefined && price !== undefined) {
-            cost = amount * price;
         }
         return {
             'info': trade,
@@ -564,10 +547,19 @@ module.exports = class whitebit extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            request['start'] = parseInt (since / 1000);
+            const maxLimit = 1440;
+            if (limit === undefined) {
+                limit = maxLimit;
+            }
+            limit = Math.min (limit, maxLimit);
+            const start = parseInt (since / 1000);
+            const duration = this.parseTimeframe (timeframe);
+            const end = this.sum (start, duration * limit);
+            request['start'] = start;
+            request['end'] = end;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default == max == 500
+            request['limit'] = limit; // max 1440
         }
         const response = await this.publicV1GetKline (this.extend (request, params));
         //
@@ -599,11 +591,11 @@ module.exports = class whitebit extends Exchange {
         //
         return [
             this.safeTimestamp (ohlcv, 0), // timestamp
-            this.safeFloat (ohlcv, 1), // open
-            this.safeFloat (ohlcv, 3), // high
-            this.safeFloat (ohlcv, 4), // low
-            this.safeFloat (ohlcv, 2), // close
-            this.safeFloat (ohlcv, 5), // volume
+            this.safeNumber (ohlcv, 1), // open
+            this.safeNumber (ohlcv, 3), // high
+            this.safeNumber (ohlcv, 4), // low
+            this.safeNumber (ohlcv, 2), // close
+            this.safeNumber (ohlcv, 5), // volume
         ];
     }
 

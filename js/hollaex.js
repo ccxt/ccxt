@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +16,7 @@ module.exports = class hollaex extends Exchange {
             'name': 'HollaEx',
             'countries': [ 'KR' ],
             'rateLimit': 333,
-            'version': 'v1',
+            'version': 'v2',
             'has': {
                 'CORS': false,
                 'fetchMarkets': true,
@@ -35,13 +36,13 @@ module.exports = class hollaex extends Exchange {
                 'cancelOrder': true,
                 'cancelAllOrders': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchOpenOrder': true,
                 'fetchOrder': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
                 'fetchTransactions': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchDepositAddress': true,
@@ -66,13 +67,17 @@ module.exports = class hollaex extends Exchange {
                 'public': {
                     'get': [
                         'health',
-                        'constant',
+                        'constants',
+                        'kit',
+                        'tiers',
                         'ticker',
-                        'ticker/all',
+                        'tickers',
+                        'orderbook',
                         'orderbooks',
                         'trades',
                         'chart',
-                        // TradingView data
+                        'charts',
+                        // TradingView
                         'udf/config',
                         'udf/history',
                         'udf/symbols',
@@ -82,20 +87,20 @@ module.exports = class hollaex extends Exchange {
                     'get': [
                         'user',
                         'user/balance',
-                        'user/trades',
-                        'user/orders',
-                        'user/orders/{order_id}',
                         'user/deposits',
                         'user/withdrawals',
-                        'user/withdraw/{currency}/fee',
+                        'user/withdrawal/fee',
+                        'user/trades',
+                        'orders',
+                        'orders/{order_id}',
                     ],
                     'post': [
                         'user/request-withdrawal',
                         'order',
                     ],
                     'delete': [
-                        'user/orders',
-                        'user/orders/{order_id}',
+                        'order/all',
+                        'order',
                     ],
                 },
             },
@@ -103,6 +108,8 @@ module.exports = class hollaex extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
+                    'taker': 0.001,
+                    'maker': 0.001,
                 },
             },
             'exceptions': {
@@ -130,7 +137,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetConstant (params);
+        const response = await this.publicGetConstants (params);
         //
         //     {
         //         coins: {
@@ -188,6 +195,8 @@ module.exports = class hollaex extends Exchange {
             const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
             const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'active');
+            const maker = this.fees['trading']['maker'];
+            const taker = this.fees['trading']['taker'];
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -197,20 +206,22 @@ module.exports = class hollaex extends Exchange {
                 'quoteId': quoteId,
                 'active': active,
                 'precision': {
-                    'price': this.safeFloat (market, 'increment_price'),
-                    'amount': this.safeFloat (market, 'increment_size'),
+                    'price': this.safeNumber (market, 'increment_price'),
+                    'amount': this.safeNumber (market, 'increment_size'),
                 },
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'min_size'),
-                        'max': this.safeFloat (market, 'max_size'),
+                        'min': this.safeNumber (market, 'min_size'),
+                        'max': this.safeNumber (market, 'max_size'),
                     },
                     'price': {
-                        'min': this.safeFloat (market, 'min_price'),
-                        'max': this.safeFloat (market, 'max_price'),
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': { 'min': undefined, 'max': undefined },
                 },
+                'taker': taker,
+                'maker': maker,
                 'info': market,
             });
         }
@@ -218,7 +229,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetConstant (params);
+        const response = await this.publicGetConstants (params);
         const coins = this.safeValue (response, 'coins', {});
         const keys = Object.keys (coins);
         const result = {};
@@ -230,8 +241,8 @@ module.exports = class hollaex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'fullname');
             const active = this.safeValue (currency, 'active');
-            const fee = this.safeFloat (currency, 'withdrawal_fee');
-            const precision = this.safeFloat (currency, 'increment_unit');
+            const fee = this.safeNumber (currency, 'withdrawal_fee');
+            const precision = this.safeNumber (currency, 'increment_unit');
             const withdrawalLimits = this.safeValue (currency, 'withdrawal_limits', []);
             result[code] = {
                 'id': id,
@@ -244,16 +255,8 @@ module.exports = class hollaex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (currency, 'min'),
-                        'max': this.safeFloat (currency, 'max'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (currency, 'min'),
+                        'max': this.safeNumber (currency, 'max'),
                     },
                     'withdraw': {
                         'min': undefined,
@@ -273,16 +276,7 @@ module.exports = class hollaex extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const orderbook = response[marketId];
-            let symbol = marketId;
-            if (marketId in this.markets_by_id) {
-                const market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
+            const symbol = this.safeSymbol (marketId, undefined, '-');
             const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
             result[symbol] = this.parseOrderBook (response[marketId], timestamp);
         }
@@ -317,7 +311,7 @@ module.exports = class hollaex extends Exchange {
         //
         const orderbook = this.safeValue (response, marketId);
         const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -343,7 +337,7 @@ module.exports = class hollaex extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetTickerAll (this.extend (params));
+        const response = await this.publicGetTickers (this.extend (params));
         //
         //     {
         //         "bch-usdt": {
@@ -362,25 +356,16 @@ module.exports = class hollaex extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTickers (response, symbols = undefined) {
+    parseTickers (response, symbols = undefined, params = {}) {
         const result = {};
         const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const ticker = response[key];
-            let symbol = key;
-            let market = undefined;
             const marketId = this.safeString (ticker, 'symbol', key);
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-            result[symbol] = this.parseTicker (ticker, market);
+            const market = this.safeMarket (marketId, undefined, '-');
+            const symbol = market['symbol'];
+            result[symbol] = this.extend (this.parseTicker (ticker, market), params);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -412,44 +397,30 @@ module.exports = class hollaex extends Exchange {
         //         "symbol": "bch-usdt"
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString2 (ticker, 'time', 'timestamp'));
-        const close = this.safeFloat (ticker, 'close');
+        const close = this.safeNumber (ticker, 'close');
         const result = {
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': this.safeNumber (ticker, 'open'),
             'close': close,
-            'last': this.safeFloat (ticker, 'last', close),
+            'last': this.safeNumber (ticker, 'last', close),
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
         };
         return result;
@@ -501,44 +472,28 @@ module.exports = class hollaex extends Exchange {
         //         "fee": 0.1
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        let quote = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const datetime = this.safeString (trade, 'timestamp');
         const timestamp = this.parse8601 (datetime);
         const side = this.safeString (trade, 'side');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'size');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
-        const feeCost = this.safeFloat (trade, 'fee');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'size');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
+            const quote = market['quote'];
             const feeCurrencyCode = (market !== undefined) ? market['quote'] : quote;
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             };
         }
-        const result = {
+        return {
             'info': trade,
             'id': undefined,
             'timestamp': timestamp,
@@ -553,7 +508,6 @@ module.exports = class hollaex extends Exchange {
             'cost': cost,
             'fee': fee,
         };
-        return result;
     }
 
     async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
@@ -566,7 +520,7 @@ module.exports = class hollaex extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         if (since === undefined) {
             if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + " fetchOHLCV requires a 'since' or a 'limit' argument");
+                throw new ArgumentsRequired (this.id + " fetchOHLCV() requires a 'since' or a 'limit' argument");
             } else {
                 const end = this.seconds ();
                 const start = end - duration * limit;
@@ -614,11 +568,11 @@ module.exports = class hollaex extends Exchange {
         //
         return [
             this.parse8601 (this.safeString (response, 'time')),
-            this.safeFloat (response, 'open'),
-            this.safeFloat (response, 'high'),
-            this.safeFloat (response, 'low'),
-            this.safeFloat (response, 'close'),
-            this.safeFloat (response, 'volume'),
+            this.safeNumber (response, 'open'),
+            this.safeNumber (response, 'high'),
+            this.safeNumber (response, 'low'),
+            this.safeNumber (response, 'close'),
+            this.safeNumber (response, 'volume'),
         ];
     }
 
@@ -637,17 +591,22 @@ module.exports = class hollaex extends Exchange {
         //         // ...
         //     }
         //
-        const result = { 'info': response };
+        const timestamp = this.parse8601 (this.safeString (response, 'updated_at'));
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         const currencyIds = Object.keys (this.currencies_by_id);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (response, currencyId + '_available');
-            account['total'] = this.safeFloat (response, currencyId + '_balance');
+            account['free'] = this.safeString (response, currencyId + '_available');
+            account['total'] = this.safeString (response, currencyId + '_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
@@ -655,104 +614,159 @@ module.exports = class hollaex extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privateGetUserOrdersOrderId (this.extend (request, params));
+        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
         //
         //     {
-        //         "created_at": "2018-03-23T04:14:08.663Z",
-        //         "title": "string",
-        //         "side": "sell",
-        //         "type": "limit",
-        //         "price": 0,
-        //         "size": 0,
-        //         "symbol": "xht-usdt",
         //         "id": "string",
-        //         "created_by": 1,
-        //         "filled": 0
+        //         "side": "sell",
+        //         "symbol": "xht-usdt",
+        //         "size": 0.1,
+        //         "filled": 0,
+        //         "stop": null,
+        //         "fee": 0,
+        //         "fee_coin": "usdt",
+        //         "type": "limit",
+        //         "price": 1.09,
+        //         "status": "new",
+        //         "created_by": 116,
+        //         "created_at": "2021-02-17T02:32:38.910Z",
+        //         "updated_at": "2021-02-17T02:32:38.910Z",
+        //         "User": {
+        //             "id": 116,
+        //             "email": "fight@club.com",
+        //             "username": "narrator",
+        //             "exchange_id": 176
+        //         }
         //     }
         //
         return this.parseOrder (response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'open': true,
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': 'filled',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request = {
+            // 'symbol': market['id'],
+            // 'side': 'buy', // 'sell'
+            // 'status': 'new', // 'filled', 'pfilled', 'canceled'
+            // 'open': true,
+            // 'limit': limit, // default 50, max 100
+            // 'page': 1,
+            // 'order_by': 'created_at', // id, ...
+            // 'order': 'asc', // 'desc'
+            // 'start_date': this.iso8601 (since),
+            // 'end_date': this.iso8601 (this.milliseconds ()),
+        };
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetUserOrders (this.extend (request, params));
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50, max 100
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "created_at":"2020-03-03T08:02:18.639Z",
-        //             "title":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //             "side":"buy",
-        //             "type":"limit",
-        //             "price":226.19,
-        //             "size":0.086,
-        //             "symbol":"eth-usdt",
-        //             "id":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //             "created_by":620,
-        //             "filled":0
-        //         }
-        //     ]
+        //     {
+        //         "count": 1,
+        //         "data": [
+        //             {
+        //                 "id": "string",
+        //                 "side": "sell",
+        //                 "symbol": "xht-usdt",
+        //                 "size": 0.1,
+        //                 "filled": 0,
+        //                 "stop": null,
+        //                 "fee": 0,
+        //                 "fee_coin": "usdt",
+        //                 "type": "limit",
+        //                 "price": 1.09,
+        //                 "status": "new",
+        //                 "created_by": 116,
+        //                 "created_at": "2021-02-17T02:32:38.910Z",
+        //                 "updated_at": "2021-02-17T02:32:38.910Z",
+        //                 "User": {
+        //                     "id": 116,
+        //                     "email": "fight@club.com",
+        //                     "username": "narrator",
+        //                     "exchange_id": 176
+        //                 }
+        //             }
+        //         ]
+        //     }
         //
-        return this.parseOrders (response, market);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'new': 'open',
+            'pfilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
         //
-        // fetchOpenOrder, fetchOpenOrders
+        // createOrder, fetchOpenOrder, fetchOpenOrders
         //
         //     {
-        //         "created_at":"2020-03-03T08:02:18.639Z",
-        //         "title":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //         "side":"buy",
-        //         "type":"limit",
-        //         "price":226.19,
-        //         "size":0.086,
-        //         "symbol":"eth-usdt",
-        //         "id":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //         "created_by":620,
-        //         "filled":0
+        //         "id": "string",
+        //         "side": "sell",
+        //         "symbol": "xht-usdt",
+        //         "size": 0.1,
+        //         "filled": 0,
+        //         "stop": null,
+        //         "fee": 0,
+        //         "fee_coin": "usdt",
+        //         "type": "limit",
+        //         "price": 1.09,
+        //         "status": "new",
+        //         "created_by": 116,
+        //         "created_at": "2021-02-17T02:32:38.910Z",
+        //         "updated_at": "2021-02-17T02:32:38.910Z",
+        //         "User": {
+        //             "id": 116,
+        //             "email": "fight@club.com",
+        //             "username": "narrator",
+        //             "exchange_id": 176
+        //         },
+        //         "fee_structure": {
+        //             "maker": 0.2,
+        //             "taker": 0.2
+        //         },
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'size');
-        const filled = this.safeFloat (order, 'filled');
-        let cost = undefined;
-        let remaining = undefined;
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
-            }
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-        }
-        const status = (type === 'market') ? 'closed' : 'open';
-        const result = {
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'size');
+        const filled = this.safeNumber (order, 'filled');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -761,44 +775,63 @@ module.exports = class hollaex extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
-            'cost': cost,
+            'remaining': undefined,
+            'cost': undefined,
             'trades': undefined,
             'fee': undefined,
             'info': order,
             'average': undefined,
-        };
-        return result;
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const order = {
+        const request = {
             'symbol': market['id'],
             'side': side,
             'size': amount,
             'type': type,
+            // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
+            // 'meta': {}, // other options such as post_only
         };
         if (type !== 'market') {
-            order['price'] = price;
+            request['price'] = price;
         }
-        const response = await this.privatePostOrder (this.extend (order, params));
+        const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop');
+        if (stopPrice !== undefined) {
+            request['stop'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
+            params = this.omit (params, [ 'stopPrice', 'stop' ]);
+        }
+        const response = await this.privatePostOrder (this.extend (request, params));
         //
         //     {
+        //         "fee": 0,
+        //         "meta": {},
         //         "symbol": "xht-usdt",
         //         "side": "sell",
-        //         "size": 1,
+        //         "size": 0.1,
         //         "type": "limit",
-        //         "price": 0.1,
+        //         "price": 1,
+        //         "fee_structure": {
+        //             "maker": 0.2,
+        //             "taker": 0.2
+        //         },
+        //         "fee_coin": "usdt",
         //         "id": "string",
-        //         "created_by": 34,
+        //         "created_by": 116,
         //         "filled": 0,
-        //         "status": "pending"
+        //         "status": "new",
+        //         "updated_at": "2021-02-17T03:03:19.231Z",
+        //         "created_at": "2021-02-17T03:03:19.231Z",
+        //         "stop": null
         //     }
         //
         return this.parseOrder (response, market);
@@ -809,7 +842,7 @@ module.exports = class hollaex extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privateDeleteUserOrdersOrderId (this.extend (request, params));
+        const response = await this.privateDeleteOrder (this.extend (request, params));
         //
         //     {
         //         "title": "string",
@@ -834,7 +867,7 @@ module.exports = class hollaex extends Exchange {
             market = this.markets (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateDeleteUserOrders (this.extend (request, params));
+        const response = await this.privateDeleteOrderAll (this.extend (request, params));
         //
         //     [
         //         {
@@ -1100,7 +1133,7 @@ module.exports = class hollaex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
         const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
         const type = this.safeString (transaction, 'type');
-        const amount = this.safeFloat (transaction, 'amount');
+        const amount = this.safeNumber (transaction, 'amount');
         let address = this.safeString (transaction, 'address');
         let addressTo = undefined;
         const addressFrom = undefined;
@@ -1130,7 +1163,7 @@ module.exports = class hollaex extends Exchange {
         }
         const fee = {
             'currency': code,
-            'cost': this.safeFloat (transaction, 'fee'),
+            'cost': this.safeNumber (transaction, 'fee'),
         };
         return {
             'info': transaction,
@@ -1183,7 +1216,7 @@ module.exports = class hollaex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         path = '/' + this.version + '/' + this.implodeParams (path, params);
-        if (method === 'GET') {
+        if ((method === 'GET') || (method === 'DELETE')) {
             if (Object.keys (query).length) {
                 path += '?' + this.urlencode (query);
             }

@@ -4,6 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -110,6 +112,7 @@ module.exports = class crex24 extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': true,
@@ -126,9 +129,17 @@ module.exports = class crex24 extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'YOYO': 'YOYOW',
-                'BULL': 'BuySell',
                 'BCC': 'BCH',
+                'BIT': 'BitMoney',
+                'BULL': 'BuySell',
+                'CREDIT': 'TerraCredit',
+                'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
+                'GHOST': 'GHOSTPRISM',
+                'IQ': 'IQ.Cash',
+                'PUT': 'PutinCoin',
+                'SBTC': 'SBTCT', // SiamBitcoin
+                'UNI': 'Universe',
+                'YOYO': 'YOYOW',
             },
             // exchange-specific options
             'options': {
@@ -152,9 +163,11 @@ module.exports = class crex24 extends Exchange {
                     "Parameter 'instrument' contains invalid value.": BadSymbol,
                 },
                 'broad': {
+                    'try again later': ExchangeNotAvailable, // {"errorDescription":"Failed to process the request. Please, try again later."}
                     'API Key': AuthenticationError, // "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
                     'Insufficient funds': InsufficientFunds, // "Insufficient funds: new order requires 10 ETH which is more than the available balance."
                     'has been delisted.': BadSymbol, // {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
+                    'is currently suspended.': BadSymbol, // {"errorDescription":"Trading in BITG-BTC is currently suspended."}
                     'Mandatory parameter': BadRequest, // {"errorDescription":"Mandatory parameter 'feeCurrency' is missing."}
                 },
             },
@@ -196,12 +209,12 @@ module.exports = class crex24 extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const tickSize = this.safeValue (market, 'tickSize');
-            const minPrice = this.safeValue (market, 'minPrice');
-            const minAmount = this.safeFloat (market, 'minVolume');
+            const tickSize = this.safeNumber (market, 'tickSize');
+            const minPrice = this.safeNumber (market, 'minPrice');
+            const minAmount = this.safeNumber (market, 'minVolume');
             const precision = {
-                'amount': this.precisionFromString (this.numberToString (minAmount)),
-                'price': this.precisionFromString (this.numberToString (tickSize)),
+                'amount': minAmount,
+                'price': tickSize,
             };
             const active = (market['state'] === 'active');
             result.push ({
@@ -266,7 +279,8 @@ module.exports = class crex24 extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeInteger (currency, 'withdrawalPrecision');
+            const withdrawalPrecision = this.safeInteger (currency, 'withdrawalPrecision');
+            const precision = Math.pow (10, -withdrawalPrecision);
             const address = this.safeValue (currency, 'BaseAddress');
             const active = (currency['depositsAllowed'] && currency['withdrawalsAllowed'] && !currency['isDelisted']);
             const type = currency['isFiat'] ? 'fiat' : 'crypto';
@@ -278,28 +292,20 @@ module.exports = class crex24 extends Exchange {
                 'type': type,
                 'name': this.safeString (currency, 'name'),
                 'active': active,
-                'fee': this.safeFloat (currency, 'flatWithdrawalFee'), // todo: redesign
+                'fee': this.safeNumber (currency, 'flatWithdrawalFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'deposit': {
-                        'min': this.safeFloat (currency, 'minDeposit'),
+                        'min': this.safeNumber (currency, 'minDeposit'),
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'minWithdrawal'),
-                        'max': this.safeFloat (currency, 'maxWithdrawal'),
+                        'min': this.safeNumber (currency, 'minWithdrawal'),
+                        'max': this.safeNumber (currency, 'maxWithdrawal'),
                     },
                 },
             };
@@ -329,11 +335,11 @@ module.exports = class crex24 extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'reserved');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'reserved');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -364,7 +370,7 @@ module.exports = class crex24 extends Exchange {
         //                     { price: 0.03124, volume: 2.63462933 },
         //                     { price: 0.069, volume: 0.004 }            ] }
         //
-        return this.parseOrderBook (response, undefined, 'buyLevels', 'sellLevels', 'price', 'volume');
+        return this.parseOrderBook (response, symbol, undefined, 'buyLevels', 'sellLevels', 'price', 'volume');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -383,27 +389,18 @@ module.exports = class crex24 extends Exchange {
         //             timestamp: "2018-10-31T09:21:25Z" }   ]
         //
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'instrument');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else if (marketId !== undefined) {
-            const [ baseId, quoteId ] = marketId.split ('-');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
-        }
-        const last = this.safeFloat (ticker, 'last');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -411,10 +408,10 @@ module.exports = class crex24 extends Exchange {
             'last': last,
             'previousClose': undefined, // previous day close
             'change': undefined,
-            'percentage': this.safeFloat (ticker, 'percentChange'),
+            'percentage': this.safeNumber (ticker, 'percentChange'),
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'baseVolume'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
+            'baseVolume': this.safeNumber (ticker, 'baseVolume'),
+            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
         };
     }
@@ -484,14 +481,6 @@ module.exports = class crex24 extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTickers (tickers, symbols = undefined) {
-        const result = [];
-        for (let i = 0; i < tickers.length; i++) {
-            result.push (this.parseTicker (tickers[i]));
-        }
-        return this.filterByArray (result, 'symbol', symbols);
-    }
-
     parseTrade (trade, market = undefined) {
         //
         // public fetchTrades
@@ -516,27 +505,20 @@ module.exports = class crex24 extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'volume');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'volume');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'orderId');
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'instrument');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         let fee = undefined;
         const feeCurrencyId = this.safeString (trade, 'feeCurrency');
         const feeCode = this.safeCurrencyCode (feeCurrencyId);
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -597,11 +579,11 @@ module.exports = class crex24 extends Exchange {
         //
         return [
             this.parse8601 (this.safeString (ohlcv, 'timestamp')),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -667,64 +649,22 @@ module.exports = class crex24 extends Exchange {
         //     }
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let symbol = undefined;
         const marketId = this.safeString (order, 'instrument');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
-        let price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'volume');
-        const remaining = this.safeFloat (order, 'remainingVolume');
-        let filled = undefined;
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'volume');
+        const remaining = this.safeNumber (order, 'remainingVolume');
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'lastUpdate'));
-        let cost = undefined;
-        if (remaining !== undefined) {
-            if (amount !== undefined) {
-                filled = amount - remaining;
-                if (this.options['parseOrderToPrecision']) {
-                    filled = parseFloat (this.amountToPrecision (symbol, filled));
-                }
-                filled = Math.max (filled, 0.0);
-                if (price !== undefined) {
-                    cost = price * filled;
-                }
-            }
-        }
         const id = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
-        if (type === 'market') {
-            if (price === 0.0) {
-                if ((cost !== undefined) && (filled !== undefined)) {
-                    if ((cost > 0) && (filled > 0)) {
-                        price = cost / filled;
-                    }
-                }
-            }
-        }
         const side = this.safeString (order, 'side');
         const fee = undefined;
         const trades = undefined;
-        let average = undefined;
-        if (cost !== undefined) {
-            if (filled) {
-                average = cost / filled;
-            }
-            if (this.options['parseOrderToPrecision']) {
-                cost = parseFloat (this.costToPrecision (symbol, cost));
-            }
-        }
-        return {
+        const average = undefined;
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const stopPrice = this.safeNumber (order, 'stopPrice');
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -733,17 +673,19 @@ module.exports = class crex24 extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -773,17 +715,18 @@ module.exports = class crex24 extends Exchange {
         }
         if (priceIsRequired) {
             if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
+                throw new InvalidOrder (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (stopPriceIsRequired) {
-            const stopPrice = this.safeFloat (params, 'stopPrice');
+            const stopPrice = this.safeNumber (params, 'stopPrice');
             if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order');
+                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             } else {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
+            params = this.omit (params, 'stopPrice');
         }
         const response = await this.tradingPostPlaceOrder (this.extend (request, params));
         //
@@ -1196,8 +1139,8 @@ module.exports = class crex24 extends Exchange {
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
         const updated = this.parse8601 (this.safeString (transaction, 'processedAt'));
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const amount = this.safeFloat (transaction, 'amount');
-        const feeCost = this.safeFloat (transaction, 'fee');
+        const amount = this.safeNumber (transaction, 'amount');
+        const feeCost = this.safeNumber (transaction, 'fee');
         const fee = {
             'cost': feeCost,
             'currency': code,
@@ -1287,8 +1230,7 @@ module.exports = class crex24 extends Exchange {
                 body = this.json (params);
                 auth += body;
             }
-            const signature = this.stringToBase64 (this.hmac (this.encode (auth), secret, 'sha512', 'binary'));
-            headers['X-CREX24-API-SIGN'] = this.decode (signature);
+            headers['X-CREX24-API-SIGN'] = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

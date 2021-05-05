@@ -126,7 +126,6 @@ class bleutrade extends Exchange {
             ),
             'options' => array(
                 'parseOrderStatus' => true,
-                'symbolSeparator' => '_',
             ),
         ));
         // undocumented api calls
@@ -168,8 +167,8 @@ class bleutrade extends Exchange {
                 'code' => $code,
                 'name' => $this->safe_string($item, 'AssetLong'),
                 'active' => $this->safe_value($item, 'IsActive') && !$this->safe_value($item, 'MaintenanceMode'),
-                'fee' => $this->safe_float($item, 'WithdrawTxFee'),
-                'precision' => $this->safe_float($item, 'DecimalPlaces'),
+                'fee' => $this->safe_number($item, 'WithdrawTxFee'),
+                'precision' => $this->safe_number($item, 'DecimalPlaces'),
                 'info' => $item,
                 'limits' => $this->limits,
             );
@@ -221,7 +220,7 @@ class bleutrade extends Exchange {
                 'taker' => $this->fees['trading']['taker'],
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'MinTradeSize'),
+                        'min' => $this->safe_number($market, 'MinTradeSize'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -248,7 +247,7 @@ class bleutrade extends Exchange {
         if (!$orderbook) {
             throw new ExchangeError($this->id . ' no $orderbook data in ' . $this->json($response));
         }
-        return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
+        return $this->parse_order_book($orderbook, $symbol, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -258,7 +257,7 @@ class bleutrade extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->v3PublicGetGetmarketsummary (array_merge($request, $params));
-        $ticker = $response['result'][0];
+        $ticker = $this->safe_value($response, 'result', array());
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -295,20 +294,10 @@ class bleutrade extends Exchange {
         //     MarketCurrency => 'Litecoin',
         //     BaseCurrency => 'Tether' }
         $timestamp = $this->parse8601($this->safe_string($ticker, 'TimeStamp'));
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'MarketName');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $symbol = $this->parse_symbol($marketId);
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
-        $previous = $this->safe_float($ticker, 'PrevDay');
-        $last = $this->safe_float($ticker, 'Last');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
+        $previous = $this->safe_number($ticker, 'PrevDay');
+        $last = $this->safe_number($ticker, 'Last');
         $change = null;
         $percentage = null;
         if ($last !== null) {
@@ -323,11 +312,11 @@ class bleutrade extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'High'),
-            'low' => $this->safe_float($ticker, 'Low'),
-            'bid' => $this->safe_float($ticker, 'Bid'),
+            'high' => $this->safe_number($ticker, 'High'),
+            'low' => $this->safe_number($ticker, 'Low'),
+            'bid' => $this->safe_number($ticker, 'Bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'Ask'),
+            'ask' => $this->safe_number($ticker, 'Ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $previous,
@@ -337,8 +326,8 @@ class bleutrade extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'Volume'),
-            'quoteVolume' => $this->safe_float($ticker, 'BaseVolume'),
+            'baseVolume' => $this->safe_number($ticker, 'Volume'),
+            'quoteVolume' => $this->safe_number($ticker, 'BaseVolume'),
             'info' => $ticker,
         );
     }
@@ -346,11 +335,11 @@ class bleutrade extends Exchange {
     public function parse_ohlcv($ohlcv, $market = null) {
         return [
             $this->parse8601($ohlcv['TimeStamp'] . '+00:00'),
-            $this->safe_float($ohlcv, 'Open'),
-            $this->safe_float($ohlcv, 'High'),
-            $this->safe_float($ohlcv, 'Low'),
-            $this->safe_float($ohlcv, 'Close'),
-            $this->safe_float($ohlcv, 'Volume'),
+            $this->safe_number($ohlcv, 'Open'),
+            $this->safe_number($ohlcv, 'High'),
+            $this->safe_number($ohlcv, 'Low'),
+            $this->safe_number($ohlcv, 'Close'),
+            $this->safe_number($ohlcv, 'Volume'),
         ];
     }
 
@@ -416,13 +405,6 @@ class bleutrade extends Exchange {
         return $this->parse_orders($items, $market, $since, $limit);
     }
 
-    public function parse_symbol($id) {
-        list($base, $quote) = explode($this->options['symbolSeparator'], $id);
-        $base = $this->safe_currency_code($base);
-        $quote = $this->safe_currency_code($quote);
-        return $base . '/' . $quote;
-    }
-
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->v3PrivatePostGetbalances ($params);
@@ -433,11 +415,11 @@ class bleutrade extends Exchange {
             $currencyId = $this->safe_string($item, 'Asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($item, 'Available');
-            $account['total'] = $this->safe_float($item, 'Balance');
+            $account['free'] = $this->safe_string($item, 'Available');
+            $account['total'] = $this->safe_string($item, 'Balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -580,7 +562,7 @@ class bleutrade extends Exchange {
             //
         }
         $timestamp = $this->parse8601($this->safe_string($item, 'TimeStamp'));
-        $amount = $this->safe_float($item, 'Amount');
+        $amount = $this->safe_number($item, 'Amount');
         $direction = null;
         if ($amount !== null) {
             $direction = 'in';
@@ -648,45 +630,18 @@ class bleutrade extends Exchange {
         //     Comments => array( String => '', Valid => true )
         $side = strtolower($this->safe_string($order, 'Type'));
         $status = $this->parse_order_status($this->safe_string($order, 'Status'));
-        $symbol = null;
         $marketId = $this->safe_string($order, 'Exchange');
-        if ($marketId === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
-        } else {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                $symbol = $this->parse_symbol($marketId);
-            }
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = null;
         if (is_array($order) && array_key_exists('Created', $order)) {
             $timestamp = $this->parse8601($order['Created'] . '+00:00');
         }
-        $price = $this->safe_float($order, 'Price');
-        $cost = null;
-        $amount = $this->safe_float($order, 'Quantity');
-        $remaining = $this->safe_float($order, 'QuantityRemaining');
-        $filled = null;
-        if ($amount !== null && $remaining !== null) {
-            $filled = $amount - $remaining;
-        }
-        if (!$cost) {
-            if ($price && $filled) {
-                $cost = $price * $filled;
-            }
-        }
-        if (!$price) {
-            if ($cost && $filled) {
-                $price = $cost / $filled;
-            }
-        }
-        $average = $this->safe_float($order, 'PricePerUnit');
+        $price = $this->safe_number($order, 'Price');
+        $amount = $this->safe_number($order, 'Quantity');
+        $remaining = $this->safe_number($order, 'QuantityRemaining');
+        $average = $this->safe_number($order, 'PricePerUnit');
         $id = $this->safe_string($order, 'OrderID');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -695,17 +650,20 @@ class bleutrade extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'cost' => $cost,
+            'stopPrice' => null,
+            'cost' => null,
             'average' => $average,
             'amount' => $amount,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {
@@ -742,7 +700,7 @@ class bleutrade extends Exchange {
         //     Symbol => 'BTC' }
         //
         $id = $this->safe_string($transaction, 'ID');
-        $amount = $this->safe_float($transaction, 'Amount');
+        $amount = $this->safe_number($transaction, 'Amount');
         $type = 'deposit';
         if ($amount < 0) {
             $amount = abs($amount);

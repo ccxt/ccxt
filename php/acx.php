@@ -331,19 +331,14 @@ class acx extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } else {
-            $marketId = $this->safe_string($order, 'market');
-            $symbol = $this->markets_by_id[$marketId]['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'market');
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $id = $this->safe_string($order, 'id');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -352,8 +347,11 @@ class acx extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $this->safe_float($order, 'price'),
+            'stopPrice' => null,
             'amount' => $this->safe_float($order, 'volume'),
             'filled' => $this->safe_float($order, 'executed_volume'),
             'remaining' => $this->safe_float($order, 'remaining_volume'),
@@ -362,7 +360,7 @@ class acx extends Exchange {
             'info' => $order,
             'cost' => null,
             'average' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

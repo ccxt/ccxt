@@ -16,7 +16,7 @@ class hollaex extends Exchange {
             'name' => 'HollaEx',
             'countries' => array( 'KR' ),
             'rateLimit' => 333,
-            'version' => 'v1',
+            'version' => 'v2',
             'has' => array(
                 'CORS' => false,
                 'fetchMarkets' => true,
@@ -36,13 +36,13 @@ class hollaex extends Exchange {
                 'cancelOrder' => true,
                 'cancelAllOrders' => true,
                 'fetchOpenOrders' => true,
-                'fetchClosedOrders' => false,
+                'fetchClosedOrders' => true,
                 'fetchOpenOrder' => true,
                 'fetchOrder' => false,
                 'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
                 'fetchTransactions' => false,
-                'fetchOrders' => false,
+                'fetchOrders' => true,
                 'fetchMyTrades' => true,
                 'withdraw' => true,
                 'fetchDepositAddress' => true,
@@ -67,13 +67,17 @@ class hollaex extends Exchange {
                 'public' => array(
                     'get' => array(
                         'health',
-                        'constant',
+                        'constants',
+                        'kit',
+                        'tiers',
                         'ticker',
-                        'ticker/all',
+                        'tickers',
+                        'orderbook',
                         'orderbooks',
                         'trades',
                         'chart',
-                        // TradingView data
+                        'charts',
+                        // TradingView
                         'udf/config',
                         'udf/history',
                         'udf/symbols',
@@ -83,20 +87,20 @@ class hollaex extends Exchange {
                     'get' => array(
                         'user',
                         'user/balance',
-                        'user/trades',
-                        'user/orders',
-                        'user/orders/{order_id}',
                         'user/deposits',
                         'user/withdrawals',
-                        'user/withdraw/{currency}/fee',
+                        'user/withdrawal/fee',
+                        'user/trades',
+                        'orders',
+                        'orders/{order_id}',
                     ),
                     'post' => array(
                         'user/request-withdrawal',
                         'order',
                     ),
                     'delete' => array(
-                        'user/orders',
-                        'user/orders/{order_id}',
+                        'order/all',
+                        'order',
                     ),
                 ),
             ),
@@ -104,6 +108,8 @@ class hollaex extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
+                    'taker' => 0.001,
+                    'maker' => 0.001,
                 ),
             ),
             'exceptions' => array(
@@ -131,7 +137,7 @@ class hollaex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $response = $this->publicGetConstant ($params);
+        $response = $this->publicGetConstants ($params);
         //
         //     {
         //         coins => array(
@@ -189,6 +195,8 @@ class hollaex extends Exchange {
             $quote = $this->common_currency_code(strtoupper($quoteId));
             $symbol = $base . '/' . $quote;
             $active = $this->safe_value($market, 'active');
+            $maker = $this->fees['trading']['maker'];
+            $taker = $this->fees['trading']['taker'];
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -198,20 +206,22 @@ class hollaex extends Exchange {
                 'quoteId' => $quoteId,
                 'active' => $active,
                 'precision' => array(
-                    'price' => $this->safe_float($market, 'increment_price'),
-                    'amount' => $this->safe_float($market, 'increment_size'),
+                    'price' => $this->safe_number($market, 'increment_price'),
+                    'amount' => $this->safe_number($market, 'increment_size'),
                 ),
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'min_size'),
-                        'max' => $this->safe_float($market, 'max_size'),
+                        'min' => $this->safe_number($market, 'min_size'),
+                        'max' => $this->safe_number($market, 'max_size'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($market, 'min_price'),
-                        'max' => $this->safe_float($market, 'max_price'),
+                        'min' => $this->safe_number($market, 'min_price'),
+                        'max' => $this->safe_number($market, 'max_price'),
                     ),
                     'cost' => array( 'min' => null, 'max' => null ),
                 ),
+                'taker' => $taker,
+                'maker' => $maker,
                 'info' => $market,
             );
         }
@@ -219,7 +229,7 @@ class hollaex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        $response = $this->publicGetConstant ($params);
+        $response = $this->publicGetConstants ($params);
         $coins = $this->safe_value($response, 'coins', array());
         $keys = is_array($coins) ? array_keys($coins) : array();
         $result = array();
@@ -231,8 +241,8 @@ class hollaex extends Exchange {
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'fullname');
             $active = $this->safe_value($currency, 'active');
-            $fee = $this->safe_float($currency, 'withdrawal_fee');
-            $precision = $this->safe_float($currency, 'increment_unit');
+            $fee = $this->safe_number($currency, 'withdrawal_fee');
+            $precision = $this->safe_number($currency, 'increment_unit');
             $withdrawalLimits = $this->safe_value($currency, 'withdrawal_limits', array());
             $result[$code] = array(
                 'id' => $id,
@@ -245,16 +255,8 @@ class hollaex extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($currency, 'min'),
-                        'max' => $this->safe_float($currency, 'max'),
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $this->safe_number($currency, 'min'),
+                        'max' => $this->safe_number($currency, 'max'),
                     ),
                     'withdraw' => array(
                         'min' => null,
@@ -274,16 +276,7 @@ class hollaex extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $orderbook = $response[$marketId];
-            $symbol = $marketId;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
+            $symbol = $this->safe_symbol($marketId, null, '-');
             $timestamp = $this->parse8601($this->safe_string($orderbook, 'timestamp'));
             $result[$symbol] = $this->parse_order_book($response[$marketId], $timestamp);
         }
@@ -318,7 +311,7 @@ class hollaex extends Exchange {
         //
         $orderbook = $this->safe_value($response, $marketId);
         $timestamp = $this->parse8601($this->safe_string($orderbook, 'timestamp'));
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -344,7 +337,7 @@ class hollaex extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetTickerAll (array_merge($params));
+        $response = $this->publicGetTickers (array_merge($params));
         //
         //     {
         //         "bch-usdt" => array(
@@ -363,25 +356,16 @@ class hollaex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_tickers($response, $symbols = null) {
+    public function parse_tickers($response, $symbols = null, $params = array ()) {
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $ticker = $response[$key];
-            $symbol = $key;
-            $market = null;
             $marketId = $this->safe_string($ticker, 'symbol', $key);
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $market = $this->safe_market($marketId, null, '-');
+            $symbol = $market['symbol'];
+            $result[$symbol] = array_merge($this->parse_ticker($ticker, $market), $params);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -413,44 +397,30 @@ class hollaex extends Exchange {
         //         "$symbol" => "bch-usdt"
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string_2($ticker, 'time', 'timestamp'));
-        $close = $this->safe_float($ticker, 'close');
+        $close = $this->safe_number($ticker, 'close');
         $result = array(
             'symbol' => $symbol,
             'info' => $ticker,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($ticker, 'open'),
+            'open' => $this->safe_number($ticker, 'open'),
             'close' => $close,
-            'last' => $this->safe_float($ticker, 'last', $close),
+            'last' => $this->safe_number($ticker, 'last', $close),
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
+            'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
         );
         return $result;
@@ -502,44 +472,28 @@ class hollaex extends Exchange {
         //         "$fee" => 0.1
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');
-        $quote = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $datetime = $this->safe_string($trade, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $side = $this->safe_string($trade, 'side');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'size');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
-        $feeCost = $this->safe_float($trade, 'fee');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
+            $quote = $market['quote'];
             $feeCurrencyCode = ($market !== null) ? $market['quote'] : $quote;
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
             );
         }
-        $result = array(
+        return array(
             'info' => $trade,
             'id' => null,
             'timestamp' => $timestamp,
@@ -554,7 +508,6 @@ class hollaex extends Exchange {
             'cost' => $cost,
             'fee' => $fee,
         );
-        return $result;
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
@@ -567,7 +520,7 @@ class hollaex extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . " fetchOHLCV requires a 'since' or a 'limit' argument");
+                throw new ArgumentsRequired($this->id . " fetchOHLCV() requires a 'since' or a 'limit' argument");
             } else {
                 $end = $this->seconds();
                 $start = $end - $duration * $limit;
@@ -615,11 +568,11 @@ class hollaex extends Exchange {
         //
         return array(
             $this->parse8601($this->safe_string($response, 'time')),
-            $this->safe_float($response, 'open'),
-            $this->safe_float($response, 'high'),
-            $this->safe_float($response, 'low'),
-            $this->safe_float($response, 'close'),
-            $this->safe_float($response, 'volume'),
+            $this->safe_number($response, 'open'),
+            $this->safe_number($response, 'high'),
+            $this->safe_number($response, 'low'),
+            $this->safe_number($response, 'close'),
+            $this->safe_number($response, 'volume'),
         );
     }
 
@@ -638,17 +591,22 @@ class hollaex extends Exchange {
         //         // ...
         //     }
         //
-        $result = array( 'info' => $response );
+        $timestamp = $this->parse8601($this->safe_string($response, 'updated_at'));
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         $currencyIds = is_array($this->currencies_by_id) ? array_keys($this->currencies_by_id) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($response, $currencyId . '_available');
-            $account['total'] = $this->safe_float($response, $currencyId . '_balance');
+            $account['free'] = $this->safe_string($response, $currencyId . '_available');
+            $account['total'] = $this->safe_string($response, $currencyId . '_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_open_order($id, $symbol = null, $params = array ()) {
@@ -656,104 +614,159 @@ class hollaex extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privateGetUserOrdersOrderId (array_merge($request, $params));
+        $response = $this->privateGetOrdersOrderId (array_merge($request, $params));
         //
         //     {
-        //         "created_at" => "2018-03-23T04:14:08.663Z",
-        //         "title" => "string",
-        //         "side" => "sell",
-        //         "type" => "limit",
-        //         "price" => 0,
-        //         "size" => 0,
-        //         "$symbol" => "xht-usdt",
         //         "$id" => "string",
-        //         "created_by" => 1,
-        //         "filled" => 0
+        //         "side" => "sell",
+        //         "$symbol" => "xht-usdt",
+        //         "size" => 0.1,
+        //         "filled" => 0,
+        //         "stop" => null,
+        //         "fee" => 0,
+        //         "fee_coin" => "usdt",
+        //         "type" => "limit",
+        //         "price" => 1.09,
+        //         "status" => "new",
+        //         "created_by" => 116,
+        //         "created_at" => "2021-02-17T02:32:38.910Z",
+        //         "updated_at" => "2021-02-17T02:32:38.910Z",
+        //         "User" => {
+        //             "$id" => 116,
+        //             "email" => "fight@club.com",
+        //             "username" => "narrator",
+        //             "exchange_id" => 176
+        //         }
         //     }
         //
         return $this->parse_order($response);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'open' => true,
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'status' => 'filled',
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        $request = array();
+        $request = array(
+            // 'symbol' => $market['id'],
+            // 'side' => 'buy', // 'sell'
+            // 'status' => 'new', // 'filled', 'pfilled', 'canceled'
+            // 'open' => true,
+            // 'limit' => $limit, // default 50, max 100
+            // 'page' => 1,
+            // 'order_by' => 'created_at', // id, ...
+            // 'order' => 'asc', // 'desc'
+            // 'start_date' => $this->iso8601($since),
+            // 'end_date' => $this->iso8601($this->milliseconds()),
+        );
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateGetUserOrders (array_merge($request, $params));
+        if ($since !== null) {
+            $request['start_date'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 50, max 100
+        }
+        $response = $this->privateGetOrders (array_merge($request, $params));
         //
-        //     array(
-        //         {
-        //             "created_at":"2020-03-03T08:02:18.639Z",
-        //             "title":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //             "side":"buy",
-        //             "type":"$limit",
-        //             "price":226.19,
-        //             "size":0.086,
-        //             "$symbol":"eth-usdt",
-        //             "id":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //             "created_by":620,
-        //             "filled":0
-        //         }
-        //     )
+        //     {
+        //         "count" => 1,
+        //         "$data" => array(
+        //             {
+        //                 "id" => "string",
+        //                 "side" => "sell",
+        //                 "$symbol" => "xht-usdt",
+        //                 "size" => 0.1,
+        //                 "filled" => 0,
+        //                 "stop" => null,
+        //                 "fee" => 0,
+        //                 "fee_coin" => "usdt",
+        //                 "type" => "$limit",
+        //                 "price" => 1.09,
+        //                 "status" => "new",
+        //                 "created_by" => 116,
+        //                 "created_at" => "2021-02-17T02:32:38.910Z",
+        //                 "updated_at" => "2021-02-17T02:32:38.910Z",
+        //                 "User" => {
+        //                     "id" => 116,
+        //                     "email" => "fight@club.com",
+        //                     "username" => "narrator",
+        //                     "exchange_id" => 176
+        //                 }
+        //             }
+        //         )
+        //     }
         //
-        return $this->parse_orders($response, $market);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
+    }
+
+    public function parse_order_status($status) {
+        $statuses = array(
+            'new' => 'open',
+            'pfilled' => 'open',
+            'filled' => 'closed',
+            'canceled' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order($order, $market = null) {
         //
-        // fetchOpenOrder, fetchOpenOrders
+        // createOrder, fetchOpenOrder, fetchOpenOrders
         //
         //     {
-        //         "created_at":"2020-03-03T08:02:18.639Z",
-        //         "title":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //         "$side":"buy",
-        //         "$type":"limit",
-        //         "$price":226.19,
-        //         "size":0.086,
-        //         "$symbol":"eth-usdt",
-        //         "$id":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //         "created_by":620,
-        //         "$filled":0
+        //         "$id" => "string",
+        //         "$side" => "sell",
+        //         "$symbol" => "xht-usdt",
+        //         "size" => 0.1,
+        //         "$filled" => 0,
+        //         "stop" => null,
+        //         "fee" => 0,
+        //         "fee_coin" => "usdt",
+        //         "$type" => "limit",
+        //         "$price" => 1.09,
+        //         "$status" => "new",
+        //         "created_by" => 116,
+        //         "created_at" => "2021-02-17T02:32:38.910Z",
+        //         "updated_at" => "2021-02-17T02:32:38.910Z",
+        //         "User" => array(
+        //             "$id" => 116,
+        //             "email" => "fight@club.com",
+        //             "username" => "narrator",
+        //             "exchange_id" => 176
+        //         ),
+        //         "fee_structure" => array(
+        //             "maker" => 0.2,
+        //             "taker" => 0.2
+        //         ),
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($order, 'symbol');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'size');
-        $filled = $this->safe_float($order, 'filled');
-        $cost = null;
-        $remaining = null;
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-            }
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-        }
-        $status = ($type === 'market') ? 'closed' : 'open';
-        $result = array(
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'size');
+        $filled = $this->safe_number($order, 'filled');
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -762,44 +775,63 @@ class hollaex extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
-            'cost' => $cost,
+            'remaining' => null,
+            'cost' => null,
             'trades' => null,
             'fee' => null,
             'info' => $order,
             'average' => null,
-        );
-        return $result;
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $order = array(
+        $request = array(
             'symbol' => $market['id'],
             'side' => $side,
             'size' => $amount,
             'type' => $type,
+            // 'stop' => floatval($this->price_to_precision($symbol, $stopPrice)),
+            // 'meta' => array(), // other options such as post_only
         );
         if ($type !== 'market') {
-            $order['price'] = $price;
+            $request['price'] = $price;
         }
-        $response = $this->privatePostOrder (array_merge($order, $params));
+        $stopPrice = $this->safe_float_2($params, 'stopPrice', 'stop');
+        if ($stopPrice !== null) {
+            $request['stop'] = floatval($this->price_to_precision($symbol, $stopPrice));
+            $params = $this->omit($params, array( 'stopPrice', 'stop' ));
+        }
+        $response = $this->privatePostOrder (array_merge($request, $params));
         //
         //     {
+        //         "fee" => 0,
+        //         "meta" => array(),
         //         "$symbol" => "xht-usdt",
         //         "$side" => "sell",
-        //         "size" => 1,
+        //         "size" => 0.1,
         //         "$type" => "limit",
-        //         "$price" => 0.1,
+        //         "$price" => 1,
+        //         "fee_structure" => array(
+        //             "maker" => 0.2,
+        //             "taker" => 0.2
+        //         ),
+        //         "fee_coin" => "usdt",
         //         "id" => "string",
-        //         "created_by" => 34,
+        //         "created_by" => 116,
         //         "filled" => 0,
-        //         "status" => "pending"
+        //         "status" => "new",
+        //         "updated_at" => "2021-02-17T03:03:19.231Z",
+        //         "created_at" => "2021-02-17T03:03:19.231Z",
+        //         "stop" => null
         //     }
         //
         return $this->parse_order($response, $market);
@@ -810,7 +842,7 @@ class hollaex extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privateDeleteUserOrdersOrderId (array_merge($request, $params));
+        $response = $this->privateDeleteOrder (array_merge($request, $params));
         //
         //     {
         //         "title" => "string",
@@ -835,7 +867,7 @@ class hollaex extends Exchange {
             $market = $this->markets ($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateDeleteUserOrders (array_merge($request, $params));
+        $response = $this->privateDeleteOrderAll (array_merge($request, $params));
         //
         //     array(
         //         {
@@ -1101,7 +1133,7 @@ class hollaex extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at'));
         $updated = $this->parse8601($this->safe_string($transaction, 'updated_at'));
         $type = $this->safe_string($transaction, 'type');
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $addressTo = null;
         $addressFrom = null;
@@ -1131,7 +1163,7 @@ class hollaex extends Exchange {
         }
         $fee = array(
             'currency' => $code,
-            'cost' => $this->safe_float($transaction, 'fee'),
+            'cost' => $this->safe_number($transaction, 'fee'),
         );
         return array(
             'info' => $transaction,
@@ -1184,7 +1216,7 @@ class hollaex extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $path = '/' . $this->version . '/' . $this->implode_params($path, $params);
-        if ($method === 'GET') {
+        if (($method === 'GET') || ($method === 'DELETE')) {
             if ($query) {
                 $path .= '?' . $this->urlencode($query);
             }

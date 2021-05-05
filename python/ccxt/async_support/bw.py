@@ -11,6 +11,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class bw(Exchange):
@@ -191,7 +192,7 @@ class bw(Exchange):
             symbol = base + '/' + quote
             state = self.safe_integer(market, 'state')
             active = (state == 1)
-            fee = self.safe_float(market, 'defaultFee')
+            fee = self.safe_number(market, 'defaultFee')
             result.append({
                 'id': id,
                 'active': active,
@@ -212,7 +213,7 @@ class bw(Exchange):
                 },
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'minAmount'),
+                        'min': self.safe_number(market, 'minAmount'),
                         'max': None,
                     },
                     'price': {
@@ -296,24 +297,16 @@ class bw(Exchange):
                 'info': currency,
                 'name': code,
                 'active': active,
-                'fee': self.safe_float(currency, 'drawFee'),
+                'fee': self.safe_number(currency, 'drawFee'),
                 'precision': None,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(currency, 'limitAmount', 0),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
+                        'min': self.safe_number(currency, 'limitAmount', 0),
                         'max': None,
                     },
                     'withdraw': {
                         'min': None,
-                        'max': self.safe_float(currency, 'onceDrawLimit'),
+                        'max': self.safe_number(currency, 'onceDrawLimit'),
                     },
                 },
             }
@@ -335,14 +328,8 @@ class bw(Exchange):
         #         "469849357.2364"  # quote volume
         #     ]
         #
-        symbol = None
         marketId = self.safe_string(ticker, 0)
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
-        else:
-            symbol = marketId
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.milliseconds()
         close = float(self.safe_value(ticker, 1))
         bid = self.safe_value(ticker, 'bid', {})
@@ -354,9 +341,9 @@ class bw(Exchange):
             'high': float(self.safe_value(ticker, 2)),
             'low': float(self.safe_value(ticker, 3)),
             'bid': float(self.safe_value(ticker, 7)),
-            'bidVolume': self.safe_float(bid, 'quantity'),
+            'bidVolume': self.safe_number(bid, 'quantity'),
             'ask': float(self.safe_value(ticker, 8)),
-            'askVolume': self.safe_float(ask, 'quantity'),
+            'askVolume': self.safe_number(ask, 'quantity'),
             'vwap': None,
             'open': None,
             'close': close,
@@ -457,7 +444,7 @@ class bw(Exchange):
         #
         orderbook = self.safe_value(response, 'datas', [])
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         #
@@ -478,8 +465,11 @@ class bw(Exchange):
         #     ...
         #
         timestamp = self.safe_timestamp(trade, 2)
-        price = self.safe_float(trade, 5)
-        amount = self.safe_float(trade, 6)
+        priceString = self.safe_string(trade, 5)
+        amountString = self.safe_string(trade, 6)
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 1)
         symbol = None
         if marketId is not None:
@@ -493,10 +483,6 @@ class bw(Exchange):
                 symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = self.cost_to_precision(symbol, price * amount)
         sideString = self.safe_string(trade, 4)
         side = 'sell' if (sideString == 'ask') else 'buy'
         return {
@@ -510,7 +496,7 @@ class bw(Exchange):
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': float(cost),
+            'cost': cost,
             'fee': None,
             'info': trade,
         }
@@ -564,11 +550,11 @@ class bw(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 5),
-            self.safe_float(ohlcv, 6),
-            self.safe_float(ohlcv, 7),
-            self.safe_float(ohlcv, 8),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
+            self.safe_number(ohlcv, 6),
+            self.safe_number(ohlcv, 7),
+            self.safe_number(ohlcv, 8),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -623,10 +609,10 @@ class bw(Exchange):
             currencyId = self.safe_string(balance, 'currencyTypeId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'amount')
-            account['used'] = self.safe_float(balance, 'freeze')
+            account['free'] = self.safe_string(balance, 'amount')
+            account['used'] = self.safe_string(balance, 'freeze')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if price is None:
@@ -710,38 +696,33 @@ class bw(Exchange):
         #     }
         #
         marketId = self.safe_string(order, 'marketId')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(order, 'createTime')
         side = self.safe_string(order, 'type')
         if side == '0':
             side = 'sell'
         elif side == '1':
             side = 'buy'
-        amount = self.safe_float(order, 'amount')
-        price = self.safe_float(order, 'price')
-        filled = self.safe_float(order, 'completeAmount')
-        remaining = self.safe_float_2(order, 'availabelAmount', 'availableAmount')  # typo in the docs or in the API, availabel vs available
-        cost = self.safe_float(order, 'totalMoney')
-        if filled is not None:
-            if amount is not None:
-                if remaining is None:
-                    remaining = amount - filled
-            if cost is None:
-                if price is not None:
-                    cost = filled * cost
+        amount = self.safe_number(order, 'amount')
+        price = self.safe_number(order, 'price')
+        filled = self.safe_number(order, 'completeAmount')
+        remaining = self.safe_number_2(order, 'availabelAmount', 'availableAmount')  # typo in the docs or in the API, availabel vs available
+        cost = self.safe_number(order, 'totalMoney')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        return {
+        return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'entrustId'),
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -750,11 +731,11 @@ class bw(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -787,7 +768,7 @@ class bw(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1018,12 +999,12 @@ class bw(Exchange):
         if (code is None) and (currency is not None):
             code = currency['code']
         type = 'deposit' if ('depositId' in transaction) else 'withdrawal'
-        amount = self.safe_float_2(transaction, 'actuallyAmount', 'amount')
+        amount = self.safe_number_2(transaction, 'actuallyAmount', 'amount')
         status = self.parse_transaction_status(self.safe_string_2(transaction, 'verifyStatus', 'state'))
         timestamp = self.safe_integer(transaction, 'createTime')
         txid = self.safe_string(transaction, 'txId')
         fee = None
-        feeCost = self.safe_float(transaction, 'fees')
+        feeCost = self.safe_number(transaction, 'fees')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,

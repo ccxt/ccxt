@@ -23,6 +23,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class cex(Exchange):
@@ -152,7 +153,7 @@ class cex(Exchange):
                     'Nonce must be incremented': InvalidNonce,
                     'Invalid Order': InvalidOrder,
                     'Order not found': OrderNotFound,
-                    'Rate limit exceeded': RateLimitExceeded,
+                    'limit exceeded': RateLimitExceeded,  # {"error":"rate limit exceeded"}
                     'Invalid API key': AuthenticationError,
                     'There was an error while placing your order': InvalidOrder,
                     'Sorry, too many clients already': DDoSProtection,
@@ -165,7 +166,7 @@ class cex(Exchange):
                     'status': {
                         'c': 'canceled',
                         'd': 'closed',
-                        'cd': 'closed',
+                        'cd': 'canceled',
                         'a': 'open',
                     },
                 },
@@ -272,19 +273,11 @@ class cex(Exchange):
                 'fee': None,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(currency, 'minimumCurrencyAmount'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
+                        'min': self.safe_number(currency, 'minimumCurrencyAmount'),
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_float(currency, 'minimalWithdrawalAmount'),
+                        'min': self.safe_number(currency, 'minimalWithdrawalAmount'),
                         'max': None,
                     },
                 },
@@ -363,15 +356,15 @@ class cex(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'minLotSize'),
-                        'max': self.safe_float(market, 'maxLotSize'),
+                        'min': self.safe_number(market, 'minLotSize'),
+                        'max': self.safe_number(market, 'maxLotSize'),
                     },
                     'price': {
-                        'min': self.safe_float(market, 'minPrice'),
-                        'max': self.safe_float(market, 'maxPrice'),
+                        'min': self.safe_number(market, 'minPrice'),
+                        'max': self.safe_number(market, 'maxPrice'),
                     },
                     'cost': {
-                        'min': self.safe_float(market, 'minLotSizeS2'),
+                        'min': self.safe_number(market, 'minLotSizeS2'),
                         'max': None,
                     },
                 },
@@ -390,12 +383,12 @@ class cex(Exchange):
             currencyId = currencyIds[i]
             balance = self.safe_value(balances, currencyId, {})
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
+            account['free'] = self.safe_string(balance, 'available')
             # https://github.com/ccxt/ccxt/issues/5484
-            account['used'] = self.safe_float(balance, 'orders', 0.0)
+            account['used'] = self.safe_string(balance, 'orders', '0')
             code = self.safe_currency_code(currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -406,7 +399,7 @@ class cex(Exchange):
             request['depth'] = limit
         response = self.publicGetOrderBookPair(self.extend(request, params))
         timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -421,11 +414,11 @@ class cex(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 0),
-            self.safe_float(ohlcv, 1),
-            self.safe_float(ohlcv, 2),
-            self.safe_float(ohlcv, 3),
-            self.safe_float(ohlcv, 4),
-            self.safe_float(ohlcv, 5),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -461,12 +454,12 @@ class cex(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        volume = self.safe_float(ticker, 'volume')
-        high = self.safe_float(ticker, 'high')
-        low = self.safe_float(ticker, 'low')
-        bid = self.safe_float(ticker, 'bid')
-        ask = self.safe_float(ticker, 'ask')
-        last = self.safe_float(ticker, 'last')
+        volume = self.safe_number(ticker, 'volume')
+        high = self.safe_number(ticker, 'high')
+        low = self.safe_number(ticker, 'low')
+        bid = self.safe_number(ticker, 'bid')
+        ask = self.safe_number(ticker, 'ask')
+        last = self.safe_number(ticker, 'last')
         symbol = None
         if market:
             symbol = market['symbol']
@@ -523,12 +516,11 @@ class cex(Exchange):
         id = self.safe_string(trade, 'tid')
         type = None
         side = self.safe_string(trade, 'type')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -587,8 +579,8 @@ class cex(Exchange):
         #         "complete": False
         #     }
         #
-        placedAmount = self.safe_float(response, 'amount')
-        remaining = self.safe_float(response, 'pending')
+        placedAmount = self.safe_number(response, 'amount')
+        remaining = self.safe_number(response, 'pending')
         timestamp = self.safe_value(response, 'time')
         complete = self.safe_value(response, 'complete')
         status = 'closed' if complete else 'open'
@@ -606,7 +598,7 @@ class cex(Exchange):
             'side': self.safe_string(response, 'type'),
             'symbol': symbol,
             'status': status,
-            'price': self.safe_float(response, 'price'),
+            'price': self.safe_number(response, 'price'),
             'amount': placedAmount,
             'cost': None,
             'average': None,
@@ -643,39 +635,39 @@ class cex(Exchange):
             if symbol in self.markets:
                 market = self.market(symbol)
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount')
         # sell orders can have a negative amount
         # https://github.com/ccxt/ccxt/issues/5338
         if amount is not None:
             amount = abs(amount)
-        remaining = self.safe_float_2(order, 'pending', 'remains')
+        remaining = self.safe_number_2(order, 'pending', 'remains')
         filled = amount - remaining
         fee = None
         cost = None
         if market is not None:
             symbol = market['symbol']
-            cost = self.safe_float(order, 'ta:' + market['quote'])
-            if cost is None:
-                cost = self.safe_float(order, 'tta:' + market['quote'])
+            taCost = self.safe_number(order, 'ta:' + market['quote'])
+            ttaCost = self.safe_number(order, 'tta:' + market['quote'])
+            cost = self.sum(taCost, ttaCost)
             baseFee = 'fa:' + market['base']
             baseTakerFee = 'tfa:' + market['base']
             quoteFee = 'fa:' + market['quote']
             quoteTakerFee = 'tfa:' + market['quote']
-            feeRate = self.safe_float(order, 'tradingFeeMaker')
+            feeRate = self.safe_number(order, 'tradingFeeMaker')
             if not feeRate:
-                feeRate = self.safe_float(order, 'tradingFeeTaker', feeRate)
+                feeRate = self.safe_number(order, 'tradingFeeTaker', feeRate)
             if feeRate:
                 feeRate /= 100.0  # convert to mathematically-correct percentage coefficients: 1.0 = 100%
             if (baseFee in order) or (baseTakerFee in order):
-                baseFeeCost = self.safe_float_2(order, baseFee, baseTakerFee)
+                baseFeeCost = self.safe_number_2(order, baseFee, baseTakerFee)
                 fee = {
                     'currency': market['base'],
                     'rate': feeRate,
                     'cost': baseFeeCost,
                 }
             elif (quoteFee in order) or (quoteTakerFee in order):
-                quoteFeeCost = self.safe_float_2(order, quoteFee, quoteTakerFee)
+                quoteFeeCost = self.safe_number_2(order, quoteFee, quoteTakerFee)
                 fee = {
                     'currency': market['quote'],
                     'rate': feeRate,
@@ -711,7 +703,7 @@ class cex(Exchange):
                     #     cs: '0.42580261',
                     #     ds: 0}
                     continue
-                tradePrice = self.safe_float(item, 'price')
+                tradePrice = self.safe_number(item, 'price')
                 if tradePrice is None:
                     # self represents the order
                     #   {
@@ -813,8 +805,8 @@ class cex(Exchange):
                 #     "fee_amount": "0.03"
                 #   }
                 tradeTimestamp = self.parse8601(self.safe_string(item, 'time'))
-                tradeAmount = self.safe_float(item, 'amount')
-                feeCost = self.safe_float(item, 'fee_amount')
+                tradeAmount = self.safe_number(item, 'amount')
+                feeCost = self.safe_number(item, 'fee_amount')
                 absTradeAmount = -tradeAmount if (tradeAmount < 0) else tradeAmount
                 tradeCost = None
                 if tradeSide == 'sell':
@@ -849,8 +841,11 @@ class cex(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'market' if (price is None) else 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -879,7 +874,7 @@ class cex(Exchange):
         self.load_markets()
         method = 'privatePostArchivedOrdersPair'
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         market = self.market(symbol)
         request = {'pair': market['id']}
         response = getattr(self, method)(self.extend(request, params))
@@ -891,7 +886,108 @@ class cex(Exchange):
             'id': str(id),
         }
         response = self.privatePostGetOrderTx(self.extend(request, params))
-        return self.parse_order(response['data'])
+        data = self.safe_value(response, 'data', {})
+        #
+        #     {
+        #         "id": "5442731603",
+        #         "type": "sell",
+        #         "time": 1516132358071,
+        #         "lastTxTime": 1516132378452,
+        #         "lastTx": "5442734452",
+        #         "pos": null,
+        #         "user": "up106404164",
+        #         "status": "d",
+        #         "symbol1": "ETH",
+        #         "symbol2": "EUR",
+        #         "amount": "0.50000000",
+        #         "kind": "api",
+        #         "price": "923.3386",
+        #         "tfacf": "1",
+        #         "fa:EUR": "0.55",
+        #         "ta:EUR": "369.77",
+        #         "remains": "0.00000000",
+        #         "tfa:EUR": "0.22",
+        #         "tta:EUR": "91.95",
+        #         "a:ETH:cds": "0.50000000",
+        #         "a:EUR:cds": "461.72",
+        #         "f:EUR:cds": "0.77",
+        #         "tradingFeeMaker": "0.15",
+        #         "tradingFeeTaker": "0.23",
+        #         "tradingFeeStrategy": "userVolumeAmount",
+        #         "tradingFeeUserVolumeAmount": "2896912572",
+        #         "orderId": "5442731603",
+        #         "next": False,
+        #         "vtx": [
+        #             {
+        #                 "id": "5442734452",
+        #                 "type": "sell",
+        #                 "time": "2018-01-16T19:52:58.452Z",
+        #                 "user": "up106404164",
+        #                 "c": "user:up106404164:a:EUR",
+        #                 "d": "order:5442731603:a:EUR",
+        #                 "a": "104.53000000",
+        #                 "amount": "104.53000000",
+        #                 "balance": "932.71000000",
+        #                 "symbol": "EUR",
+        #                 "order": "5442731603",
+        #                 "buy": "5442734443",
+        #                 "sell": "5442731603",
+        #                 "pair": null,
+        #                 "pos": null,
+        #                 "office": null,
+        #                 "cs": "932.71",
+        #                 "ds": 0,
+        #                 "price": 923.3386,
+        #                 "symbol2": "ETH",
+        #                 "fee_amount": "0.16"
+        #             },
+        #             {
+        #                 "id": "5442731609",
+        #                 "type": "sell",
+        #                 "time": "2018-01-16T19:52:38.071Z",
+        #                 "user": "up106404164",
+        #                 "c": "user:up106404164:a:EUR",
+        #                 "d": "order:5442731603:a:EUR",
+        #                 "a": "91.73000000",
+        #                 "amount": "91.73000000",
+        #                 "balance": "563.49000000",
+        #                 "symbol": "EUR",
+        #                 "order": "5442731603",
+        #                 "buy": "5442618127",
+        #                 "sell": "5442731603",
+        #                 "pair": null,
+        #                 "pos": null,
+        #                 "office": null,
+        #                 "cs": "563.49",
+        #                 "ds": 0,
+        #                 "price": 924.0092,
+        #                 "symbol2": "ETH",
+        #                 "fee_amount": "0.22"
+        #             },
+        #             {
+        #                 "id": "5442731604",
+        #                 "type": "sell",
+        #                 "time": "2018-01-16T19:52:38.071Z",
+        #                 "user": "up106404164",
+        #                 "c": "order:5442731603:a:ETH",
+        #                 "d": "user:up106404164:a:ETH",
+        #                 "a": "0.50000000",
+        #                 "amount": "-0.50000000",
+        #                 "balance": "15.80995000",
+        #                 "symbol": "ETH",
+        #                 "order": "5442731603",
+        #                 "buy": null,
+        #                 "sell": null,
+        #                 "pair": null,
+        #                 "pos": null,
+        #                 "office": null,
+        #                 "cs": "0.50000000",
+        #                 "ds": "15.80995000"
+        #             }
+        #         ]
+        #     }
+        #
+        return self.parse_order(data)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1045,12 +1141,12 @@ class cex(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             side = self.safe_string(order, 'type')
-            baseAmount = self.safe_float(order, 'a:' + baseId + ':cds')
-            quoteAmount = self.safe_float(order, 'a:' + quoteId + ':cds')
-            fee = self.safe_float(order, 'f:' + quoteId + ':cds')
-            amount = self.safe_float(order, 'amount')
-            price = self.safe_float(order, 'price')
-            remaining = self.safe_float(order, 'remains')
+            baseAmount = self.safe_number(order, 'a:' + baseId + ':cds')
+            quoteAmount = self.safe_number(order, 'a:' + quoteId + ':cds')
+            fee = self.safe_number(order, 'f:' + quoteId + ':cds')
+            amount = self.safe_number(order, 'amount')
+            price = self.safe_number(order, 'price')
+            remaining = self.safe_number(order, 'remains')
             filled = amount - remaining
             orderAmount = None
             cost = None
@@ -1062,10 +1158,10 @@ class cex(Exchange):
                 cost = quoteAmount
                 average = orderAmount / cost
             else:
-                ta = self.safe_float(order, 'ta:' + quoteId, 0)
-                tta = self.safe_float(order, 'tta:' + quoteId, 0)
-                fa = self.safe_float(order, 'fa:' + quoteId, 0)
-                tfa = self.safe_float(order, 'tfa:' + quoteId, 0)
+                ta = self.safe_number(order, 'ta:' + quoteId, 0)
+                tta = self.safe_number(order, 'tta:' + quoteId, 0)
+                fa = self.safe_number(order, 'fa:' + quoteId, 0)
+                tfa = self.safe_number(order, 'tfa:' + quoteId, 0)
                 if side == 'sell':
                     cost = self.sum(self.sum(ta, tta), self.sum(fa, tfa))
                 else:
@@ -1104,9 +1200,9 @@ class cex(Exchange):
 
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if amount is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires a amount argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires a amount argument')
         if price is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires a price argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires a price argument')
         self.load_markets()
         market = self.market(symbol)
         # see: https://cex.io/rest-api#/definitions/CancelReplaceOrderRequest

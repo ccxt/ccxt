@@ -103,6 +103,7 @@ class bcex extends Exchange {
                 '订单信息不存在' => '\\ccxt\\OrderNotFound', // array('code' => 1, 'msg' => '订单信息不存在') - 'Order information does not exist'
             ),
             'commonCurrencies' => array(
+                'UNI' => 'UNI COIN',
                 'PNT' => 'Penta',
             ),
             'options' => array(
@@ -561,8 +562,11 @@ class bcex extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'average' => $average,
             'amount' => $amount,

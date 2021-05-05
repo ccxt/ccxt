@@ -130,7 +130,6 @@ class bleutrade(Exchange):
             },
             'options': {
                 'parseOrderStatus': True,
-                'symbolSeparator': '_',
             },
         })
         # undocumented api calls
@@ -171,8 +170,8 @@ class bleutrade(Exchange):
                 'code': code,
                 'name': self.safe_string(item, 'AssetLong'),
                 'active': self.safe_value(item, 'IsActive') and not self.safe_value(item, 'MaintenanceMode'),
-                'fee': self.safe_float(item, 'WithdrawTxFee'),
-                'precision': self.safe_float(item, 'DecimalPlaces'),
+                'fee': self.safe_number(item, 'WithdrawTxFee'),
+                'precision': self.safe_number(item, 'DecimalPlaces'),
                 'info': item,
                 'limits': self.limits,
             }
@@ -222,7 +221,7 @@ class bleutrade(Exchange):
                 'taker': self.fees['trading']['taker'],
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'MinTradeSize'),
+                        'min': self.safe_number(market, 'MinTradeSize'),
                         'max': None,
                     },
                     'price': {
@@ -245,7 +244,7 @@ class bleutrade(Exchange):
         orderbook = self.safe_value(response, 'result')
         if not orderbook:
             raise ExchangeError(self.id + ' no orderbook data in ' + self.json(response))
-        return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
+        return self.parse_order_book(orderbook, symbol, None, 'buy', 'sell', 'Rate', 'Quantity')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -254,7 +253,7 @@ class bleutrade(Exchange):
             'market': market['id'],
         }
         response = self.v3PublicGetGetmarketsummary(self.extend(request, params))
-        ticker = response['result'][0]
+        ticker = self.safe_value(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols=None, params={}):
@@ -288,17 +287,10 @@ class bleutrade(Exchange):
         #     MarketCurrency: 'Litecoin',
         #     BaseCurrency: 'Tether'}
         timestamp = self.parse8601(self.safe_string(ticker, 'TimeStamp'))
-        symbol = None
         marketId = self.safe_string(ticker, 'MarketName')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                symbol = self.parse_symbol(marketId)
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        previous = self.safe_float(ticker, 'PrevDay')
-        last = self.safe_float(ticker, 'Last')
+        symbol = self.safe_symbol(marketId, market, '_')
+        previous = self.safe_number(ticker, 'PrevDay')
+        last = self.safe_number(ticker, 'Last')
         change = None
         percentage = None
         if last is not None:
@@ -310,11 +302,11 @@ class bleutrade(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'High'),
-            'low': self.safe_float(ticker, 'Low'),
-            'bid': self.safe_float(ticker, 'Bid'),
+            'high': self.safe_number(ticker, 'High'),
+            'low': self.safe_number(ticker, 'Low'),
+            'bid': self.safe_number(ticker, 'Bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'Ask'),
+            'ask': self.safe_number(ticker, 'Ask'),
             'askVolume': None,
             'vwap': None,
             'open': previous,
@@ -324,19 +316,19 @@ class bleutrade(Exchange):
             'change': change,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'Volume'),
-            'quoteVolume': self.safe_float(ticker, 'BaseVolume'),
+            'baseVolume': self.safe_number(ticker, 'Volume'),
+            'quoteVolume': self.safe_number(ticker, 'BaseVolume'),
             'info': ticker,
         }
 
     def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.parse8601(ohlcv['TimeStamp'] + '+00:00'),
-            self.safe_float(ohlcv, 'Open'),
-            self.safe_float(ohlcv, 'High'),
-            self.safe_float(ohlcv, 'Low'),
-            self.safe_float(ohlcv, 'Close'),
-            self.safe_float(ohlcv, 'Volume'),
+            self.safe_number(ohlcv, 'Open'),
+            self.safe_number(ohlcv, 'High'),
+            self.safe_number(ohlcv, 'Low'),
+            self.safe_number(ohlcv, 'Close'),
+            self.safe_number(ohlcv, 'Volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
@@ -394,12 +386,6 @@ class bleutrade(Exchange):
         items = self.safe_value(response, 'result', [])
         return self.parse_orders(items, market, since, limit)
 
-    def parse_symbol(self, id):
-        base, quote = id.split(self.options['symbolSeparator'])
-        base = self.safe_currency_code(base)
-        quote = self.safe_currency_code(quote)
-        return base + '/' + quote
-
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.v3PrivatePostGetbalances(params)
@@ -410,10 +396,10 @@ class bleutrade(Exchange):
             currencyId = self.safe_string(item, 'Asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(item, 'Available')
-            account['total'] = self.safe_float(item, 'Balance')
+            account['free'] = self.safe_string(item, 'Available')
+            account['total'] = self.safe_string(item, 'Balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -545,7 +531,7 @@ class bleutrade(Exchange):
             #     }
             #
         timestamp = self.parse8601(self.safe_string(item, 'TimeStamp'))
-        amount = self.safe_float(item, 'Amount')
+        amount = self.safe_number(item, 'Amount')
         direction = None
         if amount is not None:
             direction = 'in'
@@ -609,36 +595,17 @@ class bleutrade(Exchange):
         #     Comments: {String: '', Valid: True}
         side = self.safe_string(order, 'Type').lower()
         status = self.parse_order_status(self.safe_string(order, 'Status'))
-        symbol = None
         marketId = self.safe_string(order, 'Exchange')
-        if marketId is None:
-            if market is not None:
-                symbol = market['symbol']
-        else:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                symbol = self.parse_symbol(marketId)
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = None
         if 'Created' in order:
             timestamp = self.parse8601(order['Created'] + '+00:00')
-        price = self.safe_float(order, 'Price')
-        cost = None
-        amount = self.safe_float(order, 'Quantity')
-        remaining = self.safe_float(order, 'QuantityRemaining')
-        filled = None
-        if amount is not None and remaining is not None:
-            filled = amount - remaining
-        if not cost:
-            if price and filled:
-                cost = price * filled
-        if not price:
-            if cost and filled:
-                price = cost / filled
-        average = self.safe_float(order, 'PricePerUnit')
+        price = self.safe_number(order, 'Price')
+        amount = self.safe_number(order, 'Quantity')
+        remaining = self.safe_number(order, 'QuantityRemaining')
+        average = self.safe_number(order, 'PricePerUnit')
         id = self.safe_string(order, 'OrderID')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -647,17 +614,20 @@ class bleutrade(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
-            'cost': cost,
+            'stopPrice': None,
+            'cost': None,
             'average': average,
             'amount': amount,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def parse_order_status(self, status):
         statuses = {
@@ -692,7 +662,7 @@ class bleutrade(Exchange):
         #     Symbol: 'BTC'}
         #
         id = self.safe_string(transaction, 'ID')
-        amount = self.safe_float(transaction, 'Amount')
+        amount = self.safe_number(transaction, 'Amount')
         type = 'deposit'
         if amount < 0:
             amount = abs(amount)

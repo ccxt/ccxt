@@ -8,7 +8,9 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class exx(Exchange):
@@ -95,6 +97,7 @@ class exx(Exchange):
                 },
             },
             'commonCurrencies': {
+                'DOS': 'DEMOS',
                 'TV': 'TIV',  # Ti-Value
             },
             'exceptions': {
@@ -149,26 +152,26 @@ class exx(Exchange):
         symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'date')
         ticker = ticker['ticker']
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'riseRate'),
+            'change': self.safe_number(ticker, 'riseRate'),
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -208,16 +211,15 @@ class exx(Exchange):
         }
         response = await self.publicGetDepth(self.extend(request, params))
         timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -259,13 +261,12 @@ class exx(Exchange):
             currencyId = currencies[i]
             balance = balances[currencyId]
             code = self.safe_currency_code(currencyId)
-            account = {
-                'free': self.safe_float(balance, 'balance'),
-                'used': self.safe_float(balance, 'freeze'),
-                'total': self.safe_float(balance, 'total'),
-            }
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'freeze')
+            account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order(self, order, market=None):
         #
@@ -284,11 +285,10 @@ class exx(Exchange):
         #
         symbol = market['symbol']
         timestamp = int(order['trade_date'])
-        price = self.safe_float(order, 'price')
-        cost = self.safe_float(order, 'trade_money')
-        amount = self.safe_float(order, 'total_amount')
-        filled = self.safe_float(order, 'trade_amount', 0.0)
-        remaining = float(self.amount_to_precision(symbol, amount - filled))
+        price = self.safe_number(order, 'price')
+        cost = self.safe_number(order, 'trade_money')
+        amount = self.safe_number(order, 'total_amount')
+        filled = self.safe_number(order, 'trade_amount', 0.0)
         status = self.safe_integer(order, 'status')
         if status == 1:
             status = 'canceled'
@@ -299,10 +299,10 @@ class exx(Exchange):
         fee = None
         if 'fees' in order:
             fee = {
-                'cost': self.safe_float(order, 'fees'),
+                'cost': self.safe_number(order, 'fees'),
                 'currency': market['quote'],
             }
-        return {
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -311,17 +311,20 @@ class exx(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': None,
+            'postOnly': None,
             'side': order['type'],
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'trades': None,
             'fee': fee,
             'info': order,
             'average': None,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -366,6 +369,8 @@ class exx(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         market = self.market(symbol)
         request = {
             'currency': market['id'],

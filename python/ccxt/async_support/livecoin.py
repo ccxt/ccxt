@@ -4,17 +4,26 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
@@ -110,6 +119,7 @@ class livecoin(Exchange):
                 },
             },
             'commonCurrencies': {
+                'BIT': 'First Bitcoin',
                 'BTCH': 'Bithash',
                 'CPC': 'Capricoin',
                 'CBC': 'CryptoBossCoin',  # conflict with CBC(CashBet Coin)
@@ -124,6 +134,7 @@ class livecoin(Exchange):
                 'PLN': 'Plutaneum',  # conflict with Polish Zloty
                 'RUR': 'RUB',
                 'SCT': 'SpaceCoin',
+                'TCT': 'Twecrypto',
                 'TPI': 'ThaneCoin',
                 'UNUS': 'LEO',  # https://github.com/ccxt/ccxt/issues/7496
                 'WAX': 'WAXP',
@@ -206,6 +217,11 @@ class livecoin(Exchange):
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetInfoCoinInfo(params)
+        if isinstance(response, basestring):
+            if response.find('site is under maintenance') >= 0:
+                raise OnMaintenance(self.id + ' fetchCurrencies() failed to fetch the currencies, the exchange is on maintenance')
+            else:
+                raise BadResponse(self.id + ' fetchCurrencies() failed to fetch the currencies')
         currencies = self.safe_value(response, 'info')
         result = {}
         for i in range(0, len(currencies)):
@@ -377,7 +393,7 @@ class livecoin(Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
+            market = self.safe_market(id)
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
@@ -434,18 +450,8 @@ class livecoin(Exchange):
         if amount is not None:
             if price is not None:
                 cost = amount * price
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('/')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '/')
         return {
             'id': id,
             'info': trade,
@@ -560,12 +566,8 @@ class livecoin(Exchange):
         # trades = self.parse_trades(order['trades'], market, since, limit)
         trades = None
         status = self.parse_order_status(self.safe_string_2(order, 'status', 'orderStatus'))
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'currencyPair')
-            marketId = self.safe_string(order, 'symbol', marketId)
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        marketId = self.safe_string_2(order, 'symbol', 'currencyPair')
+        symbol = self.safe_symbol(marketId, market, '/')
         type = self.safe_string_lower(order, 'type')
         side = None
         if type is not None:
@@ -587,9 +589,10 @@ class livecoin(Exchange):
         feeCost = None
         if cost is not None and feeRate is not None:
             feeCost = cost * feeRate
+        if (market is None) and (symbol in self.markets):
+            market = self.markets[symbol]
         feeCurrency = None
         if market is not None:
-            symbol = market['symbol']
             feeCurrency = market['quote']
         return {
             'info': order,
@@ -601,8 +604,11 @@ class livecoin(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'filled': filled,

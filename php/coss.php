@@ -423,23 +423,11 @@ class coss extends Exchange {
         //           PrevDay =>  0.000636                   }
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'TimeStamp'));
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'MarketName');
         if ($marketId !== null) {
             $marketId = str_replace('-', '_', $marketId);
         }
-        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
-        if ($market === null) {
-            if ($marketId !== null) {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $previous = $this->safe_float($ticker, 'PrevDay');
         $last = $this->safe_float($ticker, 'Last');
         $change = null;
@@ -606,19 +594,8 @@ class coss extends Exchange {
         $timestamp = $this->safe_integer($trade, 'time');
         $orderId = $this->safe_string($trade, 'order_id');
         $side = $this->safe_string_lower($trade, 'order_side');
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');
-        if ($marketId !== null) {
-            $market = $this->safe_value($this->markets_by_id, $marketId, $market);
-            if ($market === null) {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        } else if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $cost = null;
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float_2($trade, 'qty', 'quantity');
@@ -805,26 +782,11 @@ class coss extends Exchange {
         //                total => "0.00659000 ETH"                        }
         //
         $id = $this->safe_string($order, 'order_id');
-        $symbol = null;
         $marketId = $this->safe_string($order, 'order_symbol');
-        if ($marketId === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
-        } else {
-            // a minor workaround for lowercase eth-btc symbols
-            $marketId = strtoupper($marketId);
+        if ($marketId !== null) {
             $marketId = str_replace('-', '_', $marketId);
-            $market = $this->safe_value($this->markets_by_id, $marketId, $market);
-            if ($market === null) {
-                list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            } else {
-                $symbol = $market['symbol'];
-            }
         }
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_integer($order, 'createTime');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $price = $this->safe_float($order, 'order_price');

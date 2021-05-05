@@ -57,6 +57,14 @@ php -f path/to/example.php # substitute for actual filename here
 
 [What is the Best Crypto Trading Bot in 2020?](https://www.hodlbot.io/blog/ultimate-guide-on-crypto-trading-bots) – Ultimate guide on crypto trading bots in 2020 by HodlBlog.
 
+[Geographic Latency in Crypto: How to Optimally Co-Locate Your AWS Trading Server to Any Exchange API](https://elitwilliams.medium.com/geographic-latency-in-crypto-how-to-optimally-co-locate-your-aws-trading-server-to-any-exchange-58965ea173a8) – An article overviewing the aspects of latencies for global cryptocurrency trading.
+
+[CCXT - Cryptocurrency Exchange Trading Library Tutorial](https://www.youtube.com/watch?v=2Zdm2ISdm1Q) – A YouTube video tutorial on CCXT!
+
+[CCXT Crypto Bot - Order Execution with Python](https://www.youtube.com/watch?v=1PEyddA1y5E) – making a CCXT Bot on YouTube!
+
+[Writing a crypto trading bot](https://www.kleemans.ch/writing-a-crypto-trading-bot) – How to write an automated trading bot, for fun and profit.
+
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
 
 [CC Power Analytics Part 1: How to get the data of the exchanges](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – The first part of a series of articles on cryptocurrency analytics.
@@ -64,6 +72,8 @@ php -f path/to/example.php # substitute for actual filename here
 [tv2bt: Kraken Example, without leverage](https://backtest-rookies.com/2020/04/18/tv2bt-kraken-example-without-leverage/) – an article on using CCXT for backtesting.
 
 [Looking for arbitrage opportunies with ccxt](https://steemit.com/steemdev/@codewithcheese/looking-for-arbitrage-opportunies-with-javascript-library-cctx-supporting-70-exchanges) – An article @steemit on getting arbitrage started with ccxt for crypto-arbitrage.
+
+[Use CCXT to calculate Cryptocurrency trade indicators](https://itnext.io/use-ccxt-to-calculate-cryptocurrency-trade-indicators-102a3ac1428e) – an article @ Medium on building basic indicators using CCXT.
 
 [A n00bs Guide To Deep Cryptocurrency Trading](https://medium.com/@LeonFedden/deep-cryptocurrency-trading-1e64af6d280a) – An article @ Medium on deep neural trading using ccxt for backend tasks.
 

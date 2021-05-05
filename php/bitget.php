@@ -120,12 +120,13 @@ class bitget extends Exchange {
                         'market/trades',
                         'market/candles',
                         'market/index',
+                        'market/open_count',
                         'market/open_interest',
                         'market/price_limit',
                         'market/funding_time',
-                        'market/historical_funding_rate',
                         'market/mark_price',
                         'market/open_count',
+                        'market/historyFundRate',
                     ),
                 ),
                 'swap' => array(
@@ -139,8 +140,13 @@ class bitget extends Exchange {
                         'order/detail',
                         'order/orders',
                         'order/fills',
-                        'order/currentPlan',
-                        'order/historyPlan',
+                        'order/current',
+                        'order/currentPlan', // conditional
+                        'order/history',
+                        'order/historyPlan', // conditional
+                        'trace/closeTrack',
+                        'trace/currentTrack',
+                        'trace/historyTrack',
                     ),
                     'post' => array(
                         'account/leverage',
@@ -152,6 +158,7 @@ class bitget extends Exchange {
                         'order/cancel_batch_orders',
                         'order/plan_order',
                         'order/cancel_plan',
+                        'position/changeHoldModel',
                     ),
                 ),
             ),
@@ -761,7 +768,7 @@ class bitget extends Exchange {
         //         "base_currency":"btc",
         //         "quote_currency":"usdt",
         //         "$symbol":"btc_usdt",
-        //         "$tick_size":"2",
+        //         "tick_size":"2",
         //         "size_increment":"4",
         //         "$status":"1",
         //         "base_asset_precision":"8"
@@ -779,7 +786,7 @@ class bitget extends Exchange {
         //         "listing":null,
         //         "delivery":["07:00:00","15:00:00","23:00:00"],
         //         "size_increment":"0",
-        //         "$tick_size":"1",
+        //         "tick_size":"1",
         //         "forwardContractFlag":false,
         //         "priceEndStep":5
         //     }
@@ -790,7 +797,7 @@ class bitget extends Exchange {
         $swap = false;
         $baseId = $this->safe_string_2($market, 'base_currency', 'coin');
         $quoteId = $this->safe_string($market, 'quote_currency');
-        $contractVal = $this->safe_float($market, 'contract_val');
+        $contractVal = $this->safe_number($market, 'contract_val');
         if ($contractVal !== null) {
             $marketType = 'swap';
             $spot = false;
@@ -802,14 +809,13 @@ class bitget extends Exchange {
         if ($spot) {
             $symbol = $base . '/' . $quote;
         }
-        $lotSize = $this->safe_float_2($market, 'lot_size', 'trade_increment');
-        $tick_size = $this->safe_float($market, 'tick_size');
-        $newtick_size = floatval('1e-' . $this->number_to_string($tick_size));
+        $tickSize = $this->safe_string($market, 'tick_size');
+        $sizeIncrement = $this->safe_string($market, 'size_increment');
         $precision = array(
-            'amount' => $this->safe_float($market, 'size_increment', $lotSize),
-            'price' => $newtick_size,
+            'amount' => $this->parse_number($this->parse_precision($sizeIncrement)),
+            'price' => $this->parse_number($this->parse_precision($tickSize)),
         );
-        $minAmount = $this->safe_float_2($market, 'min_size', 'base_min_size');
+        $minAmount = $this->safe_number_2($market, 'min_size', 'base_min_size');
         $status = $this->safe_string($market, 'status');
         $active = null;
         if ($status !== null) {
@@ -844,10 +850,6 @@ class bitget extends Exchange {
                 ),
             ),
         ));
-    }
-
-    public function amount_to_precision($symbol, $amount) {
-        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     public function fetch_markets_by_type($type, $params = array ()) {
@@ -933,8 +935,6 @@ class bitget extends Exchange {
                 'precision' => null,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
                 ),
             );
@@ -999,7 +999,7 @@ class bitget extends Exchange {
         $data = $this->safe_value($response, 'data', $response);
         $timestamp = $this->safe_integer_2($data, 'timestamp', 'ts');
         $nonce = $this->safe_integer($data, 'id');
-        $orderbook = $this->parse_order_book($data, $timestamp);
+        $orderbook = $this->parse_order_book($data, $symbol, $timestamp);
         $orderbook['nonce'] = $nonce;
         return $orderbook;
     }
@@ -1070,26 +1070,26 @@ class bitget extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float_2($ticker, 'last', 'close');
-        $open = $this->safe_float($ticker, 'open');
+        $last = $this->safe_number_2($ticker, 'last', 'close');
+        $open = $this->safe_number($ticker, 'open');
         $bidVolume = null;
         $askVolume = null;
         $bid = $this->safe_value($ticker, 'bid');
         if ($bid === null) {
-            $bid = $this->safe_float($ticker, 'best_bid');
+            $bid = $this->safe_number($ticker, 'best_bid');
         } else {
-            $bidVolume = $this->safe_float($bid, 1);
-            $bid = $this->safe_float($bid, 0);
+            $bidVolume = $this->safe_number($bid, 1);
+            $bid = $this->safe_number($bid, 0);
         }
         $ask = $this->safe_value($ticker, 'ask');
         if ($ask === null) {
-            $ask = $this->safe_float($ticker, 'best_ask');
+            $ask = $this->safe_number($ticker, 'best_ask');
         } else {
-            $askVolume = $this->safe_float($ask, 1);
-            $ask = $this->safe_float($ask, 0);
+            $askVolume = $this->safe_number($ask, 1);
+            $ask = $this->safe_number($ask, 0);
         }
-        $baseVolume = $this->safe_float_2($ticker, 'amount', 'volume_24h');
-        $quoteVolume = $this->safe_float($ticker, 'vol');
+        $baseVolume = $this->safe_number_2($ticker, 'amount', 'volume_24h');
+        $quoteVolume = $this->safe_number($ticker, 'vol');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         $change = null;
         $percentage = null;
@@ -1103,8 +1103,8 @@ class bitget extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float_2($ticker, 'high', 'high_24h'),
-            'low' => $this->safe_float_2($ticker, 'low', 'low_24h'),
+            'high' => $this->safe_number_2($ticker, 'high', 'high_24h'),
+            'low' => $this->safe_number_2($ticker, 'low', 'low_24h'),
             'bid' => $bid,
             'bidVolume' => $bidVolume,
             'ask' => $ask,
@@ -1339,38 +1339,37 @@ class bitget extends Exchange {
         }
         $timestamp = $this->safe_integer($trade, 'created_at');
         $timestamp = $this->safe_integer_2($trade, 'timestamp', 'ts', $timestamp);
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float_2($trade, 'filled_amount', 'order_qty');
-        $amount = $this->safe_float_2($trade, 'size', 'amount', $amount);
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'filled_amount', 'order_qty');
+        $amountString = $this->safe_string_2($trade, 'size', 'amount', $amountString);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $takerOrMaker = $this->safe_string_2($trade, 'exec_type', 'liquidity');
         if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
         } else if ($takerOrMaker === 'T') {
             $takerOrMaker = 'taker';
         }
-        $side = $this->safe_string_2($trade, 'side', 'direction');
-        $type = $this->parse_order_type($side);
-        $side = $this->parse_order_side($side);
-        // if ($side === null) {
-        //     $orderType = $this->safe_string($trade, 'type');
-        //     if ($orderType !== null) {
-        //         $parts = explode('-', $orderType);
-        //         $side = $this->safe_string_lower($parts, 0);
-        //         $type = $this->safe_string_lower($parts, 1);
-        //     }
-        // }
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
-        }
-        $feeCost = $this->safe_float($trade, 'fee');
-        if ($feeCost === null) {
-            $feeCost = $this->safe_float($trade, 'filled_fees');
+        $orderType = $this->safe_string($trade, 'type');
+        $side = null;
+        $type = null;
+        if ($orderType !== null) {
+            $side = $this->safe_string($trade, 'type');
+            $type = $this->parse_order_type($side);
+            $side = $this->parse_order_side($side);
         } else {
-            $feeCost = -$feeCost;
+            $side = $this->safe_string_2($trade, 'side', 'direction');
+            $type = $this->parse_order_type($side);
+            $side = $this->parse_order_side($side);
         }
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString === null) {
+            $feeCostString = $this->safe_string($trade, 'filled_fees');
+        } else {
+            $feeCostString = Precise::string_neg($feeCostString);
+        }
+        $feeCost = $this->parse_number($feeCostString);
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrency = ($side === 'buy') ? $base : $quote;
@@ -1493,23 +1492,23 @@ class bitget extends Exchange {
             $volumeIndex = $this->safe_string($volume, $market['type'], 'amount');
             return array(
                 $this->safe_integer($ohlcv, 0),         // timestamp
-                $this->safe_float($ohlcv, 1),           // Open
-                $this->safe_float($ohlcv, 2),           // High
-                $this->safe_float($ohlcv, 3),           // Low
-                $this->safe_float($ohlcv, 4),           // Close
-                // $this->safe_float($ohlcv, 5),        // Quote Volume
-                // $this->safe_float($ohlcv, 6),        // Base Volume
-                $this->safe_float($ohlcv, $volumeIndex), // Volume, bitget will return base $volume in the 7th element for future markets
+                $this->safe_number($ohlcv, 1),           // Open
+                $this->safe_number($ohlcv, 2),           // High
+                $this->safe_number($ohlcv, 3),           // Low
+                $this->safe_number($ohlcv, 4),           // Close
+                // $this->safe_number($ohlcv, 5),        // Quote Volume
+                // $this->safe_number($ohlcv, 6),        // Base Volume
+                $this->safe_number($ohlcv, $volumeIndex), // Volume, bitget will return base $volume in the 7th element for future markets
             );
         } else {
             $volumeIndex = $this->safe_value($volume, $market['type'], 6);
             return array(
                 $this->safe_integer($ohlcv, 'id'),
-                $this->safe_float($ohlcv, 'open'),      // Open
-                $this->safe_float($ohlcv, 'high'),      // High
-                $this->safe_float($ohlcv, 'low'),       // Low
-                $this->safe_float($ohlcv, 'close'),     // Close
-                $this->safe_float($ohlcv, $volumeIndex), // Base Volume
+                $this->safe_number($ohlcv, 'open'),      // Open
+                $this->safe_number($ohlcv, 'high'),      // High
+                $this->safe_number($ohlcv, 'low'),       // Low
+                $this->safe_number($ohlcv, 'close'),     // Close
+                $this->safe_number($ohlcv, $volumeIndex), // Base Volume
             );
         }
     }
@@ -1611,13 +1610,13 @@ class bitget extends Exchange {
             }
             $type = $this->safe_value($balance, 'type');
             if ($type === 'trade') {
-                $result[$code]['free'] = $this->safe_float($balance, 'balance');
+                $result[$code]['free'] = $this->safe_string($balance, 'balance');
             } else if (($type === 'frozen') || ($type === 'lock')) {
-                $used = $this->safe_float($result[$code], 'used');
-                $result[$code]['used'] = $this->sum($used, $this->safe_float($balance, 'balance'));
+                $used = $this->safe_string($result[$code], 'used');
+                $result[$code]['used'] = Precise::string_add($used, $this->safe_string($balance, 'balance'));
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_swap_balance($response) {
@@ -1641,11 +1640,11 @@ class bitget extends Exchange {
             }
             $account = $this->account();
             // it may be incorrect to use total, free and used for swap accounts
-            $account['total'] = $this->safe_float($balance, 'equity');
-            $account['free'] = $this->safe_float($balance, 'total_avail_balance');
+            $account['total'] = $this->safe_string($balance, 'equity');
+            $account['free'] = $this->safe_string($balance, 'total_avail_balance');
             $result[$symbol] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_accounts($params = array ()) {
@@ -1705,7 +1704,7 @@ class bitget extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . " requires an 'accountId' parameter");
+            throw new ArgumentsRequired($this->id . " getAccountId() requires an 'accountId' parameter");
         }
         $account = $this->find_account_by_type($type);
         return $account['id'];
@@ -1717,7 +1716,7 @@ class bitget extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . " fetchBalance requires a 'type' parameter, one of 'spot', 'swap'");
+            throw new ArgumentsRequired($this->id . " fetchBalance() requires a 'type' parameter, one of 'spot', 'swap'");
         }
         $method = null;
         $query = $this->omit($params, 'type');
@@ -1922,26 +1921,13 @@ class bitget extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $amount = $this->safe_float_2($order, 'amount', 'size');
-        $filled = $this->safe_float_2($order, 'filled_amount', 'filled_qty');
-        $remaining = null;
-        if ($amount !== null) {
-            if ($filled !== null) {
-                $amount = max ($amount, $filled);
-                $remaining = max (0, $amount - $filled);
-            }
-        }
-        if ($type === 'market') {
-            $remaining = 0;
-        }
-        $cost = $this->safe_float($order, 'filled_cash_amount');
-        $price = $this->safe_float($order, 'price');
-        $average = $this->safe_float($order, 'price_avg');
-        if (($average === null) && ($filled !== null) && ($cost !== null) && ($filled > 0)) {
-            $average = $cost / $filled;
-        }
+        $amount = $this->safe_number_2($order, 'amount', 'size');
+        $filled = $this->safe_number_2($order, 'filled_amount', 'filled_qty');
+        $cost = $this->safe_number($order, 'filled_cash_amount');
+        $price = $this->safe_number($order, 'price');
+        $average = $this->safe_number($order, 'price_avg');
         $status = $this->parse_order_status($this->safe_string_2($order, 'state', 'status'));
-        $feeCost = $this->safe_float_2($order, 'filled_fees', 'fee');
+        $feeCost = $this->safe_number_2($order, 'filled_fees', 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrency = null;
@@ -1951,7 +1937,7 @@ class bitget extends Exchange {
             );
         }
         $clientOrderId = $this->safe_string($order, 'client_oid');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -1960,17 +1946,20 @@ class bitget extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -2017,7 +2006,7 @@ class bitget extends Exchange {
             } else if ($type === 'market') {
                 // for $market buy it requires the $amount of quote currency to spend
                 if ($side === 'buy') {
-                    $cost = $this->safe_float($params, 'amount');
+                    $cost = $this->safe_number($params, 'amount');
                     $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
                     if ($createMarketBuyOrderRequiresPrice) {
                         if ($price !== null) {
@@ -2041,7 +2030,7 @@ class bitget extends Exchange {
             $request['client_oid'] = $clientOrderId;
             $orderType = $this->safe_string($params, 'type');
             if ($orderType === null) {
-                throw new ArgumentsRequired($this->id . " createOrder requires a $type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " . $market['type'] . ' orders');
+                throw new ArgumentsRequired($this->id . " createOrder() requires a $type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " . $market['type'] . ' orders');
             }
             $request['size'] = $this->amount_to_precision($symbol, $amount);
             $request['type'] = $orderType;
@@ -2083,7 +2072,7 @@ class bitget extends Exchange {
             $type = $this->safe_string($params, 'type', $defaultType);
             if ($type === 'spot') {
                 if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument for spot orders');
+                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument for spot orders');
                 }
             }
         } else {
@@ -2124,14 +2113,15 @@ class bitget extends Exchange {
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $type = $this->safe_string($params, 'type', $market['type']);
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . " cancelOrders requires a $type parameter (one of 'spot', 'swap').");
+            throw new ArgumentsRequired($this->id . " cancelOrders() requires a $type parameter (one of 'spot', 'swap').");
         }
+        $params = $this->omit($params, 'type');
         $request = array();
         $method = null;
         if ($type === 'spot') {
@@ -2188,13 +2178,13 @@ class bitget extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $type = $this->safe_string($params, 'type', $market['type']);
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . " fetchOrder requires a $type parameter (one of 'spot', 'swap').");
+            throw new ArgumentsRequired($this->id . " fetchOrder() requires a $type parameter (one of 'spot', 'swap').");
         }
         $method = null;
         $request = array();
@@ -2265,7 +2255,7 @@ class bitget extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2350,7 +2340,7 @@ class bitget extends Exchange {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2442,7 +2432,7 @@ class bitget extends Exchange {
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2479,7 +2469,7 @@ class bitget extends Exchange {
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
         }
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2566,12 +2556,12 @@ class bitget extends Exchange {
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $txid = $this->safe_string($transaction, 'tx_hash');
         $timestamp = $this->safe_integer($transaction, 'created_at');
         $updated = $this->safe_integer($transaction, 'updated_at');
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $feeCost = $this->safe_number($transaction, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
@@ -2602,14 +2592,14 @@ class bitget extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $type = $this->safe_string($params, 'type', $market['type']);
         $query = $this->omit($params, 'type');
         if ($type === 'swap') {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades is not supported for ' . $type . ' type');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() is not supported for ' . $type . ' type');
         }
         //
         // spot
@@ -2666,12 +2656,12 @@ class bitget extends Exchange {
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $type = $this->safe_string($params, 'type', $market['type']);
-        $query = $this->omit($params, 'type');
+        $params = $this->omit($params, 'type');
         $method = null;
         $request = array();
         if ($type === 'spot') {
@@ -2683,7 +2673,7 @@ class bitget extends Exchange {
             $request['symbol'] = $market['id'];
             $method = 'swapGetOrderFills';
         }
-        $response = $this->$method (array_merge($request, $query));
+        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -2730,6 +2720,68 @@ class bitget extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
+    public function fetch_position($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->swapGetPositionSinglePosition (array_merge($request, $params));
+        //
+        //     {
+        //         "margin_mode":"fixed", // Margin mode => crossed / fixed
+        //         "holding":array(
+        //             {
+        //                 "$symbol":"cmt_btcusdt", // Contract name
+        //                 "liquidation_price":"0.00", // Estimated liquidation price
+        //                 "position":"0", // Position Margin, the margin for holding current positions
+        //                 "avail_position":"0", // Available position
+        //                 "avg_cost":"0.00", // Transaction average price
+        //                 "leverage":"2", // Leverage
+        //                 "realized_pnl":"0.00000000", // Realized Profit and loss
+        //                 "keepMarginRate":"0.005", // Maintenance margin rate
+        //                 "side":"1", // Position Direction Long or short, Mark obsolete
+        //                 "holdSide":"1", // Position Direction Long or short
+        //                 "timestamp":"1557571623963", // System timestamp
+        //                 "margin":"0.0000000000000000", // Used margin
+        //                 "unrealized_pnl":"0.00000000", // Unrealized profit and loss
+        //             }
+        //         )
+        //     }
+        return $response;
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->swapGetPositionAllPosition ($params);
+        //
+        //     array(
+        //         array(
+        //             "margin_mode":"fixed",
+        //             "holding":array(
+        //                 array(
+        //                     "liquidation_price":"0.00",
+        //                     "position":"0",
+        //                     "avail_position":"0",
+        //                     "avg_cost":"0.00",
+        //                     "symbol":"btcusd",
+        //                     "leverage":"20",
+        //                     "keepMarginRate":"0.005",
+        //                     "realized_pnl":"0.00000000",
+        //                     "unrealized_pnl":"0",
+        //                     "side":"long",
+        //                     "holdSide":"1",
+        //                     "timestamp":"1595698564915",
+        //                     "margin":"0.0000000000000000"
+        //                 ),
+        //             )
+        //         ),
+        //     )
+        //
+        // todo unify parsePosition/parsePositions
+        return $response;
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params($path, $params);
         if (($api === 'capi') || ($api === 'swap')) {
@@ -2760,7 +2812,7 @@ class bitget extends Exchange {
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
             $headers = array(
                 'ACCESS-KEY' => $this->apiKey,
-                'ACCESS-SIGN' => $this->decode($signature),
+                'ACCESS-SIGN' => $signature,
                 'ACCESS-TIMESTAMP' => $timestamp,
                 'ACCESS-PASSPHRASE' => $this->password,
             );
