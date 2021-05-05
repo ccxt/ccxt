@@ -381,15 +381,16 @@ module.exports = class gooplex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired ('fetchOrderBook requires a symbol argument');
         }
+        const originalSymbol = this.symbolOriginal (symbol);
         const method = 'openGetMarketDepth';
         const request = {
-            'symbol': this.symbolOriginal (symbol),
+            'symbol': originalSymbol,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, originalSymbol);
     }
 
     convertOrder (order) {
