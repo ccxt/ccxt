@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.49.52",
+  "version": "1.49.53",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -557,7 +557,8 @@
     "ndax.io",
     "NDAX",
     "ascendex.com",
-    "AscendEX"
+    "AscendEX",
+    "exchange.coinbase.com"
   ],
   "collective": {
     "type": "opencollective",
