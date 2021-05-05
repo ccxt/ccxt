@@ -150,6 +150,8 @@ module.exports = class coinmarketcap extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6081
             // https://github.com/ccxt/ccxt/issues/3365
             // https://github.com/ccxt/ccxt/issues/2873
+            'SBTCT': 'SiamBitcoin', // conflict with sBTC
+            'Super Bitcoin': 'Super Bitcoin', // conflict with sBTC
             'TerraCredit': 'TerraCredit', // conflict with CREDIT (PROXI)
             'Themis': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
             'UNI COIN': 'UNI COIN', // conflict with UNI (Uniswap)
@@ -206,16 +208,16 @@ module.exports = class coinmarketcap extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.milliseconds ();
         }
-        const change = this.safeFloat (ticker, 'percent_change_24h');
+        const change = this.safeNumber (ticker, 'percent_change_24h');
         let last = undefined;
         let symbol = undefined;
         let volume = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
             const priceKey = 'price_' + market['quoteId'];
-            last = this.safeFloat (ticker, priceKey);
+            last = this.safeNumber (ticker, priceKey);
             const volumeKey = '24h_volume_' + market['quoteId'];
-            volume = this.safeFloat (ticker, volumeKey);
+            volume = this.safeNumber (ticker, volumeKey);
         }
         return {
             'symbol': symbol,

@@ -16,6 +16,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class fcoin(Exchange):
@@ -233,8 +234,8 @@ class fcoin(Exchange):
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'limit_amount_min'),
-                    'max': self.safe_float(market, 'limit_amount_max'),
+                    'min': self.safe_number(market, 'limit_amount_min'),
+                    'max': self.safe_number(market, 'limit_amount_max'),
                 },
                 'price': {
                     'min': math.pow(10, -precision['price']),
@@ -324,11 +325,11 @@ class fcoin(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
-            account['total'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'frozen')
+            account['free'] = self.safe_string(balance, 'available')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'frozen')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_bids_asks(self, orders, priceKey=0, amountKey=1):
         result = []
@@ -340,8 +341,8 @@ class fcoin(Exchange):
             priceField = self.sum(index, priceKey)
             amountField = self.sum(index, amountKey)
             result.append([
-                self.safe_float(orders, priceField),
-                self.safe_float(orders, amountField),
+                self.safe_number(orders, priceField),
+                self.safe_number(orders, amountField),
             ])
         return result
 
@@ -360,7 +361,7 @@ class fcoin(Exchange):
         }
         response = await self.marketGetDepthLevelSymbol(self.extend(request, params))
         orderbook = self.safe_value(response, 'data')
-        return self.parse_order_book(orderbook, orderbook['ts'], 'bids', 'asks', 0, 1)
+        return self.parse_order_book(orderbook, symbol, orderbook['ts'], 'bids', 'asks', 0, 1)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -381,17 +382,17 @@ class fcoin(Exchange):
                 id = parts[1]
                 symbol = self.safe_symbol(id, market)
         values = ticker['ticker']
-        last = self.safe_float(values, 0)
+        last = self.safe_number(values, 0)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(values, 7),
-            'low': self.safe_float(values, 8),
-            'bid': self.safe_float(values, 2),
-            'bidVolume': self.safe_float(values, 3),
-            'ask': self.safe_float(values, 4),
-            'askVolume': self.safe_float(values, 5),
+            'high': self.safe_number(values, 7),
+            'low': self.safe_number(values, 8),
+            'bid': self.safe_number(values, 2),
+            'bidVolume': self.safe_number(values, 3),
+            'ask': self.safe_number(values, 4),
+            'askVolume': self.safe_number(values, 5),
             'vwap': None,
             'open': None,
             'close': last,
@@ -400,8 +401,8 @@ class fcoin(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(values, 9),
-            'quoteVolume': self.safe_float(values, 10),
+            'baseVolume': self.safe_number(values, 9),
+            'quoteVolume': self.safe_number(values, 10),
             'info': ticker,
         }
 
@@ -412,12 +413,11 @@ class fcoin(Exchange):
         timestamp = self.safe_integer(trade, 'ts')
         side = self.safe_string_lower(trade, 'side')
         id = self.safe_string(trade, 'id')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         return {
             'id': id,
@@ -531,31 +531,22 @@ class fcoin(Exchange):
         symbol = market['symbol']
         orderType = self.safe_string(order, 'type')
         timestamp = self.safe_integer(order, 'created_at')
-        amount = self.safe_float(order, 'amount')
-        filled = self.safe_float(order, 'filled_amount')
-        remaining = None
-        price = self.safe_float(order, 'price')
-        cost = self.safe_float(order, 'executed_value')
-        if filled is not None:
-            if amount is not None:
-                remaining = amount - filled
-            if cost is None:
-                if price is not None:
-                    cost = price * filled
-            elif (cost > 0) and (filled > 0):
-                price = cost / filled
+        amount = self.safe_number(order, 'amount')
+        filled = self.safe_number(order, 'filled_amount')
+        price = self.safe_number(order, 'price')
+        cost = self.safe_number(order, 'executed_value')
         feeCurrency = None
         feeCost = None
-        feeRebate = self.safe_float(order, 'fees_income')
+        feeRebate = self.safe_number(order, 'fees_income')
         if (feeRebate is not None) and (feeRebate > 0):
             if market is not None:
                 feeCurrency = market['quote'] if (side == 'buy') else market['base']
             feeCost = -feeRebate
         else:
-            feeCost = self.safe_float(order, 'fill_fees')
+            feeCost = self.safe_number(order, 'fill_fees')
             if market is not None:
                 feeCurrency = market['base'] if (side == 'buy') else market['quote']
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -564,11 +555,14 @@ class fcoin(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
-            'remaining': remaining,
+            'remaining': None,
             'filled': filled,
             'average': None,
             'status': status,
@@ -577,7 +571,7 @@ class fcoin(Exchange):
                 'currency': feeCurrency,
             },
             'trades': None,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -612,11 +606,11 @@ class fcoin(Exchange):
     def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_timestamp(ohlcv, 'id'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'base_vol'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'base_vol'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

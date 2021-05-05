@@ -27,6 +27,7 @@ const printOrderBookOneLiner = (orderbook, method, symbol) => {
 module.exports = (exchange, orderbook, method, symbol) => {
 
     const format = {
+        // 'symbol': 'ETH/BTC', // reserved
         'bids': [],
         'asks': [],
         'timestamp': 1234567890,
@@ -35,7 +36,10 @@ module.exports = (exchange, orderbook, method, symbol) => {
         // 'info': {},
     }
 
-    expect (orderbook).to.have.all.keys (format)
+    const keys = Object.keys (format)
+    for (let i = 0; i < keys.length; i++) {
+        assert (keys[i] in orderbook)
+    }
 
     const bids = orderbook.bids
     const asks = orderbook.asks

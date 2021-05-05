@@ -147,19 +147,22 @@ module.exports = class xbtce extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const balances = await this.privateGetAsset (params);
-        const result = { 'info': balances };
+        const result = {
+            'info': balances,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'Currency');
             const code = this.safeCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeFloat (balance, 'FreeAmount'),
-                'used': this.safeFloat (balance, 'LockedAmount'),
-                'total': this.safeFloat (balance, 'Amount'),
-            };
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'FreeAmount');
+            account['used'] = this.safeString (balance, 'LockedAmount');
+            account['total'] = this.safeString (balance, 'Amount');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -171,7 +174,7 @@ module.exports = class xbtce extends Exchange {
         const response = await this.privateGetLevel2Filter (this.extend (request, params));
         const orderbook = response[0];
         const timestamp = this.safeInteger (orderbook, 'Timestamp');
-        return this.parseOrderBook (orderbook, timestamp, 'Bids', 'Asks', 'Price', 'Volume');
+        return this.parseOrderBook (orderbook, symbol, timestamp, 'Bids', 'Asks', 'Price', 'Volume');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -271,11 +274,11 @@ module.exports = class xbtce extends Exchange {
     parseOHLCV (ohlcv, market = undefined) {
         return [
             this.safeInteger (ohlcv, 'Timestamp'),
-            this.safeFloat (ohlcv, 'Open'),
-            this.safeFloat (ohlcv, 'High'),
-            this.safeFloat (ohlcv, 'Low'),
-            this.safeFloat (ohlcv, 'Close'),
-            this.safeFloat (ohlcv, 'Volume'),
+            this.safeNumber (ohlcv, 'Open'),
+            this.safeNumber (ohlcv, 'High'),
+            this.safeNumber (ohlcv, 'Low'),
+            this.safeNumber (ohlcv, 'Close'),
+            this.safeNumber (ohlcv, 'Volume'),
         ];
     }
 

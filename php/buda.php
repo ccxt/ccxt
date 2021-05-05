@@ -180,23 +180,26 @@ class buda extends Exchange {
             $baseInfo = $this->fetch_currency_info($baseId, $currencies);
             $quoteInfo = $this->fetch_currency_info($quoteId, $currencies);
             $symbol = $base . '/' . $quote;
+            $pricePrecisionString = $this->safe_string($quoteInfo, 'input_decimals');
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
-                'amount' => $baseInfo['input_decimals'],
-                'price' => $quoteInfo['input_decimals'],
+                'amount' => $this->safe_integer($baseInfo, 'input_decimals'),
+                'price' => intval($pricePrecisionString),
             );
+            $minimumOrderAmount = $this->safe_value($market, 'minimum_order_amount', array());
             $limits = array(
                 'amount' => array(
-                    'min' => floatval($market['minimum_order_amount'][0]),
+                    'min' => $this->safe_number($minimumOrderAmount, 0),
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision['price']),
+                    'min' => $priceLimit,
                     'max' => null,
                 ),
-            );
-            $limits['cost'] = array(
-                'min' => $limits['amount']['min'] * $limits['price']['min'],
-                'max' => null,
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
             );
             $result[] = array(
                 'id' => $id,
@@ -225,7 +228,7 @@ class buda extends Exchange {
             }
             $id = $this->safe_string($currency, 'id');
             $code = $this->safe_currency_code($id);
-            $precision = $this->safe_float($currency, 'input_decimals');
+            $precision = $this->safe_number($currency, 'input_decimals');
             $minimum = pow(10, -$precision);
             $result[$code] = array(
                 'id' => $id,
@@ -238,14 +241,6 @@ class buda extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => $minimum,
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => $minimum,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
                         'max' => null,
                     ),
                     'deposit' => array(
@@ -386,24 +381,25 @@ class buda extends Exchange {
         $timestamp = null;
         $side = null;
         $type = null;
-        $price = null;
-        $amount = null;
+        $priceString = null;
+        $amountString = null;
         $id = null;
         $order = null;
         $fee = null;
         $symbol = null;
-        $cost = null;
         if ($market) {
             $symbol = $market['symbol'];
         }
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
-            $timestamp = intval($trade[0]);
-            $price = floatval($trade[1]);
-            $amount = floatval($trade[2]);
-            $cost = $price * $amount;
-            $side = $trade[3];
-            $id = (string) $trade[4];
+            $timestamp = $this->safe_integer($trade, 0);
+            $priceString = $this->safe_string($trade, 1);
+            $amountString = $this->safe_string($trade, 2);
+            $side = $this->safe_string($trade, 3);
+            $id = $this->safe_string($trade, 4);
         }
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         return array(
             'id' => $id,
             'order' => $order,
@@ -429,7 +425,7 @@ class buda extends Exchange {
         );
         $response = $this->publicGetMarketsMarketOrderBook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'order_book');
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -458,11 +454,11 @@ class buda extends Exchange {
             $currencyId = $this->safe_string($balance, 'id');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = floatval($balance['available_amount'][0]);
-            $account['total'] = floatval($balance['amount'][0]);
+            $account['free'] = $this->safe_string($balance['available_amount'], 0);
+            $account['total'] = $this->safe_string($balance['amount'], 0);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -542,29 +538,61 @@ class buda extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         'id' => 63679183,
+        //         'uuid' => 'f9697bee-627e-4175-983f-0d5a41963fec',
+        //         'market_id' => 'ETH-CLP',
+        //         'account_id' => 51590,
+        //         'type' => 'Ask',
+        //         'state' => 'received',
+        //         'created_at' => '2021-01-04T08:29:52.730Z',
+        //         'fee_currency' => 'CLP',
+        //         'price_type' => 'limit',
+        //         'source' => None,
+        //         'limit' => ['741000.0', 'CLP'],
+        //         'amount' => ['0.001', 'ETH'],
+        //         'original_amount' => ['0.001', 'ETH'],
+        //         'traded_amount' => ['0.0', 'ETH'],
+        //         'total_exchanged' => ['0.0', 'CLP'],
+        //         'paid_fee' => ['0.0', 'CLP']
+        //     }
+        //
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $marketId = $this->safe_string($order, 'market_id');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $type = $this->safe_string($order, 'price_type');
         $side = $this->safe_string_lower($order, 'type');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
-        $amount = floatval($order['original_amount'][0]);
-        $remaining = floatval($order['amount'][0]);
-        $filled = floatval($order['traded_amount'][0]);
-        $cost = floatval($order['total_exchanged'][0]);
-        $price = $this->safe_float($order, 'limit');
-        if ($price !== null) {
-            $price = floatval($price[0]);
+        $originalAmount = $this->safe_value($order, 'original_amount', array());
+        $amount = $this->safe_number($originalAmount, 0);
+        $remainingAmount = $this->safe_value($order, 'amount', array());
+        $remaining = $this->safe_number($remainingAmount, 0);
+        $tradedAmount = $this->safe_value($order, 'traded_amount', array());
+        $filled = $this->safe_number($tradedAmount, 0);
+        $totalExchanged = $this->safe_value($order, 'totalExchanged', array());
+        $cost = $this->safe_number($totalExchanged, 0);
+        $limitPrice = $this->safe_value($order, 'limit', array());
+        $price = $this->safe_number($limitPrice, 0);
+        if ($price === null) {
+            if ($limitPrice !== null) {
+                $price = $limitPrice;
+            }
         }
-        if ($cost > 0 && $filled > 0) {
-            $price = $this->price_to_precision($symbol, $cost / $filled);
+        $paidFee = $this->safe_value($order, 'paid_fee', array());
+        $feeCost = $this->safe_number($paidFee, 0);
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($paidFee, 1);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $fee = array(
+                'cost' => $feeCost,
+                'code' => $feeCurrencyCode,
+            );
         }
-        $fee = array(
-            'cost' => floatval($order['paid_fee'][0]),
-            'currency' => $order['paid_fee'][1],
-        );
-        return array(
+        return $this->safe_order(array(
+            'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -573,17 +601,19 @@ class buda extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
+            'average' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'trades' => null,
             'fee' => $fee,
-            'info' => $order,
-            'average' => null,
-        );
+        ));
     }
 
     public function is_fiat($code) {

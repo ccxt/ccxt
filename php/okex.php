@@ -114,6 +114,7 @@ class okex extends Exchange {
                         'accounts/{currency}',
                         'accounts/{currency}/ledger',
                         'orders',
+                        'amend_order/{instrument_id}',
                         'orders_pending',
                         'orders/{order_id}',
                         'orders/{client_oid}',
@@ -204,6 +205,7 @@ class okex extends Exchange {
                     'post' => array(
                         'accounts/{underlying}/leverage',
                         'order',
+                        'amend_order/{instrument_id}',
                         'orders',
                         'cancel_order/{instrument_id}/{order_id}',
                         'cancel_order/{instrument_id}/{client_oid}',
@@ -250,10 +252,15 @@ class okex extends Exchange {
                     'post' => array(
                         'accounts/{instrument_id}/leverage',
                         'order',
+                        'amend_order/{instrument_id}',
                         'orders',
                         'cancel_order/{instrument_id}/{order_id}',
                         'cancel_order/{instrument_id}/{client_oid}',
                         'cancel_batch_orders/{instrument_id}',
+                        'order_algo',
+                        'cancel_algos',
+                        'close_position',
+                        'cancel_all',
                         'order_algo',
                         'cancel_algos',
                     ),
@@ -261,6 +268,7 @@ class okex extends Exchange {
                 'option' => array(
                     'get' => array(
                         'accounts',
+                        'position',
                         '{underlying}/position',
                         'accounts/{underlying}',
                         'orders/{underlying}',
@@ -330,7 +338,7 @@ class okex extends Exchange {
                     '1' => '\\ccxt\\ExchangeError', // array( "code" => 1, "message" => "System error" )
                     // undocumented
                     'failure to get a peer from the ring-balancer' => '\\ccxt\\ExchangeNotAvailable', // array( "message" => "failure to get a peer from the ring-balancer" )
-                    'Server is busy, please try again' => '\\ccxt\\ExchangeNotAvailable', // array( "message" => "Server is busy, please try again." )
+                    'Server is busy, please try again.' => '\\ccxt\\ExchangeNotAvailable', // array( "message" => "Server is busy, please try again." )
                     'An unexpected error occurred' => '\\ccxt\\ExchangeError', // array( "message" => "An unexpected error occurred" )
                     'System error' => '\\ccxt\\ExchangeError', // array("error_message":"System error","message":"System error")
                     '4010' => '\\ccxt\\PermissionDenied', // array( "code" => 4010, "message" => "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " )
@@ -531,7 +539,7 @@ class okex extends Exchange {
                     '34021' => '\\ccxt\\InvalidAddress', // array( "code" => 34021, "message" => "Not verified address" )
                     '34022' => '\\ccxt\\ExchangeError', // array( "code" => 34022, "message" => "Withdrawals are not available for sub accounts" )
                     '34023' => '\\ccxt\\PermissionDenied', // array( "code" => 34023, "message" => "Please enable futures trading before transferring your funds" )
-                    '34026' => '\\ccxt\\ExchangeError', // transfer too frequently(transfer too frequently)
+                    '34026' => '\\ccxt\\RateLimitExceeded', // transfer too frequently(transfer too frequently)
                     '34036' => '\\ccxt\\ExchangeError', // Parameter is incorrect, please refer to API documentation
                     '34037' => '\\ccxt\\ExchangeError', // Get the sub-account balance interface, account type is not supported
                     '34038' => '\\ccxt\\ExchangeError', // Since your C2C transaction is unusual, you are restricted from fund transfer. Please contact our customer support to cancel the restriction
@@ -560,7 +568,7 @@ class okex extends Exchange {
                     '35031' => '\\ccxt\\InvalidOrder', // array( "code" => 35031, "message" => "Cancel order size too large" )
                     '35032' => '\\ccxt\\ExchangeError', // array( "code" => 35032, "message" => "Invalid user status" )
                     '35037' => '\\ccxt\\ExchangeError', // No last traded price in cache
-                    '35039' => '\\ccxt\\ExchangeError', // array( "code" => 35039, "message" => "Open order quantity exceeds limit" )
+                    '35039' => '\\ccxt\\InsufficientFunds', // array( "code" => 35039, "message" => "Open order quantity exceeds limit" )
                     '35040' => '\\ccxt\\InvalidOrder', // array("error_message":"Invalid order type","result":"true","error_code":"35040","order_id":"-1")
                     '35044' => '\\ccxt\\ExchangeError', // array( "code" => 35044, "message" => "Invalid order status" )
                     '35046' => '\\ccxt\\InsufficientFunds', // array( "code" => 35046, "message" => "Negative account balance" )
@@ -613,6 +621,7 @@ class okex extends Exchange {
                     '35097' => '\\ccxt\\ExchangeError', // Order status and order ID cannot exist at the same time
                     '35098' => '\\ccxt\\ExchangeError', // An order status or order ID must exist
                     '35099' => '\\ccxt\\ExchangeError', // Algo order ID error
+                    '35102' => '\\ccxt\\RateLimitExceeded', // array("error_message":"The operation that close all at market price is too frequent","result":"true","error_code":"35102","order_id":"-1")
                     // option
                     '36001' => '\\ccxt\\BadRequest', // Invalid underlying index.
                     '36002' => '\\ccxt\\BadRequest', // Instrument does not exist.
@@ -682,6 +691,7 @@ class okex extends Exchange {
                 'HOT' => 'Hydro Protocol',
                 'HSR' => 'HC',
                 'MAG' => 'Maggie',
+                'SBTC' => 'Super Bitcoin',
                 'YOYO' => 'YOYOW',
                 'WIN' => 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             ),
@@ -794,7 +804,7 @@ class okex extends Exchange {
         $option = false;
         $baseId = $this->safe_string($market, 'base_currency');
         $quoteId = $this->safe_string($market, 'quote_currency');
-        $contractVal = $this->safe_float($market, 'contract_val');
+        $contractVal = $this->safe_number($market, 'contract_val');
         if ($contractVal !== null) {
             if (is_array($market) && array_key_exists('option_type', $market)) {
                 $marketType = 'option';
@@ -820,12 +830,12 @@ class okex extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $spot ? ($base . '/' . $quote) : $id;
-        $lotSize = $this->safe_float_2($market, 'lot_size', 'trade_increment');
+        $lotSize = $this->safe_number_2($market, 'lot_size', 'trade_increment');
         $precision = array(
-            'amount' => $this->safe_float($market, 'size_increment', $lotSize),
-            'price' => $this->safe_float($market, 'tick_size'),
+            'amount' => $this->safe_number($market, 'size_increment', $lotSize),
+            'price' => $this->safe_number($market, 'tick_size'),
         );
-        $minAmount = $this->safe_float_2($market, 'min_size', 'base_min_size');
+        $minAmount = $this->safe_number_2($market, 'min_size', 'base_min_size');
         $active = true;
         $fees = $this->safe_value_2($this->fees, $marketType, 'trading', array());
         return array_merge($fees, array(
@@ -981,7 +991,7 @@ class okex extends Exchange {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'currency');
             $code = $this->safe_currency_code($id);
-            $precision = 8; // default $precision, todo => fix "magic constants"
+            $precision = 0.00000001; // default $precision, todo => fix "magic constants"
             $name = $this->safe_string($currency, 'name');
             $canDeposit = $this->safe_integer($currency, 'can_deposit');
             $canWithdraw = $this->safe_integer($currency, 'can_withdraw');
@@ -997,10 +1007,8 @@ class okex extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'min_withdrawal'),
+                        'min' => $this->safe_number($currency, 'min_withdrawal'),
                         'max' => null,
                     ),
                 ),
@@ -1022,6 +1030,8 @@ class okex extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         //
+        // spot
+        //
         //     {      asks => [ ["0.02685268", "0.242571", "1"],
         //                    ["0.02685493", "0.164085", "1"],
         //                    ...
@@ -1034,8 +1044,20 @@ class okex extends Exchange {
         //                    ["0.02634962", "0.264838", "2"]    ],
         //       $timestamp =>   "2018-12-17T20:24:16.159Z"            }
         //
-        $timestamp = $this->parse8601($this->safe_string($response, 'timestamp'));
-        return $this->parse_order_book($response, $timestamp);
+        // swap
+        //
+        //     {
+        //         "asks":[
+        //             ["916.21","94","0","1"]
+        //         ],
+        //         "bids":[
+        //             ["916.1","15","0","1"]
+        //         ],
+        //         "time":"2021-04-16T02:04:48.282Z"
+        //     }
+        //
+        $timestamp = $this->parse8601($this->safe_string_2($response, 'timestamp', 'time'));
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1075,18 +1097,18 @@ class okex extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last');
-        $open = $this->safe_float($ticker, 'open_24h');
+        $last = $this->safe_number($ticker, 'last');
+        $open = $this->safe_number($ticker, 'open_24h');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high_24h'),
-            'low' => $this->safe_float($ticker, 'low_24h'),
-            'bid' => $this->safe_float($ticker, 'best_bid'),
-            'bidVolume' => $this->safe_float($ticker, 'best_bid_size'),
-            'ask' => $this->safe_float($ticker, 'best_ask'),
-            'askVolume' => $this->safe_float($ticker, 'best_ask_size'),
+            'high' => $this->safe_number($ticker, 'high_24h'),
+            'low' => $this->safe_number($ticker, 'low_24h'),
+            'bid' => $this->safe_number($ticker, 'best_bid'),
+            'bidVolume' => $this->safe_number($ticker, 'best_bid_size'),
+            'ask' => $this->safe_number($ticker, 'best_ask'),
+            'askVolume' => $this->safe_number($ticker, 'best_ask_size'),
             'vwap' => null,
             'open' => $open,
             'close' => $last,
@@ -1095,8 +1117,8 @@ class okex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'base_volume_24h'),
-            'quoteVolume' => $this->safe_float($ticker, 'quote_volume_24h'),
+            'baseVolume' => $this->safe_number($ticker, 'base_volume_24h'),
+            'quoteVolume' => $this->safe_number($ticker, 'quote_volume_24h'),
             'info' => $ticker,
         );
     }
@@ -1233,9 +1255,12 @@ class okex extends Exchange {
             $quote = $market['quote'];
         }
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'timestamp', 'created_at'));
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float_2($trade, 'size', 'qty');
-        $amount = $this->safe_float($trade, 'order_qty', $amount);
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'size', 'qty');
+        $amountString = $this->safe_string($trade, 'order_qty', $amountString);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $takerOrMaker = $this->safe_string_2($trade, 'exec_type', 'liquidity');
         if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
@@ -1243,13 +1268,7 @@ class okex extends Exchange {
             $takerOrMaker = 'taker';
         }
         $side = $this->safe_string($trade, 'side');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
-        }
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrency = ($side === 'buy') ? $base : $quote;
@@ -1358,22 +1377,22 @@ class okex extends Exchange {
             }
             return array(
                 $timestamp, // $timestamp
-                $this->safe_float($ohlcv, 1),            // Open
-                $this->safe_float($ohlcv, 2),            // High
-                $this->safe_float($ohlcv, 3),            // Low
-                $this->safe_float($ohlcv, 4),            // Close
-                // $this->safe_float($ohlcv, 5),         // Quote Volume
-                // $this->safe_float($ohlcv, 6),         // Base Volume
-                $this->safe_float($ohlcv, $volumeIndex),  // Volume, okex will return base volume in the 7th element for future markets
+                $this->safe_number($ohlcv, 1),            // Open
+                $this->safe_number($ohlcv, 2),            // High
+                $this->safe_number($ohlcv, 3),            // Low
+                $this->safe_number($ohlcv, 4),            // Close
+                // $this->safe_number($ohlcv, 5),         // Quote Volume
+                // $this->safe_number($ohlcv, 6),         // Base Volume
+                $this->safe_number($ohlcv, $volumeIndex),  // Volume, okex will return base volume in the 7th element for future markets
             );
         } else {
             return array(
                 $this->parse8601($this->safe_string($ohlcv, 'time')),
-                $this->safe_float($ohlcv, 'open'),    // Open
-                $this->safe_float($ohlcv, 'high'),    // High
-                $this->safe_float($ohlcv, 'low'),     // Low
-                $this->safe_float($ohlcv, 'close'),   // Close
-                $this->safe_float($ohlcv, 'volume'),  // Base Volume
+                $this->safe_number($ohlcv, 'open'),    // Open
+                $this->safe_number($ohlcv, 'high'),    // High
+                $this->safe_number($ohlcv, 'low'),     // Low
+                $this->safe_number($ohlcv, 'close'),   // Close
+                $this->safe_number($ohlcv, 'volume'),  // Base Volume
             );
         }
     }
@@ -1513,15 +1532,19 @@ class okex extends Exchange {
         //         }
         //     )
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_float($balance, 'balance');
-            $account['used'] = $this->safe_float($balance, 'hold');
-            $account['free'] = $this->safe_float($balance, 'available');
+            $account['total'] = $this->safe_number($balance, 'balance');
+            $account['used'] = $this->safe_number($balance, 'hold');
+            $account['free'] = $this->safe_number($balance, 'available');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -1558,7 +1581,11 @@ class okex extends Exchange {
         //         ),
         //     )
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $marketId = $this->safe_string($balance, 'instrument_id');
@@ -1591,9 +1618,9 @@ class okex extends Exchange {
                     $currencyId = $parts[1];
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
-                    $account['total'] = $this->safe_float($marketBalance, 'balance');
-                    $account['used'] = $this->safe_float($marketBalance, 'hold');
-                    $account['free'] = $this->safe_float($marketBalance, 'available');
+                    $account['total'] = $this->safe_number($marketBalance, 'balance');
+                    $account['used'] = $this->safe_number($marketBalance, 'hold');
+                    $account['free'] = $this->safe_number($marketBalance, 'available');
                     $accounts[$code] = $account;
                 } else {
                     throw new NotSupported($this->id . ' margin $balance $response format has changed!');
@@ -1638,7 +1665,11 @@ class okex extends Exchange {
         //     }
         //
         // their root field name is "$info", so our $info will contain their $info
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $info = $this->safe_value($response, 'info', array());
         $ids = is_array($info) ? array_keys($info) : array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -1646,29 +1677,29 @@ class okex extends Exchange {
             $code = $this->safe_currency_code($id);
             $balance = $this->safe_value($info, $id, array());
             $account = $this->account();
-            $totalAvailBalance = $this->safe_float($balance, 'total_avail_balance');
+            $totalAvailBalance = $this->safe_number($balance, 'total_avail_balance');
             if ($this->safe_string($balance, 'margin_mode') === 'fixed') {
                 $contracts = $this->safe_value($balance, 'contracts', array());
                 $free = $totalAvailBalance;
                 for ($i = 0; $i < count($contracts); $i++) {
                     $contract = $contracts[$i];
-                    $fixedBalance = $this->safe_float($contract, 'fixed_balance');
-                    $realizedPnl = $this->safe_float($contract, 'realized_pnl');
-                    $marginFrozen = $this->safe_float($contract, 'margin_frozen');
-                    $marginForUnfilled = $this->safe_float($contract, 'margin_for_unfilled');
+                    $fixedBalance = $this->safe_number($contract, 'fixed_balance');
+                    $realizedPnl = $this->safe_number($contract, 'realized_pnl');
+                    $marginFrozen = $this->safe_number($contract, 'margin_frozen');
+                    $marginForUnfilled = $this->safe_number($contract, 'margin_for_unfilled');
                     $margin = $this->sum($fixedBalance, $realizedPnl) - $marginFrozen - $marginForUnfilled;
                     $free = $this->sum($free, $margin);
                 }
                 $account['free'] = $free;
             } else {
-                $realizedPnl = $this->safe_float($balance, 'realized_pnl');
-                $unrealizedPnl = $this->safe_float($balance, 'unrealized_pnl');
-                $marginFrozen = $this->safe_float($balance, 'margin_frozen');
-                $marginForUnfilled = $this->safe_float($balance, 'margin_for_unfilled');
+                $realizedPnl = $this->safe_number($balance, 'realized_pnl');
+                $unrealizedPnl = $this->safe_number($balance, 'unrealized_pnl');
+                $marginFrozen = $this->safe_number($balance, 'margin_frozen');
+                $marginForUnfilled = $this->safe_number($balance, 'margin_for_unfilled');
                 $account['free'] = $this->sum($totalAvailBalance, $realizedPnl, $unrealizedPnl) - $marginFrozen - $marginForUnfilled;
             }
             // it may be incorrect to use total, $free and used for swap accounts
-            $account['total'] = $this->safe_float($balance, 'equity');
+            $account['total'] = $this->safe_number($balance, 'equity');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -1687,7 +1718,7 @@ class okex extends Exchange {
         //                 "margin_mode":"crossed",
         //                 "margin_ratio":"1.0913",
         //                 "realized_pnl":"-0.0006",
-        //                 "timestamp":"2019-03-25T03:46:10.336Z",
+        //                 "$timestamp":"2019-03-25T03:46:10.336Z",
         //                 "total_avail_balance":"3.0000",
         //                 "unrealized_pnl":"0.0145"
         //             }
@@ -1696,6 +1727,7 @@ class okex extends Exchange {
         //
         // their root field name is "$info", so our $info will contain their $info
         $result = array( 'info' => $response );
+        $timestamp = null;
         $info = $this->safe_value($response, 'info', array());
         for ($i = 0; $i < count($info); $i++) {
             $balance = $info[$i];
@@ -1704,12 +1736,16 @@ class okex extends Exchange {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $symbol = $this->markets_by_id[$marketId]['symbol'];
             }
+            $balanceTimestamp = $this->parse8601($this->safe_string($balance, 'timestamp'));
+            $timestamp = ($timestamp === null) ? $balanceTimestamp : max ($timestamp, $balanceTimestamp);
             $account = $this->account();
             // it may be incorrect to use total, free and used for swap accounts
-            $account['total'] = $this->safe_float($balance, 'equity');
-            $account['free'] = $this->safe_float($balance, 'total_avail_balance');
+            $account['total'] = $this->safe_number($balance, 'equity');
+            $account['free'] = $this->safe_number($balance, 'total_avail_balance');
             $result[$symbol] = $account;
         }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
         return $this->parse_balance($result);
     }
 
@@ -1717,7 +1753,7 @@ class okex extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . " fetchBalance requires a $type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap')");
+            throw new ArgumentsRequired($this->id . " fetchBalance() requires a $type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap')");
         }
         $this->load_markets();
         $suffix = ($type === 'account') ? 'Wallet' : 'Accounts';
@@ -1911,7 +1947,7 @@ class okex extends Exchange {
             } else if ($type === 'market') {
                 // for $market buy it requires the $amount of quote currency to spend
                 if ($side === 'buy') {
-                    $notional = $this->safe_float($params, 'notional');
+                    $notional = $this->safe_number($params, 'notional');
                     $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
                     if ($createMarketBuyOrderRequiresPrice) {
                         if ($price !== null) {
@@ -1963,7 +1999,7 @@ class okex extends Exchange {
             $type = $this->safe_string($params, 'type', $defaultType);
         }
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . " cancelOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired($this->id . " cancelOrder() requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
         }
         $method = $type . 'PostCancelOrder';
         $request = array(
@@ -2121,8 +2157,8 @@ class okex extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $amount = $this->safe_float($order, 'size');
-        $filled = $this->safe_float_2($order, 'filled_size', 'filled_qty');
+        $amount = $this->safe_number($order, 'size');
+        $filled = $this->safe_number_2($order, 'filled_size', 'filled_qty');
         $remaining = null;
         if ($amount !== null) {
             if ($filled !== null) {
@@ -2133,9 +2169,9 @@ class okex extends Exchange {
         if ($type === 'market') {
             $remaining = 0;
         }
-        $cost = $this->safe_float_2($order, 'filled_notional', 'funds');
-        $price = $this->safe_float($order, 'price');
-        $average = $this->safe_float($order, 'price_avg');
+        $cost = $this->safe_number_2($order, 'filled_notional', 'funds');
+        $price = $this->safe_number($order, 'price');
+        $average = $this->safe_number($order, 'price_avg');
         if ($cost === null) {
             if ($filled !== null && $average !== null) {
                 $cost = $average * $filled;
@@ -2146,7 +2182,7 @@ class okex extends Exchange {
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
-        $feeCost = $this->safe_float($order, 'fee');
+        $feeCost = $this->safe_number($order, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrency = null;
@@ -2159,6 +2195,7 @@ class okex extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
+        $stopPrice = $this->safe_number($order, 'trigger_price');
         return array(
             'info' => $order,
             'id' => $id,
@@ -2168,8 +2205,11 @@ class okex extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
@@ -2183,14 +2223,14 @@ class okex extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', $market['type']);
         $type = $this->safe_string($params, 'type', $defaultType);
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . " fetchOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired($this->id . " fetchOrder() requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
         }
         $instrumentId = ($market['futures'] || $market['swap']) ? 'InstrumentId' : '';
         $method = $type . 'GetOrders' . $instrumentId;
@@ -2258,7 +2298,7 @@ class okex extends Exchange {
 
     public function fetch_orders_by_state($state, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersByState requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrdersByState() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2270,7 +2310,7 @@ class okex extends Exchange {
             $type = $this->safe_string($params, 'type', $defaultType);
         }
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . " fetchOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired($this->id . " fetchOrdersByState() requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
         }
         $request = array(
             'instrument_id' => $market['id'],
@@ -2399,16 +2439,6 @@ class okex extends Exchange {
         return $this->fetch_orders_by_state('7', $symbol, $since, $limit, $params);
     }
 
-    public function parse_deposit_addresses($addresses) {
-        $result = array();
-        for ($i = 0; $i < count($addresses); $i++) {
-            $address = $this->parse_deposit_address($addresses[$i]);
-            $code = $address['currency'];
-            $result[$code] = $address;
-        }
-        return $result;
-    }
-
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
@@ -2436,7 +2466,8 @@ class okex extends Exchange {
 
     public function fetch_deposit_address($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency($code);
+        $parts = explode('-', $code);
+        $currency = $this->currency($parts[0]);
         $request = array(
             'currency' => $currency['id'],
         );
@@ -2449,10 +2480,10 @@ class okex extends Exchange {
         //         }
         //     )
         //
-        $addresses = $this->parse_deposit_addresses($response);
-        $address = $this->safe_value($addresses, $code);
+        $addressesByCode = $this->parse_deposit_addresses($response);
+        $address = $this->safe_value($addressesByCode, $code);
         if ($address === null) {
-            throw new InvalidAddress($this->id . ' fetchDepositAddress cannot return nonexistent $addresses, you should create withdrawal $addresses with the exchange website first');
+            throw new InvalidAddress($this->id . ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
         }
         return $address;
     }
@@ -2600,6 +2631,7 @@ class okex extends Exchange {
         //         "$currency" => "XMR",
         //         "from" => "",
         //         "to" => "48PjH3ksv1fiXniKvKvyH5UtFs5WhfS2Vf7U3TwzdRJtCc7HJWvCQe56dRahyhQyTAViXZ8Nzk4gQg6o4BJBMUoxNy8y8g7",
+        //         "tag" => "1234567",
         //         "deposit_id" => 11571659, <-- we can use this
         //         "$timestamp" => "2019-10-01T14:54:19.000Z",
         //         "$status" => "2"
@@ -2611,6 +2643,7 @@ class okex extends Exchange {
         $withdrawalId = $this->safe_string($transaction, 'withdrawal_id');
         $addressFrom = $this->safe_string($transaction, 'from');
         $addressTo = $this->safe_string($transaction, 'to');
+        $tagTo = $this->safe_string($transaction, 'tag');
         if ($withdrawalId !== null) {
             $type = 'withdrawal';
             $id = $withdrawalId;
@@ -2623,7 +2656,7 @@ class okex extends Exchange {
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $txid = $this->safe_string($transaction, 'txid');
         $timestamp = $this->parse8601($this->safe_string($transaction, 'timestamp'));
@@ -2651,8 +2684,8 @@ class okex extends Exchange {
             'addressTo' => $addressTo,
             'address' => $address,
             'tagFrom' => null,
-            'tagTo' => null,
-            'tag' => null,
+            'tagTo' => $tagTo,
+            'tag' => $tagTo,
             'status' => $status,
             'type' => $type,
             'updated' => null,
@@ -2668,49 +2701,74 @@ class okex extends Exchange {
 
     public function parse_my_trade($pair, $market = null) {
         // check that trading symbols match in both entries
-        $first = $pair[0];
-        $second = $pair[1];
-        $firstMarketId = $this->safe_string($first, 'instrument_id');
-        $secondMarketId = $this->safe_string($second, 'instrument_id');
+        $userTrade = $this->safe_value($pair, 1);
+        $otherTrade = $this->safe_value($pair, 0);
+        $firstMarketId = $this->safe_string($otherTrade, 'instrument_id');
+        $secondMarketId = $this->safe_string($userTrade, 'instrument_id');
         if ($firstMarketId !== $secondMarketId) {
             throw new NotSupported($this->id . ' parseMyTrade() received unrecognized response format, differing instrument_ids in one fill, the exchange API might have changed, paste your verbose output => https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help');
         }
         $marketId = $firstMarketId;
-        // determine the base and quote
-        $quoteId = null;
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $quoteId = $market['quoteId'];
-            $symbol = $market['symbol'];
-        } else {
-            $parts = explode('-', $marketId);
-            $quoteId = $this->safe_string($parts, 1);
-            $symbol = $marketId;
-        }
-        $id = $this->safe_string($first, 'trade_id');
-        $price = $this->safe_float($first, 'price');
-        // determine buy/sell $side and amounts
-        // get the $side from either the $first $trade or the $second $trade
-        $feeCost = $this->safe_float($first, 'fee');
-        $index = ($feeCost !== 0) ? 0 : 1;
-        $userTrade = $this->safe_value($pair, $index);
-        $otherTrade = $this->safe_value($pair, 1 - $index);
-        $receivedCurrencyId = $this->safe_string($userTrade, 'currency');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $quoteId = $market['quoteId'];
         $side = null;
         $amount = null;
         $cost = null;
+        $receivedCurrencyId = $this->safe_string($userTrade, 'currency');
+        $feeCurrencyId = null;
         if ($receivedCurrencyId === $quoteId) {
-            $side = 'sell';
-            $amount = $this->safe_float($otherTrade, 'size');
-            $cost = $this->safe_float($userTrade, 'size');
+            $side = $this->safe_string($otherTrade, 'side');
+            $amount = $this->safe_number($otherTrade, 'size');
+            $cost = $this->safe_number($userTrade, 'size');
+            $feeCurrencyId = $this->safe_string($otherTrade, 'currency');
         } else {
-            $side = 'buy';
-            $amount = $this->safe_float($userTrade, 'size');
-            $cost = $this->safe_float($otherTrade, 'size');
+            $side = $this->safe_string($userTrade, 'side');
+            $amount = $this->safe_number($userTrade, 'size');
+            $cost = $this->safe_number($otherTrade, 'size');
+            $feeCurrencyId = $this->safe_string($userTrade, 'currency');
         }
-        $feeCost = ($feeCost !== 0) ? $feeCost : $this->safe_float($second, 'fee');
-        $trade = $this->safe_value($pair, $index);
+        $id = $this->safe_string($userTrade, 'trade_id');
+        $price = $this->safe_number($userTrade, 'price');
+        $feeCostFirst = $this->safe_number($otherTrade, 'fee');
+        $feeCostSecond = $this->safe_number($userTrade, 'fee');
+        $feeCurrencyCodeFirst = $this->safe_currency_code($this->safe_string($otherTrade, 'currency'));
+        $feeCurrencyCodeSecond = $this->safe_currency_code($this->safe_string($userTrade, 'currency'));
+        $fee = null;
+        $fees = null;
+        // $fee is either a positive number (invitation rebate)
+        // or a negative number (transaction $fee deduction)
+        // therefore we need to invert the $fee
+        // more about it https://github.com/ccxt/ccxt/issues/5909
+        if (($feeCostFirst !== null) && ($feeCostFirst !== 0)) {
+            if (($feeCostSecond !== null) && ($feeCostSecond !== 0)) {
+                $fees = array(
+                    array(
+                        'cost' => -$feeCostFirst,
+                        'currency' => $feeCurrencyCodeFirst,
+                    ),
+                    array(
+                        'cost' => -$feeCostSecond,
+                        'currency' => $feeCurrencyCodeSecond,
+                    ),
+                );
+            } else {
+                $fee = array(
+                    'cost' => -$feeCostFirst,
+                    'currency' => $feeCurrencyCodeFirst,
+                );
+            }
+        } else if (($feeCostSecond !== null) && ($feeCostSecond !== 0)) {
+            $fee = array(
+                'cost' => -$feeCostSecond,
+                'currency' => $feeCurrencyCodeSecond,
+            );
+        } else {
+            $fee = array(
+                'cost' => 0,
+                'currency' => $this->safe_currency_code($feeCurrencyId),
+            );
+        }
         //
         // simplified structures to show the underlying semantics
         //
@@ -2744,28 +2802,15 @@ class okex extends Exchange {
         //         "size":"31.03998952", // ←-- $cost
         //     }
         //
-        $timestamp = $this->parse8601($this->safe_string_2($trade, 'timestamp', 'created_at'));
-        $takerOrMaker = $this->safe_string_2($trade, 'exec_type', 'liquidity');
+        $timestamp = $this->parse8601($this->safe_string_2($userTrade, 'timestamp', 'created_at'));
+        $takerOrMaker = $this->safe_string_2($userTrade, 'exec_type', 'liquidity');
         if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
         } else if ($takerOrMaker === 'T') {
             $takerOrMaker = 'taker';
         }
-        $fee = null;
-        if ($feeCost !== null) {
-            $feeCurrencyId = $this->safe_string($userTrade, 'currency');
-            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $fee = array(
-                // $fee is either a positive number (invitation rebate)
-                // or a negative number (transaction $fee deduction)
-                // therefore we need to invert the $fee
-                // more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost' => -$feeCost,
-                'currency' => $feeCurrencyCode,
-            );
-        }
-        $orderId = $this->safe_string($trade, 'order_id');
-        return array(
+        $orderId = $this->safe_string($userTrade, 'order_id');
+        $result = array(
             'info' => $pair,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -2780,6 +2825,10 @@ class okex extends Exchange {
             'cost' => $cost,
             'fee' => $fee,
         );
+        if ($fees !== null) {
+            $result['fees'] = $fees;
+        }
+        return $result;
     }
 
     public function parse_my_trades($trades, $market = null, $since = null, $limit = null, $params = array ()) {
@@ -2809,7 +2858,7 @@ class okex extends Exchange {
         // this aspect renders the 'fills' endpoint unusable for fetchOrderTrades
         // until either OKEX fixes the API or we workaround this on our side somehow
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2912,6 +2961,277 @@ class okex extends Exchange {
         return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
     }
 
+    public function fetch_position($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $method = null;
+        $request = array(
+            'instrument_id' => $market['id'],
+            // 'order_id' => id, // string
+            // 'after' => '1', // pagination of data to return records earlier than the requested ledger_id
+            // 'before' => '1', // P=pagination of data to return records newer than the requested ledger_id
+            // 'limit' => limit, // optional, number of results per $request, default = maximum = 100
+        );
+        $type = $market['type'];
+        if (($type === 'futures') || ($type === 'swap')) {
+            $method = $type . 'GetInstrumentIdPosition';
+        } else if ($type === 'option') {
+            $underlying = $this->safe_string($params, 'underlying');
+            if ($underlying === null) {
+                throw new ArgumentsRequired($this->id . ' fetchPosition() requires an $underlying parameter for ' . $type . ' $market ' . $symbol);
+            }
+            $method = $type . 'GetUnderlyingPosition';
+        } else {
+            throw new NotSupported($this->id . ' fetchPosition() does not support ' . $type . ' $market ' . $symbol . ', supported $market types are futures, swap or option');
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // futures
+        //
+        //     crossed margin mode
+        //
+        //     {
+        //         "result" => true,
+        //         "holding" => array(
+        //             {
+        //                 "long_qty" => "2",
+        //                 "long_avail_qty" => "2",
+        //                 "long_avg_cost" => "8260",
+        //                 "long_settlement_price" => "8260",
+        //                 "realised_pnl" => "0.00020928",
+        //                 "short_qty" => "2",
+        //                 "short_avail_qty" => "2",
+        //                 "short_avg_cost" => "8259.99",
+        //                 "short_settlement_price" => "8259.99",
+        //                 "liquidation_price" => "113.81",
+        //                 "instrument_id" => "BTC-USD-191227",
+        //                 "leverage" => "10",
+        //                 "created_at" => "2019-09-25T07:58:42.129Z",
+        //                 "updated_at" => "2019-10-08T14:02:51.029Z",
+        //                 "margin_mode" => "crossed",
+        //                 "short_margin" => "0.00242197",
+        //                 "short_pnl" => "6.63E-6",
+        //                 "short_pnl_ratio" => "0.002477997",
+        //                 "short_unrealised_pnl" => "6.63E-6",
+        //                 "long_margin" => "0.00242197",
+        //                 "long_pnl" => "-6.65E-6",
+        //                 "long_pnl_ratio" => "-0.002478",
+        //                 "long_unrealised_pnl" => "-6.65E-6",
+        //                 "long_settled_pnl" => "0",
+        //                 "short_settled_pnl" => "0",
+        //                 "last" => "8257.57"
+        //             }
+        //         ),
+        //         "margin_mode" => "crossed"
+        //     }
+        //
+        //     fixed margin mode
+        //
+        //     {
+        //         "result" => true,
+        //         "holding" => array(
+        //             {
+        //                 "long_qty" => "4",
+        //                 "long_avail_qty" => "4",
+        //                 "long_margin" => "0.00323844",
+        //                 "long_liqui_price" => "7762.09",
+        //                 "long_pnl_ratio" => "0.06052306",
+        //                 "long_avg_cost" => "8234.43",
+        //                 "long_settlement_price" => "8234.43",
+        //                 "realised_pnl" => "-0.00000296",
+        //                 "short_qty" => "2",
+        //                 "short_avail_qty" => "2",
+        //                 "short_margin" => "0.00241105",
+        //                 "short_liqui_price" => "9166.74",
+        //                 "short_pnl_ratio" => "0.03318052",
+        //                 "short_avg_cost" => "8295.13",
+        //                 "short_settlement_price" => "8295.13",
+        //                 "instrument_id" => "BTC-USD-191227",
+        //                 "long_leverage" => "15",
+        //                 "short_leverage" => "10",
+        //                 "created_at" => "2019-09-25T07:58:42.129Z",
+        //                 "updated_at" => "2019-10-08T13:12:09.438Z",
+        //                 "margin_mode" => "fixed",
+        //                 "short_margin_ratio" => "0.10292507",
+        //                 "short_maint_margin_ratio" => "0.005",
+        //                 "short_pnl" => "7.853E-5",
+        //                 "short_unrealised_pnl" => "7.853E-5",
+        //                 "long_margin_ratio" => "0.07103743",
+        //                 "long_maint_margin_ratio" => "0.005",
+        //                 "long_pnl" => "1.9841E-4",
+        //                 "long_unrealised_pnl" => "1.9841E-4",
+        //                 "long_settled_pnl" => "0",
+        //                 "short_settled_pnl" => "0",
+        //                 "last" => "8266.99"
+        //             }
+        //         ),
+        //         "margin_mode" => "fixed"
+        //     }
+        //
+        // swap
+        //
+        //     crossed margin mode
+        //
+        //     {
+        //         "margin_mode" => "crossed",
+        //         "timestamp" => "2019-09-27T03:49:02.018Z",
+        //         "holding" => array(
+        //             array(
+        //                 "avail_position" => "3",
+        //                 "avg_cost" => "59.49",
+        //                 "instrument_id" => "LTC-USD-SWAP",
+        //                 "last" => "55.98",
+        //                 "leverage" => "10.00",
+        //                 "liquidation_price" => "4.37",
+        //                 "maint_margin_ratio" => "0.0100",
+        //                 "margin" => "0.0536",
+        //                 "position" => "3",
+        //                 "realized_pnl" => "0.0000",
+        //                 "unrealized_pnl" => "0",
+        //                 "settled_pnl" => "-0.0330",
+        //                 "settlement_price" => "55.84",
+        //                 "side" => "long",
+        //                 "timestamp" => "2019-09-27T03:49:02.018Z"
+        //             ),
+        //         )
+        //     }
+        //
+        //     fixed margin mode
+        //
+        //     {
+        //         "margin_mode" => "fixed",
+        //         "timestamp" => "2019-09-27T03:47:37.230Z",
+        //         "holding" => array(
+        //             {
+        //                 "avail_position" => "20",
+        //                 "avg_cost" => "8025.0",
+        //                 "instrument_id" => "BTC-USD-SWAP",
+        //                 "last" => "8113.1",
+        //                 "leverage" => "15.00",
+        //                 "liquidation_price" => "7002.6",
+        //                 "maint_margin_ratio" => "0.0050",
+        //                 "margin" => "0.0454",
+        //                 "position" => "20",
+        //                 "realized_pnl" => "-0.0001",
+        //                 "unrealized_pnl" => "0",
+        //                 "settled_pnl" => "0.0076",
+        //                 "settlement_price" => "8279.2",
+        //                 "side" => "long",
+        //                 "timestamp" => "2019-09-27T03:47:37.230Z"
+        //             }
+        //         )
+        //     }
+        //
+        // option
+        //
+        //     {
+        //         "holding":array(
+        //             array(
+        //                 "instrument_id":"BTC-USD-190927-12500-C",
+        //                 "position":"20",
+        //                 "avg_cost":"3.26",
+        //                 "avail_position":"20",
+        //                 "settlement_price":"0.017",
+        //                 "total_pnl":"50",
+        //                 "pnl_ratio":"0.3",
+        //                 "realized_pnl":"40",
+        //                 "unrealized_pnl":"10",
+        //                 "pos_margin":"100",
+        //                 "option_value":"70",
+        //                 "created_at":"2019-08-30T03:09:20.315Z",
+        //                 "updated_at":"2019-08-30T03:40:18.318Z"
+        //             ),
+        //             {
+        //                 "instrument_id":"BTC-USD-190927-12500-P",
+        //                 "position":"20",
+        //                 "avg_cost":"3.26",
+        //                 "avail_position":"20",
+        //                 "settlement_price":"0.019",
+        //                 "total_pnl":"50",
+        //                 "pnl_ratio":"0.3",
+        //                 "realized_pnl":"40",
+        //                 "unrealized_pnl":"10",
+        //                 "pos_margin":"100",
+        //                 "option_value":"70",
+        //                 "created_at":"2019-08-30T03:09:20.315Z",
+        //                 "updated_at":"2019-08-30T03:40:18.318Z"
+        //             }
+        //         )
+        //     }
+        //
+        // todo unify parsePosition/parsePositions
+        return $response;
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $method = null;
+        $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        if (($type === 'futures') || ($type === 'swap')) {
+            $method = $type . 'GetPosition';
+        } else if ($type === 'option') {
+            $underlying = $this->safe_string($params, 'underlying');
+            if ($underlying === null) {
+                throw new ArgumentsRequired($this->id . ' fetchPositions() requires an $underlying parameter for ' . $type . ' markets');
+            }
+            $method = $type . 'GetUnderlyingPosition';
+        } else {
+            throw new NotSupported($this->id . ' fetchPositions() does not support ' . $type . ' markets, supported market types are futures, swap or option');
+        }
+        $params = $this->omit($params, 'type');
+        $response = $this->$method ($params);
+        //
+        // futures
+        //
+        //     ...
+        //
+        //
+        // swap
+        //
+        //     ...
+        //
+        // option
+        //
+        //     {
+        //         "holding":array(
+        //             array(
+        //                 "instrument_id":"BTC-USD-190927-12500-C",
+        //                 "position":"20",
+        //                 "avg_cost":"3.26",
+        //                 "avail_position":"20",
+        //                 "settlement_price":"0.017",
+        //                 "total_pnl":"50",
+        //                 "pnl_ratio":"0.3",
+        //                 "realized_pnl":"40",
+        //                 "unrealized_pnl":"10",
+        //                 "pos_margin":"100",
+        //                 "option_value":"70",
+        //                 "created_at":"2019-08-30T03:09:20.315Z",
+        //                 "updated_at":"2019-08-30T03:40:18.318Z"
+        //             ),
+        //             {
+        //                 "instrument_id":"BTC-USD-190927-12500-P",
+        //                 "position":"20",
+        //                 "avg_cost":"3.26",
+        //                 "avail_position":"20",
+        //                 "settlement_price":"0.019",
+        //                 "total_pnl":"50",
+        //                 "pnl_ratio":"0.3",
+        //                 "realized_pnl":"40",
+        //                 "unrealized_pnl":"10",
+        //                 "pos_margin":"100",
+        //                 "option_value":"70",
+        //                 "created_at":"2019-08-30T03:09:20.315Z",
+        //                 "updated_at":"2019-08-30T03:40:18.318Z"
+        //             }
+        //         )
+        //     }
+        //
+        // todo unify parsePosition/parsePositions
+        return $response;
+    }
+
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchLedger', 'defaultType');
@@ -2927,16 +3247,28 @@ class okex extends Exchange {
             $request['limit'] = $limit;
         }
         $currency = null;
-        if (($type === 'spot') || ($type === 'futures')) {
+        if ($type === 'spot') {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . " fetchLedger requires a $currency $code $argument for '" . $type . "' markets");
+                throw new ArgumentsRequired($this->id . " fetchLedger() requires a $currency $code $argument for '" . $type . "' markets");
             }
             $argument = 'Currency';
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
+        } else if ($type === 'futures') {
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . " fetchLedger() requires an underlying symbol for '" . $type . "' markets");
+            }
+            $argument = 'Underlying';
+            $market = $this->market($code); // we intentionally put a $market inside here for the margin and swap ledgers
+            $marketInfo = $this->safe_value($market, 'info', array());
+            $settlementCurrencyId = $this->safe_string($marketInfo, 'settlement_currency');
+            $settlementCurrencyСode = $this->safe_currency_code($settlementCurrencyId);
+            $currency = $this->currency($settlementCurrencyСode);
+            $underlyingId = $this->safe_string($marketInfo, 'underlying');
+            $request['underlying'] = $underlyingId;
         } else if (($type === 'margin') || ($type === 'swap')) {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . " fetchLedger requires a $code $argument (a $market symbol) for '" . $type . "' markets");
+                throw new ArgumentsRequired($this->id . " fetchLedger() requires a $code $argument (a $market symbol) for '" . $type . "' markets");
             }
             $argument = 'InstrumentId';
             $market = $this->market($code); // we intentionally put a $market inside here for the margin and swap ledgers
@@ -3213,14 +3545,14 @@ class okex extends Exchange {
         $referenceAccount = null;
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
         $code = $this->safe_currency_code($this->safe_string($item, 'currency'), $currency);
-        $amount = $this->safe_float($item, 'amount');
+        $amount = $this->safe_number($item, 'amount');
         $timestamp = $this->parse8601($this->safe_string($item, 'timestamp'));
         $fee = array(
-            'cost' => $this->safe_float($item, 'fee'),
+            'cost' => $this->safe_number($item, 'fee'),
             'currency' => $code,
         );
         $before = null;
-        $after = $this->safe_float($item, 'balance');
+        $after = $this->safe_number($item, 'balance');
         $status = 'ok';
         $marketId = $this->safe_string($item, 'instrument_id');
         $symbol = null;

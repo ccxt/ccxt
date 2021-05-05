@@ -4,7 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } = require ('./base/errors');
-const { ROUND, TICK_SIZE } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -92,6 +93,7 @@ module.exports = class currencycom extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
                     'taker': 0.002,
@@ -250,7 +252,7 @@ module.exports = class currencycom extends Exchange {
             const filtersByType = this.indexBy (filters, 'filterType');
             const precision = {
                 'amount': 1 / Math.pow (1, this.safeInteger (market, 'baseAssetPrecision')),
-                'price': this.safeFloat (market, 'tickSize'),
+                'price': this.safeNumber (market, 'tickSize'),
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'TRADING');
@@ -283,14 +285,14 @@ module.exports = class currencycom extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': -1 * Math.log10 (precision['amount']),
+                        'min': -Math.log10 (precision['amount']),
                         'max': undefined,
                     },
                 },
             };
-            const exchangeFee = this.safeFloat2 (market, 'exchangeFee', 'tradingFee');
-            const makerFee = this.safeFloat (market, 'makerFee', exchangeFee);
-            const takerFee = this.safeFloat (market, 'takerFee', exchangeFee);
+            const exchangeFee = this.safeNumber2 (market, 'exchangeFee', 'tradingFee');
+            const makerFee = this.safeNumber (market, 'makerFee', exchangeFee);
+            const takerFee = this.safeNumber (market, 'takerFee', exchangeFee);
             if (makerFee !== undefined) {
                 entry['maker'] = makerFee / 100;
             }
@@ -299,63 +301,42 @@ module.exports = class currencycom extends Exchange {
             }
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-                entry['precision']['price'] = this.safeFloat (filter, 'tickSize');
+                entry['precision']['price'] = this.safeNumber (filter, 'tickSize');
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
                 // therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 entry['limits']['price'] = {
-                    'min': this.safeFloat (filter, 'minPrice'),
+                    'min': this.safeNumber (filter, 'minPrice'),
                     'max': undefined,
                 };
-                const maxPrice = this.safeFloat (filter, 'maxPrice');
+                const maxPrice = this.safeNumber (filter, 'maxPrice');
                 if ((maxPrice !== undefined) && (maxPrice > 0)) {
                     entry['limits']['price']['max'] = maxPrice;
                 }
             }
             if ('LOT_SIZE' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-                entry['precision']['amount'] = this.safeFloat (filter, 'stepSize');
+                entry['precision']['amount'] = this.safeNumber (filter, 'stepSize');
                 entry['limits']['amount'] = {
-                    'min': this.safeFloat (filter, 'minQty'),
-                    'max': this.safeFloat (filter, 'maxQty'),
+                    'min': this.safeNumber (filter, 'minQty'),
+                    'max': this.safeNumber (filter, 'maxQty'),
                 };
             }
             if ('MARKET_LOT_SIZE' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
                 entry['limits']['market'] = {
-                    'min': this.safeFloat (filter, 'minQty'),
-                    'max': this.safeFloat (filter, 'maxQty'),
+                    'min': this.safeNumber (filter, 'minQty'),
+                    'max': this.safeNumber (filter, 'maxQty'),
                 };
             }
             if ('MIN_NOTIONAL' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
-                entry['limits']['cost']['min'] = this.safeFloat (filter, 'minNotional');
+                entry['limits']['cost']['min'] = this.safeNumber (filter, 'minNotional');
             }
             result.push (entry);
         }
         return result;
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        let key = 'quote';
-        const rate = market[takerOrMaker];
-        let cost = amount * rate;
-        let precision = market['precision']['price'];
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-            precision = market['precision']['amount'];
-        }
-        cost = this.decimalToPrecision (cost, ROUND, precision, this.precisionMode);
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (cost),
-        };
     }
 
     async fetchAccounts (params = {}) {
@@ -404,8 +385,8 @@ module.exports = class currencycom extends Exchange {
         const response = await this.privateGetAccount (params);
         return {
             'info': response,
-            'maker': this.safeFloat (response, 'makerCommission'),
-            'taker': this.safeFloat (response, 'takerCommission'),
+            'maker': this.safeNumber (response, 'makerCommission'),
+            'taker': this.safeNumber (response, 'takerCommission'),
         };
     }
 
@@ -439,11 +420,11 @@ module.exports = class currencycom extends Exchange {
             const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'free');
-            account['used'] = this.safeFloat (balance, 'locked');
+            account['free'] = this.safeString (balance, 'free');
+            account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchBalance (params = {}) {
@@ -499,7 +480,7 @@ module.exports = class currencycom extends Exchange {
         //         ]
         //     }
         //
-        const orderbook = this.parseOrderBook (response);
+        const orderbook = this.parseOrderBook (response, symbol);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
     }
@@ -541,9 +522,9 @@ module.exports = class currencycom extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '/');
-        const last = this.safeFloat (ticker, 'lastPrice');
-        const open = this.safeFloat (ticker, 'openPrice');
+        const symbol = this.safeSymbol (marketId, market);
+        const last = this.safeNumber (ticker, 'lastPrice');
+        const open = this.safeNumber (ticker, 'openPrice');
         let average = undefined;
         if ((open !== undefined) && (last !== undefined)) {
             average = this.sum (open, last) / 2;
@@ -552,22 +533,22 @@ module.exports = class currencycom extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'highPrice'),
-            'low': this.safeFloat (ticker, 'lowPrice'),
-            'bid': this.safeFloat (ticker, 'bidPrice'),
-            'bidVolume': this.safeFloat (ticker, 'bidQty'),
-            'ask': this.safeFloat (ticker, 'askPrice'),
-            'askVolume': this.safeFloat (ticker, 'askQty'),
-            'vwap': this.safeFloat (ticker, 'weightedAvgPrice'),
+            'high': this.safeNumber (ticker, 'highPrice'),
+            'low': this.safeNumber (ticker, 'lowPrice'),
+            'bid': this.safeNumber (ticker, 'bidPrice'),
+            'bidVolume': this.safeNumber (ticker, 'bidQty'),
+            'ask': this.safeNumber (ticker, 'askPrice'),
+            'askVolume': this.safeNumber (ticker, 'askQty'),
+            'vwap': this.safeNumber (ticker, 'weightedAvgPrice'),
             'open': open,
             'close': last,
             'last': last,
-            'previousClose': this.safeFloat (ticker, 'prevClosePrice'), // previous day close
-            'change': this.safeFloat (ticker, 'priceChange'),
-            'percentage': this.safeFloat (ticker, 'priceChangePercent'),
+            'previousClose': this.safeNumber (ticker, 'prevClosePrice'), // previous day close
+            'change': this.safeNumber (ticker, 'priceChange'),
+            'percentage': this.safeNumber (ticker, 'priceChangePercent'),
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
+            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
         };
     }
@@ -602,14 +583,6 @@ module.exports = class currencycom extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTicker24hr (params);
@@ -642,11 +615,11 @@ module.exports = class currencycom extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 5),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -712,8 +685,11 @@ module.exports = class currencycom extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
-        const price = this.safeFloat2 (trade, 'p', 'price');
-        const amount = this.safeFloat2 (trade, 'q', 'qty');
+        const priceString = this.safeString2 (trade, 'p', 'price');
+        const amountString = this.safeString2 (trade, 'q', 'qty');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString2 (trade, 'a', 'id');
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
@@ -729,7 +705,7 @@ module.exports = class currencycom extends Exchange {
         let fee = undefined;
         if ('commission' in trade) {
             fee = {
-                'cost': this.safeFloat (trade, 'commission'),
+                'cost': this.safeNumber (trade, 'commission'),
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
             };
         }
@@ -751,7 +727,7 @@ module.exports = class currencycom extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         };
     }
@@ -827,65 +803,21 @@ module.exports = class currencycom extends Exchange {
         } else if ('transactTime' in order) {
             timestamp = this.safeInteger (order, 'transactTime');
         }
-        let price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'origQty');
-        const filled = this.safeFloat (order, 'executedQty');
-        let remaining = undefined;
-        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = amount - filled;
-                if (this.options['parseOrderToPrecision']) {
-                    remaining = parseFloat (this.amountToPrecision (symbol, remaining));
-                }
-                remaining = Math.max (remaining, 0.0);
-            }
-            if (price !== undefined) {
-                if (cost === undefined) {
-                    cost = price * filled;
-                }
-            }
-        }
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'origQty');
+        const filled = this.safeNumber (order, 'executedQty');
+        const remaining = undefined;
+        const cost = this.safeNumber (order, 'cummulativeQuoteQty');
         const id = this.safeString (order, 'orderId');
         const type = this.safeStringLower (order, 'type');
-        if (type === 'market') {
-            if (price === 0.0) {
-                if ((cost !== undefined) && (filled !== undefined)) {
-                    if ((cost > 0) && (filled > 0)) {
-                        price = cost / filled;
-                    }
-                }
-            }
-        }
         const side = this.safeStringLower (order, 'side');
-        let fee = undefined;
         let trades = undefined;
         const fills = this.safeValue (order, 'fills');
         if (fills !== undefined) {
             trades = this.parseTrades (fills, market);
-            const numTrades = trades.length;
-            if (numTrades > 0) {
-                cost = trades[0]['cost'];
-                fee = {
-                    'cost': trades[0]['fee']['cost'],
-                    'currency': trades[0]['fee']['currency'],
-                };
-                for (let i = 1; i < trades.length; i++) {
-                    cost = this.sum (cost, trades[i]['cost']);
-                    fee['cost'] = this.sum (fee['cost'], trades[i]['fee']['cost']);
-                }
-            }
         }
-        let average = undefined;
-        if (cost !== undefined) {
-            if (filled) {
-                average = cost / filled;
-            }
-            if (this.options['parseOrderToPrecision']) {
-                cost = parseFloat (this.costToPrecision (symbol, cost));
-            }
-        }
-        return {
+        const timeInForce = this.safeString (order, 'timeInForce');
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -893,17 +825,19 @@ module.exports = class currencycom extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': undefined,
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
+            'fee': undefined,
             'trades': trades,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -913,7 +847,7 @@ module.exports = class currencycom extends Exchange {
         if (market['margin']) {
             accountId = this.safeInteger (params, 'accountId');
             if (accountId === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder requires an accountId parameter for ' + market['type'] + ' market ' + symbol);
+                throw new ArgumentsRequired (this.id + ' createOrder() requires an accountId parameter for ' + market['type'] + ' market ' + symbol);
             }
         }
         const uppercaseType = type.toUpperCase ();
@@ -974,7 +908,7 @@ module.exports = class currencycom extends Exchange {
             const symbols = this.symbols;
             const numSymbols = symbols.length;
             const fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
-            throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+            throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
         const response = await this.privateGetOpenOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
@@ -982,7 +916,7 @@ module.exports = class currencycom extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1017,7 +951,7 @@ module.exports = class currencycom extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

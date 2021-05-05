@@ -133,11 +133,11 @@ class flowbtc extends Exchange {
             $currencyId = $balance['name'];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'balance');
-            $account['total'] = $this->safe_float($balance, 'hold');
+            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['total'] = $this->safe_string($balance, 'hold');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -147,7 +147,7 @@ class flowbtc extends Exchange {
             'productPair' => $market['id'],
         );
         $response = $this->publicPostGetOrderBook (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'px', 'qty');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'px', 'qty');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -158,16 +158,16 @@ class flowbtc extends Exchange {
         );
         $ticker = $this->publicPostGetTicker (array_merge($request, $params));
         $timestamp = $this->milliseconds();
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -177,8 +177,8 @@ class flowbtc extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume24hr'),
-            'quoteVolume' => $this->safe_float($ticker, 'volume24hrProduct2'),
+            'baseVolume' => $this->safe_number($ticker, 'volume24hr'),
+            'quoteVolume' => $this->safe_number($ticker, 'volume24hrProduct2'),
             'info' => $ticker,
         );
     }
@@ -187,14 +187,11 @@ class flowbtc extends Exchange {
         $timestamp = $this->safe_timestamp($trade, 'unixtime');
         $side = ($trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
         $id = $this->safe_string($trade, 'tid');
-        $price = $this->safe_float($trade, 'px');
-        $amount = $this->safe_float($trade, 'qty');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'px');
+        $amountString = $this->safe_string($trade, 'qty');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -248,7 +245,7 @@ class flowbtc extends Exchange {
             );
             return $this->privatePostCancelOrder (array_merge($request, $params));
         }
-        throw new ExchangeError($this->id . ' requires `ins` $symbol parameter for cancelling an order');
+        throw new ExchangeError($this->id . ' cancelOrder() requires an `ins` $symbol parameter for cancelling an order');
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

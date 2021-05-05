@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OrderNotFound, PermissionDenied, BadRequest, DDoSProtection } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -182,7 +183,12 @@ module.exports = class stex extends Exchange {
             },
             'commonCurrencies': {
                 'BC': 'Bitcoin Confidential',
+                'BITS': 'Bitcoinus',
+                'BITSW': 'BITS',
                 'BHD': 'Bithold',
+                'BTH': 'Bithereum',
+                'MPH': 'Chasyr Token',
+                'SBTC': 'SBTCT', // SiamBitcoin
             },
             'options': {
                 'parseOrderToPrecision': false,
@@ -244,8 +250,9 @@ module.exports = class stex extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             const code = this.safeCurrencyCode (this.safeString (currency, 'code'));
-            const precision = this.safeInteger (currency, 'precision');
-            const fee = this.safeFloat (currency, 'withdrawal_fee_const'); // todo: redesign
+            const precision = this.safeString (currency, 'precision');
+            const amountLimit = this.parsePrecision (precision);
+            const fee = this.safeNumber (currency, 'withdrawal_fee_const'); // todo: redesign
             const active = this.safeValue (currency, 'active', true);
             result[code] = {
                 'id': id,
@@ -256,17 +263,15 @@ module.exports = class stex extends Exchange {
                 'name': this.safeString (currency, 'name'),
                 'active': active,
                 'fee': fee,
-                'precision': precision,
+                'precision': parseInt (precision),
                 'limits': {
-                    'amount': { 'min': Math.pow (10, -precision), 'max': undefined },
-                    'price': { 'min': Math.pow (10, -precision), 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
+                    'amount': { 'min': this.parseNumber (amountLimit), 'max': undefined },
                     'deposit': {
-                        'min': this.safeFloat (currency, 'minimum_deposit_amount'),
+                        'min': this.safeNumber (currency, 'minimum_deposit_amount'),
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeFloat (currency, 'minimum_withdrawal_amount'),
+                        'min': this.safeNumber (currency, 'minimum_withdrawal_amount'),
                         'max': undefined,
                     },
                 },
@@ -327,11 +332,11 @@ module.exports = class stex extends Exchange {
                 'price': this.safeInteger (market, 'market_precision'),
             };
             const active = this.safeValue (market, 'active');
-            const minBuyPrice = this.safeFloat (market, 'min_buy_price');
-            const minSellPrice = this.safeFloat (market, 'min_sell_price');
+            const minBuyPrice = this.safeNumber (market, 'min_buy_price');
+            const minSellPrice = this.safeNumber (market, 'min_sell_price');
             const minPrice = Math.max (minBuyPrice, minSellPrice);
-            const buyFee = this.safeFloat (market, 'buy_fee_percent') / 100;
-            const sellFee = this.safeFloat (market, 'sell_fee_percent') / 100;
+            const buyFee = this.safeNumber (market, 'buy_fee_percent') / 100;
+            const sellFee = this.safeNumber (market, 'sell_fee_percent') / 100;
             const fee = Math.max (buyFee, sellFee);
             result.push ({
                 'id': id,
@@ -350,7 +355,7 @@ module.exports = class stex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'min_order_amount'),
+                        'min': this.safeNumber (market, 'min_order_amount'),
                         'max': undefined,
                     },
                     'price': { 'min': minPrice, 'max': undefined },
@@ -468,7 +473,7 @@ module.exports = class stex extends Exchange {
         //     }
         //
         const orderbook = this.safeValue (response, 'data', {});
-        return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'amount');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'bid', 'ask', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -514,8 +519,8 @@ module.exports = class stex extends Exchange {
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const marketId = this.safeString2 (ticker, 'id', 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const last = this.safeFloat (ticker, 'last');
-        const open = this.safeFloat (ticker, 'open');
+        const last = this.safeNumber (ticker, 'last');
+        const open = this.safeNumber (ticker, 'open');
         let change = undefined;
         let percentage = undefined;
         if (last !== undefined) {
@@ -528,11 +533,11 @@ module.exports = class stex extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -542,18 +547,10 @@ module.exports = class stex extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volumeQuote'),
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeNumber (ticker, 'volumeQuote'),
+            'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
         };
-    }
-
-    parseTickers (tickers, symbols = undefined) {
-        const result = [];
-        for (let i = 0; i < tickers.length; i++) {
-            result.push (this.parseTicker (tickers[i]));
-        }
-        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -621,11 +618,11 @@ module.exports = class stex extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 'time'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -700,12 +697,11 @@ module.exports = class stex extends Exchange {
         //
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeTimestamp (trade, 'timestamp');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
@@ -812,17 +808,21 @@ module.exports = class stex extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'currency_id'));
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'balance');
-            account['used'] = this.safeFloat (balance, 'frozen_balance');
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'frozen_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrderStatus (status) {
@@ -881,9 +881,9 @@ module.exports = class stex extends Exchange {
         const marketId = this.safeString2 (order, 'currency_pair_id', 'currency_pair_name');
         const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeTimestamp (order, 'timestamp');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'initial_amount');
-        const filled = this.safeFloat (order, 'processed_amount');
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'initial_amount');
+        const filled = this.safeNumber (order, 'processed_amount');
         let remaining = undefined;
         let cost = undefined;
         if (filled !== undefined) {
@@ -913,6 +913,7 @@ module.exports = class stex extends Exchange {
                 'order': id,
             });
         }
+        const stopPrice = this.safeNumber (order, 'trigger_price');
         const result = {
             'info': order,
             'id': id,
@@ -922,8 +923,11 @@ module.exports = class stex extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': undefined,
@@ -940,7 +944,7 @@ module.exports = class stex extends Exchange {
             if (numFees > 0) {
                 result['fees'] = [];
                 for (let i = 0; i < fees.length; i++) {
-                    const feeCost = this.safeFloat (fees[i], 'amount');
+                    const feeCost = this.safeNumber (fees[i], 'amount');
                     if (feeCost !== undefined) {
                         const feeCurrencyId = this.safeString (fees[i], 'currency_id');
                         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1217,7 +1221,7 @@ module.exports = class stex extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1524,13 +1528,13 @@ module.exports = class stex extends Exchange {
             code = currency['code'];
         }
         const type = ('deposit_status_id' in transaction) ? 'deposit' : 'withdrawal';
-        const amount = this.safeFloat (transaction, 'amount');
+        const amount = this.safeNumber (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeStringLower (transaction, 'status'));
         const timestamp = this.safeTimestamp2 (transaction, 'timestamp', 'created_ts');
         const updated = this.safeTimestamp (transaction, 'updated_ts');
         const txid = this.safeString (transaction, 'txid');
         let fee = undefined;
-        const feeCost = this.safeFloat (transaction, 'fee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (transaction, 'fee_currency_id', 'deposit_fee_currency_id');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1766,8 +1770,8 @@ module.exports = class stex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const id = this.safeString (data[i], 'id');
             const code = this.safeCurrencyCode (id);
-            withdrawFees[code] = this.safeFloat (data[i], 'withdrawal_fee_const');
-            depositFees[code] = this.safeFloat (data[i], 'deposit_fee_const');
+            withdrawFees[code] = this.safeNumber (data[i], 'withdrawal_fee_const');
+            depositFees[code] = this.safeNumber (data[i], 'deposit_fee_const');
         }
         return {
             'withdraw': withdrawFees,

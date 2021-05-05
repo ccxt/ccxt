@@ -151,19 +151,22 @@ class xbtce extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetAsset ($params);
-        $result = array( 'info' => $balances );
+        $result = array(
+            'info' => $balances,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'Currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_float($balance, 'FreeAmount'),
-                'used' => $this->safe_float($balance, 'LockedAmount'),
-                'total' => $this->safe_float($balance, 'Amount'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'FreeAmount');
+            $account['used'] = $this->safe_string($balance, 'LockedAmount');
+            $account['total'] = $this->safe_string($balance, 'Amount');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -175,7 +178,7 @@ class xbtce extends Exchange {
         $response = $this->privateGetLevel2Filter (array_merge($request, $params));
         $orderbook = $response[0];
         $timestamp = $this->safe_integer($orderbook, 'Timestamp');
-        return $this->parse_order_book($orderbook, $timestamp, 'Bids', 'Asks', 'Price', 'Volume');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'Bids', 'Asks', 'Price', 'Volume');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -275,11 +278,11 @@ class xbtce extends Exchange {
     public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->safe_integer($ohlcv, 'Timestamp'),
-            $this->safe_float($ohlcv, 'Open'),
-            $this->safe_float($ohlcv, 'High'),
-            $this->safe_float($ohlcv, 'Low'),
-            $this->safe_float($ohlcv, 'Close'),
-            $this->safe_float($ohlcv, 'Volume'),
+            $this->safe_number($ohlcv, 'Open'),
+            $this->safe_number($ohlcv, 'High'),
+            $this->safe_number($ohlcv, 'Low'),
+            $this->safe_number($ohlcv, 'Close'),
+            $this->safe_number($ohlcv, 'Volume'),
         );
     }
 

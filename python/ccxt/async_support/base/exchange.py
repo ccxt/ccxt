@@ -2,12 +2,12 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.36.77'
+__version__ = '1.49.52'
 
 # -----------------------------------------------------------------------------
 
 import asyncio
-import concurrent
+import concurrent.futures
 import socket
 import certifi
 import aiohttp
@@ -119,10 +119,18 @@ class Exchange(BaseExchange):
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
                 http_response = await response.text()
+                # CIMultiDictProxy
+                raw_headers = response.headers
+                headers = {}
+                for header in raw_headers:
+                    if header in headers:
+                        headers[header] = headers[header] + ', ' + raw_headers[header]
+                    else:
+                        headers[header] = raw_headers[header]
                 http_status_code = response.status
                 http_status_text = response.reason
+                http_response = self.on_rest_response(http_status_code, http_status_text, url, method, headers, http_response, request_headers, request_body)
                 json_response = self.parse_json(http_response)
-                headers = response.headers
                 if self.enableLastHttpResponse:
                     self.last_http_response = http_response
                 if self.enableLastResponseHeaders:
@@ -134,16 +142,20 @@ class Exchange(BaseExchange):
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
-            raise ExchangeNotAvailable(method + ' ' + url)
+            details = ' '.join([self.id, method, url])
+            raise ExchangeNotAvailable(details) from e
 
-        except concurrent.futures._base.TimeoutError as e:
-            raise RequestTimeout(method + ' ' + url)
+        except (concurrent.futures.TimeoutError, asyncio.TimeoutError) as e:
+            details = ' '.join([self.id, method, url])
+            raise RequestTimeout(details) from e
 
-        except aiohttp.client_exceptions.ClientConnectionError as e:
-            raise ExchangeNotAvailable(method + ' ' + url)
+        except aiohttp.ClientConnectionError as e:
+            details = ' '.join([self.id, method, url])
+            raise ExchangeNotAvailable(details) from e
 
-        except aiohttp.client_exceptions.ClientError as e:  # base exception class
-            raise ExchangeError(method + ' ' + url)
+        except aiohttp.ClientError as e:  # base exception class
+            details = ' '.join([self.id, method, url])
+            raise ExchangeError(details) from e
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)

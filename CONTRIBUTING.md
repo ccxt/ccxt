@@ -246,7 +246,7 @@ These files containing derived exchange classes are transpiled from JS into Pyth
 
 - `js/[_a-z].js` → `python/ccxt/async/[_a-z].py`
 - `python/ccxt/async[_a-z].py` → `python/ccxt/[_a-z].py` (Python 3 asyncio → Python 2 sync transpilation stage)
-- `python/test/test_async.py` → `python/test/test.py` (the sync test is generated from the async test)
+- `python/ccxt/test/test_async.py` → `python/ccxt/test/test_sync.py` (the sync test is generated from the async test)
 
 These Python base classes and files are not transpiled:
 
@@ -261,7 +261,7 @@ These files containing derived exchange classes are transpiled from JS into PHP:
 
 These PHP base classes and files are not transpiled:
 
-- `php/base/*`
+- `php/Exchange.php php/ExchangeError.php php/Precise.php ...
 
 #### Typescript
 
@@ -385,7 +385,7 @@ async fetchTicker (symbol, params = {}) {
 
 #### Parsing Symbols
 
-When sending requests to the exchange unified symbols have to be _"converted"_ to exchange-specific market-`id`s like shown above. The same is true on the other side – when receiving an exchange response it has an exchange-specific market-`id` inside it that has to be _"converted back"_ to a unified CCXT symbol.
+When sending requests to the exchange unified symbols have to be _"converted"_ to exchange-specific market-`id`s like shown above. The same is true on the other end – when receiving an exchange response it has an exchange-specific market-`id` inside it that has to be _"converted back"_ to a unified CCXT symbol.
 
 **We don't put exchange-specific market-`id`s in unified structures directly!** We can't freely interchange symbols with ids! There is a significant difference between an *exchange-specific market-ids* and *unified symbols*! This is explained in the Manual, here:
 
@@ -444,7 +444,7 @@ In JavaScript, dictionary keys can be accessed in two notations:
 
 Both work almost identically, and one is implicitly converted to another upon executing the JavaScript code.
 
-While the above does work in JavaScript, it will not work in Python or PHP. In most languages, associative dictionary keys are not treated in the same way as properties. Therefore, in Python `object.key` is not the same as `object['key']`. In PHP `$object->key` is not the same as `$object['key']` as well. Languages that differentiate between associative keys and properties use different notations for the two.
+While the above does work in JavaScript, **it will not work in Python or PHP**. In most languages, associative dictionary keys are not treated in the same way as properties. Therefore, in Python `object.key` is not the same as `object['key']`. In PHP `$object->key` is not the same as `$object['key']` as well. Languages that differentiate between associative keys and properties use different notations for the two.
 
 To keep the code transpileable, please, remember this simple rule: *always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!*
 
@@ -572,7 +572,7 @@ The `hmac()` method also supports `'base64'` for the `digest` argument. This is 
 
 #### Timestamps
 
-**All timestamps throughout all unified structures within this library are integer timestamp _in milliseconds_!**
+**All timestamps throughout all unified structures within this library are integer UTC timestamps _in milliseconds_!**
 
 In order to convert to milliseconds timestamps, CCXT implements the following methods:
 
@@ -868,14 +868,6 @@ npm run git-unignore-generated-files
 ## Financial Contributions
 
 We also welcome financial contributions in full transparency on our [open collective](https://opencollective.com/ccxt).
-Anyone can file an expense. If the expense makes sense for the development of the community, it will be "merged" in the ledger of our open collective by the core contributors and the person who filed the expense will be reimbursed.
-
-```
-ETH 0x26a3CB49578F07000575405a57888681249c35Fd (ETH only!)
-BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva
-BCH 1GN9p233TvNcNQFthCgfiHUnj5JRKEc2Ze
-LTC LbT8mkAqQBphc4yxLXEDgYDfEax74et3bP
-```
 
 ## Credits
 

@@ -227,8 +227,8 @@ class fcoin extends Exchange {
             );
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_float($market, 'limit_amount_min'),
-                    'max' => $this->safe_float($market, 'limit_amount_max'),
+                    'min' => $this->safe_number($market, 'limit_amount_min'),
+                    'max' => $this->safe_number($market, 'limit_amount_max'),
                 ),
                 'price' => array(
                     'min' => pow(10, -$precision['price']),
@@ -323,12 +323,12 @@ class fcoin extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'available');
-            $account['total'] = $this->safe_float($balance, 'balance');
-            $account['used'] = $this->safe_float($balance, 'frozen');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'frozen');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_bids_asks($orders, $priceKey = 0, $amountKey = 1) {
@@ -341,8 +341,8 @@ class fcoin extends Exchange {
             $priceField = $this->sum($index, $priceKey);
             $amountField = $this->sum($index, $amountKey);
             $result[] = array(
-                $this->safe_float($orders, $priceField),
-                $this->safe_float($orders, $amountField),
+                $this->safe_number($orders, $priceField),
+                $this->safe_number($orders, $amountField),
             );
         }
         return $result;
@@ -365,7 +365,7 @@ class fcoin extends Exchange {
         );
         $response = $this->marketGetDepthLevelSymbol (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'data');
-        return $this->parse_order_book($orderbook, $orderbook['ts'], 'bids', 'asks', 0, 1);
+        return $this->parse_order_book($orderbook, $symbol, $orderbook['ts'], 'bids', 'asks', 0, 1);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -390,17 +390,17 @@ class fcoin extends Exchange {
             }
         }
         $values = $ticker['ticker'];
-        $last = $this->safe_float($values, 0);
+        $last = $this->safe_number($values, 0);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($values, 7),
-            'low' => $this->safe_float($values, 8),
-            'bid' => $this->safe_float($values, 2),
-            'bidVolume' => $this->safe_float($values, 3),
-            'ask' => $this->safe_float($values, 4),
-            'askVolume' => $this->safe_float($values, 5),
+            'high' => $this->safe_number($values, 7),
+            'low' => $this->safe_number($values, 8),
+            'bid' => $this->safe_number($values, 2),
+            'bidVolume' => $this->safe_number($values, 3),
+            'ask' => $this->safe_number($values, 4),
+            'askVolume' => $this->safe_number($values, 5),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -409,8 +409,8 @@ class fcoin extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($values, 9),
-            'quoteVolume' => $this->safe_float($values, 10),
+            'baseVolume' => $this->safe_number($values, 9),
+            'quoteVolume' => $this->safe_number($values, 10),
             'info' => $ticker,
         );
     }
@@ -423,14 +423,11 @@ class fcoin extends Exchange {
         $timestamp = $this->safe_integer($trade, 'ts');
         $side = $this->safe_string_lower($trade, 'side');
         $id = $this->safe_string($trade, 'id');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
         return array(
             'id' => $id,
@@ -555,38 +552,25 @@ class fcoin extends Exchange {
         $symbol = $market['symbol'];
         $orderType = $this->safe_string($order, 'type');
         $timestamp = $this->safe_integer($order, 'created_at');
-        $amount = $this->safe_float($order, 'amount');
-        $filled = $this->safe_float($order, 'filled_amount');
-        $remaining = null;
-        $price = $this->safe_float($order, 'price');
-        $cost = $this->safe_float($order, 'executed_value');
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-            }
-            if ($cost === null) {
-                if ($price !== null) {
-                    $cost = $price * $filled;
-                }
-            } else if (($cost > 0) && ($filled > 0)) {
-                $price = $cost / $filled;
-            }
-        }
+        $amount = $this->safe_number($order, 'amount');
+        $filled = $this->safe_number($order, 'filled_amount');
+        $price = $this->safe_number($order, 'price');
+        $cost = $this->safe_number($order, 'executed_value');
         $feeCurrency = null;
         $feeCost = null;
-        $feeRebate = $this->safe_float($order, 'fees_income');
+        $feeRebate = $this->safe_number($order, 'fees_income');
         if (($feeRebate !== null) && ($feeRebate > 0)) {
             if ($market !== null) {
                 $feeCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
             }
             $feeCost = -$feeRebate;
         } else {
-            $feeCost = $this->safe_float($order, 'fill_fees');
+            $feeCost = $this->safe_number($order, 'fill_fees');
             if ($market !== null) {
                 $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
             }
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -595,11 +579,14 @@ class fcoin extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
-            'remaining' => $remaining,
+            'remaining' => null,
             'filled' => $filled,
             'average' => null,
             'status' => $status,
@@ -608,7 +595,7 @@ class fcoin extends Exchange {
                 'currency' => $feeCurrency,
             ),
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -650,11 +637,11 @@ class fcoin extends Exchange {
     public function parse_ohlcv($ohlcv, $market = null) {
         return array(
             $this->safe_timestamp($ohlcv, 'id'),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'base_vol'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'base_vol'),
         );
     }
 

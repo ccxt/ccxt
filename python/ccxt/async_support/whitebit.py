@@ -15,6 +15,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class whitebit(Exchange):
@@ -174,7 +175,7 @@ class whitebit(Exchange):
                 },
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'minAmount'),
+                        'min': self.safe_number(market, 'minAmount'),
                         'max': None,
                     },
                     'price': {
@@ -182,7 +183,7 @@ class whitebit(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': self.safe_float(market, 'minTotal'),
+                        'min': self.safe_number(market, 'minTotal'),
                         'max': None,
                     },
                 },
@@ -236,17 +237,9 @@ class whitebit(Exchange):
                         'min': None,
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': self.safe_float(currency, 'minWithdrawal'),
-                        'max': self.safe_float(currency, 'maxWithdrawal'),
+                        'min': self.safe_number(currency, 'minWithdrawal'),
+                        'max': self.safe_number(currency, 'maxWithdrawal'),
                     },
                 },
             }
@@ -256,8 +249,8 @@ class whitebit(Exchange):
         response = await self.publicV2GetFee(params)
         fees = self.safe_value(response, 'result')
         return {
-            'maker': self.safe_float(fees, 'makerFee'),
-            'taker': self.safe_float(fees, 'takerFee'),
+            'maker': self.safe_number(fees, 'makerFee'),
+            'taker': self.safe_number(fees, 'takerFee'),
         }
 
     async def fetch_ticker(self, symbol, params={}):
@@ -324,8 +317,8 @@ class whitebit(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
-        percentage = self.safe_float(ticker, 'change')
+        last = self.safe_number(ticker, 'last')
+        percentage = self.safe_number(ticker, 'change')
         change = None
         if percentage is not None:
             change = self.number_to_string(percentage * 0.01)
@@ -333,22 +326,22 @@ class whitebit(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': change,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'deal'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
+            'quoteVolume': self.safe_number(ticker, 'deal'),
             'info': ticker,
         }
 
@@ -417,7 +410,7 @@ class whitebit(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         timestamp = self.parse8601(self.safe_string(result, 'lastUpdateTimestamp'))
-        return self.parse_order_book(result, timestamp)
+        return self.parse_order_book(result, symbol, timestamp)
 
     async def fetch_trades_v1(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -505,8 +498,11 @@ class whitebit(Exchange):
             timestamp = self.parse8601(timestamp)
         else:
             timestamp = int(timestamp * 1000)
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float_2(trade, 'amount', 'volume')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'amount', 'volume')
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         id = self.safe_string_2(trade, 'id', 'tradeId')
         side = self.safe_string(trade, 'type')
         if side is None:
@@ -515,9 +511,6 @@ class whitebit(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        cost = None
-        if amount is not None and price is not None:
-            cost = amount * price
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -582,11 +575,11 @@ class whitebit(Exchange):
         #
         return [
             self.safe_timestamp(ohlcv, 0),  # timestamp
-            self.safe_float(ohlcv, 1),  # open
-            self.safe_float(ohlcv, 3),  # high
-            self.safe_float(ohlcv, 4),  # low
-            self.safe_float(ohlcv, 2),  # close
-            self.safe_float(ohlcv, 5),  # volume
+            self.safe_number(ohlcv, 1),  # open
+            self.safe_number(ohlcv, 3),  # high
+            self.safe_number(ohlcv, 4),  # low
+            self.safe_number(ohlcv, 2),  # close
+            self.safe_number(ohlcv, 5),  # volume
         ]
 
     async def fetch_status(self, params={}):

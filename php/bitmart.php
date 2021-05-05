@@ -53,7 +53,7 @@ class bitmart extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
                 'api' => 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
                 'www' => 'https://www.bitmart.com/',
-                'doc' => 'https://github.com/bitmartexchange/bitmart-official-api-docs',
+                'doc' => 'https://developer-pro.bitmart.com/',
                 'referral' => 'http://www.bitmart.com/?r=rQCFLh',
                 'fees' => 'https://www.bitmart.com/fee/en',
             ),
@@ -166,8 +166,8 @@ class bitmart extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.002,
-                    'maker' => 0.001,
+                    'taker' => 0.0025,
+                    'maker' => 0.0025,
                     'tiers' => array(
                         'taker' => [
                             [0, 0.20 / 100],
@@ -301,6 +301,8 @@ class bitmart extends Exchange {
                 'broad' => array(),
             ),
             'commonCurrencies' => array(
+                'COT' => 'Community Coin',
+                'CPC' => 'CPCoin',
                 'ONE' => 'Menlo One',
                 'PLA' => 'Plair',
             ),
@@ -438,16 +440,16 @@ class bitmart extends Exchange {
             //
             $pricePrecision = $this->safe_integer($market, 'price_max_precision');
             $precision = array(
-                'amount' => $this->safe_float($market, 'base_min_size'),
+                'amount' => $this->safe_number($market, 'base_min_size'),
                 'price' => floatval($this->decimal_to_precision(pow(10, -$pricePrecision), ROUND, 10)),
             );
-            $minBuyCost = $this->safe_float($market, 'min_buy_amount');
-            $minSellCost = $this->safe_float($market, 'min_sell_amount');
+            $minBuyCost = $this->safe_number($market, 'min_buy_amount');
+            $minSellCost = $this->safe_number($market, 'min_sell_amount');
             $minCost = max ($minBuyCost, $minSellCost);
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_float($market, 'base_min_size'),
-                    'max' => $this->safe_float($market, 'base_max_size'),
+                    'min' => $this->safe_number($market, 'base_min_size'),
+                    'max' => $this->safe_number($market, 'base_max_size'),
                 ),
                 'price' => array(
                     'min' => null,
@@ -557,16 +559,16 @@ class bitmart extends Exchange {
             //
             // the docs are wrong => https://github.com/ccxt/ccxt/issues/5612
             //
-            $amountPrecision = $this->safe_float($contract, 'vol_unit');
-            $pricePrecision = $this->safe_float($contract, 'price_unit');
+            $amountPrecision = $this->safe_number($contract, 'vol_unit');
+            $pricePrecision = $this->safe_number($contract, 'price_unit');
             $precision = array(
                 'amount' => $amountPrecision,
                 'price' => $pricePrecision,
             );
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_float($contract, 'min_vol'),
-                    'max' => $this->safe_float($contract, 'max_vol'),
+                    'min' => $this->safe_number($contract, 'min_vol'),
+                    'max' => $this->safe_number($contract, 'max_vol'),
                 ),
                 'price' => array(
                     'min' => null,
@@ -589,8 +591,8 @@ class bitmart extends Exchange {
                 $future = true;
             }
             $feeConfig = $this->safe_value($market, 'fee_config', array());
-            $maker = $this->safe_float($feeConfig, 'maker_fee');
-            $taker = $this->safe_float($feeConfig, 'taker_fee');
+            $maker = $this->safe_number($feeConfig, 'maker_fee');
+            $taker = $this->safe_number($feeConfig, 'taker_fee');
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -678,36 +680,33 @@ class bitmart extends Exchange {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp', $this->milliseconds());
         $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_id');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $last = $this->safe_float_2($ticker, 'close_24h', 'last_price');
-        $percentage = $this->safe_float($ticker, 'fluctuation', 'rise_fall_rate');
+        $last = $this->safe_number_2($ticker, 'close_24h', 'last_price');
+        $percentage = $this->safe_number($ticker, 'fluctuation', 'rise_fall_rate');
         if ($percentage !== null) {
             $percentage *= 100;
         }
-        $baseVolume = $this->safe_float_2($ticker, 'base_volume_24h', 'base_coin_volume');
-        $quoteVolume = $this->safe_float_2($ticker, 'quote_volume_24h', 'quote_coin_volume');
-        $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && ($baseVolume !== 0)) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
-        $open = $this->safe_float_2($ticker, 'open_24h', 'open');
+        $baseVolume = $this->safe_number_2($ticker, 'base_volume_24h', 'base_coin_volume');
+        $quoteVolume = $this->safe_number_2($ticker, 'quote_volume_24h', 'quote_coin_volume');
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $open = $this->safe_number_2($ticker, 'open_24h', 'open');
         $average = null;
         if (($last !== null) && ($open !== null)) {
             $average = $this->sum($last, $open) / 2;
         }
-        $average = $this->safe_float($ticker, 'avg_price', $average);
+        $average = $this->safe_number($ticker, 'avg_price', $average);
         $price = $this->safe_value($ticker, 'depth_price', $ticker);
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float_2($ticker, 'high', 'high_24h'),
-            'low' => $this->safe_float_2($ticker, 'low', 'low_24h'),
-            'bid' => $this->safe_float($price, 'best_bid', 'bid_price'),
-            'bidVolume' => $this->safe_float($ticker, 'best_bid_size'),
-            'ask' => $this->safe_float($price, 'best_ask', 'ask_price'),
-            'askVolume' => $this->safe_float($ticker, 'best_ask_size'),
+            'high' => $this->safe_number_2($ticker, 'high', 'high_24h'),
+            'low' => $this->safe_number_2($ticker, 'low', 'low_24h'),
+            'bid' => $this->safe_number($price, 'best_bid', 'bid_price'),
+            'bidVolume' => $this->safe_number($ticker, 'best_bid_size'),
+            'ask' => $this->safe_number($price, 'best_ask', 'ask_price'),
+            'askVolume' => $this->safe_number($ticker, 'best_ask_size'),
             'vwap' => $vwap,
-            'open' => $this->safe_float($ticker, 'open_24h'),
+            'open' => $this->safe_number($ticker, 'open_24h'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -872,8 +871,6 @@ class bitmart extends Exchange {
                 'precision' => null,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
                 ),
             );
@@ -942,9 +939,9 @@ class bitmart extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         if ($market['spot']) {
-            return $this->parse_order_book($data, null, 'buys', 'sells', 'price', 'amount');
+            return $this->parse_order_book($data, $symbol, null, 'buys', 'sells', 'price', 'amount');
         } else if ($market['swap'] || $market['future']) {
-            return $this->parse_order_book($data, null, 'buys', 'sells', 'price', 'vol');
+            return $this->parse_order_book($data, $symbol, null, 'buys', 'sells', 'price', 'vol');
         }
     }
 
@@ -1011,18 +1008,18 @@ class bitmart extends Exchange {
         if ($execType !== null) {
             $takerOrMaker = ($execType === 'M') ? 'maker' : 'taker';
         }
-        $price = $this->safe_float_2($trade, 'price', 'deal_price');
-        $price = $this->safe_float($trade, 'price_avg', $price);
-        $amount = $this->safe_float_2($trade, 'amount', 'deal_vol');
-        $amount = $this->safe_float($trade, 'size', $amount);
-        $cost = $this->safe_float_2($trade, 'count', 'notional');
+        $price = $this->safe_number_2($trade, 'price', 'deal_price');
+        $price = $this->safe_number($trade, 'price_avg', $price);
+        $amount = $this->safe_number_2($trade, 'amount', 'deal_vol');
+        $amount = $this->safe_number($trade, 'size', $amount);
+        $cost = $this->safe_number_2($trade, 'count', 'notional');
         if (($cost === null) && ($price !== null) && ($amount !== null)) {
             $cost = $amount * $price;
         }
         $orderId = $this->safe_integer($trade, 'order_id');
         $marketId = $this->safe_string_2($trade, 'contract_id', 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $feeCost = $this->safe_float($trade, 'fees');
+        $feeCost = $this->safe_number($trade, 'fees');
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_coin_name');
@@ -1150,11 +1147,11 @@ class bitmart extends Exchange {
         //
         return array(
             $this->safe_timestamp($ohlcv, 'timestamp'),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volume'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
         );
     }
 
@@ -1249,7 +1246,7 @@ class bitmart extends Exchange {
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1257,7 +1254,7 @@ class bitmart extends Exchange {
         $request = array();
         if ($market['spot']) {
             $request['symbol'] = $market['id'];
-            $request['offset'] = 1;
+            $request['offset'] = 1; // max offset * $limit < 500
             if ($limit === null) {
                 $limit = 100; // max 100
             }
@@ -1330,7 +1327,7 @@ class bitmart extends Exchange {
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1478,14 +1475,14 @@ class bitmart extends Exchange {
         for ($i = 0; $i < count($wallet); $i++) {
             $balance = $wallet[$i];
             $currencyId = $this->safe_string_2($balance, 'id', 'currency');
-            $currencyId = $this->safe_string($balance, 'coind_code', $currencyId);
+            $currencyId = $this->safe_string($balance, 'coin_code', $currencyId);
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float_2($balance, 'available', 'available_vol');
-            $account['used'] = $this->safe_float_2($balance, 'frozen', 'freeze_vol');
+            $account['free'] = $this->safe_string_2($balance, 'available', 'available_vol');
+            $account['used'] = $this->safe_string_2($balance, 'frozen', 'freeze_vol');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order($order, $market = null) {
@@ -1554,29 +1551,10 @@ class bitmart extends Exchange {
         if ($market !== null) {
             $status = $this->parse_order_status_by_type($market['type'], $this->safe_string($order, 'status'));
         }
-        $price = $this->safe_float($order, 'price');
-        $average = $this->safe_float_2($order, 'price_avg', 'done_avg_price');
-        $amount = $this->safe_float_2($order, 'size', 'vol');
-        $cost = null;
-        $filled = $this->safe_float_2($order, 'filled_size', 'done_vol');
-        $remaining = null;
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                if ($filled === null) {
-                    $filled = max (0, $amount - $remaining);
-                }
-            }
-            if ($filled !== null) {
-                if ($remaining === null) {
-                    $remaining = max (0, $amount - $filled);
-                }
-                if ($cost === null) {
-                    if ($average !== null) {
-                        $cost = $average * $filled;
-                    }
-                }
-            }
-        }
+        $price = $this->safe_number($order, 'price');
+        $average = $this->safe_number_2($order, 'price_avg', 'done_avg_price');
+        $amount = $this->safe_number_2($order, 'size', 'vol');
+        $filled = $this->safe_number_2($order, 'filled_size', 'done_vol');
         $side = $this->safe_string($order, 'side');
         // 1 = Open long
         // 2 = Close short
@@ -1598,7 +1576,7 @@ class bitmart extends Exchange {
                 $average = null;
             }
         }
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
@@ -1607,17 +1585,20 @@ class bitmart extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function parse_order_status_by_type($type, $status) {
@@ -1658,7 +1639,7 @@ class bitmart extends Exchange {
             } else if ($type === 'market') {
                 // for $market buy it requires the $amount of quote currency to spend
                 if ($side === 'buy') {
-                    $notional = $this->safe_float($params, 'notional');
+                    $notional = $this->safe_number($params, 'notional');
                     $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
                     if ($createMarketBuyOrderRequiresPrice) {
                         if ($price !== null) {
@@ -1711,7 +1692,7 @@ class bitmart extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1739,6 +1720,15 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
+        // spot alternative
+        //
+        //     {
+        //         "code" => 1000,
+        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
+        //         "message" => "OK",
+        //         "$data" => true
+        //     }
+        //
         // contract
         //
         //     {
@@ -1754,16 +1744,19 @@ class bitmart extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
+        if ($data === true) {
+            return $this->parse_order($id, $market);
+        }
         $succeeded = $this->safe_value($data, 'succeed');
         if ($succeeded !== null) {
             $id = $this->safe_string($succeeded, 0);
             if ($id === null) {
-                throw new InvalidOrder($this->id . ' cancelOrder failed to cancel ' . $symbol . ' $order $id ' . $id);
+                throw new InvalidOrder($this->id . ' cancelOrder() failed to cancel ' . $symbol . ' $order $id ' . $id);
             }
         } else {
             $result = $this->safe_value($data, 'result');
             if (!$result) {
-                throw new InvalidOrder($this->id . ' cancelOrder ' . $symbol . ' $order $id ' . $id . ' is filled or canceled');
+                throw new InvalidOrder($this->id . ' cancelOrder() ' . $symbol . ' $order $id ' . $id . ' is filled or canceled');
             }
         }
         $order = $this->parse_order($id, $market);
@@ -1772,16 +1765,16 @@ class bitmart extends Exchange {
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
         }
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . " cancelAllOrders requires a `$side` parameter ('buy' or 'sell')");
+            throw new ArgumentsRequired($this->id . " cancelAllOrders() requires a `$side` parameter ('buy' or 'sell')");
         }
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['spot']) {
-            throw new NotSupported($this->id . ' cancelAllOrders does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+            throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1801,12 +1794,12 @@ class bitmart extends Exchange {
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' canelOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' canelOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['spot']) {
-            throw new NotSupported($this->id . ' cancelOrders does not support ' . $market['type'] . ' $orders, only contract $orders are accepted');
+            throw new NotSupported($this->id . ' cancelOrders() does not support ' . $market['type'] . ' $orders, only contract $orders are accepted');
         }
         $orders = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -1847,7 +1840,7 @@ class bitmart extends Exchange {
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1969,7 +1962,7 @@ class bitmart extends Exchange {
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1981,7 +1974,7 @@ class bitmart extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $request = array();
@@ -2059,7 +2052,7 @@ class bitmart extends Exchange {
             $orders = $this->safe_value($data, 'orders', array());
             $firstOrder = $this->safe_value($orders, 0);
             if ($firstOrder === null) {
-                throw new OrderNotFound($this->id . ' fetchOrder could not find ' . $symbol . ' order $id ' . $id);
+                throw new OrderNotFound($this->id . ' fetchOrder() could not find ' . $symbol . ' order $id ' . $id);
             }
             return $this->parse_order($firstOrder, $market);
         } else {
@@ -2232,12 +2225,12 @@ class bitmart extends Exchange {
             $type = 'deposit';
             $id = $depositId;
         }
-        $amount = $this->safe_float($transaction, 'arrival_amount');
+        $amount = $this->safe_number($transaction, 'arrival_amount');
         $timestamp = $this->safe_integer($transaction, 'tapply_timeime');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $feeCost = $this->safe_number($transaction, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(

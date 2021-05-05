@@ -152,6 +152,8 @@ class coinmarketcap extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6081
             // https://github.com/ccxt/ccxt/issues/3365
             // https://github.com/ccxt/ccxt/issues/2873
+            'SBTCT' => 'SiamBitcoin', // conflict with sBTC
+            'Super Bitcoin' => 'Super Bitcoin', // conflict with sBTC
             'TerraCredit' => 'TerraCredit', // conflict with CREDIT (PROXI)
             'Themis' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
             'UNI COIN' => 'UNI COIN', // conflict with UNI (Uniswap)
@@ -208,16 +210,16 @@ class coinmarketcap extends Exchange {
         if ($timestamp === null) {
             $timestamp = $this->milliseconds();
         }
-        $change = $this->safe_float($ticker, 'percent_change_24h');
+        $change = $this->safe_number($ticker, 'percent_change_24h');
         $last = null;
         $symbol = null;
         $volume = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
             $priceKey = 'price_' . $market['quoteId'];
-            $last = $this->safe_float($ticker, $priceKey);
+            $last = $this->safe_number($ticker, $priceKey);
             $volumeKey = '24h_volume_' . $market['quoteId'];
-            $volume = $this->safe_float($ticker, $volumeKey);
+            $volume = $this->safe_number($ticker, $volumeKey);
         }
         return array(
             'symbol' => $symbol,

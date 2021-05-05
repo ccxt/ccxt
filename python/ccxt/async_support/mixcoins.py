@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.precise import Precise
 
 
 class mixcoins(Exchange):
@@ -73,10 +74,10 @@ class mixcoins(Exchange):
             code = self.safe_currency_code(currencyId)
             balance = self.safe_value(balances, currencyId, {})
             account = self.account()
-            account['free'] = self.safe_float(balance, 'avail')
-            account['used'] = self.safe_float(balance, 'lock')
+            account['free'] = self.safe_string(balance, 'avail')
+            account['used'] = self.safe_string(balance, 'lock')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -84,7 +85,7 @@ class mixcoins(Exchange):
             'market': self.market_id(symbol),
         }
         response = await self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response['result'])
+        return self.parse_order_book(response['result'], symbol)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -94,16 +95,16 @@ class mixcoins(Exchange):
         response = await self.publicGetTicker(self.extend(request, params))
         ticker = self.safe_value(response, 'result')
         timestamp = self.milliseconds()
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -113,7 +114,7 @@ class mixcoins(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -124,12 +125,11 @@ class mixcoins(Exchange):
         if market is not None:
             symbol = market['symbol']
         id = self.safe_string(trade, 'id')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'id': id,
             'info': trade,

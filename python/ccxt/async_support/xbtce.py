@@ -148,18 +148,21 @@ class xbtce(Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         balances = await self.privateGetAsset(params)
-        result = {'info': balances}
+        result = {
+            'info': balances,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'Currency')
             code = self.safe_currency_code(currencyId)
-            account = {
-                'free': self.safe_float(balance, 'FreeAmount'),
-                'used': self.safe_float(balance, 'LockedAmount'),
-                'total': self.safe_float(balance, 'Amount'),
-            }
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'FreeAmount')
+            account['used'] = self.safe_string(balance, 'LockedAmount')
+            account['total'] = self.safe_string(balance, 'Amount')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -170,7 +173,7 @@ class xbtce(Exchange):
         response = await self.privateGetLevel2Filter(self.extend(request, params))
         orderbook = response[0]
         timestamp = self.safe_integer(orderbook, 'Timestamp')
-        return self.parse_order_book(orderbook, timestamp, 'Bids', 'Asks', 'Price', 'Volume')
+        return self.parse_order_book(orderbook, symbol, timestamp, 'Bids', 'Asks', 'Price', 'Volume')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = 0
@@ -256,11 +259,11 @@ class xbtce(Exchange):
     def parse_ohlcv(self, ohlcv, market=None):
         return [
             self.safe_integer(ohlcv, 'Timestamp'),
-            self.safe_float(ohlcv, 'Open'),
-            self.safe_float(ohlcv, 'High'),
-            self.safe_float(ohlcv, 'Low'),
-            self.safe_float(ohlcv, 'Close'),
-            self.safe_float(ohlcv, 'Volume'),
+            self.safe_number(ohlcv, 'Open'),
+            self.safe_number(ohlcv, 'High'),
+            self.safe_number(ohlcv, 'Low'),
+            self.safe_number(ohlcv, 'Close'),
+            self.safe_number(ohlcv, 'Volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

@@ -623,7 +623,7 @@ class dsx(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         if type == 'market' and price is None:
-            raise ArgumentsRequired(self.id + ' createOrder requires a price argument even for market orders, that is the worst price that you agree to fill your order for')
+            raise ArgumentsRequired(self.id + ' createOrder() requires a price argument even for market orders, that is the worst price that you agree to fill your order for')
         request = {
             'pair': market['id'],
             'type': side,
@@ -794,8 +794,11 @@ class dsx(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': orderType,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'remaining': remaining,

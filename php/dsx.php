@@ -656,7 +656,7 @@ class dsx extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($type === 'market' && $price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument even for $market orders, that is the worst $price that you agree to fill your order for');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument even for $market orders, that is the worst $price that you agree to fill your order for');
         }
         $request = array(
             'pair' => $market['id'],
@@ -842,8 +842,11 @@ class dsx extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'type' => $orderType,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'remaining' => $remaining,

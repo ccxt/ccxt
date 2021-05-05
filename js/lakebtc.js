@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -112,10 +113,10 @@ module.exports = class lakebtc extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balances, currencyId);
+            account['total'] = this.safeString (balances, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -124,7 +125,7 @@ module.exports = class lakebtc extends Exchange {
             'symbol': this.marketId (symbol),
         };
         const response = await this.publicGetBcorderbook (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -133,16 +134,16 @@ module.exports = class lakebtc extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -152,7 +153,7 @@ module.exports = class lakebtc extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -183,14 +184,11 @@ module.exports = class lakebtc extends Exchange {
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString (trade, 'tid');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

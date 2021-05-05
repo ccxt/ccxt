@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -222,7 +223,10 @@ module.exports = class bitforex extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'ACE': 'ACE Entertainment',
                 'CREDIT': 'TerraCredit',
+                'CTC': 'Culture Ticket Chain',
+                'HBC': 'Hybrid Bank Cash',
                 'IQ': 'IQ.Cash',
                 'UOS': 'UOS Network',
             },
@@ -231,7 +235,9 @@ module.exports = class bitforex extends Exchange {
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
                 '1017': PermissionDenied, // {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
+                '1019': BadSymbol, // {"code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid"}
                 '3002': InsufficientFunds,
+                '4003': InvalidOrder, // {"success":false,"code":"4003","message":"amount too small"}
                 '10204': DDoSProtection,
             },
         });
@@ -257,7 +263,7 @@ module.exports = class bitforex extends Exchange {
             };
             const limits = {
                 'amount': {
-                    'min': this.safeFloat (market, 'minOrderAmount'),
+                    'min': this.safeNumber (market, 'minOrderAmount'),
                     'max': undefined,
                 },
                 'price': {
@@ -293,14 +299,11 @@ module.exports = class bitforex extends Exchange {
         const timestamp = this.safeInteger (trade, 'time');
         const id = this.safeString (trade, 'tid');
         const orderId = undefined;
-        const amount = this.safeFloat (trade, 'amount');
-        const price = this.safeFloat (trade, 'price');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const sideId = this.safeInteger (trade, 'direction');
         const side = this.parseSide (sideId);
         return {
@@ -343,12 +346,12 @@ module.exports = class bitforex extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeFloat (balance, 'frozen');
-            account['free'] = this.safeFloat (balance, 'active');
-            account['total'] = this.safeFloat (balance, 'fix');
+            account['used'] = this.safeString (balance, 'frozen');
+            account['free'] = this.safeString (balance, 'active');
+            account['total'] = this.safeString (balance, 'fix');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -364,21 +367,21 @@ module.exports = class bitforex extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (data, 'high'),
-            'low': this.safeFloat (data, 'low'),
-            'bid': this.safeFloat (data, 'buy'),
+            'high': this.safeNumber (data, 'high'),
+            'low': this.safeNumber (data, 'low'),
+            'bid': this.safeNumber (data, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (data, 'sell'),
+            'ask': this.safeNumber (data, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': this.safeFloat (data, 'last'),
-            'last': this.safeFloat (data, 'last'),
+            'close': this.safeNumber (data, 'last'),
+            'last': this.safeNumber (data, 'last'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (data, 'vol'),
+            'baseVolume': this.safeNumber (data, 'vol'),
             'quoteVolume': undefined,
             'info': response,
         };
@@ -398,11 +401,11 @@ module.exports = class bitforex extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 'time'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'vol'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'vol'),
         ];
     }
 
@@ -444,7 +447,7 @@ module.exports = class bitforex extends Exchange {
         const response = await this.publicGetApiV1MarketDepth (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (response, 'time');
-        return this.parseOrderBook (data, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseOrderStatus (status) {
@@ -470,26 +473,24 @@ module.exports = class bitforex extends Exchange {
 
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'orderId');
-        const timestamp = this.safeFloat (order, 'createTime');
-        const lastTradeTimestamp = this.safeFloat (order, 'lastTime');
+        const timestamp = this.safeNumber (order, 'createTime');
+        const lastTradeTimestamp = this.safeNumber (order, 'lastTime');
         const symbol = market['symbol'];
         const sideId = this.safeInteger (order, 'tradeType');
         const side = this.parseSide (sideId);
         const type = undefined;
-        const price = this.safeFloat (order, 'orderPrice');
-        const average = this.safeFloat (order, 'avgPrice');
-        const amount = this.safeFloat (order, 'orderAmount');
-        const filled = this.safeFloat (order, 'dealAmount');
-        const remaining = amount - filled;
+        const price = this.safeNumber (order, 'orderPrice');
+        const average = this.safeNumber (order, 'avgPrice');
+        const amount = this.safeNumber (order, 'orderAmount');
+        const filled = this.safeNumber (order, 'dealAmount');
         const status = this.parseOrderStatus (this.safeString (order, 'orderState'));
-        const cost = filled * price;
         const feeSide = (side === 'buy') ? 'base' : 'quote';
         const feeCurrency = market[feeSide];
         const fee = {
-            'cost': this.safeFloat (order, 'tradeFee'),
+            'cost': this.safeNumber (order, 'tradeFee'),
             'currency': feeCurrency,
         };
-        const result = {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -498,18 +499,20 @@ module.exports = class bitforex extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
-            'cost': cost,
+            'stopPrice': undefined,
+            'cost': undefined,
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
-        return result;
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

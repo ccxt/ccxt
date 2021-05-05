@@ -13,8 +13,10 @@ except NameError:
     basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.precise import Precise
 
 
 class qtrade(Exchange):
@@ -122,6 +124,7 @@ class qtrade(Exchange):
                 'exact': {
                     'invalid_auth': AuthenticationError,
                     'insuff_funds': InsufficientFunds,
+                    'market_not_found': BadSymbol,  # {"errors":[{"code":"market_not_found","title":"Requested market does not exist"}]}
                 },
             },
         })
@@ -189,11 +192,11 @@ class qtrade(Exchange):
                 'quote': quote,
                 'active': active,
                 'precision': precision,
-                'taker': self.safe_float(market, 'taker_fee'),
-                'maker': self.safe_float(market, 'maker_fee'),
+                'taker': self.safe_number(market, 'taker_fee'),
+                'maker': self.safe_number(market, 'maker_fee'),
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'minimum_buy_value'),
+                        'min': self.safe_number(market, 'minimum_buy_value'),
                         'max': None,
                     },
                     'price': {
@@ -272,20 +275,12 @@ class qtrade(Exchange):
                 'info': currency,
                 'type': type,
                 'name': name,
-                'fee': self.safe_float(config, 'withdraw_fee'),
+                'fee': self.safe_number(config, 'withdraw_fee'),
                 'precision': self.safe_integer(currency, 'precision'),
                 'active': active,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(currency, 'minimum_order'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
+                        'min': self.safe_number(currency, 'minimum_order'),
                         'max': None,
                     },
                     'withdraw': {
@@ -310,11 +305,11 @@ class qtrade(Exchange):
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'time')),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'market_volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'market_volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
@@ -374,12 +369,12 @@ class qtrade(Exchange):
             result = []
             for j in range(0, len(prices)):
                 priceAsString = prices[j]
-                price = self.safe_float(prices, j)
-                amount = self.safe_float(bidasks, priceAsString)
+                price = self.safe_number(prices, j)
+                amount = self.safe_number(bidasks, priceAsString)
                 result.append([price, amount])
             orderbook[side] = result
         timestamp = self.safe_integer_product(data, 'last_change', 0.001)
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -404,30 +399,30 @@ class qtrade(Exchange):
         marketId = self.safe_string(ticker, 'id_hr')
         symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_integer_product(ticker, 'last_change', 0.001)
-        previous = self.safe_float(ticker, 'day_open')
-        last = self.safe_float(ticker, 'last')
-        day_change = self.safe_float(ticker, 'day_change')
+        previous = self.safe_number(ticker, 'day_open')
+        last = self.safe_number(ticker, 'last')
+        day_change = self.safe_number(ticker, 'day_change')
         percentage = None
         change = None
-        average = self.safe_float(ticker, 'day_avg_price')
+        average = self.safe_number(ticker, 'day_avg_price')
         if day_change is not None:
             percentage = day_change * 100
             if previous is not None:
                 change = day_change * previous
         if (average is None) and (last is not None) and (previous is not None):
             average = self.sum(last, previous) / 2
-        baseVolume = self.safe_float(ticker, 'day_volume_market')
-        quoteVolume = self.safe_float(ticker, 'day_volume_base')
+        baseVolume = self.safe_number(ticker, 'day_volume_market')
+        quoteVolume = self.safe_number(ticker, 'day_volume_base')
         vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'day_high'),
-            'low': self.safe_float(ticker, 'day_low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'day_high'),
+            'low': self.safe_number(ticker, 'day_low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': previous,
@@ -627,14 +622,15 @@ class qtrade(Exchange):
         side = self.safe_string(trade, 'side')
         marketId = self.safe_string(trade, 'market_string')
         symbol = self.safe_symbol(marketId, market, '_')
-        cost = self.safe_float_2(trade, 'base_volume', 'base_amount')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float_2(trade, 'market_amount', 'amount')
-        if (cost is None) and (amount is not None) and (price is not None):
-            if price is not None:
-                cost = price * amount
+        cost = self.safe_number_2(trade, 'base_volume', 'base_amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'market_amount', 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
-        feeCost = self.safe_float(trade, 'base_fee')
+        feeCost = self.safe_number(trade, 'base_fee')
         if feeCost is not None:
             feeCurrencyCode = None if (market is None) else market['quote']
             fee = {
@@ -683,14 +679,16 @@ class qtrade(Exchange):
         balances = self.safe_value(data, 'balances', [])
         result = {
             'info': response,
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = result[code] if (code in result) else self.account()
-            account['free'] = self.safe_float(balance, 'balance')
-            account['used'] = 0
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = '0'
             result[code] = account
         balances = self.safe_value(data, 'order_balances', [])
         for i in range(0, len(balances)):
@@ -698,9 +696,9 @@ class qtrade(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = result[code] if (code in result) else self.account()
-            account['used'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -825,10 +823,9 @@ class qtrade(Exchange):
             parts = sideType.split('_')
             side = self.safe_string(parts, 0)
             orderType = self.safe_string(parts, 1)
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'market_amount')
-        remaining = self.safe_float(order, 'market_amount_remaining')
-        filled = None
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'market_amount')
+        remaining = self.safe_number(order, 'market_amount_remaining')
         open = self.safe_value(order, 'open', False)
         closeReason = self.safe_string(order, 'close_reason')
         status = None
@@ -839,64 +836,38 @@ class qtrade(Exchange):
         else:
             status = 'closed'
         marketId = self.safe_string(order, 'market_string')
-        symbol = self.safe_symbol(marketId, market, '_')
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         rawTrades = self.safe_value(order, 'trades', [])
         parsedTrades = self.parse_trades(rawTrades, market, None, None, {
             'order': id,
             'side': side,
             'type': orderType,
         })
-        numTrades = len(parsedTrades)
-        lastTradeTimestamp = None
-        feeCost = None
-        cost = None
-        if numTrades > 0:
-            feeCost = 0
-            cost = 0
-            filled = 0
-            remaining = amount
-            for i in range(0, len(parsedTrades)):
-                trade = parsedTrades[i]
-                feeCost = self.sum(trade['fee']['cost'], feeCost)
-                lastTradeTimestamp = self.safe_integer(trade, 'timestamp')
-                cost = self.sum(trade['cost'], cost)
-                filled = self.sum(trade['amount'], filled)
-                remaining = max(0, remaining - trade['amount'])
-        fee = None
-        if feeCost is not None:
-            feeCurrencyCode = None if (market is None) else market['quote']
-            fee = {
-                'currency': feeCurrencyCode,
-                'cost': feeCost,
-            }
-        if (amount is not None) and (remaining is not None):
-            filled = max(0, amount - remaining)
-        average = None
-        if filled is not None:
-            if (price is not None) and (cost is None):
-                cost = filled * price
-            if (cost is not None) and (filled > 0):
-                average = cost / filled
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
-            'average': average,
+            'stopPrice': None,
+            'average': None,
             'amount': amount,
             'remaining': remaining,
-            'filled': filled,
+            'filled': None,
             'status': status,
-            'fee': fee,
-            'cost': cost,
+            'fee': None,
+            'fees': None,
+            'cost': None,
             'trades': parsedTrades,
-        }
+        })
 
     async def cancel_order(self, id, symbol=None, params={}):
         request = {
@@ -1347,7 +1318,7 @@ class qtrade(Exchange):
         tagTo = tag
         cancelRequested = self.safe_value(transaction, 'cancel_requested')
         type = 'deposit' if (cancelRequested is None) else 'withdrawal'
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))

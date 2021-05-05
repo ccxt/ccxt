@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from ccxt.base.precise import Precise
 
 
 class bl3p(Exchange):
@@ -82,15 +83,17 @@ class bl3p(Exchange):
             available = self.safe_value(wallet, 'available', {})
             balance = self.safe_value(wallet, 'balance', {})
             account = self.account()
-            account['free'] = self.safe_float(available, 'value')
-            account['total'] = self.safe_float(balance, 'value')
+            account['free'] = self.safe_string(available, 'value')
+            account['total'] = self.safe_string(balance, 'value')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+        price = self.safe_number(bidask, priceKey)
+        size = self.safe_number(bidask, amountKey)
         return [
-            bidask[priceKey] / 100000.0,
-            bidask[amountKey] / 100000000.0,
+            price / 100000.0,
+            size / 100000000.0,
         ]
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -100,7 +103,7 @@ class bl3p(Exchange):
         }
         response = await self.publicGetMarketOrderbook(self.extend(request, params))
         orderbook = self.safe_value(response, 'data')
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price_int', 'amount_int')
+        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price_int', 'amount_int')
 
     async def fetch_ticker(self, symbol, params={}):
         request = {
@@ -108,16 +111,16 @@ class bl3p(Exchange):
         }
         ticker = await self.publicGetMarketTicker(self.extend(request, params))
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -127,7 +130,7 @@ class bl3p(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker['volume'], '24h'),
+            'baseVolume': self.safe_number(ticker['volume'], '24h'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -135,16 +138,13 @@ class bl3p(Exchange):
     def parse_trade(self, trade, market=None):
         id = self.safe_string(trade, 'trade_id')
         timestamp = self.safe_integer(trade, 'date')
-        price = self.safe_float(trade, 'price_int')
-        if price is not None:
-            price /= 100000.0
-        amount = self.safe_float(trade, 'amount_int')
-        if amount is not None:
-            amount /= 100000000.0
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price_int')
+        priceString = Precise.string_div(priceString, '100000')
+        amountString = self.safe_string(trade, 'amount_int')
+        amountString = Precise.string_div(amountString, '100000000')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']

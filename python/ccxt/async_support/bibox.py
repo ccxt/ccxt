@@ -19,12 +19,15 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class bibox(Exchange):
@@ -35,6 +38,7 @@ class bibox(Exchange):
             'name': 'Bibox',
             'countries': ['CN', 'US', 'KR'],
             'version': 'v1',
+            'hostname': 'bibox365.com',
             'has': {
                 'cancelOrder': True,
                 'CORS': False,
@@ -74,13 +78,13 @@ class bibox(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
-                'api': 'https://api.bibox.com',
-                'www': 'https://www.bibox.com',
+                'api': 'https://api.{hostname}',
+                'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral': 'https://w2.bibox.com/login/register?invite_code=05Kj3I',
+                'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             },
             'api': {
                 'public': {
@@ -91,6 +95,7 @@ class bibox(Exchange):
                     'get': [
                         'cquery',
                         'mdata',
+                        'cdata',
                     ],
                 },
                 'private': {
@@ -127,10 +132,17 @@ class bibox(Exchange):
                 '2015': AuthenticationError,  # Google authenticator is wrong
                 '2021': InsufficientFunds,  # Insufficient balance available for withdrawal
                 '2027': InsufficientFunds,  # Insufficient balance available(for trade)
-                '2033': OrderNotFound,  # operation failednot  Orders have been completed or revoked
+                '2033': OrderNotFound,  # operation failed! Orders have been completed or revoked
+                '2065': InvalidOrder,  # Precatory price is exorbitant, please reset
+                '2066': InvalidOrder,  # Precatory price is low, please reset
                 '2067': InvalidOrder,  # Does not support market orders
                 '2068': InvalidOrder,  # The number of orders can not be less than
+                '2078': InvalidOrder,  # unvalid order price
                 '2085': InvalidOrder,  # Order quantity is too small
+                '2091': RateLimitExceeded,  # request is too frequency, please try again later
+                '2092': InvalidOrder,  # Minimum amount not met
+                '3000': BadRequest,  # Requested parameter incorrect
+                '3002': BadRequest,  # Parameter cannot be null
                 '3012': AuthenticationError,  # invalid apiKey
                 '3016': BadSymbol,  # Trading pair error
                 '3024': PermissionDenied,  # wrong apikey permissions
@@ -144,6 +156,10 @@ class bibox(Exchange):
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'PAI': 'PCHAIN',
+                'TERN': 'Ternio-ERC20',
+            },
+            'options': {
+                'fetchCurrencies': 'fetch_currencies_public',  # or 'fetch_currencies_private' with apiKey and secret
             },
         })
 
@@ -233,9 +249,9 @@ class bibox(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-        last = self.safe_float(ticker, 'last')
-        change = self.safe_float(ticker, 'change')
-        baseVolume = self.safe_float_2(ticker, 'vol', 'vol24H')
+        last = self.safe_number(ticker, 'last')
+        change = self.safe_number(ticker, 'change')
+        baseVolume = self.safe_number_2(ticker, 'vol', 'vol24H')
         open = None
         if (last is not None) and (change is not None):
             open = last - change
@@ -247,11 +263,11 @@ class bibox(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -262,7 +278,7 @@ class bibox(Exchange):
             'percentage': percentage,
             'average': None,
             'baseVolume': baseVolume,
-            'quoteVolume': self.safe_float(ticker, 'amount'),
+            'quoteVolume': self.safe_number(ticker, 'amount'),
             'info': ticker,
         }
 
@@ -275,14 +291,6 @@ class bibox(Exchange):
         }
         response = await self.publicGetMdata(self.extend(request, params))
         return self.parse_ticker(response['result'], market)
-
-    def parse_tickers(self, rawTickers, symbols=None):
-        tickers = []
-        for i in range(0, len(rawTickers)):
-            ticker = self.parse_ticker(rawTickers[i])
-            if (symbols is None) or (self.in_array(ticker['symbol'], symbols)):
-                tickers.append(ticker)
-        return tickers
 
     async def fetch_tickers(self, symbols=None, params={}):
         request = {
@@ -310,7 +318,7 @@ class bibox(Exchange):
         if market is not None:
             symbol = market['symbol']
         fee = None
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         feeCurrency = self.safe_string(trade, 'fee_symbol')
         if feeCurrency is not None:
             if feeCurrency in self.currencies_by_id:
@@ -318,11 +326,11 @@ class bibox(Exchange):
             else:
                 feeCurrency = self.safe_currency_code(feeCurrency)
         feeRate = None  # todo: deduce from market if market is defined
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None and amount is not None:
-            cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         if feeCost is not None:
             fee = {
                 'cost': -feeCost,
@@ -368,7 +376,7 @@ class bibox(Exchange):
         if limit is not None:
             request['size'] = limit  # default = 200
         response = await self.publicGetMdata(self.extend(request, params))
-        return self.parse_order_book(response['result'], self.safe_float(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
+        return self.parse_order_book(response['result'], symbol, self.safe_number(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -383,11 +391,11 @@ class bibox(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 'time'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'vol'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'vol'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
@@ -415,6 +423,67 @@ class bibox(Exchange):
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def fetch_currencies(self, params={}):
+        method = self.safe_string(self.options, 'fetchCurrencies', 'fetch_currencies_public')
+        return await getattr(self, method)(params)
+
+    async def fetch_currencies_public(self, params={}):
+        request = {
+            'cmd': 'currencies',
+        }
+        response = await self.publicGetCdata(self.extend(request, params))
+        #
+        # publicGetCdata
+        #
+        #     {
+        #         "result":[
+        #             {
+        #                 "symbol":"BTC",
+        #                 "name":"BTC",
+        #                 "valid_decimals":8,
+        #                 "original_decimals":8,
+        #                 "is_erc20":0,
+        #                 "enable_withdraw":1,
+        #                 "enable_deposit":1,
+        #                 "withdraw_min":0.005,
+        #                 "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"Bitcoin 比特币的概念最初由中本聪在2009年提出，是点对点的基于 SHA-256 算法的一种P2P形式的数字货币，点对点的传输意味着一个去中心化的支付系统。\"},{\"lang\":\"en-ww\",\"text\":\"Bitcoin is a digital asset and a payment system invented by Satoshi Nakamoto who published a related paper in 2008 and released it as open-source software in 2009. The system featured as peer-to-peer; users can transact directly without an intermediary.\"}]"
+        #             }
+        #         ],
+        #         "cmd":"currencies"
+        #     }
+        #
+        currencies = self.safe_value(response, 'result')
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = self.safe_string(currency, 'symbol')
+            name = self.safe_string(currency, 'name')  # contains hieroglyphs causing python ASCII bug
+            code = self.safe_currency_code(id)
+            precision = self.safe_integer(currency, 'valid_decimals')
+            deposit = self.safe_value(currency, 'enable_deposit')
+            withdraw = self.safe_value(currency, 'enable_withdraw')
+            active = (deposit and withdraw)
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': name,
+                'active': active,
+                'fee': None,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision),
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.safe_number(currency, 'withdraw_min'),
+                        'max': None,
+                    },
+                },
+            }
+        return result
+
+    async def fetch_currencies_private(self, params={}):
         if not self.apiKey or not self.secret:
             raise AuthenticationError(self.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = False before calling its methods.")
         request = {
@@ -426,46 +495,42 @@ class bibox(Exchange):
         #     {
         #         "result":[
         #             {
-        #                 "result":[
-        #                     {
-        #                         "totalBalance":"14.57582269",
-        #                         "balance":"14.57582269",
-        #                         "freeze":"0.00000000",
-        #                         "id":60,
-        #                         "symbol":"USDT",
-        #                         "icon_url":"/appimg/USDT_icon.png",
-        #                         "describe_url":"[{\"lang\":\"zh-cn\",\"link\":\"https://bibox.zendesk.com/hc/zh-cn/articles/115004798234\"},{\"lang\":\"en-ww\",\"link\":\"https://bibox.zendesk.com/hc/en-us/articles/115004798234\"}]",
-        #                         "name":"USDT",
-        #                         "enable_withdraw":1,
-        #                         "enable_deposit":1,
-        #                         "enable_transfer":1,
-        #                         "confirm_count":2,
-        #                         "is_erc20":1,
-        #                         "forbid_info":null,
-        #                         "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"USDT 是 Tether 公司推出的基于稳定价值货币美元（USD）的代币 Tether USD（简称USDT），1USDT=1美元，用户可以随时使用 USDT 与 USD 进行1:1的兑换。\"},{\"lang\":\"en-ww\",\"text\":\"USDT is a cryptocurrency asset issued on the Bitcoin blockchain via the Omni Layer Protocol. Each USDT unit is backed by a U.S Dollar held in the reserves of the Tether Limited and can be redeemed through the Tether Platform.\"}]",
-        #                         "total_amount":4776930644,
-        #                         "supply_amount":4642367414,
-        #                         "price":"--",
-        #                         "contract_father":"OMNI",
-        #                         "supply_time":"--",
-        #                         "comment":null,
-        #                         "contract":"31",
-        #                         "original_decimals":8,
-        #                         "deposit_type":0,
-        #                         "hasCobo":0,
-        #                         "BTCValue":"0.00126358",
-        #                         "CNYValue":"100.93381445",
-        #                         "USDValue":"14.57524654",
-        #                         "children":[
-        #                             {"type":"OMNI","symbol":"USDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":2},
-        #                             {"type":"TRC20","symbol":"tUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20},
-        #                             {"type":"ERC20","symbol":"eUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":25}
-        #                         ]
-        #                     },
-        #                 ],
-        #                 "cmd":"transfer/coinList"
-        #             }
-        #         ]
+        #                 "totalBalance":"14.57582269",
+        #                 "balance":"14.57582269",
+        #                 "freeze":"0.00000000",
+        #                 "id":60,
+        #                 "symbol":"USDT",
+        #                 "icon_url":"/appimg/USDT_icon.png",
+        #                 "describe_url":"[{\"lang\":\"zh-cn\",\"link\":\"https://bibox.zendesk.com/hc/zh-cn/articles/115004798234\"},{\"lang\":\"en-ww\",\"link\":\"https://bibox.zendesk.com/hc/en-us/articles/115004798234\"}]",
+        #                 "name":"USDT",
+        #                 "enable_withdraw":1,
+        #                 "enable_deposit":1,
+        #                 "enable_transfer":1,
+        #                 "confirm_count":2,
+        #                 "is_erc20":1,
+        #                 "forbid_info":null,
+        #                 "describe_summary":"[{\"lang\":\"zh-cn\",\"text\":\"USDT 是 Tether 公司推出的基于稳定价值货币美元（USD）的代币 Tether USD（简称USDT），1USDT=1美元，用户可以随时使用 USDT 与 USD 进行1:1的兑换。\"},{\"lang\":\"en-ww\",\"text\":\"USDT is a cryptocurrency asset issued on the Bitcoin blockchain via the Omni Layer Protocol. Each USDT unit is backed by a U.S Dollar held in the reserves of the Tether Limited and can be redeemed through the Tether Platform.\"}]",
+        #                 "total_amount":4776930644,
+        #                 "supply_amount":4642367414,
+        #                 "price":"--",
+        #                 "contract_father":"OMNI",
+        #                 "supply_time":"--",
+        #                 "comment":null,
+        #                 "contract":"31",
+        #                 "original_decimals":8,
+        #                 "deposit_type":0,
+        #                 "hasCobo":0,
+        #                 "BTCValue":"0.00126358",
+        #                 "CNYValue":"100.93381445",
+        #                 "USDValue":"14.57524654",
+        #                 "children":[
+        #                     {"type":"OMNI","symbol":"USDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":2},
+        #                     {"type":"TRC20","symbol":"tUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":20},
+        #                     {"type":"ERC20","symbol":"eUSDT","enable_deposit":1,"enable_withdraw":1,"confirm_count":25}
+        #                 ]
+        #             },
+        #         ],
+        #         "cmd":"transfer/coinList"
         #     }
         #
         currencies = self.safe_value(response, 'result')
@@ -491,14 +556,6 @@ class bibox(Exchange):
                     'amount': {
                         'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
                     },
                     'withdraw': {
                         'min': None,
@@ -537,15 +594,13 @@ class bibox(Exchange):
             account = self.account()
             balance = indexed[id]
             if isinstance(balance, basestring):
-                balance = float(balance)
                 account['free'] = balance
-                account['used'] = 0.0
                 account['total'] = balance
             else:
-                account['free'] = self.safe_float(balance, 'balance')
-                account['used'] = self.safe_float(balance, 'freeze')
+                account['free'] = self.safe_string(balance, 'balance')
+                account['used'] = self.safe_string(balance, 'freeze')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -627,8 +682,8 @@ class bibox(Exchange):
         tag = self.safe_string(transaction, 'addr_remark')
         type = self.safe_string(transaction, 'type')
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
-        amount = self.safe_float(transaction, 'amount')
-        feeCost = self.safe_float(transaction, 'fee')
+        amount = self.safe_number(transaction, 'amount')
+        feeCost = self.safe_number(transaction, 'fee')
         if type == 'deposit':
             feeCost = 0
             tag = None
@@ -725,31 +780,26 @@ class bibox(Exchange):
                 market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        type = 'market' if (order['order_type'] == 1) else 'limit'
-        timestamp = order['createdAt']
-        price = self.safe_float(order, 'price')
-        average = self.safe_float(order, 'deal_price')
-        filled = self.safe_float(order, 'deal_amount')
-        amount = self.safe_float(order, 'amount')
-        cost = self.safe_float_2(order, 'deal_money', 'money')
-        remaining = None
-        if filled is not None:
-            if amount is not None:
-                remaining = amount - filled
-            if cost is None:
-                cost = price * filled
-        side = 'buy' if (order['order_side'] == 1) else 'sell'
+        rawType = self.safe_string(order, 'order_type')
+        type = 'market' if (rawType == '1') else 'limit'
+        timestamp = self.safe_integer(order, 'createdAt')
+        price = self.safe_number(order, 'price')
+        average = self.safe_number(order, 'deal_price')
+        filled = self.safe_number(order, 'deal_amount')
+        amount = self.safe_number(order, 'amount')
+        cost = self.safe_number_2(order, 'deal_money', 'money')
+        rawSide = self.safe_string(order, 'order_side')
+        side = 'buy' if (rawSide == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
-        feeCost = self.safe_float(order, 'fee')
+        feeCost = self.safe_number(order, 'fee')
         fee = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
                 'currency': None,
             }
-        cost = cost if cost else (float(price) * filled)
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -758,17 +808,20 @@ class bibox(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': None,
-        }
+        })
 
     def parse_order_status(self, status):
         statuses = {
@@ -805,7 +858,7 @@ class bibox(Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=200, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -823,7 +876,7 @@ class bibox(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')
         await self.load_markets()
         market = self.market(symbol)
         size = limit if limit else 200
@@ -920,7 +973,7 @@ class bibox(Exchange):
             }
             response = await self.privatePostTransfer(request)
             info[code] = response
-            withdrawFees[code] = self.safe_float(response['result'], 'withdraw_fee')
+            withdrawFees[code] = self.safe_number(response['result'], 'withdraw_fee')
         return {
             'info': info,
             'withdraw': withdrawFees,
@@ -928,7 +981,7 @@ class bibox(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + path
+        url = self.implode_params(self.urls['api'], {'hostname': self.hostname}) + '/' + self.version + '/' + path
         cmds = self.json([params])
         if api == 'public':
             if method != 'GET':
@@ -937,7 +990,7 @@ class bibox(Exchange):
                 url += '?' + self.urlencode(params)
         elif api == 'v2private':
             self.check_required_credentials()
-            url = self.urls['api'] + '/v2/' + path
+            url = self.implode_params(self.urls['api'], {'hostname': self.hostname}) + '/v2/' + path
             json_params = self.json(params)
             body = {
                 'body': json_params,
