@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.49.44'
+__version__ = '1.49.45'
 
 # -----------------------------------------------------------------------------
 
@@ -115,7 +115,6 @@ from ccxt.async_support.eterbase import eterbase                          # noqa
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.exx import exx                                    # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
-from ccxt.async_support.foxbit import foxbit                              # noqa: F401
 from ccxt.async_support.ftx import ftx                                    # noqa: F401
 from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
@@ -154,13 +153,11 @@ from ccxt.async_support.rightbtc import rightbtc                          # noqa
 from ccxt.async_support.ripio import ripio                                # noqa: F401
 from ccxt.async_support.southxchange import southxchange                  # noqa: F401
 from ccxt.async_support.stex import stex                                  # noqa: F401
-from ccxt.async_support.surbitcoin import surbitcoin                      # noqa: F401
 from ccxt.async_support.therock import therock                            # noqa: F401
 from ccxt.async_support.tidebit import tidebit                            # noqa: F401
 from ccxt.async_support.tidex import tidex                                # noqa: F401
 from ccxt.async_support.timex import timex                                # noqa: F401
 from ccxt.async_support.upbit import upbit                                # noqa: F401
-from ccxt.async_support.vbtc import vbtc                                  # noqa: F401
 from ccxt.async_support.vcc import vcc                                    # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                # noqa: F401
 from ccxt.async_support.whitebit import whitebit                          # noqa: F401
@@ -235,7 +232,6 @@ exchanges = [
     'exmo',
     'exx',
     'flowbtc',
-    'foxbit',
     'ftx',
     'gateio',
     'gemini',
@@ -274,13 +270,11 @@ exchanges = [
     'ripio',
     'southxchange',
     'stex',
-    'surbitcoin',
     'therock',
     'tidebit',
     'tidex',
     'timex',
     'upbit',
-    'vbtc',
     'vcc',
     'wavesexchange',
     'whitebit',
