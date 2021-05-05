@@ -39,7 +39,7 @@ module.exports = class bitbns extends Exchange {
             'timeframes': {
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
                 'api': {
                     'ccxt': 'https://bitbns.com/order',
                     'v1': 'https://api.bitbns.com/api/trade/v1',
