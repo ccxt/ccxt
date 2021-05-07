@@ -520,11 +520,13 @@ class gemini(Exchange):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         nonce = self.nonce()
+        precisionPrice = self.price_to_precision(symbol, price)
+        precisionAmount = self.amount_to_precision(symbol, amount)
         request = {
             'client_order_id': str(nonce),
             'symbol': self.market_id(symbol),
-            'amount': str(amount),
-            'price': str(price),
+            'amount': str(precisionAmount),
+            'price': str(precisionPrice),
             'side': side,
             'type': 'exchange limit',  # gemini allows limit orders only
         }
