@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -117,9 +116,13 @@ class exx(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = market['isOpen'] is True
+            amountPrecisionString = self.safe_string(market, 'amountScale')
+            pricePrecisionString = self.safe_string(market, 'priceScale')
+            amountLimit = self.parse_precision(amountPrecisionString)
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
-                'amount': int(market['amountScale']),
-                'price': int(market['priceScale']),
+                'amount': int(amountPrecisionString),
+                'price': int(pricePrecisionString),
             }
             result.append({
                 'id': id,
@@ -132,15 +135,15 @@ class exx(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'min': self.parse_number(amountLimit),
+                        'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': self.parse_number(priceLimit),
+                        'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'minAmount'),
                         'max': None,
                     },
                 },
