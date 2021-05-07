@@ -184,7 +184,7 @@ module.exports = class tidex extends Exchange {
                     },
                     'deposit': {
                         'active': canDeposit,
-                        'fee': 0.0,
+                        'fee': this.parseNumber ('0'),
                     },
                 },
                 'limits': {
