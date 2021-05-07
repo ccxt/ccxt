@@ -530,11 +530,13 @@ module.exports = class gemini extends Exchange {
             throw new ExchangeError (this.id + ' allows limit orders only');
         }
         const nonce = this.nonce ();
+        const precisionPrice = this.priceToPrecision (symbol, price);
+        const precisionAmount = this.amountToPrecision (symbol, amount);
         const request = {
             'client_order_id': nonce.toString (),
             'symbol': this.marketId (symbol),
-            'amount': amount.toString (),
-            'price': price.toString (),
+            'amount': precisionAmount.toString (),
+            'price': precisionPrice.toString (),
             'side': side,
             'type': 'exchange limit', // gemini allows limit orders only
         };
