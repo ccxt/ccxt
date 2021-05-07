@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import asyncio
 import ccxtpro
+from asyncio import get_event_loop, gather, sleep
 
 
 orderbooks = {}
@@ -15,23 +15,19 @@ def handle_all_orderbooks(orderbooks):
             print(ccxtpro.Exchange.iso8601(orderbook['timestamp']), exchange_id, symbol, orderbook['asks'][0], orderbook['bids'][0])
 
 
+async def handling_loop(orderbooks):
+    delay = 5
+    while True:
+        await sleep(delay)
+        handle_all_orderbooks(orderbooks)
+
+
 async def symbol_loop(exchange, symbol):
     while True:
         try:
             orderbook = await exchange.watch_order_book(symbol)
             orderbooks[exchange.id] = orderbooks.get(exchange.id, {})
             orderbooks[exchange.id][symbol] = orderbook
-            print('===========================================================')
-            #
-            # here you can do what you want
-            # with the most recent versions of each orderbook you have so far
-            #
-            # you can also wait until all of them are available
-            # by just looking into all the orderbooks and counting them
-            #
-            # we just print them here to keep this example simple
-            #
-            handle_all_orderbooks(orderbooks)
         except Exception as e:
             print(str(e))
             # raise e  # uncomment to break all loops in case of an error in any one of them
@@ -44,7 +40,7 @@ async def exchange_loop(asyncio_loop, exchange_id, symbols):
         'asyncio_loop': asyncio_loop,
     })
     loops = [symbol_loop(exchange, symbol) for symbol in symbols]
-    await asyncio.gather(*loops)
+    await gather(*loops)
     await exchange.close()
 
 
@@ -56,9 +52,10 @@ async def main(asyncio_loop):
         'binance': symbols,
     }
     loops = [exchange_loop(asyncio_loop, exchange_id, symbols) for exchange_id, symbols in exchanges.items()]
-    await asyncio.gather(*loops)
+    loops += [ handling_loop(orderbooks) ]
+    await gather(*loops)
 
 
 if __name__ == '__main__':
-    asyncio_loop = asyncio.get_event_loop()
+    asyncio_loop = get_event_loop()
     asyncio_loop.run_until_complete(main(asyncio_loop))
