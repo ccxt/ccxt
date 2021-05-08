@@ -142,7 +142,6 @@ In CCXT Pro each public and private unified RESTful method having a `fetch*` pre
   - `fetchTickers` → `watchTickers`
   - `fetchOHLCV` → `watchOHLCV`
   - `fetchTrades` → `watchTrades`
-  - `fetchStatus` → `watchStatus`
 - Private API
   - `fetchBalance` → `watchBalance`
   - `fetchOrders` → `watchOrders`
@@ -336,7 +335,7 @@ The newUpdates mode continues to utilize the sliding cache in the background, bu
 The result from the newUpdates mode will be one or more updates that have occurred since the last time `exchange.watchMethod` resolved. CCXT Pro can return one or more orders that were updated since the previous call. The result of calling `exchange.watchOrders` will look like shown below:
 
 ```JavaScript
-[ 
+[
     order, // see https://github.com/ccxt/ccxt/wiki/Manual#order-structure
     order,
     order,
