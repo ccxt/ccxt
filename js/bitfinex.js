@@ -305,6 +305,7 @@ module.exports = class bitfinex extends Exchange {
                 'IQX': 'IQ',
                 'MNA': 'MANA',
                 'ORS': 'ORS Group', // conflict with Origin Sport #3230
+                'PAS': 'PASS',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
                 'RBT': 'RBTC',
