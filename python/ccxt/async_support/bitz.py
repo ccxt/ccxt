@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -299,10 +298,13 @@ class bitz(Exchange):
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
+            pricePrecisionString = self.safe_string(market, 'priceFloat')
+            minPrice = self.parse_precision(pricePrecisionString)
             precision = {
                 'amount': self.safe_integer(market, 'numberFloat'),
-                'price': self.safe_integer(market, 'priceFloat'),
+                'price': int(pricePrecisionString),
             }
+            minAmount = self.safe_string(market, 'minTrade')
             result.append({
                 'info': market,
                 'id': id,
@@ -316,15 +318,15 @@ class bitz(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_number(market, 'minTrade'),
+                        'min': self.parse_number(minAmount),
                         'max': self.safe_number(market, 'maxTrade'),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': self.parse_number(minPrice),
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.parse_number(Precise.string_mul(minPrice, minAmount)),
                         'max': None,
                     },
                 },
