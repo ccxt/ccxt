@@ -93,6 +93,8 @@ class ftx extends Exchange {
                         'options/historical_volumes/BTC',
                         'options/open_interest/BTC',
                         'options/historical_open_interest/BTC',
+                        // spot margin
+                        'spot_margin/history',
                     ),
                 ),
                 'private' => array(
