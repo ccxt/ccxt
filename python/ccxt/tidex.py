@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -203,13 +202,13 @@ class tidex(Exchange):
                     },
                     'deposit': {
                         'active': canDeposit,
-                        'fee': 0.0,
+                        'fee': self.parse_number('0'),
                     },
                 },
                 'limits': {
                     'amount': {
                         'min': None,
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                     'withdraw': {
                         'min': self.safe_number(currency, 'withdrawMinAmount'),
