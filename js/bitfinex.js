@@ -299,6 +299,8 @@ module.exports = class bitfinex extends Exchange {
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'EDO': 'PNT',
+                'EUS': 'EURS',
+                'EUT': 'EURT',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
                 'MNA': 'MANA',
