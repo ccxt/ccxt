@@ -116,6 +116,7 @@ module.exports = class yobit extends Exchange {
                 'ESC': 'EdwardSnowden',
                 'EUROPE': 'EUROP',
                 'EXT': 'LifeExtension',
+                'FUND': 'FUNDChains',
                 'FUNK': 'FUNKCoin',
                 'GCC': 'GlobalCryptocurrency',
                 'GEN': 'Genstake',
