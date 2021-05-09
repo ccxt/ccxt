@@ -294,7 +294,8 @@ module.exports = class bitfinex extends Exchange {
                 'AMP': 'AMPL',
                 'ATM': 'ATMI',
                 'ATO': 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
-                'BAB': 'BCH',
+                'BCHABC': 'BCHA',
+                'BCHN': 'BCH',
                 'CTX': 'CTXC',
                 'DAD': 'DADI',
                 'DAT': 'DATA',
