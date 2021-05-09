@@ -294,6 +294,7 @@ module.exports = class bitfinex extends Exchange {
                 'BCHABC': 'BCHA',
                 'BCHN': 'BCH',
                 'DAT': 'DATA',
+                'DOG': 'MDOGE',
                 'DSH': 'DASH',
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
