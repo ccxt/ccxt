@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bitfinex = require ('./bitfinex.js');
-const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported } = require ('./base/errors');
+const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -299,6 +299,7 @@ module.exports = class bitfinex2 extends bitfinex {
             },
             'exceptions': {
                 'exact': {
+                    '10001': PermissionDenied, // api_key: permission invalid (#10001)
                     '10020': BadRequest,
                     '10100': AuthenticationError,
                     '10114': InvalidNonce,
