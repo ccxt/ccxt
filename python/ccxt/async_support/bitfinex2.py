@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -313,6 +314,7 @@ class bitfinex2(bitfinex):
             },
             'exceptions': {
                 'exact': {
+                    '10001': PermissionDenied,  # api_key: permission invalid(#10001)
                     '10020': BadRequest,
                     '10100': AuthenticationError,
                     '10114': InvalidNonce,

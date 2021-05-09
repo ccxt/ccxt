@@ -305,6 +305,7 @@ class bitfinex2 extends bitfinex {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    '10001' => '\\ccxt\\PermissionDenied', // api_key => permission invalid (#10001)
                     '10020' => '\\ccxt\\BadRequest',
                     '10100' => '\\ccxt\\AuthenticationError',
                     '10114' => '\\ccxt\\InvalidNonce',
