@@ -147,6 +147,7 @@ class crex24(Exchange):
                 'BULL': 'BuySell',
                 'CREDIT': 'TerraCredit',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
+                'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
                 'IQ': 'IQ.Cash',
                 'PUT': 'PutinCoin',
