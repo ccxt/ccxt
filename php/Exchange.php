@@ -1160,7 +1160,7 @@ class Exchange {
         $this->lastRestPollTimestamp = 0;
         $this->restRequestQueue = null;
         $this->restPollerLoopIsRunning = false;
-        $this->enableRateLimit = false;
+        $this->enableRateLimit = true;
         $this->enableLastJsonResponse = true;
         $this->enableLastHttpResponse = true;
         $this->enableLastResponseHeaders = true;
