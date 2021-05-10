@@ -117,7 +117,7 @@ class Exchange(object):
     pro = False
 
     # rate limiter settings
-    enableRateLimit = False
+    enableRateLimit = True
     rateLimit = 2000  # milliseconds = seconds * 1000
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None

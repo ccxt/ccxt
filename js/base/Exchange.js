@@ -55,7 +55,7 @@ module.exports = class Exchange {
             'id': undefined,
             'name': undefined,
             'countries': undefined,
-            'enableRateLimit': false,
+            'enableRateLimit': true,
             'rateLimit': 2000, // milliseconds = seconds * 1000
             'certified': false,
             'pro': false,
