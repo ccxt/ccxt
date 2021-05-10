@@ -560,7 +560,9 @@
     "AscendEX",
     "exchange.coinbase.com",
     "bitbns.com",
-    "Bitbns"
+    "Bitbns",
+    "Binance COIN-M Futures",
+    "Binance USDⓈ-M Futures"
   ],
   "collective": {
     "type": "opencollective",
