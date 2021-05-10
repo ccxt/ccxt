@@ -10,7 +10,7 @@ module.exports = class binanceusdm extends binance {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'binanceusdm',
-            'name': 'Binance USDⓈ-M Futures',
+            'name': 'Binance USDⓈ-M',
             'options': {
                 'defaultType': 'future',
             },
