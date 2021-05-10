@@ -831,6 +831,10 @@ module.exports = class okex extends Exchange {
             'price': this.safeNumber (market, 'tick_size'),
         };
         const minAmount = this.safeNumber2 (market, 'min_size', 'base_min_size');
+        let minCost = undefined;
+        if ((minAmount !== undefined) && (precision['price'] !== undefined)) {
+            minCost = minAmount * precision['price'];
+        }
         const active = true;
         const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
         return this.extend (fees, {
@@ -858,7 +862,7 @@ module.exports = class okex extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': precision['price'],
+                    'min': minCost,
                     'max': undefined,
                 },
             },
