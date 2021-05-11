@@ -1742,6 +1742,17 @@ class Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
+    public function parse_funding_rates($funding_rates, $market = null, $since = null, $limit = null) {
+        $funding_rates = is_array($funding_rates) ? array_values($funding_rates) : array();
+        $parsed = array();
+        foreach ($funding_rates as $funding_rate) {
+            $parsed[] = $this->parse_funding_rate($funding_rate, $market);
+        }
+        $sorted = $this->sort_by($parsed, 'timestamp', true);
+        $tail = $since === null;
+        return $this->filter_by_since_limit($sorted, $since, $limit, 'timestamp', $tail);
+    }
+
     public function number($n) {
         return call_user_func($this->number, $n);
     }

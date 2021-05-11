@@ -1483,6 +1483,12 @@ class Exchange(object):
         tail = since is None
         return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
+    def parse_funding_rates(self, funding_rates, market=None, since=None, limit=None):
+        parsed = [self.parse_funding_rate(funding_rate, market) for funding_rate in funding_rates]
+        sorted = self.sort_by(parsed, 'timestamp', True)
+        tail = since is None
+        return self.filter_by_since_limit(sorted, since, limit, 'timestamp', tail)
+
     def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
         return [self.safe_number(bidask, price_key), self.safe_number(bidask, amount_key)]
 

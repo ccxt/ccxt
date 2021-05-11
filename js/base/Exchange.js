@@ -1312,6 +1312,13 @@ module.exports = class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0, tail)
     }
 
+    parseFundingRates (fundingRates, market = undefined, since = undefined, limit = undefined) {
+        const parsed = fundingRates.map ((fundingRate) => this.parseFundingRate (fundingRate, market))
+        const sorted = this.sortBy (parsed, 'timestamp', true)
+        const tail = since === undefined
+        return this.filterBySinceLimit (sorted, since, limit, 'timestamp', tail)
+    }
+
     editLimitBuyOrder (id, symbol, ...args) {
         return this.editLimitOrder (id, symbol, 'buy', ...args)
     }
