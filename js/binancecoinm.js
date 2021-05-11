@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const binance = require ('./binance.js');
+const { ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -87,5 +88,20 @@ module.exports = class binancecoinm extends binance {
         }
         return fees;
     }
-};
 
+    async fetchFundingRate (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a symbol argument to fetchFundingRate');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.dapiPublicGetFundingRate (this.extend (request, params));
+        return this.parseFundingRates (response, market, since, limit);
+    }
+};

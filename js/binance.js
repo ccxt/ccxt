@@ -3147,4 +3147,33 @@ module.exports = class binance extends Exchange {
         }
         return response;
     }
+
+    parseFundingRate (fundingRate, market = undefined) {
+        //
+        //   usdm
+        //   {
+        //     "symbol: "BCHUSDT",
+        //     "fundingTime": 1620748800002,
+        //     "fundingRate": "0.00010000"
+        //   }
+        //
+        //   coinm
+        //   {
+        //      "symbol": "BTCUSD_PERP",
+        //      "fundingTime": 1596038400000,
+        //       "fundingRate": "-0.00300000"
+        //   }
+        //
+        const marketId = this.safeString (fundingRate, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeInteger (fundingRate, 'fundingTime');
+        const rate = this.safeNumber (fundingRate, 'fundingRate');
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'rate': rate,
+        };
+    }
 };

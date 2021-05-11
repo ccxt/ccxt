@@ -96,4 +96,19 @@ module.exports = class binanceusdm extends binance {
         }
         return fees;
     }
+
+    async fetchFundingRate (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.fapiPublicGetFundingRate (this.extend (request, params));
+        return this.parseFundingRates (response, market, since, limit);
+    }
 };
