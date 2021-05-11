@@ -831,11 +831,17 @@ class okex extends Exchange {
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $spot ? ($base . '/' . $quote) : $id;
         $lotSize = $this->safe_number_2($market, 'lot_size', 'trade_increment');
+        $minPrice = $this->safe_string($market, 'tick_size');
         $precision = array(
             'amount' => $this->safe_number($market, 'size_increment', $lotSize),
-            'price' => $this->safe_number($market, 'tick_size'),
+            'price' => $this->parse_number($minPrice),
         );
-        $minAmount = $this->safe_number_2($market, 'min_size', 'base_min_size');
+        $minAmountString = $this->safe_string_2($market, 'min_size', 'base_min_size');
+        $minAmount = $this->parse_number($minAmountString);
+        $minCost = null;
+        if (($minAmount !== null) && ($minPrice !== null)) {
+            $minCost = $this->parse_number(Precise::string_mul($minPrice, $minAmountString));
+        }
         $active = true;
         $fees = $this->safe_value_2($this->fees, $marketType, 'trading', array());
         return array_merge($fees, array(
@@ -863,7 +869,7 @@ class okex extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $precision['price'],
+                    'min' => $minCost,
                     'max' => null,
                 ),
             ),

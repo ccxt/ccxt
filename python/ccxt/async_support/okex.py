@@ -845,11 +845,16 @@ class okex(Exchange):
         quote = self.safe_currency_code(quoteId)
         symbol = (base + '/' + quote) if spot else id
         lotSize = self.safe_number_2(market, 'lot_size', 'trade_increment')
+        minPrice = self.safe_string(market, 'tick_size')
         precision = {
             'amount': self.safe_number(market, 'size_increment', lotSize),
-            'price': self.safe_number(market, 'tick_size'),
+            'price': self.parse_number(minPrice),
         }
-        minAmount = self.safe_number_2(market, 'min_size', 'base_min_size')
+        minAmountString = self.safe_string_2(market, 'min_size', 'base_min_size')
+        minAmount = self.parse_number(minAmountString)
+        minCost = None
+        if (minAmount is not None) and (minPrice is not None):
+            minCost = self.parse_number(Precise.string_mul(minPrice, minAmountString))
         active = True
         fees = self.safe_value_2(self.fees, marketType, 'trading', {})
         return self.extend(fees, {
@@ -877,7 +882,7 @@ class okex(Exchange):
                     'max': None,
                 },
                 'cost': {
-                    'min': precision['price'],
+                    'min': minCost,
                     'max': None,
                 },
             },
