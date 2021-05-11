@@ -17,7 +17,7 @@ module.exports = class bittrex extends Exchange {
             'countries': [ 'US' ],
             'version': 'v3',
             'rateLimit': 1500,
-            'certified': true,
+            'certified': false,
             'pro': true,
             // new metainfo interface
             'has': {
