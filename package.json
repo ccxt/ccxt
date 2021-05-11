@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.49.75",
+  "version": "1.49.76",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -562,7 +562,9 @@
     "bitbns.com",
     "Bitbns",
     "Binance COIN-M Futures",
-    "Binance USDⓈ-M Futures"
+    "Binance USDⓈ-M Futures",
+    "Binance COIN-M",
+    "Binance USDⓈ-M"
   ],
   "collective": {
     "type": "opencollective",
