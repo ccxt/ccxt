@@ -1314,7 +1314,7 @@ module.exports = class Exchange {
 
     parseFundingRates (fundingRates, market = undefined, since = undefined, limit = undefined) {
         const parsed = fundingRates.map ((fundingRate) => this.parseFundingRate (fundingRate, market))
-        const sorted = this.sortBy (parsed, 'timestamp', true)
+        const sorted = this.sortBy (parsed, 'timestamp')
         const tail = since === undefined
         return this.filterBySinceLimit (sorted, since, limit, 'timestamp', tail)
     }

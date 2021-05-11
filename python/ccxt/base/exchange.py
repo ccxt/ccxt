@@ -1485,7 +1485,7 @@ class Exchange(object):
 
     def parse_funding_rates(self, funding_rates, market=None, since=None, limit=None):
         parsed = [self.parse_funding_rate(funding_rate, market) for funding_rate in funding_rates]
-        sorted = self.sort_by(parsed, 'timestamp', True)
+        sorted = self.sort_by(parsed, 'timestamp')
         tail = since is None
         return self.filter_by_since_limit(sorted, since, limit, 'timestamp', tail)
 
