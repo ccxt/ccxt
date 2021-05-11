@@ -831,7 +831,7 @@ module.exports = class okex extends Exchange {
             'amount': this.safeNumber (market, 'size_increment', lotSize),
             'price': this.parseNumber (minPrice),
         };
-        const minAmountString = this.safeString (market, 'min_size', 'base_min_size');
+        const minAmountString = this.safeString2 (market, 'min_size', 'base_min_size');
         const minAmount = this.parseNumber (minAmountString);
         let minCost = undefined;
         if ((minAmount !== undefined) && (minPrice !== undefined)) {
