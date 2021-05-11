@@ -1,6 +1,6 @@
 {
   "name": "ccxt.pro",
-  "version": "0.6.85",
+  "version": "0.6.86",
   "description": "A professional tool for algorithmic cryptocurrency trading",
   "main": "./ccxt.pro.js",
   "unpkg": "dist/ccxt.pro.browser.js",
@@ -501,6 +501,8 @@
     "GOPAX",
     "ndax.io",
     "NDAX",
-    "exchange.coinbase.com"
+    "exchange.coinbase.com",
+    "Binance COIN-M",
+    "Binance USDⓈ-M"
   ]
 }
