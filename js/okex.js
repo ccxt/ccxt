@@ -835,7 +835,7 @@ module.exports = class okex extends Exchange {
         const minAmount = this.parseNumber (minAmountString);
         let minCost = undefined;
         if ((minAmount !== undefined) && (minPrice !== undefined)) {
-            minCost = this.parseNumber (Precise.stringMul (minPrice, minAmount));
+            minCost = this.parseNumber (Precise.stringMul (minPrice, minAmountString));
         }
         const active = true;
         const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
