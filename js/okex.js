@@ -826,14 +826,16 @@ module.exports = class okex extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = spot ? (base + '/' + quote) : id;
         const lotSize = this.safeNumber2 (market, 'lot_size', 'trade_increment');
+        const minPrice this.safeString (market, 'tick_size');
         const precision = {
             'amount': this.safeNumber (market, 'size_increment', lotSize),
-            'price': this.safeNumber (market, 'tick_size'),
+            'price': this.parseNumber (minPrice),
         };
-        const minAmount = this.safeNumber2 (market, 'min_size', 'base_min_size');
+        const minAmountString = this.safeString (market, 'min_size', 'base_min_size');
+        const minAmount = this.parseNumber (minAmountString);
         let minCost = undefined;
-        if ((minAmount !== undefined) && (precision['price'] !== undefined)) {
-            minCost = minAmount * precision['price'];
+        if ((minAmount !== undefined) && (minPrice !== undefined)) {
+            minCost = this.parseNumber (Precise.stringMul (minPrice, minAmount));
         }
         const active = true;
         const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
