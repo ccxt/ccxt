@@ -1077,13 +1077,11 @@ class Transpiler {
 
         if (classNames.length > 1) {
 
-            const errors = require ('../js/base/errors')
-
             function deleteOldTranspiledFiles (folder, pattern) {
                 fs.readdirSync (folder)
                     .filter (file =>
                         !fs.lstatSync (folder + file).isDirectory () &&
-                        !(file.replace (pattern, '') in errors) &&
+                        (file.replace (pattern, '') in classes) &&
                         !(file.replace (/\.[a-z]+$/, '') in classes) &&
                         !file.match (/^Exchange|errors|__init__|\\./))
                     .map (file => folder + file)
