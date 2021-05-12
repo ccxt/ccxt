@@ -328,8 +328,20 @@ class Exchange(BaseExchange):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    async def fetch_deposit_address(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_deposit_address() is not supported yet')
+    # async def fetch_deposit_address(self, code=None, params={}):
+    #     raise NotSupported('fetch_deposit_address() is not supported yet')
+
+    async def fetch_deposit_address(self, code=None, params={}):
+        if self.has['fetchDepositAddresses']:
+            codes = [ code ] if code is None else code
+            deposit_addresses = await self.fetch_deposit_addresses(codes, params)
+            deposit_address = self.safe_value(deposit_addresses, code)
+            if deposit_address is None:
+                raise NotSupported(self.id + ' fetch_deposit_address could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
+            else:
+                return deposit_address
+        else:
+            raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
 
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)
