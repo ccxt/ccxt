@@ -40,7 +40,7 @@ class bittrex(Exchange):
             'countries': ['US'],
             'version': 'v3',
             'rateLimit': 1500,
-            'certified': True,
+            'certified': False,
             'pro': True,
             # new metainfo interface
             'has': {
