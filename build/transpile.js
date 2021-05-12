@@ -1081,9 +1081,8 @@ class Transpiler {
                 fs.readdirSync (folder)
                     .filter (file =>
                         !fs.lstatSync (folder + file).isDirectory () &&
-                        (file.replace (pattern, '') in classes) &&
-                        !(file.replace (/\.[a-z]+$/, '') in classes) &&
-                        !file.match (/^Exchange|errors|__init__|\\./))
+                        !(file.replace (pattern, '') in classes) &&
+                        !file.match (/__init__|throttle|^[A-Z]/))
                     .map (file => folder + file)
                     .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
             }
