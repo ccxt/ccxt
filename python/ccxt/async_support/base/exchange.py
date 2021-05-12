@@ -333,7 +333,7 @@ class Exchange(BaseExchange):
 
     async def fetch_deposit_address(self, code=None, params={}):
         if self.has['fetchDepositAddresses']:
-            codes = [ code ] if code is None else code
+            codes = [code] if code is None else code
             deposit_addresses = await self.fetch_deposit_addresses(codes, params)
             deposit_address = self.safe_value(deposit_addresses, code)
             if deposit_address is None:
