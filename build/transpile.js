@@ -1082,7 +1082,7 @@ class Transpiler {
                     .filter (file =>
                         !fs.lstatSync (folder + file).isDirectory () &&
                         !(file.replace (pattern, '') in classes) &&
-                        !file.match (/^[A-Z_]|throttle/))
+                        !file.match (/^[A-Z_]/))
                     .map (file => folder + file)
                     .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
             }
