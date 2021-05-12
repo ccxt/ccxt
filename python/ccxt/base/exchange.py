@@ -1464,7 +1464,7 @@ class Exchange(object):
     # def fetch_deposit_addresses(self, codes=None, params={}):
     #     raise NotSupported('fetch_deposit_addresses() is not supported yet')
 
-    def fetch_deposit_address(self, code=None, params={}):
+    def fetch_deposit_address(self, code, params={}):
         if self.has['fetchDepositAddresses']:
             deposit_addresses = self.fetch_deposit_addresses([code], params)
             deposit_address = self.safe_value(deposit_addresses, code)
