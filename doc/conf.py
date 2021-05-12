@@ -30,6 +30,7 @@ sys.path.insert(0, root_path)
 with open(os.path.join(root_path, 'package.json')) as f:
     package = json.load(f)
 
+tls_verify = False
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -123,7 +124,7 @@ html_sidebars = {
 }
 
 def setup(app):
-    app.add_stylesheet("css/index.css")
+    app.add_css_file("css/index.css")
 
 # -- Options for HTMLHelp output ------------------------------------------
 
