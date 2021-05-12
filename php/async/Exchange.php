@@ -300,4 +300,19 @@ class Exchange extends \ccxt\Exchange {
         yield $this->cancel_order($id, $symbol, $params);
         return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
+
+    public function fetch_deposit_address($code, $params = array()) {
+        if ($this->has['fetchDepositAddresses']) {
+            $deposit_addresses = yield $this->fetch_deposit_addresses(array($code), $params);
+            $deposit_address = $this->safe_value($deposit_addresses, $code);
+            if ($deposit_address === null) {
+                throw new InvalidAddress($this->id . ' fetchDepositAddress could not find a deposit address for ' . $code . ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
+            } else {
+                return $deposit_address;
+            }
+        } else {
+            throw new NotSupported ($this->id + ' fetchDepositAddress not supported yet');
+        }
+    }
+
 }
