@@ -19,33 +19,33 @@ module.exports = class hollaex extends Exchange {
             'version': 'v2',
             'has': {
                 'CORS': false,
-                'fetchMarkets': true,
-                'fetchCurrencies': true,
-                'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchOrderBook': true,
-                'fetchOrderBooks': true,
-                'fetchTrades': true,
-                'fetchOHLCV': true,
-                'fetchBalance': true,
-                'createOrder': true,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
                 'createMarketBuyOrder': true,
                 'createMarketSellOrder': true,
-                'cancelOrder': true,
-                'cancelAllOrders': true,
-                'fetchOpenOrders': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchOpenOrder': true,
-                'fetchOrder': false,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
-                'fetchTransactions': false,
-                'fetchOrders': true,
-                'fetchMyTrades': true,
-                'withdraw': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': 'emulated',
+                'fetchDeposits': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrder': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTransactions': false,
+                'fetchWithdrawals': true,
+                'withdraw': true,
                 'fetchDepositAddresses': true,
             },
             'timeframes': {
@@ -655,6 +655,49 @@ module.exports = class hollaex extends Exchange {
             'status': 'filled',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'order_id': id,
+        };
+        const response = await this.privateGetOrders (this.extend (request, params));
+        //
+        //     {
+        //         "count": 1,
+        //         "data": [
+        //             {
+        //                 "id": "string",
+        //                 "side": "sell",
+        //                 "symbol": "xht-usdt",
+        //                 "size": 0.1,
+        //                 "filled": 0,
+        //                 "stop": null,
+        //                 "fee": 0,
+        //                 "fee_coin": "usdt",
+        //                 "type": "limit",
+        //                 "price": 1.09,
+        //                 "status": "new",
+        //                 "created_by": 116,
+        //                 "created_at": "2021-02-17T02:32:38.910Z",
+        //                 "updated_at": "2021-02-17T02:32:38.910Z",
+        //                 "User": {
+        //                     "id": 116,
+        //                     "email": "fight@club.com",
+        //                     "username": "narrator",
+        //                     "exchange_id": 176
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const order = this.safeValue (data, 0);
+        if (order === undefined) {
+            throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
+        }
+        return this.parseOrder (order);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
