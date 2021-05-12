@@ -51,7 +51,8 @@ class hollaex(Exchange):
                 'fetchOrders': True,
                 'fetchMyTrades': True,
                 'withdraw': True,
-                'fetchDepositAddress': True,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': True,
             },
             'timeframes': {
                 '1h': '1h',
@@ -834,7 +835,7 @@ class hollaex(Exchange):
         request = {}
         market = None
         if symbol is not None:
-            market = self.markets(symbol)
+            market = self.market(symbol)
             request['symbol'] = market['id']
         response = self.privateDeleteOrderAll(self.extend(request, params))
         #
@@ -892,84 +893,88 @@ class hollaex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_deposit_address(self, code, params={}):
-        self.load_markets()
-        currency = self.currency(code)
-        response = self.privateGetUser(params)
+    def parse_deposit_address(self, depositAddress, currency=None):
         #
         #     {
-        #         "id": 620,
-        #         "email": "email@gmail.com",
-        #         "full_name": "",
-        #         "name_verified": False,
-        #         "gender": False,
-        #         "nationality": "",
-        #         "phone_number": "",
-        #         "address": {"city": "", "address": "", "country": "", "postal_code": ""},
-        #         "id_data": {"note": "", "type": "", "number": "", "status": 0},
-        #         "bank_account":[],
-        #         "crypto_wallet":{
-        #             "xrp": "rJtoECs6rPkJoAfgtR8SDDshV6hRHe3X7y:391496555"
-        #             "usdt":"0x1fb4248e167901dfa0d8cdda2243a2126d7ce48d"
-        #             # ...
-        #         },
-        #         "verification_level": 1,
-        #         "otp_enabled": True,
-        #         "activated": True,
-        #         "note": "",
-        #         "username": "user",
-        #         "affiliation_code": "QSWA6G",
-        #         "settings": {
-        #             "chat": {"set_username": False},
-        #             "risk": {"order_portfolio_percentage": 20},
-        #             "audio": {
-        #                 "public_trade": False,
-        #                 "order_completed": True,
-        #                 "order_partially_completed": True
-        #             },
-        #             "language": "en",
-        #             "interface": {"theme": "white","order_book_levels": 10},
-        #             "notification": {
-        #                 "popup_order_completed": True,
-        #                 "popup_order_confirmation": True,
-        #                 "popup_order_partially_filled": True
-        #             }
-        #         },
-        #         "flagged": False,
-        #         "is_hap": False,
-        #         "pin": False,
-        #         "discount": 0,
-        #         "created_at": "2020-03-02T22:27:38.331Z",
-        #         "updated_at": "2020-03-03T07:54:58.315Z",
-        #         "balance": {
-        #             "xht_balance": 0,
-        #             "xht_pending": 0,
-        #             "xht_available": 0,
-        #             # ...
-        #             "updated_at": "2020-03-03T10:21:05.430Z"
-        #         },
-        #         "images": [],
-        #         "fees": {
-        #             "btc-usdt": {"maker_fee": 0.1, "taker_fee": 0.3},
-        #             "eth-usdt": {"maker_fee": 0.1, "taker_fee": 0.3},
-        #             # ...
-        #         }
+        #         "currency":"usdt",
+        #         "address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik",
+        #         "network":"trx",
+        #         "standard":null,
+        #         "is_valid":true,
+        #         "created_at":"2021-05-12T02:43:05.446Z"
         #     }
         #
-        cryptoWallet = self.safe_value(response, 'crypto_wallet')
-        address = self.safe_string(cryptoWallet, currency['id'])
+        address = self.safe_string(depositAddress, 'address')
         tag = None
         if address is not None:
             parts = address.split(':')
             address = self.safe_string(parts, 0)
             tag = self.safe_string(parts, 1)
         self.check_address(address)
+        currencyId = self.safe_string(depositAddress, 'currency')
+        currency = self.safe_currency(currencyId, currency)
+        network = self.safe_string(depositAddress, 'network')
         return {
-            'currency': code,
+            'currency': currency['code'],
             'address': address,
             'tag': tag,
-            'info': response,
+            'network': network,
+            'info': depositAddress,
         }
+
+    def fetch_deposit_addresses(self, codes=None, params={}):
+        self.load_markets()
+        network = self.safe_string(params, 'network')
+        params = self.omit(params, 'network')
+        response = self.privateGetUser(params)
+        #
+        #     {
+        #         "id":620,
+        #         "email":"igor.kroitor@gmail.com",
+        #         "full_name":"",
+        #         "gender":false,
+        #         "nationality":"",
+        #         "dob":null,
+        #         "phone_number":"",
+        #         "address":{"city":"","address":"","country":"","postal_code":""},
+        #         "id_data":{"note":"","type":"","number":"","status":0,"issued_date":"","expiration_date":""},
+        #         "bank_account":[],
+        #         "crypto_wallet":{},
+        #         "verification_level":1,
+        #         "email_verified":true,
+        #         "otp_enabled":true,
+        #         "activated":true,
+        #         "username":"igor.kroitor",
+        #         "affiliation_code":"QSWA6G",
+        #         "settings":{
+        #             "chat":{"set_username":false},
+        #             "risk":{"popup_warning":false,"order_portfolio_percentage":20},
+        #             "audio":{"public_trade":false,"order_completed":true,"order_partially_completed":true},
+        #             "language":"en",
+        #             "interface":{"theme":"white","order_book_levels":10},
+        #             "notification":{"popup_order_completed":true,"popup_order_confirmation":true,"popup_order_partially_filled":true}
+        #         },
+        #         "affiliation_rate":0,
+        #         "network_id":10620,
+        #         "discount":0,
+        #         "created_at":"2021-03-24T02:37:57.379Z",
+        #         "updated_at":"2021-03-24T02:37:57.379Z",
+        #         "balance":{
+        #             "btc_balance":0,
+        #             "btc_available":0,
+        #             "eth_balance":0.000914,
+        #             "eth_available":0.000914,
+        #             "updated_at":"2020-03-04T04:03:27.174Z
+        #         "},
+        #         "wallet":[
+        #             {"currency":"usdt","address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik","network":"trx","standard":null,"is_valid":true,"created_at":"2021-05-12T02:43:05.446Z"},
+        #             {"currency":"xrp","address":"rGcSzmuRx8qngPRnrvpCKkP9V4njeCPGCv:286741597","network":"xrp","standard":null,"is_valid":true,"created_at":"2021-05-12T02:49:01.273Z"}
+        #         ]
+        #     }
+        #
+        wallet = self.safe_value(response, 'wallet', [])
+        addresses = wallet if (network is None) else self.filter_by(wallet, 'network', network)
+        return self.parse_deposit_addresses(addresses, codes)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
