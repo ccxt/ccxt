@@ -1748,7 +1748,7 @@ class Exchange {
         foreach ($funding_rates as $funding_rate) {
             $parsed[] = $this->parse_funding_rate($funding_rate, $market);
         }
-        $sorted = $this->sort_by($parsed, 'timestamp');
+        $sorted = $this->sort_by($parsed, 'timestamp', true);
         $tail = $since === null;
         return $this->filter_by_since_limit($sorted, $since, $limit, 'timestamp', $tail);
     }
