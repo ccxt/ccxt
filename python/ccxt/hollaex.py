@@ -25,33 +25,33 @@ class hollaex(Exchange):
             'version': 'v2',
             'has': {
                 'CORS': False,
-                'fetchMarkets': True,
-                'fetchCurrencies': True,
-                'fetchTicker': True,
-                'fetchTickers': True,
-                'fetchOrderBook': True,
-                'fetchOrderBooks': True,
-                'fetchTrades': True,
-                'fetchOHLCV': True,
-                'fetchBalance': True,
-                'createOrder': True,
+                'cancelAllOrders': True,
+                'cancelOrder': True,
                 'createLimitBuyOrder': True,
                 'createLimitSellOrder': True,
                 'createMarketBuyOrder': True,
                 'createMarketSellOrder': True,
-                'cancelOrder': True,
-                'cancelAllOrders': True,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchOpenOrder': True,
-                'fetchOrder': False,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
-                'fetchTransactions': False,
-                'fetchOrders': True,
-                'fetchMyTrades': True,
-                'withdraw': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': 'emulated',
+                'fetchDeposits': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrder': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTransactions': False,
+                'fetchWithdrawals': True,
+                'withdraw': True,
                 'fetchDepositAddresses': True,
             },
             'timeframes': {
@@ -636,6 +636,47 @@ class hollaex(Exchange):
             'status': 'filled',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        request = {
+            'order_id': id,
+        }
+        response = self.privateGetOrders(self.extend(request, params))
+        #
+        #     {
+        #         "count": 1,
+        #         "data": [
+        #             {
+        #                 "id": "string",
+        #                 "side": "sell",
+        #                 "symbol": "xht-usdt",
+        #                 "size": 0.1,
+        #                 "filled": 0,
+        #                 "stop": null,
+        #                 "fee": 0,
+        #                 "fee_coin": "usdt",
+        #                 "type": "limit",
+        #                 "price": 1.09,
+        #                 "status": "new",
+        #                 "created_by": 116,
+        #                 "created_at": "2021-02-17T02:32:38.910Z",
+        #                 "updated_at": "2021-02-17T02:32:38.910Z",
+        #                 "User": {
+        #                     "id": 116,
+        #                     "email": "fight@club.com",
+        #                     "username": "narrator",
+        #                     "exchange_id": 176
+        #                 }
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        order = self.safe_value(data, 0)
+        if order is None:
+            raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
+        return self.parse_order(order)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
