@@ -819,6 +819,21 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchWithdrawals not supported yet');
     }
 
+    async fetchDepositAddress (code = undefined, params = {}) {
+        if (this.has['fetchDepositAddresses']) {
+            const codes = (code === undefined) ? code : [ code ];
+            const depositAddresses = await this.fetchDepositAddresses (codes, params);
+            const depositAddress = this.safeValue (depositAddresses, code);
+            if (depositAddress === undefined) {
+                throw new InvalidAddress (this.id + ' fetchDepositAddress could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
+            } else {
+                return depositAddress;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchDepositAddress not supported yet');
+        }
+    }
+
     fetchCurrencies (params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
