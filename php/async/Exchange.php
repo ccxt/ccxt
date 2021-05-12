@@ -26,7 +26,7 @@ use Recoil;
 use Generator;
 use Exception;
 
-include 'throttle.php';
+include 'Throttle.php';
 
 $version = '1.49.87';
 
