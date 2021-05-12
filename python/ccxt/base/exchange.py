@@ -1466,8 +1466,7 @@ class Exchange(object):
 
     def fetch_deposit_address(self, code=None, params={}):
         if self.has['fetchDepositAddresses']:
-            codes = [code] if code is None else code
-            deposit_addresses = self.fetch_deposit_addresses(codes, params)
+            deposit_addresses = self.fetch_deposit_addresses([code], params)
             deposit_address = self.safe_value(deposit_addresses, code)
             if deposit_address is None:
                 raise NotSupported(self.id + ' fetch_deposit_address could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
