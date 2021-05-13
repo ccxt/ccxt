@@ -3149,4 +3149,24 @@ module.exports = class binance extends Exchange {
         }
         return response;
     }
+
+    async futuresTransfer (code, amount, type, params = {}) {
+        if ((type < 1) || (type > 4)) {
+            throw new ArgumentsRequired (this.id + ' type must be between 1 and 4');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'amount': amount,
+            'type': type,
+        };
+        const response = await this.sapiPostFuturesTransfer (this.extend (request, params));
+        //
+        //   {
+        //       "tranId": 100000001
+        //   }
+        //
+        return this.parseTransfer (response, currency);
+    }
 };
