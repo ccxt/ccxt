@@ -550,7 +550,7 @@ module.exports = class lcx extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {
-            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
+            throw new DDoSProtection (`${this.id} ${code.toString()} ${reason} ${body}`);
         }
         if (code === 401) {
             this.throwExactlyMatchedException (this.exceptions, body, body);
@@ -576,4 +576,3 @@ module.exports = class lcx extends Exchange {
         }
     }
 };
-
