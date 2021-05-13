@@ -98,4 +98,14 @@ class binanceusdm extends binance {
         }
         return $fees;
     }
+
+    public function transfer_in($code, $amount, $params = array ()) {
+        // transfer from spot wallet to usdm futures wallet
+        return $this->futuresTransfer ($code, $amount, 1, $params);
+    }
+
+    public function transfer_out($code, $amount, $params = array ()) {
+        // transfer from usdm futures wallet to spot wallet
+        return $this->futuresTransfer ($code, $amount, 2, $params);
+    }
 }

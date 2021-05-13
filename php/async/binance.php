@@ -3155,4 +3155,24 @@ class binance extends Exchange {
         }
         return $response;
     }
+
+    public function futures_transfer($code, $amount, $type, $params = array ()) {
+        if (($type < 1) || ($type > 4)) {
+            throw new ArgumentsRequired($this->id . ' $type must be between 1 and 4');
+        }
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'asset' => $currency['id'],
+            'amount' => $amount,
+            'type' => $type,
+        );
+        $response = yield $this->sapiPostFuturesTransfer (array_merge($request, $params));
+        //
+        //   {
+        //       "tranId" => 100000001
+        //   }
+        //
+        return $this->parse_transfer($response, $currency);
+    }
 }

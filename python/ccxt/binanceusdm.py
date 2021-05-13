@@ -94,3 +94,11 @@ class binanceusdm(binance):
                 'taker': taker,
             }
         return fees
+
+    def transfer_in(self, code, amount, params={}):
+        # transfer from spot wallet to usdm futures wallet
+        return self.futuresTransfer(code, amount, 1, params)
+
+    def transfer_out(self, code, amount, params={}):
+        # transfer from usdm futures wallet to spot wallet
+        return self.futuresTransfer(code, amount, 2, params)

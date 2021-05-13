@@ -85,3 +85,11 @@ class binancecoinm(binance):
                 'taker': taker,
             }
         return fees
+
+    async def transfer_in(self, code, amount, params={}):
+        # transfer from spot wallet to coinm futures wallet
+        return await self.futuresTransfer(code, amount, 3, params)
+
+    async def transfer_out(self, code, amount, params={}):
+        # transfer from coinm futures wallet to spot wallet
+        return await self.futuresTransfer(code, amount, 4, params)

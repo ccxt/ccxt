@@ -2980,3 +2980,21 @@ class binance(Exchange):
         if (api == 'private') or (api == 'wapi'):
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
+
+    async def futures_transfer(self, code, amount, type, params={}):
+        if (type < 1) or (type > 4):
+            raise ArgumentsRequired(self.id + ' type must be between 1 and 4')
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+            'amount': amount,
+            'type': type,
+        }
+        response = await self.sapiPostFuturesTransfer(self.extend(request, params))
+        #
+        #   {
+        #       "tranId": 100000001
+        #   }
+        #
+        return self.parse_transfer(response, currency)
