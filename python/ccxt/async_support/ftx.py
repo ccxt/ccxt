@@ -17,6 +17,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -261,7 +262,7 @@ class ftx(Exchange):
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
-                    'No such market': BadRequest,
+                    'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
                     'An unexpected error occurred': ExchangeNotAvailable,  # {"error":"An unexpected error occurred, please try again later(58BC21C795).","success":false}
                     'Please retry request': ExchangeNotAvailable,  # {"error":"Please retry request","success":false}
