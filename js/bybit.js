@@ -206,16 +206,6 @@ module.exports = class bybit extends Exchange {
                         ],
                     },
                 },
-                'openapi': {
-                    'wallet': {
-                        'get': [
-                            'risk-limit/list',
-                        ],
-                        'post': [
-                            'risk-limit',
-                        ],
-                    },
-                },
             },
             'httpExceptions': {
                 '403': RateLimitExceeded, // Forbidden -- You request too many times
