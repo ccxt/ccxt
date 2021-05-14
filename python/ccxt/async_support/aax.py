@@ -487,12 +487,6 @@ class aax(Exchange):
             'info': ticker,
         }
 
-    async def fetch_ticker(self, symbol, params={}):
-        tickers = await self.fetch_tickers(None, params)
-        if symbol in tickers:
-            return tickers[symbol]
-        raise BadSymbol(self.id + ' fetchTicker() symbol ' + symbol + ' ticker not found')
-
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.publicGetMarketTickers(params)
