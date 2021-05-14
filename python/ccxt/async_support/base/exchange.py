@@ -337,9 +337,6 @@ class Exchange(BaseExchange):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    async def fetch_deposit_address(self, code=None, params={}):
-        raise NotSupported('fetch_deposit_address() is not supported yet')
-
     async def fetch_deposit_address(self, code, params={}):
         if self.has['fetchDepositAddresses']:
             deposit_addresses = await self.fetch_deposit_addresses([code], params)
