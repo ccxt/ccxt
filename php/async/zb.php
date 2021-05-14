@@ -11,6 +11,7 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\ExchangeNotAvailable;
+use \ccxt\Precise;
 
 class zb extends Exchange {
 
@@ -95,8 +96,8 @@ class zb extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api' => array(
-                    'public' => 'http://api.zb.cn/data', // no https for public API
-                    'private' => 'https://trade.zb.cn/api',
+                    'public' => 'https://api.zb.today/data',
+                    'private' => 'https://trade.zb.today/api',
                 ),
                 'www' => 'https://www.zb.com',
                 'doc' => 'https://www.zb.com/i/developer',
@@ -230,9 +231,13 @@ class zb extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $amountPrecisionString = $this->safe_string($market, 'amountScale');
+            $pricePrecisionString = $this->safe_string($market, 'priceScale');
+            $amountLimit = $this->parse_precision($amountPrecisionString);
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
-                'amount' => $this->safe_integer($market, 'amountScale'),
-                'price' => $this->safe_integer($market, 'priceScale'),
+                'amount' => intval($amountPrecisionString),
+                'price' => intval($pricePrecisionString),
             );
             $result[] = array(
                 'id' => $id,
@@ -245,11 +250,11 @@ class zb extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => $this->parse_number($amountLimit),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $this->parse_number($priceLimit),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -269,7 +274,11 @@ class zb extends Exchange {
         // todo => use this somehow
         // $permissions = $response['result']['base'];
         $balances = $this->safe_value($response['result'], 'coins');
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             //     {        enName => "BTC",
@@ -284,11 +293,11 @@ class zb extends Exchange {
             $account = $this->account();
             $currencyId = $this->safe_string($balance, 'key');
             $code = $this->safe_currency_code($currencyId);
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['used'] = $this->safe_number($balance, 'freez');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'freez');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
@@ -405,7 +414,7 @@ class zb extends Exchange {
             $request['size'] = $limit;
         }
         $response = yield $this->publicGetDepth (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -503,14 +512,12 @@ class zb extends Exchange {
         $side = $this->safe_string($trade, 'trade_type');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $id = $this->safe_string($trade, 'tid');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $costString = Precise::string_mul($priceString, $amountString);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number($costString);
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

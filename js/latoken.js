@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, DDoSProtection, BadRequest, AuthenticationError } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -85,6 +85,7 @@ module.exports = class latoken extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
                     'maker': 0.1 / 100,
@@ -163,8 +164,10 @@ module.exports = class latoken extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const pricePrecisionString = this.safeString (market, 'pricePrecision');
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
-                'price': this.safeInteger (market, 'pricePrecision'),
+                'price': parseInt (pricePrecisionString),
                 'amount': this.safeInteger (market, 'amountPrecision'),
             };
             const limits = {
@@ -173,7 +176,7 @@ module.exports = class latoken extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': Math.pow (10, -precision['price']),
+                    'min': this.parseNumber (priceLimit),
                     'max': undefined,
                 },
                 'cost': {
@@ -235,14 +238,6 @@ module.exports = class latoken extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': undefined,
@@ -251,27 +246,6 @@ module.exports = class latoken extends Exchange {
             };
         }
         return result;
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        let key = 'quote';
-        const rate = market[takerOrMaker];
-        let cost = amount * rate;
-        let precision = market['precision']['price'];
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-            precision = market['precision']['amount'];
-        }
-        cost = this.decimalToPrecision (cost, ROUND, precision, this.precisionMode);
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (cost),
-        };
     }
 
     async fetchBalance (params = {}) {
@@ -292,22 +266,22 @@ module.exports = class latoken extends Exchange {
         //
         const result = {
             'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'symbol');
             const code = this.safeCurrencyCode (currencyId);
-            const frozen = this.safeNumber (balance, 'frozen');
-            const pending = this.safeNumber (balance, 'pending');
-            const used = this.sum (frozen, pending);
-            const account = {
-                'free': this.safeNumber (balance, 'available'),
-                'used': used,
-                'total': this.safeNumber (balance, 'amount'),
-            };
+            const frozen = this.safeString (balance, 'frozen');
+            const pending = this.safeString (balance, 'pending');
+            const account = this.account ();
+            account['used'] = Precise.stringAdd (frozen, pending);
+            account['free'] = this.safeString (balance, 'available');
+            account['total'] = this.safeString (balance, 'amount');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -334,7 +308,7 @@ module.exports = class latoken extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'quantity');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -463,15 +437,12 @@ module.exports = class latoken extends Exchange {
                 timestamp *= 1000;
             }
         }
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const side = this.safeString (trade, 'side');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
-            }
-        }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

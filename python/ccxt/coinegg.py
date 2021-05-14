@@ -12,6 +12,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class coinegg(Exchange):
@@ -269,17 +270,16 @@ class coinegg(Exchange):
             'quote': market['quoteId'],
         }
         response = self.publicGetDepthRegionQuote(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = market['symbol']
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = self.cost_to_precision(symbol, price * amount)
         type = 'limit'
         side = self.safe_string(trade, 'type')
         id = self.safe_string(trade, 'tid')
@@ -323,8 +323,8 @@ class coinegg(Exchange):
             if not (code in result):
                 result[code] = self.account()
             type = 'used' if (accountType == 'lock') else 'free'
-            result[code][type] = self.safe_number(balances, key)
-        return self.parse_balance(result)
+            result[code][type] = self.safe_string(balances, key)
+        return self.parse_balance(result, False)
 
     def parse_order(self, order, market=None):
         symbol = None

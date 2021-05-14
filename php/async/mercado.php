@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class mercado extends Exchange {
 
@@ -152,6 +153,7 @@ class mercado extends Exchange {
                 'amount' => 8,
                 'price' => 5,
             );
+            $priceLimit = '1e-5';
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -168,7 +170,7 @@ class mercado extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => 1 / pow(10, $precision['price']),
+                        'min' => $this->parse_number($priceLimit),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -188,7 +190,7 @@ class mercado extends Exchange {
             'coin' => $market['base'],
         );
         $response = yield $this->publicGetCoinOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -234,14 +236,11 @@ class mercado extends Exchange {
         $id = $this->safe_string_2($trade, 'tid', 'operation_id');
         $type = null;
         $side = $this->safe_string($trade, 'type');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'amount', 'quantity');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'amount', 'quantity');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $feeCost = $this->safe_number($trade, 'fee_rate');
         $fee = null;
         if ($feeCost !== null) {
@@ -299,12 +298,12 @@ class mercado extends Exchange {
             if (is_array($balances) && array_key_exists($currencyId, $balances)) {
                 $balance = $this->safe_value($balances, $currencyId, array());
                 $account = $this->account();
-                $account['free'] = $this->safe_number($balance, 'available');
-                $account['total'] = $this->safe_number($balance, 'total');
+                $account['free'] = $this->safe_string($balance, 'available');
+                $account['total'] = $this->safe_string($balance, 'total');
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -389,7 +388,7 @@ class mercado extends Exchange {
         //     {
         //         "order_id" => 4,
         //         "coin_pair" => "BRLBTC",
-        //         "order_type" => 1,
+        //         "$order_type" => 1,
         //         "$status" => 2,
         //         "has_fills" => true,
         //         "quantity" => "2.00000000",
@@ -411,9 +410,10 @@ class mercado extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'order_id');
+        $order_type = $this->safe_string($order, 'order_type');
         $side = null;
         if (is_array($order) && array_key_exists('order_type', $order)) {
-            $side = ($order['order_type'] === 1) ? 'buy' : 'sell';
+            $side = ($order_type === '1') ? 'buy' : 'sell';
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'coin_pair');
@@ -428,15 +428,13 @@ class mercado extends Exchange {
         $average = $this->safe_number($order, 'executed_price_avg');
         $amount = $this->safe_number($order, 'quantity');
         $filled = $this->safe_number($order, 'executed_quantity');
-        $remaining = $amount - $filled;
-        $cost = $filled * $average;
         $lastTradeTimestamp = $this->safe_timestamp($order, 'updated_timestamp');
         $rawTrades = $this->safe_value($order, 'operations', array());
         $trades = $this->parse_trades($rawTrades, $market, null, null, array(
             'side' => $side,
             'order' => $id,
         ));
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -450,15 +448,15 @@ class mercado extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

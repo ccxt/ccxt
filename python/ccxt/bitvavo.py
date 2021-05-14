@@ -22,6 +22,7 @@ from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
+from ccxt.base.precise import Precise
 
 
 class bitvavo(Exchange):
@@ -391,14 +392,6 @@ class bitvavo(Exchange):
                         'min': None,
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(currency, 'withdrawalMinAmount'),
                         'max': None,
@@ -600,11 +593,11 @@ class bitvavo(Exchange):
         #         feeCurrency: 'EUR'
         #     }
         #
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string(trade, 'side')
         id = self.safe_string_2(trade, 'id', 'fillId')
@@ -664,7 +657,7 @@ class bitvavo(Exchange):
         #         ]
         #     }
         #
-        orderbook = self.parse_order_book(response)
+        orderbook = self.parse_order_book(response, symbol)
         orderbook['nonce'] = self.safe_integer(response, 'nonce')
         return orderbook
 
@@ -724,17 +717,20 @@ class bitvavo(Exchange):
         #         }
         #     ]
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'symbol')
             code = self.safe_currency_code(currencyId)
-            account = {
-                'free': self.safe_number(balance, 'available'),
-                'used': self.safe_number(balance, 'inOrder'),
-            }
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'inOrder')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
@@ -903,7 +899,6 @@ class bitvavo(Exchange):
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        self.load_markets()
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1126,16 +1121,7 @@ class bitvavo(Exchange):
         amount = self.safe_number(order, 'amount')
         remaining = self.safe_number(order, 'amountRemaining')
         filled = self.safe_number(order, 'filledAmount')
-        remainingCost = self.safe_number(order, 'remainingCost')
-        if (remainingCost is not None) and (remainingCost == 0.0):
-            remaining = 0
-        if (amount is not None) and (remaining is not None):
-            filled = max(0, amount - remaining)
         cost = self.safe_number(order, 'filledAmountQuote')
-        average = None
-        if cost is not None:
-            if filled:
-                average = cost / filled
         fee = None
         feeCost = self.safe_number(order, 'feePaid')
         if feeCost is not None:
@@ -1145,30 +1131,24 @@ class bitvavo(Exchange):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
-        lastTradeTimestamp = None
-        rawTrades = self.safe_value(order, 'fills')
-        trades = None
-        if rawTrades is not None:
-            trades = self.parse_trades(rawTrades, market, None, None, {
-                'symbol': symbol,
-                'order': id,
-                'side': side,
-            })
-            numTrades = len(trades)
-            if numTrades > 0:
-                lastTrade = self.safe_value(trades, numTrades - 1)
-                lastTradeTimestamp = lastTrade['timestamp']
+        rawTrades = self.safe_value(order, 'fills', [])
+        trades = self.parse_trades(rawTrades, market, None, None, {
+            'symbol': symbol,
+            'order': id,
+            'side': side,
+            'type': type,
+        })
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
         # https://github.com/ccxt/ccxt/issues/8489
         stopPrice = self.safe_number(order, 'triggerPrice')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -1178,13 +1158,13 @@ class bitvavo(Exchange):
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
-            'average': average,
+            'average': None,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': trades,
-        }
+        })
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

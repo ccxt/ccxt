@@ -9,6 +9,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class coinfloor(Exchange):
@@ -106,16 +107,16 @@ class coinfloor(Exchange):
         baseIdLower = self.safe_string_lower(market, 'baseId')
         quoteIdLower = self.safe_string_lower(market, 'quoteId')
         result[base] = {
-            'free': self.safe_number(response, baseIdLower + '_available'),
-            'used': self.safe_number(response, baseIdLower + '_reserved'),
-            'total': self.safe_number(response, baseIdLower + '_balance'),
+            'free': self.safe_string(response, baseIdLower + '_available'),
+            'used': self.safe_string(response, baseIdLower + '_reserved'),
+            'total': self.safe_string(response, baseIdLower + '_balance'),
         }
         result[quote] = {
-            'free': self.safe_number(response, quoteIdLower + '_available'),
-            'used': self.safe_number(response, quoteIdLower + '_reserved'),
-            'total': self.safe_number(response, quoteIdLower + '_balance'),
+            'free': self.safe_string(response, quoteIdLower + '_available'),
+            'used': self.safe_string(response, quoteIdLower + '_reserved'),
+            'total': self.safe_string(response, quoteIdLower + '_balance'),
         }
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -123,7 +124,7 @@ class coinfloor(Exchange):
             'id': self.market_id(symbol),
         }
         response = self.publicGetIdOrderBook(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def parse_ticker(self, ticker, market=None):
         # rewrite to get the timestamp from HTTP headers
@@ -172,12 +173,11 @@ class coinfloor(Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string(trade, 'tid')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']

@@ -21,6 +21,7 @@ from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401
 from ccxt.base.decimal_to_precision import number_to_string      # noqa F401
 from ccxt.base.exchange import Exchange                          # noqa F401
+from ccxt.base.precise import Precise                            # noqa F401
 
 
 def toWei(amount, decimals):
@@ -315,3 +316,68 @@ assert decimal_to_precision('1602000000000000000000', TRUNCATE, 3, SIGNIFICANT_D
 # throws(() =>
 #     decimal_to_precision('0.01', TRUNCATE, -1, TICK_SIZE),
 #         "TICK_SIZE cant be used with negative numPrecisionDigits")
+
+# ----------------------------------------------------------------------------
+
+w = '-1.123e-6'
+x = '0.00000002'
+y = '69696900000'
+z = '0'
+a = '1e8'
+
+assert Precise.string_mul(x, y) == '1393.938'
+assert Precise.string_mul(y, x) == '1393.938'
+assert Precise.string_add(x, y) == '69696900000.00000002'
+assert Precise.string_add(y, x) == '69696900000.00000002'
+assert Precise.string_sub(x, y) == '-69696899999.99999998'
+assert Precise.string_sub(y, x) == '69696899999.99999998'
+assert Precise.string_div(x, y, 1) == '0'
+assert Precise.string_div(x, y) == '0'
+assert Precise.string_div(x, y, 19) == '0.0000000000000000002'
+assert Precise.string_div(x, y, 20) == '0.00000000000000000028'
+assert Precise.string_div(x, y, 21) == '0.000000000000000000286'
+assert Precise.string_div(x, y, 22) == '0.0000000000000000002869'
+assert Precise.string_div(y, x) == '3484845000000000000'
+
+assert Precise.string_mul(x, w) == '-0.00000000000002246'
+assert Precise.string_mul(w, x) == '-0.00000000000002246'
+assert Precise.string_add(x, w) == '-0.000001103'
+assert Precise.string_add(w, x) == '-0.000001103'
+assert Precise.string_sub(x, w) == '0.000001143'
+assert Precise.string_sub(w, x) == '-0.000001143'
+assert Precise.string_div(x, w) == '-0.017809439002671415'
+assert Precise.string_div(w, x) == '-56.15'
+
+assert Precise.string_mul(z, w) == '0'
+assert Precise.string_mul(z, x) == '0'
+assert Precise.string_mul(z, y) == '0'
+assert Precise.string_mul(w, z) == '0'
+assert Precise.string_mul(x, z) == '0'
+assert Precise.string_mul(y, z) == '0'
+assert Precise.string_add(z, w) == '-0.000001123'
+assert Precise.string_add(z, x) == '0.00000002'
+assert Precise.string_add(z, y) == '69696900000'
+assert Precise.string_add(w, z) == '-0.000001123'
+assert Precise.string_add(x, z) == '0.00000002'
+assert Precise.string_add(y, z) == '69696900000'
+
+assert Precise.string_mul(x, a) == '2'
+assert Precise.string_mul(a, x) == '2'
+assert Precise.string_mul(y, a) == '6969690000000000000'
+assert Precise.string_mul(a, y) == '6969690000000000000'
+assert Precise.string_div(y, a) == '696.969'
+assert Precise.string_div(y, a, -1) == '690'
+assert Precise.string_div(y, a, 0) == '696'
+assert Precise.string_div(y, a, 1) == '696.9'
+assert Precise.string_div(y, a, 2) == '696.96'
+assert Precise.string_div(a, y) == '0.001434784043479695'
+
+assert Precise.string_abs('0') == '0'
+assert Precise.string_abs('-0') == '0'
+assert Precise.string_abs('-500.1') == '500.1'
+assert Precise.string_abs('213') == '213'
+
+assert Precise.string_neg('0') == '0'
+assert Precise.string_neg('-0') == '0'
+assert Precise.string_neg('-500.1') == '500.1'
+assert Precise.string_neg('213') == '-213'

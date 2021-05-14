@@ -11,6 +11,7 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\OrderNotFound;
 use \ccxt\DDoSProtection;
+use \ccxt\Precise;
 
 class bitmex extends Exchange {
 
@@ -324,21 +325,17 @@ class bitmex extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $free = $this->safe_number($balance, 'availableMargin');
-            $total = $this->safe_number($balance, 'marginBalance');
+            $free = $this->safe_string($balance, 'availableMargin');
+            $total = $this->safe_string($balance, 'marginBalance');
             if ($code === 'BTC') {
-                if ($free !== null) {
-                    $free /= 100000000;
-                }
-                if ($total !== null) {
-                    $total /= 100000000;
-                }
+                $free = Precise::string_div($free, '1e8');
+                $total = Precise::string_div($total, '1e8');
             }
             $account['free'] = $free;
             $account['total'] = $total;
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_balance($params = array ()) {
@@ -408,6 +405,7 @@ class bitmex extends Exchange {
         }
         $response = yield $this->publicGetOrderBookL2 (array_merge($request, $params));
         $result = array(
+            'symbol' => $symbol,
             'bids' => array(),
             'asks' => array(),
             'timestamp' => null,

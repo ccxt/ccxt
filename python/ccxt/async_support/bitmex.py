@@ -15,6 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class bitmex(Exchange):
@@ -323,17 +324,15 @@ class bitmex(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            free = self.safe_number(balance, 'availableMargin')
-            total = self.safe_number(balance, 'marginBalance')
+            free = self.safe_string(balance, 'availableMargin')
+            total = self.safe_string(balance, 'marginBalance')
             if code == 'BTC':
-                if free is not None:
-                    free /= 100000000
-                if total is not None:
-                    total /= 100000000
+                free = Precise.string_div(free, '1e8')
+                total = Precise.string_div(total, '1e8')
             account['free'] = free
             account['total'] = total
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -400,6 +399,7 @@ class bitmex(Exchange):
             request['depth'] = limit
         response = await self.publicGetOrderBookL2(self.extend(request, params))
         result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': None,

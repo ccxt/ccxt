@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.precise import Precise
 
 
 class coinfalcon(Exchange):
@@ -170,17 +171,16 @@ class coinfalcon(Exchange):
         }
         response = self.publicGetMarketsMarketOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
-        return self.parse_order_book(data, None, 'bids', 'asks', 'price', 'size')
+        return self.parse_order_book(data, symbol, None, 'bids', 'asks', 'price', 'size')
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'size')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = market['symbol']
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = float(self.cost_to_precision(symbol, price * amount))
         tradeId = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'order_id')
@@ -245,13 +245,12 @@ class coinfalcon(Exchange):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
-            account = {
-                'free': self.safe_number(balance, 'available_balance'),
-                'used': self.safe_number(balance, 'hold_balance'),
-                'total': self.safe_number(balance, 'balance'),
-            }
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available_balance')
+            account['used'] = self.safe_string(balance, 'hold_balance')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order_status(self, status):
         statuses = {

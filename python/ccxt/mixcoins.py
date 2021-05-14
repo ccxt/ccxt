@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.precise import Precise
 
 
 class mixcoins(Exchange):
@@ -73,10 +74,10 @@ class mixcoins(Exchange):
             code = self.safe_currency_code(currencyId)
             balance = self.safe_value(balances, currencyId, {})
             account = self.account()
-            account['free'] = self.safe_number(balance, 'avail')
-            account['used'] = self.safe_number(balance, 'lock')
+            account['free'] = self.safe_string(balance, 'avail')
+            account['used'] = self.safe_string(balance, 'lock')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -84,7 +85,7 @@ class mixcoins(Exchange):
             'market': self.market_id(symbol),
         }
         response = self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response['result'])
+        return self.parse_order_book(response['result'], symbol)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -124,12 +125,11 @@ class mixcoins(Exchange):
         if market is not None:
             symbol = market['symbol']
         id = self.safe_string(trade, 'id')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'id': id,
             'info': trade,

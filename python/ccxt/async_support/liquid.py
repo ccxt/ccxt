@@ -8,6 +8,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -15,6 +16,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class liquid(Exchange):
@@ -118,7 +120,7 @@ class liquid(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.0015,
+                    'taker': 0.0030,
                     'maker': 0.0000,
                     'tiers': {
                         'perpetual': {
@@ -137,48 +139,52 @@ class liquid(Exchange):
                                 [300000000, -0.00025],
                             ],
                             'taker': [
-                                [0, 0.000600],
-                                [25000, 0.000575],
-                                [50000, 0.000550],
-                                [100000, 0.000525],
-                                [1000000, 0.000500],
-                                [10000000, 0.000475],
-                                [25000000, 0.000450],
-                                [50000000, 0.000425],
-                                [75000000, 0.000400],
-                                [100000000, 0.000375],
-                                [200000000, 0.000350],
-                                [300000000, 0.000325],
+                                [0, 0.00120],
+                                [25000, 0.00115],
+                                [50000, 0.00110],
+                                [100000, 0.00105],
+                                [1000000, 0.00100],
+                                [10000000, 0.00095],
+                                [25000000, 0.00090],
+                                [50000000, 0.00085],
+                                [75000000, 0.00080],
+                                [100000000, 0.00075],
+                                [200000000, 0.00070],
+                                [300000000, 0.00065],
                             ],
                         },
                         'spot': {
                             'taker': [
-                                [0, 0.0015],
-                                [10000, 0.0015],
-                                [20000, 0.0014],
-                                [50000, 0.0013],
-                                [100000, 0.0010],
-                                [1000000, 0.0008],
-                                [5000000, 0.0006],
-                                [10000000, 0.0005],
-                                [25000000, 0.0005],
-                                [50000000, 0.00045],
-                                [100000000, 0.0004],
-                                [200000000, 0.0003],
+                                [0, 0.003],
+                                [10000, 0.0029],
+                                [20000, 0.0028],
+                                [50000, 0.0026],
+                                [100000, 0.0020],
+                                [1000000, 0.0016],
+                                [5000000, 0.0012],
+                                [10000000, 0.0010],
+                                [25000000, 0.0009],
+                                [50000000, 0.0008],
+                                [100000000, 0.0007],
+                                [200000000, 0.0006],
+                                [500000000, 0.0004],
+                                [1000000000, 0.0003],
                             ],
                             'maker': [
                                 [0, 0.0000],
-                                [10000, 0.0015],
-                                [20000, 0.1400],
-                                [50000, 0.1300],
-                                [100000, 0.0800],
-                                [1000000, 0.0004],
-                                [5000000, 0.00035],
-                                [10000000, 0.00025],
+                                [10000, 0.0020],
+                                [20000, 0.0019],
+                                [50000, 0.0018],
+                                [100000, 0.0016],
+                                [1000000, 0.0008],
+                                [5000000, 0.0007],
+                                [10000000, 0.0005],
                                 [25000000, 0.0000],
                                 [50000000, 0.0000],
                                 [100000000, 0.0000],
                                 [200000000, 0.0000],
+                                [500000000, 0.0000],
+                                [1000000000, 0.0000],
                             ],
                         },
                     },
@@ -197,6 +203,7 @@ class liquid(Exchange):
                 'less_than_order_size': InvalidOrder,
                 'price_too_high': InvalidOrder,
                 'price_too_small': InvalidOrder,  # {"errors":{"order":["price_too_small"]}}
+                'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
@@ -235,10 +242,7 @@ class liquid(Exchange):
             id = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(id)
             active = currency['depositable'] and currency['withdrawable']
-            amountPrecision = self.safe_integer(currency, 'display_precision')
-            pricePrecision = self.safe_integer(currency, 'quoting_precision')
-            precision = max(amountPrecision, pricePrecision)
-            decimalPrecision = 1 / math.pow(10, precision)
+            amountPrecision = self.safe_integer(currency, 'assets_precision')
             result[code] = {
                 'id': id,
                 'code': code,
@@ -246,19 +250,11 @@ class liquid(Exchange):
                 'name': code,
                 'active': active,
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
-                'precision': decimalPrecision,
+                'precision': amountPrecision,
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -amountPrecision),
                         'max': math.pow(10, amountPrecision),
-                    },
-                    'price': {
-                        'min': math.pow(10, -pricePrecision),
-                        'max': math.pow(10, pricePrecision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
                     },
                     'withdraw': {
                         'min': self.safe_number(currency, 'minimum_withdrawal'),
@@ -394,14 +390,24 @@ class liquid(Exchange):
             minAmount = None
             if baseCurrency is not None:
                 minAmount = self.safe_number(baseCurrency['info'], 'minimum_order_quantity')
+            lastPrice = self.safe_number(market, 'last_traded_price')
+            minPrice = None
+            maxPrice = None
+            if lastPrice:
+                multiplierDown = self.safe_number(market, 'multiplier_down')
+                multiplierUp = self.safe_number(market, 'multiplier_up')
+                if multiplierDown is not None:
+                    minPrice = lastPrice * multiplierDown
+                if multiplierUp is not None:
+                    maxPrice = lastPrice * multiplierUp
             limits = {
                 'amount': {
                     'min': minAmount,
                     'max': None,
                 },
                 'price': {
-                    'min': None,
-                    'max': None,
+                    'min': minPrice,
+                    'max': maxPrice,
                 },
                 'cost': {
                     'min': None,
@@ -464,7 +470,11 @@ class liquid(Exchange):
         #         ]
         #     }
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         crypto = self.safe_value(response, 'crypto_accounts', [])
         fiat = self.safe_value(response, 'fiat_accounts', [])
         for i in range(0, len(crypto)):
@@ -472,18 +482,18 @@ class liquid(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_number(balance, 'balance')
-            account['used'] = self.safe_number(balance, 'reserved_balance')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'reserved_balance')
             result[code] = account
         for i in range(0, len(fiat)):
             balance = fiat[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_number(balance, 'balance')
-            account['used'] = self.safe_number(balance, 'reserved_balance')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'reserved_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -491,7 +501,7 @@ class liquid(Exchange):
             'id': self.market_id(symbol),
         }
         response = await self.publicGetProductsIdPriceLevels(self.extend(request, params))
-        return self.parse_order_book(response, None, 'buy_price_levels', 'sell_price_levels')
+        return self.parse_order_book(response, symbol, None, 'buy_price_levels', 'sell_price_levels')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -583,12 +593,11 @@ class liquid(Exchange):
         takerOrMaker = None
         if mySide is not None:
             takerOrMaker = 'taker' if (takerSide == mySide) else 'maker'
-        cost = None
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'quantity')
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'quantity')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string(trade, 'id')
         symbol = None
         if market is not None:

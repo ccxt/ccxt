@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class deribit extends Exchange {
 
@@ -534,11 +535,11 @@ class deribit extends Exchange {
         $currencyId = $this->safe_string($balance, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
         $account = $this->account();
-        $account['free'] = $this->safe_number($balance, 'availableFunds');
-        $account['used'] = $this->safe_number($balance, 'maintenanceMargin');
-        $account['total'] = $this->safe_number($balance, 'equity');
+        $account['free'] = $this->safe_string($balance, 'availableFunds');
+        $account['used'] = $this->safe_string($balance, 'maintenanceMargin');
+        $account['total'] = $this->safe_string($balance, 'equity');
         $result[$currencyCode] = $account;
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_deposit_address($code, $params = array ()) {
@@ -864,14 +865,11 @@ class deribit extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $side = $this->safe_string($trade, 'direction');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $liquidity = $this->safe_string($trade, 'liquidity');
         $takerOrMaker = null;
         if ($liquidity !== null) {
@@ -1002,7 +1000,7 @@ class deribit extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $timestamp = $this->safe_integer($result, 'timestamp');
         $nonce = $this->safe_integer($result, 'change_id');
-        $orderbook = $this->parse_order_book($result, $timestamp);
+        $orderbook = $this->parse_order_book($result, $symbol, $timestamp);
         $orderbook['nonce'] = $nonce;
         return $orderbook;
     }

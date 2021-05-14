@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -22,6 +21,7 @@ from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
+from ccxt.base.precise import Precise
 
 
 class bitfinex(Exchange):
@@ -176,6 +176,7 @@ class bitfinex(Exchange):
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': True,
                     'percentage': True,
                     'maker': 0.1 / 100,
@@ -303,45 +304,34 @@ class bitfinex(Exchange):
             },
             # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
             'commonCurrencies': {
-                'ABS': 'ABYSS',
-                'AIO': 'AION',
                 'ALG': 'ALGO',  # https://github.com/ccxt/ccxt/issues/6034
                 'AMP': 'AMPL',
-                'ATM': 'ATMI',
                 'ATO': 'ATOM',  # https://github.com/ccxt/ccxt/issues/5118
-                'BAB': 'BCH',
-                'CTX': 'CTXC',
-                'DAD': 'DADI',
+                'BCHABC': 'BCHA',
+                'BCHN': 'BCH',
                 'DAT': 'DATA',
+                'DOG': 'MDOGE',
                 'DSH': 'DASH',
-                'DRK': 'DRK',
                 # https://github.com/ccxt/ccxt/issues/7399
                 # https://coinmarketcap.com/currencies/pnetwork/
                 # https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'EDO': 'PNT',
-                'GSD': 'GUSD',
-                'HOT': 'Hydro Protocol',
-                'IOS': 'IOST',
+                'EUS': 'EURS',
+                'EUT': 'EURT',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
-                'MIT': 'MITH',
                 'MNA': 'MANA',
-                'NCA': 'NCASH',
                 'ORS': 'ORS Group',  # conflict with Origin Sport  #3230
-                'POY': 'POLY',
+                'PAS': 'PASS',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
                 'RBT': 'RBTC',
-                'SEE': 'SEER',
                 'SNG': 'SNGLS',
-                'SPK': 'SPANK',
                 'STJ': 'STORJ',
-                'TRI': 'TRIO',
                 'TSD': 'TUSD',
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
                 'UST': 'USDT',
-                'UTN': 'UTNP',
                 'VSY': 'VSYS',
                 'WAX': 'WAXP',
                 'XCH': 'XCHF',
@@ -566,18 +556,20 @@ class bitfinex(Exchange):
                 # Anything exceeding self will be rounded to the 8th decimal.
                 'amount': 8,
             }
+            minAmountString = self.safe_string(market, 'minimum_order_size')
+            maxAmountString = self.safe_string(market, 'maximum_order_size')
             limits = {
                 'amount': {
-                    'min': self.safe_number(market, 'minimum_order_size'),
-                    'max': self.safe_number(market, 'maximum_order_size'),
+                    'min': self.parse_number(minAmountString),
+                    'max': self.parse_number(maxAmountString),
                 },
                 'price': {
-                    'min': math.pow(10, -precision['price']),
-                    'max': math.pow(10, precision['price']),
+                    'min': self.parse_number('1e-8'),
+                    'max': None,
                 },
             }
             limits['cost'] = {
-                'min': limits['amount']['min'] * limits['price']['min'],
+                'min': None,
                 'max': None,
             }
             margin = self.safe_value(market, 'margin')
@@ -610,28 +602,6 @@ class bitfinex(Exchange):
         # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals(e.g. 1.2345, 123.45, 1234.5, 0.00012345).
         # Prices submit with a precision larger than 5 will be cut by the API.
         return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        rate = market[takerOrMaker]
-        cost = amount * rate
-        key = 'quote'
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-        code = market[key]
-        currency = self.safe_value(self.currencies, code)
-        if currency is not None:
-            precision = self.safe_integer(currency, 'precision')
-            if precision is not None:
-                cost = float(self.currency_to_precision(code, cost))
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': cost,
-        }
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -674,10 +644,10 @@ class bitfinex(Exchange):
                 # https://github.com/ccxt/ccxt/issues/4989
                 if not (code in result):
                     account = self.account()
-                    account['free'] = self.safe_number(balance, 'available')
-                    account['total'] = self.safe_number(balance, 'amount')
+                    account['free'] = self.safe_string(balance, 'available')
+                    account['total'] = self.safe_string(balance, 'amount')
                     result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         # transferring between derivatives wallet and regular wallet is not documented in their API
@@ -748,7 +718,7 @@ class bitfinex(Exchange):
             request['limit_bids'] = limit
             request['limit_asks'] = limit
         response = await self.publicGetBookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -821,12 +791,11 @@ class bitfinex(Exchange):
         type = None
         side = self.safe_string_lower(trade, 'type')
         orderId = self.safe_string(trade, 'order_id')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         if 'fee_amount' in trade:
             feeCost = -self.safe_number(trade, 'fee_amount')

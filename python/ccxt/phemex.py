@@ -35,6 +35,7 @@ class phemex(Exchange):
             'version': 'v1',
             'certified': False,
             'pro': True,
+            'hostname': 'api.phemex.com',
             'has': {
                 'cancelAllOrders': True,  # swap contracts only
                 'cancelOrder': True,
@@ -63,9 +64,9 @@ class phemex(Exchange):
                     'private': 'https://testnet-api.phemex.com',
                 },
                 'api': {
-                    'v1': 'https://api.phemex.com/v1',
-                    'public': 'https://api.phemex.com/exchange/public',
-                    'private': 'https://api.phemex.com',
+                    'v1': 'https://{hostname}/v1',
+                    'public': 'https://{hostname}/exchange/public',
+                    'private': 'https://{hostname}',
                 },
                 'www': 'https://phemex.com',
                 'doc': 'https://github.com/phemex/phemex-api-docs',
@@ -349,7 +350,9 @@ class phemex(Exchange):
         #         "minPriceEp":5000,
         #         "maxPriceEp":10000000000,
         #         "maxOrderQty":1000000,
-        #         "type":"Perpetual"
+        #         "type":"Perpetual",
+        #         "status":"Listed",
+        #         "tipOrderQty":1000000,
         #         "steps":"50",
         #         "riskLimits":[
         #             {"limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000},
@@ -418,7 +421,8 @@ class phemex(Exchange):
                 'max': self.parse_safe_number(self.safe_string(market, 'maxOrderQty')),
             },
         }
-        active = None
+        status = self.safe_string(market, 'status')
+        active = status == 'Listed'
         return {
             'id': id,
             'symbol': symbol,
@@ -466,7 +470,9 @@ class phemex(Exchange):
         #         "defaultMakerFee":"0.001",
         #         "defaultMakerFeeEr":100000,
         #         "baseQtyPrecision":6,
-        #         "quoteQtyPrecision":2
+        #         "quoteQtyPrecision":2,
+        #         "status":"Listed",
+        #         "tipOrderQty":20
         #     }
         #
         type = self.safe_string_lower(market, 'type')
@@ -500,7 +506,8 @@ class phemex(Exchange):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
-        active = None
+        status = self.safe_string(market, 'status')
+        active = status == 'Listed'
         return {
             'id': id,
             'symbol': symbol,
@@ -711,14 +718,6 @@ class phemex(Exchange):
                         'min': minAmount,
                         'max': maxAmount,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': None,
@@ -739,8 +738,9 @@ class phemex(Exchange):
             amount,
         ]
 
-    def parse_order_book(self, orderbook, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market=None):
+    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market=None):
         result = {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'nonce': None,
@@ -793,7 +793,7 @@ class phemex(Exchange):
         result = self.safe_value(response, 'result', {})
         book = self.safe_value(result, 'book', {})
         timestamp = self.safe_integer_product(result, 'timestamp', 0.000001)
-        orderbook = self.parse_order_book(book, timestamp, 'bids', 'asks', 0, 1, market)
+        orderbook = self.parse_order_book(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
         orderbook['nonce'] = self.safe_integer(result, 'sequence')
         return orderbook
 
@@ -1241,6 +1241,7 @@ class phemex(Exchange):
         #         ]
         #     }
         #
+        timestamp = None
         result = {'info': response}
         data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
@@ -1257,9 +1258,13 @@ class phemex(Exchange):
             lockedTradingBalance = self.from_en(lockedTradingBalanceEv, scale, scale, DECIMAL_PLACES)
             lockedWithdraw = self.from_en(lockedWithdrawEv, scale, scale, DECIMAL_PLACES)
             used = self.sum(lockedTradingBalance, lockedWithdraw)
+            lastUpdateTimeNs = self.safe_integer_product(balance, 'lastUpdateTimeNs', 0.000001)
+            timestamp = lastUpdateTimeNs if (timestamp is None) else max(timestamp, lastUpdateTimeNs)
             account['total'] = total
             account['used'] = used
             result[code] = account
+        result['timestamp'] = timestamp
+        result['datetime'] = self.iso8601(timestamp)
         return self.parse_balance(result)
 
     def parse_swap_balance(self, response):
@@ -2378,7 +2383,7 @@ class phemex(Exchange):
                 headers['Content-Type'] = 'application/json'
             auth = requestPath + queryString + expiryString + payload
             headers['x-phemex-request-signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
-        url = self.urls['api'][api] + url
+        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

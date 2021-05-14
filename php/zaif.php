@@ -201,27 +201,29 @@ class zaif extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetInfo ($params);
         $balances = $this->safe_value($response, 'return', array());
-        $result = array( 'info' => $response );
+        $deposit = $this->safe_value($balances, 'deposit');
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $funds = $this->safe_value($balances, 'funds', array());
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $balance = $this->safe_value($funds, $currencyId);
-            $account = array(
-                'free' => $balance,
-                'used' => 0.0,
-                'total' => $balance,
-            );
-            if (is_array($balances) && array_key_exists('deposit', $balances)) {
-                if (is_array($balances['deposit']) && array_key_exists($currencyId, $balances['deposit'])) {
-                    $account['total'] = $this->safe_number($balances['deposit'], $currencyId);
-                    $account['used'] = $account['total'] - $account['free'];
+            $balance = $this->safe_string($funds, $currencyId);
+            $account = $this->account();
+            $account['free'] = $balance;
+            $account['total'] = $balance;
+            if ($deposit !== null) {
+                if (is_array($deposit) && array_key_exists($currencyId, $deposit)) {
+                    $account['total'] = $this->safe_string($deposit, $currencyId);
                 }
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -230,7 +232,7 @@ class zaif extends Exchange {
             'pair' => $this->market_id($symbol),
         );
         $response = $this->publicGetDepthPair (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -276,14 +278,11 @@ class zaif extends Exchange {
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string_2($trade, 'id', 'tid');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'currency_pair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         return array(

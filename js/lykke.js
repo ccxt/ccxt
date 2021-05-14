@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -142,6 +143,7 @@ module.exports = class lykke extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'CAN': 'CanYaCoin',
                 'XPD': 'Lykke XPD',
             },
         });
@@ -184,18 +186,16 @@ module.exports = class lykke extends Exchange {
         const id = this.safeString2 (trade, 'id', 'Id');
         const orderId = this.safeString (trade, 'OrderId');
         const timestamp = this.parse8601 (this.safeString2 (trade, 'dateTime', 'DateTime'));
-        const price = this.safeNumber2 (trade, 'price', 'Price');
-        let amount = this.safeNumber2 (trade, 'volume', 'Amount');
+        const priceString = this.safeString2 (trade, 'price', 'Price');
+        let amountString = this.safeString2 (trade, 'volume', 'Amount');
         let side = this.safeStringLower (trade, 'action');
         if (side === undefined) {
-            if (amount < 0) {
-                side = 'sell';
-            } else {
-                side = 'buy';
-            }
+            side = (amountString[0] === '-') ? 'sell' : 'buy';
         }
-        amount = Math.abs (amount);
-        const cost = price * amount;
+        amountString = Precise.stringAbs (amountString);
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const fee = {
             'cost': 0, // There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
             'currency': market['quote'],
@@ -256,11 +256,11 @@ module.exports = class lykke extends Exchange {
             const currencyId = this.safeString (balance, 'AssetId');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'Balance');
-            account['used'] = this.safeNumber (balance, 'Reserved');
+            account['total'] = this.safeString (balance, 'Balance');
+            account['used'] = this.safeString (balance, 'Reserved');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -359,8 +359,10 @@ module.exports = class lykke extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const pricePrecision = this.safeString (market, 'Accuracy');
+            const priceLimit = this.parsePrecision (pricePrecision);
             const precision = {
-                'price': this.safeInteger (market, 'Accuracy'),
+                'price': parseInt (pricePrecision),
                 'amount': this.safeInteger (market, 'InvertedAccuracy'),
             };
             result.push ({
@@ -373,15 +375,15 @@ module.exports = class lykke extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'min': this.safeNumber (market, 'MinVolume'),
+                        'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': this.parseNumber (priceLimit),
+                        'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'MinInvertedVolume'),
                         'max': undefined,
                     },
                 },
@@ -566,7 +568,7 @@ module.exports = class lykke extends Exchange {
             const sideTimestamp = this.parse8601 (side['Timestamp']);
             timestamp = (timestamp === undefined) ? sideTimestamp : Math.max (timestamp, sideTimestamp);
         }
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume');
+        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'Price', 'Volume');
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {

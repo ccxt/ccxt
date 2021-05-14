@@ -289,8 +289,6 @@ class bitpanda(Exchange):
                 'precision': self.safe_integer(currency, 'precision'),
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
             }
@@ -658,7 +656,7 @@ class bitpanda(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(response, 'time'))
-        return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -872,10 +870,10 @@ class bitpanda(Exchange):
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            account['used'] = self.safe_number(balance, 'locked')
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         code = None
@@ -1227,62 +1225,34 @@ class bitpanda(Exchange):
         #         ]
         #     }
         #
-        rawTrades = self.safe_value(order, 'trades', [])
-        order = self.safe_value(order, 'order', order)
-        id = self.safe_string(order, 'order_id')
-        clientOrderId = self.safe_string(order, 'client_id')
-        timestamp = self.parse8601(self.safe_string(order, 'time'))
-        status = self.parse_order_status(self.safe_string(order, 'status'))
-        marketId = self.safe_string(order, 'instrument_code')
+        rawOrder = self.safe_value(order, 'order', order)
+        id = self.safe_string(rawOrder, 'order_id')
+        clientOrderId = self.safe_string(rawOrder, 'client_id')
+        timestamp = self.parse8601(self.safe_string(rawOrder, 'time'))
+        rawStatus = self.parse_order_status(self.safe_string(rawOrder, 'status'))
+        status = self.parse_order_status(rawStatus)
+        marketId = self.safe_string(rawOrder, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
-        cost = None
-        filled = self.safe_number(order, 'filled_amount')
-        remaining = None
-        if filled is not None:
-            if amount is not None:
-                remaining = max(0, amount - filled)
-                if status is None:
-                    if remaining > 0:
-                        status = 'open'
-                    else:
-                        status = 'closed'
-        side = self.safe_string_lower(order, 'side')
-        type = self.safe_string_lower(order, 'type')
-        trades = self.parse_trades(rawTrades, market, None, None)
-        fees = []
-        numTrades = len(trades)
-        lastTradeTimestamp = None
-        tradeCost = None
-        tradeAmount = None
-        if numTrades > 0:
-            lastTradeTimestamp = trades[0]['timestamp']
-            tradeCost = 0
-            tradeAmount = 0
-            for i in range(0, len(trades)):
-                trade = trades[i]
-                fees.append(trade['fee'])
-                lastTradeTimestamp = max(lastTradeTimestamp, trade['timestamp'])
-                tradeCost = self.sum(tradeCost, trade['cost'])
-                tradeAmount = self.sum(tradeAmount, trade['amount'])
-        average = self.safe_number(order, 'average_price')
-        if average is None:
-            if (tradeCost is not None) and (tradeAmount is not None) and (tradeAmount != 0):
-                average = tradeCost / tradeAmount
-        if cost is None:
-            if (average is not None) and (filled is not None):
-                cost = average * filled
-        timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        stopPrice = self.safe_number(order, 'trigger_price')
-        postOnly = self.safe_value(order, 'is_post_only')
-        result = {
+        price = self.safe_number(rawOrder, 'price')
+        amount = self.safe_number(rawOrder, 'amount')
+        filledString = self.safe_string(rawOrder, 'filled_amount')
+        filled = self.parse_number(filledString)
+        side = self.safe_string_lower(rawOrder, 'side')
+        type = self.safe_string_lower(rawOrder, 'type')
+        timeInForce = self.parse_time_in_force(self.safe_string(rawOrder, 'time_in_force'))
+        stopPrice = self.safe_number(rawOrder, 'trigger_price')
+        postOnly = self.safe_value(rawOrder, 'is_post_only')
+        rawTrades = self.safe_value(order, 'trades', [])
+        trades = self.parse_trades(rawTrades, market, None, None, {
+            'type': type,
+        })
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -1291,37 +1261,14 @@ class bitpanda(Exchange):
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
-            'average': average,
+            'cost': None,
+            'average': None,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             # 'fee': None,
             'trades': trades,
-        }
-        numFees = len(fees)
-        if numFees > 0:
-            if numFees == 1:
-                result['fee'] = fees[0]
-            else:
-                feesByCurrency = self.group_by(fees, 'currency')
-                feeCurrencies = list(feesByCurrency.keys())
-                numFeesByCurrency = len(feeCurrencies)
-                if numFeesByCurrency == 1:
-                    feeCurrency = feeCurrencies[0]
-                    feeArray = self.safe_value(feesByCurrency, feeCurrency)
-                    feeCost = 0
-                    for i in range(0, len(feeArray)):
-                        feeCost = self.sum(feeCost, feeArray[i]['cost'])
-                    result['fee'] = {
-                        'cost': feeCost,
-                        'currency': feeCurrency,
-                    }
-                else:
-                    result['fees'] = fees
-        else:
-            result['fee'] = None
-        return result
+        })
 
     def parse_time_in_force(self, timeInForce):
         timeInForces = {

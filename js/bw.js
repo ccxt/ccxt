@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { RateLimitExceeded, BadSymbol, OrderNotFound, ExchangeError, AuthenticationError, ArgumentsRequired, ExchangeNotAvailable } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -299,14 +300,6 @@ module.exports = class bw extends Exchange {
                         'min': this.safeNumber (currency, 'limitAmount', 0),
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': this.safeNumber (currency, 'onceDrawLimit'),
@@ -455,7 +448,7 @@ module.exports = class bw extends Exchange {
         //
         const orderbook = this.safeValue (response, 'datas', []);
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {
@@ -477,8 +470,11 @@ module.exports = class bw extends Exchange {
         //     ...
         //
         const timestamp = this.safeTimestamp (trade, 2);
-        const price = this.safeNumber (trade, 5);
-        const amount = this.safeNumber (trade, 6);
+        const priceString = this.safeString (trade, 5);
+        const amountString = this.safeString (trade, 6);
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 1);
         let symbol = undefined;
         if (marketId !== undefined) {
@@ -495,12 +491,6 @@ module.exports = class bw extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = this.costToPrecision (symbol, price * amount);
-            }
-        }
         const sideString = this.safeString (trade, 4);
         const side = (sideString === 'ask') ? 'sell' : 'buy';
         return {
@@ -514,7 +504,7 @@ module.exports = class bw extends Exchange {
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': parseFloat (cost),
+            'cost': cost,
             'fee': undefined,
             'info': trade,
         };
@@ -633,11 +623,11 @@ module.exports = class bw extends Exchange {
             const currencyId = this.safeString (balance, 'currencyTypeId');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'amount');
-            account['used'] = this.safeNumber (balance, 'freeze');
+            account['free'] = this.safeString (balance, 'amount');
+            account['used'] = this.safeString (balance, 'freeze');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

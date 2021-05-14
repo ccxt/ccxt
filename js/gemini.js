@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -322,7 +323,7 @@ module.exports = class gemini extends Exchange {
             request['limit_asks'] = limit;
         }
         const response = await this.publicGetV1BookSymbol (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTickerV1 (symbol, params = {}) {
@@ -549,14 +550,11 @@ module.exports = class gemini extends Exchange {
             'cost': this.safeNumber (trade, 'fee_amount'),
             'currency': feeCurrencyCode,
         };
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const type = undefined;
         const side = this.safeStringLower (trade, 'type');
         const symbol = this.safeSymbol (undefined, market);
@@ -609,11 +607,11 @@ module.exports = class gemini extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'available');
-            account['total'] = this.safeNumber (balance, 'amount');
+            account['free'] = this.safeString (balance, 'available');
+            account['total'] = this.safeString (balance, 'amount');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrder (order, market = undefined) {

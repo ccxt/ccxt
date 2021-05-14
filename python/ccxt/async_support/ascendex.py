@@ -14,8 +14,8 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class ascendex(Exchange):
@@ -142,6 +142,7 @@ class ascendex(Exchange):
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': True,
                     'percentage': True,
                     'taker': 0.002,
@@ -223,8 +224,10 @@ class ascendex(Exchange):
                 'broad': {},
             },
             'commonCurrencies': {
+                'BOND': 'BONDED',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
+                'BYN': 'Beyond Finance',
             },
         })
 
@@ -320,14 +323,6 @@ class ascendex(Exchange):
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -precision),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
                         'max': None,
                     },
                     'withdraw': {
@@ -471,26 +466,6 @@ class ascendex(Exchange):
             })
         return result
 
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        # TODO: fee calculation here is incorrect, we need to support tiered fee calculation.
-        market = self.markets[symbol]
-        key = 'quote'
-        rate = market[takerOrMaker]
-        cost = amount * rate
-        precision = market['precision']['price']
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-            precision = market['precision']['amount']
-        cost = self.decimal_to_precision(cost, ROUND, precision, self.precisionMode)
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': float(cost),
-        }
-
     async def fetch_accounts(self, params={}):
         accountGroup = self.safe_string(self.options, 'account-group')
         response = None
@@ -586,16 +561,20 @@ class ascendex(Exchange):
         #         ]
         #     }
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             code = self.safe_currency_code(self.safe_string(balance, 'asset'))
             account = self.account()
-            account['free'] = self.safe_number(balance, 'availableBalance')
-            account['total'] = self.safe_number(balance, 'totalBalance')
+            account['free'] = self.safe_string(balance, 'availableBalance')
+            account['total'] = self.safe_string(balance, 'totalBalance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -630,7 +609,7 @@ class ascendex(Exchange):
         data = self.safe_value(response, 'data', {})
         orderbook = self.safe_value(data, 'data', {})
         timestamp = self.safe_integer(orderbook, 'ts')
-        result = self.parse_order_book(orderbook, timestamp)
+        result = self.parse_order_book(orderbook, symbol, timestamp)
         result['nonce'] = self.safe_integer(orderbook, 'seqnum')
         return result
 
@@ -835,11 +814,11 @@ class ascendex(Exchange):
         #     }
         #
         timestamp = self.safe_integer(trade, 'ts')
-        price = self.safe_number_2(trade, 'price', 'p')
-        amount = self.safe_number(trade, 'q')
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
+        priceString = self.safe_string_2(trade, 'price', 'p')
+        amountString = self.safe_string(trade, 'q')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         buyerIsMaker = self.safe_value(trade, 'bm', False)
         makerOrTaker = 'maker' if buyerIsMaker else 'taker'
         side = 'buy' if buyerIsMaker else 'sell'

@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -279,7 +280,7 @@ module.exports = class lbank extends Exchange {
             'size': size,
         };
         const response = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTrade (trade, market = undefined) {
@@ -288,14 +289,11 @@ module.exports = class lbank extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeInteger (trade, 'date_ms');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = parseFloat (this.costToPrecision (symbol, price * amount));
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'tid');
         const type = undefined;
         let side = this.safeString (trade, 'type');
@@ -406,7 +404,11 @@ module.exports = class lbank extends Exchange {
         //         }
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const info = this.safeValue (response, 'info', {});
         const free = this.safeValue (info, 'free', {});
         const freeze = this.safeValue (info, 'freeze', {});
@@ -416,12 +418,12 @@ module.exports = class lbank extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (free, currencyId);
-            account['used'] = this.safeNumber (freeze, currencyId);
-            account['total'] = this.safeNumber (asset, currencyId);
+            account['free'] = this.safeString (free, currencyId);
+            account['used'] = this.safeString (freeze, currencyId);
+            account['total'] = this.safeString (asset, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrderStatus (status) {

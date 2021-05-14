@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -207,20 +208,55 @@ module.exports = class indodax extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
+        //
+        //     {
+        //         "success":1,
+        //         "return":{
+        //             "server_time":1619562628,
+        //             "balance":{
+        //                 "idr":167,
+        //                 "btc":"0.00000000",
+        //                 "1inch":"0.00000000",
+        //             },
+        //             "balance_hold":{
+        //                 "idr":0,
+        //                 "btc":"0.00000000",
+        //                 "1inch":"0.00000000",
+        //             },
+        //             "address":{
+        //                 "btc":"1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk",
+        //                 "1inch":"0x1106c8bb3172625e1f411c221be49161dac19355",
+        //                 "xrp":"rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        //                 "zrx":"0x1106c8bb3172625e1f411c221be49161dac19355"
+        //             },
+        //             "user_id":"276011",
+        //             "name":"",
+        //             "email":"testbitcoincoid@mailforspam.com",
+        //             "profile_picture":null,
+        //             "verification_status":"unverified",
+        //             "gauth_enable":true
+        //         }
+        //     }
+        //
         const balances = this.safeValue (response, 'return', {});
         const free = this.safeValue (balances, 'balance', {});
         const used = this.safeValue (balances, 'balance_hold', {});
-        const result = { 'info': response };
+        const timestamp = this.safeTimestamp (balances, 'server_time');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         const currencyIds = Object.keys (free);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (free, currencyId);
-            account['used'] = this.safeNumber (used, currencyId);
+            account['free'] = this.safeString (free, currencyId);
+            account['used'] = this.safeString (used, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -229,7 +265,7 @@ module.exports = class indodax extends Exchange {
             'pair': this.marketId (symbol),
         };
         const orderbook = await this.publicGetPairDepth (this.extend (request, params));
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'buy', 'sell');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -291,14 +327,11 @@ module.exports = class indodax extends Exchange {
         }
         const type = undefined;
         const side = this.safeString (trade, 'type');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         return {
             'id': id,
             'info': trade,
@@ -346,6 +379,19 @@ module.exports = class indodax extends Exchange {
         //         "remain_ltc": "100000000"
         //     }
         //
+        // market closed orders - note that the price is very high
+        // and does not reflect actual price the order executed at
+        //
+        //     {
+        //       "order_id": "49326856",
+        //       "type": "sell",
+        //       "price": "1000000000",
+        //       "submit_time": "1618314671",
+        //       "finish_time": "1618314671",
+        //       "status": "filled",
+        //       "order_xrp": "30.45000000",
+        //       "remain_xrp": "0.00000000"
+        //     }
         let side = undefined;
         if ('type' in order) {
             side = order['type'];
@@ -356,7 +402,6 @@ module.exports = class indodax extends Exchange {
         const price = this.safeNumber (order, 'price');
         let amount = undefined;
         let remaining = undefined;
-        let filled = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
             let quoteId = market['quoteId'];
@@ -368,28 +413,15 @@ module.exports = class indodax extends Exchange {
                 baseId = 'rp';
             }
             cost = this.safeNumber (order, 'order_' + quoteId);
-            if (cost) {
-                amount = cost / price;
-                const remainingCost = this.safeNumber (order, 'remain_' + quoteId);
-                if (remainingCost !== undefined) {
-                    remaining = remainingCost / price;
-                    filled = amount - remaining;
-                }
-            } else {
+            if (!cost) {
                 amount = this.safeNumber (order, 'order_' + baseId);
-                cost = price * amount;
                 remaining = this.safeNumber (order, 'remain_' + baseId);
-                filled = amount - remaining;
             }
-        }
-        let average = undefined;
-        if (filled) {
-            average = cost / filled;
         }
         const timestamp = this.safeInteger (order, 'submit_time');
         const fee = undefined;
         const id = this.safeString (order, 'order_id');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -404,14 +436,14 @@ module.exports = class indodax extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'cost': cost,
-            'average': average,
+            'average': undefined,
             'amount': amount,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

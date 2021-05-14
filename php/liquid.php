@@ -113,7 +113,7 @@ class liquid extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.0015,
+                    'taker' => 0.0030,
                     'maker' => 0.0000,
                     'tiers' => array(
                         'perpetual' => array(
@@ -132,48 +132,52 @@ class liquid extends Exchange {
                                 array( 300000000, -0.00025 ),
                             ),
                             'taker' => array(
-                                array( 0, 0.000600 ),
-                                array( 25000, 0.000575 ),
-                                array( 50000, 0.000550 ),
-                                array( 100000, 0.000525 ),
-                                array( 1000000, 0.000500 ),
-                                array( 10000000, 0.000475 ),
-                                array( 25000000, 0.000450 ),
-                                array( 50000000, 0.000425 ),
-                                array( 75000000, 0.000400 ),
-                                array( 100000000, 0.000375 ),
-                                array( 200000000, 0.000350 ),
-                                array( 300000000, 0.000325 ),
+                                array( 0, 0.00120 ),
+                                array( 25000, 0.00115 ),
+                                array( 50000, 0.00110 ),
+                                array( 100000, 0.00105 ),
+                                array( 1000000, 0.00100 ),
+                                array( 10000000, 0.00095 ),
+                                array( 25000000, 0.00090 ),
+                                array( 50000000, 0.00085 ),
+                                array( 75000000, 0.00080 ),
+                                array( 100000000, 0.00075 ),
+                                array( 200000000, 0.00070 ),
+                                array( 300000000, 0.00065 ),
                             ),
                         ),
                         'spot' => array(
                             'taker' => array(
-                                array( 0, 0.0015 ),
-                                array( 10000, 0.0015 ),
-                                array( 20000, 0.0014 ),
-                                array( 50000, 0.0013 ),
-                                array( 100000, 0.0010 ),
-                                array( 1000000, 0.0008 ),
-                                array( 5000000, 0.0006 ),
-                                array( 10000000, 0.0005 ),
-                                array( 25000000, 0.0005 ),
-                                array( 50000000, 0.00045 ),
-                                array( 100000000, 0.0004 ),
-                                array( 200000000, 0.0003 ),
+                                array( 0, 0.003 ),
+                                array( 10000, 0.0029 ),
+                                array( 20000, 0.0028 ),
+                                array( 50000, 0.0026 ),
+                                array( 100000, 0.0020 ),
+                                array( 1000000, 0.0016 ),
+                                array( 5000000, 0.0012 ),
+                                array( 10000000, 0.0010 ),
+                                array( 25000000, 0.0009 ),
+                                array( 50000000, 0.0008 ),
+                                array( 100000000, 0.0007 ),
+                                array( 200000000, 0.0006 ),
+                                array( 500000000, 0.0004 ),
+                                array( 1000000000, 0.0003 ),
                             ),
                             'maker' => array(
                                 array( 0, 0.0000 ),
-                                array( 10000, 0.0015 ),
-                                array( 20000, 0.1400 ),
-                                array( 50000, 0.1300 ),
-                                array( 100000, 0.0800 ),
-                                array( 1000000, 0.0004 ),
-                                array( 5000000, 0.00035 ),
-                                array( 10000000, 0.00025 ),
+                                array( 10000, 0.0020 ),
+                                array( 20000, 0.0019 ),
+                                array( 50000, 0.0018 ),
+                                array( 100000, 0.0016 ),
+                                array( 1000000, 0.0008 ),
+                                array( 5000000, 0.0007 ),
+                                array( 10000000, 0.0005 ),
                                 array( 25000000, 0.0000 ),
                                 array( 50000000, 0.0000 ),
                                 array( 100000000, 0.0000 ),
                                 array( 200000000, 0.0000 ),
+                                array( 500000000, 0.0000 ),
+                                array( 1000000000, 0.0000 ),
                             ),
                         ),
                     ),
@@ -192,6 +196,7 @@ class liquid extends Exchange {
                 'less_than_order_size' => '\\ccxt\\InvalidOrder',
                 'price_too_high' => '\\ccxt\\InvalidOrder',
                 'price_too_small' => '\\ccxt\\InvalidOrder', // array("errors":array("order":["price_too_small"]))
+                'product_disabled' => '\\ccxt\\BadSymbol', // array("errors":array("order":["product_disabled"]))
             ),
             'commonCurrencies' => array(
                 'WIN' => 'WCOIN',
@@ -231,10 +236,7 @@ class liquid extends Exchange {
             $id = $this->safe_string($currency, 'currency');
             $code = $this->safe_currency_code($id);
             $active = $currency['depositable'] && $currency['withdrawable'];
-            $amountPrecision = $this->safe_integer($currency, 'display_precision');
-            $pricePrecision = $this->safe_integer($currency, 'quoting_precision');
-            $precision = max ($amountPrecision, $pricePrecision);
-            $decimalPrecision = 1 / pow(10, $precision);
+            $amountPrecision = $this->safe_integer($currency, 'assets_precision');
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -242,19 +244,11 @@ class liquid extends Exchange {
                 'name' => $code,
                 'active' => $active,
                 'fee' => $this->safe_number($currency, 'withdrawal_fee'),
-                'precision' => $decimalPrecision,
+                'precision' => $amountPrecision,
                 'limits' => array(
                     'amount' => array(
                         'min' => pow(10, -$amountPrecision),
                         'max' => pow(10, $amountPrecision),
-                    ),
-                    'price' => array(
-                        'min' => pow(10, -$pricePrecision),
-                        'max' => pow(10, $pricePrecision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'minimum_withdrawal'),
@@ -396,14 +390,27 @@ class liquid extends Exchange {
             if ($baseCurrency !== null) {
                 $minAmount = $this->safe_number($baseCurrency['info'], 'minimum_order_quantity');
             }
+            $lastPrice = $this->safe_number($market, 'last_traded_price');
+            $minPrice = null;
+            $maxPrice = null;
+            if ($lastPrice) {
+                $multiplierDown = $this->safe_number($market, 'multiplier_down');
+                $multiplierUp = $this->safe_number($market, 'multiplier_up');
+                if ($multiplierDown !== null) {
+                    $minPrice = $lastPrice * $multiplierDown;
+                }
+                if ($multiplierUp !== null) {
+                    $maxPrice = $lastPrice * $multiplierUp;
+                }
+            }
             $limits = array(
                 'amount' => array(
                     'min' => $minAmount,
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => null,
-                    'max' => null,
+                    'min' => $minPrice,
+                    'max' => $maxPrice,
                 ),
                 'cost' => array(
                     'min' => null,
@@ -468,7 +475,11 @@ class liquid extends Exchange {
         //         )
         //     }
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $crypto = $this->safe_value($response, 'crypto_accounts', array());
         $fiat = $this->safe_value($response, 'fiat_accounts', array());
         for ($i = 0; $i < count($crypto); $i++) {
@@ -476,8 +487,8 @@ class liquid extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'balance');
-            $account['used'] = $this->safe_number($balance, 'reserved_balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'reserved_balance');
             $result[$code] = $account;
         }
         for ($i = 0; $i < count($fiat); $i++) {
@@ -485,11 +496,11 @@ class liquid extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'balance');
-            $account['used'] = $this->safe_number($balance, 'reserved_balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'reserved_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -498,7 +509,7 @@ class liquid extends Exchange {
             'id' => $this->market_id($symbol),
         );
         $response = $this->publicGetProductsIdPriceLevels (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'buy_price_levels', 'sell_price_levels');
+        return $this->parse_order_book($response, $symbol, null, 'buy_price_levels', 'sell_price_levels');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -605,14 +616,11 @@ class liquid extends Exchange {
         if ($mySide !== null) {
             $takerOrMaker = ($takerSide === $mySide) ? 'taker' : 'maker';
         }
-        $cost = null;
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'quantity');
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'quantity');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string($trade, 'id');
         $symbol = null;
         if ($market !== null) {

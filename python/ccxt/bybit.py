@@ -15,6 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class bybit(Exchange):
@@ -87,11 +88,11 @@ class bybit(Exchange):
                 'futures': {
                     'private': {
                         'get': [
-                            'position/list',
                             'order/list',
                             'order',
                             'stop-order/list',
                             'stop-order',
+                            'position/list',
                             'execution/list',
                             'trade/closed-pnl/list',
                         ],
@@ -109,6 +110,7 @@ class bybit(Exchange):
                             'position/leverage/save',
                             'position/switch-mode',
                             'position/switch-isolated',
+                            'position/risk-limit',
                         ],
                     },
                 },
@@ -129,6 +131,8 @@ class bybit(Exchange):
                             'account-ratio',
                             'time',
                             'announcement',
+                            'funding/prev-funding-rate',
+                            'risk-limit/list',
                         ],
                     },
                     'private': {
@@ -162,6 +166,9 @@ class bybit(Exchange):
                             'position/change-position-margin',
                             'position/trading-stop',
                             'position/leverage/save',
+                            'position/switch-mode',
+                            'position/switch-isolated',
+                            'position/risk-limit',
                         ],
                     },
                 },
@@ -206,16 +213,7 @@ class bybit(Exchange):
                             'position/add-margin',
                             'position/set-leverage',
                             'position/trading-stop',
-                        ],
-                    },
-                },
-                'openapi': {
-                    'wallet': {
-                        'get': [
-                            'risk-limit/list',
-                        ],
-                        'post': [
-                            'risk-limit',
+                            'position/set-risk',
                         ],
                     },
                 },
@@ -329,7 +327,7 @@ class bybit(Exchange):
                     'DOT/USDT': 'linear',
                     'UNI/USDT': 'linear',
                 },
-                'defaultType': 'linear',  # may also be inverse or inverseFuture
+                'defaultType': 'linear',  # may also be inverse
                 'code': 'BTC',
                 'cancelAllOrders': {
                     # 'method': 'v2PrivatePostOrderCancelAll',  # v2PrivatePostStopOrderCancelAll
@@ -433,8 +431,10 @@ class bybit(Exchange):
             inverse = not linear
             symbol = base + '/' + quote
             baseQuote = base + quote
+            type = 'swap'
             if baseQuote != id:
                 symbol = id
+                type = 'future'
             lotSizeFilter = self.safe_value(market, 'lot_size_filter', {})
             priceFilter = self.safe_value(market, 'price_filter', {})
             precision = {
@@ -445,6 +445,10 @@ class bybit(Exchange):
             active = None
             if status is not None:
                 active = (status == 'Trading')
+            spot = (type == 'spot')
+            swap = (type == 'swap')
+            future = (type == 'future')
+            option = (type == 'option')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -454,10 +458,11 @@ class bybit(Exchange):
                 'precision': precision,
                 'taker': self.safe_number(market, 'taker_fee'),
                 'maker': self.safe_number(market, 'maker_fee'),
-                'type': 'future',
-                'spot': False,
-                'future': True,
-                'option': False,
+                'type': type,
+                'spot': spot,
+                'swap': swap,
+                'future': future,
+                'option': option,
                 'linear': linear,
                 'inverse': inverse,
                 'limits': {
@@ -802,13 +807,13 @@ class bybit(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        amount = self.safe_number_2(trade, 'qty', 'exec_qty')
+        amountString = self.safe_string_2(trade, 'qty', 'exec_qty')
+        priceString = self.safe_string_2(trade, 'exec_price', 'price')
         cost = self.safe_number(trade, 'exec_value')
-        price = self.safe_number_2(trade, 'exec_price', 'price')
+        amount = self.parse_number(amountString)
+        price = self.parse_number(priceString)
         if cost is None:
-            if amount is not None:
-                if price is not None:
-                    cost = amount * price
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         if timestamp is None:
             timestamp = self.safe_integer(trade, 'trade_time_ms')
@@ -875,7 +880,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_trades(result, market, since, limit)
 
-    def parse_order_book(self, orderbook, timestamp=None, bidsKey='Buy', asksKey='Sell', priceKey='price', amountKey='size'):
+    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='Buy', asksKey='Sell', priceKey='price', amountKey='size'):
         bids = []
         asks = []
         for i in range(0, len(orderbook)):
@@ -888,6 +893,7 @@ class bybit(Exchange):
             else:
                 raise ExchangeError(self.id + ' parseOrderBook encountered an unrecognized bidask format: ' + self.json(bidask))
         return {
+            'symbol': symbol,
             'bids': self.sort_by(bids, 0, True),
             'asks': self.sort_by(asks, 0),
             'timestamp': timestamp,
@@ -921,7 +927,7 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result', [])
         timestamp = self.safe_timestamp(response, 'time_now')
-        return self.parse_order_book(result, timestamp, 'Buy', 'Sell', 'price', 'size')
+        return self.parse_order_book(result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size')
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -973,11 +979,11 @@ class bybit(Exchange):
             balance = balances[currencyId]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available_balance')
-            account['used'] = self.safe_number(balance, 'used_margin')
-            account['total'] = self.safe_number(balance, 'equity')
+            account['free'] = self.safe_string(balance, 'available_balance')
+            account['used'] = self.safe_string(balance, 'used_margin')
+            account['total'] = self.safe_string(balance, 'equity')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order_status(self, status):
         statuses = {
@@ -1854,7 +1860,7 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'data', [])
-        return self.parse_transactions(data, currency, since, limit)
+        return self.parse_transactions(data, currency, since, limit, {'type': 'deposit'})
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1907,7 +1913,7 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'data', [])
-        return self.parse_transactions(data, currency, since, limit, params)
+        return self.parse_transactions(data, currency, since, limit, {'type': 'withdrawal'})
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -1961,6 +1967,7 @@ class bybit(Exchange):
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         address = self.safe_string(transaction, 'address')
         feeCost = self.safe_number(transaction, 'fee')
+        type = self.safe_string_lower(transaction, 'type')
         fee = None
         if feeCost is not None:
             fee = {
@@ -1979,7 +1986,7 @@ class bybit(Exchange):
             'tag': None,
             'tagTo': None,
             'tagFrom': None,
-            'type': 'withdrawal',
+            'type': type,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
             'status': status,
@@ -2100,6 +2107,33 @@ class bybit(Exchange):
         }
         return self.safe_string(types, type, type)
 
+    def fetch_positions(self, symbols=None, params={}):
+        self.load_markets()
+        request = {}
+        if isinstance(symbols, list):
+            length = len(symbols)
+            if length != 1:
+                raise ArgumentsRequired(self.id + ' fetchPositions takes exactly one symbol')
+            request['symbol'] = self.market_id(symbols[0])
+        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        response = None
+        if type == 'linear':
+            response = self.privateLinearGetPositionList(self.extend(request, params))
+        elif type == 'inverse':
+            response = self.v2PrivateGetPositionList(self.extend(request, params))
+        elif type == 'inverseFuture':
+            response = self.futuresPrivateGetPositionList(self.extend(request, params))
+        # {
+        #   ret_code: 0,
+        #   ret_msg: 'OK',
+        #   ext_code: '',
+        #   ext_info: '',
+        #   result: [] or {} depending on the request
+        # }
+        return self.safe_value(response, 'result')
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_params(self.urls['api'], {'hostname': self.hostname})
         type = self.safe_string(api, 0)
@@ -2156,30 +2190,3 @@ class bybit(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
-
-    def fetch_positions(self, symbols=None, params={}):
-        self.load_markets()
-        request = {}
-        if isinstance(symbols, list):
-            length = len(symbols)
-            if length != 1:
-                raise ArgumentsRequired(self.id + ' fetchPositions takes exactly one symbol')
-            request['symbol'] = self.market_id(symbols[0])
-        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
-        response = None
-        if type == 'linear':
-            response = self.privateLinearGetPositionList(self.extend(request, params))
-        elif type == 'inverse':
-            response = self.v2PrivateGetPositionList(self.extend(request, params))
-        elif type == 'inverseFuture':
-            response = self.futuresPrivateGetPositionList(self.extend(request, params))
-        # {
-        #   ret_code: 0,
-        #   ret_msg: 'OK',
-        #   ext_code: '',
-        #   ext_info: '',
-        #   result: [] or {} depending on the request
-        # }
-        return self.safe_value(response, 'result')

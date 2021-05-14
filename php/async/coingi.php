@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\Precise;
 
 class coingi extends Exchange {
 
@@ -167,14 +168,14 @@ class coingi extends Exchange {
             $currencyId = $this->safe_string($balance['currency'], 'name');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $blocked = $this->safe_number($balance, 'blocked');
-            $inOrders = $this->safe_number($balance, 'inOrders');
-            $withdrawing = $this->safe_number($balance, 'withdrawing');
-            $account['used'] = $this->sum($blocked, $inOrders, $withdrawing);
+            $account['free'] = $this->safe_string($balance, 'available');
+            $blocked = $this->safe_string($balance, 'blocked');
+            $inOrders = $this->safe_string($balance, 'inOrders');
+            $withdrawing = $this->safe_string($balance, 'withdrawing');
+            $account['used'] = Precise::string_add(Precise::string_add($blocked, $inOrders), $withdrawing);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = 512, $params = array ()) {
@@ -187,7 +188,7 @@ class coingi extends Exchange {
             'bidCount' => $limit, // maximum returned number of bids 1-512
         );
         $orderbook = yield $this->currentGetOrderBookPairAskCountBidCountDepth (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'baseAmount');
+        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'baseAmount');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -248,14 +249,11 @@ class coingi extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $id = $this->safe_string($trade, 'id');
         $marketId = $this->safe_string($trade, 'currencyPair');

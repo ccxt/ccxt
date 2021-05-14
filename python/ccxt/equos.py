@@ -300,14 +300,6 @@ class equos(Exchange):
                     'min': None,
                     'max': None,
                 },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
                 'withdraw': {
                     'min': None,
                     'max': None,
@@ -379,7 +371,7 @@ class equos(Exchange):
             self.convert_from_scale(amount, market['precision']['amount']),
         ]
 
-    def parse_order_book(self, orderbook, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market=None):
+    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market=None):
         result = {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -424,7 +416,7 @@ class equos(Exchange):
         #         "auctionVolume":0.0
         #     }
         #
-        return self.parse_order_book(response, None, 'bids', 'asks', 0, 1, market)
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 0, 1, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

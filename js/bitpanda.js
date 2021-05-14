@@ -280,8 +280,6 @@ module.exports = class bitpanda extends Exchange {
                 'precision': this.safeInteger (currency, 'precision'),
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
             };
@@ -667,7 +665,7 @@ module.exports = class bitpanda extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (response, 'time'));
-        return this.parseOrderBook (response, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -892,11 +890,11 @@ module.exports = class bitpanda extends Exchange {
             const currencyId = this.safeString (balance, 'currency_code');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'available');
-            account['used'] = this.safeNumber (balance, 'locked');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
@@ -1270,72 +1268,34 @@ module.exports = class bitpanda extends Exchange {
         //         ]
         //     }
         //
-        const rawTrades = this.safeValue (order, 'trades', []);
-        order = this.safeValue (order, 'order', order);
-        const id = this.safeString (order, 'order_id');
-        const clientOrderId = this.safeString (order, 'client_id');
-        const timestamp = this.parse8601 (this.safeString (order, 'time'));
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const marketId = this.safeString (order, 'instrument_code');
+        const rawOrder = this.safeValue (order, 'order', order);
+        const id = this.safeString (rawOrder, 'order_id');
+        const clientOrderId = this.safeString (rawOrder, 'client_id');
+        const timestamp = this.parse8601 (this.safeString (rawOrder, 'time'));
+        const rawStatus = this.parseOrderStatus (this.safeString (rawOrder, 'status'));
+        const status = this.parseOrderStatus (rawStatus);
+        const marketId = this.safeString (rawOrder, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'amount');
-        let cost = undefined;
-        const filled = this.safeNumber (order, 'filled_amount');
-        let remaining = undefined;
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = Math.max (0, amount - filled);
-                if (status === undefined) {
-                    if (remaining > 0) {
-                        status = 'open';
-                    } else {
-                        status = 'closed';
-                    }
-                }
-            }
-        }
-        const side = this.safeStringLower (order, 'side');
-        const type = this.safeStringLower (order, 'type');
-        const trades = this.parseTrades (rawTrades, market, undefined, undefined);
-        const fees = [];
-        const numTrades = trades.length;
-        let lastTradeTimestamp = undefined;
-        let tradeCost = undefined;
-        let tradeAmount = undefined;
-        if (numTrades > 0) {
-            lastTradeTimestamp = trades[0]['timestamp'];
-            tradeCost = 0;
-            tradeAmount = 0;
-            for (let i = 0; i < trades.length; i++) {
-                const trade = trades[i];
-                fees.push (trade['fee']);
-                lastTradeTimestamp = Math.max (lastTradeTimestamp, trade['timestamp']);
-                tradeCost = this.sum (tradeCost, trade['cost']);
-                tradeAmount = this.sum (tradeAmount, trade['amount']);
-            }
-        }
-        let average = this.safeNumber (order, 'average_price');
-        if (average === undefined) {
-            if ((tradeCost !== undefined) && (tradeAmount !== undefined) && (tradeAmount !== 0)) {
-                average = tradeCost / tradeAmount;
-            }
-        }
-        if (cost === undefined) {
-            if ((average !== undefined) && (filled !== undefined)) {
-                cost = average * filled;
-            }
-        }
-        const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
-        const stopPrice = this.safeNumber (order, 'trigger_price');
-        const postOnly = this.safeValue (order, 'is_post_only');
-        const result = {
+        const price = this.safeNumber (rawOrder, 'price');
+        const amount = this.safeNumber (rawOrder, 'amount');
+        const filledString = this.safeString (rawOrder, 'filled_amount');
+        const filled = this.parseNumber (filledString);
+        const side = this.safeStringLower (rawOrder, 'side');
+        const type = this.safeStringLower (rawOrder, 'type');
+        const timeInForce = this.parseTimeInForce (this.safeString (rawOrder, 'time_in_force'));
+        const stopPrice = this.safeNumber (rawOrder, 'trigger_price');
+        const postOnly = this.safeValue (rawOrder, 'is_post_only');
+        const rawTrades = this.safeValue (order, 'trades', []);
+        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+            'type': type,
+        });
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -1344,41 +1304,14 @@ module.exports = class bitpanda extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
-            'average': average,
+            'cost': undefined,
+            'average': undefined,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             // 'fee': undefined,
             'trades': trades,
-        };
-        const numFees = fees.length;
-        if (numFees > 0) {
-            if (numFees === 1) {
-                result['fee'] = fees[0];
-            } else {
-                const feesByCurrency = this.groupBy (fees, 'currency');
-                const feeCurrencies = Object.keys (feesByCurrency);
-                const numFeesByCurrency = feeCurrencies.length;
-                if (numFeesByCurrency === 1) {
-                    const feeCurrency = feeCurrencies[0];
-                    const feeArray = this.safeValue (feesByCurrency, feeCurrency);
-                    let feeCost = 0;
-                    for (let i = 0; i < feeArray.length; i++) {
-                        feeCost = this.sum (feeCost, feeArray[i]['cost']);
-                    }
-                    result['fee'] = {
-                        'cost': feeCost,
-                        'currency': feeCurrency,
-                    };
-                } else {
-                    result['fees'] = fees;
-                }
-            }
-        } else {
-            result['fee'] = undefined;
-        }
-        return result;
+        });
     }
 
     parseTimeInForce (timeInForce) {

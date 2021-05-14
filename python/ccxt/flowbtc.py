@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.precise import Precise
 
 
 class flowbtc(Exchange):
@@ -129,10 +130,10 @@ class flowbtc(Exchange):
             currencyId = balance['name']
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'balance')
-            account['total'] = self.safe_number(balance, 'hold')
+            account['free'] = self.safe_string(balance, 'balance')
+            account['total'] = self.safe_string(balance, 'hold')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -141,7 +142,7 @@ class flowbtc(Exchange):
             'productPair': market['id'],
         }
         response = self.publicPostGetOrderBook(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bids', 'asks', 'px', 'qty')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'px', 'qty')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -179,12 +180,11 @@ class flowbtc(Exchange):
         timestamp = self.safe_timestamp(trade, 'unixtime')
         side = 'buy' if (trade['incomingOrderSide'] == 0) else 'sell'
         id = self.safe_string(trade, 'tid')
-        price = self.safe_number(trade, 'px')
-        amount = self.safe_number(trade, 'qty')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'px')
+        amountString = self.safe_string(trade, 'qty')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'info': trade,
             'timestamp': timestamp,

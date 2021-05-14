@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class qtrade extends Exchange {
 
@@ -114,6 +115,7 @@ class qtrade extends Exchange {
                 'exact' => array(
                     'invalid_auth' => '\\ccxt\\AuthenticationError',
                     'insuff_funds' => '\\ccxt\\InsufficientFunds',
+                    'market_not_found' => '\\ccxt\\BadSymbol', // array("errors":[array("code":"market_not_found","title":"Requested market does not exist")])
                 ),
             ),
         ));
@@ -275,14 +277,6 @@ class qtrade extends Exchange {
                         'min' => $this->safe_number($currency, 'minimum_order'),
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => null,
                         'max' => null,
@@ -380,7 +374,7 @@ class qtrade extends Exchange {
             $orderbook[$side] = $result;
         }
         $timestamp = $this->safe_integer_product($data, 'last_change', 0.001);
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -641,12 +635,12 @@ class qtrade extends Exchange {
         $marketId = $this->safe_string($trade, 'market_string');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $cost = $this->safe_number_2($trade, 'base_volume', 'base_amount');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'market_amount', 'amount');
-        if (($cost === null) && ($amount !== null) && ($price !== null)) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'market_amount', 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $fee = null;
         $feeCost = $this->safe_number($trade, 'base_fee');
@@ -700,14 +694,16 @@ class qtrade extends Exchange {
         $balances = $this->safe_value($data, 'balances', array());
         $result = array(
             'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
         );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = (is_array($result) && array_key_exists($code, $result)) ? $result[$code] : $this->account();
-            $account['free'] = $this->safe_number($balance, 'balance');
-            $account['used'] = 0;
+            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['used'] = '0';
             $result[$code] = $account;
         }
         $balances = $this->safe_value($data, 'order_balances', array());
@@ -716,10 +712,10 @@ class qtrade extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = (is_array($result) && array_key_exists($code, $result)) ? $result[$code] : $this->account();
-            $account['used'] = $this->safe_number($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

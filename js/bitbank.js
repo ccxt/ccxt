@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -40,11 +41,13 @@ module.exports = class bitbank extends Exchange {
                 '1d': '1day',
                 '1w': '1week',
             },
+            'hostname': 'bitbank.cc',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
                 'api': {
-                    'public': 'https://public.bitbank.cc',
-                    'private': 'https://api.bitbank.cc',
+                    'public': 'https://public.{hostname}',
+                    'private': 'https://api.{hostname}',
+                    'markets': 'https://api.{hostname}',
                 },
                 'www': 'https://bitbank.cc/',
                 'doc': 'https://docs.bitbank.cc/',
@@ -76,46 +79,11 @@ module.exports = class bitbank extends Exchange {
                         'user/request_withdrawal',
                     ],
                 },
-            },
-            'markets': {
-                'BAT/JPY': { 'id': 'bat_jpy', 'symbol': 'BAT/JPY', 'base': 'BAT', 'quote': 'JPY', 'baseId': 'bat', 'quoteId': 'jpy' },
-                'BAT/BTC': { 'id': 'bat_btc', 'symbol': 'BAT/BTC', 'base': 'BAT', 'quote': 'BTC', 'baseId': 'bat', 'quoteId': 'btc' },
-                'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bcc', 'quoteId': 'btc' },
-                'BCH/JPY': { 'id': 'bcc_jpy', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bcc', 'quoteId': 'jpy' },
-                'BTC/JPY': { 'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy' },
-                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc' },
-                'ETH/JPY': { 'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy' },
-                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc' },
-                'LTC/JPY': { 'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy' },
-                'MONA/BTC': { 'id': 'mona_btc', 'symbol': 'MONA/BTC', 'base': 'MONA', 'quote': 'BTC', 'baseId': 'mona', 'quoteId': 'btc' },
-                'MONA/JPY': { 'id': 'mona_jpy', 'symbol': 'MONA/JPY', 'base': 'MONA', 'quote': 'JPY', 'baseId': 'mona', 'quoteId': 'jpy' },
-                'QTUM/BTC': { 'id': 'qtum_btc', 'symbol': 'QTUM/BTC', 'base': 'QTUM', 'quote': 'BTC', 'baseId': 'qtum', 'quoteId': 'btc' },
-                'QTUM/JPY': { 'id': 'qtum_jpy', 'symbol': 'QTUM/JPY', 'base': 'QTUM', 'quote': 'JPY', 'baseId': 'qtum', 'quoteId': 'jpy' },
-                'XLM/BTC': { 'id': 'xlm_btc', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'baseId': 'xlm', 'quoteId': 'btc' },
-                'XLM/JPY': { 'id': 'xlm_jpy', 'symbol': 'XLM/JPY', 'base': 'XLM', 'quote': 'JPY', 'baseId': 'xlm', 'quoteId': 'jpy' },
-                'XRP/BTC': { 'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc' },
-                'XRP/JPY': { 'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy' },
-            },
-            'fees': {
-                'trading': {
-                    'maker': -0.02 / 100,
-                    'taker': 0.12 / 100,
+                'markets': {
+                    'get': [
+                        'spot/pairs',
+                    ],
                 },
-                'funding': {
-                    'withdraw': {
-                        // 'JPY': (amount > 30000) ? 756 : 540,
-                        'BTC': 0.001,
-                        'LTC': 0.001,
-                        'XRP': 0.15,
-                        'ETH': 0.0005,
-                        'MONA': 0.001,
-                        'BCC': 0.001,
-                    },
-                },
-            },
-            'precision': {
-                'price': 8,
-                'amount': 8,
             },
             'exceptions': {
                 '20001': AuthenticationError,
@@ -135,6 +103,89 @@ module.exports = class bitbank extends Exchange {
                 '60005': InvalidOrder,
             },
         });
+    }
+
+    async fetchMarkets (params = {}) {
+        const response = await this.marketsGetSpotPairs (params);
+        //
+        //     {
+        //       "success": 1,
+        //       "data": {
+        //         "pairs": [
+        //           {
+        //             "name": "btc_jpy",
+        //             "base_asset": "btc",
+        //             "quote_asset": "jpy",
+        //             "maker_fee_rate_base": "0",
+        //             "taker_fee_rate_base": "0",
+        //             "maker_fee_rate_quote": "-0.0002",
+        //             "taker_fee_rate_quote": "0.0012",
+        //             "unit_amount": "0.0001",
+        //             "limit_max_amount": "1000",
+        //             "market_max_amount": "10",
+        //             "market_allowance_rate": "0.2",
+        //             "price_digits": 0,
+        //             "amount_digits": 4,
+        //             "is_enabled": true,
+        //             "stop_order": false,
+        //             "stop_order_and_cancel": false
+        //           }
+        //         ]
+        //       }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const pairs = this.safeValue (data, 'pairs', []);
+        const result = [];
+        for (let i = 0; i < pairs.length; i++) {
+            const entry = pairs[i];
+            const id = this.safeString (entry, 'name');
+            const baseId = this.safeString (entry, 'base_asset');
+            const quoteId = this.safeString (entry, 'quote_asset');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const maker = this.safeNumber (entry, 'maker_fee_rate_quote');
+            const taker = this.safeNumber (entry, 'taker_fee_rate_quote');
+            const pricePrecisionString = this.safeString (entry, 'price_digits');
+            const priceLimit = this.parsePrecision (pricePrecisionString);
+            const precision = {
+                'price': parseInt (pricePrecisionString),
+                'amount': this.safeInteger (entry, 'amount_digits'),
+            };
+            const active = this.safeValue (entry, 'is_enabled');
+            const minAmountString = this.safeString (entry, 'unit_amount');
+            const minCost = Precise.stringMul (minAmountString, priceLimit);
+            const limits = {
+                'amount': {
+                    'min': this.safeNumber (entry, 'unit_amount'),
+                    'max': this.safeNumber (entry, 'limit_max_amount'),
+                },
+                'price': {
+                    'min': this.parseNumber (priceLimit),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.parseNumber (minCost),
+                    'max': undefined,
+                },
+            };
+            result.push ({
+                'info': entry,
+                'id': id,
+                'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'base': base,
+                'quote': quote,
+                'precision': precision,
+                'limits': limits,
+                'active': active,
+                'maker': maker,
+                'taker': taker,
+            });
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -187,7 +238,7 @@ module.exports = class bitbank extends Exchange {
         const response = await this.publicGetPairDepth (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {
@@ -198,14 +249,11 @@ module.exports = class bitbank extends Exchange {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = parseFloat (this.costToPrecision (symbol, price * amount));
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString2 (trade, 'transaction_id', 'trade_id');
         const takerOrMaker = this.safeString (trade, 'maker_taker');
         let fee = undefined;
@@ -309,21 +357,57 @@ module.exports = class bitbank extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetUserAssets (params);
-        const result = { 'info': response };
+        //
+        //     {
+        //       "success": "1",
+        //       "data": {
+        //         "assets": [
+        //           {
+        //             "asset": "jpy",
+        //             "amount_precision": "4",
+        //             "onhand_amount": "0.0000",
+        //             "locked_amount": "0.0000",
+        //             "free_amount": "0.0000",
+        //             "stop_deposit": false,
+        //             "stop_withdrawal": false,
+        //             "withdrawal_fee": {
+        //               "threshold": "30000.0000",
+        //               "under": "550.0000",
+        //               "over": "770.0000"
+        //             }
+        //           },
+        //           {
+        //             "asset": "btc",
+        //             "amount_precision": "8",
+        //             "onhand_amount": "0.00000000",
+        //             "locked_amount": "0.00000000",
+        //             "free_amount": "0.00000000",
+        //             "stop_deposit": false,
+        //             "stop_withdrawal": false,
+        //             "withdrawal_fee": "0.00060000"
+        //           },
+        //         ]
+        //       }
+        //     }
+        //
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const data = this.safeValue (response, 'data', {});
         const assets = this.safeValue (data, 'assets', []);
         for (let i = 0; i < assets.length; i++) {
             const balance = assets[i];
             const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeNumber (balance, 'free_amount'),
-                'used': this.safeNumber (balance, 'locked_amount'),
-                'total': this.safeNumber (balance, 'onhand_amount'),
-            };
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'free_amount');
+            account['used'] = this.safeString (balance, 'locked_amount');
+            account['total'] = this.safeString (balance, 'onhand_amount');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrderStatus (status) {
@@ -508,8 +592,8 @@ module.exports = class bitbank extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'][api] + '/';
-        if (api === 'public') {
+        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + '/';
+        if ((api === 'public') || (api === 'markets')) {
             url += this.implodeParams (path, params);
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);

@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -259,14 +260,6 @@ module.exports = class cex extends Exchange {
                         'min': this.safeNumber (currency, 'minimumCurrencyAmount'),
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minimalWithdrawalAmount'),
                         'max': undefined,
@@ -380,13 +373,13 @@ module.exports = class cex extends Exchange {
             const currencyId = currencyIds[i];
             const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'available');
+            account['free'] = this.safeString (balance, 'available');
             // https://github.com/ccxt/ccxt/issues/5484
-            account['used'] = this.safeNumber (balance, 'orders', 0.0);
+            account['used'] = this.safeString (balance, 'orders', '0');
             const code = this.safeCurrencyCode (currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -399,7 +392,7 @@ module.exports = class cex extends Exchange {
         }
         const response = await this.publicGetOrderBookPair (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -528,14 +521,11 @@ module.exports = class cex extends Exchange {
         const id = this.safeString (trade, 'tid');
         const type = undefined;
         const side = this.safeString (trade, 'type');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

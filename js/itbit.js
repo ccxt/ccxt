@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -100,7 +101,7 @@ module.exports = class itbit extends Exchange {
             'symbol': this.marketId (symbol),
         };
         const orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend (request, params));
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -188,14 +189,11 @@ module.exports = class itbit extends Exchange {
         }
         const rebateCurrencyId = this.safeString (trade, 'rebateCurrency');
         const rebateCurrency = this.safeCurrencyCode (rebateCurrencyId);
-        const price = this.safeNumber2 (trade, 'price', 'rate');
-        const amount = this.safeNumber2 (trade, 'currency1Amount', 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString2 (trade, 'price', 'rate');
+        const amountString = this.safeString2 (trade, 'currency1Amount', 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         const marketId = this.safeString (trade, 'instrument');
         if (marketId !== undefined) {
@@ -417,11 +415,11 @@ module.exports = class itbit extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'availableBalance');
-            account['total'] = this.safeNumber (balance, 'totalBalance');
+            account['free'] = this.safeString (balance, 'availableBalance');
+            account['total'] = this.safeString (balance, 'totalBalance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchWallets (params = {}) {

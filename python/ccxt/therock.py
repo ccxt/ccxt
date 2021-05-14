@@ -10,6 +10,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.precise import Precise
 
 
 class therock(Exchange):
@@ -223,10 +224,10 @@ class therock(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'trading_balance')
-            account['total'] = self.safe_number(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'trading_balance')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -235,7 +236,7 @@ class therock(Exchange):
         }
         orderbook = self.publicGetFundsIdOrderbook(self.extend(request, params))
         timestamp = self.parse8601(self.safe_string(orderbook, 'date'))
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['date'])
@@ -333,12 +334,11 @@ class therock(Exchange):
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order_id')
         side = self.safe_string(trade, 'side')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         feeCost = None
         transactions = self.safe_value(trade, 'transactions', [])

@@ -93,6 +93,8 @@ class ftx extends Exchange {
                         'options/historical_volumes/BTC',
                         'options/open_interest/BTC',
                         'options/historical_open_interest/BTC',
+                        // spot margin
+                        'spot_margin/history',
                     ),
                 ),
                 'private' => array(
@@ -229,6 +231,7 @@ class ftx extends Exchange {
                     'Not enough balances' => '\\ccxt\\InsufficientFunds', // array("error":"Not enough balances","success":false)
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // array("error":"Invalid price","success":false)
                     'Size too small' => '\\ccxt\\InvalidOrder', // array("error":"Size too small","success":false)
+                    'Size too large' => '\\ccxt\\InvalidOrder', // array("error":"Size too large","success":false)
                     'Missing parameter price' => '\\ccxt\\InvalidOrder', // array("error":"Missing parameter price","success":false)
                     'Order not found' => '\\ccxt\\OrderNotFound', // array("error":"Order not found","success":false)
                     'Order already closed' => '\\ccxt\\InvalidOrder', // array("error":"Order already closed","success":false)
@@ -241,7 +244,7 @@ class ftx extends Exchange {
                     'Invalid parameter' => '\\ccxt\\BadRequest', // array("error":"Invalid parameter start_time","success":false)
                     'The requested URL was not found on the server' => '\\ccxt\\BadRequest',
                     'No such coin' => '\\ccxt\\BadRequest',
-                    'No such market' => '\\ccxt\\BadRequest',
+                    'No such market' => '\\ccxt\\BadSymbol',
                     'Do not send more than' => '\\ccxt\\RateLimitExceeded',
                     'An unexpected error occurred' => '\\ccxt\\ExchangeNotAvailable', // array("error":"An unexpected error occurred, please try again later (58BC21C795).","success":false)
                     'Please retry request' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Please retry request","success":false)
@@ -302,8 +305,6 @@ class ftx extends Exchange {
                 'limits' => array(
                     'withdraw' => array( 'min' => null, 'max' => null ),
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                 ),
             );
         }
@@ -571,7 +572,7 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_order_book($result);
+        return $this->parse_order_book($result, $symbol);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -769,16 +770,15 @@ class ftx extends Exchange {
             }
         }
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'size');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
         $side = $this->safe_string($trade, 'side');
-        $cost = null;
-        if ($price !== null && $amount !== null) {
-            $cost = $price * $amount;
-        }
         $fee = null;
         $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
@@ -921,11 +921,11 @@ class ftx extends Exchange {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'free');
-            $account['total'] = $this->safe_number($balance, 'total');
+            $account['free'] = $this->safe_string($balance, 'free');
+            $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order_status($status) {
@@ -1675,6 +1675,19 @@ class ftx extends Exchange {
         //
         // fetchDeposits
         //
+        //     airdrop
+        //
+        //     {
+        //         "$id" => 9147072,
+        //         "coin" => "SRM_LOCKED",
+        //         "size" => 3.12,
+        //         "time" => "2021-04-27T23:59:03.565983+00:00",
+        //         "$notes" => "SRM Airdrop for FTT holdings",
+        //         "$status" => "complete"
+        //     }
+        //
+        //     regular deposits
+        //
         //     {
         //         "coin" => "TUSD",
         //         "confirmations" => 64,
@@ -1726,7 +1739,7 @@ class ftx extends Exchange {
         if ($address === null) {
             // parse $address from internal transfer
             $notes = $this->safe_string($transaction, 'notes');
-            if ($notes !== null) {
+            if (($notes !== null) && (mb_strpos($notes, 'Transfer to') !== false)) {
                 $address = mb_substr($notes, 12);
             }
         }

@@ -17,6 +17,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.precise import Precise
 
 
 class vcc(Exchange):
@@ -305,17 +306,21 @@ class vcc(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         currencyIds = list(data.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             balance = self.safe_value(data, currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available_balance')
-            account['total'] = self.safe_number(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'available_balance')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -402,7 +407,7 @@ class vcc(Exchange):
         #
         data = self.safe_value(response, 'data')
         timestamp = self.safe_value(data, 'timestamp')
-        return self.parse_order_book(data, timestamp, 'bids', 'asks', 0, 1)
+        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 0, 1)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -550,12 +555,13 @@ class vcc(Exchange):
             marketId = baseId + '_' + quoteId
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'base_volume', 'quantity')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'base_volume', 'quantity')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number_2(trade, 'quote_volume', 'amount')
         if cost is None:
-            if (price is not None) and (amount is not None):
-                cost = price * amount
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string_2(trade, 'type', 'trade_type')
         id = self.safe_string_2(trade, 'trade_id', 'id')
         feeCost = self.safe_number(trade, 'fee')

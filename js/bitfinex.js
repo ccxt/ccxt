@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce, BadSymbol } = require ('./base/errors');
 const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -159,6 +160,7 @@ module.exports = class bitfinex extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': true,
                     'percentage': true,
                     'maker': 0.1 / 100,
@@ -286,45 +288,34 @@ module.exports = class bitfinex extends Exchange {
             },
             // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
             'commonCurrencies': {
-                'ABS': 'ABYSS',
-                'AIO': 'AION',
                 'ALG': 'ALGO', // https://github.com/ccxt/ccxt/issues/6034
                 'AMP': 'AMPL',
-                'ATM': 'ATMI',
                 'ATO': 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
-                'BAB': 'BCH',
-                'CTX': 'CTXC',
-                'DAD': 'DADI',
+                'BCHABC': 'BCHA',
+                'BCHN': 'BCH',
                 'DAT': 'DATA',
+                'DOG': 'MDOGE',
                 'DSH': 'DASH',
-                'DRK': 'DRK',
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'EDO': 'PNT',
-                'GSD': 'GUSD',
-                'HOT': 'Hydro Protocol',
-                'IOS': 'IOST',
+                'EUS': 'EURS',
+                'EUT': 'EURT',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
-                'MIT': 'MITH',
                 'MNA': 'MANA',
-                'NCA': 'NCASH',
                 'ORS': 'ORS Group', // conflict with Origin Sport #3230
-                'POY': 'POLY',
+                'PAS': 'PASS',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
                 'RBT': 'RBTC',
-                'SEE': 'SEER',
                 'SNG': 'SNGLS',
-                'SPK': 'SPANK',
                 'STJ': 'STORJ',
-                'TRI': 'TRIO',
                 'TSD': 'TUSD',
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
                 'UST': 'USDT',
-                'UTN': 'UTNP',
                 'VSY': 'VSYS',
                 'WAX': 'WAXP',
                 'XCH': 'XCHF',
@@ -555,18 +546,20 @@ module.exports = class bitfinex extends Exchange {
                 // Anything exceeding this will be rounded to the 8th decimal.
                 'amount': 8,
             };
+            const minAmountString = this.safeString (market, 'minimum_order_size');
+            const maxAmountString = this.safeString (market, 'maximum_order_size');
             const limits = {
                 'amount': {
-                    'min': this.safeNumber (market, 'minimum_order_size'),
-                    'max': this.safeNumber (market, 'maximum_order_size'),
+                    'min': this.parseNumber (minAmountString),
+                    'max': this.parseNumber (maxAmountString),
                 },
                 'price': {
-                    'min': Math.pow (10, -precision['price']),
-                    'max': Math.pow (10, precision['price']),
+                    'min': this.parseNumber ('1e-8'),
+                    'max': undefined,
                 },
             };
             limits['cost'] = {
-                'min': limits['amount']['min'] * limits['price']['min'],
+                'min': undefined,
                 'max': undefined,
             };
             const margin = this.safeValue (market, 'margin');
@@ -602,32 +595,6 @@ module.exports = class bitfinex extends Exchange {
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
         // Prices submit with a precision larger than 5 will be cut by the API.
         return this.decimalToPrecision (price, TRUNCATE, 8, DECIMAL_PLACES);
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        const rate = market[takerOrMaker];
-        let cost = amount * rate;
-        let key = 'quote';
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        const code = market[key];
-        const currency = this.safeValue (this.currencies, code);
-        if (currency !== undefined) {
-            const precision = this.safeInteger (currency, 'precision');
-            if (precision !== undefined) {
-                cost = parseFloat (this.currencyToPrecision (code, cost));
-            }
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': cost,
-        };
     }
 
     async fetchBalance (params = {}) {
@@ -672,13 +639,13 @@ module.exports = class bitfinex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4989
                 if (!(code in result)) {
                     const account = this.account ();
-                    account['free'] = this.safeNumber (balance, 'available');
-                    account['total'] = this.safeNumber (balance, 'amount');
+                    account['free'] = this.safeString (balance, 'available');
+                    account['total'] = this.safeString (balance, 'amount');
                     result[code] = account;
                 }
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -758,7 +725,7 @@ module.exports = class bitfinex extends Exchange {
             request['limit_asks'] = limit;
         }
         const response = await this.publicGetBookSymbol (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -841,14 +808,11 @@ module.exports = class bitfinex extends Exchange {
         const type = undefined;
         const side = this.safeStringLower (trade, 'type');
         const orderId = this.safeString (trade, 'order_id');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
         if ('fee_amount' in trade) {
             const feeCost = -this.safeNumber (trade, 'fee_amount');

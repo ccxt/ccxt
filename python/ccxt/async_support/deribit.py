@@ -19,6 +19,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class deribit(Exchange):
@@ -539,11 +540,11 @@ class deribit(Exchange):
         currencyId = self.safe_string(balance, 'currency')
         currencyCode = self.safe_currency_code(currencyId)
         account = self.account()
-        account['free'] = self.safe_number(balance, 'availableFunds')
-        account['used'] = self.safe_number(balance, 'maintenanceMargin')
-        account['total'] = self.safe_number(balance, 'equity')
+        account['free'] = self.safe_string(balance, 'availableFunds')
+        account['used'] = self.safe_string(balance, 'maintenanceMargin')
+        account['total'] = self.safe_string(balance, 'equity')
         result[currencyCode] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
@@ -858,12 +859,11 @@ class deribit(Exchange):
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string(trade, 'direction')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         liquidity = self.safe_string(trade, 'liquidity')
         takerOrMaker = None
         if liquidity is not None:
@@ -987,7 +987,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result', {})
         timestamp = self.safe_integer(result, 'timestamp')
         nonce = self.safe_integer(result, 'change_id')
-        orderbook = self.parse_order_book(result, timestamp)
+        orderbook = self.parse_order_book(result, symbol, timestamp)
         orderbook['nonce'] = nonce
         return orderbook
 

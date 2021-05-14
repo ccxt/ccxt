@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -532,11 +533,11 @@ module.exports = class deribit extends Exchange {
         const currencyId = this.safeString (balance, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        account['free'] = this.safeNumber (balance, 'availableFunds');
-        account['used'] = this.safeNumber (balance, 'maintenanceMargin');
-        account['total'] = this.safeNumber (balance, 'equity');
+        account['free'] = this.safeString (balance, 'availableFunds');
+        account['used'] = this.safeString (balance, 'maintenanceMargin');
+        account['total'] = this.safeString (balance, 'equity');
         result[currencyCode] = account;
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createDepositAddress (code, params = {}) {
@@ -862,14 +863,11 @@ module.exports = class deribit extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (trade, 'timestamp');
         const side = this.safeString (trade, 'direction');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const liquidity = this.safeString (trade, 'liquidity');
         let takerOrMaker = undefined;
         if (liquidity !== undefined) {
@@ -1000,7 +998,7 @@ module.exports = class deribit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const timestamp = this.safeInteger (result, 'timestamp');
         const nonce = this.safeInteger (result, 'change_id');
-        const orderbook = this.parseOrderBook (result, timestamp);
+        const orderbook = this.parseOrderBook (result, symbol, timestamp);
         orderbook['nonce'] = nonce;
         return orderbook;
     }

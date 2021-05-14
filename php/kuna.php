@@ -127,7 +127,7 @@ class kuna extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $quotes = array( 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt', 'gol' );
+        $quotes = array( 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' );
         $pricePrecisions = array(
             'UAH' => 0,
         );
@@ -192,7 +192,7 @@ class kuna extends Exchange {
         }
         $orderbook = $this->publicGetDepth (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -291,9 +291,14 @@ class kuna extends Exchange {
             );
             $side = $this->safe_string($sideMap, $side, $side);
         }
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'volume');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'volume');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $cost = $this->safe_number($trade, 'funds');
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        }
         $orderId = $this->safe_string($trade, 'order_id');
         $id = $this->safe_string($trade, 'id');
         return array(
@@ -342,11 +347,11 @@ class kuna extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'balance');
-            $account['used'] = $this->safe_number($balance, 'locked');
+            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

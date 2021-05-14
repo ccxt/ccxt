@@ -12,6 +12,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class buda(Exchange):
@@ -178,23 +179,26 @@ class buda(Exchange):
             baseInfo = self.fetch_currency_info(baseId, currencies)
             quoteInfo = self.fetch_currency_info(quoteId, currencies)
             symbol = base + '/' + quote
+            pricePrecisionString = self.safe_string(quoteInfo, 'input_decimals')
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
-                'amount': baseInfo['input_decimals'],
-                'price': quoteInfo['input_decimals'],
+                'amount': self.safe_integer(baseInfo, 'input_decimals'),
+                'price': int(pricePrecisionString),
             }
+            minimumOrderAmount = self.safe_value(market, 'minimum_order_amount', [])
             limits = {
                 'amount': {
-                    'min': float(market['minimum_order_amount'][0]),
+                    'min': self.safe_number(minimumOrderAmount, 0),
                     'max': None,
                 },
                 'price': {
-                    'min': math.pow(10, -precision['price']),
+                    'min': priceLimit,
                     'max': None,
                 },
-            }
-            limits['cost'] = {
-                'min': limits['amount']['min'] * limits['price']['min'],
-                'max': None,
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
             }
             result.append({
                 'id': id,
@@ -233,14 +237,6 @@ class buda(Exchange):
                 'limits': {
                     'amount': {
                         'min': minimum,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': minimum,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
                         'max': None,
                     },
                     'deposit': {
@@ -368,22 +364,23 @@ class buda(Exchange):
         timestamp = None
         side = None
         type = None
-        price = None
-        amount = None
+        priceString = None
+        amountString = None
         id = None
         order = None
         fee = None
         symbol = None
-        cost = None
         if market:
             symbol = market['symbol']
         if isinstance(trade, list):
-            timestamp = int(trade[0])
-            price = float(trade[1])
-            amount = float(trade[2])
-            cost = price * amount
-            side = trade[3]
-            id = str(trade[4])
+            timestamp = self.safe_integer(trade, 0)
+            priceString = self.safe_string(trade, 1)
+            amountString = self.safe_string(trade, 2)
+            side = self.safe_string(trade, 3)
+            id = self.safe_string(trade, 4)
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'id': id,
             'order': order,
@@ -408,7 +405,7 @@ class buda(Exchange):
         }
         response = self.publicGetMarketsMarketOrderBook(self.extend(request, params))
         orderbook = self.safe_value(response, 'order_book')
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, symbol)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
@@ -434,10 +431,10 @@ class buda(Exchange):
             currencyId = self.safe_string(balance, 'id')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = float(balance['available_amount'][0])
-            account['total'] = float(balance['amount'][0])
+            account['free'] = self.safe_string(balance['available_amount'], 0)
+            account['total'] = self.safe_string(balance['amount'], 0)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -547,9 +544,6 @@ class buda(Exchange):
         if price is None:
             if limitPrice is not None:
                 price = limitPrice
-        average = None
-        if (cost is not None) and (filled is not None) and (filled > 0):
-            average = self.price_to_precision(symbol, cost / filled)
         paidFee = self.safe_value(order, 'paid_fee', [])
         feeCost = self.safe_number(paidFee, 0)
         fee = None
@@ -560,7 +554,7 @@ class buda(Exchange):
                 'cost': feeCost,
                 'code': feeCurrencyCode,
             }
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -575,14 +569,14 @@ class buda(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'average': average,
+            'average': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'trades': None,
             'fee': fee,
-        }
+        })
 
     def is_fiat(self, code):
         fiats = {

@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, OrderNotFound, InvalidOrder, CancelPending, RateLimitExceeded, InsufficientFunds, BadRequest, BadSymbol, PermissionDenied } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
 
@@ -230,6 +231,18 @@ module.exports = class aax extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultType': 'spot', // 'spot', 'future'
+                'types': {
+                    'spot': 'SPTP',
+                    'future': 'FUTP',
+                    'otc': 'F2CP',
+                    'saving': 'VLTP',
+                },
+                'accounts': {
+                    'SPTP': 'spot',
+                    'FUTP': 'future',
+                    'F2CP': 'otc',
+                    'VLTP': 'saving',
+                },
             },
         });
     }
@@ -537,7 +550,7 @@ module.exports = class aax extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 't'); // need unix type
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {
@@ -593,8 +606,8 @@ module.exports = class aax extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let price = this.safeNumber2 (trade, 'p', 'filledPrice');
-        const amount = this.safeNumber2 (trade, 'q', 'filledQty');
+        let priceString = this.safeString2 (trade, 'p', 'filledPrice');
+        const amountString = this.safeString2 (trade, 'q', 'filledQty');
         const orderId = this.safeString (trade, 'orderID');
         const isTaker = this.safeValue (trade, 'taker');
         let takerOrMaker = undefined;
@@ -608,14 +621,12 @@ module.exports = class aax extends Exchange {
             side = 'sell';
         }
         if (side === undefined) {
-            side = (price > 0) ? 'buy' : 'sell';
+            side = (priceString[0] === '-') ? 'sell' : 'buy';
         }
-        side = (price > 0) ? 'buy' : 'sell';
-        price = Math.abs (price);
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
+        priceString = Precise.stringAbs (priceString);
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderType = this.parseOrderType (this.safeString (trade, 'orderType'));
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'commission');
@@ -733,12 +744,7 @@ module.exports = class aax extends Exchange {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const types = {
-            'spot': 'SPTP',
-            'future': 'FUTP',
-            'otc': 'F2CP',
-            'saving': 'VLTP',
-        };
+        const types = this.safeValue (this.options, 'types', {});
         const purseType = this.safeString (types, type, type);
         const request = {
             'purseType': purseType,
@@ -767,7 +773,12 @@ module.exports = class aax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const result = { 'info': response };
+        const timestamp = this.safeInteger (response, 'ts');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const balanceType = this.safeString (balance, 'purseType');
@@ -775,12 +786,12 @@ module.exports = class aax extends Exchange {
                 const currencyId = this.safeString (balance, 'currency');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['free'] = this.safeNumber (balance, 'available');
-                account['used'] = this.safeNumber (balance, 'unavailable');
+                account['free'] = this.safeString (balance, 'available');
+                account['used'] = this.safeString (balance, 'unavailable');
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1571,19 +1582,13 @@ module.exports = class aax extends Exchange {
         const average = this.safeNumber (order, 'avgPrice');
         const amount = this.safeNumber (order, 'orderQty');
         const filled = this.safeNumber (order, 'cumQty');
-        const remaining = this.safeString (order, 'leavesQty');
-        let cost = undefined;
-        let lastTradeTimestamp = undefined;
-        if (filled !== undefined) {
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-            if (filled > 0) {
-                lastTradeTimestamp = this.safeValue (order, 'transactTime');
-                if (typeof lastTradeTimestamp === 'string') {
-                    lastTradeTimestamp = this.parse8601 (lastTradeTimestamp);
-                }
-            }
+        let remaining = this.safeNumber (order, 'leavesQty');
+        if ((filled === 0) && (remaining === 0)) {
+            remaining = undefined;
+        }
+        let lastTradeTimestamp = this.safeValue (order, 'transactTime');
+        if (typeof lastTradeTimestamp === 'string') {
+            lastTradeTimestamp = this.parse8601 (lastTradeTimestamp);
         }
         let fee = undefined;
         const feeCost = this.safeNumber (order, 'commission');
@@ -1601,7 +1606,7 @@ module.exports = class aax extends Exchange {
                 'cost': feeCost,
             };
         }
-        return {
+        return this.safeOrder ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
@@ -1620,10 +1625,10 @@ module.exports = class aax extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'cost': cost,
+            'cost': undefined,
             'trades': undefined,
             'fee': fee,
-        };
+        });
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

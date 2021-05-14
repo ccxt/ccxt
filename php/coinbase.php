@@ -493,14 +493,11 @@ class coinbase extends Exchange {
         $orderId = null;
         $side = $this->safe_string($trade, 'resource');
         $type = null;
-        $cost = $this->safe_number($subtotalObject, 'amount');
-        $amount = $this->safe_number($amountObject, 'amount');
-        $price = null;
-        if ($cost !== null) {
-            if (($amount !== null) && ($amount > 0)) {
-                $price = $cost / $amount;
-            }
-        }
+        $costString = $this->safe_string($subtotalObject, 'amount');
+        $amountString = $this->safe_string($amountObject, 'amount');
+        $cost = $this->parse_number($costString);
+        $amount = $this->parse_number($amountString);
+        $price = $this->parse_number(Precise::string_div($costString, $amountString));
         $feeCost = $this->safe_number($feeObject, 'amount');
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
@@ -654,14 +651,6 @@ class coinbase extends Exchange {
                         'min' => $this->safe_number($currency, 'min_size'),
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => null,
                         'max' => null,
@@ -724,26 +713,28 @@ class coinbase extends Exchange {
         $result = array( 'info' => $response );
         for ($b = 0; $b < count($balances); $b++) {
             $balance = $balances[$b];
-            if ($this->in_array($balance['type'], $accounts)) {
-                $currencyId = $this->safe_string($balance['balance'], 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $total = $this->safe_number($balance['balance'], 'amount');
-                $free = $total;
-                $used = null;
-                if (is_array($result) && array_key_exists($code, $result)) {
-                    $result[$code]['free'] = $this->sum($result[$code]['free'], $total);
-                    $result[$code]['total'] = $this->sum($result[$code]['total'], $total);
-                } else {
-                    $account = array(
-                        'free' => $free,
-                        'used' => $used,
-                        'total' => $total,
-                    );
+            $type = $this->safe_string($balance, 'type');
+            if ($this->in_array($type, $accounts)) {
+                $value = $this->safe_value($balance, 'balance');
+                if ($value !== null) {
+                    $currencyId = $this->safe_string($value, 'currency');
+                    $code = $this->safe_currency_code($currencyId);
+                    $total = $this->safe_string($value, 'amount');
+                    $free = $total;
+                    $account = $this->safe_value($result, $code);
+                    if ($account === null) {
+                        $account = $this->account();
+                        $account['free'] = $free;
+                        $account['total'] = $total;
+                    } else {
+                        $account['free'] = Precise::string_add($account['free'], $total);
+                        $account['total'] = Precise::string_add($account['total'], $total);
+                    }
                     $result[$code] = $account;
                 }
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {

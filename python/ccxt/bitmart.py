@@ -871,8 +871,6 @@ class bitmart(Exchange):
                 'precision': None,
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
             }
@@ -937,9 +935,9 @@ class bitmart(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         if market['spot']:
-            return self.parse_order_book(data, None, 'buys', 'sells', 'price', 'amount')
+            return self.parse_order_book(data, symbol, None, 'buys', 'sells', 'price', 'amount')
         elif market['swap'] or market['future']:
-            return self.parse_order_book(data, None, 'buys', 'sells', 'price', 'vol')
+            return self.parse_order_book(data, symbol, None, 'buys', 'sells', 'price', 'vol')
 
     def parse_trade(self, trade, market=None):
         #
@@ -1444,13 +1442,13 @@ class bitmart(Exchange):
         for i in range(0, len(wallet)):
             balance = wallet[i]
             currencyId = self.safe_string_2(balance, 'id', 'currency')
-            currencyId = self.safe_string(balance, 'coind_code', currencyId)
+            currencyId = self.safe_string(balance, 'coin_code', currencyId)
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number_2(balance, 'available', 'available_vol')
-            account['used'] = self.safe_number_2(balance, 'frozen', 'freeze_vol')
+            account['free'] = self.safe_string_2(balance, 'available', 'available_vol')
+            account['used'] = self.safe_string_2(balance, 'frozen', 'freeze_vol')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order(self, order, market=None):
         #

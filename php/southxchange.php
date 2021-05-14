@@ -116,14 +116,14 @@ class southxchange extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'Currency');
             $code = $this->safe_currency_code($currencyId);
-            $deposited = $this->safe_number($balance, 'Deposited');
-            $unconfirmed = $this->safe_number($balance, 'Unconfirmed');
+            $deposited = $this->safe_string($balance, 'Deposited');
+            $unconfirmed = $this->safe_string($balance, 'Unconfirmed');
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'Available');
-            $account['total'] = $this->sum($deposited, $unconfirmed);
+            $account['free'] = $this->safe_string($balance, 'Available');
+            $account['total'] = Precise::string_add($deposited, $unconfirmed);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -132,7 +132,7 @@ class southxchange extends Exchange {
             'symbol' => $this->market_id($symbol),
         );
         $response = $this->publicGetBookSymbol (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
+        return $this->parse_order_book($response, $symbol, null, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -194,14 +194,11 @@ class southxchange extends Exchange {
 
     public function parse_trade($trade, $market) {
         $timestamp = $this->safe_timestamp($trade, 'At');
-        $price = $this->safe_number($trade, 'Price');
-        $amount = $this->safe_number($trade, 'Amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'Price');
+        $amountString = $this->safe_string($trade, 'Amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $side = $this->safe_string($trade, 'Type');
         $symbol = null;
         if ($market !== null) {

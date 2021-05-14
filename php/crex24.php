@@ -119,6 +119,7 @@ class crex24 extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'fees' => array(
                 'trading' => array(
                     'tierBased' => true,
@@ -139,6 +140,8 @@ class crex24 extends Exchange {
                 'BIT' => 'BitMoney',
                 'BULL' => 'BuySell',
                 'CREDIT' => 'TerraCredit',
+                'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
+                'FUND' => 'FUNDChains',
                 'GHOST' => 'GHOSTPRISM',
                 'IQ' => 'IQ.Cash',
                 'PUT' => 'PutinCoin',
@@ -214,12 +217,12 @@ class crex24 extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $tickSize = $this->safe_value($market, 'tickSize');
-            $minPrice = $this->safe_value($market, 'minPrice');
+            $tickSize = $this->safe_number($market, 'tickSize');
+            $minPrice = $this->safe_number($market, 'minPrice');
             $minAmount = $this->safe_number($market, 'minVolume');
             $precision = array(
-                'amount' => $this->precision_from_string($this->number_to_string($minAmount)),
-                'price' => $this->precision_from_string($this->number_to_string($tickSize)),
+                'amount' => $minAmount,
+                'price' => $tickSize,
             );
             $active = ($market['state'] === 'active');
             $result[] = array(
@@ -261,7 +264,7 @@ class crex24 extends Exchange {
         //         depositConfirmationCount =>  8,
         //                       minDeposit =>  0,
         //               withdrawalsAllowed =>  true,
-        //              withdrawalPrecision =>  8,
+        //              $withdrawalPrecision =>  8,
         //                    minWithdrawal =>  4,
         //                    maxWithdrawal =>  1000000000,
         //                flatWithdrawalFee =>  2,
@@ -273,7 +276,7 @@ class crex24 extends Exchange {
         //         depositConfirmationCount =>  8,
         //                       minDeposit =>  0,
         //               withdrawalsAllowed =>  false,
-        //              withdrawalPrecision =>  8,
+        //              $withdrawalPrecision =>  8,
         //                    minWithdrawal =>  0.2,
         //                    maxWithdrawal =>  1000000000,
         //                flatWithdrawalFee =>  0.1,
@@ -284,7 +287,8 @@ class crex24 extends Exchange {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
             $code = $this->safe_currency_code($id);
-            $precision = $this->safe_integer($currency, 'withdrawalPrecision');
+            $withdrawalPrecision = $this->safe_integer($currency, 'withdrawalPrecision');
+            $precision = pow(10, -$withdrawalPrecision);
             $address = $this->safe_value($currency, 'BaseAddress');
             $active = ($currency['depositsAllowed'] && $currency['withdrawalsAllowed'] && !$currency['isDelisted']);
             $type = $currency['isFiat'] ? 'fiat' : 'crypto';
@@ -302,14 +306,6 @@ class crex24 extends Exchange {
                     'amount' => array(
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
-                    ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
                     ),
                     'deposit' => array(
                         'min' => $this->safe_number($currency, 'minDeposit'),
@@ -347,11 +343,11 @@ class crex24 extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['used'] = $this->safe_number($balance, 'reserved');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'reserved');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -382,7 +378,7 @@ class crex24 extends Exchange {
         //                     array( price => 0.03124, volume => 2.63462933 ),
         //                     array( price => 0.069, volume => 0.004 )            ) }
         //
-        return $this->parse_order_book($response, null, 'buyLevels', 'sellLevels', 'price', 'volume');
+        return $this->parse_order_book($response, $symbol, null, 'buyLevels', 'sellLevels', 'price', 'volume');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -517,14 +513,11 @@ class crex24 extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'volume');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'volume');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string($trade, 'id');
         $side = $this->safe_string($trade, 'side');
         $orderId = $this->safe_string($trade, 'orderId');

@@ -4,7 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection, NotSupported } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection, NotSupported, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -108,7 +109,7 @@ module.exports = class liquid extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.0015,
+                    'taker': 0.0030,
                     'maker': 0.0000,
                     'tiers': {
                         'perpetual': {
@@ -127,48 +128,52 @@ module.exports = class liquid extends Exchange {
                                 [ 300000000, -0.00025 ],
                             ],
                             'taker': [
-                                [ 0, 0.000600 ],
-                                [ 25000, 0.000575 ],
-                                [ 50000, 0.000550 ],
-                                [ 100000, 0.000525 ],
-                                [ 1000000, 0.000500 ],
-                                [ 10000000, 0.000475 ],
-                                [ 25000000, 0.000450 ],
-                                [ 50000000, 0.000425 ],
-                                [ 75000000, 0.000400 ],
-                                [ 100000000, 0.000375 ],
-                                [ 200000000, 0.000350 ],
-                                [ 300000000, 0.000325 ],
+                                [ 0, 0.00120 ],
+                                [ 25000, 0.00115 ],
+                                [ 50000, 0.00110 ],
+                                [ 100000, 0.00105 ],
+                                [ 1000000, 0.00100 ],
+                                [ 10000000, 0.00095 ],
+                                [ 25000000, 0.00090 ],
+                                [ 50000000, 0.00085 ],
+                                [ 75000000, 0.00080 ],
+                                [ 100000000, 0.00075 ],
+                                [ 200000000, 0.00070 ],
+                                [ 300000000, 0.00065 ],
                             ],
                         },
                         'spot': {
                             'taker': [
-                                [ 0, 0.0015 ],
-                                [ 10000, 0.0015 ],
-                                [ 20000, 0.0014 ],
-                                [ 50000, 0.0013 ],
-                                [ 100000, 0.0010 ],
-                                [ 1000000, 0.0008 ],
-                                [ 5000000, 0.0006 ],
-                                [ 10000000, 0.0005 ],
-                                [ 25000000, 0.0005 ],
-                                [ 50000000, 0.00045 ],
-                                [ 100000000, 0.0004 ],
-                                [ 200000000, 0.0003 ],
+                                [ 0, 0.003 ],
+                                [ 10000, 0.0029 ],
+                                [ 20000, 0.0028 ],
+                                [ 50000, 0.0026 ],
+                                [ 100000, 0.0020 ],
+                                [ 1000000, 0.0016 ],
+                                [ 5000000, 0.0012 ],
+                                [ 10000000, 0.0010 ],
+                                [ 25000000, 0.0009 ],
+                                [ 50000000, 0.0008 ],
+                                [ 100000000, 0.0007 ],
+                                [ 200000000, 0.0006 ],
+                                [ 500000000, 0.0004 ],
+                                [ 1000000000, 0.0003 ],
                             ],
                             'maker': [
                                 [ 0, 0.0000 ],
-                                [ 10000, 0.0015 ],
-                                [ 20000, 0.1400 ],
-                                [ 50000, 0.1300 ],
-                                [ 100000, 0.0800 ],
-                                [ 1000000, 0.0004 ],
-                                [ 5000000, 0.00035 ],
-                                [ 10000000, 0.00025 ],
+                                [ 10000, 0.0020 ],
+                                [ 20000, 0.0019 ],
+                                [ 50000, 0.0018 ],
+                                [ 100000, 0.0016 ],
+                                [ 1000000, 0.0008 ],
+                                [ 5000000, 0.0007 ],
+                                [ 10000000, 0.0005 ],
                                 [ 25000000, 0.0000 ],
                                 [ 50000000, 0.0000 ],
                                 [ 100000000, 0.0000 ],
                                 [ 200000000, 0.0000 ],
+                                [ 500000000, 0.0000 ],
+                                [ 1000000000, 0.0000 ],
                             ],
                         },
                     },
@@ -187,6 +192,7 @@ module.exports = class liquid extends Exchange {
                 'less_than_order_size': InvalidOrder,
                 'price_too_high': InvalidOrder,
                 'price_too_small': InvalidOrder, // {"errors":{"order":["price_too_small"]}}
+                'product_disabled': BadSymbol, // {"errors":{"order":["product_disabled"]}}
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
@@ -226,10 +232,7 @@ module.exports = class liquid extends Exchange {
             const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
             const active = currency['depositable'] && currency['withdrawable'];
-            const amountPrecision = this.safeInteger (currency, 'display_precision');
-            const pricePrecision = this.safeInteger (currency, 'quoting_precision');
-            const precision = Math.max (amountPrecision, pricePrecision);
-            const decimalPrecision = 1 / Math.pow (10, precision);
+            const amountPrecision = this.safeInteger (currency, 'assets_precision');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -237,19 +240,11 @@ module.exports = class liquid extends Exchange {
                 'name': code,
                 'active': active,
                 'fee': this.safeNumber (currency, 'withdrawal_fee'),
-                'precision': decimalPrecision,
+                'precision': amountPrecision,
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -amountPrecision),
                         'max': Math.pow (10, amountPrecision),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -pricePrecision),
-                        'max': Math.pow (10, pricePrecision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
                     },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minimum_withdrawal'),
@@ -391,14 +386,27 @@ module.exports = class liquid extends Exchange {
             if (baseCurrency !== undefined) {
                 minAmount = this.safeNumber (baseCurrency['info'], 'minimum_order_quantity');
             }
+            const lastPrice = this.safeNumber (market, 'last_traded_price');
+            let minPrice = undefined;
+            let maxPrice = undefined;
+            if (lastPrice) {
+                const multiplierDown = this.safeNumber (market, 'multiplier_down');
+                const multiplierUp = this.safeNumber (market, 'multiplier_up');
+                if (multiplierDown !== undefined) {
+                    minPrice = lastPrice * multiplierDown;
+                }
+                if (multiplierUp !== undefined) {
+                    maxPrice = lastPrice * multiplierUp;
+                }
+            }
             const limits = {
                 'amount': {
                     'min': minAmount,
                     'max': undefined,
                 },
                 'price': {
-                    'min': undefined,
-                    'max': undefined,
+                    'min': minPrice,
+                    'max': maxPrice,
                 },
                 'cost': {
                     'min': undefined,
@@ -463,7 +471,11 @@ module.exports = class liquid extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const crypto = this.safeValue (response, 'crypto_accounts', []);
         const fiat = this.safeValue (response, 'fiat_accounts', []);
         for (let i = 0; i < crypto.length; i++) {
@@ -471,8 +483,8 @@ module.exports = class liquid extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'reserved_balance');
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'reserved_balance');
             result[code] = account;
         }
         for (let i = 0; i < fiat.length; i++) {
@@ -480,11 +492,11 @@ module.exports = class liquid extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'reserved_balance');
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'reserved_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -493,7 +505,7 @@ module.exports = class liquid extends Exchange {
             'id': this.marketId (symbol),
         };
         const response = await this.publicGetProductsIdPriceLevels (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'buy_price_levels', 'sell_price_levels');
+        return this.parseOrderBook (response, symbol, undefined, 'buy_price_levels', 'sell_price_levels');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -600,14 +612,11 @@ module.exports = class liquid extends Exchange {
         if (mySide !== undefined) {
             takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
         }
-        let cost = undefined;
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'quantity');
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (market !== undefined) {

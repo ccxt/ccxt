@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
+from ccxt.base.precise import Precise
 
 
 class zaif(Exchange):
@@ -200,24 +201,26 @@ class zaif(Exchange):
         self.load_markets()
         response = self.privatePostGetInfo(params)
         balances = self.safe_value(response, 'return', {})
-        result = {'info': response}
+        deposit = self.safe_value(balances, 'deposit')
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         funds = self.safe_value(balances, 'funds', {})
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
-            balance = self.safe_value(funds, currencyId)
-            account = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            }
-            if 'deposit' in balances:
-                if currencyId in balances['deposit']:
-                    account['total'] = self.safe_number(balances['deposit'], currencyId)
-                    account['used'] = account['total'] - account['free']
+            balance = self.safe_string(funds, currencyId)
+            account = self.account()
+            account['free'] = balance
+            account['total'] = balance
+            if deposit is not None:
+                if currencyId in deposit:
+                    account['total'] = self.safe_string(deposit, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -225,7 +228,7 @@ class zaif(Exchange):
             'pair': self.market_id(symbol),
         }
         response = self.publicGetDepthPair(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -268,12 +271,11 @@ class zaif(Exchange):
         side = 'buy' if (side == 'bid') else 'sell'
         timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string_2(trade, 'id', 'tid')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'currency_pair')
         symbol = self.safe_symbol(marketId, market, '_')
         return {

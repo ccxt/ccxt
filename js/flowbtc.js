@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -131,11 +132,11 @@ module.exports = class flowbtc extends Exchange {
             const currencyId = balance['name'];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'balance');
-            account['total'] = this.safeNumber (balance, 'hold');
+            account['free'] = this.safeString (balance, 'balance');
+            account['total'] = this.safeString (balance, 'hold');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -145,7 +146,7 @@ module.exports = class flowbtc extends Exchange {
             'productPair': market['id'],
         };
         const response = await this.publicPostGetOrderBook (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'px', 'qty');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'px', 'qty');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -185,14 +186,11 @@ module.exports = class flowbtc extends Exchange {
         const timestamp = this.safeTimestamp (trade, 'unixtime');
         const side = (trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
         const id = this.safeString (trade, 'tid');
-        const price = this.safeNumber (trade, 'px');
-        const amount = this.safeNumber (trade, 'qty');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'px');
+        const amountString = this.safeString (trade, 'qty');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         return {
             'info': trade,
             'timestamp': timestamp,

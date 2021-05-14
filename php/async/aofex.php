@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
+use \ccxt\Precise;
 
 class aofex extends Exchange {
 
@@ -19,6 +20,7 @@ class aofex extends Exchange {
             'name' => 'AOFEX',
             'countries' => array( 'GB' ),
             'rateLimit' => 1000,
+            'hostname' => 'openapi.aofex.com',
             'has' => array(
                 'fetchMarkets' => true,
                 'fetchCurrencies' => false,
@@ -51,8 +53,8 @@ class aofex extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg',
                 'api' => array(
-                    'public' => 'https://openapi.aofex.com/openApi',
-                    'private' => 'https://openapi.aofex.com/openApi',
+                    'public' => 'https://{hostname}/openApi',
+                    'private' => 'https://{hostname}/openApi',
                 ),
                 'www' => 'https://aofex.com',
                 'doc' => 'https://aofex.zendesk.com/hc/en-us/sections/360005576574-API',
@@ -197,8 +199,10 @@ class aofex extends Exchange {
             $symbol = $base . '/' . $quote;
             $numericId = $this->safe_integer($market, 'id');
             $precision = $this->safe_value($precisions, $id, array());
-            $makerFee = $this->safe_number($market, 'maker_fee');
-            $takerFee = $this->safe_number($market, 'taker_fee');
+            $makerFeeString = $this->safe_string($market, 'maker_fee');
+            $takerFeeString = $this->safe_string($market, 'taker_fee');
+            $makerFee = $this->parse_number(Precise::string_div($makerFeeString, '1000'));
+            $takerFee = $this->parse_number(Precise::string_div($takerFeeString, '1000'));
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -208,8 +212,8 @@ class aofex extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'active' => null,
-                'maker' => $makerFee / 1000,
-                'taker' => $takerFee / 1000,
+                'maker' => $makerFee,
+                'taker' => $takerFee,
                 'precision' => array(
                     'amount' => $this->safe_integer($precision, 'amount'),
                     'price' => $this->safe_integer($precision, 'price'),
@@ -325,18 +329,22 @@ class aofex extends Exchange {
         //         )
         //     }
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $balances = $this->safe_value($response, 'result', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['used'] = $this->safe_number($balance, 'frozen');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'frozen');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
@@ -394,7 +402,7 @@ class aofex extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $timestamp = $this->safe_integer($result, 'ts');
-        return $this->parse_order_book($result, $timestamp);
+        return $this->parse_order_book($result, $symbol, $timestamp);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -556,11 +564,13 @@ class aofex extends Exchange {
             $symbol = $market['symbol'];
         }
         $side = $this->safe_string($trade, 'direction');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'amount', 'number');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'amount', 'number');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $cost = $this->safe_number($trade, 'total_price');
-        if (($cost === null) && ($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
@@ -689,7 +699,7 @@ class aofex extends Exchange {
         //                 $price => '123.9',
         //                 $number => '0.010688626311541565',
         //                 total_price => '1.324320799999999903',
-        //                 $fee => '0.000021377252623083'
+        //                 fee => '0.000021377252623083'
         //             }
         //         )
         //     }
@@ -725,82 +735,32 @@ class aofex extends Exchange {
                 $amount = $number;
             }
         }
-        $fee = null;
-        $trades = null;
-        $filled = null;
-        $feeCost = null;
-        $remaining = null;
-        $lastTradeTimestamp = null;
         // all orders except new orders and canceled orders
-        if (($orderStatus !== '1') && ($orderStatus !== '6')) {
-            $rawTrades = $this->safe_value($order, 'trades');
-            if ($rawTrades !== null) {
-                for ($i = 0; $i < count($rawTrades); $i++) {
-                    $rawTrades[$i]['direction'] = $side;
-                }
-                $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-                    'symbol' => $market['symbol'],
-                    'order' => $id,
-                    'side' => $side,
-                    'type' => $type,
-                ));
-                $tradesLength = is_array($trades) ? count($trades) : 0;
-                if ($tradesLength > 0) {
-                    $firstTrade = $trades[0];
-                    $feeCost = $firstTrade['fee']['cost'];
-                    $lastTradeTimestamp = $firstTrade['timestamp'];
-                    $filled = $firstTrade['amount'];
-                    $cost = $firstTrade['cost'];
-                    for ($i = 1; $i < count($trades); $i++) {
-                        $trade = $trades[$i];
-                        $feeCost = $this->sum($feeCost, $trade['fee']['cost']);
-                        $filled = $this->sum($filled, $trade['amount']);
-                        $cost = $this->sum($cost, $trade['cost']);
-                        $lastTradeTimestamp = max ($lastTradeTimestamp, $trade['timestamp']);
-                    }
-                    if ($amount !== null) {
-                        $filled = min ($amount, $filled);
-                    }
-                    if ($filled > 0) {
-                        $average = $cost / $filled;
-                    }
-                }
-                if ($feeCost !== null) {
-                    $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
-                    $fee = array(
-                        'cost' => $feeCost,
-                        'currency' => $feeCurrencyCode,
-                    );
-                }
-            }
-        } else {
-            $filled = 0;
-            $cost = 0;
+        $rawTrades = $this->safe_value($order, 'trades', array());
+        for ($i = 0; $i < count($rawTrades); $i++) {
+            $rawTrades[$i]['direction'] = $side;
         }
-        if ($cost === null) {
-            if ($type === 'limit') {
-                $cost = $totalPrice;
-            } else if ($side === 'buy') {
-                $cost = $number;
-            }
+        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
+            'symbol' => $market['symbol'],
+            'order' => $id,
+            'type' => $type,
+        ));
+        if ($type === 'limit') {
+            $cost = $totalPrice;
+        } else if ($side === 'buy') {
+            $cost = $number;
         }
-        if ($filled === null) {
-            if (($type === 'limit') && ($orderStatus === '3')) {
-                $filled = $amount;
-            }
+        $filled = null;
+        if (($type === 'limit') && ($orderStatus === '3')) {
+            $filled = $amount;
         }
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = max ($amount - $filled, 0);
-            }
-        }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $market['symbol'],
             'type' => $type,
@@ -813,10 +773,10 @@ class aofex extends Exchange {
             'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'trades' => $trades,
-            'fee' => $fee,
-        );
+            'fee' => null,
+        ));
     }
 
     public function fetch_closed_order($id, $symbol = null, $params = array ()) {
@@ -1038,7 +998,7 @@ class aofex extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api] . '/' . $path;
+        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . '/' . $path;
         $keys = is_array($params) ? array_keys($params) : array();
         $keysLength = is_array($keys) ? count($keys) : 0;
         if ($api === 'public') {

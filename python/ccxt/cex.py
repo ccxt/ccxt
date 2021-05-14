@@ -23,6 +23,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class cex(Exchange):
@@ -275,14 +276,6 @@ class cex(Exchange):
                         'min': self.safe_number(currency, 'minimumCurrencyAmount'),
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(currency, 'minimalWithdrawalAmount'),
                         'max': None,
@@ -390,12 +383,12 @@ class cex(Exchange):
             currencyId = currencyIds[i]
             balance = self.safe_value(balances, currencyId, {})
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
+            account['free'] = self.safe_string(balance, 'available')
             # https://github.com/ccxt/ccxt/issues/5484
-            account['used'] = self.safe_number(balance, 'orders', 0.0)
+            account['used'] = self.safe_string(balance, 'orders', '0')
             code = self.safe_currency_code(currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -406,7 +399,7 @@ class cex(Exchange):
             request['depth'] = limit
         response = self.publicGetOrderBookPair(self.extend(request, params))
         timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -523,12 +516,11 @@ class cex(Exchange):
         id = self.safe_string(trade, 'tid')
         type = None
         side = self.safe_string(trade, 'type')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']

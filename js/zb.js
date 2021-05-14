@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadRequest, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InvalidOrder, InvalidAddress } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -89,8 +90,8 @@ module.exports = class zb extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
-                    'public': 'http://api.zb.cn/data', // no https for public API
-                    'private': 'https://trade.zb.cn/api',
+                    'public': 'https://api.zb.today/data',
+                    'private': 'https://trade.zb.today/api',
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
@@ -224,9 +225,13 @@ module.exports = class zb extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const amountPrecisionString = this.safeString (market, 'amountScale');
+            const pricePrecisionString = this.safeString (market, 'priceScale');
+            const amountLimit = this.parsePrecision (amountPrecisionString);
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
-                'amount': this.safeInteger (market, 'amountScale'),
-                'price': this.safeInteger (market, 'priceScale'),
+                'amount': parseInt (amountPrecisionString),
+                'price': parseInt (pricePrecisionString),
             };
             result.push ({
                 'id': id,
@@ -239,11 +244,11 @@ module.exports = class zb extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': this.parseNumber (amountLimit),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': this.parseNumber (priceLimit),
                         'max': undefined,
                     },
                     'cost': {
@@ -263,7 +268,11 @@ module.exports = class zb extends Exchange {
         // todo: use this somehow
         // let permissions = response['result']['base'];
         const balances = this.safeValue (response['result'], 'coins');
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             //     {        enName: "BTC",
@@ -278,11 +287,11 @@ module.exports = class zb extends Exchange {
             const account = this.account ();
             const currencyId = this.safeString (balance, 'key');
             const code = this.safeCurrencyCode (currencyId);
-            account['free'] = this.safeNumber (balance, 'available');
-            account['used'] = this.safeNumber (balance, 'freez');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'freez');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
@@ -399,7 +408,7 @@ module.exports = class zb extends Exchange {
             request['size'] = limit;
         }
         const response = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -497,14 +506,12 @@ module.exports = class zb extends Exchange {
         let side = this.safeString (trade, 'trade_type');
         side = (side === 'bid') ? 'buy' : 'sell';
         const id = this.safeString (trade, 'tid');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const costString = Precise.stringMul (priceString, amountString);
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (costString);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

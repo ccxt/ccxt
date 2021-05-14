@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, PermissionDenied, BadRequest, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -191,9 +192,13 @@ module.exports = class bigone extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const amountPrecisionString = this.safeString (market, 'base_scale');
+            const pricePrecisionString = this.safeString (market, 'quote_scale');
+            const amountLimit = this.parsePrecision (amountPrecisionString);
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
-                'amount': this.safeInteger (market, 'base_scale'),
-                'price': this.safeInteger (market, 'quote_scale'),
+                'amount': parseInt (amountPrecisionString),
+                'price': parseInt (pricePrecisionString),
             };
             const minCost = this.safeInteger (market, 'min_quote_value');
             const entry = {
@@ -208,11 +213,11 @@ module.exports = class bigone extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': this.parseNumber (amountLimit),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': this.parseNumber (priceLimit),
                         'max': undefined,
                     },
                     'cost': {
@@ -400,7 +405,7 @@ module.exports = class bigone extends Exchange {
         //     }
         //
         const orderbook = this.safeValue (response, 'data', {});
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'quantity');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
     parseTrade (trade, market = undefined) {
@@ -446,16 +451,13 @@ module.exports = class bigone extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'created_at', 'inserted_at'));
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 'asset_pair_name');
         const symbol = this.safeSymbol (marketId, market, '-');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = this.costToPrecision (symbol, price * amount);
-            }
-        }
         let side = this.safeString (trade, 'side');
         const takerSide = this.safeString (trade, 'taker_side');
         let takerOrMaker = undefined;
@@ -661,18 +663,22 @@ module.exports = class bigone extends Exchange {
         //         ],
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const symbol = this.safeString (balance, 'asset_symbol');
             const code = this.safeCurrencyCode (symbol);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'locked_balance');
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'locked_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrder (order, market = undefined) {

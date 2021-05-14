@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\BadRequest;
 use \ccxt\AddressPending;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class vcc extends Exchange {
 
@@ -303,18 +304,22 @@ class vcc extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $currencyIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($data, $currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available_balance');
-            $account['total'] = $this->safe_number($balance, 'balance');
+            $account['free'] = $this->safe_string($balance, 'available_balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -407,7 +412,7 @@ class vcc extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_value($data, 'timestamp');
-        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', 0, 1);
+        return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 0, 1);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -563,13 +568,13 @@ class vcc extends Exchange {
         }
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'base_volume', 'quantity');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'base_volume', 'quantity');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $cost = $this->safe_number_2($trade, 'quote_volume', 'amount');
         if ($cost === null) {
-            if (($price !== null) && ($amount !== null)) {
-                $cost = $price * $amount;
-            }
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $side = $this->safe_string_2($trade, 'type', 'trade_type');
         $id = $this->safe_string_2($trade, 'trade_id', 'id');

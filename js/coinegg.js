@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -268,20 +269,17 @@ module.exports = class coinegg extends Exchange {
             'quote': market['quoteId'],
         };
         const response = await this.publicGetDepthRegionQuote (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp (trade, 'date');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const symbol = market['symbol'];
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = this.costToPrecision (symbol, price * amount);
-            }
-        }
         const type = 'limit';
         const side = this.safeString (trade, 'type');
         const id = this.safeString (trade, 'tid');
@@ -328,9 +326,9 @@ module.exports = class coinegg extends Exchange {
                 result[code] = this.account ();
             }
             const type = (accountType === 'lock') ? 'used' : 'free';
-            result[code][type] = this.safeNumber (balances, key);
+            result[code][type] = this.safeString (balances, key);
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrder (order, market = undefined) {

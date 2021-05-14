@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class xena extends Exchange {
 
@@ -379,14 +380,6 @@ class xena extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($withdraw, 'minAmount'),
                         'max' => null,
@@ -528,7 +521,7 @@ class xena extends Exchange {
         $mdEntriesByType = $this->group_by($mdEntry, 'mdEntryType');
         $lastUpdateTime = $this->safe_integer($response, 'lastUpdateTime');
         $timestamp = intval($lastUpdateTime / 1000000);
-        return $this->parse_order_book($mdEntriesByType, $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
+        return $this->parse_order_book($mdEntriesByType, $symbol, $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 
     public function fetch_accounts($params = array ()) {
@@ -602,25 +595,38 @@ class xena extends Exchange {
         $response = yield $this->privateGetTradingAccountsAccountIdBalance (array_merge($request, $params));
         //
         //     {
-        //         "$balances" => array(
-        //             array("available":"0","onHold":"0","settled":"0","equity":"0","currency":"BAB","lastUpdated":1564811790485125345),
-        //             array("available":"0","onHold":"0","settled":"0","equity":"0","currency":"BSV","lastUpdated":1564811790485125345),
-        //             array("available":"0","onHold":"0","settled":"0","equity":"0","currency":"BTC","lastUpdated":1564811790485125345),
+        //         "msgType":"XAR",
+        //         "$balances":array(
+        //             {
+        //                 "currency":"BTC",
+        //                 "$lastUpdateTime":1619384111905916598,
+        //                 "available":"0.00549964",
+        //                 "onHold":"0",
+        //                 "settled":"0.00549964",
+        //                 "equity":"0.00549964"
+        //             }
         //         )
         //     }
         //
         $result = array( 'info' => $response );
+        $timestamp = null;
         $balances = $this->safe_value($response, 'balances', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
+            $lastUpdateTime = $this->safe_string($balance, 'lastUpdateTime');
+            $lastUpdated = mb_substr($lastUpdateTime, 0, 13 - 0);
+            $currentTimestamp = intval($lastUpdated);
+            $timestamp = ($timestamp === null) ? $currentTimestamp : max ($timestamp, $currentTimestamp);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['used'] = $this->safe_number($balance, 'onHold');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'onHold');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -674,14 +680,11 @@ class xena extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $price = $this->safe_number_2($trade, 'lastPx', 'mdEntryPx');
-        $amount = $this->safe_number_2($trade, 'lastQty', 'mdEntrySize');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string_2($trade, 'lastPx', 'mdEntryPx');
+        $amountString = $this->safe_string_2($trade, 'lastQty', 'mdEntrySize');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
         $feeCost = $this->safe_number($trade, 'commission');
         if ($feeCost !== null) {

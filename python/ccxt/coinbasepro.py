@@ -24,6 +24,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class coinbasepro(Exchange):
@@ -72,6 +73,7 @@ class coinbasepro(Exchange):
                 '6h': 21600,
                 '1d': 86400,
             },
+            'hostname': 'pro.coinbase.com',
             'urls': {
                 'test': {
                     'public': 'https://api-public.sandbox.pro.coinbase.com',
@@ -79,8 +81,8 @@ class coinbasepro(Exchange):
                 },
                 'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
                 'api': {
-                    'public': 'https://api.pro.coinbase.com',
-                    'private': 'https://api.pro.coinbase.com',
+                    'public': 'https://api.{hostname}',
+                    'private': 'https://api.{hostname}',
                 },
                 'www': 'https://pro.coinbase.com/',
                 'doc': 'https://docs.pro.coinbase.com',
@@ -139,8 +141,9 @@ class coinbasepro(Exchange):
                         'reports/{report_id}',
                         'transfers',
                         'transfers/{transfer_id}',
-                        'users/self/trailing-volume',
                         'users/self/exchange-limits',
+                        'users/self/hold-balances',
+                        'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                     ],
                     'post': [
@@ -274,14 +277,6 @@ class coinbasepro(Exchange):
                         'min': self.safe_number(details, 'min_size'),
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(details, 'min_withdrawal_amount'),
                         'max': None,
@@ -403,13 +398,12 @@ class coinbasepro(Exchange):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
-            account = {
-                'free': self.safe_number(balance, 'available'),
-                'used': self.safe_number(balance, 'hold'),
-                'total': self.safe_number(balance, 'balance'),
-            }
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'hold')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -436,7 +430,7 @@ class coinbasepro(Exchange):
         #         ]
         #     }
         #
-        orderbook = self.parse_order_book(response)
+        orderbook = self.parse_order_book(response, symbol)
         orderbook['nonce'] = self.safe_integer(response, 'sequence')
         return orderbook
 
@@ -576,10 +570,12 @@ class coinbasepro(Exchange):
         # Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         if orderId is not None:
             side = 'buy' if (trade['side'] == 'buy') else 'sell'
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'size')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         if cost is None:
-            cost = amount * price
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'id': id,
             'order': orderId,
@@ -908,18 +904,6 @@ class coinbasepro(Exchange):
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
         return self.privateDeleteOrders(self.extend(request, params))
 
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        rate = market[takerOrMaker]
-        cost = amount * price
-        currency = market['quote']
-        return {
-            'type': takerOrMaker,
-            'currency': currency,
-            'rate': rate,
-            'cost': float(self.currency_to_precision(currency, rate * cost)),
-        }
-
     def fetch_payment_methods(self, params={}):
         return self.privateGetPaymentMethods(params)
 
@@ -1069,33 +1053,6 @@ class coinbasepro(Exchange):
             'fee': fee,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/' + self.implode_params(path, params)
-        query = self.omit(params, self.extract_params(path))
-        if method == 'GET':
-            if query:
-                request += '?' + self.urlencode(query)
-        url = self.urls['api'][api] + request
-        if api == 'private':
-            self.check_required_credentials()
-            nonce = str(self.nonce())
-            payload = ''
-            if method != 'GET':
-                if query:
-                    body = self.json(query)
-                    payload = body
-            what = nonce + method + request + payload
-            secret = self.base64_to_binary(self.secret)
-            signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')
-            headers = {
-                'CB-ACCESS-KEY': self.apiKey,
-                'CB-ACCESS-SIGN': signature,
-                'CB-ACCESS-TIMESTAMP': nonce,
-                'CB-ACCESS-PASSPHRASE': self.password,
-                'Content-Type': 'application/json',
-            }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
     def create_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
@@ -1121,6 +1078,33 @@ class coinbasepro(Exchange):
             'tag': tag,
             'info': response,
         }
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        request = '/' + self.implode_params(path, params)
+        query = self.omit(params, self.extract_params(path))
+        if method == 'GET':
+            if query:
+                request += '?' + self.urlencode(query)
+        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + request
+        if api == 'private':
+            self.check_required_credentials()
+            nonce = str(self.nonce())
+            payload = ''
+            if method != 'GET':
+                if query:
+                    body = self.json(query)
+                    payload = body
+            what = nonce + method + request + payload
+            secret = self.base64_to_binary(self.secret)
+            signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')
+            headers = {
+                'CB-ACCESS-KEY': self.apiKey,
+                'CB-ACCESS-SIGN': signature,
+                'CB-ACCESS-TIMESTAMP': nonce,
+                'CB-ACCESS-PASSPHRASE': self.password,
+                'Content-Type': 'application/json',
+            }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if (code == 400) or (code == 404):

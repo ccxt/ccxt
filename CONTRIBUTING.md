@@ -261,7 +261,7 @@ These files containing derived exchange classes are transpiled from JS into PHP:
 
 These PHP base classes and files are not transpiled:
 
-- `php/base/*`
+- `php/Exchange.php php/ExchangeError.php php/Precise.php ...
 
 #### Typescript
 
@@ -385,7 +385,7 @@ async fetchTicker (symbol, params = {}) {
 
 #### Parsing Symbols
 
-When sending requests to the exchange unified symbols have to be _"converted"_ to exchange-specific market-`id`s like shown above. The same is true on the other side – when receiving an exchange response it has an exchange-specific market-`id` inside it that has to be _"converted back"_ to a unified CCXT symbol.
+When sending requests to the exchange unified symbols have to be _"converted"_ to exchange-specific market-`id`s like shown above. The same is true on the other end – when receiving an exchange response it has an exchange-specific market-`id` inside it that has to be _"converted back"_ to a unified CCXT symbol.
 
 **We don't put exchange-specific market-`id`s in unified structures directly!** We can't freely interchange symbols with ids! There is a significant difference between an *exchange-specific market-ids* and *unified symbols*! This is explained in the Manual, here:
 
@@ -444,7 +444,7 @@ In JavaScript, dictionary keys can be accessed in two notations:
 
 Both work almost identically, and one is implicitly converted to another upon executing the JavaScript code.
 
-While the above does work in JavaScript, it will not work in Python or PHP. In most languages, associative dictionary keys are not treated in the same way as properties. Therefore, in Python `object.key` is not the same as `object['key']`. In PHP `$object->key` is not the same as `$object['key']` as well. Languages that differentiate between associative keys and properties use different notations for the two.
+While the above does work in JavaScript, **it will not work in Python or PHP**. In most languages, associative dictionary keys are not treated in the same way as properties. Therefore, in Python `object.key` is not the same as `object['key']`. In PHP `$object->key` is not the same as `$object['key']` as well. Languages that differentiate between associative keys and properties use different notations for the two.
 
 To keep the code transpileable, please, remember this simple rule: *always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!*
 
@@ -572,7 +572,7 @@ The `hmac()` method also supports `'base64'` for the `digest` argument. This is 
 
 #### Timestamps
 
-**All timestamps throughout all unified structures within this library are integer timestamp _in milliseconds_!**
+**All timestamps throughout all unified structures within this library are integer UTC timestamps _in milliseconds_!**
 
 In order to convert to milliseconds timestamps, CCXT implements the following methods:
 

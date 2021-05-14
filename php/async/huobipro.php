@@ -11,6 +11,7 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 use \ccxt\NetworkError;
+use \ccxt\Precise;
 
 class huobipro extends Exchange {
 
@@ -27,7 +28,9 @@ class huobipro extends Exchange {
             'hostname' => 'api.huobi.pro', // api.testnet.huobi.pro
             'pro' => true,
             'has' => array(
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'CORS' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -194,6 +197,7 @@ class huobipro extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
                     'maker' => 0.002,
@@ -528,7 +532,7 @@ class huobipro extends Exchange {
             }
             $tick = $this->safe_value($response, 'tick');
             $timestamp = $this->safe_integer($tick, 'ts', $this->safe_integer($response, 'ts'));
-            $result = $this->parse_order_book($tick, $timestamp);
+            $result = $this->parse_order_book($tick, $symbol, $timestamp);
             $result['nonce'] = $this->safe_integer($tick, 'version');
             return $result;
         }
@@ -563,7 +567,7 @@ class huobipro extends Exchange {
         //     }
         //
         $ticker = $this->parse_ticker($response['tick'], $market);
-        $timestamp = $this->safe_value($response, 'ts');
+        $timestamp = $this->safe_integer($response, 'ts');
         $ticker['timestamp'] = $timestamp;
         $ticker['datetime'] = $this->iso8601($timestamp);
         return $ticker;
@@ -632,20 +636,14 @@ class huobipro extends Exchange {
             $type = $typeParts[1];
         }
         $takerOrMaker = $this->safe_string($trade, 'role');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'filled-amount', 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'filled-amount', 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
         $feeCost = $this->safe_number($trade, 'filled-fees');
-        $feeCurrency = null;
-        if ($market !== null) {
-            $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
-        }
+        $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
         $filledPoints = $this->safe_number($trade, 'filled-points');
         if ($filledPoints !== null) {
             if (($feeCost === null) || ($feeCost === 0.0)) {
@@ -852,14 +850,6 @@ class huobipro extends Exchange {
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'deposit' => array(
                         'min' => $this->safe_number($currency, 'deposit-min-amount'),
                         'max' => pow(10, $precision),
@@ -896,14 +886,14 @@ class huobipro extends Exchange {
                 $account = $this->account();
             }
             if ($balance['type'] === 'trade') {
-                $account['free'] = $this->safe_number($balance, 'balance');
+                $account['free'] = $this->safe_string($balance, 'balance');
             }
             if ($balance['type'] === 'frozen') {
-                $account['used'] = $this->safe_number($balance, 'balance');
+                $account['used'] = $this->safe_string($balance, 'balance');
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1193,26 +1183,82 @@ class huobipro extends Exchange {
         ));
     }
 
-    public function currency_to_precision($currency, $fee) {
-        return $this->decimal_to_precision($fee, 0, $this->currencies[$currency]['precision']);
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        $clientOrderIds = $this->safe_value_2($params, 'clientOrderIds', 'client-order-ids');
+        $params = $this->omit($params, array( 'clientOrderIds', 'client-order-ids' ));
+        $request = array();
+        if ($clientOrderIds === null) {
+            $request['order-ids'] = $ids;
+        } else {
+            $request['client-order-ids'] = $clientOrderIds;
+        }
+        $response = yield $this->privatePostOrderOrdersBatchcancel (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => {
+        //             "success" => array(
+        //                 "5983466"
+        //             ),
+        //             "failed" => array(
+        //                 array(
+        //                     "err-msg" => "Incorrect order state",
+        //                     "order-state" => 7,
+        //                     "order-id" => "",
+        //                     "err-code" => "order-orderstate-error",
+        //                     "client-order-id" => "first"
+        //                 ),
+        //                 array(
+        //                     "err-msg" => "Incorrect order state",
+        //                     "order-state" => 7,
+        //                     "order-id" => "",
+        //                     "err-code" => "order-orderstate-error",
+        //                     "client-order-id" => "second"
+        //                 ),
+        //                 {
+        //                     "err-msg" => "The record is not found.",
+        //                     "order-id" => "",
+        //                     "err-code" => "base-not-found",
+        //                     "client-order-id" => "third"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        return $response;
     }
 
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $rate = $market[$takerOrMaker];
-        $cost = $amount * $rate;
-        $key = 'quote';
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-        }
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => floatval($this->currency_to_precision($market[$key], $cost)),
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            // 'account-id' string false NA The account id used for this cancel Refer to GET /v1/account/accounts
+            // 'symbol' => $market['id'], // a list of comma-separated symbols, all symbols by default
+            // 'types' 'string', buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            // 'side' => 'buy', // or 'sell'
+            // 'size' => 100, // the number of orders to cancel 1-100
         );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = yield $this->privatePostOrderOrdersBatchCancelOpenOrders (array_merge($request, $params));
+        //
+        //     {
+        //         code => 200,
+        //         data => {
+        //             "success-count" => 2,
+        //             "failed-count" => 0,
+        //             "next-id" => 5454600
+        //         }
+        //     }
+        //
+        return $response;
+    }
+
+    public function currency_to_precision($currency, $fee) {
+        return $this->decimal_to_precision($fee, 0, $this->currencies[$currency]['precision']);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {

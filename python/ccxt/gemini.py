@@ -26,6 +26,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class gemini(Exchange):
@@ -332,7 +333,7 @@ class gemini(Exchange):
             request['limit_bids'] = limit
             request['limit_asks'] = limit
         response = self.publicGetV1BookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker_v1(self, symbol, params={}):
         self.load_markets()
@@ -544,12 +545,11 @@ class gemini(Exchange):
             'cost': self.safe_number(trade, 'fee_amount'),
             'currency': feeCurrencyCode,
         }
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         type = None
         side = self.safe_string_lower(trade, 'type')
         symbol = self.safe_symbol(None, market)
@@ -600,10 +600,10 @@ class gemini(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            account['total'] = self.safe_number(balance, 'amount')
+            account['free'] = self.safe_string(balance, 'available')
+            account['total'] = self.safe_string(balance, 'amount')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order(self, order, market=None):
         timestamp = self.safe_integer(order, 'timestampms')

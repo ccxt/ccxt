@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\Precise;
 
 class paymium extends Exchange {
 
@@ -98,12 +99,12 @@ class paymium extends Exchange {
             if (is_array($response) && array_key_exists($free, $response)) {
                 $account = $this->account();
                 $used = 'locked_' . $currencyId;
-                $account['free'] = $this->safe_number($response, $free);
-                $account['used'] = $this->safe_number($response, $used);
+                $account['free'] = $this->safe_string($response, $free);
+                $account['used'] = $this->safe_string($response, $used);
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -112,7 +113,7 @@ class paymium extends Exchange {
             'currency' => $this->market_id($symbol),
         );
         $response = yield $this->publicGetDataCurrencyDepth (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -161,15 +162,12 @@ class paymium extends Exchange {
             $symbol = $market['symbol'];
         }
         $side = $this->safe_string($trade, 'side');
-        $price = $this->safe_number($trade, 'price');
+        $priceString = $this->safe_string($trade, 'price');
         $amountField = 'traded_' . strtolower($market['base']);
-        $amount = $this->safe_number($trade, $amountField);
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $amountString = $this->safe_string($trade, $amountField);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         return array(
             'info' => $trade,
             'id' => $id,

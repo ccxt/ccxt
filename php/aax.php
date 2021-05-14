@@ -234,6 +234,18 @@ class aax extends Exchange {
             'precisionMode' => TICK_SIZE,
             'options' => array(
                 'defaultType' => 'spot', // 'spot', 'future'
+                'types' => array(
+                    'spot' => 'SPTP',
+                    'future' => 'FUTP',
+                    'otc' => 'F2CP',
+                    'saving' => 'VLTP',
+                ),
+                'accounts' => array(
+                    'SPTP' => 'spot',
+                    'FUTP' => 'future',
+                    'F2CP' => 'otc',
+                    'VLTP' => 'saving',
+                ),
             ),
         ));
     }
@@ -541,7 +553,7 @@ class aax extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($response, 't'); // need unix type
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -597,8 +609,8 @@ class aax extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $price = $this->safe_number_2($trade, 'p', 'filledPrice');
-        $amount = $this->safe_number_2($trade, 'q', 'filledQty');
+        $priceString = $this->safe_string_2($trade, 'p', 'filledPrice');
+        $amountString = $this->safe_string_2($trade, 'q', 'filledQty');
         $orderId = $this->safe_string($trade, 'orderID');
         $isTaker = $this->safe_value($trade, 'taker');
         $takerOrMaker = null;
@@ -612,14 +624,12 @@ class aax extends Exchange {
             $side = 'sell';
         }
         if ($side === null) {
-            $side = ($price > 0) ? 'buy' : 'sell';
+            $side = ($priceString[0] === '-') ? 'sell' : 'buy';
         }
-        $side = ($price > 0) ? 'buy' : 'sell';
-        $price = abs($price);
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
-        }
+        $priceString = Precise::string_abs($priceString);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $orderType = $this->parse_order_type($this->safe_string($trade, 'orderType'));
         $fee = null;
         $feeCost = $this->safe_number($trade, 'commission');
@@ -737,12 +747,7 @@ class aax extends Exchange {
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
-        $types = array(
-            'spot' => 'SPTP',
-            'future' => 'FUTP',
-            'otc' => 'F2CP',
-            'saving' => 'VLTP',
-        );
+        $types = $this->safe_value($this->options, 'types', array());
         $purseType = $this->safe_string($types, $type, $type);
         $request = array(
             'purseType' => $purseType,
@@ -771,7 +776,12 @@ class aax extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $result = array( 'info' => $response );
+        $timestamp = $this->safe_integer($response, 'ts');
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $balanceType = $this->safe_string($balance, 'purseType');
@@ -779,12 +789,12 @@ class aax extends Exchange {
                 $currencyId = $this->safe_string($balance, 'currency');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                $account['free'] = $this->safe_number($balance, 'available');
-                $account['used'] = $this->safe_number($balance, 'unavailable');
+                $account['free'] = $this->safe_string($balance, 'available');
+                $account['used'] = $this->safe_string($balance, 'unavailable');
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1575,19 +1585,13 @@ class aax extends Exchange {
         $average = $this->safe_number($order, 'avgPrice');
         $amount = $this->safe_number($order, 'orderQty');
         $filled = $this->safe_number($order, 'cumQty');
-        $remaining = $this->safe_string($order, 'leavesQty');
-        $cost = null;
-        $lastTradeTimestamp = null;
-        if ($filled !== null) {
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-            if ($filled > 0) {
-                $lastTradeTimestamp = $this->safe_value($order, 'transactTime');
-                if (gettype($lastTradeTimestamp) === 'string') {
-                    $lastTradeTimestamp = $this->parse8601($lastTradeTimestamp);
-                }
-            }
+        $remaining = $this->safe_number($order, 'leavesQty');
+        if (($filled === 0) && ($remaining === 0)) {
+            $remaining = null;
+        }
+        $lastTradeTimestamp = $this->safe_value($order, 'transactTime');
+        if (gettype($lastTradeTimestamp) === 'string') {
+            $lastTradeTimestamp = $this->parse8601($lastTradeTimestamp);
         }
         $fee = null;
         $feeCost = $this->safe_number($order, 'commission');
@@ -1605,7 +1609,7 @@ class aax extends Exchange {
                 'cost' => $feeCost,
             );
         }
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'info' => $order,
             'clientOrderId' => $clientOrderId,
@@ -1624,10 +1628,10 @@ class aax extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
-            'cost' => $cost,
+            'cost' => null,
             'trades' => null,
             'fee' => $fee,
-        );
+        ));
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

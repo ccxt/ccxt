@@ -9,6 +9,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class coinbase(Exchange):
@@ -476,12 +477,11 @@ class coinbase(Exchange):
         orderId = None
         side = self.safe_string(trade, 'resource')
         type = None
-        cost = self.safe_number(subtotalObject, 'amount')
-        amount = self.safe_number(amountObject, 'amount')
-        price = None
-        if cost is not None:
-            if (amount is not None) and (amount > 0):
-                price = cost / amount
+        costString = self.safe_string(subtotalObject, 'amount')
+        amountString = self.safe_string(amountObject, 'amount')
+        cost = self.parse_number(costString)
+        amount = self.parse_number(amountString)
+        price = self.parse_number(Precise.string_div(costString, amountString))
         feeCost = self.safe_number(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
@@ -628,14 +628,6 @@ class coinbase(Exchange):
                         'min': self.safe_number(currency, 'min_size'),
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': None,
@@ -695,23 +687,24 @@ class coinbase(Exchange):
         result = {'info': response}
         for b in range(0, len(balances)):
             balance = balances[b]
-            if self.in_array(balance['type'], accounts):
-                currencyId = self.safe_string(balance['balance'], 'currency')
-                code = self.safe_currency_code(currencyId)
-                total = self.safe_number(balance['balance'], 'amount')
-                free = total
-                used = None
-                if code in result:
-                    result[code]['free'] = self.sum(result[code]['free'], total)
-                    result[code]['total'] = self.sum(result[code]['total'], total)
-                else:
-                    account = {
-                        'free': free,
-                        'used': used,
-                        'total': total,
-                    }
+            type = self.safe_string(balance, 'type')
+            if self.in_array(type, accounts):
+                value = self.safe_value(balance, 'balance')
+                if value is not None:
+                    currencyId = self.safe_string(value, 'currency')
+                    code = self.safe_currency_code(currencyId)
+                    total = self.safe_string(value, 'amount')
+                    free = total
+                    account = self.safe_value(result, code)
+                    if account is None:
+                        account = self.account()
+                        account['free'] = free
+                        account['total'] = total
+                    else:
+                        account['free'] = Precise.string_add(account['free'], total)
+                        account['total'] = Precise.string_add(account['total'], total)
                     result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         self.load_markets()

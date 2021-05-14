@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\Precise;
 
 class coinegg extends Exchange {
 
@@ -270,20 +271,17 @@ class coinegg extends Exchange {
             'quote' => $market['quoteId'],
         );
         $response = yield $this->publicGetDepthRegionQuote (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'date');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = $market['symbol'];
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $this->cost_to_precision($symbol, $price * $amount);
-            }
-        }
         $type = 'limit';
         $side = $this->safe_string($trade, 'type');
         $id = $this->safe_string($trade, 'tid');
@@ -330,9 +328,9 @@ class coinegg extends Exchange {
                 $result[$code] = $this->account();
             }
             $type = ($accountType === 'lock') ? 'used' : 'free';
-            $result[$code][$type] = $this->safe_number($balances, $key);
+            $result[$code][$type] = $this->safe_string($balances, $key);
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order($order, $market = null) {

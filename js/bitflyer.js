@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -185,11 +186,11 @@ module.exports = class bitflyer extends Exchange {
             const currencyId = this.safeString (balance, 'currency_code');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'amount');
-            account['free'] = this.safeNumber (balance, 'available');
+            account['total'] = this.safeString (balance, 'amount');
+            account['free'] = this.safeString (balance, 'available');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -198,7 +199,7 @@ module.exports = class bitflyer extends Exchange {
             'product_code': this.marketId (symbol),
         };
         const orderbook = await this.publicGetGetboard (this.extend (request, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'size');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price', 'size');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -251,14 +252,11 @@ module.exports = class bitflyer extends Exchange {
             order = this.safeString (trade, 'child_order_acceptance_id');
         }
         const timestamp = this.parse8601 (this.safeString (trade, 'exec_date'));
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'size');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'size');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (market !== undefined) {

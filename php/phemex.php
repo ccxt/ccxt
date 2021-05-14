@@ -22,6 +22,7 @@ class phemex extends Exchange {
             'version' => 'v1',
             'certified' => false,
             'pro' => true,
+            'hostname' => 'api.phemex.com',
             'has' => array(
                 'cancelAllOrders' => true, // swap contracts only
                 'cancelOrder' => true,
@@ -50,9 +51,9 @@ class phemex extends Exchange {
                     'private' => 'https://testnet-api.phemex.com',
                 ),
                 'api' => array(
-                    'v1' => 'https://api.phemex.com/v1',
-                    'public' => 'https://api.phemex.com/exchange/public',
-                    'private' => 'https://api.phemex.com',
+                    'v1' => 'https://{hostname}/v1',
+                    'public' => 'https://{hostname}/exchange/public',
+                    'private' => 'https://{hostname}',
                 ),
                 'www' => 'https://phemex.com',
                 'doc' => 'https://github.com/phemex/phemex-api-docs',
@@ -339,7 +340,9 @@ class phemex extends Exchange {
         //         "$minPriceEp":5000,
         //         "$maxPriceEp":10000000000,
         //         "maxOrderQty":1000000,
-        //         "$type":"Perpetual"
+        //         "$type":"Perpetual",
+        //         "$status":"Listed",
+        //         "tipOrderQty":1000000,
         //         "steps":"50",
         //         "riskLimits":array(
         //             array("limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000),
@@ -411,7 +414,8 @@ class phemex extends Exchange {
                 'max' => $this->parse_safe_number($this->safe_string($market, 'maxOrderQty')),
             ),
         );
-        $active = null;
+        $status = $this->safe_string($market, 'status');
+        $active = $status === 'Listed';
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -460,7 +464,9 @@ class phemex extends Exchange {
         //         "defaultMakerFee":"0.001",
         //         "defaultMakerFeeEr":100000,
         //         "baseQtyPrecision":6,
-        //         "quoteQtyPrecision":2
+        //         "quoteQtyPrecision":2,
+        //         "$status":"Listed",
+        //         "tipOrderQty":20
         //     }
         //
         $type = $this->safe_string_lower($market, 'type');
@@ -494,7 +500,8 @@ class phemex extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        $active = null;
+        $status = $this->safe_string($market, 'status');
+        $active = $status === 'Listed';
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -712,14 +719,6 @@ class phemex extends Exchange {
                         'min' => $minAmount,
                         'max' => $maxAmount,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => null,
                         'max' => null,
@@ -745,8 +744,9 @@ class phemex extends Exchange {
         );
     }
 
-    public function parse_order_book($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
+    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
         $result = array(
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'nonce' => null,
@@ -802,7 +802,7 @@ class phemex extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $book = $this->safe_value($result, 'book', array());
         $timestamp = $this->safe_integer_product($result, 'timestamp', 0.000001);
-        $orderbook = $this->parse_order_book($book, $timestamp, 'bids', 'asks', 0, 1, $market);
+        $orderbook = $this->parse_order_book($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
         $orderbook['nonce'] = $this->safe_integer($result, 'sequence');
         return $orderbook;
     }
@@ -1273,7 +1273,7 @@ class phemex extends Exchange {
         //                 "$balanceEv":0,
         //                 "$lockedTradingBalanceEv":0,
         //                 "$lockedWithdrawEv":0,
-        //                 "lastUpdateTimeNs":1592065834511322514,
+        //                 "$lastUpdateTimeNs":1592065834511322514,
         //                 "walletVid":0
         //             ),
         //             {
@@ -1281,12 +1281,13 @@ class phemex extends Exchange {
         //                 "$balanceEv":0,
         //                 "$lockedTradingBalanceEv":0,
         //                 "$lockedWithdrawEv":0,
-        //                 "lastUpdateTimeNs":1592065834511322514,
+        //                 "$lastUpdateTimeNs":1592065834511322514,
         //                 "walletVid":0
         //             }
         //         )
         //     }
         //
+        $timestamp = null;
         $result = array( 'info' => $response );
         $data = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
@@ -1303,10 +1304,14 @@ class phemex extends Exchange {
             $lockedTradingBalance = $this->from_en($lockedTradingBalanceEv, $scale, $scale, DECIMAL_PLACES);
             $lockedWithdraw = $this->from_en($lockedWithdrawEv, $scale, $scale, DECIMAL_PLACES);
             $used = $this->sum($lockedTradingBalance, $lockedWithdraw);
+            $lastUpdateTimeNs = $this->safe_integer_product($balance, 'lastUpdateTimeNs', 0.000001);
+            $timestamp = ($timestamp === null) ? $lastUpdateTimeNs : max ($timestamp, $lastUpdateTimeNs);
             $account['total'] = $total;
             $account['used'] = $used;
             $result[$code] = $account;
         }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
         return $this->parse_balance($result);
     }
 
@@ -2498,7 +2503,7 @@ class phemex extends Exchange {
             $auth = $requestPath . $queryString . $expiryString . $payload;
             $headers['x-phemex-request-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
         }
-        $url = $this->urls['api'][$api] . $url;
+        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

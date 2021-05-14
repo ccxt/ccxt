@@ -62,6 +62,7 @@ const enableRateLimit = true
 const coins = [
     'BTC',
     'ETH',
+    'BNB',
     'EUR',
     'LTC',
     'USD',

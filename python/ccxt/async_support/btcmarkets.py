@@ -13,6 +13,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.precise import Precise
 
 
 class btcmarkets(Exchange):
@@ -355,13 +356,11 @@ class btcmarkets(Exchange):
             balance = response[i]
             currencyId = self.safe_string(balance, 'assetName')
             code = self.safe_currency_code(currencyId)
-            total = self.safe_number(balance, 'balance')
-            used = self.safe_number(balance, 'locked')
             account = self.account()
-            account['used'] = used
-            account['total'] = total
+            account['used'] = self.safe_string(balance, 'locked')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -433,7 +432,7 @@ class btcmarkets(Exchange):
         #     }
         #
         timestamp = self.safe_integer_product(response, 'snapshotId', 0.001)
-        orderbook = self.parse_order_book(response, timestamp)
+        orderbook = self.parse_order_book(response, symbol, timestamp)
         orderbook['nonce'] = self.safe_integer(response, 'snapshotId')
         return orderbook
 
@@ -585,12 +584,11 @@ class btcmarkets(Exchange):
         elif side == 'Ask':
             side = 'sell'
         id = self.safe_string(trade, 'id')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = self.safe_string(trade, 'orderId')
         fee = None
         feeCost = self.safe_number(trade, 'fee')
@@ -800,20 +798,13 @@ class btcmarkets(Exchange):
         price = self.safe_number(order, 'price')
         amount = self.safe_number(order, 'amount')
         remaining = self.safe_number(order, 'openAmount')
-        filled = None
-        if (amount is not None) and (remaining is not None):
-            filled = max(0, amount - remaining)
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        cost = None
-        if price is not None:
-            if filled is not None:
-                cost = price * filled
         id = self.safe_string(order, 'orderId')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         stopPrice = self.safe_number(order, 'triggerPrice')
         postOnly = self.safe_value(order, 'postOnly')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -827,15 +818,15 @@ class btcmarkets(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'average': None,
             'status': status,
             'trades': None,
             'fee': None,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()

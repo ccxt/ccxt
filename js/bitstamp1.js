@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, ExchangeError, NotSupported } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -90,7 +91,7 @@ module.exports = class bitstamp1 extends Exchange {
         await this.loadMarkets ();
         const orderbook = await this.publicGetOrderBook (params);
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -141,14 +142,11 @@ module.exports = class bitstamp1 extends Exchange {
             }
         }
         const id = this.safeString (trade, 'tid');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -192,12 +190,12 @@ module.exports = class bitstamp1 extends Exchange {
             const currency = this.currency (code);
             const currencyId = currency['id'];
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, currencyId + '_available');
-            account['used'] = this.safeNumber (balance, currencyId + '_reserved');
-            account['total'] = this.safeNumber (balance, currencyId + '_balance');
+            account['free'] = this.safeString (balance, currencyId + '_available');
+            account['used'] = this.safeString (balance, currencyId + '_reserved');
+            account['total'] = this.safeString (balance, currencyId + '_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

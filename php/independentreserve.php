@@ -128,11 +128,11 @@ class independentreserve extends Exchange {
             $currencyId = $this->safe_string($balance, 'CurrencyCode');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'AvailableBalance');
-            $account['total'] = $this->safe_number($balance, 'TotalBalance');
+            $account['free'] = $this->safe_string($balance, 'AvailableBalance');
+            $account['total'] = $this->safe_string($balance, 'TotalBalance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -144,7 +144,7 @@ class independentreserve extends Exchange {
         );
         $response = $this->publicGetGetOrderBook (array_merge($request, $params));
         $timestamp = $this->parse8601($this->safe_string($response, 'CreatedTimestampUtc'));
-        return $this->parse_order_book($response, $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
+        return $this->parse_order_book($response, $symbol, $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -379,14 +379,11 @@ class independentreserve extends Exchange {
         $timestamp = $this->parse8601($trade['TradeTimestampUtc']);
         $id = $this->safe_string($trade, 'TradeGuid');
         $orderId = $this->safe_string($trade, 'OrderGuid');
-        $price = $this->safe_number_2($trade, 'Price', 'SecondaryCurrencyTradePrice');
-        $amount = $this->safe_number_2($trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string_2($trade, 'Price', 'SecondaryCurrencyTradePrice');
+        $amountString = $this->safe_string_2($trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $baseId = $this->safe_string($trade, 'PrimaryCurrencyCode');
         $quoteId = $this->safe_string($trade, 'SecondaryCurrencyCode');
         $marketId = null;

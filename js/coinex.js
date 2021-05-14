@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -290,7 +291,7 @@ module.exports = class coinex extends Exchange {
             'limit': limit.toString (),
         };
         const response = await this.publicGetMarketDepth (this.extend (request, params));
-        return this.parseOrderBook (response['data']);
+        return this.parseOrderBook (response['data'], symbol);
     }
 
     parseTrade (trade, market = undefined) {
@@ -301,13 +302,15 @@ module.exports = class coinex extends Exchange {
         }
         const tradeId = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order_id');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market);
         let cost = this.safeNumber (trade, 'deal_money');
-        if (!cost) {
-            cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
@@ -421,18 +424,18 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data');
+        const balances = this.safeValue (response, 'data', {});
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'available');
-            account['used'] = this.safeNumber (balance, 'frozen');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'frozen');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrderStatus (status) {
@@ -937,7 +940,7 @@ module.exports = class coinex extends Exchange {
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
         const message = this.safeString (response, 'message');
-        if ((code !== '0') || (data === undefined) || ((message !== 'Ok') && !data)) {
+        if ((code !== '0') || (data === undefined) || ((message !== 'Success') && (message !== 'Ok') && !data)) {
             const responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,

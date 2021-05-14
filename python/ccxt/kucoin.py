@@ -20,6 +20,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class kucoin(Exchange):
@@ -263,6 +264,7 @@ class kucoin(Exchange):
                 'EDGE': 'DADI',  # https://github.com/ccxt/ccxt/issues/5756
                 'WAX': 'WAXP',
                 'TRY': 'Trias',
+                'VAI': 'VAIOT',
             },
             'options': {
                 'version': 'v1',
@@ -382,8 +384,10 @@ class kucoin(Exchange):
             symbol = base + '/' + quote
             active = self.safe_value(market, 'enableTrading')
             baseMaxSize = self.safe_number(market, 'baseMaxSize')
-            baseMinSize = self.safe_number(market, 'baseMinSize')
-            quoteMaxSize = self.safe_number(market, 'quoteMaxSize')
+            baseMinSizeString = self.safe_string(market, 'baseMinSize')
+            quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
+            baseMinSize = self.parse_number(baseMinSizeString)
+            quoteMaxSize = self.parse_number(quoteMaxSizeString)
             quoteMinSize = self.safe_number(market, 'quoteMinSize')
             # quoteIncrement = self.safe_number(market, 'quoteIncrement')
             precision = {
@@ -397,7 +401,7 @@ class kucoin(Exchange):
                 },
                 'price': {
                     'min': self.safe_number(market, 'priceIncrement'),
-                    'max': quoteMaxSize / baseMinSize,
+                    'max': self.parse_number(Precise.string_div(quoteMaxSizeString, baseMinSizeString)),
                 },
                 'cost': {
                     'min': quoteMinSize,
@@ -810,7 +814,7 @@ class kucoin(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(data, 'time')
-        orderbook = self.parse_order_book(data, timestamp, 'bids', 'asks', level - 2, level - 1)
+        orderbook = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', level - 2, level - 1)
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
@@ -1290,7 +1294,6 @@ class kucoin(Exchange):
         id = self.safe_string_2(trade, 'tradeId', 'id')
         orderId = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string(trade, 'liquidity')
-        amount = self.safe_number_2(trade, 'size', 'amount')
         timestamp = self.safe_integer(trade, 'time')
         if timestamp is not None:
             timestamp = int(timestamp / 1000000)
@@ -1299,7 +1302,10 @@ class kucoin(Exchange):
             # if it's a historical v1 trade, the exchange returns timestamp in seconds
             if ('dealValue' in trade) and (timestamp is not None):
                 timestamp = timestamp * 1000
-        price = self.safe_number_2(trade, 'price', 'dealPrice')
+        priceString = self.safe_string_2(trade, 'price', 'dealPrice')
+        amountString = self.safe_string_2(trade, 'size', 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         side = self.safe_string(trade, 'side')
         fee = None
         feeCost = self.safe_number(trade, 'fee')
@@ -1319,9 +1325,7 @@ class kucoin(Exchange):
             type = None
         cost = self.safe_number_2(trade, 'funds', 'dealValue')
         if cost is None:
-            if amount is not None:
-                if price is not None:
-                    cost = amount * price
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'info': trade,
             'id': id,
@@ -1621,15 +1625,19 @@ class kucoin(Exchange):
             #         }
             #     }
             #
+            result = {
+                'info': response,
+                'timestamp': None,
+                'datetime': None,
+            }
             data = self.safe_value(response, 'data')
             currencyId = self.safe_string(data, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(data, 'availableBalance')
-            account['total'] = self.safe_number(data, 'accountEquity')
-            result = {'info': response}
+            account['free'] = self.safe_string(data, 'availableBalance')
+            account['total'] = self.safe_string(data, 'accountEquity')
             result[code] = account
-            return self.parse_balance(result)
+            return self.parse_balance(result, False)
         else:
             request = {
                 'type': type,
@@ -1646,7 +1654,11 @@ class kucoin(Exchange):
             #     }
             #
             data = self.safe_value(response, 'data', [])
-            result = {'info': response}
+            result = {
+                'info': response,
+                'timestamp': None,
+                'datetime': None,
+            }
             for i in range(0, len(data)):
                 balance = data[i]
                 balanceType = self.safe_string(balance, 'type')
@@ -1654,11 +1666,11 @@ class kucoin(Exchange):
                     currencyId = self.safe_string(balance, 'currency')
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
-                    account['total'] = self.safe_number(balance, 'balance')
-                    account['free'] = self.safe_number(balance, 'available')
-                    account['used'] = self.safe_number(balance, 'holds')
+                    account['total'] = self.safe_string(balance, 'balance')
+                    account['free'] = self.safe_string(balance, 'available')
+                    account['used'] = self.safe_string(balance, 'holds')
                     result[code] = account
-            return self.parse_balance(result)
+            return self.parse_balance(result, False)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.load_markets()

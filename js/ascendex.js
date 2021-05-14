@@ -4,7 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest } = require ('./base/errors');
-const { ROUND, TICK_SIZE } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -131,6 +132,7 @@ module.exports = class ascendex extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': true,
                     'percentage': true,
                     'taker': 0.002,
@@ -212,8 +214,10 @@ module.exports = class ascendex extends Exchange {
                 'broad': {},
             },
             'commonCurrencies': {
+                'BOND': 'BONDED',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
+                'BYN': 'Beyond Finance',
             },
         });
     }
@@ -311,14 +315,6 @@ module.exports = class ascendex extends Exchange {
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
@@ -467,28 +463,6 @@ module.exports = class ascendex extends Exchange {
         return result;
     }
 
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        // TODO: fee calculation here is incorrect, we need to support tiered fee calculation.
-        const market = this.markets[symbol];
-        let key = 'quote';
-        const rate = market[takerOrMaker];
-        let cost = amount * rate;
-        let precision = market['precision']['price'];
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-            precision = market['precision']['amount'];
-        }
-        cost = this.decimalToPrecision (cost, ROUND, precision, this.precisionMode);
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (cost),
-        };
-    }
-
     async fetchAccounts (params = {}) {
         let accountGroup = this.safeString (this.options, 'account-group');
         let response = undefined;
@@ -587,17 +561,21 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'availableBalance');
-            account['total'] = this.safeNumber (balance, 'totalBalance');
+            account['free'] = this.safeString (balance, 'availableBalance');
+            account['total'] = this.safeString (balance, 'totalBalance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -633,7 +611,7 @@ module.exports = class ascendex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const orderbook = this.safeValue (data, 'data', {});
         const timestamp = this.safeInteger (orderbook, 'ts');
-        const result = this.parseOrderBook (orderbook, timestamp);
+        const result = this.parseOrderBook (orderbook, symbol, timestamp);
         result['nonce'] = this.safeInteger (orderbook, 'seqnum');
         return result;
     }
@@ -852,12 +830,11 @@ module.exports = class ascendex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (trade, 'ts');
-        const price = this.safeNumber2 (trade, 'price', 'p');
-        const amount = this.safeNumber (trade, 'q');
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
+        const priceString = this.safeString2 (trade, 'price', 'p');
+        const amountString = this.safeString (trade, 'q');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const buyerIsMaker = this.safeValue (trade, 'bm', false);
         const makerOrTaker = buyerIsMaker ? 'maker' : 'taker';
         const side = buyerIsMaker ? 'buy' : 'sell';

@@ -17,6 +17,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.precise import Precise
 
 
 class braziliex(Exchange):
@@ -204,14 +205,6 @@ class braziliex(Exchange):
                         'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
                     },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(currency, 'MinWithdrawal'),
                         'max': math.pow(10, precision),
@@ -355,16 +348,20 @@ class braziliex(Exchange):
             'market': self.market_id(symbol),
         }
         response = self.publicGetOrderbookMarket(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string_2(trade, 'date_exec', 'date'))
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         symbol = None
         if market is not None:
             symbol = market['symbol']
         cost = self.safe_number(trade, 'total')
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = self.safe_string(trade, 'order_number')
         type = 'limit'
         side = self.safe_string(trade, 'type')
@@ -404,10 +401,10 @@ class braziliex(Exchange):
             balance = balances[currencyId]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            account['total'] = self.safe_number(balance, 'total')
+            account['free'] = self.safe_string(balance, 'available')
+            account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order(self, order, market=None):
         #

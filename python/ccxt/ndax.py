@@ -11,6 +11,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class ndax(Exchange):
@@ -362,9 +363,10 @@ class ndax(Exchange):
             })
         return result
 
-    def parse_order_book(self, orderbook, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=6, amountKey=8):
+    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=6, amountKey=8):
         nonce = None
         result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': None,
@@ -384,7 +386,7 @@ class ndax(Exchange):
                 newNonce = self.safe_integer(level, 0)
                 nonce = max(nonce, newNonce)
             bidask = self.parse_bid_ask(level, priceKey, amountKey)
-            levelSide = self.safe_value(level, 9)
+            levelSide = self.safe_integer(level, 9)
             side = asksKey if levelSide else bidsKey
             result[side].append(bidask)
         result['bids'] = self.sort_by(result['bids'], 0, True)
@@ -427,7 +429,7 @@ class ndax(Exchange):
         #         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
         #     ]
         #
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -702,8 +704,8 @@ class ndax(Exchange):
         #         "OMSId":1
         #     }
         #
-        price = None
-        amount = None
+        priceString = None
+        amountString = None
         cost = None
         timestamp = None
         id = None
@@ -714,10 +716,8 @@ class ndax(Exchange):
         fee = None
         type = None
         if isinstance(trade, list):
-            price = self.safe_number(trade, 3)
-            amount = self.safe_number(trade, 2)
-            if (price is not None) and (amount is not None):
-                cost = price * amount
+            priceString = self.safe_string(trade, 3)
+            amountString = self.safe_string(trade, 2)
             timestamp = self.safe_integer(trade, 6)
             id = self.safe_string(trade, 0)
             marketId = self.safe_integer(trade, 1)
@@ -729,8 +729,8 @@ class ndax(Exchange):
             id = self.safe_string(trade, 'TradeId')
             orderId = self.safe_string_2(trade, 'OrderId', 'OrigOrderId')
             marketId = self.safe_string_2(trade, 'InstrumentId', 'Instrument')
-            price = self.safe_number(trade, 'Price')
-            amount = self.safe_number(trade, 'Quantity')
+            priceString = self.safe_string(trade, 'Price')
+            amountString = self.safe_string(trade, 'Quantity')
             cost = self.safe_number_2(trade, 'Value', 'GrossValueExecuted')
             takerOrMaker = self.safe_string_lower(trade, 'MakerTaker')
             side = self.safe_string_lower(trade, 'Side')
@@ -743,6 +743,10 @@ class ndax(Exchange):
                     'cost': feeCost,
                     'currency': feeCurrencyCode,
                 }
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = self.safe_symbol(marketId, market)
         return {
             'info': trade,
@@ -846,16 +850,20 @@ class ndax(Exchange):
         #         },
         #     ]
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'ProductId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_number(balance, 'Amount')
-            account['used'] = self.safe_number(balance, 'Hold')
+            account['total'] = self.safe_string(balance, 'Amount')
+            account['used'] = self.safe_string(balance, 'Hold')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_ledger_entry_type(self, type):
         types = {
@@ -1209,7 +1217,7 @@ class ndax(Exchange):
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
         if since is not None:
-            request['StartTimeStamp'] = since
+            request['StartTimeStamp'] = int(since / 1000)
         if limit is not None:
             request['Depth'] = limit
         response = self.privateGetGetTradesHistory(self.extend(request, params))
@@ -1402,7 +1410,7 @@ class ndax(Exchange):
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
         if since is not None:
-            request['StartTimeStamp'] = since
+            request['StartTimeStamp'] = int(since / 1000)
         if limit is not None:
             request['Depth'] = limit
         response = self.privateGetGetOrdersHistory(self.extend(request, params))

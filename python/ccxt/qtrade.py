@@ -13,8 +13,10 @@ except NameError:
     basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.precise import Precise
 
 
 class qtrade(Exchange):
@@ -122,6 +124,7 @@ class qtrade(Exchange):
                 'exact': {
                     'invalid_auth': AuthenticationError,
                     'insuff_funds': InsufficientFunds,
+                    'market_not_found': BadSymbol,  # {"errors":[{"code":"market_not_found","title":"Requested market does not exist"}]}
                 },
             },
         })
@@ -280,14 +283,6 @@ class qtrade(Exchange):
                         'min': self.safe_number(currency, 'minimum_order'),
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': None,
@@ -379,7 +374,7 @@ class qtrade(Exchange):
                 result.append([price, amount])
             orderbook[side] = result
         timestamp = self.safe_integer_product(data, 'last_change', 0.001)
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -628,11 +623,12 @@ class qtrade(Exchange):
         marketId = self.safe_string(trade, 'market_string')
         symbol = self.safe_symbol(marketId, market, '_')
         cost = self.safe_number_2(trade, 'base_volume', 'base_amount')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'market_amount', 'amount')
-        if (cost is None) and (amount is not None) and (price is not None):
-            if price is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'market_amount', 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         feeCost = self.safe_number(trade, 'base_fee')
         if feeCost is not None:
@@ -683,14 +679,16 @@ class qtrade(Exchange):
         balances = self.safe_value(data, 'balances', [])
         result = {
             'info': response,
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = result[code] if (code in result) else self.account()
-            account['free'] = self.safe_number(balance, 'balance')
-            account['used'] = 0
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = '0'
             result[code] = account
         balances = self.safe_value(data, 'order_balances', [])
         for i in range(0, len(balances)):
@@ -698,9 +696,9 @@ class qtrade(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = result[code] if (code in result) else self.account()
-            account['used'] = self.safe_number(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':

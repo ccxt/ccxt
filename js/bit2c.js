@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -147,7 +148,11 @@ module.exports = class bit2c extends Exchange {
         //         }
         //     }
         //
-        const result = { 'info': balance };
+        const result = {
+            'info': balance,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -155,12 +160,12 @@ module.exports = class bit2c extends Exchange {
             const currencyId = this.currencyId (code);
             const uppercase = currencyId.toUpperCase ();
             if (uppercase in balance) {
-                account['free'] = this.safeNumber (balance, 'AVAILABLE_' + uppercase);
-                account['total'] = this.safeNumber (balance, uppercase);
+                account['free'] = this.safeString (balance, 'AVAILABLE_' + uppercase);
+                account['total'] = this.safeString (balance, uppercase);
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -169,7 +174,7 @@ module.exports = class bit2c extends Exchange {
             'pair': this.marketId (symbol),
         };
         const orderbook = await this.publicGetExchangesPairOrderbook (this.extend (request, params));
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -338,16 +343,16 @@ module.exports = class bit2c extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
         let id = undefined;
-        let price = undefined;
-        let amount = undefined;
+        let priceString = undefined;
+        let amountString = undefined;
         let orderId = undefined;
         let feeCost = undefined;
         let side = undefined;
         const reference = this.safeString (trade, 'reference');
         if (reference !== undefined) {
             timestamp = this.safeTimestamp (trade, 'ticks');
-            price = this.safeNumber (trade, 'price');
-            amount = this.safeNumber (trade, 'firstAmount');
+            priceString = this.safeString (trade, 'price');
+            amountString = this.safeString (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains 'pair|orderId|tradeId'
             if (market === undefined) {
                 const marketId = this.safeString (trade, 'pair');
@@ -369,8 +374,8 @@ module.exports = class bit2c extends Exchange {
         } else {
             timestamp = this.safeTimestamp (trade, 'date');
             id = this.safeString (trade, 'tid');
-            price = this.safeNumber (trade, 'price');
-            amount = this.safeNumber (trade, 'amount');
+            priceString = this.safeString (trade, 'price');
+            amountString = this.safeString (trade, 'amount');
             side = this.safeValue (trade, 'isBid');
             if (side !== undefined) {
                 if (side) {
@@ -384,6 +389,9 @@ module.exports = class bit2c extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         return {
             'info': trade,
             'id': id,
@@ -396,7 +404,7 @@ module.exports = class bit2c extends Exchange {
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': {
                 'cost': feeCost,
                 'currency': 'NIS',

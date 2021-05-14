@@ -15,6 +15,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class delta(Exchange):
@@ -269,8 +270,6 @@ class delta(Exchange):
                 'precision': 1 / math.pow(10, precision),
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {
                         'min': self.safe_number(currency, 'min_withdrawal_amount'),
                         'max': None,
@@ -592,7 +591,7 @@ class delta(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return self.parse_order_book(result, None, 'buy', 'sell', 'price', 'size')
+        return self.parse_order_book(result, symbol, None, 'buy', 'sell', 'price', 'size')
 
     def parse_trade(self, trade, market=None):
         #
@@ -646,11 +645,11 @@ class delta(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         timestamp = self.safe_integer_product(trade, 'timestamp', 0.001, timestamp)
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'size')
-        cost = None
-        if (amount is not None) and (price is not None):
-            cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         product = self.safe_value(trade, 'product', {})
         marketId = self.safe_string(product, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -801,10 +800,10 @@ class delta(Exchange):
             currency = self.safe_value(currenciesByNumericId, currencyId)
             code = currencyId if (currency is None) else currency['code']
             account = self.account()
-            account['total'] = self.safe_number(balance, 'balance')
-            account['free'] = self.safe_number(balance, 'available_balance')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'available_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_position(self, symbol, params=None):
         await self.load_markets()

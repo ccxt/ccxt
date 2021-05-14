@@ -302,14 +302,6 @@ class bw extends Exchange {
                         'min' => $this->safe_number($currency, 'limitAmount', 0),
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => null,
                         'max' => $this->safe_number($currency, 'onceDrawLimit'),
@@ -458,7 +450,7 @@ class bw extends Exchange {
         //
         $orderbook = $this->safe_value($response, 'datas', array());
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -480,8 +472,11 @@ class bw extends Exchange {
         //     ...
         //
         $timestamp = $this->safe_timestamp($trade, 2);
-        $price = $this->safe_number($trade, 5);
-        $amount = $this->safe_number($trade, 6);
+        $priceString = $this->safe_string($trade, 5);
+        $amountString = $this->safe_string($trade, 6);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 1);
         $symbol = null;
         if ($marketId !== null) {
@@ -498,12 +493,6 @@ class bw extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $this->cost_to_precision($symbol, $price * $amount);
-            }
-        }
         $sideString = $this->safe_string($trade, 4);
         $side = ($sideString === 'ask') ? 'sell' : 'buy';
         return array(
@@ -517,7 +506,7 @@ class bw extends Exchange {
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => floatval($cost),
+            'cost' => $cost,
             'fee' => null,
             'info' => $trade,
         );
@@ -636,11 +625,11 @@ class bw extends Exchange {
             $currencyId = $this->safe_string($balance, 'currencyTypeId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'amount');
-            $account['used'] = $this->safe_number($balance, 'freeze');
+            $account['free'] = $this->safe_string($balance, 'amount');
+            $account['used'] = $this->safe_string($balance, 'freeze');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

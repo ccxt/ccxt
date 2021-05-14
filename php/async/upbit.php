@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AddressPending;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class upbit extends Exchange {
 
@@ -431,17 +432,21 @@ class upbit extends Exchange {
         //         avg_krw_buy_price => "250000",
         //                  modified =>  false    }   )
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'balance');
-            $account['used'] = $this->safe_number($balance, 'locked');
+            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
@@ -497,6 +502,7 @@ class upbit extends Exchange {
             $symbol = $this->safe_symbol($marketId, null, '-');
             $timestamp = $this->safe_integer($orderbook, 'timestamp');
             $result[$symbol] = array(
+                'symbol' => $symbol,
                 'bids' => $this->sort_by($this->parse_bids_asks($orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
                 'asks' => $this->sort_by($this->parse_bids_asks($orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp' => $timestamp,
@@ -675,14 +681,12 @@ class upbit extends Exchange {
             $side = 'buy';
         }
         $cost = $this->safe_number($trade, 'funds');
-        $price = $this->safe_number_2($trade, 'trade_price', 'price');
-        $amount = $this->safe_number_2($trade, 'trade_volume', 'volume');
+        $priceString = $this->safe_string_2($trade, 'trade_price', 'price');
+        $amountString = $this->safe_string_2($trade, 'trade_volume', 'volume');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         if ($cost === null) {
-            if ($amount !== null) {
-                if ($price !== null) {
-                    $cost = $price * $amount;
-                }
-            }
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $marketId = $this->safe_string_2($trade, 'market', 'code');
         $market = $this->safe_market($marketId, $market);
@@ -1004,8 +1008,6 @@ class upbit extends Exchange {
 
     public function parse_transaction_status($status) {
         $statuses = array(
-            'ACCEPTED' => 'ok', // deposits
-            // withdrawals:
             'submitting' => 'pending', // 처리 중
             'submitted' => 'pending', // 처리 완료
             'almost_accepted' => 'pending', // 출금대기중
@@ -1062,7 +1064,7 @@ class upbit extends Exchange {
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
+        $status = $this->parse_transaction_status($this->safe_string_lower($transaction, 'state'));
         $feeCost = $this->safe_number($transaction, 'fee');
         return array(
             'info' => $transaction,

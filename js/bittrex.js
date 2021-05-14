@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,7 +17,7 @@ module.exports = class bittrex extends Exchange {
             'countries': [ 'US' ],
             'version': 'v3',
             'rateLimit': 1500,
-            'certified': true,
+            'certified': false,
             'pro': true,
             // new metainfo interface
             'has': {
@@ -308,11 +309,11 @@ module.exports = class bittrex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const balance = indexed[currencyId];
-            account['free'] = this.safeNumber (balance, 'available');
-            account['total'] = this.safeNumber (balance, 'total');
+            account['free'] = this.safeString (balance, 'available');
+            account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -342,7 +343,7 @@ module.exports = class bittrex extends Exchange {
         //     }
         //
         const sequence = this.safeInteger (this.last_response_headers, 'Sequence');
-        const orderbook = this.parseOrderBook (response, undefined, 'bid', 'ask', 'rate', 'quantity');
+        const orderbook = this.parseOrderBook (response, symbol, undefined, 'bid', 'ask', 'rate', 'quantity');
         orderbook['nonce'] = sequence;
         return orderbook;
     }
@@ -387,14 +388,6 @@ module.exports = class bittrex extends Exchange {
                 'limits': {
                     'amount': {
                         'min': 1 / Math.pow (10, precision),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': 1 / Math.pow (10, precision),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
@@ -567,14 +560,11 @@ module.exports = class bittrex extends Exchange {
         const order = this.safeString (trade, 'orderId');
         const marketId = this.safeString (trade, 'marketSymbol');
         market = this.safeMarket (marketId, market, '-');
-        let cost = undefined;
-        const price = this.safeNumber (trade, 'rate');
-        const amount = this.safeNumber (trade, 'quantity');
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'rate');
+        const amountString = this.safeString (trade, 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let takerOrMaker = undefined;
         const isTaker = this.safeValue (trade, 'isTaker');
         if (isTaker !== undefined) {

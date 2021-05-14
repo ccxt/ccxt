@@ -17,6 +17,7 @@ from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class hitbtc(Exchange):
@@ -197,6 +198,7 @@ class hitbtc(Exchange):
                 },
             },
             'commonCurrencies': {
+                'AUTO': 'Cube',
                 'BCC': 'BCC',  # initial symbol for Bitcoin Cash, now inactive
                 'BET': 'DAO.Casino',
                 'BOX': 'BOX Token',
@@ -256,8 +258,10 @@ class hitbtc(Exchange):
             # bequant fix
             if id.find('_') >= 0:
                 symbol = id
-            lot = self.safe_number(market, 'quantityIncrement')
-            step = self.safe_number(market, 'tickSize')
+            lotString = self.safe_string(market, 'quantityIncrement')
+            stepString = self.safe_string(market, 'tickSize')
+            lot = self.parse_number(lotString)
+            step = self.parse_number(stepString)
             precision = {
                 'price': step,
                 'amount': lot,
@@ -289,7 +293,7 @@ class hitbtc(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': lot * step,
+                        'min': self.parse_number(Precise.string_mul(lotString, stepString)),
                         'max': None,
                     },
                 },
@@ -393,14 +397,6 @@ class hitbtc(Exchange):
                         'min': 1 / math.pow(10, decimals),
                         'max': math.pow(10, decimals),
                     },
-                    'price': {
-                        'min': 1 / math.pow(10, decimals),
-                        'max': math.pow(10, decimals),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': math.pow(10, precision),
@@ -438,16 +434,27 @@ class hitbtc(Exchange):
         method = 'privateGet' + self.capitalize(typeId) + 'Balance'
         query = self.omit(params, 'type')
         response = await getattr(self, method)(query)
-        result = {'info': response}
+        #
+        #     [
+        #         {"currency":"SPI","available":"0","reserved":"0"},
+        #         {"currency":"GRPH","available":"0","reserved":"0"},
+        #         {"currency":"DGTX","available":"0","reserved":"0"},
+        #     ]
+        #
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            account['used'] = self.safe_number(balance, 'reserved')
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'reserved')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -499,7 +506,7 @@ class hitbtc(Exchange):
         if limit is not None:
             request['limit'] = limit  # default = 100, 0 = unlimited
         response = await self.publicGetOrderbookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bid', 'ask', 'price', 'size')
+        return self.parse_order_book(response, symbol, None, 'bid', 'ask', 'price', 'size')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['timestamp'])
@@ -609,9 +616,11 @@ class hitbtc(Exchange):
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
         orderId = self.safe_string(trade, 'clientOrderId')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'quantity')
-        cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'quantity')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string(trade, 'side')
         id = self.safe_string(trade, 'id')
         return {

@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -376,7 +377,7 @@ module.exports = class novadax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
-        return this.parseOrderBook (data, timestamp, 'bids', 'asks');
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
     }
 
     parseTrade (trade, market = undefined) {
@@ -424,11 +425,13 @@ module.exports = class novadax extends Exchange {
         const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'timestamp');
         const side = this.safeStringLower (trade, 'side');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         let cost = this.safeNumber (trade, 'volume');
-        if ((cost === undefined) && (amount !== undefined) && (price !== undefined)) {
-            cost = amount * price;
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
@@ -574,18 +577,22 @@ module.exports = class novadax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'available');
-            account['free'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'hold');
+            account['total'] = this.safeString (balance, 'available');
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'hold');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -148,6 +149,7 @@ module.exports = class mercado extends Exchange {
                 'amount': 8,
                 'price': 5,
             };
+            const priceLimit = '1e-5';
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -164,7 +166,7 @@ module.exports = class mercado extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': 1 / Math.pow (10, precision['price']),
+                        'min': this.parseNumber (priceLimit),
                         'max': undefined,
                     },
                     'cost': {
@@ -184,7 +186,7 @@ module.exports = class mercado extends Exchange {
             'coin': market['base'],
         };
         const response = await this.publicGetCoinOrderbook (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -230,14 +232,11 @@ module.exports = class mercado extends Exchange {
         const id = this.safeString2 (trade, 'tid', 'operation_id');
         const type = undefined;
         const side = this.safeString (trade, 'type');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber2 (trade, 'amount', 'quantity');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'amount', 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const feeCost = this.safeNumber (trade, 'fee_rate');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -295,12 +294,12 @@ module.exports = class mercado extends Exchange {
             if (currencyId in balances) {
                 const balance = this.safeValue (balances, currencyId, {});
                 const account = this.account ();
-                account['free'] = this.safeNumber (balance, 'available');
-                account['total'] = this.safeNumber (balance, 'total');
+                account['free'] = this.safeString (balance, 'available');
+                account['total'] = this.safeString (balance, 'total');
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -407,9 +406,10 @@ module.exports = class mercado extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'order_id');
+        const order_type = this.safeString (order, 'order_type');
         let side = undefined;
         if ('order_type' in order) {
-            side = (order['order_type'] === 1) ? 'buy' : 'sell';
+            side = (order_type === '1') ? 'buy' : 'sell';
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'coin_pair');
@@ -424,15 +424,13 @@ module.exports = class mercado extends Exchange {
         const average = this.safeNumber (order, 'executed_price_avg');
         const amount = this.safeNumber (order, 'quantity');
         const filled = this.safeNumber (order, 'executed_quantity');
-        const remaining = amount - filled;
-        const cost = filled * average;
         const lastTradeTimestamp = this.safeTimestamp (order, 'updated_timestamp');
         const rawTrades = this.safeValue (order, 'operations', []);
         const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
             'side': side,
             'order': id,
         });
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -446,15 +444,15 @@ module.exports = class mercado extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

@@ -871,8 +871,6 @@ class bitmart extends Exchange {
                 'precision' => null,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
                 ),
             );
@@ -941,9 +939,9 @@ class bitmart extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         if ($market['spot']) {
-            return $this->parse_order_book($data, null, 'buys', 'sells', 'price', 'amount');
+            return $this->parse_order_book($data, $symbol, null, 'buys', 'sells', 'price', 'amount');
         } else if ($market['swap'] || $market['future']) {
-            return $this->parse_order_book($data, null, 'buys', 'sells', 'price', 'vol');
+            return $this->parse_order_book($data, $symbol, null, 'buys', 'sells', 'price', 'vol');
         }
     }
 
@@ -1477,14 +1475,14 @@ class bitmart extends Exchange {
         for ($i = 0; $i < count($wallet); $i++) {
             $balance = $wallet[$i];
             $currencyId = $this->safe_string_2($balance, 'id', 'currency');
-            $currencyId = $this->safe_string($balance, 'coind_code', $currencyId);
+            $currencyId = $this->safe_string($balance, 'coin_code', $currencyId);
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number_2($balance, 'available', 'available_vol');
-            $account['used'] = $this->safe_number_2($balance, 'frozen', 'freeze_vol');
+            $account['free'] = $this->safe_string_2($balance, 'available', 'available_vol');
+            $account['used'] = $this->safe_string_2($balance, 'frozen', 'freeze_vol');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order($order, $market = null) {

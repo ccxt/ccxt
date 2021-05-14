@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class braziliex extends Exchange {
 
@@ -201,14 +202,6 @@ class braziliex extends Exchange {
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'MinWithdrawal'),
                         'max' => pow(10, $precision),
@@ -362,18 +355,23 @@ class braziliex extends Exchange {
             'market' => $this->market_id($symbol),
         );
         $response = yield $this->publicGetOrderbookMarket (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'date_exec', 'date'));
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
         $cost = $this->safe_number($trade, 'total');
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        }
         $orderId = $this->safe_string($trade, 'order_number');
         $type = 'limit';
         $side = $this->safe_string($trade, 'type');
@@ -415,11 +413,11 @@ class braziliex extends Exchange {
             $balance = $balances[$currencyId];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['total'] = $this->safe_number($balance, 'total');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order($order, $market = null) {

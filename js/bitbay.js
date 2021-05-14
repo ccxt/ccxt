@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -44,15 +45,16 @@ module.exports = class bitbay extends Exchange {
                 '3d': '259200',
                 '1w': '604800',
             },
+            'hostname': 'bitbay.net',
             'urls': {
                 'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
                 'www': 'https://bitbay.net',
                 'api': {
-                    'public': 'https://bitbay.net/API/Public',
-                    'private': 'https://bitbay.net/API/Trading/tradingApi.php',
-                    'v1_01Public': 'https://api.bitbay.net/rest',
-                    'v1_01Private': 'https://api.bitbay.net/rest',
+                    'public': 'https://{hostname}/API/Public',
+                    'private': 'https://{hostname}/API/Trading/tradingApi.php',
+                    'v1_01Public': 'https://api.{hostname}/rest',
+                    'v1_01Private': 'https://api.{hostname}/rest',
                 },
                 'doc': [
                     'https://bitbay.net/public-api',
@@ -421,11 +423,11 @@ module.exports = class bitbay extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeNumber (balance, 'lockedFunds');
-            account['free'] = this.safeNumber (balance, 'availableFunds');
+            account['used'] = this.safeString (balance, 'lockedFunds');
+            account['free'] = this.safeString (balance, 'availableFunds');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -434,7 +436,7 @@ module.exports = class bitbay extends Exchange {
             'id': this.marketId (symbol),
         };
         const orderbook = await this.publicGetIdOrderbook (this.extend (request, params));
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -927,14 +929,11 @@ module.exports = class bitbay extends Exchange {
         if (wasTaker !== undefined) {
             takerOrMaker = wasTaker ? 'taker' : 'maker';
         }
-        const price = this.safeNumber2 (trade, 'rate', 'r');
-        const amount = this.safeNumber2 (trade, 'amount', 'a');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString2 (trade, 'rate', 'r');
+        const amountString = this.safeString2 (trade, 'amount', 'a');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const feeCost = this.safeNumber (trade, 'commissionValue');
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, '-');
@@ -1165,7 +1164,7 @@ module.exports = class bitbay extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
+        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname });
         if (api === 'public') {
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params) + '.json';

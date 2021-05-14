@@ -325,7 +325,7 @@ class gemini extends Exchange {
             $request['limit_asks'] = $limit;
         }
         $response = $this->publicGetV1BookSymbol (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker_v1($symbol, $params = array ()) {
@@ -552,14 +552,11 @@ class gemini extends Exchange {
             'cost' => $this->safe_number($trade, 'fee_amount'),
             'currency' => $feeCurrencyCode,
         );
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $type = null;
         $side = $this->safe_string_lower($trade, 'type');
         $symbol = $this->safe_symbol(null, $market);
@@ -612,11 +609,11 @@ class gemini extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['total'] = $this->safe_number($balance, 'amount');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['total'] = $this->safe_string($balance, 'amount');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order($order, $market = null) {

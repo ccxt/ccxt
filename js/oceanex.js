@@ -147,10 +147,10 @@ module.exports = class oceanex extends Exchange {
                 'active': true,
                 'info': market,
                 'precision': {
-                    'amount': this.safeValue (market, 'amount_precision'),
-                    'price': this.safeValue (market, 'price_precision'),
-                    'base': this.safeValue (market, 'ask_precision'),
-                    'quote': this.safeValue (market, 'bid_precision'),
+                    'amount': this.safeInteger (market, 'amount_precision'),
+                    'price': this.safeInteger (market, 'price_precision'),
+                    'base': this.safeInteger (market, 'ask_precision'),
+                    'quote': this.safeInteger (market, 'bid_precision'),
                 },
                 'limits': {
                     'amount': {
@@ -162,7 +162,7 @@ module.exports = class oceanex extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeValue (market, 'minimum_trading_amount'),
+                        'min': this.safeNumber (market, 'minimum_trading_amount'),
                         'max': undefined,
                     },
                 },
@@ -307,7 +307,7 @@ module.exports = class oceanex extends Exchange {
         //
         const orderbook = this.safeValue (response, 'data', {});
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
@@ -353,7 +353,7 @@ module.exports = class oceanex extends Exchange {
             const marketId = this.safeString (orderbook, 'market');
             const symbol = this.safeSymbol (marketId);
             const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-            result[symbol] = this.parseOrderBook (orderbook, timestamp);
+            result[symbol] = this.parseOrderBook (orderbook, symbol, timestamp);
         }
         return result;
     }
@@ -446,11 +446,11 @@ module.exports = class oceanex extends Exchange {
             const currencyId = this.safeValue (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'locked');
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

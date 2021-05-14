@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.45.74'
+__version__ = '1.49.98'
 
 # -----------------------------------------------------------------------------
 
@@ -25,6 +25,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
 from ccxt.base.decimal_to_precision import number_to_string
+from ccxt.base.precise import Precise
 
 # -----------------------------------------------------------------------------
 
@@ -38,6 +39,8 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # ecdsa signing
 from ccxt.static_dependencies import ecdsa
+from ccxt.static_dependencies import keccak
+
 # eddsa signing
 try:
     import axolotl_curve25519 as eddsa
@@ -103,13 +106,6 @@ except ImportError:
     import urllib as _urlencode          # Python 2
 
 # -----------------------------------------------------------------------------
-# web3/0x imports
-
-try:
-    from web3 import Web3, HTTPProvider
-except ImportError:
-    Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
-# -----------------------------------------------------------------------------
 
 
 class Exchange(object):
@@ -121,7 +117,7 @@ class Exchange(object):
     pro = False
 
     # rate limiter settings
-    enableRateLimit = False
+    enableRateLimit = True
     rateLimit = 2000  # milliseconds = seconds * 1000
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
@@ -319,9 +315,7 @@ class Exchange(object):
     last_json_response = None
     last_response_headers = None
 
-    requiresWeb3 = False
     requiresEddsa = False
-    web3 = None
     base58_encoder = None
     base58_decoder = None
     # no lower case l or upper case I, O
@@ -397,9 +391,6 @@ class Exchange(object):
 
         self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
-
-        if self.requiresWeb3 and Web3 and not Exchange.web3:
-            Exchange.web3 = Web3(HTTPProvider())
 
     def __del__(self):
         if self.session:
@@ -1097,7 +1088,7 @@ class Exchange(object):
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
         if algorithm == 'keccak':
-            binary = bytes(Exchange.web3.sha3(request))
+            binary = bytes(keccak.SHA3(request))
         else:
             h = hashlib.new(algorithm, request)
             binary = h.digest()
@@ -1470,8 +1461,19 @@ class Exchange(object):
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    def fetch_deposit_address(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_deposit_address() is not supported yet')
+    # def fetch_deposit_addresses(self, codes=None, params={}):
+    #     raise NotSupported('fetch_deposit_addresses() is not supported yet')
+
+    def fetch_deposit_address(self, code, params={}):
+        if self.has['fetchDepositAddresses']:
+            deposit_addresses = self.fetch_deposit_addresses([code], params)
+            deposit_address = self.safe_value(deposit_addresses, code)
+            if deposit_address is None:
+                raise NotSupported(self.id + ' fetch_deposit_address could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
+            else:
+                return deposit_address
+        else:
+            raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
 
     def parse_ohlcv(self, ohlcv, market=None):
         if isinstance(ohlcv, list):
@@ -1517,8 +1519,9 @@ class Exchange(object):
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
 
-    def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
+    def parse_order_book(self, orderbook, symbol, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         return {
+            'symbol': symbol,
             'bids': self.sort_by(self.parse_bids_asks(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else [], 0, True),
             'asks': self.sort_by(self.parse_bids_asks(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else [], 0),
             'timestamp': timestamp,
@@ -1526,21 +1529,33 @@ class Exchange(object):
             'nonce': None,
         }
 
-    def parse_balance(self, balance):
-        currencies = self.omit(balance, ['info', 'free', 'used', 'total']).keys()
+    def parse_balance(self, balance, legacy=True):
+        currencies = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']).keys()
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
         for currency in currencies:
             if balance[currency].get('total') is None:
                 if balance[currency].get('free') is not None and balance[currency].get('used') is not None:
-                    balance[currency]['total'] = self.sum(balance[currency].get('free'), balance[currency].get('used'))
+                    if legacy:
+                        balance[currency]['total'] = self.sum(balance[currency].get('free'), balance[currency].get('used'))
+                    else:
+                        balance[currency]['total'] = Precise.string_add(balance[currency]['free'], balance[currency]['used'])
             if balance[currency].get('free') is None:
                 if balance[currency].get('total') is not None and balance[currency].get('used') is not None:
-                    balance[currency]['free'] = self.sum(balance[currency]['total'], -balance[currency]['used'])
+                    if legacy:
+                        balance[currency]['free'] = self.sum(balance[currency]['total'], -balance[currency]['used'])
+                    else:
+                        balance[currency]['free'] = Precise.string_sub(balance[currency]['total'], balance[currency]['used'])
             if balance[currency].get('used') is None:
                 if balance[currency].get('total') is not None and balance[currency].get('free') is not None:
-                    balance[currency]['used'] = self.sum(balance[currency]['total'], -balance[currency]['free'])
+                    if legacy:
+                        balance[currency]['used'] = self.sum(balance[currency]['total'], -balance[currency]['free'])
+                    else:
+                        balance[currency]['used'] = Precise.string_sub(balance[currency]['total'], balance[currency]['free'])
+            balance[currency]['free'] = self.parse_number(balance[currency]['free'])
+            balance[currency]['used'] = self.parse_number(balance[currency]['used'])
+            balance[currency]['total'] = self.parse_number(balance[currency]['total'])
             balance['free'][currency] = balance[currency]['free']
             balance['used'][currency] = balance[currency]['used']
             balance['total'][currency] = balance[currency]['total']
@@ -1701,10 +1716,32 @@ class Exchange(object):
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
-    def parse_tickers(self, tickers, symbols=None):
+    def safe_ticker(self, ticker, market=None):
+        symbol = self.safe_value(ticker, 'symbol')
+        if symbol is None:
+            ticker['symbol'] = self.safe_symbol(None, market)
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        if timestamp is not None:
+            ticker['timestamp'] = timestamp
+            ticker['datetime'] = self.iso8601(timestamp)
+        baseVolume = self.safe_value(ticker, 'baseVolume')
+        quoteVolume = self.safe_value(ticker, 'quoteVolume')
+        vwap = self.safe_value(ticker, 'vwap')
+        if vwap is None:
+            ticker['vwap'] = self.vwap(baseVolume, quoteVolume)
+        close = self.safe_value(ticker, 'close')
+        last = self.safe_value(ticker, 'last')
+        if (close is None) and (last is not None):
+            ticker['close'] = last
+        elif (last is None) and (close is not None):
+            ticker['last'] = close
+        return ticker
+
+    def parse_tickers(self, tickers, symbols=None, params={}):
         result = []
-        for i in range(0, len(tickers)):
-            result.append(self.parse_ticker(tickers[i]))
+        values = self.to_array(tickers)
+        for i in range(0, len(values)):
+            result.append(self.extend(self.parse_ticker(values[i]), params))
         return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_deposit_addresses(self, addresses, codes=None):
@@ -1880,13 +1917,37 @@ class Exchange(object):
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
+        feeSide = self.safe_string(market, 'feeSide', 'quote')
+        key = 'quote'
+        cost = None
+        if feeSide == 'quote':
+            # the fee is always in quote currency
+            cost = amount * price
+        elif feeSide == 'base':
+            # the fee is always in base currency
+            cost = amount
+        elif feeSide == 'get':
+            # the fee is always in the currency you get
+            cost = amount
+            if side == 'sell':
+                cost *= price
+            else:
+                key = 'base'
+        elif feeSide == 'give':
+            # the fee is always in the currency you give
+            cost = amount
+            if side == 'buy':
+                cost *= price
+            else:
+                key = 'base'
         rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * price))
+        if cost is not None:
+            cost *= rate
         return {
-            'rate': rate,
             'type': takerOrMaker,
-            'currency': market['quote'],
-            'cost': float(self.fee_to_precision(symbol, rate * cost)),
+            'currency': market[key],
+            'rate': rate,
+            'cost': cost,
         }
 
     def edit_limit_buy_order(self, id, symbol, *args):
@@ -1929,15 +1990,8 @@ class Exchange(object):
         return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None
 
     # -------------------------------------------------------------------------
-    # web3 / 0x methods
-
-    @staticmethod
-    def has_web3():
-        return Web3 is not None
 
     def check_required_dependencies(self):
-        if self.requiresWeb3 and not Exchange.has_web3():
-            raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
         if self.requiresEddsa and eddsa is None:
             raise NotSupported('Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
 
@@ -1964,19 +2018,8 @@ class Exchange(object):
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
         public_key_bytes = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()
-        public_key_hash = self.web3.sha3(public_key_bytes)
+        public_key_hash = keccak.SHA3(public_key_bytes)
         return '0x' + Exchange.decode(base64.b16encode(public_key_hash))[-40:].lower()
-
-    def soliditySha3(self, array):
-        values = self.solidityValues(array)
-        types = self.solidityTypes(values)
-        return self.web3.soliditySha3(types, values).hex()
-
-    def solidityTypes(self, array):
-        return ['address' if self.web3.isAddress(value) else 'uint256' for value in array]
-
-    def solidityValues(self, array):
-        return [self.web3.toChecksumAddress(value) if self.web3.isAddress(value) else (int(value, 16) if str(value)[:2] == '0x' else int(value)) for value in array]
 
     @staticmethod
     def remove0x_prefix(value):
@@ -1986,7 +2029,7 @@ class Exchange(object):
 
     def hashMessage(self, message):
         message_bytes = base64.b16decode(Exchange.encode(Exchange.remove0x_prefix(message)), True)
-        hash_bytes = self.web3.sha3(b"\x19Ethereum Signed Message:\n" + Exchange.encode(str(len(message_bytes))) + message_bytes)
+        hash_bytes = keccak.SHA3(b"\x19Ethereum Signed Message:\n" + Exchange.encode(str(len(message_bytes))) + message_bytes)
         return '0x' + Exchange.decode(base64.b16encode(hash_bytes)).lower()
 
     @staticmethod
@@ -2173,10 +2216,10 @@ class Exchange(object):
         parseFee = self.safe_value(order, 'fee') is None
         parseFees = self.safe_value(order, 'fees') is None
         shouldParseFees = parseFee or parseFees
-        fees = [] if shouldParseFees else None
+        fees = self.safe_value(order, 'fees', [])
         if parseFilled or parseCost or shouldParseFees:
             trades = self.safe_value(order, 'trades')
-            if trades is not None:
+            if isinstance(trades, list):
                 if parseFilled:
                     filled = 0
                 if parseCost:
@@ -2228,11 +2271,11 @@ class Exchange(object):
                 remaining = max(self.sum(amount, -filled), 0)
         # ensure that the average field is calculated correctly
         if average is None:
-            if (filled is not None) and (cost is not None) and (cost > 0):
+            if (filled is not None) and (cost is not None) and (filled > 0):
                 average = cost / filled
         # also ensure the cost field is calculated correctly
         costPriceExists = (average is not None) or (price is not None)
-        if (filled is not None) and costPriceExists:
+        if parseCost and (filled is not None) and costPriceExists:
             cost = (price * filled) if (average is None) else (average * filled)
         # support for market orders
         orderType = self.safe_value(order, 'type')
@@ -2260,20 +2303,13 @@ class Exchange(object):
 
     def safe_number(self, dictionary, key, default=None):
         value = self.safe_string(dictionary, key)
-        if value is None:
-            return default
-        else:
-            try:
-                return self.number(value)
-            except Exception:
-                return default
+        return self.parse_number(value, default)
 
     def safe_number_2(self, dictionary, key1, key2, default=None):
         value = self.safe_string_2(dictionary, key1, key2)
-        if value is None:
-            return default
-        else:
-            try:
-                return self.number(value)
-            except Exception:
-                return default
+        return self.parse_number(value, default)
+
+    def parse_precision(self, precision):
+        if precision is None:
+            return None
+        return '1e' + Precise.string_neg(precision)

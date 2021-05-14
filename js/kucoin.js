@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -247,6 +248,7 @@ module.exports = class kucoin extends Exchange {
                 'EDGE': 'DADI', // https://github.com/ccxt/ccxt/issues/5756
                 'WAX': 'WAXP',
                 'TRY': 'Trias',
+                'VAI': 'VAIOT',
             },
             'options': {
                 'version': 'v1',
@@ -372,8 +374,10 @@ module.exports = class kucoin extends Exchange {
             const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'enableTrading');
             const baseMaxSize = this.safeNumber (market, 'baseMaxSize');
-            const baseMinSize = this.safeNumber (market, 'baseMinSize');
-            const quoteMaxSize = this.safeNumber (market, 'quoteMaxSize');
+            const baseMinSizeString = this.safeString (market, 'baseMinSize');
+            const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
+            const baseMinSize = this.parseNumber (baseMinSizeString);
+            const quoteMaxSize = this.parseNumber (quoteMaxSizeString);
             const quoteMinSize = this.safeNumber (market, 'quoteMinSize');
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             const precision = {
@@ -387,7 +391,7 @@ module.exports = class kucoin extends Exchange {
                 },
                 'price': {
                     'min': this.safeNumber (market, 'priceIncrement'),
-                    'max': quoteMaxSize / baseMinSize,
+                    'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
                 },
                 'cost': {
                     'min': quoteMinSize,
@@ -826,7 +830,7 @@ module.exports = class kucoin extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (data, 'time');
-        const orderbook = this.parseOrderBook (data, timestamp, 'bids', 'asks', level - 2, level - 1);
+        const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', level - 2, level - 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
     }
@@ -1337,7 +1341,6 @@ module.exports = class kucoin extends Exchange {
         const id = this.safeString2 (trade, 'tradeId', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeString (trade, 'liquidity');
-        const amount = this.safeNumber2 (trade, 'size', 'amount');
         let timestamp = this.safeInteger (trade, 'time');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp / 1000000);
@@ -1348,7 +1351,10 @@ module.exports = class kucoin extends Exchange {
                 timestamp = timestamp * 1000;
             }
         }
-        const price = this.safeNumber2 (trade, 'price', 'dealPrice');
+        const priceString = this.safeString2 (trade, 'price', 'dealPrice');
+        const amountString = this.safeString2 (trade, 'size', 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const side = this.safeString (trade, 'side');
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
@@ -1372,11 +1378,7 @@ module.exports = class kucoin extends Exchange {
         }
         let cost = this.safeNumber2 (trade, 'funds', 'dealValue');
         if (cost === undefined) {
-            if (amount !== undefined) {
-                if (price !== undefined) {
-                    cost = amount * price;
-                }
-            }
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         return {
             'info': trade,
@@ -1702,15 +1704,19 @@ module.exports = class kucoin extends Exchange {
             //         }
             //     }
             //
+            const result = {
+                'info': response,
+                'timestamp': undefined,
+                'datetime': undefined,
+            };
             const data = this.safeValue (response, 'data');
             const currencyId = this.safeString (data, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (data, 'availableBalance');
-            account['total'] = this.safeNumber (data, 'accountEquity');
-            const result = { 'info': response };
+            account['free'] = this.safeString (data, 'availableBalance');
+            account['total'] = this.safeString (data, 'accountEquity');
             result[code] = account;
-            return this.parseBalance (result);
+            return this.parseBalance (result, false);
         } else {
             const request = {
                 'type': type,
@@ -1727,7 +1733,11 @@ module.exports = class kucoin extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data', []);
-            const result = { 'info': response };
+            const result = {
+                'info': response,
+                'timestamp': undefined,
+                'datetime': undefined,
+            };
             for (let i = 0; i < data.length; i++) {
                 const balance = data[i];
                 const balanceType = this.safeString (balance, 'type');
@@ -1735,13 +1745,13 @@ module.exports = class kucoin extends Exchange {
                     const currencyId = this.safeString (balance, 'currency');
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
-                    account['total'] = this.safeNumber (balance, 'balance');
-                    account['free'] = this.safeNumber (balance, 'available');
-                    account['used'] = this.safeNumber (balance, 'holds');
+                    account['total'] = this.safeString (balance, 'balance');
+                    account['free'] = this.safeString (balance, 'available');
+                    account['used'] = this.safeString (balance, 'holds');
                     result[code] = account;
                 }
             }
-            return this.parseBalance (result);
+            return this.parseBalance (result, false);
         }
     }
 

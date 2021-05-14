@@ -20,6 +20,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.precise import Precise
 
 
 class huobipro(Exchange):
@@ -37,7 +38,9 @@ class huobipro(Exchange):
             'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
             'has': {
+                'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'CORS': False,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -204,6 +207,7 @@ class huobipro(Exchange):
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
                     'maker': 0.002,
@@ -519,7 +523,7 @@ class huobipro(Exchange):
                 raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             tick = self.safe_value(response, 'tick')
             timestamp = self.safe_integer(tick, 'ts', self.safe_integer(response, 'ts'))
-            result = self.parse_order_book(tick, timestamp)
+            result = self.parse_order_book(tick, symbol, timestamp)
             result['nonce'] = self.safe_integer(tick, 'version')
             return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
@@ -552,7 +556,7 @@ class huobipro(Exchange):
         #     }
         #
         ticker = self.parse_ticker(response['tick'], market)
-        timestamp = self.safe_value(response, 'ts')
+        timestamp = self.safe_integer(response, 'ts')
         ticker['timestamp'] = timestamp
         ticker['datetime'] = self.iso8601(timestamp)
         return ticker
@@ -617,17 +621,14 @@ class huobipro(Exchange):
             side = typeParts[0]
             type = typeParts[1]
         takerOrMaker = self.safe_string(trade, 'role')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'filled-amount', 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'filled-amount', 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         feeCost = self.safe_number(trade, 'filled-fees')
-        feeCurrency = None
-        if market is not None:
-            feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
+        feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
         filledPoints = self.safe_number(trade, 'filled-points')
         if filledPoints is not None:
             if (feeCost is None) or (feeCost == 0.0):
@@ -818,14 +819,6 @@ class huobipro(Exchange):
                         'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
                     },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'deposit': {
                         'min': self.safe_number(currency, 'deposit-min-amount'),
                         'max': math.pow(10, precision),
@@ -859,11 +852,11 @@ class huobipro(Exchange):
             else:
                 account = self.account()
             if balance['type'] == 'trade':
-                account['free'] = self.safe_number(balance, 'balance')
+                account['free'] = self.safe_string(balance, 'balance')
             if balance['type'] == 'frozen':
-                account['used'] = self.safe_number(balance, 'balance')
+                account['used'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1125,24 +1118,78 @@ class huobipro(Exchange):
             'status': 'canceled',
         })
 
+    def cancel_orders(self, ids, symbol=None, params={}):
+        self.load_markets()
+        clientOrderIds = self.safe_value_2(params, 'clientOrderIds', 'client-order-ids')
+        params = self.omit(params, ['clientOrderIds', 'client-order-ids'])
+        request = {}
+        if clientOrderIds is None:
+            request['order-ids'] = ids
+        else:
+            request['client-order-ids'] = clientOrderIds
+        response = self.privatePostOrderOrdersBatchcancel(self.extend(request, params))
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": {
+        #             "success": [
+        #                 "5983466"
+        #             ],
+        #             "failed": [
+        #                 {
+        #                     "err-msg": "Incorrect order state",
+        #                     "order-state": 7,
+        #                     "order-id": "",
+        #                     "err-code": "order-orderstate-error",
+        #                     "client-order-id": "first"
+        #                 },
+        #                 {
+        #                     "err-msg": "Incorrect order state",
+        #                     "order-state": 7,
+        #                     "order-id": "",
+        #                     "err-code": "order-orderstate-error",
+        #                     "client-order-id": "second"
+        #                 },
+        #                 {
+        #                     "err-msg": "The record is not found.",
+        #                     "order-id": "",
+        #                     "err-code": "base-not-found",
+        #                     "client-order-id": "third"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        return response
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        self.load_markets()
+        request = {
+            # 'account-id' string False NA The account id used for self cancel Refer to GET /v1/account/accounts
+            # 'symbol': market['id'],  # a list of comma-separated symbols, all symbols by default
+            # 'types' 'string', buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            # 'side': 'buy',  # or 'sell'
+            # 'size': 100,  # the number of orders to cancel 1-100
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = self.privatePostOrderOrdersBatchCancelOpenOrders(self.extend(request, params))
+        #
+        #     {
+        #         code: 200,
+        #         data: {
+        #             "success-count": 2,
+        #             "failed-count": 0,
+        #             "next-id": 5454600
+        #         }
+        #     }
+        #
+        return response
+
     def currency_to_precision(self, currency, fee):
         return self.decimal_to_precision(fee, 0, self.currencies[currency]['precision'])
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        rate = market[takerOrMaker]
-        cost = amount * rate
-        key = 'quote'
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': float(self.currency_to_precision(market[key], cost)),
-        }
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #

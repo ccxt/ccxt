@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -115,6 +116,7 @@ module.exports = class coinone extends Exchange {
             }
             const base = this.safeCurrencyCode (baseId);
             result.push ({
+                'info': ticker,
                 'id': baseId,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -142,11 +144,11 @@ module.exports = class coinone extends Exchange {
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'avail');
-            account['total'] = this.safeNumber (balance, 'balance');
+            account['free'] = this.safeString (balance, 'avail');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -158,7 +160,7 @@ module.exports = class coinone extends Exchange {
         };
         const response = await this.publicGetOrderbook (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp, 'bid', 'ask', 'price', 'qty');
+        return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask', 'price', 'qty');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -279,14 +281,11 @@ module.exports = class coinone extends Exchange {
                 side = 'buy';
             }
         }
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'qty');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'qty');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderId = this.safeString (trade, 'orderId');
         let feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;

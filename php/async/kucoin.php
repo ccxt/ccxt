@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class kucoin extends Exchange {
 
@@ -251,6 +252,7 @@ class kucoin extends Exchange {
                 'EDGE' => 'DADI', // https://github.com/ccxt/ccxt/issues/5756
                 'WAX' => 'WAXP',
                 'TRY' => 'Trias',
+                'VAI' => 'VAIOT',
             ),
             'options' => array(
                 'version' => 'v1',
@@ -376,8 +378,10 @@ class kucoin extends Exchange {
             $symbol = $base . '/' . $quote;
             $active = $this->safe_value($market, 'enableTrading');
             $baseMaxSize = $this->safe_number($market, 'baseMaxSize');
-            $baseMinSize = $this->safe_number($market, 'baseMinSize');
-            $quoteMaxSize = $this->safe_number($market, 'quoteMaxSize');
+            $baseMinSizeString = $this->safe_string($market, 'baseMinSize');
+            $quoteMaxSizeString = $this->safe_string($market, 'quoteMaxSize');
+            $baseMinSize = $this->parse_number($baseMinSizeString);
+            $quoteMaxSize = $this->parse_number($quoteMaxSizeString);
             $quoteMinSize = $this->safe_number($market, 'quoteMinSize');
             // $quoteIncrement = $this->safe_number($market, 'quoteIncrement');
             $precision = array(
@@ -391,7 +395,7 @@ class kucoin extends Exchange {
                 ),
                 'price' => array(
                     'min' => $this->safe_number($market, 'priceIncrement'),
-                    'max' => $quoteMaxSize / $baseMinSize,
+                    'max' => $this->parse_number(Precise::string_div($quoteMaxSizeString, $baseMinSizeString)),
                 ),
                 'cost' => array(
                     'min' => $quoteMinSize,
@@ -830,7 +834,7 @@ class kucoin extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'time');
-        $orderbook = $this->parse_order_book($data, $timestamp, 'bids', 'asks', $level - 2, $level - 1);
+        $orderbook = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', $level - 2, $level - 1);
         $orderbook['nonce'] = $this->safe_integer($data, 'sequence');
         return $orderbook;
     }
@@ -1341,7 +1345,6 @@ class kucoin extends Exchange {
         $id = $this->safe_string_2($trade, 'tradeId', 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
-        $amount = $this->safe_number_2($trade, 'size', 'amount');
         $timestamp = $this->safe_integer($trade, 'time');
         if ($timestamp !== null) {
             $timestamp = intval($timestamp / 1000000);
@@ -1352,7 +1355,10 @@ class kucoin extends Exchange {
                 $timestamp = $timestamp * 1000;
             }
         }
-        $price = $this->safe_number_2($trade, 'price', 'dealPrice');
+        $priceString = $this->safe_string_2($trade, 'price', 'dealPrice');
+        $amountString = $this->safe_string_2($trade, 'size', 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $side = $this->safe_string($trade, 'side');
         $fee = null;
         $feeCost = $this->safe_number($trade, 'fee');
@@ -1376,11 +1382,7 @@ class kucoin extends Exchange {
         }
         $cost = $this->safe_number_2($trade, 'funds', 'dealValue');
         if ($cost === null) {
-            if ($amount !== null) {
-                if ($price !== null) {
-                    $cost = $amount * $price;
-                }
-            }
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         return array(
             'info' => $trade,
@@ -1706,15 +1708,19 @@ class kucoin extends Exchange {
             //         }
             //     }
             //
+            $result = array(
+                'info' => $response,
+                'timestamp' => null,
+                'datetime' => null,
+            );
             $data = $this->safe_value($response, 'data');
             $currencyId = $this->safe_string($data, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($data, 'availableBalance');
-            $account['total'] = $this->safe_number($data, 'accountEquity');
-            $result = array( 'info' => $response );
+            $account['free'] = $this->safe_string($data, 'availableBalance');
+            $account['total'] = $this->safe_string($data, 'accountEquity');
             $result[$code] = $account;
-            return $this->parse_balance($result);
+            return $this->parse_balance($result, false);
         } else {
             $request = array(
                 'type' => $type,
@@ -1731,7 +1737,11 @@ class kucoin extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $result = array( 'info' => $response );
+            $result = array(
+                'info' => $response,
+                'timestamp' => null,
+                'datetime' => null,
+            );
             for ($i = 0; $i < count($data); $i++) {
                 $balance = $data[$i];
                 $balanceType = $this->safe_string($balance, 'type');
@@ -1739,13 +1749,13 @@ class kucoin extends Exchange {
                     $currencyId = $this->safe_string($balance, 'currency');
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
-                    $account['total'] = $this->safe_number($balance, 'balance');
-                    $account['free'] = $this->safe_number($balance, 'available');
-                    $account['used'] = $this->safe_number($balance, 'holds');
+                    $account['total'] = $this->safe_string($balance, 'balance');
+                    $account['free'] = $this->safe_string($balance, 'available');
+                    $account['used'] = $this->safe_string($balance, 'holds');
                     $result[$code] = $account;
                 }
             }
-            return $this->parse_balance($result);
+            return $this->parse_balance($result, false);
         }
     }
 

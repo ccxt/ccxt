@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -13,7 +12,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.precise import Precise
 
 
 class latoken(Exchange):
@@ -94,6 +93,7 @@ class latoken(Exchange):
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
                     'maker': 0.1 / 100,
@@ -169,8 +169,10 @@ class latoken(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            pricePrecisionString = self.safe_string(market, 'pricePrecision')
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
-                'price': self.safe_integer(market, 'pricePrecision'),
+                'price': int(pricePrecisionString),
                 'amount': self.safe_integer(market, 'amountPrecision'),
             }
             limits = {
@@ -179,7 +181,7 @@ class latoken(Exchange):
                     'max': None,
                 },
                 'price': {
-                    'min': math.pow(10, -precision['price']),
+                    'min': self.parse_number(priceLimit),
                     'max': None,
                 },
                 'cost': {
@@ -239,14 +241,6 @@ class latoken(Exchange):
                         'min': None,
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': None,
@@ -254,25 +248,6 @@ class latoken(Exchange):
                 },
             }
         return result
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        key = 'quote'
-        rate = market[takerOrMaker]
-        cost = amount * rate
-        precision = market['precision']['price']
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-            precision = market['precision']['amount']
-        cost = self.decimal_to_precision(cost, ROUND, precision, self.precisionMode)
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': float(cost),
-        }
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -292,21 +267,21 @@ class latoken(Exchange):
         #
         result = {
             'info': response,
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'symbol')
             code = self.safe_currency_code(currencyId)
-            frozen = self.safe_number(balance, 'frozen')
-            pending = self.safe_number(balance, 'pending')
-            used = self.sum(frozen, pending)
-            account = {
-                'free': self.safe_number(balance, 'available'),
-                'used': used,
-                'total': self.safe_number(balance, 'amount'),
-            }
+            frozen = self.safe_string(balance, 'frozen')
+            pending = self.safe_string(balance, 'pending')
+            account = self.account()
+            account['used'] = Precise.string_add(frozen, pending)
+            account['free'] = self.safe_string(balance, 'available')
+            account['total'] = self.safe_string(balance, 'amount')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -331,7 +306,7 @@ class latoken(Exchange):
         #         ]
         #     }
         #
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'quantity')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'quantity')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -452,13 +427,12 @@ class latoken(Exchange):
             # 03 Jan 2009 - first block
             if timestamp < 1230940800000:
                 timestamp *= 1000
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string(trade, 'side')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
         symbol = None
         if market is not None:
             symbol = market['symbol']

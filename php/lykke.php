@@ -144,6 +144,7 @@ class lykke extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'CAN' => 'CanYaCoin',
                 'XPD' => 'Lykke XPD',
             ),
         ));
@@ -186,18 +187,16 @@ class lykke extends Exchange {
         $id = $this->safe_string_2($trade, 'id', 'Id');
         $orderId = $this->safe_string($trade, 'OrderId');
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'dateTime', 'DateTime'));
-        $price = $this->safe_number_2($trade, 'price', 'Price');
-        $amount = $this->safe_number_2($trade, 'volume', 'Amount');
+        $priceString = $this->safe_string_2($trade, 'price', 'Price');
+        $amountString = $this->safe_string_2($trade, 'volume', 'Amount');
         $side = $this->safe_string_lower($trade, 'action');
         if ($side === null) {
-            if ($amount < 0) {
-                $side = 'sell';
-            } else {
-                $side = 'buy';
-            }
+            $side = ($amountString[0] === '-') ? 'sell' : 'buy';
         }
-        $amount = abs($amount);
-        $cost = $price * $amount;
+        $amountString = Precise::string_abs($amountString);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = array(
             'cost' => 0, // There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
             'currency' => $market['quote'],
@@ -258,11 +257,11 @@ class lykke extends Exchange {
             $currencyId = $this->safe_string($balance, 'AssetId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'Balance');
-            $account['used'] = $this->safe_number($balance, 'Reserved');
+            $account['total'] = $this->safe_string($balance, 'Balance');
+            $account['used'] = $this->safe_string($balance, 'Reserved');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -361,8 +360,10 @@ class lykke extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $pricePrecision = $this->safe_string($market, 'Accuracy');
+            $priceLimit = $this->parse_precision($pricePrecision);
             $precision = array(
-                'price' => $this->safe_integer($market, 'Accuracy'),
+                'price' => intval($pricePrecision),
                 'amount' => $this->safe_integer($market, 'InvertedAccuracy'),
             );
             $result[] = array(
@@ -375,15 +376,15 @@ class lykke extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
-                        'max' => pow(10, $precision['amount']),
+                        'min' => $this->safe_number($market, 'MinVolume'),
+                        'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
-                        'max' => pow(10, $precision['price']),
+                        'min' => $this->parse_number($priceLimit),
+                        'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'MinInvertedVolume'),
                         'max' => null,
                     ),
                 ),
@@ -568,7 +569,7 @@ class lykke extends Exchange {
             $sideTimestamp = $this->parse8601($side['Timestamp']);
             $timestamp = ($timestamp === null) ? $sideTimestamp : max ($timestamp, $sideTimestamp);
         }
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'Price', 'Volume');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'Price', 'Volume');
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {

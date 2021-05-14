@@ -281,7 +281,7 @@ class lbank extends Exchange {
             'size' => $size,
         );
         $response = $this->publicGetDepth (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -290,14 +290,11 @@ class lbank extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_integer($trade, 'date_ms');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string($trade, 'tid');
         $type = null;
         $side = $this->safe_string($trade, 'type');
@@ -408,7 +405,11 @@ class lbank extends Exchange {
         //         }
         //     }
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $info = $this->safe_value($response, 'info', array());
         $free = $this->safe_value($info, 'free', array());
         $freeze = $this->safe_value($info, 'freeze', array());
@@ -418,12 +419,12 @@ class lbank extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($free, $currencyId);
-            $account['used'] = $this->safe_number($freeze, $currencyId);
-            $account['total'] = $this->safe_number($asset, $currencyId);
+            $account['free'] = $this->safe_string($free, $currencyId);
+            $account['used'] = $this->safe_string($freeze, $currencyId);
+            $account['total'] = $this->safe_string($asset, $currencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order_status($status) {

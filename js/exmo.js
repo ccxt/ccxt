@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, NotSupported, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -112,6 +113,7 @@ module.exports = class exmo extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
                     'maker': 0.2 / 100,
@@ -653,8 +655,10 @@ module.exports = class exmo extends Exchange {
             const [ baseId, quoteId ] = symbol.split ('/');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const taker = this.safeNumber (market, 'commission_taker_percent');
-            const maker = this.safeNumber (market, 'commission_maker_percent');
+            const takerString = this.safeString (market, 'commission_taker_percent');
+            const makerString = this.safeString (market, 'commission_maker_percent');
+            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -663,8 +667,8 @@ module.exports = class exmo extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'taker': taker / 100,
-                'maker': maker / 100,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (market, 'min_quantity'),
@@ -769,14 +773,14 @@ module.exports = class exmo extends Exchange {
             const currencyId = this.currencyId (code);
             const account = this.account ();
             if (currencyId in free) {
-                account['free'] = this.safeNumber (free, currencyId);
+                account['free'] = this.safeString (free, currencyId);
             }
             if (currencyId in used) {
-                account['used'] = this.safeNumber (used, currencyId);
+                account['used'] = this.safeString (used, currencyId);
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -790,7 +794,7 @@ module.exports = class exmo extends Exchange {
         }
         const response = await this.publicGetOrderBook (this.extend (request, params));
         const result = this.safeValue (response, market['id']);
-        return this.parseOrderBook (result, undefined, 'bid', 'ask');
+        return this.parseOrderBook (result, symbol, undefined, 'bid', 'ask');
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
@@ -1364,24 +1368,6 @@ module.exports = class exmo extends Exchange {
             return this.markets[symbols[0]];
         }
         return undefined;
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        const rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
-        let key = 'quote';
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
-        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.precise import Precise
 
 
 class tidebit(Exchange):
@@ -180,10 +181,10 @@ class tidebit(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'balance')
-            account['used'] = self.safe_number(balance, 'locked')
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -196,7 +197,7 @@ class tidebit(Exchange):
         request['market'] = market['id']
         response = self.publicGetDepth(self.extend(request, params))
         timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'at')
@@ -253,9 +254,13 @@ class tidebit(Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         id = self.safe_string(trade, 'id')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'volume')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'volume')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number(trade, 'funds')
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']

@@ -13,6 +13,7 @@ except NameError:
     basestring = str  # Python 2
 import math
 from ccxt.base.errors import ExchangeError
+from ccxt.base.precise import Precise
 
 
 class coingi(Exchange):
@@ -170,13 +171,13 @@ class coingi(Exchange):
             currencyId = self.safe_string(balance['currency'], 'name')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            blocked = self.safe_number(balance, 'blocked')
-            inOrders = self.safe_number(balance, 'inOrders')
-            withdrawing = self.safe_number(balance, 'withdrawing')
-            account['used'] = self.sum(blocked, inOrders, withdrawing)
+            account['free'] = self.safe_string(balance, 'available')
+            blocked = self.safe_string(balance, 'blocked')
+            inOrders = self.safe_string(balance, 'inOrders')
+            withdrawing = self.safe_string(balance, 'withdrawing')
+            account['used'] = Precise.string_add(Precise.string_add(blocked, inOrders), withdrawing)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=512, params={}):
         self.load_markets()
@@ -188,7 +189,7 @@ class coingi(Exchange):
             'bidCount': limit,  # maximum returned number of bids 1-512
         }
         orderbook = self.currentGetOrderBookPairAskCountBidCountDepth(self.extend(request, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'baseAmount')
+        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'baseAmount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -241,12 +242,11 @@ class coingi(Exchange):
         raise ExchangeError(self.id + ' return did not contain ' + symbol)
 
     def parse_trade(self, trade, market=None):
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         timestamp = self.safe_integer(trade, 'timestamp')
         id = self.safe_string(trade, 'id')
         marketId = self.safe_string(trade, 'currencyPair')

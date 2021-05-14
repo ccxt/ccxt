@@ -16,6 +16,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
+from ccxt.base.precise import Precise
 
 
 class bithumb(Exchange):
@@ -42,11 +43,12 @@ class bithumb(Exchange):
                 'fetchTrades': True,
                 'withdraw': True,
             },
+            'hostname': 'bithumb.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
                 'api': {
-                    'public': 'https://api.bithumb.com/public',
-                    'private': 'https://api.bithumb.com',
+                    'public': 'https://api.{hostname}/public',
+                    'private': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bithumb.com',
                 'doc': 'https://apidocs.bithumb.com',
@@ -121,11 +123,21 @@ class bithumb(Exchange):
             'options': {
                 'quoteCurrencies': {
                     'BTC': {
-                        'precision': {
-                            'price': 8,
+                        'limits': {
+                            'cost': {
+                                'min': 0.0002,
+                                'max': 100,
+                            },
                         },
                     },
-                    'KRW': {},
+                    'KRW': {
+                        'limits': {
+                            'cost': {
+                                'min': 500,
+                                'max': 5000000000,
+                            },
+                        },
+                    },
                 },
             },
         })
@@ -176,10 +188,7 @@ class bithumb(Exchange):
                             'min': None,
                             'max': None,
                         },
-                        'cost': {
-                            'min': 500,
-                            'max': 5000000000,
-                        },
+                        'cost': {},  # set via options
                     },
                     'baseId': None,
                     'quoteId': None,
@@ -201,17 +210,17 @@ class bithumb(Exchange):
             account = self.account()
             currency = self.currency(code)
             lowerCurrencyId = self.safe_string_lower(currency, 'id')
-            account['total'] = self.safe_number(balances, 'total_' + lowerCurrencyId)
-            account['used'] = self.safe_number(balances, 'in_use_' + lowerCurrencyId)
-            account['free'] = self.safe_number(balances, 'available_' + lowerCurrencyId)
+            account['total'] = self.safe_string(balances, 'total_' + lowerCurrencyId)
+            account['used'] = self.safe_string(balances, 'in_use_' + lowerCurrencyId)
+            account['free'] = self.safe_string(balances, 'available_' + lowerCurrencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['base'],
+            'currency': market['base'] + '_' + market['quote'],
         }
         if limit is not None:
             request['count'] = limit  # default 30, max 30
@@ -238,7 +247,7 @@ class bithumb(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(data, 'timestamp')
-        return self.parse_order_book(data, timestamp, 'bids', 'asks', 'price', 'quantity')
+        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -471,13 +480,13 @@ class bithumb(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'units_traded', 'units')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'units_traded', 'units')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number(trade, 'total')
         if cost is None:
-            if amount is not None:
-                if price is not None:
-                    cost = price * amount
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
@@ -693,56 +702,14 @@ class bithumb(Exchange):
             symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        filled = None
-        cost = None
-        average = None
         id = self.safe_string(order, 'order_id')
-        rawTrades = self.safe_value(order, 'contract')
-        trades = None
-        fee = None
-        fees = None
-        feesByCurrency = None
-        if rawTrades is not None:
-            trades = self.parse_trades(rawTrades, market, None, None, {
-                'side': side,
-                'symbol': symbol,
-                'order': id,
-            })
-            filled = 0
-            feesByCurrency = {}
-            for i in range(0, len(trades)):
-                trade = trades[i]
-                filled = self.sum(filled, trade['amount'])
-                cost = self.sum(cost, trade['cost'])
-                tradeFee = trade['fee']
-                feeCurrency = tradeFee['currency']
-                if feeCurrency in feesByCurrency:
-                    feesByCurrency[feeCurrency] = {
-                        'currency': feeCurrency,
-                        'cost': self.sum(feesByCurrency[feeCurrency]['cost'], tradeFee['cost']),
-                    }
-                else:
-                    feesByCurrency[feeCurrency] = {
-                        'currency': feeCurrency,
-                        'cost': tradeFee['cost'],
-                    }
-            feeCurrencies = list(feesByCurrency.keys())
-            feeCurrenciesLength = len(feeCurrencies)
-            if feeCurrenciesLength > 1:
-                fees = []
-                for i in range(0, len(feeCurrencies)):
-                    feeCurrency = feeCurrencies[i]
-                    fees.append(feesByCurrency[feeCurrency])
-            else:
-                fee = self.safe_value(feesByCurrency, feeCurrencies[0])
-            if filled != 0:
-                average = cost / filled
-        if amount is not None:
-            if (filled is None) and (remaining is not None):
-                filled = max(0, amount - remaining)
-            if (remaining is None) and (filled is not None):
-                remaining = max(0, amount - filled)
-        result = {
+        rawTrades = self.safe_value(order, 'contract', [])
+        trades = self.parse_trades(rawTrades, market, None, None, {
+            'side': side,
+            'symbol': symbol,
+            'order': id,
+        })
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -757,19 +724,14 @@ class bithumb(Exchange):
             'price': price,
             'stopPrice': None,
             'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
+            'cost': None,
+            'average': None,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': trades,
-        }
-        if fee is not None:
-            result['fee'] = fee
-        elif fees is not None:
-            result['fees'] = fees
-        return result
+        })
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -856,7 +818,7 @@ class bithumb(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)
-        url = self.urls['api'][api] + endpoint
+        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + endpoint
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
@@ -890,6 +852,9 @@ class bithumb(Exchange):
             message = self.safe_string(response, 'message')
             if status is not None:
                 if status == '0000':
+                    return  # no error
+                elif message == '거래 진행중인 내역이 존재하지 않습니다':
+                    # https://github.com/ccxt/ccxt/issues/9017
                     return  # no error
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, status, feedback)

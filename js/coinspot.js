@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -123,7 +124,7 @@ module.exports = class coinspot extends Exchange {
                     const balance = currencies[currencyId];
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
-                    account['total'] = this.safeNumber (balance, 'balance');
+                    account['total'] = this.safeString (balance, 'balance');
                     result[code] = account;
                 }
             }
@@ -133,11 +134,11 @@ module.exports = class coinspot extends Exchange {
                 const currencyId = currencyIds[i];
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['total'] = this.safeNumber (balances, currencyId);
+                account['total'] = this.safeString (balances, currencyId);
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -147,7 +148,7 @@ module.exports = class coinspot extends Exchange {
             'cointype': market['id'],
         };
         const orderbook = await this.privatePostOrders (this.extend (request, params));
-        return this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -214,11 +215,13 @@ module.exports = class coinspot extends Exchange {
         //         "market":"BTC/AUD"
         //     }
         //
-        const price = this.safeNumber (trade, 'rate');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'rate');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         let cost = this.safeNumber (trade, 'total');
-        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const timestamp = this.safeInteger (trade, 'solddate');
         const marketId = this.safeString (trade, 'market');

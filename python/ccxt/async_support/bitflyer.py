@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.precise import Precise
 
 
 class bitflyer(Exchange):
@@ -183,10 +184,10 @@ class bitflyer(Exchange):
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_number(balance, 'amount')
-            account['free'] = self.safe_number(balance, 'available')
+            account['total'] = self.safe_string(balance, 'amount')
+            account['free'] = self.safe_string(balance, 'available')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -194,7 +195,7 @@ class bitflyer(Exchange):
             'product_code': self.market_id(symbol),
         }
         orderbook = await self.publicGetGetboard(self.extend(request, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'size')
+        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'size')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -240,12 +241,11 @@ class bitflyer(Exchange):
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(self.safe_string(trade, 'exec_date'))
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'size')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string(trade, 'id')
         symbol = None
         if market is not None:

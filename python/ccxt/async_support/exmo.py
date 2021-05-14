@@ -24,6 +24,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class exmo(Exchange):
@@ -132,6 +133,7 @@ class exmo(Exchange):
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
                     'maker': 0.2 / 100,
@@ -655,8 +657,10 @@ class exmo(Exchange):
             baseId, quoteId = symbol.split('/')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            taker = self.safe_number(market, 'commission_taker_percent')
-            maker = self.safe_number(market, 'commission_maker_percent')
+            takerString = self.safe_string(market, 'commission_taker_percent')
+            makerString = self.safe_string(market, 'commission_maker_percent')
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -665,8 +669,8 @@ class exmo(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'taker': taker / 100,
-                'maker': maker / 100,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': self.safe_number(market, 'min_quantity'),
@@ -762,11 +766,11 @@ class exmo(Exchange):
             currencyId = self.currency_id(code)
             account = self.account()
             if currencyId in free:
-                account['free'] = self.safe_number(free, currencyId)
+                account['free'] = self.safe_string(free, currencyId)
             if currencyId in used:
-                account['used'] = self.safe_number(used, currencyId)
+                account['used'] = self.safe_string(used, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -778,7 +782,7 @@ class exmo(Exchange):
             request['limit'] = limit
         response = await self.publicGetOrderBook(self.extend(request, params))
         result = self.safe_value(response, market['id'])
-        return self.parse_order_book(result, None, 'bid', 'ask')
+        return self.parse_order_book(result, symbol, None, 'bid', 'ask')
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()
@@ -1293,22 +1297,6 @@ class exmo(Exchange):
         if numSymbols == 1:
             return self.markets[symbols[0]]
         return None
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * rate))
-        key = 'quote'
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, cost)),
-        }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()

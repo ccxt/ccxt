@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class coinfalcon extends Exchange {
 
@@ -174,20 +175,17 @@ class coinfalcon extends Exchange {
         );
         $response = yield $this->publicGetMarketsMarketOrders (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_order_book($data, null, 'bids', 'asks', 'price', 'size');
+        return $this->parse_order_book($data, $symbol, null, 'bids', 'asks', 'price', 'size');
     }
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'size');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = $market['symbol'];
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = floatval($this->cost_to_precision($symbol, $price * $amount));
-            }
-        }
         $tradeId = $this->safe_string($trade, 'id');
         $side = $this->safe_string($trade, 'side');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -260,14 +258,13 @@ class coinfalcon extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_number($balance, 'available_balance'),
-                'used' => $this->safe_number($balance, 'hold_balance'),
-                'total' => $this->safe_number($balance, 'balance'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available_balance');
+            $account['used'] = $this->safe_string($balance, 'hold_balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order_status($status) {

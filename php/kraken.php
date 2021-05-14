@@ -451,14 +451,6 @@ class kraken extends Exchange {
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => null,
                         'max' => pow(10, $precision),
@@ -542,7 +534,7 @@ class kraken extends Exchange {
         if ($wsName !== null) {
             $orderbook = $this->safe_value($result, $wsName, $orderbook);
         }
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -852,9 +844,8 @@ class kraken extends Exchange {
         $timestamp = null;
         $side = null;
         $type = null;
-        $price = null;
-        $amount = null;
-        $cost = null;
+        $priceString = null;
+        $amountString = null;
         $id = null;
         $orderId = null;
         $fee = null;
@@ -863,8 +854,8 @@ class kraken extends Exchange {
             $timestamp = $this->safe_timestamp($trade, 2);
             $side = ($trade[3] === 's') ? 'sell' : 'buy';
             $type = ($trade[4] === 'l') ? 'limit' : 'market';
-            $price = $this->safe_number($trade, 0);
-            $amount = $this->safe_number($trade, 1);
+            $priceString = $this->safe_string($trade, 0);
+            $amountString = $this->safe_string($trade, 1);
             $tradeLength = is_array($trade) ? count($trade) : 0;
             if ($tradeLength > 6) {
                 $id = $this->safe_string($trade, 6); // artificially added as per #1794
@@ -885,8 +876,8 @@ class kraken extends Exchange {
             $timestamp = $this->safe_timestamp($trade, 'time');
             $side = $this->safe_string($trade, 'type');
             $type = $this->safe_string($trade, 'ordertype');
-            $price = $this->safe_number($trade, 'price');
-            $amount = $this->safe_number($trade, 'vol');
+            $priceString = $this->safe_string($trade, 'price');
+            $amountString = $this->safe_string($trade, 'vol');
             if (is_array($trade) && array_key_exists('fee', $trade)) {
                 $currency = null;
                 if ($market !== null) {
@@ -901,11 +892,9 @@ class kraken extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         return array(
             'id' => $id,
             'order' => $orderId,
@@ -973,17 +962,31 @@ class kraken extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
+        //
+        //     {
+        //         "error":array(),
+        //         "$result":{
+        //             "ZUSD":"58.8649",
+        //             "KFEE":"4399.43",
+        //             "XXBT":"0.0000034506",
+        //         }
+        //     }
+        //
         $balances = $this->safe_value($response, 'result', array());
-        $result = array( 'info' => $balances );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balances, $currencyId);
+            $account['total'] = $this->safe_string($balances, $currencyId);
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\OrderNotFound;
+use \ccxt\Precise;
 
 class bitso extends Exchange {
 
@@ -179,12 +180,14 @@ class bitso extends Exchange {
             );
             $fees = $this->safe_value($market, 'fees', array());
             $flatRate = $this->safe_value($fees, 'flat_rate', array());
-            $maker = $this->safe_number($flatRate, 'maker');
-            $taker = $this->safe_number($flatRate, 'taker');
+            $makerString = $this->safe_string($flatRate, 'maker');
+            $takerString = $this->safe_string($flatRate, 'taker');
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
             $feeTiers = $this->safe_value($fees, 'structure', array());
             $fee = array(
-                'taker' => floatval($this->decimal_to_precision($taker / 100, ROUND, 0.00000001, TICK_SIZE)),
-                'maker' => floatval($this->decimal_to_precision($maker / 100, ROUND, 0.00000001, TICK_SIZE)),
+                'taker' => $taker,
+                'maker' => $maker,
                 'percentage' => true,
                 'tierBased' => true,
             );
@@ -195,13 +198,11 @@ class bitso extends Exchange {
                 $volume = $this->safe_number($tier, 'volume');
                 $takerFee = $this->safe_number($tier, 'taker');
                 $makerFee = $this->safe_number($tier, 'maker');
-                $takerFeeToPrecision = floatval($this->decimal_to_precision($takerFee / 100, ROUND, 0.00000001, TICK_SIZE));
-                $makerFeeToPrecision = floatval($this->decimal_to_precision($makerFee / 100, ROUND, 0.00000001, TICK_SIZE));
-                $takerFees[] = array( $volume, $takerFeeToPrecision );
-                $makerFees[] = array( $volume, $makerFeeToPrecision );
+                $takerFees[] = array( $volume, $takerFee );
+                $makerFees[] = array( $volume, $makerFee );
                 if ($j === 0) {
-                    $fee['taker'] = floatval($this->decimal_to_precision($taker / 100, ROUND, 0.00000001, TICK_SIZE));
-                    $fee['maker'] = floatval($this->decimal_to_precision($maker / 100, ROUND, 0.00000001, TICK_SIZE));
+                    $fee['taker'] = $takerFee;
+                    $fee['maker'] = $makerFee;
                 }
             }
             $tiers = array(
@@ -228,20 +229,49 @@ class bitso extends Exchange {
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetBalance ($params);
-        $balances = $this->safe_value($response['payload'], 'balances');
-        $result = array( 'info' => $response );
+        //
+        //     {
+        //       "success" => true,
+        //       "$payload" => array(
+        //         "$balances" => array(
+        //           array(
+        //             "currency" => "bat",
+        //             "available" => "0.00000000",
+        //             "locked" => "0.00000000",
+        //             "total" => "0.00000000",
+        //             "pending_deposit" => "0.00000000",
+        //             "pending_withdrawal" => "0.00000000"
+        //           ),
+        //           array(
+        //             "currency" => "bch",
+        //             "available" => "0.00000000",
+        //             "locked" => "0.00000000",
+        //             "total" => "0.00000000",
+        //             "pending_deposit" => "0.00000000",
+        //             "pending_withdrawal" => "0.00000000"
+        //           ),
+        //         ),
+        //       ),
+        //     }
+        //
+        $payload = $this->safe_value($response, 'payload', array());
+        $balances = $this->safe_value($payload, 'balances');
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_number($balance, 'available'),
-                'used' => $this->safe_number($balance, 'locked'),
-                'total' => $this->safe_number($balance, 'total'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'locked');
+            $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -252,7 +282,7 @@ class bitso extends Exchange {
         $response = yield $this->publicGetOrderBook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'payload');
         $timestamp = $this->parse8601($this->safe_string($orderbook, 'updated_at'));
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

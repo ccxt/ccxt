@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class itbit(Exchange):
@@ -103,7 +104,7 @@ class itbit(Exchange):
             'symbol': self.market_id(symbol),
         }
         orderbook = self.publicGetMarketsSymbolOrderBook(self.extend(request, params))
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, symbol)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -186,12 +187,11 @@ class itbit(Exchange):
             rebatesApplied = -rebatesApplied
         rebateCurrencyId = self.safe_string(trade, 'rebateCurrency')
         rebateCurrency = self.safe_currency_code(rebateCurrencyId)
-        price = self.safe_number_2(trade, 'price', 'rate')
-        amount = self.safe_number_2(trade, 'currency1Amount', 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string_2(trade, 'price', 'rate')
+        amountString = self.safe_string_2(trade, 'currency1Amount', 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         marketId = self.safe_string(trade, 'instrument')
         if marketId is not None:
@@ -392,10 +392,10 @@ class itbit(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'availableBalance')
-            account['total'] = self.safe_number(balance, 'totalBalance')
+            account['free'] = self.safe_string(balance, 'availableBalance')
+            account['total'] = self.safe_string(balance, 'totalBalance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_wallets(self, params={}):
         self.load_markets()

@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -126,11 +127,11 @@ module.exports = class independentreserve extends Exchange {
             const currencyId = this.safeString (balance, 'CurrencyCode');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'AvailableBalance');
-            account['total'] = this.safeNumber (balance, 'TotalBalance');
+            account['free'] = this.safeString (balance, 'AvailableBalance');
+            account['total'] = this.safeString (balance, 'TotalBalance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -142,7 +143,7 @@ module.exports = class independentreserve extends Exchange {
         };
         const response = await this.publicGetGetOrderBook (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (response, 'CreatedTimestampUtc'));
-        return this.parseOrderBook (response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
+        return this.parseOrderBook (response, symbol, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -377,14 +378,11 @@ module.exports = class independentreserve extends Exchange {
         const timestamp = this.parse8601 (trade['TradeTimestampUtc']);
         const id = this.safeString (trade, 'TradeGuid');
         const orderId = this.safeString (trade, 'OrderGuid');
-        const price = this.safeNumber2 (trade, 'Price', 'SecondaryCurrencyTradePrice');
-        const amount = this.safeNumber2 (trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString2 (trade, 'Price', 'SecondaryCurrencyTradePrice');
+        const amountString = this.safeString2 (trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const baseId = this.safeString (trade, 'PrimaryCurrencyCode');
         const quoteId = this.safeString (trade, 'SecondaryCurrencyCode');
         let marketId = undefined;

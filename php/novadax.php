@@ -378,7 +378,7 @@ class novadax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'timestamp');
-        return $this->parse_order_book($data, $timestamp, 'bids', 'asks');
+        return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
     }
 
     public function parse_trade($trade, $market = null) {
@@ -426,11 +426,13 @@ class novadax extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $side = $this->safe_string_lower($trade, 'side');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $cost = $this->safe_number($trade, 'volume');
-        if (($cost === null) && ($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
@@ -576,18 +578,22 @@ class novadax extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'available');
-            $account['free'] = $this->safe_number($balance, 'balance');
-            $account['used'] = $this->safe_number($balance, 'hold');
+            $account['total'] = $this->safe_string($balance, 'available');
+            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'hold');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

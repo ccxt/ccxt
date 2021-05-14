@@ -368,14 +368,12 @@ class btcmarkets extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'assetName');
             $code = $this->safe_currency_code($currencyId);
-            $total = $this->safe_number($balance, 'balance');
-            $used = $this->safe_number($balance, 'locked');
             $account = $this->account();
-            $account['used'] = $used;
-            $account['total'] = $total;
+            $account['used'] = $this->safe_string($balance, 'locked');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -452,7 +450,7 @@ class btcmarkets extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer_product($response, 'snapshotId', 0.001);
-        $orderbook = $this->parse_order_book($response, $timestamp);
+        $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
         $orderbook['nonce'] = $this->safe_integer($response, 'snapshotId');
         return $orderbook;
     }
@@ -616,14 +614,11 @@ class btcmarkets extends Exchange {
             $side = 'sell';
         }
         $id = $this->safe_string($trade, 'id');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $orderId = $this->safe_string($trade, 'orderId');
         $fee = null;
         $feeCost = $this->safe_number($trade, 'fee');
@@ -853,23 +848,13 @@ class btcmarkets extends Exchange {
         $price = $this->safe_number($order, 'price');
         $amount = $this->safe_number($order, 'amount');
         $remaining = $this->safe_number($order, 'openAmount');
-        $filled = null;
-        if (($amount !== null) && ($remaining !== null)) {
-            $filled = max (0, $amount - $remaining);
-        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $cost = null;
-        if ($price !== null) {
-            if ($filled !== null) {
-                $cost = $price * $filled;
-            }
-        }
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $stopPrice = $this->safe_number($order, 'triggerPrice');
         $postOnly = $this->safe_value($order, 'postOnly');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
@@ -883,15 +868,15 @@ class btcmarkets extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
-            'cost' => $cost,
+            'cost' => null,
             'amount' => $amount,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'average' => null,
             'status' => $status,
             'trades' => null,
             'fee' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

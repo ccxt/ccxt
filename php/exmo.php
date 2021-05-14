@@ -117,6 +117,7 @@ class exmo extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
                     'maker' => 0.2 / 100,
@@ -658,8 +659,10 @@ class exmo extends Exchange {
             list($baseId, $quoteId) = explode('/', $symbol);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $taker = $this->safe_number($market, 'commission_taker_percent');
-            $maker = $this->safe_number($market, 'commission_maker_percent');
+            $takerString = $this->safe_string($market, 'commission_taker_percent');
+            $makerString = $this->safe_string($market, 'commission_maker_percent');
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -668,8 +671,8 @@ class exmo extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
-                'taker' => $taker / 100,
-                'maker' => $maker / 100,
+                'taker' => $taker,
+                'maker' => $maker,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($market, 'min_quantity'),
@@ -774,14 +777,14 @@ class exmo extends Exchange {
             $currencyId = $this->currency_id($code);
             $account = $this->account();
             if (is_array($free) && array_key_exists($currencyId, $free)) {
-                $account['free'] = $this->safe_number($free, $currencyId);
+                $account['free'] = $this->safe_string($free, $currencyId);
             }
             if (is_array($used) && array_key_exists($currencyId, $used)) {
-                $account['used'] = $this->safe_number($used, $currencyId);
+                $account['used'] = $this->safe_string($used, $currencyId);
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -795,7 +798,7 @@ class exmo extends Exchange {
         }
         $response = $this->publicGetOrderBook (array_merge($request, $params));
         $result = $this->safe_value($response, $market['id']);
-        return $this->parse_order_book($result, null, 'bid', 'ask');
+        return $this->parse_order_book($result, $symbol, null, 'bid', 'ask');
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
@@ -1369,24 +1372,6 @@ class exmo extends Exchange {
             return $this->markets[$symbols[0]];
         }
         return null;
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $rate = $market[$takerOrMaker];
-        $cost = floatval($this->cost_to_precision($symbol, $amount * $rate));
-        $key = 'quote';
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-        }
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => floatval($this->fee_to_precision($symbol, $cost)),
-        );
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

@@ -283,8 +283,6 @@ class bitpanda extends Exchange {
                 'precision' => $this->safe_integer($currency, 'precision'),
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
                 ),
             );
@@ -670,7 +668,7 @@ class bitpanda extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($response, 'time'));
-        return $this->parse_order_book($response, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -895,11 +893,11 @@ class bitpanda extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['used'] = $this->safe_number($balance, 'locked');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
@@ -1258,7 +1256,7 @@ class bitpanda extends Exchange {
         //                     "fee_type" => "TAKER",
         //                     "running_trading_volume" => "0.0"
         //                 ),
-        //                 "$trade" => {
+        //                 "trade" => {
         //                     "trade_id" => "fdff2bcc-37d6-4a2d-92a5-46e09c868664",
         //                     "order_id" => "36bb2437-7402-4794-bf26-4bdf03526439",
         //                     "account_id" => "a4c699f6-338d-4a26-941f-8f9853bfc4b9",
@@ -1273,72 +1271,34 @@ class bitpanda extends Exchange {
         //         )
         //     }
         //
-        $rawTrades = $this->safe_value($order, 'trades', array());
-        $order = $this->safe_value($order, 'order', $order);
-        $id = $this->safe_string($order, 'order_id');
-        $clientOrderId = $this->safe_string($order, 'client_id');
-        $timestamp = $this->parse8601($this->safe_string($order, 'time'));
-        $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $marketId = $this->safe_string($order, 'instrument_code');
+        $rawOrder = $this->safe_value($order, 'order', $order);
+        $id = $this->safe_string($rawOrder, 'order_id');
+        $clientOrderId = $this->safe_string($rawOrder, 'client_id');
+        $timestamp = $this->parse8601($this->safe_string($rawOrder, 'time'));
+        $rawStatus = $this->parse_order_status($this->safe_string($rawOrder, 'status'));
+        $status = $this->parse_order_status($rawStatus);
+        $marketId = $this->safe_string($rawOrder, 'instrument_code');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'amount');
-        $cost = null;
-        $filled = $this->safe_number($order, 'filled_amount');
-        $remaining = null;
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = max (0, $amount - $filled);
-                if ($status === null) {
-                    if ($remaining > 0) {
-                        $status = 'open';
-                    } else {
-                        $status = 'closed';
-                    }
-                }
-            }
-        }
-        $side = $this->safe_string_lower($order, 'side');
-        $type = $this->safe_string_lower($order, 'type');
-        $trades = $this->parse_trades($rawTrades, $market, null, null);
-        $fees = array();
-        $numTrades = is_array($trades) ? count($trades) : 0;
-        $lastTradeTimestamp = null;
-        $tradeCost = null;
-        $tradeAmount = null;
-        if ($numTrades > 0) {
-            $lastTradeTimestamp = $trades[0]['timestamp'];
-            $tradeCost = 0;
-            $tradeAmount = 0;
-            for ($i = 0; $i < count($trades); $i++) {
-                $trade = $trades[$i];
-                $fees[] = $trade['fee'];
-                $lastTradeTimestamp = max ($lastTradeTimestamp, $trade['timestamp']);
-                $tradeCost = $this->sum($tradeCost, $trade['cost']);
-                $tradeAmount = $this->sum($tradeAmount, $trade['amount']);
-            }
-        }
-        $average = $this->safe_number($order, 'average_price');
-        if ($average === null) {
-            if (($tradeCost !== null) && ($tradeAmount !== null) && ($tradeAmount !== 0)) {
-                $average = $tradeCost / $tradeAmount;
-            }
-        }
-        if ($cost === null) {
-            if (($average !== null) && ($filled !== null)) {
-                $cost = $average * $filled;
-            }
-        }
-        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
-        $stopPrice = $this->safe_number($order, 'trigger_price');
-        $postOnly = $this->safe_value($order, 'is_post_only');
-        $result = array(
+        $price = $this->safe_number($rawOrder, 'price');
+        $amount = $this->safe_number($rawOrder, 'amount');
+        $filledString = $this->safe_string($rawOrder, 'filled_amount');
+        $filled = $this->parse_number($filledString);
+        $side = $this->safe_string_lower($rawOrder, 'side');
+        $type = $this->safe_string_lower($rawOrder, 'type');
+        $timeInForce = $this->parse_time_in_force($this->safe_string($rawOrder, 'time_in_force'));
+        $stopPrice = $this->safe_number($rawOrder, 'trigger_price');
+        $postOnly = $this->safe_value($rawOrder, 'is_post_only');
+        $rawTrades = $this->safe_value($order, 'trades', array());
+        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
+            'type' => $type,
+        ));
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
@@ -1347,41 +1307,14 @@ class bitpanda extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'amount' => $amount,
-            'cost' => $cost,
-            'average' => $average,
+            'cost' => null,
+            'average' => null,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             // 'fee' => null,
             'trades' => $trades,
-        );
-        $numFees = is_array($fees) ? count($fees) : 0;
-        if ($numFees > 0) {
-            if ($numFees === 1) {
-                $result['fee'] = $fees[0];
-            } else {
-                $feesByCurrency = $this->group_by($fees, 'currency');
-                $feeCurrencies = is_array($feesByCurrency) ? array_keys($feesByCurrency) : array();
-                $numFeesByCurrency = is_array($feeCurrencies) ? count($feeCurrencies) : 0;
-                if ($numFeesByCurrency === 1) {
-                    $feeCurrency = $feeCurrencies[0];
-                    $feeArray = $this->safe_value($feesByCurrency, $feeCurrency);
-                    $feeCost = 0;
-                    for ($i = 0; $i < count($feeArray); $i++) {
-                        $feeCost = $this->sum($feeCost, $feeArray[$i]['cost']);
-                    }
-                    $result['fee'] = array(
-                        'cost' => $feeCost,
-                        'currency' => $feeCurrency,
-                    );
-                } else {
-                    $result['fees'] = $fees;
-                }
-            }
-        } else {
-            $result['fee'] = null;
-        }
-        return $result;
+        ));
     }
 
     public function parse_time_in_force($timeInForce) {

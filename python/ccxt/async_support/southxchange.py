@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import json
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class southxchange(Exchange):
@@ -114,13 +115,13 @@ class southxchange(Exchange):
             balance = response[i]
             currencyId = self.safe_string(balance, 'Currency')
             code = self.safe_currency_code(currencyId)
-            deposited = self.safe_number(balance, 'Deposited')
-            unconfirmed = self.safe_number(balance, 'Unconfirmed')
+            deposited = self.safe_string(balance, 'Deposited')
+            unconfirmed = self.safe_string(balance, 'Unconfirmed')
             account = self.account()
-            account['free'] = self.safe_number(balance, 'Available')
-            account['total'] = self.sum(deposited, unconfirmed)
+            account['free'] = self.safe_string(balance, 'Available')
+            account['total'] = Precise.string_add(deposited, unconfirmed)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -128,7 +129,7 @@ class southxchange(Exchange):
             'symbol': self.market_id(symbol),
         }
         response = await self.publicGetBookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
+        return self.parse_order_book(response, symbol, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -184,12 +185,11 @@ class southxchange(Exchange):
 
     def parse_trade(self, trade, market):
         timestamp = self.safe_timestamp(trade, 'At')
-        price = self.safe_number(trade, 'Price')
-        amount = self.safe_number(trade, 'Amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'Price')
+        amountString = self.safe_string(trade, 'Amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string(trade, 'Type')
         symbol = None
         if market is not None:

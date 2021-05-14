@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -81,11 +82,11 @@ module.exports = class bl3p extends Exchange {
             const available = this.safeValue (wallet, 'available', {});
             const balance = this.safeValue (wallet, 'balance', {});
             const account = this.account ();
-            account['free'] = this.safeNumber (available, 'value');
-            account['total'] = this.safeNumber (balance, 'value');
+            account['free'] = this.safeString (available, 'value');
+            account['total'] = this.safeString (balance, 'value');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
@@ -104,7 +105,7 @@ module.exports = class bl3p extends Exchange {
         };
         const response = await this.publicGetMarketOrderbook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data');
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price_int', 'amount_int');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -141,20 +142,13 @@ module.exports = class bl3p extends Exchange {
     parseTrade (trade, market = undefined) {
         const id = this.safeString (trade, 'trade_id');
         const timestamp = this.safeInteger (trade, 'date');
-        let price = this.safeNumber (trade, 'price_int');
-        if (price !== undefined) {
-            price /= 100000.0;
-        }
-        let amount = this.safeNumber (trade, 'amount_int');
-        if (amount !== undefined) {
-            amount /= 100000000.0;
-        }
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
-        }
+        let priceString = this.safeString (trade, 'price_int');
+        priceString = Precise.stringDiv (priceString, '100000');
+        let amountString = this.safeString (trade, 'amount_int');
+        amountString = Precise.stringDiv (amountString, '100000000');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

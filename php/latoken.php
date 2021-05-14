@@ -87,6 +87,7 @@ class latoken extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
                     'maker' => 0.1 / 100,
@@ -165,8 +166,10 @@ class latoken extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $pricePrecisionString = $this->safe_string($market, 'pricePrecision');
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
-                'price' => $this->safe_integer($market, 'pricePrecision'),
+                'price' => intval($pricePrecisionString),
                 'amount' => $this->safe_integer($market, 'amountPrecision'),
             );
             $limits = array(
@@ -175,7 +178,7 @@ class latoken extends Exchange {
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision['price']),
+                    'min' => $this->parse_number($priceLimit),
                     'max' => null,
                 ),
                 'cost' => array(
@@ -237,14 +240,6 @@ class latoken extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => null,
                         'max' => null,
@@ -253,27 +248,6 @@ class latoken extends Exchange {
             );
         }
         return $result;
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $key = 'quote';
-        $rate = $market[$takerOrMaker];
-        $cost = $amount * $rate;
-        $precision = $market['precision']['price'];
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-            $precision = $market['precision']['amount'];
-        }
-        $cost = $this->decimal_to_precision($cost, ROUND, $precision, $this->precisionMode);
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => floatval($cost),
-        );
     }
 
     public function fetch_balance($params = array ()) {
@@ -294,22 +268,22 @@ class latoken extends Exchange {
         //
         $result = array(
             'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
         );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'symbol');
             $code = $this->safe_currency_code($currencyId);
-            $frozen = $this->safe_number($balance, 'frozen');
-            $pending = $this->safe_number($balance, 'pending');
-            $used = $this->sum($frozen, $pending);
-            $account = array(
-                'free' => $this->safe_number($balance, 'available'),
-                'used' => $used,
-                'total' => $this->safe_number($balance, 'amount'),
-            );
+            $frozen = $this->safe_string($balance, 'frozen');
+            $pending = $this->safe_string($balance, 'pending');
+            $account = $this->account();
+            $account['used'] = Precise::string_add($frozen, $pending);
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['total'] = $this->safe_string($balance, 'amount');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -336,7 +310,7 @@ class latoken extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'quantity');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'quantity');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -465,15 +439,12 @@ class latoken extends Exchange {
                 $timestamp *= 1000;
             }
         }
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $side = $this->safe_string($trade, 'side');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
-        }
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

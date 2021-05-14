@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -13,6 +12,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.precise import Precise
 
 
 class stex(Exchange):
@@ -257,7 +257,8 @@ class stex(Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.safe_currency_code(self.safe_string(currency, 'code'))
-            precision = self.safe_integer(currency, 'precision')
+            precision = self.safe_string(currency, 'precision')
+            amountLimit = self.parse_precision(precision)
             fee = self.safe_number(currency, 'withdrawal_fee_const')  # todo: redesign
             active = self.safe_value(currency, 'active', True)
             result[code] = {
@@ -269,11 +270,9 @@ class stex(Exchange):
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
                 'fee': fee,
-                'precision': precision,
+                'precision': int(precision),
                 'limits': {
-                    'amount': {'min': math.pow(10, -precision), 'max': None},
-                    'price': {'min': math.pow(10, -precision), 'max': None},
-                    'cost': {'min': None, 'max': None},
+                    'amount': {'min': self.parse_number(amountLimit), 'max': None},
                     'deposit': {
                         'min': self.safe_number(currency, 'minimum_deposit_amount'),
                         'max': None,
@@ -474,7 +473,7 @@ class stex(Exchange):
         #     }
         #
         orderbook = self.safe_value(response, 'data', {})
-        return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'amount')
+        return self.parse_order_book(orderbook, symbol, None, 'bid', 'ask', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -689,11 +688,11 @@ class stex(Exchange):
         #
         id = self.safe_string(trade, 'id')
         timestamp = self.safe_timestamp(trade, 'timestamp')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
@@ -795,16 +794,20 @@ class stex(Exchange):
         #         ]
         #     }
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             code = self.safe_currency_code(self.safe_string(balance, 'currency_id'))
             account = self.account()
-            account['free'] = self.safe_number(balance, 'balance')
-            account['used'] = self.safe_number(balance, 'frozen_balance')
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'frozen_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order_status(self, status):
         statuses = {

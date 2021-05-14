@@ -10,6 +10,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.precise import Precise
 
 
 class lbank(Exchange):
@@ -269,19 +270,18 @@ class lbank(Exchange):
             'size': size,
         }
         response = await self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def parse_trade(self, trade, market=None):
         symbol = None
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(trade, 'date_ms')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = float(self.cost_to_precision(symbol, price * amount))
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string(trade, 'tid')
         type = None
         side = self.safe_string(trade, 'type')
@@ -384,7 +384,11 @@ class lbank(Exchange):
         #         }
         #     }
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         info = self.safe_value(response, 'info', {})
         free = self.safe_value(info, 'free', {})
         freeze = self.safe_value(info, 'freeze', {})
@@ -394,11 +398,11 @@ class lbank(Exchange):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(free, currencyId)
-            account['used'] = self.safe_number(freeze, currencyId)
-            account['total'] = self.safe_number(asset, currencyId)
+            account['free'] = self.safe_string(free, currencyId)
+            account['used'] = self.safe_string(freeze, currencyId)
+            account['total'] = self.safe_string(asset, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order_status(self, status):
         statuses = {

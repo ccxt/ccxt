@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class coinone extends Exchange {
 
@@ -118,6 +119,7 @@ class coinone extends Exchange {
             }
             $base = $this->safe_currency_code($baseId);
             $result[] = array(
+                'info' => $ticker,
                 'id' => $baseId,
                 'symbol' => $base . '/' . $quote,
                 'base' => $base,
@@ -145,11 +147,11 @@ class coinone extends Exchange {
             $balance = $balances[$currencyId];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'avail');
-            $account['total'] = $this->safe_number($balance, 'balance');
+            $account['free'] = $this->safe_string($balance, 'avail');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -161,7 +163,7 @@ class coinone extends Exchange {
         );
         $response = yield $this->publicGetOrderbook (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp, 'bid', 'ask', 'price', 'qty');
+        return $this->parse_order_book($response, $symbol, $timestamp, 'bid', 'ask', 'price', 'qty');
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -282,14 +284,11 @@ class coinone extends Exchange {
                 $side = 'buy';
             }
         }
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'qty');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'qty');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $orderId = $this->safe_string($trade, 'orderId');
         $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;

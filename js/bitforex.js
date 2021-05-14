@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -222,7 +223,10 @@ module.exports = class bitforex extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'ACE': 'ACE Entertainment',
                 'CREDIT': 'TerraCredit',
+                'CTC': 'Culture Ticket Chain',
+                'GOT': 'GoNetwork',
                 'HBC': 'Hybrid Bank Cash',
                 'IQ': 'IQ.Cash',
                 'UOS': 'UOS Network',
@@ -234,6 +238,7 @@ module.exports = class bitforex extends Exchange {
                 '1017': PermissionDenied, // {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
                 '1019': BadSymbol, // {"code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid"}
                 '3002': InsufficientFunds,
+                '4003': InvalidOrder, // {"success":false,"code":"4003","message":"amount too small"}
                 '10204': DDoSProtection,
             },
         });
@@ -295,14 +300,11 @@ module.exports = class bitforex extends Exchange {
         const timestamp = this.safeInteger (trade, 'time');
         const id = this.safeString (trade, 'tid');
         const orderId = undefined;
-        const amount = this.safeNumber (trade, 'amount');
-        const price = this.safeNumber (trade, 'price');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const sideId = this.safeInteger (trade, 'direction');
         const side = this.parseSide (sideId);
         return {
@@ -345,12 +347,12 @@ module.exports = class bitforex extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeNumber (balance, 'frozen');
-            account['free'] = this.safeNumber (balance, 'active');
-            account['total'] = this.safeNumber (balance, 'fix');
+            account['used'] = this.safeString (balance, 'frozen');
+            account['free'] = this.safeString (balance, 'active');
+            account['total'] = this.safeString (balance, 'fix');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -446,7 +448,7 @@ module.exports = class bitforex extends Exchange {
         const response = await this.publicGetApiV1MarketDepth (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (response, 'time');
-        return this.parseOrderBook (data, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseOrderStatus (status) {

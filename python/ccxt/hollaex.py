@@ -11,6 +11,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NetworkError
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class hollaex(Exchange):
@@ -21,36 +22,37 @@ class hollaex(Exchange):
             'name': 'HollaEx',
             'countries': ['KR'],
             'rateLimit': 333,
-            'version': 'v1',
+            'version': 'v2',
             'has': {
                 'CORS': False,
-                'fetchMarkets': True,
-                'fetchCurrencies': True,
-                'fetchTicker': True,
-                'fetchTickers': True,
-                'fetchOrderBook': True,
-                'fetchOrderBooks': True,
-                'fetchTrades': True,
-                'fetchOHLCV': True,
-                'fetchBalance': True,
-                'createOrder': True,
+                'cancelAllOrders': True,
+                'cancelOrder': True,
                 'createLimitBuyOrder': True,
                 'createLimitSellOrder': True,
                 'createMarketBuyOrder': True,
                 'createMarketSellOrder': True,
-                'cancelOrder': True,
-                'cancelAllOrders': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': False,
-                'fetchOpenOrder': True,
-                'fetchOrder': False,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchClosedOrders': True,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': 'emulated',
                 'fetchDeposits': True,
-                'fetchWithdrawals': True,
-                'fetchTransactions': False,
-                'fetchOrders': False,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrder': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTransactions': False,
+                'fetchWithdrawals': True,
                 'withdraw': True,
-                'fetchDepositAddress': True,
+                'fetchDepositAddresses': True,
             },
             'timeframes': {
                 '1h': '1h',
@@ -72,13 +74,17 @@ class hollaex(Exchange):
                 'public': {
                     'get': [
                         'health',
-                        'constant',
+                        'constants',
+                        'kit',
+                        'tiers',
                         'ticker',
-                        'ticker/all',
+                        'tickers',
+                        'orderbook',
                         'orderbooks',
                         'trades',
                         'chart',
-                        # TradingView data
+                        'charts',
+                        # TradingView
                         'udf/config',
                         'udf/history',
                         'udf/symbols',
@@ -88,20 +94,20 @@ class hollaex(Exchange):
                     'get': [
                         'user',
                         'user/balance',
-                        'user/trades',
-                        'user/orders',
-                        'user/orders/{order_id}',
                         'user/deposits',
                         'user/withdrawals',
-                        'user/withdraw/{currency}/fee',
+                        'user/withdrawal/fee',
+                        'user/trades',
+                        'orders',
+                        'orders/{order_id}',
                     ],
                     'post': [
                         'user/request-withdrawal',
                         'order',
                     ],
                     'delete': [
-                        'user/orders',
-                        'user/orders/{order_id}',
+                        'order/all',
+                        'order',
                     ],
                 },
             },
@@ -109,6 +115,8 @@ class hollaex(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
+                    'taker': 0.001,
+                    'maker': 0.001,
                 },
             },
             'exceptions': {
@@ -135,7 +143,7 @@ class hollaex(Exchange):
         })
 
     def fetch_markets(self, params={}):
-        response = self.publicGetConstant(params)
+        response = self.publicGetConstants(params)
         #
         #     {
         #         coins: {
@@ -193,6 +201,8 @@ class hollaex(Exchange):
             quote = self.common_currency_code(quoteId.upper())
             symbol = base + '/' + quote
             active = self.safe_value(market, 'active')
+            maker = self.fees['trading']['maker']
+            taker = self.fees['trading']['taker']
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -216,12 +226,14 @@ class hollaex(Exchange):
                     },
                     'cost': {'min': None, 'max': None},
                 },
+                'taker': taker,
+                'maker': maker,
                 'info': market,
             })
         return result
 
     def fetch_currencies(self, params={}):
-        response = self.publicGetConstant(params)
+        response = self.publicGetConstants(params)
         coins = self.safe_value(response, 'coins', {})
         keys = list(coins.keys())
         result = {}
@@ -249,14 +261,6 @@ class hollaex(Exchange):
                     'amount': {
                         'min': self.safe_number(currency, 'min'),
                         'max': self.safe_number(currency, 'max'),
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
                     },
                     'withdraw': {
                         'min': None,
@@ -307,7 +311,7 @@ class hollaex(Exchange):
         #
         orderbook = self.safe_value(response, marketId)
         timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -331,7 +335,7 @@ class hollaex(Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetTickerAll(self.extend(params))
+        response = self.publicGetTickers(self.extend(params))
         #
         #     {
         #         "bch-usdt": {
@@ -349,7 +353,7 @@ class hollaex(Exchange):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_tickers(self, response, symbols=None):
+    def parse_tickers(self, response, symbols=None, params={}):
         result = {}
         keys = list(response.keys())
         for i in range(0, len(keys)):
@@ -358,7 +362,7 @@ class hollaex(Exchange):
             marketId = self.safe_string(ticker, 'symbol', key)
             market = self.safe_market(marketId, None, '-')
             symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
+            result[symbol] = self.extend(self.parse_ticker(ticker, market), params)
         return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker, market=None):
@@ -467,12 +471,11 @@ class hollaex(Exchange):
         datetime = self.safe_string(trade, 'timestamp')
         timestamp = self.parse8601(datetime)
         side = self.safe_string(trade, 'side')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'size')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'size')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
@@ -574,80 +577,200 @@ class hollaex(Exchange):
         #         # ...
         #     }
         #
-        result = {'info': response}
+        timestamp = self.parse8601(self.safe_string(response, 'updated_at'))
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
         currencyIds = list(self.currencies_by_id.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(response, currencyId + '_available')
-            account['total'] = self.safe_number(response, currencyId + '_balance')
+            account['free'] = self.safe_string(response, currencyId + '_available')
+            account['total'] = self.safe_string(response, currencyId + '_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_open_order(self, id, symbol=None, params={}):
         self.load_markets()
         request = {
             'order_id': id,
         }
-        response = self.privateGetUserOrdersOrderId(self.extend(request, params))
+        response = self.privateGetOrdersOrderId(self.extend(request, params))
         #
         #     {
-        #         "created_at": "2018-03-23T04:14:08.663Z",
-        #         "title": "string",
-        #         "side": "sell",
-        #         "type": "limit",
-        #         "price": 0,
-        #         "size": 0,
-        #         "symbol": "xht-usdt",
         #         "id": "string",
-        #         "created_by": 1,
-        #         "filled": 0
+        #         "side": "sell",
+        #         "symbol": "xht-usdt",
+        #         "size": 0.1,
+        #         "filled": 0,
+        #         "stop": null,
+        #         "fee": 0,
+        #         "fee_coin": "usdt",
+        #         "type": "limit",
+        #         "price": 1.09,
+        #         "status": "new",
+        #         "created_by": 116,
+        #         "created_at": "2021-02-17T02:32:38.910Z",
+        #         "updated_at": "2021-02-17T02:32:38.910Z",
+        #         "User": {
+        #             "id": 116,
+        #             "email": "fight@club.com",
+        #             "username": "narrator",
+        #             "exchange_id": 176
+        #         }
         #     }
         #
         return self.parse_order(response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        request = {
+            'open': True,
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        request = {
+            'status': 'filled',
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        request = {
+            'order_id': id,
+        }
+        response = self.privateGetOrders(self.extend(request, params))
+        #
+        #     {
+        #         "count": 1,
+        #         "data": [
+        #             {
+        #                 "id": "string",
+        #                 "side": "sell",
+        #                 "symbol": "xht-usdt",
+        #                 "size": 0.1,
+        #                 "filled": 0,
+        #                 "stop": null,
+        #                 "fee": 0,
+        #                 "fee_coin": "usdt",
+        #                 "type": "limit",
+        #                 "price": 1.09,
+        #                 "status": "new",
+        #                 "created_by": 116,
+        #                 "created_at": "2021-02-17T02:32:38.910Z",
+        #                 "updated_at": "2021-02-17T02:32:38.910Z",
+        #                 "User": {
+        #                     "id": 116,
+        #                     "email": "fight@club.com",
+        #                     "username": "narrator",
+        #                     "exchange_id": 176
+        #                 }
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        order = self.safe_value(data, 0)
+        if order is None:
+            raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
+        return self.parse_order(order)
+
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
-        request = {}
+        request = {
+            # 'symbol': market['id'],
+            # 'side': 'buy',  # 'sell'
+            # 'status': 'new',  # 'filled', 'pfilled', 'canceled'
+            # 'open': True,
+            # 'limit': limit,  # default 50, max 100
+            # 'page': 1,
+            # 'order_by': 'created_at',  # id, ...
+            # 'order': 'asc',  # 'desc'
+            # 'start_date': self.iso8601(since),
+            # 'end_date': self.iso8601(self.milliseconds()),
+        }
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = self.privateGetUserOrders(self.extend(request, params))
+        if since is not None:
+            request['start_date'] = self.iso8601(since)
+        if limit is not None:
+            request['limit'] = limit  # default 50, max 100
+        response = self.privateGetOrders(self.extend(request, params))
         #
-        #     [
-        #         {
-        #             "created_at":"2020-03-03T08:02:18.639Z",
-        #             "title":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        #             "side":"buy",
-        #             "type":"limit",
-        #             "price":226.19,
-        #             "size":0.086,
-        #             "symbol":"eth-usdt",
-        #             "id":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        #             "created_by":620,
-        #             "filled":0
-        #         }
-        #     ]
+        #     {
+        #         "count": 1,
+        #         "data": [
+        #             {
+        #                 "id": "string",
+        #                 "side": "sell",
+        #                 "symbol": "xht-usdt",
+        #                 "size": 0.1,
+        #                 "filled": 0,
+        #                 "stop": null,
+        #                 "fee": 0,
+        #                 "fee_coin": "usdt",
+        #                 "type": "limit",
+        #                 "price": 1.09,
+        #                 "status": "new",
+        #                 "created_by": 116,
+        #                 "created_at": "2021-02-17T02:32:38.910Z",
+        #                 "updated_at": "2021-02-17T02:32:38.910Z",
+        #                 "User": {
+        #                     "id": 116,
+        #                     "email": "fight@club.com",
+        #                     "username": "narrator",
+        #                     "exchange_id": 176
+        #                 }
+        #             }
+        #         ]
+        #     }
         #
-        return self.parse_orders(response, market)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_orders(data, market, since, limit)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'new': 'open',
+            'pfilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         #
-        # fetchOpenOrder, fetchOpenOrders
+        # createOrder, fetchOpenOrder, fetchOpenOrders
         #
         #     {
-        #         "created_at":"2020-03-03T08:02:18.639Z",
-        #         "title":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        #         "side":"buy",
-        #         "type":"limit",
-        #         "price":226.19,
-        #         "size":0.086,
-        #         "symbol":"eth-usdt",
-        #         "id":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        #         "created_by":620,
-        #         "filled":0
+        #         "id": "string",
+        #         "side": "sell",
+        #         "symbol": "xht-usdt",
+        #         "size": 0.1,
+        #         "filled": 0,
+        #         "stop": null,
+        #         "fee": 0,
+        #         "fee_coin": "usdt",
+        #         "type": "limit",
+        #         "price": 1.09,
+        #         "status": "new",
+        #         "created_by": 116,
+        #         "created_at": "2021-02-17T02:32:38.910Z",
+        #         "updated_at": "2021-02-17T02:32:38.910Z",
+        #         "User": {
+        #             "id": 116,
+        #             "email": "fight@club.com",
+        #             "username": "narrator",
+        #             "exchange_id": 176
+        #         },
+        #         "fee_structure": {
+        #             "maker": 0.2,
+        #             "taker": 0.2
+        #         },
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
@@ -659,7 +782,7 @@ class hollaex(Exchange):
         price = self.safe_number(order, 'price')
         amount = self.safe_number(order, 'size')
         filled = self.safe_number(order, 'filled')
-        status = 'closed' if (type == 'market') else 'open'
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         return self.safe_order({
             'id': id,
             'clientOrderId': None,
@@ -687,26 +810,42 @@ class hollaex(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        order = {
+        request = {
             'symbol': market['id'],
             'side': side,
             'size': amount,
             'type': type,
+            # 'stop': float(self.price_to_precision(symbol, stopPrice)),
+            # 'meta': {},  # other options such as post_only
         }
         if type != 'market':
-            order['price'] = price
-        response = self.privatePostOrder(self.extend(order, params))
+            request['price'] = price
+        stopPrice = self.safe_float_2(params, 'stopPrice', 'stop')
+        if stopPrice is not None:
+            request['stop'] = float(self.price_to_precision(symbol, stopPrice))
+            params = self.omit(params, ['stopPrice', 'stop'])
+        response = self.privatePostOrder(self.extend(request, params))
         #
         #     {
+        #         "fee": 0,
+        #         "meta": {},
         #         "symbol": "xht-usdt",
         #         "side": "sell",
-        #         "size": 1,
+        #         "size": 0.1,
         #         "type": "limit",
-        #         "price": 0.1,
+        #         "price": 1,
+        #         "fee_structure": {
+        #             "maker": 0.2,
+        #             "taker": 0.2
+        #         },
+        #         "fee_coin": "usdt",
         #         "id": "string",
-        #         "created_by": 34,
+        #         "created_by": 116,
         #         "filled": 0,
-        #         "status": "pending"
+        #         "status": "new",
+        #         "updated_at": "2021-02-17T03:03:19.231Z",
+        #         "created_at": "2021-02-17T03:03:19.231Z",
+        #         "stop": null
         #     }
         #
         return self.parse_order(response, market)
@@ -716,7 +855,7 @@ class hollaex(Exchange):
         request = {
             'order_id': id,
         }
-        response = self.privateDeleteUserOrdersOrderId(self.extend(request, params))
+        response = self.privateDeleteOrder(self.extend(request, params))
         #
         #     {
         #         "title": "string",
@@ -737,9 +876,9 @@ class hollaex(Exchange):
         request = {}
         market = None
         if symbol is not None:
-            market = self.markets(symbol)
+            market = self.market(symbol)
             request['symbol'] = market['id']
-        response = self.privateDeleteUserOrders(self.extend(request, params))
+        response = self.privateDeleteOrderAll(self.extend(request, params))
         #
         #     [
         #         {
@@ -795,84 +934,88 @@ class hollaex(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_deposit_address(self, code, params={}):
-        self.load_markets()
-        currency = self.currency(code)
-        response = self.privateGetUser(params)
+    def parse_deposit_address(self, depositAddress, currency=None):
         #
         #     {
-        #         "id": 620,
-        #         "email": "email@gmail.com",
-        #         "full_name": "",
-        #         "name_verified": False,
-        #         "gender": False,
-        #         "nationality": "",
-        #         "phone_number": "",
-        #         "address": {"city": "", "address": "", "country": "", "postal_code": ""},
-        #         "id_data": {"note": "", "type": "", "number": "", "status": 0},
-        #         "bank_account":[],
-        #         "crypto_wallet":{
-        #             "xrp": "rJtoECs6rPkJoAfgtR8SDDshV6hRHe3X7y:391496555"
-        #             "usdt":"0x1fb4248e167901dfa0d8cdda2243a2126d7ce48d"
-        #             # ...
-        #         },
-        #         "verification_level": 1,
-        #         "otp_enabled": True,
-        #         "activated": True,
-        #         "note": "",
-        #         "username": "user",
-        #         "affiliation_code": "QSWA6G",
-        #         "settings": {
-        #             "chat": {"set_username": False},
-        #             "risk": {"order_portfolio_percentage": 20},
-        #             "audio": {
-        #                 "public_trade": False,
-        #                 "order_completed": True,
-        #                 "order_partially_completed": True
-        #             },
-        #             "language": "en",
-        #             "interface": {"theme": "white","order_book_levels": 10},
-        #             "notification": {
-        #                 "popup_order_completed": True,
-        #                 "popup_order_confirmation": True,
-        #                 "popup_order_partially_filled": True
-        #             }
-        #         },
-        #         "flagged": False,
-        #         "is_hap": False,
-        #         "pin": False,
-        #         "discount": 0,
-        #         "created_at": "2020-03-02T22:27:38.331Z",
-        #         "updated_at": "2020-03-03T07:54:58.315Z",
-        #         "balance": {
-        #             "xht_balance": 0,
-        #             "xht_pending": 0,
-        #             "xht_available": 0,
-        #             # ...
-        #             "updated_at": "2020-03-03T10:21:05.430Z"
-        #         },
-        #         "images": [],
-        #         "fees": {
-        #             "btc-usdt": {"maker_fee": 0.1, "taker_fee": 0.3},
-        #             "eth-usdt": {"maker_fee": 0.1, "taker_fee": 0.3},
-        #             # ...
-        #         }
+        #         "currency":"usdt",
+        #         "address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik",
+        #         "network":"trx",
+        #         "standard":null,
+        #         "is_valid":true,
+        #         "created_at":"2021-05-12T02:43:05.446Z"
         #     }
         #
-        cryptoWallet = self.safe_value(response, 'crypto_wallet')
-        address = self.safe_string(cryptoWallet, currency['id'])
+        address = self.safe_string(depositAddress, 'address')
         tag = None
         if address is not None:
             parts = address.split(':')
             address = self.safe_string(parts, 0)
             tag = self.safe_string(parts, 1)
         self.check_address(address)
+        currencyId = self.safe_string(depositAddress, 'currency')
+        currency = self.safe_currency(currencyId, currency)
+        network = self.safe_string(depositAddress, 'network')
         return {
-            'currency': code,
+            'currency': currency['code'],
             'address': address,
             'tag': tag,
-            'info': response,
+            'network': network,
+            'info': depositAddress,
         }
+
+    def fetch_deposit_addresses(self, codes=None, params={}):
+        self.load_markets()
+        network = self.safe_string(params, 'network')
+        params = self.omit(params, 'network')
+        response = self.privateGetUser(params)
+        #
+        #     {
+        #         "id":620,
+        #         "email":"igor.kroitor@gmail.com",
+        #         "full_name":"",
+        #         "gender":false,
+        #         "nationality":"",
+        #         "dob":null,
+        #         "phone_number":"",
+        #         "address":{"city":"","address":"","country":"","postal_code":""},
+        #         "id_data":{"note":"","type":"","number":"","status":0,"issued_date":"","expiration_date":""},
+        #         "bank_account":[],
+        #         "crypto_wallet":{},
+        #         "verification_level":1,
+        #         "email_verified":true,
+        #         "otp_enabled":true,
+        #         "activated":true,
+        #         "username":"igor.kroitor",
+        #         "affiliation_code":"QSWA6G",
+        #         "settings":{
+        #             "chat":{"set_username":false},
+        #             "risk":{"popup_warning":false,"order_portfolio_percentage":20},
+        #             "audio":{"public_trade":false,"order_completed":true,"order_partially_completed":true},
+        #             "language":"en",
+        #             "interface":{"theme":"white","order_book_levels":10},
+        #             "notification":{"popup_order_completed":true,"popup_order_confirmation":true,"popup_order_partially_filled":true}
+        #         },
+        #         "affiliation_rate":0,
+        #         "network_id":10620,
+        #         "discount":0,
+        #         "created_at":"2021-03-24T02:37:57.379Z",
+        #         "updated_at":"2021-03-24T02:37:57.379Z",
+        #         "balance":{
+        #             "btc_balance":0,
+        #             "btc_available":0,
+        #             "eth_balance":0.000914,
+        #             "eth_available":0.000914,
+        #             "updated_at":"2020-03-04T04:03:27.174Z
+        #         "},
+        #         "wallet":[
+        #             {"currency":"usdt","address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik","network":"trx","standard":null,"is_valid":true,"created_at":"2021-05-12T02:43:05.446Z"},
+        #             {"currency":"xrp","address":"rGcSzmuRx8qngPRnrvpCKkP9V4njeCPGCv:286741597","network":"xrp","standard":null,"is_valid":true,"created_at":"2021-05-12T02:49:01.273Z"}
+        #         ]
+        #     }
+        #
+        wallet = self.safe_value(response, 'wallet', [])
+        addresses = wallet if (network is None) else self.filter_by(wallet, 'network', network)
+        return self.parse_deposit_addresses(addresses, codes)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1066,7 +1209,7 @@ class hollaex(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         path = '/' + self.version + '/' + self.implode_params(path, params)
-        if method == 'GET':
+        if (method == 'GET') or (method == 'DELETE'):
             if query:
                 path += '?' + self.urlencode(query)
         url = self.urls['api'] + path

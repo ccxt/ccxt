@@ -189,11 +189,11 @@ class bitflyer extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'amount');
-            $account['free'] = $this->safe_number($balance, 'available');
+            $account['total'] = $this->safe_string($balance, 'amount');
+            $account['free'] = $this->safe_string($balance, 'available');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -202,7 +202,7 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id($symbol),
         );
         $orderbook = $this->publicGetGetboard (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'size');
+        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'size');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -255,14 +255,11 @@ class bitflyer extends Exchange {
             $order = $this->safe_string($trade, 'child_order_acceptance_id');
         }
         $timestamp = $this->parse8601($this->safe_string($trade, 'exec_date'));
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'size');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string($trade, 'id');
         $symbol = null;
         if ($market !== null) {

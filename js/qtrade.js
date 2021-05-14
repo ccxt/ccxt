@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -111,6 +112,7 @@ module.exports = class qtrade extends Exchange {
                 'exact': {
                     'invalid_auth': AuthenticationError,
                     'insuff_funds': InsufficientFunds,
+                    'market_not_found': BadSymbol, // {"errors":[{"code":"market_not_found","title":"Requested market does not exist"}]}
                 },
             },
         });
@@ -272,14 +274,6 @@ module.exports = class qtrade extends Exchange {
                         'min': this.safeNumber (currency, 'minimum_order'),
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': undefined,
@@ -377,7 +371,7 @@ module.exports = class qtrade extends Exchange {
             orderbook[side] = result;
         }
         const timestamp = this.safeIntegerProduct (data, 'last_change', 0.001);
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -638,12 +632,12 @@ module.exports = class qtrade extends Exchange {
         const marketId = this.safeString (trade, 'market_string');
         const symbol = this.safeSymbol (marketId, market, '_');
         let cost = this.safeNumber2 (trade, 'base_volume', 'base_amount');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber2 (trade, 'market_amount', 'amount');
-        if ((cost === undefined) && (amount !== undefined) && (price !== undefined)) {
-            if (price !== undefined) {
-                cost = price * amount;
-            }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'market_amount', 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'base_fee');
@@ -697,14 +691,16 @@ module.exports = class qtrade extends Exchange {
         let balances = this.safeValue (data, 'balances', []);
         const result = {
             'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in result) ? result[code] : this.account ();
-            account['free'] = this.safeNumber (balance, 'balance');
-            account['used'] = 0;
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = '0';
             result[code] = account;
         }
         balances = this.safeValue (data, 'order_balances', []);
@@ -713,10 +709,10 @@ module.exports = class qtrade extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in result) ? result[code] : this.account ();
-            account['used'] = this.safeNumber (balance, 'balance');
+            account['used'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -808,8 +809,8 @@ module.exports = class bitget extends Exchange {
         const tickSize = this.safeString (market, 'tick_size');
         const sizeIncrement = this.safeString (market, 'size_increment');
         const precision = {
-            'amount': parseFloat ('1e-' + sizeIncrement),
-            'price': parseFloat ('1e-' + tickSize),
+            'amount': this.parseNumber (this.parsePrecision (sizeIncrement)),
+            'price': this.parseNumber (this.parsePrecision (tickSize)),
         };
         const minAmount = this.safeNumber2 (market, 'min_size', 'base_min_size');
         const status = this.safeString (market, 'status');
@@ -931,8 +932,6 @@ module.exports = class bitget extends Exchange {
                 'precision': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
             };
@@ -997,7 +996,7 @@ module.exports = class bitget extends Exchange {
         const data = this.safeValue (response, 'data', response);
         const timestamp = this.safeInteger2 (data, 'timestamp', 'ts');
         const nonce = this.safeInteger (data, 'id');
-        const orderbook = this.parseOrderBook (data, timestamp);
+        const orderbook = this.parseOrderBook (data, symbol, timestamp);
         orderbook['nonce'] = nonce;
         return orderbook;
     }
@@ -1337,9 +1336,12 @@ module.exports = class bitget extends Exchange {
         }
         let timestamp = this.safeInteger (trade, 'created_at');
         timestamp = this.safeInteger2 (trade, 'timestamp', 'ts', timestamp);
-        const price = this.safeNumber (trade, 'price');
-        let amount = this.safeNumber2 (trade, 'filled_amount', 'order_qty');
-        amount = this.safeNumber2 (trade, 'size', 'amount', amount);
+        const priceString = this.safeString (trade, 'price');
+        let amountString = this.safeString2 (trade, 'filled_amount', 'order_qty');
+        amountString = this.safeString2 (trade, 'size', 'amount', amountString);
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
         if (takerOrMaker === 'M') {
             takerOrMaker = 'maker';
@@ -1358,18 +1360,13 @@ module.exports = class bitget extends Exchange {
             type = this.parseOrderType (side);
             side = this.parseOrderSide (side);
         }
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
-            }
-        }
-        let feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost === undefined) {
-            feeCost = this.safeNumber (trade, 'filled_fees');
+        let feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString === undefined) {
+            feeCostString = this.safeString (trade, 'filled_fees');
         } else {
-            feeCost = -feeCost;
+            feeCostString = Precise.stringNeg (feeCostString);
         }
+        const feeCost = this.parseNumber (feeCostString);
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrency = (side === 'buy') ? base : quote;
@@ -1610,13 +1607,13 @@ module.exports = class bitget extends Exchange {
             }
             const type = this.safeValue (balance, 'type');
             if (type === 'trade') {
-                result[code]['free'] = this.safeNumber (balance, 'balance');
+                result[code]['free'] = this.safeString (balance, 'balance');
             } else if ((type === 'frozen') || (type === 'lock')) {
-                const used = this.safeNumber (result[code], 'used');
-                result[code]['used'] = this.sum (used, this.safeNumber (balance, 'balance'));
+                const used = this.safeString (result[code], 'used');
+                result[code]['used'] = Precise.stringAdd (used, this.safeString (balance, 'balance'));
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseSwapBalance (response) {
@@ -1640,11 +1637,11 @@ module.exports = class bitget extends Exchange {
             }
             const account = this.account ();
             // it may be incorrect to use total, free and used for swap accounts
-            account['total'] = this.safeNumber (balance, 'equity');
-            account['free'] = this.safeNumber (balance, 'total_avail_balance');
+            account['total'] = this.safeString (balance, 'equity');
+            account['free'] = this.safeString (balance, 'total_avail_balance');
             result[symbol] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchAccounts (params = {}) {

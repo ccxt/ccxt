@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -22,7 +23,9 @@ module.exports = class huobipro extends Exchange {
             'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
             'has': {
+                'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'CORS': false,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -189,6 +192,7 @@ module.exports = class huobipro extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
                     'maker': 0.002,
@@ -523,7 +527,7 @@ module.exports = class huobipro extends Exchange {
             }
             const tick = this.safeValue (response, 'tick');
             const timestamp = this.safeInteger (tick, 'ts', this.safeInteger (response, 'ts'));
-            const result = this.parseOrderBook (tick, timestamp);
+            const result = this.parseOrderBook (tick, symbol, timestamp);
             result['nonce'] = this.safeInteger (tick, 'version');
             return result;
         }
@@ -558,7 +562,7 @@ module.exports = class huobipro extends Exchange {
         //     }
         //
         const ticker = this.parseTicker (response['tick'], market);
-        const timestamp = this.safeValue (response, 'ts');
+        const timestamp = this.safeInteger (response, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601 (timestamp);
         return ticker;
@@ -627,20 +631,14 @@ module.exports = class huobipro extends Exchange {
             type = typeParts[1];
         }
         const takerOrMaker = this.safeString (trade, 'role');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber2 (trade, 'filled-amount', 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'filled-amount', 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
         let feeCost = this.safeNumber (trade, 'filled-fees');
-        let feeCurrency = undefined;
-        if (market !== undefined) {
-            feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-currency'));
-        }
+        let feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-currency'));
         const filledPoints = this.safeNumber (trade, 'filled-points');
         if (filledPoints !== undefined) {
             if ((feeCost === undefined) || (feeCost === 0.0)) {
@@ -847,14 +845,6 @@ module.exports = class huobipro extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'deposit': {
                         'min': this.safeNumber (currency, 'deposit-min-amount'),
                         'max': Math.pow (10, precision),
@@ -891,14 +881,14 @@ module.exports = class huobipro extends Exchange {
                 account = this.account ();
             }
             if (balance['type'] === 'trade') {
-                account['free'] = this.safeNumber (balance, 'balance');
+                account['free'] = this.safeString (balance, 'balance');
             }
             if (balance['type'] === 'frozen') {
-                account['used'] = this.safeNumber (balance, 'balance');
+                account['used'] = this.safeString (balance, 'balance');
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1188,26 +1178,82 @@ module.exports = class huobipro extends Exchange {
         });
     }
 
-    currencyToPrecision (currency, fee) {
-        return this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']);
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const clientOrderIds = this.safeValue2 (params, 'clientOrderIds', 'client-order-ids');
+        params = this.omit (params, [ 'clientOrderIds', 'client-order-ids' ]);
+        const request = {};
+        if (clientOrderIds === undefined) {
+            request['order-ids'] = ids;
+        } else {
+            request['client-order-ids'] = clientOrderIds;
+        }
+        const response = await this.privatePostOrderOrdersBatchcancel (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "success": [
+        //                 "5983466"
+        //             ],
+        //             "failed": [
+        //                 {
+        //                     "err-msg": "Incorrect order state",
+        //                     "order-state": 7,
+        //                     "order-id": "",
+        //                     "err-code": "order-orderstate-error",
+        //                     "client-order-id": "first"
+        //                 },
+        //                 {
+        //                     "err-msg": "Incorrect order state",
+        //                     "order-state": 7,
+        //                     "order-id": "",
+        //                     "err-code": "order-orderstate-error",
+        //                     "client-order-id": "second"
+        //                 },
+        //                 {
+        //                     "err-msg": "The record is not found.",
+        //                     "order-id": "",
+        //                     "err-code": "base-not-found",
+        //                     "client-order-id": "third"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        return response;
     }
 
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        const rate = market[takerOrMaker];
-        let cost = amount * rate;
-        let key = 'quote';
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.currencyToPrecision (market[key], cost)),
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'account-id' string false NA The account id used for this cancel Refer to GET /v1/account/accounts
+            // 'symbol': market['id'], // a list of comma-separated symbols, all symbols by default
+            // 'types' 'string', buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            // 'side': 'buy', // or 'sell'
+            // 'size': 100, // the number of orders to cancel 1-100
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privatePostOrderOrdersBatchCancelOpenOrders (this.extend (request, params));
+        //
+        //     {
+        //         code: 200,
+        //         data: {
+        //             "success-count": 2,
+        //             "failed-count": 0,
+        //             "next-id": 5454600
+        //         }
+        //     }
+        //
+        return response;
+    }
+
+    currencyToPrecision (currency, fee) {
+        return this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {

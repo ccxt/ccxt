@@ -190,6 +190,7 @@ class digifinex extends Exchange {
             ),
             'commonCurrencies' => array(
                 'BHT' => 'Black House Test',
+                'EPS' => 'Epanus',
                 'MBN' => 'Mobilian Coin',
                 'TEL' => 'TEL666',
             ),
@@ -263,14 +264,6 @@ class digifinex extends Exchange {
                     'precision' => 8, // todo fix hardcoded value
                     'limits' => array(
                         'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
                             'min' => null,
                             'max' => null,
                         ),
@@ -460,12 +453,12 @@ class digifinex extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['used'] = $this->safe_number($balance, 'frozen');
-            $account['free'] = $this->safe_number($balance, 'free');
-            $account['total'] = $this->safe_number($balance, 'total');
+            $account['used'] = $this->safe_string($balance, 'frozen');
+            $account['free'] = $this->safe_string($balance, 'free');
+            $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -495,7 +488,7 @@ class digifinex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_timestamp($response, 'date');
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -640,14 +633,11 @@ class digifinex extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $timestamp = $this->safe_timestamp_2($trade, 'date', 'timestamp');
         $side = $this->safe_string_2($trade, 'type', 'side');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $takerOrMaker = $this->safe_value($trade, 'is_maker');

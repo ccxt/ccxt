@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class bitvavo extends Exchange {
 
@@ -386,14 +387,6 @@ class bitvavo extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'withdrawalMinAmount'),
                         'max' => null,
@@ -605,12 +598,11 @@ class bitvavo extends Exchange {
         //         feeCurrency => 'EUR'
         //     }
         //
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $side = $this->safe_string($trade, 'side');
         $id = $this->safe_string_2($trade, 'id', 'fillId');
@@ -674,7 +666,7 @@ class bitvavo extends Exchange {
         //         ]
         //     }
         //
-        $orderbook = $this->parse_order_book($response);
+        $orderbook = $this->parse_order_book($response, $symbol);
         $orderbook['nonce'] = $this->safe_integer($response, 'nonce');
         return $orderbook;
     }
@@ -739,18 +731,21 @@ class bitvavo extends Exchange {
         //         }
         //     )
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'symbol');
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_number($balance, 'available'),
-                'used' => $this->safe_number($balance, 'inOrder'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'inOrder');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -939,7 +934,6 @@ class bitvavo extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
-        yield $this->load_markets();
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1170,20 +1164,7 @@ class bitvavo extends Exchange {
         $amount = $this->safe_number($order, 'amount');
         $remaining = $this->safe_number($order, 'amountRemaining');
         $filled = $this->safe_number($order, 'filledAmount');
-        $remainingCost = $this->safe_number($order, 'remainingCost');
-        if (($remainingCost !== null) && ($remainingCost === 0.0)) {
-            $remaining = 0;
-        }
-        if (($amount !== null) && ($remaining !== null)) {
-            $filled = max (0, $amount - $remaining);
-        }
         $cost = $this->safe_number($order, 'filledAmountQuote');
-        $average = null;
-        if ($cost !== null) {
-            if ($filled) {
-                $average = $cost / $filled;
-            }
-        }
         $fee = null;
         $feeCost = $this->safe_number($order, 'feePaid');
         if ($feeCost !== null) {
@@ -1194,32 +1175,24 @@ class bitvavo extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        $lastTradeTimestamp = null;
-        $rawTrades = $this->safe_value($order, 'fills');
-        $trades = null;
-        if ($rawTrades !== null) {
-            $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-                'symbol' => $symbol,
-                'order' => $id,
-                'side' => $side,
-            ));
-            $numTrades = is_array($trades) ? count($trades) : 0;
-            if ($numTrades > 0) {
-                $lastTrade = $this->safe_value($trades, $numTrades - 1);
-                $lastTradeTimestamp = $lastTrade['timestamp'];
-            }
-        }
+        $rawTrades = $this->safe_value($order, 'fills', array());
+        $trades = $this->parse_trades($rawTrades, $market, null, null, array(
+            'symbol' => $symbol,
+            'order' => $id,
+            'side' => $side,
+            'type' => $type,
+        ));
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = $this->safe_value($order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
         $stopPrice = $this->safe_number($order, 'triggerPrice');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
@@ -1229,13 +1202,13 @@ class bitvavo extends Exchange {
             'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => $average,
+            'average' => null,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

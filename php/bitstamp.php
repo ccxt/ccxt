@@ -130,6 +130,18 @@ class bitstamp extends Exchange {
                         'zrx_address/',
                         'gusd_withdrawal/',
                         'gusd_address/',
+                        'aave_withdrawal/',
+                        'aave_address/',
+                        'bat_withdrawal/',
+                        'bat_address/',
+                        'uma_withdrawal/',
+                        'uma_address/',
+                        'snx_withdrawal/',
+                        'snx_address/',
+                        'uni_withdrawal/',
+                        'uni_address/',
+                        'yfi_withdrawal/',
+                        'yfi_address',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -263,9 +275,13 @@ class bitstamp extends Exchange {
             $symbol = $base . '/' . $quote;
             $symbolId = $baseId . '_' . $quoteId;
             $id = $this->safe_string($market, 'url_symbol');
+            $amountPrecisionString = $this->safe_string($market, 'base_decimals');
+            $pricePrecisionString = $this->safe_string($market, 'counter_decimals');
+            $amountLimit = $this->parse_precision($amountPrecisionString);
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
-                'amount' => $this->safe_integer($market, 'base_decimals'),
-                'price' => $this->safe_integer($market, 'counter_decimals'),
+                'amount' => intval($amountPrecisionString),
+                'price' => intval($pricePrecisionString),
             );
             $minimumOrder = $this->safe_string($market, 'minimum_order');
             $parts = explode(' ', $minimumOrder);
@@ -286,15 +302,15 @@ class bitstamp extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => $this->parse_number($amountLimit),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $this->parse_number($priceLimit),
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => floatval($cost),
+                        'min' => $this->parse_number($cost),
                         'max' => null,
                     ),
                 ),
@@ -408,7 +424,7 @@ class bitstamp extends Exchange {
         //
         $microtimestamp = $this->safe_integer($response, 'microtimestamp');
         $timestamp = intval($microtimestamp / 1000);
-        $orderbook = $this->parse_order_book($response, $timestamp);
+        $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
         $orderbook['nonce'] = $microtimestamp;
         return $orderbook;
     }
@@ -763,19 +779,41 @@ class bitstamp extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $balance = $this->privatePostBalance ($params);
-        $result = array( 'info' => $balance );
+        //
+        //     {
+        //         "aave_available" => "0.00000000",
+        //         "aave_balance" => "0.00000000",
+        //         "aave_reserved" => "0.00000000",
+        //         "aave_withdrawal_fee" => "0.07000000",
+        //         "aavebtc_fee" => "0.000",
+        //         "aaveeur_fee" => "0.000",
+        //         "aaveusd_fee" => "0.000",
+        //         "bat_available" => "0.00000000",
+        //         "bat_balance" => "0.00000000",
+        //         "bat_reserved" => "0.00000000",
+        //         "bat_withdrawal_fee" => "5.00000000",
+        //         "batbtc_fee" => "0.000",
+        //         "bateur_fee" => "0.000",
+        //         "batusd_fee" => "0.000",
+        //     }
+        //
+        $result = array(
+            'info' => $balance,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, $currencyId . '_available');
-            $account['used'] = $this->safe_number($balance, $currencyId . '_reserved');
-            $account['total'] = $this->safe_number($balance, $currencyId . '_balance');
+            $account['free'] = $this->safe_string($balance, $currencyId . '_available');
+            $account['used'] = $this->safe_string($balance, $currencyId . '_reserved');
+            $account['total'] = $this->safe_string($balance, $currencyId . '_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {

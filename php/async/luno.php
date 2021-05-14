@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class luno extends Exchange {
 
@@ -82,6 +83,10 @@ class luno extends Exchange {
                         'quotes/{id}',
                         'withdrawals',
                         'withdrawals/{id}',
+                        'transfers',
+                        // GET /api/exchange/2/listorders
+                        // GET /api/exchange/2/orders/{id}
+                        // GET /api/exchange/3/order
                     ),
                     'post' => array(
                         'accounts',
@@ -207,25 +212,31 @@ class luno extends Exchange {
         //     }
         //
         $wallets = $this->safe_value($response, 'balance', array());
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($wallets); $i++) {
             $wallet = $wallets[$i];
             $currencyId = $this->safe_string($wallet, 'asset');
             $code = $this->safe_currency_code($currencyId);
-            $reserved = $this->safe_number($wallet, 'reserved');
-            $unconfirmed = $this->safe_number($wallet, 'unconfirmed');
-            $balance = $this->safe_number($wallet, 'balance');
+            $reserved = $this->safe_string($wallet, 'reserved');
+            $unconfirmed = $this->safe_string($wallet, 'unconfirmed');
+            $balance = $this->safe_string($wallet, 'balance');
+            $reservedUnconfirmed = Precise::string_add($reserved, $unconfirmed);
+            $balanceUnconfirmed = Precise::string_add($balance, $unconfirmed);
             if (is_array($result) && array_key_exists($code, $result)) {
-                $result[$code]['used'] = $this->sum($result[$code]['used'], $reserved, $unconfirmed);
-                $result[$code]['total'] = $this->sum($result[$code]['total'], $balance, $unconfirmed);
+                $result[$code]['used'] = Precise::string_add($result[$code]['used'], $reservedUnconfirmed);
+                $result[$code]['total'] = Precise::string_add($result[$code]['total'], $balanceUnconfirmed);
             } else {
                 $account = $this->account();
-                $account['used'] = $this->sum($reserved, $unconfirmed);
-                $account['total'] = $this->sum($balance, $unconfirmed);
+                $account['used'] = $reservedUnconfirmed;
+                $account['total'] = $balanceUnconfirmed;
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -241,7 +252,7 @@ class luno extends Exchange {
         );
         $response = yield $this->$method (array_merge($request, $params));
         $timestamp = $this->safe_integer($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp, 'bids', 'asks', 'price', 'volume');
+        return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
     public function parse_order_status($status) {

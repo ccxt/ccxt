@@ -14,6 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class ripio(Exchange):
@@ -248,8 +249,6 @@ class ripio(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
             }
@@ -388,7 +387,7 @@ class ripio(Exchange):
         #         "updated_id":47225
         #     }
         #
-        orderbook = self.parse_order_book(response, None, 'buy', 'sell', 'price', 'amount')
+        orderbook = self.parse_order_book(response, symbol, None, 'buy', 'sell', 'price', 'amount')
         orderbook['nonce'] = self.safe_integer(response, 'updated_id')
         return orderbook
 
@@ -428,11 +427,11 @@ class ripio(Exchange):
         takerOrMaker = 'taker' if (takerSide == side) else 'maker'
         if side is not None:
             side = side.lower()
-        price = self.safe_number_2(trade, 'price', 'match_price')
-        amount = self.safe_number_2(trade, 'amount', 'exchanged')
-        cost = None
-        if (amount is not None) and (price is not None):
-            cost = amount * price
+        priceString = self.safe_string_2(trade, 'price', 'match_price')
+        amountString = self.safe_string_2(trade, 'amount', 'exchanged')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market)
         feeCost = self.safe_number(trade, takerOrMaker + '_fee')
@@ -506,10 +505,10 @@ class ripio(Exchange):
             currencyId = self.safe_string(balance, 'symbol')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            account['used'] = self.safe_number(balance, 'locked')
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

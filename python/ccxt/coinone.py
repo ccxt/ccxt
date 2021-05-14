@@ -11,6 +11,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.precise import Precise
 
 
 class coinone(Exchange):
@@ -120,6 +121,7 @@ class coinone(Exchange):
                 continue
             base = self.safe_currency_code(baseId)
             result.append({
+                'info': ticker,
                 'id': baseId,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -145,10 +147,10 @@ class coinone(Exchange):
             balance = balances[currencyId]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'avail')
-            account['total'] = self.safe_number(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'avail')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -159,7 +161,7 @@ class coinone(Exchange):
         }
         response = self.publicGetOrderbook(self.extend(request, params))
         timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp, 'bid', 'ask', 'price', 'qty')
+        return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask', 'price', 'qty')
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -268,12 +270,11 @@ class coinone(Exchange):
                 side = 'sell'
             elif side == 'bid':
                 side = 'buy'
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'qty')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'qty')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = self.safe_string(trade, 'orderId')
         feeCost = self.safe_number(trade, 'fee')
         fee = None

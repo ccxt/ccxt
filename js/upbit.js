@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -427,17 +428,21 @@ module.exports = class upbit extends Exchange {
         //         avg_krw_buy_price: "250000",
         //                  modified:  false    }   ]
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'locked');
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
@@ -493,6 +498,7 @@ module.exports = class upbit extends Exchange {
             const symbol = this.safeSymbol (marketId, undefined, '-');
             const timestamp = this.safeInteger (orderbook, 'timestamp');
             result[symbol] = {
+                'symbol': symbol,
                 'bids': this.sortBy (this.parseBidsAsks (orderbook['orderbook_units'], 'bid_price', 'bid_size'), 0, true),
                 'asks': this.sortBy (this.parseBidsAsks (orderbook['orderbook_units'], 'ask_price', 'ask_size'), 0),
                 'timestamp': timestamp,
@@ -671,14 +677,12 @@ module.exports = class upbit extends Exchange {
             side = 'buy';
         }
         let cost = this.safeNumber (trade, 'funds');
-        const price = this.safeNumber2 (trade, 'trade_price', 'price');
-        const amount = this.safeNumber2 (trade, 'trade_volume', 'volume');
+        const priceString = this.safeString2 (trade, 'trade_price', 'price');
+        const amountString = this.safeString2 (trade, 'trade_volume', 'volume');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         if (cost === undefined) {
-            if (amount !== undefined) {
-                if (price !== undefined) {
-                    cost = price * amount;
-                }
-            }
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const marketId = this.safeString2 (trade, 'market', 'code');
         market = this.safeMarket (marketId, market);
@@ -1000,8 +1004,6 @@ module.exports = class upbit extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
-            'ACCEPTED': 'ok', // deposits
-            // withdrawals:
             'submitting': 'pending', // 처리 중
             'submitted': 'pending', // 처리 완료
             'almost_accepted': 'pending', // 출금대기중
@@ -1058,7 +1060,7 @@ module.exports = class upbit extends Exchange {
         }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const status = this.parseTransactionStatus (this.safeStringLower (transaction, 'state'));
         const feeCost = this.safeNumber (transaction, 'fee');
         return {
             'info': transaction,

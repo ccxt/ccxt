@@ -96,6 +96,7 @@ class currencycom extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.002,
@@ -287,7 +288,7 @@ class currencycom extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => -1 * log10 ($precision['amount']),
+                        'min' => -log10 ($precision['amount']),
                         'max' => null,
                     ),
                 ),
@@ -339,27 +340,6 @@ class currencycom extends Exchange {
             $result[] = $entry;
         }
         return $result;
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $key = 'quote';
-        $rate = $market[$takerOrMaker];
-        $cost = $amount * $rate;
-        $precision = $market['precision']['price'];
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-            $precision = $market['precision']['amount'];
-        }
-        $cost = $this->decimal_to_precision($cost, ROUND, $precision, $this->precisionMode);
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => floatval($cost),
-        );
     }
 
     public function fetch_accounts($params = array ()) {
@@ -443,11 +423,11 @@ class currencycom extends Exchange {
             $currencyId = $this->safe_string($balance, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'free');
-            $account['used'] = $this->safe_number($balance, 'locked');
+            $account['free'] = $this->safe_string($balance, 'free');
+            $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_balance($params = array ()) {
@@ -503,7 +483,7 @@ class currencycom extends Exchange {
         //         ]
         //     }
         //
-        $orderbook = $this->parse_order_book($response);
+        $orderbook = $this->parse_order_book($response, $symbol);
         $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
         return $orderbook;
     }
@@ -708,8 +688,11 @@ class currencycom extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer_2($trade, 'T', 'time');
-        $price = $this->safe_number_2($trade, 'p', 'price');
-        $amount = $this->safe_number_2($trade, 'q', 'qty');
+        $priceString = $this->safe_string_2($trade, 'p', 'price');
+        $amountString = $this->safe_string_2($trade, 'q', 'qty');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $id = $this->safe_string_2($trade, 'a', 'id');
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
@@ -747,7 +730,7 @@ class currencycom extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $price * $amount,
+            'cost' => $cost,
             'fee' => $fee,
         );
     }

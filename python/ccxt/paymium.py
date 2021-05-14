@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.precise import Precise
 
 
 class paymium(Exchange):
@@ -96,10 +97,10 @@ class paymium(Exchange):
             if free in response:
                 account = self.account()
                 used = 'locked_' + currencyId
-                account['free'] = self.safe_number(response, free)
-                account['used'] = self.safe_number(response, used)
+                account['free'] = self.safe_string(response, free)
+                account['used'] = self.safe_string(response, used)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -107,7 +108,7 @@ class paymium(Exchange):
             'currency': self.market_id(symbol),
         }
         response = self.publicGetDataCurrencyDepth(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -152,13 +153,12 @@ class paymium(Exchange):
         if market is not None:
             symbol = market['symbol']
         side = self.safe_string(trade, 'side')
-        price = self.safe_number(trade, 'price')
+        priceString = self.safe_string(trade, 'price')
         amountField = 'traded_' + market['base'].lower()
-        amount = self.safe_number(trade, amountField)
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        amountString = self.safe_string(trade, amountField)
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'info': trade,
             'id': id,

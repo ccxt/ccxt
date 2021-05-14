@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, OrderNotFound, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -182,11 +183,11 @@ module.exports = class tidebit extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'locked');
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -201,7 +202,7 @@ module.exports = class tidebit extends Exchange {
         request['market'] = market['id'];
         const response = await this.publicGetDepth (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -264,9 +265,14 @@ module.exports = class tidebit extends Exchange {
     parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         const id = this.safeString (trade, 'id');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'volume');
-        const cost = this.safeNumber (trade, 'funds');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'volume');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        let cost = this.safeNumber (trade, 'funds');
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

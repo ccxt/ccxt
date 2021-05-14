@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -18,6 +19,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class bitfinex2(bitfinex):
@@ -145,6 +147,7 @@ class bitfinex2(bitfinex):
                         'stats1/{key}:{size}:{symbol}:long/hist',
                         'stats1/{key}:{size}:{symbol}:short/last',
                         'stats1/{key}:{size}:{symbol}:short/hist',
+                        'candles/trade:{timeframe}:{symbol}:{period}/{section}',
                         'candles/trade:{timeframe}:{symbol}/{section}',
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
@@ -312,6 +315,7 @@ class bitfinex2(bitfinex):
             },
             'exceptions': {
                 'exact': {
+                    '10001': PermissionDenied,  # api_key: permission invalid(#10001)
                     '10020': BadRequest,
                     '10100': AuthenticationError,
                     '10114': InvalidNonce,
@@ -382,18 +386,20 @@ class bitfinex2(bitfinex):
                 'price': self.safe_integer(market, 'price_precision'),
                 'amount': 8,  # https://github.com/ccxt/ccxt/issues/7310
             }
+            minOrderSizeString = self.safe_string(market, 'minimum_order_size')
+            maxOrderSizeString = self.safe_string(market, 'maximum_order_size')
             limits = {
                 'amount': {
-                    'min': self.safe_number(market, 'minimum_order_size'),
-                    'max': self.safe_number(market, 'maximum_order_size'),
+                    'min': self.parse_number(minOrderSizeString),
+                    'max': self.parse_number(maxOrderSizeString),
                 },
                 'price': {
-                    'min': math.pow(10, -precision['price']),
-                    'max': math.pow(10, precision['price']),
+                    'min': self.parse_number('1e-8'),
+                    'max': None,
                 },
             }
             limits['cost'] = {
-                'min': limits['amount']['min'] * limits['price']['min'],
+                'min': None,
                 'max': None,
             }
             margin = self.safe_value(market, 'margin')
@@ -548,14 +554,6 @@ class bitfinex2(bitfinex):
                         'min': 1 / math.pow(10, precision),
                         'max': None,
                     },
-                    'price': {
-                        'min': 1 / math.pow(10, precision),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': fee,
                         'max': None,
@@ -589,10 +587,10 @@ class bitfinex2(bitfinex):
             if (accountType == type) and derivativeCondition:
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['total'] = self.safe_number(balance, 2)
-                account['free'] = self.safe_number(balance, 4)
+                account['total'] = self.safe_string(balance, 2)
+                account['free'] = self.safe_string(balance, 4)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         # transferring between derivatives wallet and regular wallet is not documented in their API
@@ -684,6 +682,7 @@ class bitfinex2(bitfinex):
         orderbook = self.publicGetBookSymbolPrecision(fullRequest)
         timestamp = self.milliseconds()
         result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': timestamp,
@@ -809,11 +808,18 @@ class bitfinex2(bitfinex):
         isPrivate = (tradeLength > 5)
         id = self.safe_string(trade, 0)
         amountIndex = 4 if isPrivate else 2
-        amount = self.safe_number(trade, amountIndex)
-        cost = None
-        priceIndex = 5 if isPrivate else 3
-        price = self.safe_number(trade, priceIndex)
         side = None
+        amountString = self.safe_string(trade, amountIndex)
+        priceIndex = 5 if isPrivate else 3
+        priceString = self.safe_string(trade, priceIndex)
+        if amountString[0] == '-':
+            side = 'sell'
+            amountString = amountString[1:]
+        else:
+            side = 'buy'
+        amount = self.parse_number(amountString)
+        price = self.parse_number(priceString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = None
         takerOrMaker = None
         type = None
@@ -831,33 +837,20 @@ class bitfinex2(bitfinex):
             orderId = self.safe_string(trade, 3)
             maker = self.safe_integer(trade, 8)
             takerOrMaker = 'maker' if (maker == 1) else 'taker'
-            feeCost = self.safe_number(trade, 9)
+            feeCostString = self.safe_string(trade, 9)
+            feeCostString = Precise.string_neg(feeCostString)
+            feeCost = self.parse_number(feeCostString)
             feeCurrencyId = self.safe_string(trade, 10)
             feeCurrency = self.safe_currency_code(feeCurrencyId)
-            if feeCost is not None:
-                feeCost = -feeCost
-                if symbol in self.markets:
-                    feeCost = self.fee_to_precision(symbol, feeCost)
-                else:
-                    currencyId = 'f' + feeCurrency
-                    if currencyId in self.currencies_by_id:
-                        currency = self.currencies_by_id[currencyId]
-                        feeCost = self.currency_to_precision(currency['code'], feeCost)
-                fee = {
-                    'cost': float(feeCost),
-                    'currency': feeCurrency,
-                }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
             orderType = trade[6]
             type = self.safe_string(self.options['exchangeTypes'], orderType)
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
-        if amount is not None:
-            side = 'sell' if (amount < 0) else 'buy'
-            amount = abs(amount)
-            if cost is None:
-                if price is not None:
-                    cost = amount * price
         return {
             'id': id,
             'timestamp': timestamp,
@@ -957,7 +950,6 @@ class bitfinex2(bitfinex):
         remaining = abs(self.safe_number(order, 6))
         signedAmount = self.safe_number(order, 7)
         amount = abs(signedAmount)
-        filled = amount - remaining
         side = 'sell' if (signedAmount < 0) else 'buy'
         orderType = self.safe_string(order, 8)
         type = self.safe_string(self.safe_value(self.options, 'exchangeTypes'), orderType)
@@ -968,9 +960,8 @@ class bitfinex2(bitfinex):
             status = self.parse_order_status(self.safe_string(parts, 0))
         price = self.safe_number(order, 16)
         average = self.safe_number(order, 17)
-        cost = price * filled
         clientOrderId = self.safe_string(order, 2)
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -985,14 +976,14 @@ class bitfinex2(bitfinex):
             'price': price,
             'stopPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

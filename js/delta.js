@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -262,8 +263,6 @@ module.exports = class delta extends Exchange {
                 'precision': 1 / Math.pow (10, precision),
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'min_withdrawal_amount'),
                         'max': undefined,
@@ -601,7 +600,7 @@ module.exports = class delta extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return this.parseOrderBook (result, undefined, 'buy', 'sell', 'price', 'size');
+        return this.parseOrderBook (result, symbol, undefined, 'buy', 'sell', 'price', 'size');
     }
 
     parseTrade (trade, market = undefined) {
@@ -656,12 +655,11 @@ module.exports = class delta extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         let timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         timestamp = this.safeIntegerProduct (trade, 'timestamp', 0.001, timestamp);
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'size');
-        let cost = undefined;
-        if ((amount !== undefined) && (price !== undefined)) {
-            cost = amount * price;
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'size');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const product = this.safeValue (trade, 'product', {});
         const marketId = this.safeString (product, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -821,11 +819,11 @@ module.exports = class delta extends Exchange {
             const currency = this.safeValue (currenciesByNumericId, currencyId);
             const code = (currency === undefined) ? currencyId : currency['code'];
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'balance');
-            account['free'] = this.safeNumber (balance, 'available_balance');
+            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString (balance, 'available_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchPosition (symbol, params = undefined) {

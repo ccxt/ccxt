@@ -831,11 +831,17 @@ class okex extends Exchange {
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $spot ? ($base . '/' . $quote) : $id;
         $lotSize = $this->safe_number_2($market, 'lot_size', 'trade_increment');
+        $minPrice = $this->safe_string($market, 'tick_size');
         $precision = array(
             'amount' => $this->safe_number($market, 'size_increment', $lotSize),
-            'price' => $this->safe_number($market, 'tick_size'),
+            'price' => $this->parse_number($minPrice),
         );
-        $minAmount = $this->safe_number_2($market, 'min_size', 'base_min_size');
+        $minAmountString = $this->safe_string_2($market, 'min_size', 'base_min_size');
+        $minAmount = $this->parse_number($minAmountString);
+        $minCost = null;
+        if (($minAmount !== null) && ($minPrice !== null)) {
+            $minCost = $this->parse_number(Precise::string_mul($minPrice, $minAmountString));
+        }
         $active = true;
         $fees = $this->safe_value_2($this->fees, $marketType, 'trading', array());
         return array_merge($fees, array(
@@ -863,7 +869,7 @@ class okex extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $precision['price'],
+                    'min' => $minCost,
                     'max' => null,
                 ),
             ),
@@ -1007,8 +1013,6 @@ class okex extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'min_withdrawal'),
                         'max' => null,
@@ -1032,6 +1036,8 @@ class okex extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         //
+        // spot
+        //
         //     {      asks => [ ["0.02685268", "0.242571", "1"],
         //                    ["0.02685493", "0.164085", "1"],
         //                    ...
@@ -1044,8 +1050,20 @@ class okex extends Exchange {
         //                    ["0.02634962", "0.264838", "2"]    ],
         //       $timestamp =>   "2018-12-17T20:24:16.159Z"            }
         //
-        $timestamp = $this->parse8601($this->safe_string($response, 'timestamp'));
-        return $this->parse_order_book($response, $timestamp);
+        // swap
+        //
+        //     {
+        //         "asks":[
+        //             ["916.21","94","0","1"]
+        //         ],
+        //         "bids":[
+        //             ["916.1","15","0","1"]
+        //         ],
+        //         "time":"2021-04-16T02:04:48.282Z"
+        //     }
+        //
+        $timestamp = $this->parse8601($this->safe_string_2($response, 'timestamp', 'time'));
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1243,9 +1261,12 @@ class okex extends Exchange {
             $quote = $market['quote'];
         }
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'timestamp', 'created_at'));
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'size', 'qty');
-        $amount = $this->safe_number($trade, 'order_qty', $amount);
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'size', 'qty');
+        $amountString = $this->safe_string($trade, 'order_qty', $amountString);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $takerOrMaker = $this->safe_string_2($trade, 'exec_type', 'liquidity');
         if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
@@ -1253,12 +1274,6 @@ class okex extends Exchange {
             $takerOrMaker = 'taker';
         }
         $side = $this->safe_string($trade, 'side');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
-        }
         $feeCost = $this->safe_number($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
@@ -1523,7 +1538,11 @@ class okex extends Exchange {
         //         }
         //     )
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
@@ -1568,7 +1587,11 @@ class okex extends Exchange {
         //         ),
         //     )
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $marketId = $this->safe_string($balance, 'instrument_id');
@@ -1648,7 +1671,11 @@ class okex extends Exchange {
         //     }
         //
         // their root field name is "$info", so our $info will contain their $info
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $info = $this->safe_value($response, 'info', array());
         $ids = is_array($info) ? array_keys($info) : array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -1697,7 +1724,7 @@ class okex extends Exchange {
         //                 "margin_mode":"crossed",
         //                 "margin_ratio":"1.0913",
         //                 "realized_pnl":"-0.0006",
-        //                 "timestamp":"2019-03-25T03:46:10.336Z",
+        //                 "$timestamp":"2019-03-25T03:46:10.336Z",
         //                 "total_avail_balance":"3.0000",
         //                 "unrealized_pnl":"0.0145"
         //             }
@@ -1706,6 +1733,7 @@ class okex extends Exchange {
         //
         // their root field name is "$info", so our $info will contain their $info
         $result = array( 'info' => $response );
+        $timestamp = null;
         $info = $this->safe_value($response, 'info', array());
         for ($i = 0; $i < count($info); $i++) {
             $balance = $info[$i];
@@ -1714,12 +1742,16 @@ class okex extends Exchange {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $symbol = $this->markets_by_id[$marketId]['symbol'];
             }
+            $balanceTimestamp = $this->parse8601($this->safe_string($balance, 'timestamp'));
+            $timestamp = ($timestamp === null) ? $balanceTimestamp : max ($timestamp, $balanceTimestamp);
             $account = $this->account();
             // it may be incorrect to use total, free and used for swap accounts
             $account['total'] = $this->safe_number($balance, 'equity');
             $account['free'] = $this->safe_number($balance, 'total_avail_balance');
             $result[$symbol] = $account;
         }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
         return $this->parse_balance($result);
     }
 

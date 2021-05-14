@@ -1,1 +1,1 @@
-__all__ = ['ecdsa']
+__all__ = ['ecdsa', 'keccak']

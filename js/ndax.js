@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -361,9 +362,10 @@ module.exports = class ndax extends Exchange {
         return result;
     }
 
-    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8) {
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8) {
         let nonce = undefined;
         const result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': undefined,
@@ -385,7 +387,7 @@ module.exports = class ndax extends Exchange {
                 nonce = Math.max (nonce, newNonce);
             }
             const bidask = this.parseBidAsk (level, priceKey, amountKey);
-            const levelSide = this.safeValue (level, 9);
+            const levelSide = this.safeInteger (level, 9);
             const side = levelSide ? asksKey : bidsKey;
             result[side].push (bidask);
         }
@@ -430,7 +432,7 @@ module.exports = class ndax extends Exchange {
         //         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
         //     ]
         //
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -714,8 +716,8 @@ module.exports = class ndax extends Exchange {
         //         "OMSId":1
         //     }
         //
-        let price = undefined;
-        let amount = undefined;
+        let priceString = undefined;
+        let amountString = undefined;
         let cost = undefined;
         let timestamp = undefined;
         let id = undefined;
@@ -726,11 +728,8 @@ module.exports = class ndax extends Exchange {
         let fee = undefined;
         let type = undefined;
         if (Array.isArray (trade)) {
-            price = this.safeNumber (trade, 3);
-            amount = this.safeNumber (trade, 2);
-            if ((price !== undefined) && (amount !== undefined)) {
-                cost = price * amount;
-            }
+            priceString = this.safeString (trade, 3);
+            amountString = this.safeString (trade, 2);
             timestamp = this.safeInteger (trade, 6);
             id = this.safeString (trade, 0);
             marketId = this.safeInteger (trade, 1);
@@ -742,8 +741,8 @@ module.exports = class ndax extends Exchange {
             id = this.safeString (trade, 'TradeId');
             orderId = this.safeString2 (trade, 'OrderId', 'OrigOrderId');
             marketId = this.safeString2 (trade, 'InstrumentId', 'Instrument');
-            price = this.safeNumber (trade, 'Price');
-            amount = this.safeNumber (trade, 'Quantity');
+            priceString = this.safeString (trade, 'Price');
+            amountString = this.safeString (trade, 'Quantity');
             cost = this.safeNumber2 (trade, 'Value', 'GrossValueExecuted');
             takerOrMaker = this.safeStringLower (trade, 'MakerTaker');
             side = this.safeStringLower (trade, 'Side');
@@ -757,6 +756,11 @@ module.exports = class ndax extends Exchange {
                     'currency': feeCurrencyCode,
                 };
             }
+        }
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const symbol = this.safeSymbol (marketId, market);
         return {
@@ -866,17 +870,21 @@ module.exports = class ndax extends Exchange {
         //         },
         //     ]
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'ProductId');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'Amount');
-            account['used'] = this.safeNumber (balance, 'Hold');
+            account['total'] = this.safeString (balance, 'Amount');
+            account['used'] = this.safeString (balance, 'Hold');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseLedgerEntryType (type) {
@@ -1247,7 +1255,7 @@ module.exports = class ndax extends Exchange {
             request['InstrumentId'] = market['id'];
         }
         if (since !== undefined) {
-            request['StartTimeStamp'] = since;
+            request['StartTimeStamp'] = parseInt (since / 1000);
         }
         if (limit !== undefined) {
             request['Depth'] = limit;
@@ -1451,7 +1459,7 @@ module.exports = class ndax extends Exchange {
             request['InstrumentId'] = market['id'];
         }
         if (since !== undefined) {
-            request['StartTimeStamp'] = since;
+            request['StartTimeStamp'] = parseInt (since / 1000);
         }
         if (limit !== undefined) {
             request['Depth'] = limit;

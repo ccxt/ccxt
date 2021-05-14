@@ -15,8 +15,8 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class bitso(Exchange):
@@ -188,12 +188,14 @@ class bitso(Exchange):
             }
             fees = self.safe_value(market, 'fees', {})
             flatRate = self.safe_value(fees, 'flat_rate', {})
-            maker = self.safe_number(flatRate, 'maker')
-            taker = self.safe_number(flatRate, 'taker')
+            makerString = self.safe_string(flatRate, 'maker')
+            takerString = self.safe_string(flatRate, 'taker')
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
             feeTiers = self.safe_value(fees, 'structure', [])
             fee = {
-                'taker': float(self.decimal_to_precision(taker / 100, ROUND, 0.00000001, TICK_SIZE)),
-                'maker': float(self.decimal_to_precision(maker / 100, ROUND, 0.00000001, TICK_SIZE)),
+                'taker': taker,
+                'maker': maker,
                 'percentage': True,
                 'tierBased': True,
             }
@@ -204,13 +206,11 @@ class bitso(Exchange):
                 volume = self.safe_number(tier, 'volume')
                 takerFee = self.safe_number(tier, 'taker')
                 makerFee = self.safe_number(tier, 'maker')
-                takerFeeToPrecision = float(self.decimal_to_precision(takerFee / 100, ROUND, 0.00000001, TICK_SIZE))
-                makerFeeToPrecision = float(self.decimal_to_precision(makerFee / 100, ROUND, 0.00000001, TICK_SIZE))
-                takerFees.append([volume, takerFeeToPrecision])
-                makerFees.append([volume, makerFeeToPrecision])
+                takerFees.append([volume, takerFee])
+                makerFees.append([volume, makerFee])
                 if j == 0:
-                    fee['taker'] = float(self.decimal_to_precision(taker / 100, ROUND, 0.00000001, TICK_SIZE))
-                    fee['maker'] = float(self.decimal_to_precision(maker / 100, ROUND, 0.00000001, TICK_SIZE))
+                    fee['taker'] = takerFee
+                    fee['maker'] = makerFee
             tiers = {
                 'taker': takerFees,
                 'maker': makerFees,
@@ -233,19 +233,48 @@ class bitso(Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalance(params)
-        balances = self.safe_value(response['payload'], 'balances')
-        result = {'info': response}
+        #
+        #     {
+        #       "success": True,
+        #       "payload": {
+        #         "balances": [
+        #           {
+        #             "currency": "bat",
+        #             "available": "0.00000000",
+        #             "locked": "0.00000000",
+        #             "total": "0.00000000",
+        #             "pending_deposit": "0.00000000",
+        #             "pending_withdrawal": "0.00000000"
+        #           },
+        #           {
+        #             "currency": "bch",
+        #             "available": "0.00000000",
+        #             "locked": "0.00000000",
+        #             "total": "0.00000000",
+        #             "pending_deposit": "0.00000000",
+        #             "pending_withdrawal": "0.00000000"
+        #           },
+        #         ],
+        #       },
+        #     }
+        #
+        payload = self.safe_value(response, 'payload', {})
+        balances = self.safe_value(payload, 'balances')
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
-            account = {
-                'free': self.safe_number(balance, 'available'),
-                'used': self.safe_number(balance, 'locked'),
-                'total': self.safe_number(balance, 'total'),
-            }
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'locked')
+            account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -255,7 +284,7 @@ class bitso(Exchange):
         response = await self.publicGetOrderBook(self.extend(request, params))
         orderbook = self.safe_value(response, 'payload')
         timestamp = self.parse8601(self.safe_string(orderbook, 'updated_at'))
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

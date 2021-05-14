@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -196,14 +197,6 @@ module.exports = class braziliex extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'MinWithdrawal'),
                         'max': Math.pow (10, precision),
@@ -357,18 +350,23 @@ module.exports = class braziliex extends Exchange {
             'market': this.marketId (symbol),
         };
         const response = await this.publicGetOrderbookMarket (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString2 (trade, 'date_exec', 'date'));
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const cost = this.safeNumber (trade, 'total');
+        let cost = this.safeNumber (trade, 'total');
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        }
         const orderId = this.safeString (trade, 'order_number');
         const type = 'limit';
         const side = this.safeString (trade, 'type');
@@ -410,11 +408,11 @@ module.exports = class braziliex extends Exchange {
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'available');
-            account['total'] = this.safeNumber (balance, 'total');
+            account['free'] = this.safeString (balance, 'available');
+            account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrder (order, market = undefined) {

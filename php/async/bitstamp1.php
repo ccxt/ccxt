@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\BadSymbol;
 use \ccxt\NotSupported;
+use \ccxt\Precise;
 
 class bitstamp1 extends Exchange {
 
@@ -94,7 +95,7 @@ class bitstamp1 extends Exchange {
         yield $this->load_markets();
         $orderbook = yield $this->publicGetOrderBook ($params);
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -145,14 +146,11 @@ class bitstamp1 extends Exchange {
             }
         }
         $id = $this->safe_string($trade, 'tid');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -196,12 +194,12 @@ class bitstamp1 extends Exchange {
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, $currencyId . '_available');
-            $account['used'] = $this->safe_number($balance, $currencyId . '_reserved');
-            $account['total'] = $this->safe_number($balance, $currencyId . '_balance');
+            $account['free'] = $this->safe_string($balance, $currencyId . '_available');
+            $account['used'] = $this->safe_string($balance, $currencyId . '_reserved');
+            $account['total'] = $this->safe_string($balance, $currencyId . '_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

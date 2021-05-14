@@ -812,8 +812,8 @@ class bitget extends Exchange {
         $tickSize = $this->safe_string($market, 'tick_size');
         $sizeIncrement = $this->safe_string($market, 'size_increment');
         $precision = array(
-            'amount' => floatval('1e-' . $sizeIncrement),
-            'price' => floatval('1e-' . $tickSize),
+            'amount' => $this->parse_number($this->parse_precision($sizeIncrement)),
+            'price' => $this->parse_number($this->parse_precision($tickSize)),
         );
         $minAmount = $this->safe_number_2($market, 'min_size', 'base_min_size');
         $status = $this->safe_string($market, 'status');
@@ -935,8 +935,6 @@ class bitget extends Exchange {
                 'precision' => null,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
                 ),
             );
@@ -1001,7 +999,7 @@ class bitget extends Exchange {
         $data = $this->safe_value($response, 'data', $response);
         $timestamp = $this->safe_integer_2($data, 'timestamp', 'ts');
         $nonce = $this->safe_integer($data, 'id');
-        $orderbook = $this->parse_order_book($data, $timestamp);
+        $orderbook = $this->parse_order_book($data, $symbol, $timestamp);
         $orderbook['nonce'] = $nonce;
         return $orderbook;
     }
@@ -1341,9 +1339,12 @@ class bitget extends Exchange {
         }
         $timestamp = $this->safe_integer($trade, 'created_at');
         $timestamp = $this->safe_integer_2($trade, 'timestamp', 'ts', $timestamp);
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'filled_amount', 'order_qty');
-        $amount = $this->safe_number_2($trade, 'size', 'amount', $amount);
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'filled_amount', 'order_qty');
+        $amountString = $this->safe_string_2($trade, 'size', 'amount', $amountString);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $takerOrMaker = $this->safe_string_2($trade, 'exec_type', 'liquidity');
         if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
@@ -1362,18 +1363,13 @@ class bitget extends Exchange {
             $type = $this->parse_order_type($side);
             $side = $this->parse_order_side($side);
         }
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
-        }
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost === null) {
-            $feeCost = $this->safe_number($trade, 'filled_fees');
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString === null) {
+            $feeCostString = $this->safe_string($trade, 'filled_fees');
         } else {
-            $feeCost = -$feeCost;
+            $feeCostString = Precise::string_neg($feeCostString);
         }
+        $feeCost = $this->parse_number($feeCostString);
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrency = ($side === 'buy') ? $base : $quote;
@@ -1614,13 +1610,13 @@ class bitget extends Exchange {
             }
             $type = $this->safe_value($balance, 'type');
             if ($type === 'trade') {
-                $result[$code]['free'] = $this->safe_number($balance, 'balance');
+                $result[$code]['free'] = $this->safe_string($balance, 'balance');
             } else if (($type === 'frozen') || ($type === 'lock')) {
-                $used = $this->safe_number($result[$code], 'used');
-                $result[$code]['used'] = $this->sum($used, $this->safe_number($balance, 'balance'));
+                $used = $this->safe_string($result[$code], 'used');
+                $result[$code]['used'] = Precise::string_add($used, $this->safe_string($balance, 'balance'));
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_swap_balance($response) {
@@ -1644,11 +1640,11 @@ class bitget extends Exchange {
             }
             $account = $this->account();
             // it may be incorrect to use total, free and used for swap accounts
-            $account['total'] = $this->safe_number($balance, 'equity');
-            $account['free'] = $this->safe_number($balance, 'total_avail_balance');
+            $account['total'] = $this->safe_string($balance, 'equity');
+            $account['free'] = $this->safe_string($balance, 'total_avail_balance');
             $result[$symbol] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_accounts($params = array ()) {

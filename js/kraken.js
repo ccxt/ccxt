@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -441,14 +442,6 @@ module.exports = class kraken extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': Math.pow (10, precision),
@@ -532,7 +525,7 @@ module.exports = class kraken extends Exchange {
         if (wsName !== undefined) {
             orderbook = this.safeValue (result, wsName, orderbook);
         }
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -842,9 +835,8 @@ module.exports = class kraken extends Exchange {
         let timestamp = undefined;
         let side = undefined;
         let type = undefined;
-        let price = undefined;
-        let amount = undefined;
-        let cost = undefined;
+        let priceString = undefined;
+        let amountString = undefined;
         let id = undefined;
         let orderId = undefined;
         let fee = undefined;
@@ -853,8 +845,8 @@ module.exports = class kraken extends Exchange {
             timestamp = this.safeTimestamp (trade, 2);
             side = (trade[3] === 's') ? 'sell' : 'buy';
             type = (trade[4] === 'l') ? 'limit' : 'market';
-            price = this.safeNumber (trade, 0);
-            amount = this.safeNumber (trade, 1);
+            priceString = this.safeString (trade, 0);
+            amountString = this.safeString (trade, 1);
             const tradeLength = trade.length;
             if (tradeLength > 6) {
                 id = this.safeString (trade, 6); // artificially added as per #1794
@@ -875,8 +867,8 @@ module.exports = class kraken extends Exchange {
             timestamp = this.safeTimestamp (trade, 'time');
             side = this.safeString (trade, 'type');
             type = this.safeString (trade, 'ordertype');
-            price = this.safeNumber (trade, 'price');
-            amount = this.safeNumber (trade, 'vol');
+            priceString = this.safeString (trade, 'price');
+            amountString = this.safeString (trade, 'vol');
             if ('fee' in trade) {
                 let currency = undefined;
                 if (market !== undefined) {
@@ -891,11 +883,9 @@ module.exports = class kraken extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         return {
             'id': id,
             'order': orderId,
@@ -963,17 +953,31 @@ module.exports = class kraken extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
+        //
+        //     {
+        //         "error":[],
+        //         "result":{
+        //             "ZUSD":"58.8649",
+        //             "KFEE":"4399.43",
+        //             "XXBT":"0.0000034506",
+        //         }
+        //     }
+        //
         const balances = this.safeValue (response, 'result', {});
-        const result = { 'info': balances };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balances, currencyId);
+            account['total'] = this.safeString (balances, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

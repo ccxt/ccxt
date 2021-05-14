@@ -130,12 +130,12 @@ class coincheck extends Exchange {
             if (is_array($balances) && array_key_exists($currencyId, $balances)) {
                 $account = $this->account();
                 $reserved = $currencyId . '_reserved';
-                $account['free'] = $this->safe_number($balances, $currencyId);
-                $account['used'] = $this->safe_number($balances, $reserved);
+                $account['free'] = $this->safe_string($balances, $currencyId);
+                $account['used'] = $this->safe_string($balances, $reserved);
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -211,7 +211,7 @@ class coincheck extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->publicGetOrderBooks (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -253,7 +253,7 @@ class coincheck extends Exchange {
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $id = $this->safe_string($trade, 'id');
-        $price = $this->safe_number($trade, 'rate');
+        $priceString = $this->safe_string($trade, 'rate');
         $marketId = $this->safe_string($trade, 'pair');
         $market = $this->safe_value($this->markets_by_id, $marketId, $market);
         $symbol = null;
@@ -280,7 +280,7 @@ class coincheck extends Exchange {
             }
         }
         $takerOrMaker = null;
-        $amount = null;
+        $amountString = null;
         $cost = null;
         $side = null;
         $fee = null;
@@ -292,7 +292,7 @@ class coincheck extends Exchange {
                 $takerOrMaker = 'maker';
             }
             $funds = $this->safe_value($trade, 'funds', array());
-            $amount = $this->safe_number($funds, $baseId);
+            $amountString = $this->safe_string($funds, $baseId);
             $cost = $this->safe_number($funds, $quoteId);
             $fee = array(
                 'currency' => $this->safe_string($trade, 'fee_currency'),
@@ -301,15 +301,13 @@ class coincheck extends Exchange {
             $side = $this->safe_string($trade, 'side');
             $orderId = $this->safe_string($trade, 'order_id');
         } else {
-            $amount = $this->safe_number($trade, 'amount');
+            $amountString = $this->safe_string($trade, 'amount');
             $side = $this->safe_string($trade, 'order_type');
         }
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         if ($cost === null) {
-            if ($amount !== null) {
-                if ($price !== null) {
-                    $cost = $amount * $price;
-                }
-            }
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         return array(
             'id' => $id,

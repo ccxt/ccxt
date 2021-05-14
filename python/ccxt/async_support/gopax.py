@@ -13,9 +13,8 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class gopax(Exchange):
@@ -227,10 +226,10 @@ class gopax(Exchange):
             minimums = self.safe_value(market, 'restApiOrderAmountMin', {})
             marketAsk = self.safe_value(minimums, 'marketAsk', {})
             marketBid = self.safe_value(minimums, 'marketBid', {})
-            takerFeePercent = self.safe_number(market, 'takerFeePercent')
-            makerFeePercent = self.safe_number(market, 'makerFeePercent')
-            taker = float(self.decimal_to_precision(takerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE))
-            maker = float(self.decimal_to_precision(makerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE))
+            takerFeePercentString = self.safe_string(market, 'takerFeePercent')
+            makerFeePercentString = self.safe_string(market, 'makerFeePercent')
+            taker = self.parse_number(Precise.string_div(takerFeePercentString, '100'))
+            maker = self.parse_number(Precise.string_div(makerFeePercentString, '100'))
             result.append({
                 'id': id,
                 'info': market,
@@ -302,14 +301,6 @@ class gopax(Exchange):
                         'min': None,
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(currency, 'withdrawalAmountMin'),
                         'max': None,
@@ -342,7 +333,7 @@ class gopax(Exchange):
         #     }
         #
         nonce = self.safe_integer(response, 'sequence')
-        result = self.parse_order_book(response, None, 'bid', 'ask', 1, 2)
+        result = self.parse_order_book(response, symbol, None, 'bid', 'ask', 1, 2)
         result['nonce'] = nonce
         return result
 
@@ -563,12 +554,13 @@ class gopax(Exchange):
             type = 'limit'
         elif type == '2':
             type = 'market'
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'amount', 'baseAmount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'amount', 'baseAmount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number(trade, 'quoteAmount')
         if cost is None:
-            if (price is not None) and (amount is not None):
-                cost = price * amount
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
@@ -672,13 +664,13 @@ class gopax(Exchange):
             balance = response[i]
             currencyId = self.safe_string_2(balance, 'asset', 'isoAlpha3')
             code = self.safe_currency_code(currencyId)
-            hold = self.safe_number(balance, 'hold')
-            pendingWithdrawal = self.safe_number(balance, 'pendingWithdrawal')
+            hold = self.safe_string(balance, 'hold')
+            pendingWithdrawal = self.safe_string(balance, 'pendingWithdrawal')
             account = self.account()
-            account['free'] = self.safe_number(balance, 'avail')
-            account['used'] = self.sum(hold, pendingWithdrawal)
+            account['free'] = self.safe_string(balance, 'avail')
+            account['used'] = Precise.string_add(hold, pendingWithdrawal)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

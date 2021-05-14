@@ -57,6 +57,7 @@ class coinbasepro extends Exchange {
                 '6h' => 21600,
                 '1d' => 86400,
             ),
+            'hostname' => 'pro.coinbase.com',
             'urls' => array(
                 'test' => array(
                     'public' => 'https://api-public.sandbox.pro.coinbase.com',
@@ -64,8 +65,8 @@ class coinbasepro extends Exchange {
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
                 'api' => array(
-                    'public' => 'https://api.pro.coinbase.com',
-                    'private' => 'https://api.pro.coinbase.com',
+                    'public' => 'https://api.{hostname}',
+                    'private' => 'https://api.{hostname}',
                 ),
                 'www' => 'https://pro.coinbase.com/',
                 'doc' => 'https://docs.pro.coinbase.com',
@@ -124,8 +125,9 @@ class coinbasepro extends Exchange {
                         'reports/{report_id}',
                         'transfers',
                         'transfers/{transfer_id}',
-                        'users/self/trailing-volume',
                         'users/self/exchange-limits',
+                        'users/self/hold-balances',
+                        'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                     ),
                     'post' => array(
@@ -260,14 +262,6 @@ class coinbasepro extends Exchange {
                         'min' => $this->safe_number($details, 'min_size'),
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($details, 'min_withdrawal_amount'),
                         'max' => null,
@@ -395,14 +389,13 @@ class coinbasepro extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_number($balance, 'available'),
-                'used' => $this->safe_number($balance, 'hold'),
-                'total' => $this->safe_number($balance, 'balance'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'hold');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -430,7 +423,7 @@ class coinbasepro extends Exchange {
         //         ]
         //     }
         //
-        $orderbook = $this->parse_order_book($response);
+        $orderbook = $this->parse_order_book($response, $symbol);
         $orderbook['nonce'] = $this->safe_integer($response, 'sequence');
         return $orderbook;
     }
@@ -576,10 +569,12 @@ class coinbasepro extends Exchange {
         if ($orderId !== null) {
             $side = ($trade['side'] === 'buy') ? 'buy' : 'sell';
         }
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'size');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         if ($cost === null) {
-            $cost = $amount * $price;
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         return array(
             'id' => $id,
@@ -946,19 +941,6 @@ class coinbasepro extends Exchange {
         return $this->privateDeleteOrders (array_merge($request, $params));
     }
 
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $rate = $market[$takerOrMaker];
-        $cost = $amount * $price;
-        $currency = $market['quote'];
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $currency,
-            'rate' => $rate,
-            'cost' => floatval($this->currency_to_precision($currency, $rate * $cost)),
-        );
-    }
-
     public function fetch_payment_methods($params = array ()) {
         return $this->privateGetPaymentMethods ($params);
     }
@@ -1134,39 +1116,6 @@ class coinbasepro extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/' . $this->implode_params($path, $params);
-        $query = $this->omit($params, $this->extract_params($path));
-        if ($method === 'GET') {
-            if ($query) {
-                $request .= '?' . $this->urlencode($query);
-            }
-        }
-        $url = $this->urls['api'][$api] . $request;
-        if ($api === 'private') {
-            $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
-            $payload = '';
-            if ($method !== 'GET') {
-                if ($query) {
-                    $body = $this->json($query);
-                    $payload = $body;
-                }
-            }
-            $what = $nonce . $method . $request . $payload;
-            $secret = base64_decode($this->secret);
-            $signature = $this->hmac($this->encode($what), $secret, 'sha256', 'base64');
-            $headers = array(
-                'CB-ACCESS-KEY' => $this->apiKey,
-                'CB-ACCESS-SIGN' => $signature,
-                'CB-ACCESS-TIMESTAMP' => $nonce,
-                'CB-ACCESS-PASSPHRASE' => $this->password,
-                'Content-Type' => 'application/json',
-            );
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
     public function create_deposit_address($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1194,6 +1143,39 @@ class coinbasepro extends Exchange {
             'tag' => $tag,
             'info' => $response,
         );
+    }
+
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $request = '/' . $this->implode_params($path, $params);
+        $query = $this->omit($params, $this->extract_params($path));
+        if ($method === 'GET') {
+            if ($query) {
+                $request .= '?' . $this->urlencode($query);
+            }
+        }
+        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $request;
+        if ($api === 'private') {
+            $this->check_required_credentials();
+            $nonce = (string) $this->nonce();
+            $payload = '';
+            if ($method !== 'GET') {
+                if ($query) {
+                    $body = $this->json($query);
+                    $payload = $body;
+                }
+            }
+            $what = $nonce . $method . $request . $payload;
+            $secret = base64_decode($this->secret);
+            $signature = $this->hmac($this->encode($what), $secret, 'sha256', 'base64');
+            $headers = array(
+                'CB-ACCESS-KEY' => $this->apiKey,
+                'CB-ACCESS-SIGN' => $signature,
+                'CB-ACCESS-TIMESTAMP' => $nonce,
+                'CB-ACCESS-PASSPHRASE' => $this->password,
+                'Content-Type' => 'application/json',
+            );
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

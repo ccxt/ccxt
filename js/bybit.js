@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -77,11 +78,11 @@ module.exports = class bybit extends Exchange {
                 'futures': {
                     'private': {
                         'get': [
-                            'position/list',
                             'order/list',
                             'order',
                             'stop-order/list',
                             'stop-order',
+                            'position/list',
                             'execution/list',
                             'trade/closed-pnl/list',
                         ],
@@ -99,6 +100,7 @@ module.exports = class bybit extends Exchange {
                             'position/leverage/save',
                             'position/switch-mode',
                             'position/switch-isolated',
+                            'position/risk-limit',
                         ],
                     },
                 },
@@ -119,6 +121,8 @@ module.exports = class bybit extends Exchange {
                             'account-ratio',
                             'time',
                             'announcement',
+                            'funding/prev-funding-rate',
+                            'risk-limit/list',
                         ],
                     },
                     'private': {
@@ -154,6 +158,7 @@ module.exports = class bybit extends Exchange {
                             'position/leverage/save',
                             'position/switch-mode',
                             'position/switch-isolated',
+                            'position/risk-limit',
                         ],
                     },
                 },
@@ -198,16 +203,7 @@ module.exports = class bybit extends Exchange {
                             'position/add-margin',
                             'position/set-leverage',
                             'position/trading-stop',
-                        ],
-                    },
-                },
-                'openapi': {
-                    'wallet': {
-                        'get': [
-                            'risk-limit/list',
-                        ],
-                        'post': [
-                            'risk-limit',
+                            'position/set-risk',
                         ],
                     },
                 },
@@ -434,8 +430,10 @@ module.exports = class bybit extends Exchange {
             const inverse = !linear;
             let symbol = base + '/' + quote;
             const baseQuote = base + quote;
+            let type = 'swap';
             if (baseQuote !== id) {
                 symbol = id;
+                type = 'future';
             }
             const lotSizeFilter = this.safeValue (market, 'lot_size_filter', {});
             const priceFilter = this.safeValue (market, 'price_filter', {});
@@ -448,6 +446,10 @@ module.exports = class bybit extends Exchange {
             if (status !== undefined) {
                 active = (status === 'Trading');
             }
+            const spot = (type === 'spot');
+            const swap = (type === 'swap');
+            const future = (type === 'future');
+            const option = (type === 'option');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -457,10 +459,11 @@ module.exports = class bybit extends Exchange {
                 'precision': precision,
                 'taker': this.safeNumber (market, 'taker_fee'),
                 'maker': this.safeNumber (market, 'maker_fee'),
-                'type': 'future',
-                'spot': false,
-                'future': true,
-                'option': false,
+                'type': type,
+                'spot': spot,
+                'swap': swap,
+                'future': future,
+                'option': option,
                 'linear': linear,
                 'inverse': inverse,
                 'limits': {
@@ -826,15 +829,13 @@ module.exports = class bybit extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const amount = this.safeNumber2 (trade, 'qty', 'exec_qty');
+        const amountString = this.safeString2 (trade, 'qty', 'exec_qty');
+        const priceString = this.safeString2 (trade, 'exec_price', 'price');
         let cost = this.safeNumber (trade, 'exec_value');
-        const price = this.safeNumber2 (trade, 'exec_price', 'price');
+        const amount = this.parseNumber (amountString);
+        const price = this.parseNumber (priceString);
         if (cost === undefined) {
-            if (amount !== undefined) {
-                if (price !== undefined) {
-                    cost = amount * price;
-                }
-            }
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         let timestamp = this.parse8601 (this.safeString (trade, 'time'));
         if (timestamp === undefined) {
@@ -907,7 +908,7 @@ module.exports = class bybit extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'Buy', asksKey = 'Sell', priceKey = 'price', amountKey = 'size') {
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'Buy', asksKey = 'Sell', priceKey = 'price', amountKey = 'size') {
         const bids = [];
         const asks = [];
         for (let i = 0; i < orderbook.length; i++) {
@@ -922,6 +923,7 @@ module.exports = class bybit extends Exchange {
             }
         }
         return {
+            'symbol': symbol,
             'bids': this.sortBy (bids, 0, true),
             'asks': this.sortBy (asks, 0),
             'timestamp': timestamp,
@@ -956,7 +958,7 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         const timestamp = this.safeTimestamp (response, 'time_now');
-        return this.parseOrderBook (result, timestamp, 'Buy', 'Sell', 'price', 'size');
+        return this.parseOrderBook (result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
     }
 
     async fetchBalance (params = {}) {
@@ -1010,12 +1012,12 @@ module.exports = class bybit extends Exchange {
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'available_balance');
-            account['used'] = this.safeNumber (balance, 'used_margin');
-            account['total'] = this.safeNumber (balance, 'equity');
+            account['free'] = this.safeString (balance, 'available_balance');
+            account['used'] = this.safeString (balance, 'used_margin');
+            account['total'] = this.safeString (balance, 'equity');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrderStatus (status) {
@@ -1993,7 +1995,7 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'data', []);
-        return this.parseTransactions (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2050,7 +2052,7 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, params);
+        return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     parseTransactionStatus (status) {
@@ -2255,6 +2257,37 @@ module.exports = class bybit extends Exchange {
         return this.safeString (types, type, type);
     }
 
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (Array.isArray (symbols)) {
+            const length = symbols.length;
+            if (length !== 1) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions takes exactly one symbol');
+            }
+            request['symbol'] = this.marketId (symbols[0]);
+        }
+        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        let response = undefined;
+        if (type === 'linear') {
+            response = await this.privateLinearGetPositionList (this.extend (request, params));
+        } else if (type === 'inverse') {
+            response = await this.v2PrivateGetPositionList (this.extend (request, params));
+        } else if (type === 'inverseFuture') {
+            response = await this.futuresPrivateGetPositionList (this.extend (request, params));
+        }
+        // {
+        //   ret_code: 0,
+        //   ret_msg: 'OK',
+        //   ext_code: '',
+        //   ext_info: '',
+        //   result: [] or {} depending on the request
+        // }
+        return this.safeValue (response, 'result');
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
         const type = this.safeString (api, 0);
@@ -2318,36 +2351,5 @@ module.exports = class bybit extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
-    }
-
-    async fetchPositions (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        if (Array.isArray (symbols)) {
-            const length = symbols.length;
-            if (length !== 1) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions takes exactly one symbol');
-            }
-            request['symbol'] = this.marketId (symbols[0]);
-        }
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        let response = undefined;
-        if (type === 'linear') {
-            response = await this.privateLinearGetPositionList (this.extend (request, params));
-        } else if (type === 'inverse') {
-            response = await this.v2PrivateGetPositionList (this.extend (request, params));
-        } else if (type === 'inverseFuture') {
-            response = await this.futuresPrivateGetPositionList (this.extend (request, params));
-        }
-        // {
-        //   ret_code: 0,
-        //   ret_msg: 'OK',
-        //   ext_code: '',
-        //   ext_info: '',
-        //   result: [] or {} depending on the request
-        // }
-        return this.safeValue (response, 'result');
     }
 };

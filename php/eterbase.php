@@ -317,14 +317,6 @@ class eterbase extends Exchange {
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'withdrawalMin'),
                         'max' => $this->safe_number($currency, 'withdrawalMax'),
@@ -460,8 +452,10 @@ class eterbase extends Exchange {
         //         "filledAt" => 1556355722341
         //     }
         //
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'qty');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'qty');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $fee = null;
         $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
@@ -473,8 +467,8 @@ class eterbase extends Exchange {
             );
         }
         $cost = $this->safe_number($trade, 'qty');
-        if (($cost === null) && ($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $timestamp = $this->safe_integer_2($trade, 'executedAt', 'filledAt');
         $tradeSide = $this->safe_string($trade, 'side');
@@ -556,7 +550,7 @@ class eterbase extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -639,14 +633,13 @@ class eterbase extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'assetId');
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_number($balance, 'available'),
-                'used' => $this->safe_number($balance, 'reserved'),
-                'total' => $this->safe_number($balance, 'balance'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'reserved');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

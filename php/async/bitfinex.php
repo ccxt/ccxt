@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\NotSupported;
+use \ccxt\Precise;
 
 class bitfinex extends Exchange {
 
@@ -162,6 +163,7 @@ class bitfinex extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => true,
                     'percentage' => true,
                     'maker' => 0.1 / 100,
@@ -289,45 +291,34 @@ class bitfinex extends Exchange {
             ),
             // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
             'commonCurrencies' => array(
-                'ABS' => 'ABYSS',
-                'AIO' => 'AION',
                 'ALG' => 'ALGO', // https://github.com/ccxt/ccxt/issues/6034
                 'AMP' => 'AMPL',
-                'ATM' => 'ATMI',
                 'ATO' => 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
-                'BAB' => 'BCH',
-                'CTX' => 'CTXC',
-                'DAD' => 'DADI',
+                'BCHABC' => 'BCHA',
+                'BCHN' => 'BCH',
                 'DAT' => 'DATA',
+                'DOG' => 'MDOGE',
                 'DSH' => 'DASH',
-                'DRK' => 'DRK',
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'EDO' => 'PNT',
-                'GSD' => 'GUSD',
-                'HOT' => 'Hydro Protocol',
-                'IOS' => 'IOST',
+                'EUS' => 'EURS',
+                'EUT' => 'EURT',
                 'IOT' => 'IOTA',
                 'IQX' => 'IQ',
-                'MIT' => 'MITH',
                 'MNA' => 'MANA',
-                'NCA' => 'NCASH',
                 'ORS' => 'ORS Group', // conflict with Origin Sport #3230
-                'POY' => 'POLY',
+                'PAS' => 'PASS',
                 'QSH' => 'QASH',
                 'QTM' => 'QTUM',
                 'RBT' => 'RBTC',
-                'SEE' => 'SEER',
                 'SNG' => 'SNGLS',
-                'SPK' => 'SPANK',
                 'STJ' => 'STORJ',
-                'TRI' => 'TRIO',
                 'TSD' => 'TUSD',
                 'YYW' => 'YOYOW',
                 'UDC' => 'USDC',
                 'UST' => 'USDT',
-                'UTN' => 'UTNP',
                 'VSY' => 'VSYS',
                 'WAX' => 'WAXP',
                 'XCH' => 'XCHF',
@@ -558,18 +549,20 @@ class bitfinex extends Exchange {
                 // Anything exceeding this will be rounded to the 8th decimal.
                 'amount' => 8,
             );
+            $minAmountString = $this->safe_string($market, 'minimum_order_size');
+            $maxAmountString = $this->safe_string($market, 'maximum_order_size');
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_number($market, 'minimum_order_size'),
-                    'max' => $this->safe_number($market, 'maximum_order_size'),
+                    'min' => $this->parse_number($minAmountString),
+                    'max' => $this->parse_number($maxAmountString),
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision['price']),
-                    'max' => pow(10, $precision['price']),
+                    'min' => $this->parse_number('1e-8'),
+                    'max' => null,
                 ),
             );
             $limits['cost'] = array(
-                'min' => $limits['amount']['min'] * $limits['price']['min'],
+                'min' => null,
                 'max' => null,
             );
             $margin = $this->safe_value($market, 'margin');
@@ -605,32 +598,6 @@ class bitfinex extends Exchange {
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
         // Prices submit with a precision larger than 5 will be cut by the API.
         return $this->decimal_to_precision($price, TRUNCATE, 8, DECIMAL_PLACES);
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $rate = $market[$takerOrMaker];
-        $cost = $amount * $rate;
-        $key = 'quote';
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-        }
-        $code = $market[$key];
-        $currency = $this->safe_value($this->currencies, $code);
-        if ($currency !== null) {
-            $precision = $this->safe_integer($currency, 'precision');
-            if ($precision !== null) {
-                $cost = floatval($this->currency_to_precision($code, $cost));
-            }
-        }
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => $cost,
-        );
     }
 
     public function fetch_balance($params = array ()) {
@@ -675,13 +642,13 @@ class bitfinex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4989
                 if (!(is_array($result) && array_key_exists($code, $result))) {
                     $account = $this->account();
-                    $account['free'] = $this->safe_number($balance, 'available');
-                    $account['total'] = $this->safe_number($balance, 'amount');
+                    $account['free'] = $this->safe_string($balance, 'available');
+                    $account['total'] = $this->safe_string($balance, 'amount');
                     $result[$code] = $account;
                 }
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
@@ -761,7 +728,7 @@ class bitfinex extends Exchange {
             $request['limit_asks'] = $limit;
         }
         $response = yield $this->publicGetBookSymbol (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -844,14 +811,11 @@ class bitfinex extends Exchange {
         $type = null;
         $side = $this->safe_string_lower($trade, 'type');
         $orderId = $this->safe_string($trade, 'order_id');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
         if (is_array($trade) && array_key_exists('fee_amount', $trade)) {
             $feeCost = -$this->safe_number($trade, 'fee_amount');

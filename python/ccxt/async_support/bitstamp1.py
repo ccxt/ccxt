@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class bitstamp1(Exchange):
@@ -91,7 +92,7 @@ class bitstamp1(Exchange):
         await self.load_markets()
         orderbook = await self.publicGetOrderBook(params)
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     async def fetch_ticker(self, symbol, params={}):
         if symbol != 'BTC/USD':
@@ -136,12 +137,11 @@ class bitstamp1(Exchange):
             if trade['currency_pair'] in self.markets_by_id:
                 market = self.markets_by_id[trade['currency_pair']]
         id = self.safe_string(trade, 'tid')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -181,11 +181,11 @@ class bitstamp1(Exchange):
             currency = self.currency(code)
             currencyId = currency['id']
             account = self.account()
-            account['free'] = self.safe_number(balance, currencyId + '_available')
-            account['used'] = self.safe_number(balance, currencyId + '_reserved')
-            account['total'] = self.safe_number(balance, currencyId + '_balance')
+            account['free'] = self.safe_string(balance, currencyId + '_available')
+            account['used'] = self.safe_string(balance, currencyId + '_reserved')
+            account['total'] = self.safe_string(balance, currencyId + '_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':

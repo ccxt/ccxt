@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -124,7 +125,7 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const quotes = [ 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt', 'gol' ];
+        const quotes = [ 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' ];
         const pricePrecisions = {
             'UAH': 0,
         };
@@ -189,7 +190,7 @@ module.exports = class kuna extends Exchange {
         }
         const orderbook = await this.publicGetDepth (this.extend (request, params));
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -288,9 +289,14 @@ module.exports = class kuna extends Exchange {
             };
             side = this.safeString (sideMap, side, side);
         }
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'volume');
-        const cost = this.safeNumber (trade, 'funds');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'volume');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        let cost = this.safeNumber (trade, 'funds');
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        }
         const orderId = this.safeString (trade, 'order_id');
         const id = this.safeString (trade, 'id');
         return {
@@ -339,11 +345,11 @@ module.exports = class kuna extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'locked');
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

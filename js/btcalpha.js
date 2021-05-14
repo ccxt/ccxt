@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -132,10 +133,13 @@ module.exports = class btcalpha extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const pricePrecision = this.safeString (market, 'price_precision');
+            const priceLimit = this.parsePrecision (pricePrecision);
             const precision = {
                 'amount': 8,
-                'price': this.safeInteger (market, 'price_precision'),
+                'price': parseInt (pricePrecision),
             };
+            const amountLimit = this.safeString (market, 'minimum_order_size');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -145,15 +149,15 @@ module.exports = class btcalpha extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeNumber (market, 'minimum_order_size'),
+                        'min': this.parseNumber (amountLimit),
                         'max': this.safeNumber (market, 'maximum_order_size'),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': this.parseNumber (priceLimit),
+                        'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.parseNumber (Precise.stringMul (priceLimit, amountLimit)),
                         'max': undefined,
                     },
                 },
@@ -175,7 +179,7 @@ module.exports = class btcalpha extends Exchange {
             request['limit_buy'] = limit;
         }
         const response = await this.publicGetOrderbookPairName (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'buy', 'sell', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, undefined, 'buy', 'sell', 'price', 'amount');
     }
 
     parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
@@ -198,14 +202,11 @@ module.exports = class btcalpha extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeTimestamp (trade, 'timestamp');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = parseFloat (this.costToPrecision (symbol, price * amount));
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString2 (trade, 'id', 'tid');
         const side = this.safeString2 (trade, 'my_side', 'side');
         const orderId = this.safeString (trade, 'o_id');
@@ -295,11 +296,11 @@ module.exports = class btcalpha extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeNumber (balance, 'reserve');
-            account['total'] = this.safeNumber (balance, 'balance');
+            account['used'] = this.safeString (balance, 'reserve');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrderStatus (status) {

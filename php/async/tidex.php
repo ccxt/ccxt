@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class tidex extends Exchange {
 
@@ -90,6 +91,7 @@ class tidex extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
                     'taker' => 0.1 / 100,
@@ -189,19 +191,11 @@ class tidex extends Exchange {
                     ),
                     'deposit' => array(
                         'active' => $canDeposit,
-                        'fee' => 0.0,
+                        'fee' => $this->parse_number('0'),
                     ),
                 ),
                 'limits' => array(
                     'amount' => array(
-                        'min' => null,
-                        'max' => pow(10, $precision),
-                    ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
@@ -218,24 +212,6 @@ class tidex extends Exchange {
             );
         }
         return $result;
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $key = 'quote';
-        $rate = $market[$takerOrMaker];
-        $cost = floatval($this->cost_to_precision($symbol, $amount * $rate));
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-        }
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => $cost,
-        );
     }
 
     public function fetch_markets($params = array ()) {
@@ -286,7 +262,9 @@ class tidex extends Exchange {
             );
             $hidden = $this->safe_integer($market, 'hidden');
             $active = ($hidden === 0);
-            $takerFee = $this->safe_number($market, 'fee');
+            $takerFeeString = $this->safe_string($market, 'fee');
+            $takerFeeString = Precise::string_div($takerFeeString, '100');
+            $takerFee = $this->parse_number($takerFeeString);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -295,7 +273,7 @@ class tidex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
-                'taker' => $takerFee / 100,
+                'taker' => $takerFee,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
@@ -307,8 +285,39 @@ class tidex extends Exchange {
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privatePostGetInfoExt ($params);
+        //
+        //     {
+        //         "success":1,
+        //         "return":array(
+        //             "$funds":array(
+        //                 "btc":array("value":0.0000499885629956,"inOrders":0.0),
+        //                 "eth":array("value":0.000000030741708,"inOrders":0.0),
+        //                 "tdx":array("value":0.0000000155385356,"inOrders":0.0)
+        //             ),
+        //             "rights":array(
+        //                 "info":true,
+        //                 "trade":true,
+        //                 "withdraw":false
+        //             ),
+        //             "transaction_count":0,
+        //             "open_orders":0,
+        //             "server_time":1619436907
+        //         ),
+        //         "stat":{
+        //             "isSuccess":true,
+        //             "serverTime":"00:00:00.0001157",
+        //             "time":"00:00:00.0101364",
+        //             "errors":null
+        //         }
+        //     }
+        //
         $balances = $this->safe_value($response, 'return');
-        $result = array( 'info' => $balances );
+        $timestamp = $this->safe_timestamp($balances, 'server_time');
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         $funds = $this->safe_value($balances, 'funds', array());
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
@@ -316,11 +325,11 @@ class tidex extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($funds, $currencyId, array());
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'value');
-            $account['used'] = $this->safe_number($balance, 'inOrders');
+            $account['free'] = $this->safe_string($balance, 'value');
+            $account['used'] = $this->safe_string($balance, 'inOrders');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -338,7 +347,7 @@ class tidex extends Exchange {
             throw new ExchangeError($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
         }
         $orderbook = $response[$market['id']];
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
@@ -460,12 +469,15 @@ class tidex extends Exchange {
         } else if ($side === 'bid') {
             $side = 'buy';
         }
-        $price = $this->safe_number_2($trade, 'rate', 'price');
+        $priceString = $this->safe_string_2($trade, 'rate', 'price');
         $id = $this->safe_string_2($trade, 'trade_id', 'tid');
         $orderId = $this->safe_string($trade, 'order_id');
         $marketId = $this->safe_string($trade, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $amount = $this->safe_number($trade, 'amount');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $type = 'limit'; // all trades are still limit trades
         $takerOrMaker = null;
         $fee = null;
@@ -486,12 +498,6 @@ class tidex extends Exchange {
             }
             if ($fee === null) {
                 $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker);
-            }
-        }
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
             }
         }
         return array(
@@ -549,17 +555,18 @@ class tidex extends Exchange {
         $status = 'open';
         $filled = 0.0;
         $remaining = $amount;
-        if (is_array($response) && array_key_exists('return', $response)) {
-            $id = $this->safe_string($response['return'], 'order_id');
+        $returnResult = $this->safe_value($response, 'return');
+        if ($returnResult !== null) {
+            $id = $this->safe_string($returnResult, 'order_id');
             if ($id === '0') {
-                $id = $this->safe_string($response['return'], 'init_order_id');
+                $id = $this->safe_string($returnResult, 'init_order_id');
                 $status = 'closed';
             }
-            $filled = $this->safe_number($response['return'], 'received', 0.0);
-            $remaining = $this->safe_number($response['return'], 'remains', $amount);
+            $filled = $this->safe_number($returnResult, 'received', $filled);
+            $remaining = $this->safe_number($returnResult, 'remains', $amount);
         }
         $timestamp = $this->milliseconds();
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -569,7 +576,7 @@ class tidex extends Exchange {
             'type' => $type,
             'side' => $side,
             'price' => $price,
-            'cost' => $price * $filled,
+            'cost' => null,
             'amount' => $amount,
             'remaining' => $remaining,
             'filled' => $filled,
@@ -579,7 +586,7 @@ class tidex extends Exchange {
             'clientOrderId' => null,
             'average' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

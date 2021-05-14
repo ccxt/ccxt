@@ -17,6 +17,8 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class crex24(Exchange):
@@ -123,6 +125,7 @@ class crex24(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': True,
@@ -143,6 +146,8 @@ class crex24(Exchange):
                 'BIT': 'BitMoney',
                 'BULL': 'BuySell',
                 'CREDIT': 'TerraCredit',
+                'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
+                'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
                 'IQ': 'IQ.Cash',
                 'PUT': 'PutinCoin',
@@ -216,12 +221,12 @@ class crex24(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            tickSize = self.safe_value(market, 'tickSize')
-            minPrice = self.safe_value(market, 'minPrice')
+            tickSize = self.safe_number(market, 'tickSize')
+            minPrice = self.safe_number(market, 'minPrice')
             minAmount = self.safe_number(market, 'minVolume')
             precision = {
-                'amount': self.precision_from_string(self.number_to_string(minAmount)),
-                'price': self.precision_from_string(self.number_to_string(tickSize)),
+                'amount': minAmount,
+                'price': tickSize,
             }
             active = (market['state'] == 'active')
             result.append({
@@ -284,7 +289,8 @@ class crex24(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            precision = self.safe_integer(currency, 'withdrawalPrecision')
+            withdrawalPrecision = self.safe_integer(currency, 'withdrawalPrecision')
+            precision = math.pow(10, -withdrawalPrecision)
             address = self.safe_value(currency, 'BaseAddress')
             active = (currency['depositsAllowed'] and currency['withdrawalsAllowed'] and not currency['isDelisted'])
             type = 'fiat' if currency['isFiat'] else 'crypto'
@@ -302,14 +308,6 @@ class crex24(Exchange):
                     'amount': {
                         'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
                     },
                     'deposit': {
                         'min': self.safe_number(currency, 'minDeposit'),
@@ -345,10 +343,10 @@ class crex24(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            account['used'] = self.safe_number(balance, 'reserved')
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'reserved')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -377,7 +375,7 @@ class crex24(Exchange):
         #                     {price: 0.03124, volume: 2.63462933},
         #                     {price: 0.069, volume: 0.004}            ]}
         #
-        return self.parse_order_book(response, None, 'buyLevels', 'sellLevels', 'price', 'volume')
+        return self.parse_order_book(response, symbol, None, 'buyLevels', 'sellLevels', 'price', 'volume')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -506,12 +504,11 @@ class crex24(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'volume')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'volume')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'orderId')

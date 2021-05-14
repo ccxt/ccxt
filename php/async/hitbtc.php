@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\ExchangeNotAvailable;
+use \ccxt\Precise;
 
 class hitbtc extends Exchange {
 
@@ -189,6 +190,7 @@ class hitbtc extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'AUTO' => 'Cube',
                 'BCC' => 'BCC', // initial symbol for Bitcoin Cash, now inactive
                 'BET' => 'DAO.Casino',
                 'BOX' => 'BOX Token',
@@ -251,8 +253,10 @@ class hitbtc extends Exchange {
             if (mb_strpos($id, '_') !== false) {
                 $symbol = $id;
             }
-            $lot = $this->safe_number($market, 'quantityIncrement');
-            $step = $this->safe_number($market, 'tickSize');
+            $lotString = $this->safe_string($market, 'quantityIncrement');
+            $stepString = $this->safe_string($market, 'tickSize');
+            $lot = $this->parse_number($lotString);
+            $step = $this->parse_number($stepString);
             $precision = array(
                 'price' => $step,
                 'amount' => $lot,
@@ -284,7 +288,7 @@ class hitbtc extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $lot * $step,
+                        'min' => $this->parse_number(Precise::string_mul($lotString, $stepString)),
                         'max' => null,
                     ),
                 ),
@@ -398,14 +402,6 @@ class hitbtc extends Exchange {
                         'min' => 1 / pow(10, $decimals),
                         'max' => pow(10, $decimals),
                     ),
-                    'price' => array(
-                        'min' => 1 / pow(10, $decimals),
-                        'max' => pow(10, $decimals),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => null,
                         'max' => pow(10, $precision),
@@ -447,17 +443,28 @@ class hitbtc extends Exchange {
         $method = 'privateGet' . $this->capitalize($typeId) . 'Balance';
         $query = $this->omit($params, 'type');
         $response = yield $this->$method ($query);
-        $result = array( 'info' => $response );
+        //
+        //     array(
+        //         array("currency":"SPI","available":"0","reserved":"0"),
+        //         array("currency":"GRPH","available":"0","reserved":"0"),
+        //         array("currency":"DGTX","available":"0","reserved":"0"),
+        //     )
+        //
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['used'] = $this->safe_number($balance, 'reserved');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'reserved');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -515,7 +522,7 @@ class hitbtc extends Exchange {
             $request['limit'] = $limit; // default = 100, 0 = unlimited
         }
         $response = yield $this->publicGetOrderbookSymbol (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bid', 'ask', 'price', 'size');
+        return $this->parse_order_book($response, $symbol, null, 'bid', 'ask', 'price', 'size');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -635,9 +642,11 @@ class hitbtc extends Exchange {
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $orderId = $this->safe_string($trade, 'clientOrderId');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'quantity');
-        $cost = $price * $amount;
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'quantity');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $side = $this->safe_string($trade, 'side');
         $id = $this->safe_string($trade, 'id');
         return array(

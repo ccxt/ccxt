@@ -4,7 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } = require ('./base/errors');
-const { ROUND, TICK_SIZE } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -92,6 +93,7 @@ module.exports = class currencycom extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
                     'taker': 0.002,
@@ -283,7 +285,7 @@ module.exports = class currencycom extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': -1 * Math.log10 (precision['amount']),
+                        'min': -Math.log10 (precision['amount']),
                         'max': undefined,
                     },
                 },
@@ -335,27 +337,6 @@ module.exports = class currencycom extends Exchange {
             result.push (entry);
         }
         return result;
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        let key = 'quote';
-        const rate = market[takerOrMaker];
-        let cost = amount * rate;
-        let precision = market['precision']['price'];
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-            precision = market['precision']['amount'];
-        }
-        cost = this.decimalToPrecision (cost, ROUND, precision, this.precisionMode);
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (cost),
-        };
     }
 
     async fetchAccounts (params = {}) {
@@ -439,11 +420,11 @@ module.exports = class currencycom extends Exchange {
             const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'free');
-            account['used'] = this.safeNumber (balance, 'locked');
+            account['free'] = this.safeString (balance, 'free');
+            account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchBalance (params = {}) {
@@ -499,7 +480,7 @@ module.exports = class currencycom extends Exchange {
         //         ]
         //     }
         //
-        const orderbook = this.parseOrderBook (response);
+        const orderbook = this.parseOrderBook (response, symbol);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
     }
@@ -704,8 +685,11 @@ module.exports = class currencycom extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
-        const price = this.safeNumber2 (trade, 'p', 'price');
-        const amount = this.safeNumber2 (trade, 'q', 'qty');
+        const priceString = this.safeString2 (trade, 'p', 'price');
+        const amountString = this.safeString2 (trade, 'q', 'qty');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString2 (trade, 'a', 'id');
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
@@ -743,7 +727,7 @@ module.exports = class currencycom extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         };
     }

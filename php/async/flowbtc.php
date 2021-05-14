@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\Precise;
 
 class flowbtc extends Exchange {
 
@@ -133,11 +134,11 @@ class flowbtc extends Exchange {
             $currencyId = $balance['name'];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'balance');
-            $account['total'] = $this->safe_number($balance, 'hold');
+            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['total'] = $this->safe_string($balance, 'hold');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -147,7 +148,7 @@ class flowbtc extends Exchange {
             'productPair' => $market['id'],
         );
         $response = yield $this->publicPostGetOrderBook (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'px', 'qty');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'px', 'qty');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -187,14 +188,11 @@ class flowbtc extends Exchange {
         $timestamp = $this->safe_timestamp($trade, 'unixtime');
         $side = ($trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
         $id = $this->safe_string($trade, 'tid');
-        $price = $this->safe_number($trade, 'px');
-        $amount = $this->safe_number($trade, 'qty');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'px');
+        $amountString = $this->safe_string($trade, 'qty');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,

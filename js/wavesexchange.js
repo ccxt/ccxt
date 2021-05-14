@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -389,6 +390,7 @@ module.exports = class wavesexchange extends Exchange {
         const bids = this.parseOrderBookSide (this.safeValue (response, 'bids'), market, limit);
         const asks = this.parseOrderBookSide (this.safeValue (response, 'asks'), market, limit);
         return {
+            'symbol': symbol,
             'bids': bids,
             'asks': asks,
             'timestamp': timestamp,
@@ -1349,8 +1351,11 @@ module.exports = class wavesexchange extends Exchange {
         // }
         const balances = this.safeValue (totalBalance, 'balances');
         const result = {};
+        let timestamp = undefined;
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
+            const entryTimestamp = this.safeInteger (entry, 'timestamp');
+            timestamp = (timestamp === undefined) ? entryTimestamp : Math.max (timestamp, entryTimestamp);
             const issueTransaction = this.safeValue (entry, 'issueTransaction');
             const decimals = this.safeInteger (issueTransaction, 'decimals');
             const currencyId = this.safeString (entry, 'assetId');
@@ -1362,10 +1367,10 @@ module.exports = class wavesexchange extends Exchange {
                 result[code]['total'] = this.fromWei (balance, decimals);
             }
         }
-        const timestamp = this.milliseconds ();
+        const currentTimestamp = this.milliseconds ();
         const byteArray = [
             this.base58ToBinary (this.apiKey),
-            this.numberToBE (timestamp, 8),
+            this.numberToBE (currentTimestamp, 8),
         ];
         const binary = this.binaryConcatArray (byteArray);
         const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
@@ -1373,7 +1378,7 @@ module.exports = class wavesexchange extends Exchange {
         const matcherRequest = {
             'publicKey': this.apiKey,
             'signature': signature,
-            'timestamp': timestamp.toString (),
+            'timestamp': currentTimestamp.toString (),
         };
         const reservedBalance = await this.matcherGetMatcherBalanceReservedPublicKey (matcherRequest);
         // { WAVES: 200300000 }
@@ -1405,6 +1410,8 @@ module.exports = class wavesexchange extends Exchange {
                 result[code]['used'] = 0.0;
             }
         }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
         return this.parseBalance (result);
     }
 
@@ -1489,8 +1496,11 @@ module.exports = class wavesexchange extends Exchange {
         const datetime = this.safeString (data, 'timestamp');
         const timestamp = this.parse8601 (datetime);
         const id = this.safeString (data, 'id');
-        const price = this.safeNumber (data, 'price');
-        const amount = this.safeNumber (data, 'amount');
+        const priceString = this.safeString (data, 'price');
+        const amountString = this.safeString (data, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const order1 = this.safeValue (data, 'order1');
         const order2 = this.safeValue (data, 'order2');
         let order = undefined;
@@ -1509,10 +1519,6 @@ module.exports = class wavesexchange extends Exchange {
         }
         const side = this.safeString (order, 'orderType');
         const orderId = this.safeString (order, 'id');
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
         const fee = {
             'cost': this.safeNumber (data, 'fee'),
             'currency': this.safeCurrencyCode (this.safeString (order, 'matcherFeeAssetId', 'WAVES')),

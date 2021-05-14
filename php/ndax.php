@@ -363,9 +363,10 @@ class ndax extends Exchange {
         return $result;
     }
 
-    public function parse_order_book($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 6, $amountKey = 8) {
+    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 6, $amountKey = 8) {
         $nonce = null;
         $result = array(
+            'symbol' => $symbol,
             'bids' => array(),
             'asks' => array(),
             'timestamp' => null,
@@ -387,7 +388,7 @@ class ndax extends Exchange {
                 $nonce = max ($nonce, $newNonce);
             }
             $bidask = $this->parse_bid_ask($level, $priceKey, $amountKey);
-            $levelSide = $this->safe_value($level, 9);
+            $levelSide = $this->safe_integer($level, 9);
             $side = $levelSide ? $asksKey : $bidsKey;
             $result[$side][] = $bidask;
         }
@@ -432,7 +433,7 @@ class ndax extends Exchange {
         //         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
         //     ]
         //
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -716,8 +717,8 @@ class ndax extends Exchange {
         //         "OMSId":1
         //     }
         //
-        $price = null;
-        $amount = null;
+        $priceString = null;
+        $amountString = null;
         $cost = null;
         $timestamp = null;
         $id = null;
@@ -728,11 +729,8 @@ class ndax extends Exchange {
         $fee = null;
         $type = null;
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
-            $price = $this->safe_number($trade, 3);
-            $amount = $this->safe_number($trade, 2);
-            if (($price !== null) && ($amount !== null)) {
-                $cost = $price * $amount;
-            }
+            $priceString = $this->safe_string($trade, 3);
+            $amountString = $this->safe_string($trade, 2);
             $timestamp = $this->safe_integer($trade, 6);
             $id = $this->safe_string($trade, 0);
             $marketId = $this->safe_integer($trade, 1);
@@ -744,8 +742,8 @@ class ndax extends Exchange {
             $id = $this->safe_string($trade, 'TradeId');
             $orderId = $this->safe_string_2($trade, 'OrderId', 'OrigOrderId');
             $marketId = $this->safe_string_2($trade, 'InstrumentId', 'Instrument');
-            $price = $this->safe_number($trade, 'Price');
-            $amount = $this->safe_number($trade, 'Quantity');
+            $priceString = $this->safe_string($trade, 'Price');
+            $amountString = $this->safe_string($trade, 'Quantity');
             $cost = $this->safe_number_2($trade, 'Value', 'GrossValueExecuted');
             $takerOrMaker = $this->safe_string_lower($trade, 'MakerTaker');
             $side = $this->safe_string_lower($trade, 'Side');
@@ -759,6 +757,11 @@ class ndax extends Exchange {
                     'currency' => $feeCurrencyCode,
                 );
             }
+        }
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $symbol = $this->safe_symbol($marketId, $market);
         return array(
@@ -868,17 +871,21 @@ class ndax extends Exchange {
         //         ),
         //     )
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'ProductId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'Amount');
-            $account['used'] = $this->safe_number($balance, 'Hold');
+            $account['total'] = $this->safe_string($balance, 'Amount');
+            $account['used'] = $this->safe_string($balance, 'Hold');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_ledger_entry_type($type) {
@@ -1249,7 +1256,7 @@ class ndax extends Exchange {
             $request['InstrumentId'] = $market['id'];
         }
         if ($since !== null) {
-            $request['StartTimeStamp'] = $since;
+            $request['StartTimeStamp'] = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['Depth'] = $limit;
@@ -1453,7 +1460,7 @@ class ndax extends Exchange {
             $request['InstrumentId'] = $market['id'];
         }
         if ($since !== null) {
-            $request['StartTimeStamp'] = $since;
+            $request['StartTimeStamp'] = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['Depth'] = $limit;

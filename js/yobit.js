@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, RateLimitExceeded } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -97,6 +98,7 @@ module.exports = class yobit extends Exchange {
                 'CAT': 'BitClave',
                 'CBC': 'CryptoBossCoin',
                 'CMT': 'CometCoin',
+                'COIN': 'Coin.com',
                 'COV': 'Coven Coin',
                 'COVX': 'COV',
                 'CPC': 'Capricoin',
@@ -114,6 +116,7 @@ module.exports = class yobit extends Exchange {
                 'ESC': 'EdwardSnowden',
                 'EUROPE': 'EUROP',
                 'EXT': 'LifeExtension',
+                'FUND': 'FUNDChains',
                 'FUNK': 'FUNKCoin',
                 'GCC': 'GlobalCryptocurrency',
                 'GEN': 'Genstake',
@@ -126,6 +129,7 @@ module.exports = class yobit extends Exchange {
                 'INSANE': 'INSN',
                 'JNT': 'JointCoin',
                 'JPC': 'JupiterCoin',
+                'JWL': 'Jewels',
                 'KNC': 'KingN Coin',
                 'LBTCX': 'LiteBitcoin',
                 'LIZI': 'LiZi',
@@ -133,11 +137,14 @@ module.exports = class yobit extends Exchange {
                 'LOCX': 'LOC',
                 'LUNYR': 'LUN',
                 'LUN': 'LunarCoin',  // they just change the ticker if it is already taken
+                'LUNA': 'Luna Coin',
                 'MASK': 'Yobit MASK',
                 'MDT': 'Midnight',
+                'MIS': 'MIScoin',
                 'NAV': 'NavajoCoin',
                 'NBT': 'NiceBytes',
                 'OMG': 'OMGame',
+                'ONX': 'Onix',
                 'PAC': '$PAC',
                 'PLAY': 'PlayCoin',
                 'PIVX': 'Darknet',
@@ -228,7 +235,12 @@ module.exports = class yobit extends Exchange {
         //     }
         //
         const balances = this.safeValue (response, 'return', {});
-        const result = { 'info': response };
+        const timestamp = this.safeInteger (balances, 'server_time');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         const free = this.safeValue (balances, 'funds', {});
         const total = this.safeValue (balances, 'funds_incl_orders', {});
         const currencyIds = Object.keys (this.extend (free, total));
@@ -236,11 +248,11 @@ module.exports = class yobit extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (free, currencyId);
-            account['total'] = this.safeNumber (total, currencyId);
+            account['free'] = this.safeString (free, currencyId);
+            account['total'] = this.safeString (total, currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchMarkets (params = {}) {
@@ -297,7 +309,11 @@ module.exports = class yobit extends Exchange {
             };
             const hidden = this.safeInteger (market, 'hidden');
             const active = (hidden === 0);
-            const takerFee = this.safeNumber (market, 'fee');
+            let feeString = this.safeString (market, 'fee');
+            feeString = Precise.stringDiv (feeString, '100');
+            // yobit maker = taker
+            const takerFee = this.parseNumber (feeString);
+            const makerFee = this.parseNumber (feeString);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -306,7 +322,8 @@ module.exports = class yobit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': takerFee / 100,
+                'taker': takerFee,
+                'maker': makerFee,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -330,7 +347,7 @@ module.exports = class yobit extends Exchange {
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
         }
         const orderbook = response[market['id']];
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
@@ -451,12 +468,15 @@ module.exports = class yobit extends Exchange {
         } else if (side === 'bid') {
             side = 'buy';
         }
-        const price = this.safeNumber2 (trade, 'rate', 'price');
+        const priceString = this.safeString2 (trade, 'rate', 'price');
         const id = this.safeString2 (trade, 'trade_id', 'tid');
         const order = this.safeString (trade, 'order_id');
         const marketId = this.safeString (trade, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const amount = this.safeNumber (trade, 'amount');
+        const amountString = this.safeString (trade, 'amount');
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const type = 'limit'; // all trades are still limit trades
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'commission');
@@ -472,12 +492,6 @@ module.exports = class yobit extends Exchange {
         if (isYourOrder !== undefined) {
             if (fee === undefined) {
                 fee = this.calculateFee (symbol, type, side, amount, price, 'taker');
-            }
-        }
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
             }
         }
         return {

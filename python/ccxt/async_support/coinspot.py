@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class coinspot(Exchange):
@@ -126,7 +127,7 @@ class coinspot(Exchange):
                     balance = currencies[currencyId]
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
-                    account['total'] = self.safe_number(balance, 'balance')
+                    account['total'] = self.safe_string(balance, 'balance')
                     result[code] = account
         else:
             currencyIds = list(balances.keys())
@@ -134,9 +135,9 @@ class coinspot(Exchange):
                 currencyId = currencyIds[i]
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['total'] = self.safe_number(balances, currencyId)
+                account['total'] = self.safe_string(balances, currencyId)
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -145,7 +146,7 @@ class coinspot(Exchange):
             'cointype': market['id'],
         }
         orderbook = await self.privatePostOrders(self.extend(request, params))
-        return self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'rate', 'amount')
+        return self.parse_order_book(orderbook, symbol, None, 'buyorders', 'sellorders', 'rate', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -209,11 +210,13 @@ class coinspot(Exchange):
         #         "market":"BTC/AUD"
         #     }
         #
-        price = self.safe_number(trade, 'rate')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string(trade, 'rate')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number(trade, 'total')
-        if (cost is None) and (price is not None) and (amount is not None):
-            cost = price * amount
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         timestamp = self.safe_integer(trade, 'solddate')
         marketId = self.safe_string(trade, 'market')
         symbol = self.safe_symbol(marketId, market, '/')

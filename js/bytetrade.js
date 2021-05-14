@@ -204,8 +204,6 @@ module.exports = class bytetrade extends Exchange {
                 'fee': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'deposit': {
                         'min': this.safeNumber (deposit, 'min'),
                         'max': maxDeposit,
@@ -298,11 +296,11 @@ module.exports = class bytetrade extends Exchange {
             const currencyId = this.safeString (balance, 'code');
             const code = this.safeCurrencyCode (currencyId, undefined);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'free');
-            account['used'] = this.safeNumber (balance, 'used');
+            account['free'] = this.safeString (balance, 'free');
+            account['used'] = this.safeString (balance, 'used');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -316,7 +314,7 @@ module.exports = class bytetrade extends Exchange {
         }
         const response = await this.marketGetDepth (this.extend (request, params));
         const timestamp = this.safeValue (response, 'timestamp');
-        const orderbook = this.parseOrderBook (response, timestamp);
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
         return orderbook;
     }
 
@@ -489,7 +487,6 @@ module.exports = class bytetrade extends Exchange {
         const side = this.safeString (trade, 'side');
         const datetime = this.iso8601 (timestamp); // this.safeString (trade, 'datetime');
         const order = this.safeString (trade, 'order');
-        const fee = this.safeValue (trade, 'fee');
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (trade, 'symbol');
@@ -498,6 +495,16 @@ module.exports = class bytetrade extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
+        const feeData = this.safeValue (trade, 'fee');
+        const feeCost = this.safeNumber (feeData, 'cost');
+        const feeRate = this.safeNumber (feeData, 'rate');
+        const feeCode = this.safeString (feeData, 'code');
+        const feeCurrency = this.safeCurrencyCode (feeCode);
+        const fee = {
+            'currency': feeCurrency,
+            'cost': feeCost,
+            'rate': feeRate,
+        };
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -561,7 +568,16 @@ module.exports = class bytetrade extends Exchange {
         const id = this.safeString (order, 'id');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
-        const fee = this.safeValue (order, 'fee');
+        const feeData = this.safeValue (order, 'fee');
+        const feeCost = this.safeNumber (feeData, 'cost');
+        const feeRate = this.safeNumber (feeData, 'rate');
+        const feeCode = this.safeString (feeData, 'code');
+        const feeCurrency = this.safeCurrencyCode (feeCode);
+        const fee = {
+            'currency': feeCurrency,
+            'cost': feeCost,
+            'rate': feeRate,
+        };
         return {
             'info': order,
             'id': id,
@@ -806,6 +822,9 @@ module.exports = class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        if (since !== undefined) {
+            request['since'] = since;
+        }
         const response = await this.publicGetOrdersOpen (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
@@ -826,6 +845,9 @@ module.exports = class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        if (since !== undefined) {
+            request['since'] = since;
+        }
         const response = await this.publicGetOrdersClosed (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
@@ -845,6 +867,9 @@ module.exports = class bytetrade extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['since'] = since;
         }
         const response = await this.publicGetOrdersAll (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
@@ -1072,6 +1097,9 @@ module.exports = class bytetrade extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['since'] = since;
         }
         const response = await this.publicGetOrdersTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);

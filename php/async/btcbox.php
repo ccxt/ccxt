@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\Precise;
 
 class btcbox extends Exchange {
 
@@ -90,12 +91,12 @@ class btcbox extends Exchange {
             if (is_array($response) && array_key_exists($free, $response)) {
                 $account = $this->account();
                 $used = $currencyId . '_lock';
-                $account['free'] = $this->safe_number($response, $free);
-                $account['used'] = $this->safe_number($response, $used);
+                $account['free'] = $this->safe_string($response, $free);
+                $account['used'] = $this->safe_string($response, $used);
                 $result[$code] = $account;
             }
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -107,7 +108,7 @@ class btcbox extends Exchange {
             $request['coin'] = $market['baseId'];
         }
         $response = yield $this->publicGetDepth (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -160,14 +161,11 @@ class btcbox extends Exchange {
             $symbol = $market['symbol'];
         }
         $id = $this->safe_string($trade, 'tid');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $type = null;
         $side = $this->safe_string($trade, 'type');
         return array(
@@ -269,19 +267,7 @@ class btcbox extends Exchange {
         }
         $amount = $this->safe_number($order, 'amount_original');
         $remaining = $this->safe_number($order, 'amount_outstanding');
-        $filled = null;
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                $filled = $amount - $remaining;
-            }
-        }
         $price = $this->safe_number($order, 'price');
-        $cost = null;
-        if ($price !== null) {
-            if ($filled !== null) {
-                $cost = $filled * $price;
-            }
-        }
         // $status is set by fetchOrder method only
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         // fetchOrders do not return $status, use heuristic
@@ -296,7 +282,7 @@ class btcbox extends Exchange {
             $symbol = $market['symbol'];
         }
         $side = $this->safe_string($order, 'type');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -304,7 +290,7 @@ class btcbox extends Exchange {
             'lastTradeTimestamp' => null,
             'amount' => $amount,
             'remaining' => $remaining,
-            'filled' => $filled,
+            'filled' => null,
             'side' => $side,
             'type' => null,
             'timeInForce' => null,
@@ -313,12 +299,12 @@ class btcbox extends Exchange {
             'symbol' => $symbol,
             'price' => $price,
             'stopPrice' => null,
-            'cost' => $cost,
+            'cost' => null,
             'trades' => $trades,
             'fee' => null,
             'info' => $order,
             'average' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

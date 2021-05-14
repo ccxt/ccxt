@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
 const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -140,9 +141,11 @@ module.exports = class probit extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'AUTO': 'Cube',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'CBC': 'CryptoBharatCoin',
+                'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'HBC': 'Hybrid Bank Cash',
                 'UNI': 'UNICORN Token',
             },
@@ -187,15 +190,19 @@ module.exports = class probit extends Exchange {
             const symbol = base + '/' + quote;
             const closed = this.safeValue (market, 'closed', false);
             const active = !closed;
-            const amountPrecision = this.safeInteger (market, 'quantity_precision');
-            const costPrecision = this.safeInteger (market, 'cost_precision');
+            const amountPrecision = this.safeString (market, 'quantity_precision');
+            const costPrecision = this.safeString (market, 'cost_precision');
+            const amountTickSize = this.parsePrecision (amountPrecision);
+            const costTickSize = this.parsePrecision (costPrecision);
             const precision = {
-                'amount': 1 / Math.pow (10, amountPrecision),
+                'amount': this.parseNumber (amountTickSize),
                 'price': this.safeNumber (market, 'price_increment'),
-                'cost': 1 / Math.pow (10, costPrecision),
+                'cost': this.parseNumber (costTickSize),
             };
-            const takerFeeRate = this.safeNumber (market, 'taker_fee_rate');
-            const makerFeeRate = this.safeNumber (market, 'maker_fee_rate');
+            const takerFeeRate = this.safeString (market, 'taker_fee_rate');
+            const taker = Precise.stringDiv (takerFeeRate, '100');
+            const makerFeeRate = this.safeString (market, 'maker_fee_rate');
+            const maker = Precise.stringDiv (makerFeeRate, '100');
             result.push ({
                 'id': id,
                 'info': market,
@@ -206,8 +213,8 @@ module.exports = class probit extends Exchange {
                 'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
-                'taker': takerFeeRate / 100,
-                'maker': makerFeeRate / 100,
+                'taker': this.parseNumber (taker),
+                'maker': this.parseNumber (maker),
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (market, 'min_quantity'),
@@ -328,14 +335,6 @@ module.exports = class probit extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'deposit': {
                         'min': this.safeNumber (platform, 'min_deposit_amount'),
                         'max': undefined,
@@ -364,18 +363,22 @@ module.exports = class probit extends Exchange {
         //         ]
         //     }
         //
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const data = this.safeValue (response, 'data');
-        const result = { 'info': data };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency_id');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeNumber (balance, 'total');
-            account['free'] = this.safeNumber (balance, 'available');
+            account['total'] = this.safeString (balance, 'total');
+            account['free'] = this.safeString (balance, 'available');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -396,7 +399,7 @@ module.exports = class probit extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const dataBySide = this.groupBy (data, 'side');
-        return this.parseOrderBook (dataBySide, undefined, 'buy', 'sell', 'price', 'quantity');
+        return this.parseOrderBook (dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -634,14 +637,11 @@ module.exports = class probit extends Exchange {
         marketId = this.safeString (trade, 'market_id', marketId);
         const symbol = this.safeSymbol (marketId, market, '-');
         const side = this.safeString (trade, 'side');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'quantity');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderId = this.safeString (trade, 'order_id');
         const feeCost = this.safeNumber (trade, 'fee_amount');
         let fee = undefined;

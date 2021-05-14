@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\OrderNotFound;
+use \ccxt\Precise;
 
 class poloniex extends Exchange {
 
@@ -116,6 +117,7 @@ class poloniex extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     // starting from Jan 8 2020
                     'maker' => 0.0009,
                     'taker' => 0.0009,
@@ -203,29 +205,11 @@ class poloniex extends Exchange {
                     'Nonce must be greater' => '\\ccxt\\InvalidNonce',
                     'You have already called cancelOrder or moveOrder on this order.' => '\\ccxt\\CancelPending',
                     'Amount must be at least' => '\\ccxt\\InvalidOrder', // array("error":"Amount must be at least 0.000001.")
-                    'is either completed or does not exist' => '\\ccxt\\InvalidOrder', // array("error":"Order 587957810791 is either completed or does not exist.")
+                    'is either completed or does not exist' => '\\ccxt\\OrderNotFound', // array("error":"Order 587957810791 is either completed or does not exist.")
                     'Error pulling ' => '\\ccxt\\ExchangeError', // array("error":"Error pulling order book")
                 ),
             ),
         ));
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $key = 'quote';
-        $rate = $market[$takerOrMaker];
-        $cost = floatval($this->cost_to_precision($symbol, $amount * $rate));
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-        }
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => floatval($this->fee_to_precision($symbol, $cost)),
-        );
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -333,18 +317,29 @@ class poloniex extends Exchange {
             'account' => 'all',
         );
         $response = yield $this->privatePostReturnCompleteBalances (array_merge($request, $params));
-        $result = array( 'info' => $response );
+        //
+        //     {
+        //         "1CR":array("available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"),
+        //         "ABY":array("available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"),
+        //         "AC":array("available":"0.00000000","onOrders":"0.00000000","btcValue":"0.00000000"),
+        //     }
+        //
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $currencyIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $balance = $this->safe_value($response, $currencyId, array());
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['used'] = $this->safe_number($balance, 'onOrders');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'onOrders');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -378,7 +373,7 @@ class poloniex extends Exchange {
             $request['depth'] = $limit; // 100
         }
         $response = yield $this->publicGetReturnOrderBook (array_merge($request, $params));
-        $orderbook = $this->parse_order_book($response);
+        $orderbook = $this->parse_order_book($response, $symbol);
         $orderbook['nonce'] = $this->safe_integer($response, 'seq');
         return $orderbook;
     }
@@ -405,7 +400,7 @@ class poloniex extends Exchange {
                 $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
-            $orderbook = $this->parse_order_book($response[$marketId]);
+            $orderbook = $this->parse_order_book($response[$marketId], $symbol);
             $orderbook['nonce'] = $this->safe_integer($response[$marketId], 'seq');
             $result[$symbol] = $orderbook;
         }
@@ -479,12 +474,28 @@ class poloniex extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = yield $this->publicGetReturnCurrencies ($params);
+        //     {
+        //       "$id" => "293",
+        //       "name" => "0x",
+        //       "humanType" => "Sweep to Main Account",
+        //       "currencyType" => "address",
+        //       "txFee" => "17.21877546",
+        //       "minConf" => "12",
+        //       "depositAddress" => null,
+        //       "disabled" => "0",
+        //       "frozen" => "0",
+        //       "hexColor" => "003831",
+        //       "blockchain" => "ETH",
+        //       "delisted" => "0",
+        //       "isGeofenced" => 0
+        //     }
         $ids = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $currency = $response[$id];
             $precision = 8; // default $precision, todo => fix "magic constants"
+            $amountLimit = '1e-8';
             $code = $this->safe_currency_code($id);
             $active = ($currency['delisted'] === 0) && !$currency['disabled'];
             $numericId = $this->safe_integer($currency, 'id');
@@ -500,20 +511,12 @@ class poloniex extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
+                        'min' => $this->parse_number($amountLimit),
                         'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => $fee,
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                 ),
             );
@@ -579,9 +582,14 @@ class poloniex extends Exchange {
         }
         $side = $this->safe_string($trade, 'type');
         $fee = null;
-        $price = $this->safe_number($trade, 'rate');
+        $priceString = $this->safe_string($trade, 'rate');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $cost = $this->safe_number($trade, 'total');
-        $amount = $this->safe_number($trade, 'amount');
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        }
         $feeDisplay = $this->safe_string($trade, 'feeDisplay');
         if ($feeDisplay !== null) {
             $parts = explode(' ', $feeDisplay);

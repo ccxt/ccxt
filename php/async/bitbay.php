@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\Precise;
 
 class bitbay extends Exchange {
 
@@ -46,15 +47,16 @@ class bitbay extends Exchange {
                 '3d' => '259200',
                 '1w' => '604800',
             ),
+            'hostname' => 'bitbay.net',
             'urls' => array(
                 'referral' => 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
                 'www' => 'https://bitbay.net',
                 'api' => array(
-                    'public' => 'https://bitbay.net/API/Public',
-                    'private' => 'https://bitbay.net/API/Trading/tradingApi.php',
-                    'v1_01Public' => 'https://api.bitbay.net/rest',
-                    'v1_01Private' => 'https://api.bitbay.net/rest',
+                    'public' => 'https://{hostname}/API/Public',
+                    'private' => 'https://{hostname}/API/Trading/tradingApi.php',
+                    'v1_01Public' => 'https://api.{hostname}/rest',
+                    'v1_01Private' => 'https://api.{hostname}/rest',
                 ),
                 'doc' => array(
                     'https://bitbay.net/public-api',
@@ -423,11 +425,11 @@ class bitbay extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['used'] = $this->safe_number($balance, 'lockedFunds');
-            $account['free'] = $this->safe_number($balance, 'availableFunds');
+            $account['used'] = $this->safe_string($balance, 'lockedFunds');
+            $account['free'] = $this->safe_string($balance, 'availableFunds');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -436,7 +438,7 @@ class bitbay extends Exchange {
             'id' => $this->market_id($symbol),
         );
         $orderbook = yield $this->publicGetIdOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -929,14 +931,11 @@ class bitbay extends Exchange {
         if ($wasTaker !== null) {
             $takerOrMaker = $wasTaker ? 'taker' : 'maker';
         }
-        $price = $this->safe_number_2($trade, 'rate', 'r');
-        $amount = $this->safe_number_2($trade, 'amount', 'a');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string_2($trade, 'rate', 'r');
+        $amountString = $this->safe_string_2($trade, 'amount', 'a');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $feeCost = $this->safe_number($trade, 'commissionValue');
         $marketId = $this->safe_string($trade, 'market');
         $market = $this->safe_market($marketId, $market, '-');
@@ -1167,7 +1166,7 @@ class bitbay extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api];
+        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
         if ($api === 'public') {
             $query = $this->omit($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params) . '.json';

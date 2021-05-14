@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, BadSymbol, BadRequest, InvalidOrder, ArgumentsRequired, OrderNotFound, InsufficientFunds, DDoSProtection } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -242,8 +243,6 @@ module.exports = class ripio extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
             };
@@ -388,7 +387,7 @@ module.exports = class ripio extends Exchange {
         //         "updated_id":47225
         //     }
         //
-        const orderbook = this.parseOrderBook (response, undefined, 'buy', 'sell', 'price', 'amount');
+        const orderbook = this.parseOrderBook (response, symbol, undefined, 'buy', 'sell', 'price', 'amount');
         orderbook['nonce'] = this.safeInteger (response, 'updated_id');
         return orderbook;
     }
@@ -430,12 +429,11 @@ module.exports = class ripio extends Exchange {
         if (side !== undefined) {
             side = side.toLowerCase ();
         }
-        const price = this.safeNumber2 (trade, 'price', 'match_price');
-        const amount = this.safeNumber2 (trade, 'amount', 'exchanged');
-        let cost = undefined;
-        if ((amount !== undefined) && (price !== undefined)) {
-            cost = amount * price;
-        }
+        const priceString = this.safeString2 (trade, 'price', 'match_price');
+        const amountString = this.safeString2 (trade, 'amount', 'exchanged');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market);
         const feeCost = this.safeNumber (trade, takerOrMaker + '_fee');
@@ -512,11 +510,11 @@ module.exports = class ripio extends Exchange {
             const currencyId = this.safeString (balance, 'symbol');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'available');
-            account['used'] = this.safeNumber (balance, 'locked');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

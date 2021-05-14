@@ -22,6 +22,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class yobit(Exchange):
@@ -115,6 +116,7 @@ class yobit(Exchange):
                 'CAT': 'BitClave',
                 'CBC': 'CryptoBossCoin',
                 'CMT': 'CometCoin',
+                'COIN': 'Coin.com',
                 'COV': 'Coven Coin',
                 'COVX': 'COV',
                 'CPC': 'Capricoin',
@@ -132,6 +134,7 @@ class yobit(Exchange):
                 'ESC': 'EdwardSnowden',
                 'EUROPE': 'EUROP',
                 'EXT': 'LifeExtension',
+                'FUND': 'FUNDChains',
                 'FUNK': 'FUNKCoin',
                 'GCC': 'GlobalCryptocurrency',
                 'GEN': 'Genstake',
@@ -144,6 +147,7 @@ class yobit(Exchange):
                 'INSANE': 'INSN',
                 'JNT': 'JointCoin',
                 'JPC': 'JupiterCoin',
+                'JWL': 'Jewels',
                 'KNC': 'KingN Coin',
                 'LBTCX': 'LiteBitcoin',
                 'LIZI': 'LiZi',
@@ -151,11 +155,14 @@ class yobit(Exchange):
                 'LOCX': 'LOC',
                 'LUNYR': 'LUN',
                 'LUN': 'LunarCoin',  # they just change the ticker if it is already taken
+                'LUNA': 'Luna Coin',
                 'MASK': 'Yobit MASK',
                 'MDT': 'Midnight',
+                'MIS': 'MIScoin',
                 'NAV': 'NavajoCoin',
                 'NBT': 'NiceBytes',
                 'OMG': 'OMGame',
+                'ONX': 'Onix',
                 'PAC': '$PAC',
                 'PLAY': 'PlayCoin',
                 'PIVX': 'Darknet',
@@ -245,7 +252,12 @@ class yobit(Exchange):
         #     }
         #
         balances = self.safe_value(response, 'return', {})
-        result = {'info': response}
+        timestamp = self.safe_integer(balances, 'server_time')
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
         free = self.safe_value(balances, 'funds', {})
         total = self.safe_value(balances, 'funds_incl_orders', {})
         currencyIds = list(self.extend(free, total).keys())
@@ -253,10 +265,10 @@ class yobit(Exchange):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(free, currencyId)
-            account['total'] = self.safe_number(total, currencyId)
+            account['free'] = self.safe_string(free, currencyId)
+            account['total'] = self.safe_string(total, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_markets(self, params={}):
         response = self.publicGetInfo(params)
@@ -312,7 +324,11 @@ class yobit(Exchange):
             }
             hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
-            takerFee = self.safe_number(market, 'fee')
+            feeString = self.safe_string(market, 'fee')
+            feeString = Precise.string_div(feeString, '100')
+            # yobit maker = taker
+            takerFee = self.parse_number(feeString)
+            makerFee = self.parse_number(feeString)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -321,7 +337,8 @@ class yobit(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': takerFee / 100,
+                'taker': takerFee,
+                'maker': makerFee,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -341,7 +358,7 @@ class yobit(Exchange):
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, symbol)
 
     def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
@@ -448,12 +465,15 @@ class yobit(Exchange):
             side = 'sell'
         elif side == 'bid':
             side = 'buy'
-        price = self.safe_number_2(trade, 'rate', 'price')
+        priceString = self.safe_string_2(trade, 'rate', 'price')
         id = self.safe_string_2(trade, 'trade_id', 'tid')
         order = self.safe_string(trade, 'order_id')
         marketId = self.safe_string(trade, 'pair')
         symbol = self.safe_symbol(marketId, market)
-        amount = self.safe_number(trade, 'amount')
+        amountString = self.safe_string(trade, 'amount')
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         type = 'limit'  # all trades are still limit trades
         fee = None
         feeCost = self.safe_number(trade, 'commission')
@@ -468,10 +488,6 @@ class yobit(Exchange):
         if isYourOrder is not None:
             if fee is None:
                 fee = self.calculate_fee(symbol, type, side, amount, price, 'taker')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
         return {
             'id': id,
             'order': order,

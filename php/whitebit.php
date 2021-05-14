@@ -231,14 +231,6 @@ class whitebit extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'minWithdrawal'),
                         'max' => $this->safe_number($currency, 'maxWithdrawal'),
@@ -422,7 +414,7 @@ class whitebit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $timestamp = $this->parse8601($this->safe_string($result, 'lastUpdateTimestamp'));
-        return $this->parse_order_book($result, $timestamp);
+        return $this->parse_order_book($result, $symbol, $timestamp);
     }
 
     public function fetch_trades_v1($symbol, $since = null, $limit = null, $params = array ()) {
@@ -517,8 +509,11 @@ class whitebit extends Exchange {
         } else {
             $timestamp = intval($timestamp * 1000);
         }
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number_2($trade, 'amount', 'volume');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string_2($trade, 'amount', 'volume');
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $id = $this->safe_string_2($trade, 'id', 'tradeId');
         $side = $this->safe_string($trade, 'type');
         if ($side === null) {
@@ -528,10 +523,6 @@ class whitebit extends Exchange {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
-        }
-        $cost = null;
-        if ($amount !== null && $price !== null) {
-            $cost = $amount * $price;
         }
         return array(
             'info' => $trade,

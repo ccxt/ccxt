@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OrderNotFound, PermissionDenied, BadRequest, DDoSProtection } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -249,7 +250,8 @@ module.exports = class stex extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             const code = this.safeCurrencyCode (this.safeString (currency, 'code'));
-            const precision = this.safeInteger (currency, 'precision');
+            const precision = this.safeString (currency, 'precision');
+            const amountLimit = this.parsePrecision (precision);
             const fee = this.safeNumber (currency, 'withdrawal_fee_const'); // todo: redesign
             const active = this.safeValue (currency, 'active', true);
             result[code] = {
@@ -261,11 +263,9 @@ module.exports = class stex extends Exchange {
                 'name': this.safeString (currency, 'name'),
                 'active': active,
                 'fee': fee,
-                'precision': precision,
+                'precision': parseInt (precision),
                 'limits': {
-                    'amount': { 'min': Math.pow (10, -precision), 'max': undefined },
-                    'price': { 'min': Math.pow (10, -precision), 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
+                    'amount': { 'min': this.parseNumber (amountLimit), 'max': undefined },
                     'deposit': {
                         'min': this.safeNumber (currency, 'minimum_deposit_amount'),
                         'max': undefined,
@@ -473,7 +473,7 @@ module.exports = class stex extends Exchange {
         //     }
         //
         const orderbook = this.safeValue (response, 'data', {});
-        return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'amount');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'bid', 'ask', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -697,12 +697,11 @@ module.exports = class stex extends Exchange {
         //
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeTimestamp (trade, 'timestamp');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
@@ -809,17 +808,21 @@ module.exports = class stex extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'currency_id'));
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'balance');
-            account['used'] = this.safeNumber (balance, 'frozen_balance');
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'frozen_balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrderStatus (status) {

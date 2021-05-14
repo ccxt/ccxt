@@ -19,6 +19,7 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class digifinex(Exchange):
@@ -201,6 +202,7 @@ class digifinex(Exchange):
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
+                'EPS': 'Epanus',
                 'MBN': 'Mobilian Coin',
                 'TEL': 'TEL666',
             },
@@ -272,14 +274,6 @@ class digifinex(Exchange):
                     'precision': 8,  # todo fix hardcoded value
                     'limits': {
                         'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'price': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'cost': {
                             'min': None,
                             'max': None,
                         },
@@ -461,11 +455,11 @@ class digifinex(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_number(balance, 'frozen')
-            account['free'] = self.safe_number(balance, 'free')
-            account['total'] = self.safe_number(balance, 'total')
+            account['used'] = self.safe_string(balance, 'frozen')
+            account['free'] = self.safe_string(balance, 'free')
+            account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -493,7 +487,7 @@ class digifinex(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(response, 'date')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -633,12 +627,11 @@ class digifinex(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         timestamp = self.safe_timestamp_2(trade, 'date', 'timestamp')
         side = self.safe_string_2(trade, 'type', 'side')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         takerOrMaker = self.safe_value(trade, 'is_maker')

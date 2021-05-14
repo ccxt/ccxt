@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.base.precise import Precise
 
 
 class independentreserve(Exchange):
@@ -123,10 +124,10 @@ class independentreserve(Exchange):
             currencyId = self.safe_string(balance, 'CurrencyCode')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'AvailableBalance')
-            account['total'] = self.safe_number(balance, 'TotalBalance')
+            account['free'] = self.safe_string(balance, 'AvailableBalance')
+            account['total'] = self.safe_string(balance, 'TotalBalance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -137,7 +138,7 @@ class independentreserve(Exchange):
         }
         response = await self.publicGetGetOrderBook(self.extend(request, params))
         timestamp = self.parse8601(self.safe_string(response, 'CreatedTimestampUtc'))
-        return self.parse_order_book(response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
+        return self.parse_order_book(response, symbol, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(self.safe_string(ticker, 'CreatedTimestampUtc'))
@@ -351,12 +352,11 @@ class independentreserve(Exchange):
         timestamp = self.parse8601(trade['TradeTimestampUtc'])
         id = self.safe_string(trade, 'TradeGuid')
         orderId = self.safe_string(trade, 'OrderGuid')
-        price = self.safe_number_2(trade, 'Price', 'SecondaryCurrencyTradePrice')
-        amount = self.safe_number_2(trade, 'VolumeTraded', 'PrimaryCurrencyAmount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string_2(trade, 'Price', 'SecondaryCurrencyTradePrice')
+        amountString = self.safe_string_2(trade, 'VolumeTraded', 'PrimaryCurrencyAmount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         baseId = self.safe_string(trade, 'PrimaryCurrencyCode')
         quoteId = self.safe_string(trade, 'SecondaryCurrencyCode')
         marketId = None

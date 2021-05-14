@@ -25,6 +25,7 @@ from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class bitget(Exchange):
@@ -819,8 +820,8 @@ class bitget(Exchange):
         tickSize = self.safe_string(market, 'tick_size')
         sizeIncrement = self.safe_string(market, 'size_increment')
         precision = {
-            'amount': float('1e-' + sizeIncrement),
-            'price': float('1e-' + tickSize),
+            'amount': self.parse_number(self.parse_precision(sizeIncrement)),
+            'price': self.parse_number(self.parse_precision(tickSize)),
         }
         minAmount = self.safe_number_2(market, 'min_size', 'base_min_size')
         status = self.safe_string(market, 'status')
@@ -938,8 +939,6 @@ class bitget(Exchange):
                 'precision': None,
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
             }
@@ -1001,7 +1000,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data', response)
         timestamp = self.safe_integer_2(data, 'timestamp', 'ts')
         nonce = self.safe_integer(data, 'id')
-        orderbook = self.parse_order_book(data, timestamp)
+        orderbook = self.parse_order_book(data, symbol, timestamp)
         orderbook['nonce'] = nonce
         return orderbook
 
@@ -1323,9 +1322,12 @@ class bitget(Exchange):
             quote = market['quote']
         timestamp = self.safe_integer(trade, 'created_at')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'ts', timestamp)
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'filled_amount', 'order_qty')
-        amount = self.safe_number_2(trade, 'size', 'amount', amount)
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'filled_amount', 'order_qty')
+        amountString = self.safe_string_2(trade, 'size', 'amount', amountString)
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         takerOrMaker = self.safe_string_2(trade, 'exec_type', 'liquidity')
         if takerOrMaker == 'M':
             takerOrMaker = 'maker'
@@ -1342,15 +1344,12 @@ class bitget(Exchange):
             side = self.safe_string_2(trade, 'side', 'direction')
             type = self.parse_order_type(side)
             side = self.parse_order_side(side)
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is None:
-            feeCost = self.safe_number(trade, 'filled_fees')
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is None:
+            feeCostString = self.safe_string(trade, 'filled_fees')
         else:
-            feeCost = -feeCost
+            feeCostString = Precise.string_neg(feeCostString)
+        feeCost = self.parse_number(feeCostString)
         fee = None
         if feeCost is not None:
             feeCurrency = base if (side == 'buy') else quote
@@ -1573,11 +1572,11 @@ class bitget(Exchange):
                 result[code] = account
             type = self.safe_value(balance, 'type')
             if type == 'trade':
-                result[code]['free'] = self.safe_number(balance, 'balance')
+                result[code]['free'] = self.safe_string(balance, 'balance')
             elif (type == 'frozen') or (type == 'lock'):
-                used = self.safe_number(result[code], 'used')
-                result[code]['used'] = self.sum(used, self.safe_number(balance, 'balance'))
-        return self.parse_balance(result)
+                used = self.safe_string(result[code], 'used')
+                result[code]['used'] = Precise.string_add(used, self.safe_string(balance, 'balance'))
+        return self.parse_balance(result, False)
 
     def parse_swap_balance(self, response):
         #
@@ -1599,10 +1598,10 @@ class bitget(Exchange):
                 symbol = self.markets_by_id[marketId]['symbol']
             account = self.account()
             # it may be incorrect to use total, free and used for swap accounts
-            account['total'] = self.safe_number(balance, 'equity')
-            account['free'] = self.safe_number(balance, 'total_avail_balance')
+            account['total'] = self.safe_string(balance, 'equity')
+            account['free'] = self.safe_string(balance, 'total_avail_balance')
             result[symbol] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_accounts(self, params={}):
         request = {

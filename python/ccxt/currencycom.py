@@ -15,8 +15,8 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class currencycom(Exchange):
@@ -104,6 +104,7 @@ class currencycom(Exchange):
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
                     'taker': 0.002,
@@ -288,7 +289,7 @@ class currencycom(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': -1 * math.log10(precision['amount']),
+                        'min': -math.log10(precision['amount']),
                         'max': None,
                     },
                 },
@@ -332,25 +333,6 @@ class currencycom(Exchange):
                 entry['limits']['cost']['min'] = self.safe_number(filter, 'minNotional')
             result.append(entry)
         return result
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        key = 'quote'
-        rate = market[takerOrMaker]
-        cost = amount * rate
-        precision = market['precision']['price']
-        if side == 'sell':
-            cost *= price
-        else:
-            key = 'base'
-            precision = market['precision']['amount']
-        cost = self.decimal_to_precision(cost, ROUND, precision, self.precisionMode)
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': float(cost),
-        }
 
     def fetch_accounts(self, params={}):
         response = self.privateGetAccount(params)
@@ -430,10 +412,10 @@ class currencycom(Exchange):
             currencyId = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'free')
-            account['used'] = self.safe_number(balance, 'locked')
+            account['free'] = self.safe_string(balance, 'free')
+            account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -486,7 +468,7 @@ class currencycom(Exchange):
         #         ]
         #     }
         #
-        orderbook = self.parse_order_book(response)
+        orderbook = self.parse_order_book(response, symbol)
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
@@ -682,8 +664,11 @@ class currencycom(Exchange):
         #     }
         #
         timestamp = self.safe_integer_2(trade, 'T', 'time')
-        price = self.safe_number_2(trade, 'p', 'price')
-        amount = self.safe_number_2(trade, 'q', 'qty')
+        priceString = self.safe_string_2(trade, 'p', 'price')
+        amountString = self.safe_string_2(trade, 'q', 'qty')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string_2(trade, 'a', 'id')
         side = None
         orderId = self.safe_string(trade, 'orderId')
@@ -717,7 +702,7 @@ class currencycom(Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         }
 

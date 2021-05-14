@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, ExchangeError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -127,12 +128,12 @@ module.exports = class coincheck extends Exchange {
             if (currencyId in balances) {
                 const account = this.account ();
                 const reserved = currencyId + '_reserved';
-                account['free'] = this.safeNumber (balances, currencyId);
-                account['used'] = this.safeNumber (balances, reserved);
+                account['free'] = this.safeString (balances, currencyId);
+                account['used'] = this.safeString (balances, reserved);
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -208,7 +209,7 @@ module.exports = class coincheck extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetOrderBooks (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -250,7 +251,7 @@ module.exports = class coincheck extends Exchange {
     parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         const id = this.safeString (trade, 'id');
-        const price = this.safeNumber (trade, 'rate');
+        const priceString = this.safeString (trade, 'rate');
         const marketId = this.safeString (trade, 'pair');
         market = this.safeValue (this.markets_by_id, marketId, market);
         let symbol = undefined;
@@ -277,7 +278,7 @@ module.exports = class coincheck extends Exchange {
             }
         }
         let takerOrMaker = undefined;
-        let amount = undefined;
+        let amountString = undefined;
         let cost = undefined;
         let side = undefined;
         let fee = undefined;
@@ -289,7 +290,7 @@ module.exports = class coincheck extends Exchange {
                 takerOrMaker = 'maker';
             }
             const funds = this.safeValue (trade, 'funds', {});
-            amount = this.safeNumber (funds, baseId);
+            amountString = this.safeString (funds, baseId);
             cost = this.safeNumber (funds, quoteId);
             fee = {
                 'currency': this.safeString (trade, 'fee_currency'),
@@ -298,15 +299,13 @@ module.exports = class coincheck extends Exchange {
             side = this.safeString (trade, 'side');
             orderId = this.safeString (trade, 'order_id');
         } else {
-            amount = this.safeNumber (trade, 'amount');
+            amountString = this.safeString (trade, 'amount');
             side = this.safeString (trade, 'order_type');
         }
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         if (cost === undefined) {
-            if (amount !== undefined) {
-                if (price !== undefined) {
-                    cost = amount * price;
-                }
-            }
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         return {
             'id': id,

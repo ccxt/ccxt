@@ -27,6 +27,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class bibox(Exchange):
@@ -325,11 +326,11 @@ class bibox(Exchange):
             else:
                 feeCurrency = self.safe_currency_code(feeCurrency)
         feeRate = None  # todo: deduce from market if market is defined
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if price is not None and amount is not None:
-            cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         if feeCost is not None:
             fee = {
                 'cost': -feeCost,
@@ -375,7 +376,7 @@ class bibox(Exchange):
         if limit is not None:
             request['size'] = limit  # default = 200
         response = await self.publicGetMdata(self.extend(request, params))
-        return self.parse_order_book(response['result'], self.safe_number(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
+        return self.parse_order_book(response['result'], symbol, self.safe_number(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -474,14 +475,6 @@ class bibox(Exchange):
                         'min': math.pow(10, -precision),
                         'max': None,
                     },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(currency, 'withdraw_min'),
                         'max': None,
@@ -564,14 +557,6 @@ class bibox(Exchange):
                         'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
                     },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': math.pow(10, precision),
@@ -609,15 +594,13 @@ class bibox(Exchange):
             account = self.account()
             balance = indexed[id]
             if isinstance(balance, basestring):
-                balance = float(balance)
                 account['free'] = balance
-                account['used'] = 0.0
                 account['total'] = balance
             else:
-                account['free'] = self.safe_number(balance, 'balance')
-                account['used'] = self.safe_number(balance, 'freeze')
+                account['free'] = self.safe_string(balance, 'balance')
+                account['used'] = self.safe_string(balance, 'freeze')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()

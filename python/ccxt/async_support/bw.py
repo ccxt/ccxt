@@ -11,6 +11,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class bw(Exchange):
@@ -303,14 +304,6 @@ class bw(Exchange):
                         'min': self.safe_number(currency, 'limitAmount', 0),
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': self.safe_number(currency, 'onceDrawLimit'),
@@ -451,7 +444,7 @@ class bw(Exchange):
         #
         orderbook = self.safe_value(response, 'datas', [])
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         #
@@ -472,8 +465,11 @@ class bw(Exchange):
         #     ...
         #
         timestamp = self.safe_timestamp(trade, 2)
-        price = self.safe_number(trade, 5)
-        amount = self.safe_number(trade, 6)
+        priceString = self.safe_string(trade, 5)
+        amountString = self.safe_string(trade, 6)
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 1)
         symbol = None
         if marketId is not None:
@@ -487,10 +483,6 @@ class bw(Exchange):
                 symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = self.cost_to_precision(symbol, price * amount)
         sideString = self.safe_string(trade, 4)
         side = 'sell' if (sideString == 'ask') else 'buy'
         return {
@@ -504,7 +496,7 @@ class bw(Exchange):
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': float(cost),
+            'cost': cost,
             'fee': None,
             'info': trade,
         }
@@ -617,10 +609,10 @@ class bw(Exchange):
             currencyId = self.safe_string(balance, 'currencyTypeId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'amount')
-            account['used'] = self.safe_number(balance, 'freeze')
+            account['free'] = self.safe_string(balance, 'amount')
+            account['used'] = self.safe_string(balance, 'freeze')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if price is None:

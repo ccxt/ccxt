@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -186,6 +187,7 @@ module.exports = class digifinex extends Exchange {
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
+                'EPS': 'Epanus',
                 'MBN': 'Mobilian Coin',
                 'TEL': 'TEL666',
             },
@@ -259,14 +261,6 @@ module.exports = class digifinex extends Exchange {
                     'precision': 8, // todo fix hardcoded value
                     'limits': {
                         'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'price': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'cost': {
                             'min': undefined,
                             'max': undefined,
                         },
@@ -456,12 +450,12 @@ module.exports = class digifinex extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeNumber (balance, 'frozen');
-            account['free'] = this.safeNumber (balance, 'free');
-            account['total'] = this.safeNumber (balance, 'total');
+            account['used'] = this.safeString (balance, 'frozen');
+            account['free'] = this.safeString (balance, 'free');
+            account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -491,7 +485,7 @@ module.exports = class digifinex extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (response, 'date');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -636,14 +630,11 @@ module.exports = class digifinex extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const timestamp = this.safeTimestamp2 (trade, 'date', 'timestamp');
         const side = this.safeString2 (trade, 'type', 'side');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         const takerOrMaker = this.safeValue (trade, 'is_maker');

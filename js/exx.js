@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -111,9 +112,13 @@ module.exports = class exx extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const active = market['isOpen'] === true;
+            const amountPrecisionString = this.safeString (market, 'amountScale');
+            const pricePrecisionString = this.safeString (market, 'priceScale');
+            const amountLimit = this.parsePrecision (amountPrecisionString);
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
-                'amount': parseInt (market['amountScale']),
-                'price': parseInt (market['priceScale']),
+                'amount': parseInt (amountPrecisionString),
+                'price': parseInt (pricePrecisionString),
             };
             result.push ({
                 'id': id,
@@ -126,15 +131,15 @@ module.exports = class exx extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'min': this.parseNumber (amountLimit),
+                        'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': this.parseNumber (priceLimit),
+                        'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'minAmount'),
                         'max': undefined,
                     },
                 },
@@ -212,19 +217,16 @@ module.exports = class exx extends Exchange {
         };
         const response = await this.publicGetDepth (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp (trade, 'date');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -269,14 +271,13 @@ module.exports = class exx extends Exchange {
             const currencyId = currencies[i];
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeNumber (balance, 'balance'),
-                'used': this.safeNumber (balance, 'freeze'),
-                'total': this.safeNumber (balance, 'total'),
-            };
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'freeze');
+            account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrder (order, market = undefined) {

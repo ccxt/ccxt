@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { InsufficientFunds, ExchangeError, InvalidNonce, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -105,16 +106,16 @@ module.exports = class coinfloor extends Exchange {
         const baseIdLower = this.safeStringLower (market, 'baseId');
         const quoteIdLower = this.safeStringLower (market, 'quoteId');
         result[base] = {
-            'free': this.safeNumber (response, baseIdLower + '_available'),
-            'used': this.safeNumber (response, baseIdLower + '_reserved'),
-            'total': this.safeNumber (response, baseIdLower + '_balance'),
+            'free': this.safeString (response, baseIdLower + '_available'),
+            'used': this.safeString (response, baseIdLower + '_reserved'),
+            'total': this.safeString (response, baseIdLower + '_balance'),
         };
         result[quote] = {
-            'free': this.safeNumber (response, quoteIdLower + '_available'),
-            'used': this.safeNumber (response, quoteIdLower + '_reserved'),
-            'total': this.safeNumber (response, quoteIdLower + '_balance'),
+            'free': this.safeString (response, quoteIdLower + '_available'),
+            'used': this.safeString (response, quoteIdLower + '_reserved'),
+            'total': this.safeString (response, quoteIdLower + '_balance'),
         };
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -123,7 +124,7 @@ module.exports = class coinfloor extends Exchange {
             'id': this.marketId (symbol),
         };
         const response = await this.publicGetIdOrderBook (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -177,14 +178,11 @@ module.exports = class coinfloor extends Exchange {
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString (trade, 'tid');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

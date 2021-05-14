@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
+use \ccxt\Precise;
 
 class ascendex extends Exchange {
 
@@ -134,6 +135,7 @@ class ascendex extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => true,
                     'percentage' => true,
                     'taker' => 0.002,
@@ -215,8 +217,10 @@ class ascendex extends Exchange {
                 'broad' => array(),
             ),
             'commonCurrencies' => array(
+                'BOND' => 'BONDED',
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
+                'BYN' => 'Beyond Finance',
             ),
         ));
     }
@@ -314,14 +318,6 @@ class ascendex extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => pow(10, -$precision),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
                         'max' => null,
                     ),
                     'withdraw' => array(
@@ -470,28 +466,6 @@ class ascendex extends Exchange {
         return $result;
     }
 
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        // TODO => fee calculation here is incorrect, we need to support tiered fee calculation.
-        $market = $this->markets[$symbol];
-        $key = 'quote';
-        $rate = $market[$takerOrMaker];
-        $cost = $amount * $rate;
-        $precision = $market['precision']['price'];
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-            $precision = $market['precision']['amount'];
-        }
-        $cost = $this->decimal_to_precision($cost, ROUND, $precision, $this->precisionMode);
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => floatval($cost),
-        );
-    }
-
     public function fetch_accounts($params = array ()) {
         $accountGroup = $this->safe_string($this->options, 'account-group');
         $response = null;
@@ -590,17 +564,21 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $balances = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'asset'));
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'availableBalance');
-            $account['total'] = $this->safe_number($balance, 'totalBalance');
+            $account['free'] = $this->safe_string($balance, 'availableBalance');
+            $account['total'] = $this->safe_string($balance, 'totalBalance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -636,7 +614,7 @@ class ascendex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $orderbook = $this->safe_value($data, 'data', array());
         $timestamp = $this->safe_integer($orderbook, 'ts');
-        $result = $this->parse_order_book($orderbook, $timestamp);
+        $result = $this->parse_order_book($orderbook, $symbol, $timestamp);
         $result['nonce'] = $this->safe_integer($orderbook, 'seqnum');
         return $result;
     }
@@ -855,12 +833,11 @@ class ascendex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'ts');
-        $price = $this->safe_number_2($trade, 'price', 'p');
-        $amount = $this->safe_number($trade, 'q');
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
-        }
+        $priceString = $this->safe_string_2($trade, 'price', 'p');
+        $amountString = $this->safe_string($trade, 'q');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $buyerIsMaker = $this->safe_value($trade, 'bm', false);
         $makerOrTaker = $buyerIsMaker ? 'maker' : 'taker';
         $side = $buyerIsMaker ? 'buy' : 'sell';

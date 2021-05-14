@@ -18,6 +18,7 @@ module.exports = class phemex extends Exchange {
             'version': 'v1',
             'certified': false,
             'pro': true,
+            'hostname': 'api.phemex.com',
             'has': {
                 'cancelAllOrders': true, // swap contracts only
                 'cancelOrder': true,
@@ -46,9 +47,9 @@ module.exports = class phemex extends Exchange {
                     'private': 'https://testnet-api.phemex.com',
                 },
                 'api': {
-                    'v1': 'https://api.phemex.com/v1',
-                    'public': 'https://api.phemex.com/exchange/public',
-                    'private': 'https://api.phemex.com',
+                    'v1': 'https://{hostname}/v1',
+                    'public': 'https://{hostname}/exchange/public',
+                    'private': 'https://{hostname}',
                 },
                 'www': 'https://phemex.com',
                 'doc': 'https://github.com/phemex/phemex-api-docs',
@@ -335,7 +336,9 @@ module.exports = class phemex extends Exchange {
         //         "minPriceEp":5000,
         //         "maxPriceEp":10000000000,
         //         "maxOrderQty":1000000,
-        //         "type":"Perpetual"
+        //         "type":"Perpetual",
+        //         "status":"Listed",
+        //         "tipOrderQty":1000000,
         //         "steps":"50",
         //         "riskLimits":[
         //             {"limit":100,"initialMargin":"1.0%","initialMarginEr":1000000,"maintenanceMargin":"0.5%","maintenanceMarginEr":500000},
@@ -407,7 +410,8 @@ module.exports = class phemex extends Exchange {
                 'max': this.parseSafeNumber (this.safeString (market, 'maxOrderQty')),
             },
         };
-        const active = undefined;
+        const status = this.safeString (market, 'status');
+        const active = status === 'Listed';
         return {
             'id': id,
             'symbol': symbol,
@@ -456,7 +460,9 @@ module.exports = class phemex extends Exchange {
         //         "defaultMakerFee":"0.001",
         //         "defaultMakerFeeEr":100000,
         //         "baseQtyPrecision":6,
-        //         "quoteQtyPrecision":2
+        //         "quoteQtyPrecision":2,
+        //         "status":"Listed",
+        //         "tipOrderQty":20
         //     }
         //
         const type = this.safeStringLower (market, 'type');
@@ -490,7 +496,8 @@ module.exports = class phemex extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
-        const active = undefined;
+        const status = this.safeString (market, 'status');
+        const active = status === 'Listed';
         return {
             'id': id,
             'symbol': symbol,
@@ -708,14 +715,6 @@ module.exports = class phemex extends Exchange {
                         'min': minAmount,
                         'max': maxAmount,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': undefined,
@@ -741,8 +740,9 @@ module.exports = class phemex extends Exchange {
         ];
     }
 
-    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
         const result = {
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
@@ -798,7 +798,7 @@ module.exports = class phemex extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const book = this.safeValue (result, 'book', {});
         const timestamp = this.safeIntegerProduct (result, 'timestamp', 0.000001);
-        const orderbook = this.parseOrderBook (book, timestamp, 'bids', 'asks', 0, 1, market);
+        const orderbook = this.parseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
         orderbook['nonce'] = this.safeInteger (result, 'sequence');
         return orderbook;
     }
@@ -1283,6 +1283,7 @@ module.exports = class phemex extends Exchange {
         //         ]
         //     }
         //
+        let timestamp = undefined;
         const result = { 'info': response };
         const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
@@ -1299,10 +1300,14 @@ module.exports = class phemex extends Exchange {
             const lockedTradingBalance = this.fromEn (lockedTradingBalanceEv, scale, scale, DECIMAL_PLACES);
             const lockedWithdraw = this.fromEn (lockedWithdrawEv, scale, scale, DECIMAL_PLACES);
             const used = this.sum (lockedTradingBalance, lockedWithdraw);
+            const lastUpdateTimeNs = this.safeIntegerProduct (balance, 'lastUpdateTimeNs', 0.000001);
+            timestamp = (timestamp === undefined) ? lastUpdateTimeNs : Math.max (timestamp, lastUpdateTimeNs);
             account['total'] = total;
             account['used'] = used;
             result[code] = account;
         }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
         return this.parseBalance (result);
     }
 
@@ -2494,7 +2499,7 @@ module.exports = class phemex extends Exchange {
             const auth = requestPath + queryString + expiryString + payload;
             headers['x-phemex-request-signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
         }
-        url = this.urls['api'][api] + url;
+        url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

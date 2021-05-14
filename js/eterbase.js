@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, InvalidOrder, ExchangeError, BadRequest, BadSymbol } = require ('./base/errors');
 const { TRUNCATE, SIGNIFICANT_DIGITS } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
 
@@ -314,14 +315,6 @@ module.exports = class eterbase extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'withdrawalMin'),
                         'max': this.safeNumber (currency, 'withdrawalMax'),
@@ -457,8 +450,10 @@ module.exports = class eterbase extends Exchange {
         //         "filledAt": 1556355722341
         //     }
         //
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'qty');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'qty');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
@@ -470,8 +465,8 @@ module.exports = class eterbase extends Exchange {
             };
         }
         let cost = this.safeNumber (trade, 'qty');
-        if ((cost === undefined) && (price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
+        if (cost === undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const timestamp = this.safeInteger2 (trade, 'executedAt', 'filledAt');
         const tradeSide = this.safeString (trade, 'side');
@@ -553,7 +548,7 @@ module.exports = class eterbase extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -636,14 +631,13 @@ module.exports = class eterbase extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'assetId');
             const code = this.safeCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeNumber (balance, 'available'),
-                'used': this.safeNumber (balance, 'reserved'),
-                'total': this.safeNumber (balance, 'balance'),
-            };
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'reserved');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

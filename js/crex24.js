@@ -4,6 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -110,6 +112,7 @@ module.exports = class crex24 extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': true,
@@ -130,6 +133,8 @@ module.exports = class crex24 extends Exchange {
                 'BIT': 'BitMoney',
                 'BULL': 'BuySell',
                 'CREDIT': 'TerraCredit',
+                'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
+                'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
                 'IQ': 'IQ.Cash',
                 'PUT': 'PutinCoin',
@@ -205,12 +210,12 @@ module.exports = class crex24 extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const tickSize = this.safeValue (market, 'tickSize');
-            const minPrice = this.safeValue (market, 'minPrice');
+            const tickSize = this.safeNumber (market, 'tickSize');
+            const minPrice = this.safeNumber (market, 'minPrice');
             const minAmount = this.safeNumber (market, 'minVolume');
             const precision = {
-                'amount': this.precisionFromString (this.numberToString (minAmount)),
-                'price': this.precisionFromString (this.numberToString (tickSize)),
+                'amount': minAmount,
+                'price': tickSize,
             };
             const active = (market['state'] === 'active');
             result.push ({
@@ -275,7 +280,8 @@ module.exports = class crex24 extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeInteger (currency, 'withdrawalPrecision');
+            const withdrawalPrecision = this.safeInteger (currency, 'withdrawalPrecision');
+            const precision = Math.pow (10, -withdrawalPrecision);
             const address = this.safeValue (currency, 'BaseAddress');
             const active = (currency['depositsAllowed'] && currency['withdrawalsAllowed'] && !currency['isDelisted']);
             const type = currency['isFiat'] ? 'fiat' : 'crypto';
@@ -293,14 +299,6 @@ module.exports = class crex24 extends Exchange {
                     'amount': {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
                     },
                     'deposit': {
                         'min': this.safeNumber (currency, 'minDeposit'),
@@ -338,11 +336,11 @@ module.exports = class crex24 extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'available');
-            account['used'] = this.safeNumber (balance, 'reserved');
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'reserved');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -373,7 +371,7 @@ module.exports = class crex24 extends Exchange {
         //                     { price: 0.03124, volume: 2.63462933 },
         //                     { price: 0.069, volume: 0.004 }            ] }
         //
-        return this.parseOrderBook (response, undefined, 'buyLevels', 'sellLevels', 'price', 'volume');
+        return this.parseOrderBook (response, symbol, undefined, 'buyLevels', 'sellLevels', 'price', 'volume');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -508,14 +506,11 @@ module.exports = class crex24 extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'volume');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'volume');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'orderId');

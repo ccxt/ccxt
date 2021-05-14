@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class delta extends Exchange {
 
@@ -264,8 +265,6 @@ class delta extends Exchange {
                 'precision' => 1 / pow(10, $precision),
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'min_withdrawal_amount'),
                         'max' => null,
@@ -603,7 +602,7 @@ class delta extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_order_book($result, null, 'buy', 'sell', 'price', 'size');
+        return $this->parse_order_book($result, $symbol, null, 'buy', 'sell', 'price', 'size');
     }
 
     public function parse_trade($trade, $market = null) {
@@ -658,12 +657,11 @@ class delta extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $timestamp = $this->safe_integer_product($trade, 'timestamp', 0.001, $timestamp);
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'size');
-        $cost = null;
-        if (($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $product = $this->safe_value($trade, 'product', array());
         $marketId = $this->safe_string($product, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -823,11 +821,11 @@ class delta extends Exchange {
             $currency = $this->safe_value($currenciesByNumericId, $currencyId);
             $code = ($currency === null) ? $currencyId : $currency['code'];
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'balance');
-            $account['free'] = $this->safe_number($balance, 'available_balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['free'] = $this->safe_string($balance, 'available_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_position($symbol, $params = null) {

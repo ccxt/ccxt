@@ -17,6 +17,7 @@ from ccxt.base.errors import CancelPending
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.precise import Precise
 
 
 class novadax(Exchange):
@@ -378,7 +379,7 @@ class novadax(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(data, 'timestamp')
-        return self.parse_order_book(data, timestamp, 'bids', 'asks')
+        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
 
     def parse_trade(self, trade, market=None):
         #
@@ -425,11 +426,13 @@ class novadax(Exchange):
         orderId = self.safe_string(trade, 'orderId')
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string_lower(trade, 'side')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number(trade, 'volume')
-        if (cost is None) and (amount is not None) and (price is not None):
-            cost = amount * price
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         takerOrMaker = self.safe_string_lower(trade, 'role')
@@ -566,17 +569,21 @@ class novadax(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_number(balance, 'available')
-            account['free'] = self.safe_number(balance, 'balance')
-            account['used'] = self.safe_number(balance, 'hold')
+            account['total'] = self.safe_string(balance, 'available')
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'hold')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

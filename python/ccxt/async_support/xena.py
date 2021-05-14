@@ -11,6 +11,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.precise import Precise
 
 
 class xena(Exchange):
@@ -375,14 +376,6 @@ class xena(Exchange):
                         'min': None,
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(withdraw, 'minAmount'),
                         'max': None,
@@ -514,7 +507,7 @@ class xena(Exchange):
         mdEntriesByType = self.group_by(mdEntry, 'mdEntryType')
         lastUpdateTime = self.safe_integer(response, 'lastUpdateTime')
         timestamp = int(lastUpdateTime / 1000000)
-        return self.parse_order_book(mdEntriesByType, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
+        return self.parse_order_book(mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
 
     async def fetch_accounts(self, params={}):
         response = await self.privateGetTradingAccounts(params)
@@ -579,24 +572,37 @@ class xena(Exchange):
         response = await self.privateGetTradingAccountsAccountIdBalance(self.extend(request, params))
         #
         #     {
-        #         "balances": [
-        #             {"available":"0","onHold":"0","settled":"0","equity":"0","currency":"BAB","lastUpdated":1564811790485125345},
-        #             {"available":"0","onHold":"0","settled":"0","equity":"0","currency":"BSV","lastUpdated":1564811790485125345},
-        #             {"available":"0","onHold":"0","settled":"0","equity":"0","currency":"BTC","lastUpdated":1564811790485125345},
+        #         "msgType":"XAR",
+        #         "balances":[
+        #             {
+        #                 "currency":"BTC",
+        #                 "lastUpdateTime":1619384111905916598,
+        #                 "available":"0.00549964",
+        #                 "onHold":"0",
+        #                 "settled":"0.00549964",
+        #                 "equity":"0.00549964"
+        #             }
         #         ]
         #     }
         #
         result = {'info': response}
+        timestamp = None
         balances = self.safe_value(response, 'balances', [])
         for i in range(0, len(balances)):
             balance = balances[i]
+            lastUpdateTime = self.safe_string(balance, 'lastUpdateTime')
+            lastUpdated = lastUpdateTime[0:13]
+            currentTimestamp = int(lastUpdated)
+            timestamp = currentTimestamp if (timestamp is None) else max(timestamp, currentTimestamp)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            account['used'] = self.safe_number(balance, 'onHold')
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'onHold')
             result[code] = account
-        return self.parse_balance(result)
+        result['timestamp'] = timestamp
+        result['datetime'] = self.iso8601(timestamp)
+        return self.parse_balance(result, False)
 
     def parse_trade(self, trade, market=None):
         #
@@ -647,12 +653,11 @@ class xena(Exchange):
         orderId = self.safe_string(trade, 'orderId')
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        price = self.safe_number_2(trade, 'lastPx', 'mdEntryPx')
-        amount = self.safe_number_2(trade, 'lastQty', 'mdEntrySize')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string_2(trade, 'lastPx', 'mdEntryPx')
+        amountString = self.safe_string_2(trade, 'lastQty', 'mdEntrySize')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         feeCost = self.safe_number(trade, 'commission')
         if feeCost is not None:

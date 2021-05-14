@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidAddress } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -221,11 +222,11 @@ module.exports = class therock extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'trading_balance');
-            account['total'] = this.safeNumber (balance, 'balance');
+            account['free'] = this.safeString (balance, 'trading_balance');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -235,7 +236,7 @@ module.exports = class therock extends Exchange {
         };
         const orderbook = await this.publicGetFundsIdOrderbook (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (orderbook, 'date'));
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -339,14 +340,11 @@ module.exports = class therock extends Exchange {
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order_id');
         const side = this.safeString (trade, 'side');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
         let feeCost = undefined;
         const transactions = this.safeValue (trade, 'transactions', []);

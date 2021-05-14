@@ -151,19 +151,22 @@ class xbtce extends Exchange {
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         $balances = yield $this->privateGetAsset ($params);
-        $result = array( 'info' => $balances );
+        $result = array(
+            'info' => $balances,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'Currency');
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_number($balance, 'FreeAmount'),
-                'used' => $this->safe_number($balance, 'LockedAmount'),
-                'total' => $this->safe_number($balance, 'Amount'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'FreeAmount');
+            $account['used'] = $this->safe_string($balance, 'LockedAmount');
+            $account['total'] = $this->safe_string($balance, 'Amount');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -175,7 +178,7 @@ class xbtce extends Exchange {
         $response = yield $this->privateGetLevel2Filter (array_merge($request, $params));
         $orderbook = $response[0];
         $timestamp = $this->safe_integer($orderbook, 'Timestamp');
-        return $this->parse_order_book($orderbook, $timestamp, 'Bids', 'Asks', 'Price', 'Volume');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'Bids', 'Asks', 'Price', 'Volume');
     }
 
     public function parse_ticker($ticker, $market = null) {

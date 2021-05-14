@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class bigone extends Exchange {
 
@@ -194,9 +195,13 @@ class bigone extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $amountPrecisionString = $this->safe_string($market, 'base_scale');
+            $pricePrecisionString = $this->safe_string($market, 'quote_scale');
+            $amountLimit = $this->parse_precision($amountPrecisionString);
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
-                'amount' => $this->safe_integer($market, 'base_scale'),
-                'price' => $this->safe_integer($market, 'quote_scale'),
+                'amount' => intval($amountPrecisionString),
+                'price' => intval($pricePrecisionString),
             );
             $minCost = $this->safe_integer($market, 'min_quote_value');
             $entry = array(
@@ -211,11 +216,11 @@ class bigone extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => $this->parse_number($amountLimit),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $this->parse_number($priceLimit),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -403,7 +408,7 @@ class bigone extends Exchange {
         //     }
         //
         $orderbook = $this->safe_value($response, 'data', array());
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'quantity');
+        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'quantity');
     }
 
     public function parse_trade($trade, $market = null) {
@@ -449,16 +454,13 @@ class bigone extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'created_at', 'inserted_at'));
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'asset_pair_name');
         $symbol = $this->safe_symbol($marketId, $market, '-');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $this->cost_to_precision($symbol, $price * $amount);
-            }
-        }
         $side = $this->safe_string($trade, 'side');
         $takerSide = $this->safe_string($trade, 'taker_side');
         $takerOrMaker = null;
@@ -664,18 +666,22 @@ class bigone extends Exchange {
         //         ),
         //     }
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $balances = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $symbol = $this->safe_string($balance, 'asset_symbol');
             $code = $this->safe_currency_code($symbol);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'balance');
-            $account['used'] = $this->safe_number($balance, 'locked_balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'locked_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order($order, $market = null) {

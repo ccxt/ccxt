@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -319,21 +320,17 @@ module.exports = class bitmex extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            let free = this.safeNumber (balance, 'availableMargin');
-            let total = this.safeNumber (balance, 'marginBalance');
+            let free = this.safeString (balance, 'availableMargin');
+            let total = this.safeString (balance, 'marginBalance');
             if (code === 'BTC') {
-                if (free !== undefined) {
-                    free /= 100000000;
-                }
-                if (total !== undefined) {
-                    total /= 100000000;
-                }
+                free = Precise.stringDiv (free, '1e8');
+                total = Precise.stringDiv (total, '1e8');
             }
             account['free'] = free;
             account['total'] = total;
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchBalance (params = {}) {
@@ -403,6 +400,7 @@ module.exports = class bitmex extends Exchange {
         }
         const response = await this.publicGetOrderBookL2 (this.extend (request, params));
         const result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': undefined,

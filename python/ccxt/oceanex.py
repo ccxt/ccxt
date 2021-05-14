@@ -154,10 +154,10 @@ class oceanex(Exchange):
                 'active': True,
                 'info': market,
                 'precision': {
-                    'amount': self.safe_value(market, 'amount_precision'),
-                    'price': self.safe_value(market, 'price_precision'),
-                    'base': self.safe_value(market, 'ask_precision'),
-                    'quote': self.safe_value(market, 'bid_precision'),
+                    'amount': self.safe_integer(market, 'amount_precision'),
+                    'price': self.safe_integer(market, 'price_precision'),
+                    'base': self.safe_integer(market, 'ask_precision'),
+                    'quote': self.safe_integer(market, 'bid_precision'),
                 },
                 'limits': {
                     'amount': {
@@ -169,7 +169,7 @@ class oceanex(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': self.safe_value(market, 'minimum_trading_amount'),
+                        'min': self.safe_number(market, 'minimum_trading_amount'),
                         'max': None,
                     },
                 },
@@ -306,7 +306,7 @@ class oceanex(Exchange):
         #
         orderbook = self.safe_value(response, 'data', {})
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def fetch_order_books(self, symbols=None, limit=None, params={}):
         self.load_markets()
@@ -349,7 +349,7 @@ class oceanex(Exchange):
             marketId = self.safe_string(orderbook, 'market')
             symbol = self.safe_symbol(marketId)
             timestamp = self.safe_timestamp(orderbook, 'timestamp')
-            result[symbol] = self.parse_order_book(orderbook, timestamp)
+            result[symbol] = self.parse_order_book(orderbook, symbol, timestamp)
         return result
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -431,10 +431,10 @@ class oceanex(Exchange):
             currencyId = self.safe_value(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'balance')
-            account['used'] = self.safe_number(balance, 'locked')
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

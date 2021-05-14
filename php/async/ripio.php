@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class ripio extends Exchange {
 
@@ -244,8 +245,6 @@ class ripio extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
                 ),
             );
@@ -390,7 +389,7 @@ class ripio extends Exchange {
         //         "updated_id":47225
         //     }
         //
-        $orderbook = $this->parse_order_book($response, null, 'buy', 'sell', 'price', 'amount');
+        $orderbook = $this->parse_order_book($response, $symbol, null, 'buy', 'sell', 'price', 'amount');
         $orderbook['nonce'] = $this->safe_integer($response, 'updated_id');
         return $orderbook;
     }
@@ -432,12 +431,11 @@ class ripio extends Exchange {
         if ($side !== null) {
             $side = strtolower($side);
         }
-        $price = $this->safe_number_2($trade, 'price', 'match_price');
-        $amount = $this->safe_number_2($trade, 'amount', 'exchanged');
-        $cost = null;
-        if (($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
-        }
+        $priceString = $this->safe_string_2($trade, 'price', 'match_price');
+        $amountString = $this->safe_string_2($trade, 'amount', 'exchanged');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'pair');
         $market = $this->safe_market($marketId, $market);
         $feeCost = $this->safe_number($trade, $takerOrMaker . '_fee');
@@ -514,11 +512,11 @@ class ripio extends Exchange {
             $currencyId = $this->safe_string($balance, 'symbol');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'available');
-            $account['used'] = $this->safe_number($balance, 'locked');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

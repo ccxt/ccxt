@@ -10,6 +10,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.precise import Precise
 
 
 class coinmate(Exchange):
@@ -260,11 +261,11 @@ class coinmate(Exchange):
             code = self.safe_currency_code(currencyId)
             balance = self.safe_value(balances, currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'available')
-            account['used'] = self.safe_number(balance, 'reserved')
-            account['total'] = self.safe_number(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'available')
+            account['used'] = self.safe_string(balance, 'reserved')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -275,7 +276,7 @@ class coinmate(Exchange):
         response = await self.publicGetOrderBook(self.extend(request, params))
         orderbook = response['data']
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -441,12 +442,11 @@ class coinmate(Exchange):
         #
         marketId = self.safe_string(trade, 'currencyPair')
         market = self.safe_market(marketId, market, '_')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string_lower_2(trade, 'type', 'tradeType')
         type = self.safe_string_lower(trade, 'orderType')
         orderId = self.safe_string(trade, 'orderId')
@@ -592,20 +592,12 @@ class coinmate(Exchange):
             remaining = self.safe_number(order, 'amount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.parse_order_type(self.safe_string(order, 'orderTradeType'))
-        filled = None
-        cost = None
-        if (amount is not None) and (remaining is not None):
-            filled = max(amount - remaining, 0)
-            if remaining == 0:
-                status = 'closed'
-            if price is not None:
-                cost = filled * price
         average = self.safe_number(order, 'avgPrice')
         marketId = self.safe_string(order, 'currencyPair')
         symbol = self.safe_symbol(marketId, market, '_')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         stopPrice = self.safe_number(order, 'stopPrice')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
@@ -619,15 +611,15 @@ class coinmate(Exchange):
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'trades': None,
             'info': order,
             'fee': None,
-        }
+        })
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

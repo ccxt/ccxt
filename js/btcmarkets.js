@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -365,14 +366,12 @@ module.exports = class btcmarkets extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'assetName');
             const code = this.safeCurrencyCode (currencyId);
-            const total = this.safeNumber (balance, 'balance');
-            const used = this.safeNumber (balance, 'locked');
             const account = this.account ();
-            account['used'] = used;
-            account['total'] = total;
+            account['used'] = this.safeString (balance, 'locked');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -449,7 +448,7 @@ module.exports = class btcmarkets extends Exchange {
         //     }
         //
         const timestamp = this.safeIntegerProduct (response, 'snapshotId', 0.001);
-        const orderbook = this.parseOrderBook (response, timestamp);
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger (response, 'snapshotId');
         return orderbook;
     }
@@ -613,14 +612,11 @@ module.exports = class btcmarkets extends Exchange {
             side = 'sell';
         }
         const id = this.safeString (trade, 'id');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderId = this.safeString (trade, 'orderId');
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'fee');
@@ -850,23 +846,13 @@ module.exports = class btcmarkets extends Exchange {
         const price = this.safeNumber (order, 'price');
         const amount = this.safeNumber (order, 'amount');
         const remaining = this.safeNumber (order, 'openAmount');
-        let filled = undefined;
-        if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (0, amount - remaining);
-        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let cost = undefined;
-        if (price !== undefined) {
-            if (filled !== undefined) {
-                cost = price * filled;
-            }
-        }
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'triggerPrice');
         const postOnly = this.safeValue (order, 'postOnly');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -880,15 +866,15 @@ module.exports = class btcmarkets extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'average': undefined,
             'status': status,
             'trades': undefined,
             'fee': undefined,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

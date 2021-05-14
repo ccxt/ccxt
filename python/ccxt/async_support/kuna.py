@@ -8,6 +8,7 @@ import math
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.precise import Precise
 
 
 class kuna(Exchange):
@@ -126,7 +127,7 @@ class kuna(Exchange):
         return response * 1000
 
     async def fetch_markets(self, params={}):
-        quotes = ['btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt', 'gol']
+        quotes = ['btc', 'rub', 'uah', 'usd', 'usdt', 'usdc']
         pricePrecisions = {
             'UAH': 0,
         }
@@ -186,7 +187,7 @@ class kuna(Exchange):
             request['limit'] = limit  # default = 300
         orderbook = await self.publicGetDepth(self.extend(request, params))
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'at')
@@ -274,9 +275,13 @@ class kuna(Exchange):
                 'bid': 'buy',
             }
             side = self.safe_string(sideMap, side, side)
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'volume')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'volume')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         cost = self.safe_number(trade, 'funds')
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string(trade, 'id')
         return {
@@ -322,10 +327,10 @@ class kuna(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(balance, 'balance')
-            account['used'] = self.safe_number(balance, 'locked')
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

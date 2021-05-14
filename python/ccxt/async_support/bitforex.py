@@ -16,8 +16,10 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.precise import Precise
 
 
 class bitforex(Exchange):
@@ -236,7 +238,10 @@ class bitforex(Exchange):
                 },
             },
             'commonCurrencies': {
+                'ACE': 'ACE Entertainment',
                 'CREDIT': 'TerraCredit',
+                'CTC': 'Culture Ticket Chain',
+                'GOT': 'GoNetwork',
                 'HBC': 'Hybrid Bank Cash',
                 'IQ': 'IQ.Cash',
                 'UOS': 'UOS Network',
@@ -248,6 +253,7 @@ class bitforex(Exchange):
                 '1017': PermissionDenied,  # {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
                 '1019': BadSymbol,  # {"code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid"}
                 '3002': InsufficientFunds,
+                '4003': InvalidOrder,  # {"success":false,"code":"4003","message":"amount too small"}
                 '10204': DDoSProtection,
             },
         })
@@ -305,12 +311,11 @@ class bitforex(Exchange):
         timestamp = self.safe_integer(trade, 'time')
         id = self.safe_string(trade, 'tid')
         orderId = None
-        amount = self.safe_number(trade, 'amount')
-        price = self.safe_number(trade, 'price')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         sideId = self.safe_integer(trade, 'direction')
         side = self.parse_side(sideId)
         return {
@@ -350,11 +355,11 @@ class bitforex(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_number(balance, 'frozen')
-            account['free'] = self.safe_number(balance, 'active')
-            account['total'] = self.safe_number(balance, 'fix')
+            account['used'] = self.safe_string(balance, 'frozen')
+            account['free'] = self.safe_string(balance, 'active')
+            account['total'] = self.safe_string(balance, 'fix')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -444,7 +449,7 @@ class bitforex(Exchange):
         response = await self.publicGetApiV1MarketDepth(self.extend(request, params))
         data = self.safe_value(response, 'data')
         timestamp = self.safe_integer(response, 'time')
-        return self.parse_order_book(data, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_order_status(self, status):
         statuses = {

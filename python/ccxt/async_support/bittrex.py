@@ -28,6 +28,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.precise import Precise
 
 
 class bittrex(Exchange):
@@ -39,7 +40,7 @@ class bittrex(Exchange):
             'countries': ['US'],
             'version': 'v3',
             'rateLimit': 1500,
-            'certified': True,
+            'certified': False,
             'pro': True,
             # new metainfo interface
             'has': {
@@ -326,10 +327,10 @@ class bittrex(Exchange):
             code = self.safe_currency_code(currencyId)
             account = self.account()
             balance = indexed[currencyId]
-            account['free'] = self.safe_number(balance, 'available')
-            account['total'] = self.safe_number(balance, 'total')
+            account['free'] = self.safe_string(balance, 'available')
+            account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -356,7 +357,7 @@ class bittrex(Exchange):
         #     }
         #
         sequence = self.safe_integer(self.last_response_headers, 'Sequence')
-        orderbook = self.parse_order_book(response, None, 'bid', 'ask', 'rate', 'quantity')
+        orderbook = self.parse_order_book(response, symbol, None, 'bid', 'ask', 'rate', 'quantity')
         orderbook['nonce'] = sequence
         return orderbook
 
@@ -400,14 +401,6 @@ class bittrex(Exchange):
                 'limits': {
                     'amount': {
                         'min': 1 / math.pow(10, precision),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': 1 / math.pow(10, precision),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
                         'max': None,
                     },
                     'withdraw': {
@@ -574,12 +567,11 @@ class bittrex(Exchange):
         order = self.safe_string(trade, 'orderId')
         marketId = self.safe_string(trade, 'marketSymbol')
         market = self.safe_market(marketId, market, '-')
-        cost = None
-        price = self.safe_number(trade, 'rate')
-        amount = self.safe_number(trade, 'quantity')
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'rate')
+        amountString = self.safe_string(trade, 'quantity')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         takerOrMaker = None
         isTaker = self.safe_value(trade, 'isTaker')
         if isTaker is not None:

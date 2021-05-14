@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AccountSuspended, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds, BadSymbol, RateLimitExceeded, BadRequest } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -318,12 +319,11 @@ module.exports = class bibox extends Exchange {
             }
         }
         const feeRate = undefined; // todo: deduce from market if market is defined
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined && amount !== undefined) {
-            cost = price * amount;
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         if (feeCost !== undefined) {
             fee = {
                 'cost': -feeCost,
@@ -374,7 +374,7 @@ module.exports = class bibox extends Exchange {
             request['size'] = limit; // default = 200
         }
         const response = await this.publicGetMdata (this.extend (request, params));
-        return this.parseOrderBook (response['result'], this.safeNumber (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
+        return this.parseOrderBook (response['result'], symbol, this.safeNumber (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -477,14 +477,6 @@ module.exports = class bibox extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': undefined,
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'withdraw_min'),
                         'max': undefined,
@@ -570,14 +562,6 @@ module.exports = class bibox extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': Math.pow (10, precision),
@@ -618,19 +602,17 @@ module.exports = class bibox extends Exchange {
                 code = this.currencies_by_id[code]['code'];
             }
             const account = this.account ();
-            let balance = indexed[id];
+            const balance = indexed[id];
             if (typeof balance === 'string') {
-                balance = parseFloat (balance);
                 account['free'] = balance;
-                account['used'] = 0.0;
                 account['total'] = balance;
             } else {
-                account['free'] = this.safeNumber (balance, 'balance');
-                account['used'] = this.safeNumber (balance, 'freeze');
+                account['free'] = this.safeString (balance, 'balance');
+                account['used'] = this.safeString (balance, 'freeze');
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {

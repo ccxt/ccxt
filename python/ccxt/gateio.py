@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -15,6 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.precise import Precise
 
 
 class gateio(Exchange):
@@ -113,6 +113,8 @@ class gateio(Exchange):
                         'tradeHistory',
                         'feelist',
                         'withdraw',
+                        'get_sub_account_available',
+                        'sub_account_transfer',
                     ],
                 },
             },
@@ -167,9 +169,9 @@ class gateio(Exchange):
                 'limits': {
                     'cost': {
                         'min': {
-                            'BTC': 0.0001,
-                            'ETH': 0.001,
-                            'USDT': 1,
+                            'BTC': '0.0001',
+                            'ETH': '0.001',
+                            'USDT': '1',
                         },
                     },
                 },
@@ -183,6 +185,7 @@ class gateio(Exchange):
                 'MPH': 'Morpher',  # conflict with 88MPH
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
+                'VAI': 'VAIOT',
             },
         })
 
@@ -246,14 +249,6 @@ class gateio(Exchange):
                             'min': None,
                             'max': None,
                         },
-                        'price': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'cost': {
-                            'min': None,
-                            'max': None,
-                        },
                         'withdraw': {
                             'min': None,
                             'max': None,
@@ -306,19 +301,22 @@ class gateio(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            pricePrecisionString = self.safe_string(details, 'decimal_places')
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
                 'amount': self.safe_integer(details, 'amount_decimal_places'),
-                'price': self.safe_integer(details, 'decimal_places'),
+                'price': int(pricePrecisionString),
             }
+            amountLimit = self.safe_string(details, 'min_amount')
             amountLimits = {
-                'min': self.safe_number(details, 'min_amount'),
+                'min': self.parse_number(amountLimit),
                 'max': None,
             }
             priceLimits = {
-                'min': math.pow(10, -precision['price']),
+                'min': self.parse_number(priceLimit),
                 'max': None,
             }
-            defaultCost = amountLimits['min'] * priceLimits['min']
+            defaultCost = self.parse_number(Precise.string_mul(amountLimit, priceLimit))
             minCost = self.safe_number(self.options['limits']['cost']['min'], quote, defaultCost)
             costLimits = {
                 'min': minCost,
@@ -332,7 +330,8 @@ class gateio(Exchange):
             disabled = self.safe_integer(details, 'trade_disabled')
             active = not disabled
             uppercaseId = id.upper()
-            fee = self.safe_number(details, 'fee')
+            feeString = self.safe_string(details, 'fee')
+            feeScaled = Precise.string_div(feeString, '100')
             result.append({
                 'id': id,
                 'uppercaseId': uppercaseId,
@@ -343,8 +342,8 @@ class gateio(Exchange):
                 'quoteId': quoteId,
                 'info': market,
                 'active': active,
-                'maker': fee / 100,
-                'taker': fee / 100,
+                'maker': self.parse_number(feeScaled),
+                'taker': self.parse_number(feeScaled),
                 'precision': precision,
                 'limits': limits,
             })
@@ -363,10 +362,10 @@ class gateio(Exchange):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(available, currencyId)
-            account['used'] = self.safe_number(locked, currencyId)
+            account['free'] = self.safe_string(available, currencyId)
+            account['used'] = self.safe_string(locked, currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -374,7 +373,7 @@ class gateio(Exchange):
             'id': self.market_id(symbol),
         }
         response = self.publicGetOrderBookId(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def parse_ohlcv(self, ohlcv, market=None):
         # they return [Timestamp, Volume, Close, High, Low, Open]
@@ -395,10 +394,11 @@ class gateio(Exchange):
             'group_sec': self.timeframes[timeframe],
         }
         # max limit = 1001
-        if limit is not None:
-            periodDurationInSeconds = self.parse_timeframe(timeframe)
-            hours = int((periodDurationInSeconds * limit) / 3600)
-            request['range_hour'] = max(0, hours - 1)
+        # if limit is not None:
+        #     periodDurationInSeconds = self.parse_timeframe(timeframe)
+        #     hours = int((periodDurationInSeconds * limit) / 3600)
+        #     request['range_hour'] = max(1, hours - 1)
+        # }
         response = self.publicGetCandlestick2Id(self.extend(request, params))
         #
         #     {
@@ -493,14 +493,13 @@ class gateio(Exchange):
         id = self.safe_string_2(trade, 'tradeID', 'id')
         # take either of orderid or orderId
         orderId = self.safe_string_2(trade, 'orderid', 'orderNumber')
-        price = self.safe_number_2(trade, 'rate', 'price')
-        amount = self.safe_number(trade, 'amount')
+        priceString = self.safe_string_2(trade, 'rate', 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         type = self.safe_string(trade, 'type')
         takerOrMaker = self.safe_string(trade, 'role')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -786,7 +785,7 @@ class gateio(Exchange):
         response = self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,
-            'id': None,
+            'id': self.safe_string(response, 'withdrawid'),
         }
 
     def fetch_transactions_by_type(self, type=None, code=None, since=None, limit=None, params={}):

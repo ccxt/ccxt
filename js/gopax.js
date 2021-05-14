@@ -4,7 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, AuthenticationError, InsufficientFunds, BadSymbol, OrderNotFound, InvalidAddress, BadRequest } = require ('./base/errors');
-const { TRUNCATE, ROUND, TICK_SIZE } = require ('./base/functions/number');
+const { TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -218,10 +219,10 @@ module.exports = class gopax extends Exchange {
             const minimums = this.safeValue (market, 'restApiOrderAmountMin', {});
             const marketAsk = this.safeValue (minimums, 'marketAsk', {});
             const marketBid = this.safeValue (minimums, 'marketBid', {});
-            const takerFeePercent = this.safeNumber (market, 'takerFeePercent');
-            const makerFeePercent = this.safeNumber (market, 'makerFeePercent');
-            const taker = parseFloat (this.decimalToPrecision (takerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE));
-            const maker = parseFloat (this.decimalToPrecision (makerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE));
+            const takerFeePercentString = this.safeString (market, 'takerFeePercent');
+            const makerFeePercentString = this.safeString (market, 'makerFeePercent');
+            const taker = this.parseNumber (Precise.stringDiv (takerFeePercentString, '100'));
+            const maker = this.parseNumber (Precise.stringDiv (makerFeePercentString, '100'));
             result.push ({
                 'id': id,
                 'info': market,
@@ -295,14 +296,6 @@ module.exports = class gopax extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'withdrawalAmountMin'),
                         'max': undefined,
@@ -337,7 +330,7 @@ module.exports = class gopax extends Exchange {
         //     }
         //
         const nonce = this.safeInteger (response, 'sequence');
-        const result = this.parseOrderBook (response, undefined, 'bid', 'ask', 1, 2);
+        const result = this.parseOrderBook (response, symbol, undefined, 'bid', 'ask', 1, 2);
         result['nonce'] = nonce;
         return result;
     }
@@ -570,13 +563,13 @@ module.exports = class gopax extends Exchange {
         } else if (type === '2') {
             type = 'market';
         }
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber2 (trade, 'amount', 'baseAmount');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'amount', 'baseAmount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         let cost = this.safeNumber (trade, 'quoteAmount');
         if (cost === undefined) {
-            if ((price !== undefined) && (amount !== undefined)) {
-                cost = price * amount;
-            }
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const feeCost = this.safeNumber (trade, 'fee');
         let fee = undefined;
@@ -689,14 +682,14 @@ module.exports = class gopax extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString2 (balance, 'asset', 'isoAlpha3');
             const code = this.safeCurrencyCode (currencyId);
-            const hold = this.safeNumber (balance, 'hold');
-            const pendingWithdrawal = this.safeNumber (balance, 'pendingWithdrawal');
+            const hold = this.safeString (balance, 'hold');
+            const pendingWithdrawal = this.safeString (balance, 'pendingWithdrawal');
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'avail');
-            account['used'] = this.sum (hold, pendingWithdrawal);
+            account['free'] = this.safeString (balance, 'avail');
+            account['used'] = Precise.stringAdd (hold, pendingWithdrawal);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchBalance (params = {}) {

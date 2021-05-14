@@ -5,10 +5,10 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.precise import Precise
 
 
 class mercado(Exchange):
@@ -152,6 +152,7 @@ class mercado(Exchange):
                 'amount': 8,
                 'price': 5,
             }
+            priceLimit = '1e-5'
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -168,7 +169,7 @@ class mercado(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': 1 / math.pow(10, precision['price']),
+                        'min': self.parse_number(priceLimit),
                         'max': None,
                     },
                     'cost': {
@@ -186,7 +187,7 @@ class mercado(Exchange):
             'coin': market['base'],
         }
         response = self.publicGetCoinOrderbook(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -229,12 +230,11 @@ class mercado(Exchange):
         id = self.safe_string_2(trade, 'tid', 'operation_id')
         type = None
         side = self.safe_string(trade, 'type')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number_2(trade, 'amount', 'quantity')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_2(trade, 'amount', 'quantity')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         feeCost = self.safe_number(trade, 'fee_rate')
         fee = None
         if feeCost is not None:
@@ -287,10 +287,10 @@ class mercado(Exchange):
             if currencyId in balances:
                 balance = self.safe_value(balances, currencyId, {})
                 account = self.account()
-                account['free'] = self.safe_number(balance, 'available')
-                account['total'] = self.safe_number(balance, 'total')
+                account['free'] = self.safe_string(balance, 'available')
+                account['total'] = self.safe_string(balance, 'total')
                 result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -389,9 +389,10 @@ class mercado(Exchange):
         #     }
         #
         id = self.safe_string(order, 'order_id')
+        order_type = self.safe_string(order, 'order_type')
         side = None
         if 'order_type' in order:
-            side = 'buy' if (order['order_type'] == 1) else 'sell'
+            side = 'buy' if (order_type == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'coin_pair')
         market = self.safe_market(marketId, market)
@@ -405,15 +406,13 @@ class mercado(Exchange):
         average = self.safe_number(order, 'executed_price_avg')
         amount = self.safe_number(order, 'quantity')
         filled = self.safe_number(order, 'executed_quantity')
-        remaining = amount - filled
-        cost = filled * average
         lastTradeTimestamp = self.safe_timestamp(order, 'updated_timestamp')
         rawTrades = self.safe_value(order, 'operations', [])
         trades = self.parse_trades(rawTrades, market, None, None, {
             'side': side,
             'order': id,
         })
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -427,15 +426,15 @@ class mercado(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': trades,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:

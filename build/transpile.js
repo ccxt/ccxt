@@ -63,6 +63,7 @@ class Transpiler {
             [ /\.parseDate\s/g, '.parse_date'],
             [ /\.parseLedgerEntry\s/g, '.parse_ledger_entry'],
             [ /\.parseLedger\s/g, '.parse_ledger'],
+            [ /\.parseTickers\s/g, '.parse_tickers'],
             [ /\.parseTicker\s/g, '.parse_ticker'],
             [ /\.parseTimeframe\s/g, '.parse_timeframe'],
             [ /\.parseTradesData\s/g, '.parse_trades_data'],
@@ -142,6 +143,8 @@ class Transpiler {
             [ /\.safeCurrency\s/g, '.safe_currency'],
             [ /\.safeSymbol\s/g, '.safe_symbol'],
             [ /\.safeMarket\s/g, '.safe_market'],
+            [ /\.safeOrder\s/g, '.safe_order'],
+            [ /\.safeTicker\s/g, '.safe_ticker'],
             [ /\.roundTimeframe/g, '.round_timeframe'],
             [ /\.integerDivide/g, '.integer_divide'],
             [ /\.integerModulo/g, '.integer_modulo'],
@@ -196,6 +199,12 @@ class Transpiler {
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             [ /assert\s*\((.+)\);/g, 'assert $1'],
+            [ /Precise\.stringAdd\s/g, 'Precise.string_add' ],
+            [ /Precise\.stringMul\s/g, 'Precise.string_mul' ],
+            [ /Precise\.stringDiv\s/g, 'Precise.string_div' ],
+            [ /Precise\.stringSub\s/g, 'Precise.string_sub' ],
+            [ /Precise\.stringAbs\s/g, 'Precise.string_abs' ],
+            [ /Precise\.stringNeg\s/g, 'Precise.string_neg' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -244,9 +253,6 @@ class Transpiler {
             [ /parseFloat\s*/g, 'float'],
             [ /parseInt\s*/g, 'int'],
             [ /self\[([^\]+]+)\]/g, 'getattr(self, $1)' ],
-            [ /([^\s]+)\.slice \(([^\,\)]+)\,\s?([^\)]+)\)/g, '$1[$2:$3]' ],
-            [ /([^\s]+)\.slice \(([^\)\:]+)\)/g, '$1[$2:]' ],
-            [ /([^\s(:]+)\.length/g, 'len($1)' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, 'int(math.floor($1))' ],
             [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
             [ /Math\.pow\s*\(([^\)]+)\)/g, 'math.pow($1)' ],
@@ -254,6 +260,9 @@ class Transpiler {
             [ /Math\.ceil\s*\(([^\)]+)\)/g, 'int(math.ceil($1))' ],
             [ /Math\.log/g, 'math.log' ],
             [ /([a-zA-Z0-9_\.]*\([^\)]+\)|[^\s]+)\s+\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
+            [ /([^\s]+)\.slice \(([^\,\)]+)\,\s?([^\)]+)\)/g, '$1[$2:$3]' ],
+            [ /([^\s]+)\.slice \(([^\)\:]+)\)/g, '$1[$2:]' ],
+            [ /([^\s(:]+)\.length/g, 'len($1)' ],
             [ /(^|\s)\/\//g, '$1#' ],
             [ /([^\n\s]) #/g, '$1  #' ],   // PEP8 E261
             [ /\.indexOf/g, '.find'],
@@ -337,6 +346,12 @@ class Transpiler {
             [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
             [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
             [ /Number\.MAX_SAFE_INTEGER/g, 'PHP_INT_MAX' ],
+            [ /Precise\.stringAdd\s/g, 'Precise::string_add' ],
+            [ /Precise\.stringDiv\s/g, 'Precise::string_div' ],
+            [ /Precise\.stringMul\s/g, 'Precise::string_mul' ],
+            [ /Precise\.stringSub\s/g, 'Precise::string_sub' ],
+            [ /Precise\.stringAbs\s/g, 'Precise::string_abs' ],
+            [ /Precise\.stringNeg\s/g, 'Precise::string_neg' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -344,8 +359,8 @@ class Transpiler {
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
-            [ /\{\}/g, 'array()' ],
-            [ /\[\]/g, 'array()' ],
+            [ /([^'])\{\}/g, '$1array()' ],
+            [ /([^'])\[\]/g, '$1array()' ],
 
         // add {}-array syntax conversions up to 20 levels deep in the same line
         ]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
@@ -580,6 +595,9 @@ class Transpiler {
                 precisionImports.push ('from ccxt.base.decimal_to_precision import ' + constant)
             }
         }
+        if (bodyAsString.match (/[\s(]Precise/)) {
+            precisionImports.push ('from ccxt.base.precise import Precise')
+        }
 
         header = header.concat (libraries, errorImports, precisionImports)
 
@@ -635,7 +653,13 @@ class Transpiler {
             }
         }
 
-        header = header.concat (errorImports)
+        const precisionImports = []
+
+        if (async && bodyAsString.match (/[\s(]Precise/)) {
+            precisionImports.push ('use \\ccxt\\Precise;')
+        }
+
+        header = header.concat (errorImports).concat (precisionImports)
 
         methods = methods.concat (this.getPHPBaseMethods ())
 
@@ -1057,9 +1081,8 @@ class Transpiler {
                 fs.readdirSync (folder)
                     .filter (file =>
                         !fs.lstatSync (folder + file).isDirectory () &&
-                        file.match (regex) &&
-                        !(file.replace (/\.[a-z]+$/, '') in classes) &&
-                        !file.match (/^Exchange|errors|__init__|\\./))
+                        !(file.replace (pattern, '') in classes) &&
+                        !file.match (/^[A-Z_]/))
                     .map (file => folder + file)
                     .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
             }
@@ -1181,7 +1204,7 @@ class Transpiler {
         function phpMakeErrorClassFile (name, parent) {
 
             const useClause = "\nuse " + parent + ";\n"
-            const requireClause = "\nrequire_once PATH_TO_CCXT_BASE . '" + parent + ".php';\n"
+            const requireClause = "\nrequire_once PATH_TO_CCXT . '" + parent + ".php';\n"
 
             const phpBody = [
                 '<?php',
@@ -1191,10 +1214,10 @@ class Transpiler {
                 'class ' + name + ' extends ' + parent + ' {};',
                 '',
             ].join ("\n")
-            const phpFilename = './php/base/' + name + '.php'
+            const phpFilename = './php/' + name + '.php'
             log.bright.cyan (message, phpFilename.yellow)
             fs.writeFileSync (phpFilename, phpBody)
-            return "require_once PATH_TO_CCXT_BASE . '" + name + ".php';"
+            return "require_once PATH_TO_CCXT . '" + name + ".php';"
         }
 
         const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
@@ -1202,7 +1225,7 @@ class Transpiler {
         const phpFilename = './ccxt.php'
 
         log.bright.cyan (message, phpFilename.yellow)
-        const phpRegex = /require_once PATH_TO_CCXT_BASE \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT_BASE[^\n]+\n)+\n/m
+        const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
         replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
 
         // TypeScript ---------------------------------------------------------
@@ -1300,6 +1323,7 @@ class Transpiler {
             "from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401",
             "from ccxt.base.decimal_to_precision import number_to_string      # noqa F401",
             "from ccxt.base.exchange import Exchange                          # noqa F401",
+            "from ccxt.base.precise import Precise                            # noqa F401",
             "",
             "",
             "def toWei(amount, decimals):",
@@ -1512,7 +1536,7 @@ class Transpiler {
         result.push (space + ');')
         const string = result.join ('\n')
 
-        const phpBaseClass = './php/base/Exchange.php';
+        const phpBaseClass = './php/Exchange.php';
         const phpBody = fs.readFileSync (phpBaseClass, 'utf8')
         const regex = /public static \$camelcase_methods = array\([\s\S]+?\);/g
         const bodyArray = phpBody.split (regex)

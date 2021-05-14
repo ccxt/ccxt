@@ -208,8 +208,6 @@ class bytetrade extends Exchange {
                 'fee' => null,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'deposit' => array(
                         'min' => $this->safe_number($deposit, 'min'),
                         'max' => $maxDeposit,
@@ -302,11 +300,11 @@ class bytetrade extends Exchange {
             $currencyId = $this->safe_string($balance, 'code');
             $code = $this->safe_currency_code($currencyId, null);
             $account = $this->account();
-            $account['free'] = $this->safe_number($balance, 'free');
-            $account['used'] = $this->safe_number($balance, 'used');
+            $account['free'] = $this->safe_string($balance, 'free');
+            $account['used'] = $this->safe_string($balance, 'used');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -320,7 +318,7 @@ class bytetrade extends Exchange {
         }
         $response = $this->marketGetDepth (array_merge($request, $params));
         $timestamp = $this->safe_value($response, 'timestamp');
-        $orderbook = $this->parse_order_book($response, $timestamp);
+        $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
         return $orderbook;
     }
 
@@ -493,7 +491,6 @@ class bytetrade extends Exchange {
         $side = $this->safe_string($trade, 'side');
         $datetime = $this->iso8601($timestamp); // $this->safe_string($trade, 'datetime');
         $order = $this->safe_string($trade, 'order');
-        $fee = $this->safe_value($trade, 'fee');
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($trade, 'symbol');
@@ -502,6 +499,16 @@ class bytetrade extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
+        $feeData = $this->safe_value($trade, 'fee');
+        $feeCost = $this->safe_number($feeData, 'cost');
+        $feeRate = $this->safe_number($feeData, 'rate');
+        $feeCode = $this->safe_string($feeData, 'code');
+        $feeCurrency = $this->safe_currency_code($feeCode);
+        $fee = array(
+            'currency' => $feeCurrency,
+            'cost' => $feeCost,
+            'rate' => $feeRate,
+        );
         return array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -565,7 +572,16 @@ class bytetrade extends Exchange {
         $id = $this->safe_string($order, 'id');
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
-        $fee = $this->safe_value($order, 'fee');
+        $feeData = $this->safe_value($order, 'fee');
+        $feeCost = $this->safe_number($feeData, 'cost');
+        $feeRate = $this->safe_number($feeData, 'rate');
+        $feeCode = $this->safe_string($feeData, 'code');
+        $feeCurrency = $this->safe_currency_code($feeCode);
+        $fee = array(
+            'currency' => $feeCurrency,
+            'cost' => $feeCost,
+            'rate' => $feeRate,
+        );
         return array(
             'info' => $order,
             'id' => $id,
@@ -810,6 +826,9 @@ class bytetrade extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
+        if ($since !== null) {
+            $request['since'] = $since;
+        }
         $response = $this->publicGetOrdersOpen (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -830,6 +849,9 @@ class bytetrade extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
+        if ($since !== null) {
+            $request['since'] = $since;
+        }
         $response = $this->publicGetOrdersClosed (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -849,6 +871,9 @@ class bytetrade extends Exchange {
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $request['since'] = $since;
         }
         $response = $this->publicGetOrdersAll (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
@@ -1076,6 +1101,9 @@ class bytetrade extends Exchange {
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $request['since'] = $since;
         }
         $response = $this->publicGetOrdersTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);

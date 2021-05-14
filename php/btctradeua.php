@@ -109,10 +109,10 @@ class btctradeua extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_number($balance, 'balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -137,7 +137,7 @@ class btctradeua extends Exchange {
                 $orderbook['asks'] = $asks['list'];
             }
         }
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'currency_trade');
+        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'currency_trade');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -252,14 +252,11 @@ class btctradeua extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $type = 'limit';
         $side = $this->safe_string($trade, 'type');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amnt_trade');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amnt_trade');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -96,12 +97,12 @@ module.exports = class paymium extends Exchange {
             if (free in response) {
                 const account = this.account ();
                 const used = 'locked_' + currencyId;
-                account['free'] = this.safeNumber (response, free);
-                account['used'] = this.safeNumber (response, used);
+                account['free'] = this.safeString (response, free);
+                account['used'] = this.safeString (response, used);
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -110,7 +111,7 @@ module.exports = class paymium extends Exchange {
             'currency': this.marketId (symbol),
         };
         const response = await this.publicGetDataCurrencyDepth (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -159,15 +160,12 @@ module.exports = class paymium extends Exchange {
             symbol = market['symbol'];
         }
         const side = this.safeString (trade, 'side');
-        const price = this.safeNumber (trade, 'price');
+        const priceString = this.safeString (trade, 'price');
         const amountField = 'traded_' + market['base'].toLowerCase ();
-        const amount = this.safeNumber (trade, amountField);
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
-        }
+        const amountString = this.safeString (trade, amountField);
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         return {
             'info': trade,
             'id': id,

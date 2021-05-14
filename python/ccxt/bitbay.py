@@ -17,6 +17,7 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class bitbay(Exchange):
@@ -57,15 +58,16 @@ class bitbay(Exchange):
                 '3d': '259200',
                 '1w': '604800',
             },
+            'hostname': 'bitbay.net',
             'urls': {
                 'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
                 'www': 'https://bitbay.net',
                 'api': {
-                    'public': 'https://bitbay.net/API/Public',
-                    'private': 'https://bitbay.net/API/Trading/tradingApi.php',
-                    'v1_01Public': 'https://api.bitbay.net/rest',
-                    'v1_01Private': 'https://api.bitbay.net/rest',
+                    'public': 'https://{hostname}/API/Public',
+                    'private': 'https://{hostname}/API/Trading/tradingApi.php',
+                    'v1_01Public': 'https://api.{hostname}/rest',
+                    'v1_01Private': 'https://api.{hostname}/rest',
                 },
                 'doc': [
                     'https://bitbay.net/public-api',
@@ -424,10 +426,10 @@ class bitbay(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_number(balance, 'lockedFunds')
-            account['free'] = self.safe_number(balance, 'availableFunds')
+            account['used'] = self.safe_string(balance, 'lockedFunds')
+            account['free'] = self.safe_string(balance, 'availableFunds')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -435,7 +437,7 @@ class bitbay(Exchange):
             'id': self.market_id(symbol),
         }
         orderbook = self.publicGetIdOrderbook(self.extend(request, params))
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, symbol)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -913,12 +915,11 @@ class bitbay(Exchange):
         takerOrMaker = None
         if wasTaker is not None:
             takerOrMaker = 'taker' if wasTaker else 'maker'
-        price = self.safe_number_2(trade, 'rate', 'r')
-        amount = self.safe_number_2(trade, 'amount', 'a')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = price * amount
+        priceString = self.safe_string_2(trade, 'rate', 'r')
+        amountString = self.safe_string_2(trade, 'amount', 'a')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         feeCost = self.safe_number(trade, 'commissionValue')
         marketId = self.safe_string(trade, 'market')
         market = self.safe_market(marketId, market, '-')
@@ -1132,7 +1133,7 @@ class bitbay(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api]
+        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname})
         if api == 'public':
             query = self.omit(params, self.extract_params(path))
             url += '/' + self.implode_params(path, params) + '.json'
