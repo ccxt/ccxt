@@ -80,11 +80,11 @@ class bybit extends Exchange {
                 'futures' => array(
                     'private' => array(
                         'get' => array(
-                            'position/list',
                             'order/list',
                             'order',
                             'stop-order/list',
                             'stop-order',
+                            'position/list',
                             'execution/list',
                             'trade/closed-pnl/list',
                         ),
@@ -102,6 +102,7 @@ class bybit extends Exchange {
                             'position/leverage/save',
                             'position/switch-mode',
                             'position/switch-isolated',
+                            'position/risk-limit',
                         ),
                     ),
                 ),
