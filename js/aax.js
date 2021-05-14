@@ -478,14 +478,6 @@ module.exports = class aax extends Exchange {
         };
     }
 
-    async fetchTicker (symbol, params = {}) {
-        const tickers = await this.fetchTickers (undefined, params);
-        if (symbol in tickers) {
-            return tickers[symbol];
-        }
-        throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' ticker not found');
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetMarketTickers (params);
