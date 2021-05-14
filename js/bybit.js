@@ -202,6 +202,7 @@ module.exports = class bybit extends Exchange {
                             'position/add-margin',
                             'position/set-leverage',
                             'position/trading-stop',
+                            'position/set-risk',
                         ],
                     },
                 },
