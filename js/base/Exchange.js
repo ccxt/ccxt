@@ -763,8 +763,18 @@ module.exports = class Exchange {
         return result
     }
 
-    fetchTicker (symbol, params = {}) {
-        throw new NotSupported (this.id + ' fetchTicker not supported yet')
+    async fetchTicker (symbol, params = {}) {
+        if (this.has['fetchTickers']) {
+            const tickers = await this.fetchTickers ([ symbol ], params);
+            const ticker = this.safeValue (tickers, symbol);
+            if (ticker === undefined) {
+                throw new InvalidAddress (this.id + ' fetchTickers could not find a ticker for ' + symbol);
+            } else {
+                return ticker;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchTicker not supported yet');
+        }
     }
 
     fetchTickers (symbols = undefined, params = {}) {
