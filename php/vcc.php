@@ -469,34 +469,6 @@ class vcc extends Exchange {
         );
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $response = $this->publicGetTicker ($params);
-        //
-        //     {
-        //         "message":null,
-        //         "dataVersion":"fc521161aebe506178b8588cd2adb598eaf1018e",
-        //         "$data":{
-        //             "BTC_VND":array(
-        //                 "base_id":1,
-        //                 "quote_id":0,
-        //                 "last_price":"411119457",
-        //                 "max_price":"419893173.0000000000",
-        //                 "min_price":"401292577.0000000000",
-        //                 "open_price":null,
-        //                 "base_volume":"10.5915050000",
-        //                 "quote_volume":"4367495977.4484430060",
-        //                 "isFrozen":0
-        //             ),
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        $ticker = $this->safe_value($data, $market['id']);
-        return $this->parse_ticker($ticker, $market);
-    }
-
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTicker ($params);

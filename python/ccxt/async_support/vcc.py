@@ -461,33 +461,6 @@ class vcc(Exchange):
             'info': ticker,
         }
 
-    async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        response = await self.publicGetTicker(params)
-        #
-        #     {
-        #         "message":null,
-        #         "dataVersion":"fc521161aebe506178b8588cd2adb598eaf1018e",
-        #         "data":{
-        #             "BTC_VND":{
-        #                 "base_id":1,
-        #                 "quote_id":0,
-        #                 "last_price":"411119457",
-        #                 "max_price":"419893173.0000000000",
-        #                 "min_price":"401292577.0000000000",
-        #                 "open_price":null,
-        #                 "base_volume":"10.5915050000",
-        #                 "quote_volume":"4367495977.4484430060",
-        #                 "isFrozen":0
-        #             },
-        #         }
-        #     }
-        #
-        data = self.safe_value(response, 'data')
-        ticker = self.safe_value(data, market['id'])
-        return self.parse_ticker(ticker, market)
-
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.publicGetTicker(params)
