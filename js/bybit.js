@@ -723,13 +723,13 @@ module.exports = class bybit extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'inverseFuture');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
-        let method;
+        let method = undefined;
         if (marketType === 'linear') {
             method = 'publicLinearGetKline';
         } else if (marketType === 'inverse') {
             method = 'v2PublicGetKlineList';
         } else if (marketType === 'inverseFuture') {
-            method = 'v2PublicGetKlineList'; //TODO
+            method = 'v2PublicGetKlineList';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1364,7 +1364,7 @@ module.exports = class bybit extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'inverseFuture');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
-        let method;
+        let method = undefined;
         if (marketType === 'linear') {
             method = 'privateLinearPostOrderCreate';
         } else if (marketType === 'inverse') {
@@ -1563,8 +1563,7 @@ module.exports = class bybit extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'inverseFuture');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
-        // let method = (marketType === 'linear') ? 'privateLinearPostOrderCancel' : 'v2PrivatePostOrderCancel';
-        let method;
+        let method = undefined;
         if (marketType === 'linear') {
             method = 'privateLinearPostOrderCancel';
         } else if (marketType === 'inverse') {
@@ -1637,7 +1636,7 @@ module.exports = class bybit extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'inverseFuture');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
-        let defaultMethod;
+        let defaultMethod = undefined;
         if (marketType === 'linear') {
             defaultMethod = 'privateLinearGetOrderList';
         } else if (marketType === 'inverse') {
@@ -1845,7 +1844,7 @@ module.exports = class bybit extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'inverseFuture');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
-        let method;
+        let method = undefined;
         if (marketType === 'linear') {
             method = 'privateLinearGetTradeExecutionList';
         } else if (marketType === 'inverse') {
