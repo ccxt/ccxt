@@ -8,7 +8,6 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\BadSymbol;
 
 class bitbns extends Exchange {
 
@@ -308,14 +307,6 @@ class bitbns extends Exchange {
             'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
             'info' => $ticker,
         );
-    }
-
-    public function fetch_ticker($symbol, $params = array ()) {
-        $tickers = $this->fetch_tickers(null, $params);
-        if (is_array($tickers) && array_key_exists($symbol, $tickers)) {
-            return $tickers[$symbol];
-        }
-        throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' ticker not found');
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
