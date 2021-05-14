@@ -487,12 +487,6 @@ class aax(Exchange):
             'info': ticker,
         }
 
-    def fetch_ticker(self, symbol, params={}):
-        tickers = self.fetch_tickers(None, params)
-        if symbol in tickers:
-            return tickers[symbol]
-        raise BadSymbol(self.id + ' fetchTicker() symbol ' + symbol + ' ticker not found')
-
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         response = self.publicGetMarketTickers(params)
