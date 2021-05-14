@@ -207,16 +207,6 @@ class bybit extends Exchange {
                         ),
                     ),
                 ),
-                'openapi' => array(
-                    'wallet' => array(
-                        'get' => array(
-                            'risk-limit/list',
-                        ),
-                        'post' => array(
-                            'risk-limit',
-                        ),
-                    ),
-                ),
             ),
             'httpExceptions' => array(
                 '403' => '\\ccxt\\RateLimitExceeded', // Forbidden -- You request too many times
