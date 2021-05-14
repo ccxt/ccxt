@@ -466,34 +466,6 @@ module.exports = class vcc extends Exchange {
         };
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const response = await this.publicGetTicker (params);
-        //
-        //     {
-        //         "message":null,
-        //         "dataVersion":"fc521161aebe506178b8588cd2adb598eaf1018e",
-        //         "data":{
-        //             "BTC_VND":{
-        //                 "base_id":1,
-        //                 "quote_id":0,
-        //                 "last_price":"411119457",
-        //                 "max_price":"419893173.0000000000",
-        //                 "min_price":"401292577.0000000000",
-        //                 "open_price":null,
-        //                 "base_volume":"10.5915050000",
-        //                 "quote_volume":"4367495977.4484430060",
-        //                 "isFrozen":0
-        //             },
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        const ticker = this.safeValue (data, market['id']);
-        return this.parseTicker (ticker, market);
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
