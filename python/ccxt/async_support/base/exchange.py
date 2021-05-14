@@ -25,6 +25,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import BadSymbol
 
 # -----------------------------------------------------------------------------
 
@@ -317,7 +318,15 @@ class Exchange(BaseExchange):
         return self.accounts
 
     async def fetch_ticker(self, symbol, params={}):
-        raise NotSupported('fetch_ticker() not supported yet')
+        if self.has['fetchTickers']:
+            tickers = await self.fetch_tickers([symbol], params)
+            ticker = self.safe_value(tickers, symbol)
+            if ticker is None:
+                raise BadSymbol(self.id + ' fetchTickers could not find a ticker for ' + symbol)
+            else:
+                return ticker
+        else:
+            raise NotSupported(self.id + ' fetchTicker not supported yet')
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_transactions() is not supported yet')
@@ -328,8 +337,8 @@ class Exchange(BaseExchange):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    # async def fetch_deposit_address(self, code=None, params={}):
-    #     raise NotSupported('fetch_deposit_address() is not supported yet')
+    async def fetch_deposit_address(self, code=None, params={}):
+        raise NotSupported('fetch_deposit_address() is not supported yet')
 
     async def fetch_deposit_address(self, code, params={}):
         if self.has['fetchDepositAddresses']:
