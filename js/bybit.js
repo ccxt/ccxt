@@ -120,6 +120,8 @@ module.exports = class bybit extends Exchange {
                             'account-ratio',
                             'time',
                             'announcement',
+                            'funding/prev-funding-rate',
+                            'risk-limit/list',
                         ],
                     },
                     'private': {
@@ -153,6 +155,9 @@ module.exports = class bybit extends Exchange {
                             'position/change-position-margin',
                             'position/trading-stop',
                             'position/leverage/save',
+                            'position/switch-mode',
+                            'position/switch-isolated',
+                            'position/risk-limit',
                         ],
                     },
                 },
