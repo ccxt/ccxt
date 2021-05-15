@@ -223,8 +223,7 @@ module.exports = class btctradeua extends Exchange {
         }
         const year = parts[2];
         let hms = parts[4];
-        const hmsLength = hms.length;
-        if ((hmsLength === 7) || (hmsLength === 4)) {
+        if ((hms.length === 7) || (hms.length === 4)) {
             hms = '0' + hms;
         }
         if (day.length === 1) {
