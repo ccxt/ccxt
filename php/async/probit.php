@@ -129,6 +129,7 @@ class probit extends Exchange {
                     'MARKET_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable', // Market is closed today
                     'INVALID_MARKET' => '\\ccxt\\BadSymbol', // Requested market is not exist
                     'MARKET_CLOSED' => '\\ccxt\\BadSymbol', // array("errorCode":"MARKET_CLOSED")
+                    'MARKET_NOT_FOUND' => '\\ccxt\\BadSymbol', // array("errorCode":"MARKET_NOT_FOUND","message":"8e2b8496-0a1e-5beb-b990-a205b902eabe","details":array())
                     'INVALID_CURRENCY' => '\\ccxt\\BadRequest', // Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS' => '\\ccxt\\DDoSProtection', // Too many open orders
                     'DUPLICATE_ADDRESS' => '\\ccxt\\InvalidAddress', // Address already exists in withdrawal address list
