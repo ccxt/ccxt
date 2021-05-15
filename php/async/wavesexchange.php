@@ -11,6 +11,7 @@ use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\InsufficientFunds;
+use \ccxt\Precise;
 
 class wavesexchange extends Exchange {
 
@@ -395,6 +396,7 @@ class wavesexchange extends Exchange {
         $bids = $this->parse_order_book_side($this->safe_value($response, 'bids'), $market, $limit);
         $asks = $this->parse_order_book_side($this->safe_value($response, 'asks'), $market, $limit);
         return array(
+            'symbol' => $symbol,
             'bids' => $bids,
             'asks' => $asks,
             'timestamp' => $timestamp,
@@ -1355,8 +1357,11 @@ class wavesexchange extends Exchange {
         // }
         $balances = $this->safe_value($totalBalance, 'balances');
         $result = array();
+        $timestamp = null;
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $balances[$i];
+            $entryTimestamp = $this->safe_integer($entry, 'timestamp');
+            $timestamp = ($timestamp === null) ? $entryTimestamp : max ($timestamp, $entryTimestamp);
             $issueTransaction = $this->safe_value($entry, 'issueTransaction');
             $decimals = $this->safe_integer($issueTransaction, 'decimals');
             $currencyId = $this->safe_string($entry, 'assetId');
@@ -1368,10 +1373,10 @@ class wavesexchange extends Exchange {
                 $result[$code]['total'] = $this->from_wei($balance, $decimals);
             }
         }
-        $timestamp = $this->milliseconds();
+        $currentTimestamp = $this->milliseconds();
         $byteArray = array(
             $this->base58_to_binary($this->apiKey),
-            $this->number_to_be($timestamp, 8),
+            $this->number_to_be($currentTimestamp, 8),
         );
         $binary = $this->binary_concat_array($byteArray);
         $hexSecret = bin2hex($this->base58_to_binary($this->secret));
@@ -1379,7 +1384,7 @@ class wavesexchange extends Exchange {
         $matcherRequest = array(
             'publicKey' => $this->apiKey,
             'signature' => $signature,
-            'timestamp' => (string) $timestamp,
+            'timestamp' => (string) $currentTimestamp,
         );
         $reservedBalance = yield $this->matcherGetMatcherBalanceReservedPublicKey ($matcherRequest);
         // array( WAVES => 200300000 )
@@ -1411,6 +1416,8 @@ class wavesexchange extends Exchange {
                 $result[$code]['used'] = 0.0;
             }
         }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
         return $this->parse_balance($result);
     }
 
@@ -1495,8 +1502,11 @@ class wavesexchange extends Exchange {
         $datetime = $this->safe_string($data, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $id = $this->safe_string($data, 'id');
-        $price = $this->safe_number($data, 'price');
-        $amount = $this->safe_number($data, 'amount');
+        $priceString = $this->safe_string($data, 'price');
+        $amountString = $this->safe_string($data, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $order1 = $this->safe_value($data, 'order1');
         $order2 = $this->safe_value($data, 'order2');
         $order = null;
@@ -1515,10 +1525,6 @@ class wavesexchange extends Exchange {
         }
         $side = $this->safe_string($order, 'orderType');
         $orderId = $this->safe_string($order, 'id');
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
-        }
         $fee = array(
             'cost' => $this->safe_number($data, 'fee'),
             'currency' => $this->safe_currency_code($this->safe_string($order, 'matcherFeeAssetId', 'WAVES')),

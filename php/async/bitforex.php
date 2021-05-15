@@ -225,7 +225,10 @@ class bitforex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'ACE' => 'ACE Entertainment',
                 'CREDIT' => 'TerraCredit',
+                'CTC' => 'Culture Ticket Chain',
+                'GOT' => 'GoNetwork',
                 'HBC' => 'Hybrid Bank Cash',
                 'IQ' => 'IQ.Cash',
                 'UOS' => 'UOS Network',
@@ -237,6 +240,7 @@ class bitforex extends Exchange {
                 '1017' => '\\ccxt\\PermissionDenied', // array("code":"1017","success":false,"time":1602670594367,"message":"IP not allow")
                 '1019' => '\\ccxt\\BadSymbol', // array("code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid")
                 '3002' => '\\ccxt\\InsufficientFunds',
+                '4003' => '\\ccxt\\InvalidOrder', // array("success":false,"code":"4003","message":"amount too small")
                 '10204' => '\\ccxt\\DDoSProtection',
             ),
         ));
@@ -446,7 +450,7 @@ class bitforex extends Exchange {
         $response = yield $this->publicGetApiV1MarketDepth (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_integer($response, 'time');
-        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_order_status($status) {

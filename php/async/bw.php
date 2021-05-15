@@ -303,14 +303,6 @@ class bw extends Exchange {
                         'min' => $this->safe_number($currency, 'limitAmount', 0),
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => null,
                         'max' => $this->safe_number($currency, 'onceDrawLimit'),
@@ -459,7 +451,7 @@ class bw extends Exchange {
         //
         $orderbook = $this->safe_value($response, 'datas', array());
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {

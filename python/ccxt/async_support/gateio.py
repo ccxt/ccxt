@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -114,6 +113,8 @@ class gateio(Exchange):
                         'tradeHistory',
                         'feelist',
                         'withdraw',
+                        'get_sub_account_available',
+                        'sub_account_transfer',
                     ],
                 },
             },
@@ -168,9 +169,9 @@ class gateio(Exchange):
                 'limits': {
                     'cost': {
                         'min': {
-                            'BTC': 0.0001,
-                            'ETH': 0.001,
-                            'USDT': 1,
+                            'BTC': '0.0001',
+                            'ETH': '0.001',
+                            'USDT': '1',
                         },
                     },
                 },
@@ -184,6 +185,7 @@ class gateio(Exchange):
                 'MPH': 'Morpher',  # conflict with 88MPH
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
+                'VAI': 'VAIOT',
             },
         })
 
@@ -247,14 +249,6 @@ class gateio(Exchange):
                             'min': None,
                             'max': None,
                         },
-                        'price': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'cost': {
-                            'min': None,
-                            'max': None,
-                        },
                         'withdraw': {
                             'min': None,
                             'max': None,
@@ -307,19 +301,22 @@ class gateio(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            pricePrecisionString = self.safe_string(details, 'decimal_places')
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
                 'amount': self.safe_integer(details, 'amount_decimal_places'),
-                'price': self.safe_integer(details, 'decimal_places'),
+                'price': int(pricePrecisionString),
             }
+            amountLimit = self.safe_string(details, 'min_amount')
             amountLimits = {
-                'min': self.safe_number(details, 'min_amount'),
+                'min': self.parse_number(amountLimit),
                 'max': None,
             }
             priceLimits = {
-                'min': math.pow(10, -precision['price']),
+                'min': self.parse_number(priceLimit),
                 'max': None,
             }
-            defaultCost = amountLimits['min'] * priceLimits['min']
+            defaultCost = self.parse_number(Precise.string_mul(amountLimit, priceLimit))
             minCost = self.safe_number(self.options['limits']['cost']['min'], quote, defaultCost)
             costLimits = {
                 'min': minCost,
@@ -333,7 +330,8 @@ class gateio(Exchange):
             disabled = self.safe_integer(details, 'trade_disabled')
             active = not disabled
             uppercaseId = id.upper()
-            fee = self.safe_number(details, 'fee')
+            feeString = self.safe_string(details, 'fee')
+            feeScaled = Precise.string_div(feeString, '100')
             result.append({
                 'id': id,
                 'uppercaseId': uppercaseId,
@@ -344,8 +342,8 @@ class gateio(Exchange):
                 'quoteId': quoteId,
                 'info': market,
                 'active': active,
-                'maker': fee / 100,
-                'taker': fee / 100,
+                'maker': self.parse_number(feeScaled),
+                'taker': self.parse_number(feeScaled),
                 'precision': precision,
                 'limits': limits,
             })
@@ -375,7 +373,7 @@ class gateio(Exchange):
             'id': self.market_id(symbol),
         }
         response = await self.publicGetOrderBookId(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def parse_ohlcv(self, ohlcv, market=None):
         # they return [Timestamp, Volume, Close, High, Low, Open]
@@ -787,7 +785,7 @@ class gateio(Exchange):
         response = await self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,
-            'id': None,
+            'id': self.safe_string(response, 'withdrawid'),
         }
 
     async def fetch_transactions_by_type(self, type=None, code=None, since=None, limit=None, params={}):

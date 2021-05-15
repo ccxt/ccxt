@@ -26,13 +26,13 @@ use Recoil;
 use Generator;
 use Exception;
 
-include 'throttle.php';
+include 'Throttle.php';
 
-$version = '1.47.49';
+$version = '1.50.4';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.47.49';
+    const VERSION = '1.50.4';
 
     public static $loop;
     public static $kernel;
@@ -180,7 +180,7 @@ class Exchange extends \ccxt\Exchange {
         $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $json_response, $headers, $body);
         $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $response_body);
 
-        return isset($json_response) ? $json_response : $result;
+        return isset($json_response) ? $json_response : $response_body;
     }
 
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null) {
@@ -299,5 +299,33 @@ class Exchange extends \ccxt\Exchange {
         }
         yield $this->cancel_order($id, $symbol, $params);
         return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    public function fetch_deposit_address($code, $params = array()) {
+        if ($this->has['fetchDepositAddresses']) {
+            $deposit_addresses = yield $this->fetch_deposit_addresses(array($code), $params);
+            $deposit_address = $this->safe_value($deposit_addresses, $code);
+            if ($deposit_address === null) {
+                throw new InvalidAddress($this->id . ' fetchDepositAddress could not find a deposit address for ' . $code . ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
+            } else {
+                return $deposit_address;
+            }
+        } else {
+            throw new NotSupported ($this->id + ' fetchDepositAddress not supported yet');
+        }
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        if ($this->has['fetchTickers']) {
+            $tickers = yield $this->fetch_tickers(array( $symbol ), $params);
+            $ticker = $this->safe_value($tickers, $symbol);
+            if ($ticker === null) {
+                throw new BadSymbol($this->id . ' fetchTickers could not find a $ticker for ' . $symbol);
+            } else {
+                return $ticker;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchTicker not supported yet');
+        }
     }
 }

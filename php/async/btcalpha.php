@@ -138,10 +138,13 @@ class btcalpha extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $pricePrecision = $this->safe_string($market, 'price_precision');
+            $priceLimit = $this->parse_precision($pricePrecision);
             $precision = array(
                 'amount' => 8,
-                'price' => $this->safe_integer($market, 'price_precision'),
+                'price' => intval($pricePrecision),
             );
+            $amountLimit = $this->safe_string($market, 'minimum_order_size');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -151,15 +154,15 @@ class btcalpha extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_number($market, 'minimum_order_size'),
+                        'min' => $this->parse_number($amountLimit),
                         'max' => $this->safe_number($market, 'maximum_order_size'),
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
-                        'max' => pow(10, $precision['price']),
+                        'min' => $this->parse_number($priceLimit),
+                        'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->parse_number(Precise::string_mul($priceLimit, $amountLimit)),
                         'max' => null,
                     ),
                 ),
@@ -181,7 +184,7 @@ class btcalpha extends Exchange {
             $request['limit_buy'] = $limit;
         }
         $response = yield $this->publicGetOrderbookPairName (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'buy', 'sell', 'price', 'amount');
+        return $this->parse_order_book($response, $symbol, null, 'buy', 'sell', 'price', 'amount');
     }
 
     public function parse_bids_asks($bidasks, $priceKey = 0, $amountKey = 1) {

@@ -232,10 +232,7 @@ module.exports = class liquid extends Exchange {
             const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
             const active = currency['depositable'] && currency['withdrawable'];
-            const amountPrecision = this.safeInteger (currency, 'display_precision');
-            const pricePrecision = this.safeInteger (currency, 'quoting_precision');
-            const precision = Math.max (amountPrecision, pricePrecision);
-            const decimalPrecision = 1 / Math.pow (10, precision);
+            const amountPrecision = this.safeInteger (currency, 'assets_precision');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -243,19 +240,11 @@ module.exports = class liquid extends Exchange {
                 'name': code,
                 'active': active,
                 'fee': this.safeNumber (currency, 'withdrawal_fee'),
-                'precision': decimalPrecision,
+                'precision': amountPrecision,
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -amountPrecision),
                         'max': Math.pow (10, amountPrecision),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -pricePrecision),
-                        'max': Math.pow (10, pricePrecision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
                     },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minimum_withdrawal'),
@@ -397,14 +386,27 @@ module.exports = class liquid extends Exchange {
             if (baseCurrency !== undefined) {
                 minAmount = this.safeNumber (baseCurrency['info'], 'minimum_order_quantity');
             }
+            const lastPrice = this.safeNumber (market, 'last_traded_price');
+            let minPrice = undefined;
+            let maxPrice = undefined;
+            if (lastPrice) {
+                const multiplierDown = this.safeNumber (market, 'multiplier_down');
+                const multiplierUp = this.safeNumber (market, 'multiplier_up');
+                if (multiplierDown !== undefined) {
+                    minPrice = lastPrice * multiplierDown;
+                }
+                if (multiplierUp !== undefined) {
+                    maxPrice = lastPrice * multiplierUp;
+                }
+            }
             const limits = {
                 'amount': {
                     'min': minAmount,
                     'max': undefined,
                 },
                 'price': {
-                    'min': undefined,
-                    'max': undefined,
+                    'min': minPrice,
+                    'max': maxPrice,
                 },
                 'cost': {
                     'min': undefined,
@@ -469,7 +471,11 @@ module.exports = class liquid extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const crypto = this.safeValue (response, 'crypto_accounts', []);
         const fiat = this.safeValue (response, 'fiat_accounts', []);
         for (let i = 0; i < crypto.length; i++) {
@@ -499,7 +505,7 @@ module.exports = class liquid extends Exchange {
             'id': this.marketId (symbol),
         };
         const response = await this.publicGetProductsIdPriceLevels (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'buy_price_levels', 'sell_price_levels');
+        return this.parseOrderBook (response, symbol, undefined, 'buy_price_levels', 'sell_price_levels');
     }
 
     parseTicker (ticker, market = undefined) {

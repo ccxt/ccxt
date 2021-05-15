@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.47.49'
+__version__ = '1.50.4'
 
 # -----------------------------------------------------------------------------
 
@@ -25,6 +25,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import BadSymbol
 
 # -----------------------------------------------------------------------------
 
@@ -119,7 +120,14 @@ class Exchange(BaseExchange):
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
                 http_response = await response.text()
-                headers = response.headers
+                # CIMultiDictProxy
+                raw_headers = response.headers
+                headers = {}
+                for header in raw_headers:
+                    if header in headers:
+                        headers[header] = headers[header] + ', ' + raw_headers[header]
+                    else:
+                        headers[header] = raw_headers[header]
                 http_status_code = response.status
                 http_status_text = response.reason
                 http_response = self.on_rest_response(http_status_code, http_status_text, url, method, headers, http_response, request_headers, request_body)
@@ -310,7 +318,15 @@ class Exchange(BaseExchange):
         return self.accounts
 
     async def fetch_ticker(self, symbol, params={}):
-        raise NotSupported('fetch_ticker() not supported yet')
+        if self.has['fetchTickers']:
+            tickers = await self.fetch_tickers([symbol], params)
+            ticker = self.safe_value(tickers, symbol)
+            if ticker is None:
+                raise BadSymbol(self.id + ' fetchTickers could not find a ticker for ' + symbol)
+            else:
+                return ticker
+        else:
+            raise NotSupported(self.id + ' fetchTicker not supported yet')
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_transactions() is not supported yet')
@@ -321,8 +337,16 @@ class Exchange(BaseExchange):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    async def fetch_deposit_address(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_deposit_address() is not supported yet')
+    async def fetch_deposit_address(self, code, params={}):
+        if self.has['fetchDepositAddresses']:
+            deposit_addresses = await self.fetch_deposit_addresses([code], params)
+            deposit_address = self.safe_value(deposit_addresses, code)
+            if deposit_address is None:
+                raise NotSupported(self.id + ' fetch_deposit_address could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
+            else:
+                return deposit_address
+        else:
+            raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
 
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)

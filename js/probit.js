@@ -190,15 +190,19 @@ module.exports = class probit extends Exchange {
             const symbol = base + '/' + quote;
             const closed = this.safeValue (market, 'closed', false);
             const active = !closed;
-            const amountPrecision = this.safeInteger (market, 'quantity_precision');
-            const costPrecision = this.safeInteger (market, 'cost_precision');
+            const amountPrecision = this.safeString (market, 'quantity_precision');
+            const costPrecision = this.safeString (market, 'cost_precision');
+            const amountTickSize = this.parsePrecision (amountPrecision);
+            const costTickSize = this.parsePrecision (costPrecision);
             const precision = {
-                'amount': 1 / Math.pow (10, amountPrecision),
+                'amount': this.parseNumber (amountTickSize),
                 'price': this.safeNumber (market, 'price_increment'),
-                'cost': 1 / Math.pow (10, costPrecision),
+                'cost': this.parseNumber (costTickSize),
             };
-            const takerFeeRate = this.safeNumber (market, 'taker_fee_rate');
-            const makerFeeRate = this.safeNumber (market, 'maker_fee_rate');
+            const takerFeeRate = this.safeString (market, 'taker_fee_rate');
+            const taker = Precise.stringDiv (takerFeeRate, '100');
+            const makerFeeRate = this.safeString (market, 'maker_fee_rate');
+            const maker = Precise.stringDiv (makerFeeRate, '100');
             result.push ({
                 'id': id,
                 'info': market,
@@ -209,8 +213,8 @@ module.exports = class probit extends Exchange {
                 'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
-                'taker': takerFeeRate / 100,
-                'maker': makerFeeRate / 100,
+                'taker': this.parseNumber (taker),
+                'maker': this.parseNumber (maker),
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (market, 'min_quantity'),
@@ -331,14 +335,6 @@ module.exports = class probit extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'deposit': {
                         'min': this.safeNumber (platform, 'min_deposit_amount'),
                         'max': undefined,
@@ -367,8 +363,12 @@ module.exports = class probit extends Exchange {
         //         ]
         //     }
         //
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const data = this.safeValue (response, 'data');
-        const result = { 'info': data };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency_id');
@@ -399,7 +399,7 @@ module.exports = class probit extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const dataBySide = this.groupBy (data, 'side');
-        return this.parseOrderBook (dataBySide, undefined, 'buy', 'sell', 'price', 'quantity');
+        return this.parseOrderBook (dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

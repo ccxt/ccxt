@@ -277,6 +277,9 @@ class hbtc(Exchange):
                     'method': 'quoteGetTicker24hr',
                 },
             },
+            'commonCurrencies': {
+                'MIS': 'Themis Protocol',
+            },
         })
 
     def fetch_time(self, params={}):
@@ -311,27 +314,36 @@ class hbtc(Exchange):
             symbol = id
             spot = False
             option = True
+        margin = self.safe_value(market, 'allowMargin', None)
+        isAggregate = self.safe_value(market, 'isAggregate', None)
+        active = True
+        if isAggregate is True:
+            active = False
         amountMin = None
         amountMax = None
         priceMin = None
         priceMax = None
         costMin = None
+        pricePrecision = None
+        amountPrecision = None
         for j in range(0, len(filters)):
             filter = filters[j]
             filterType = self.safe_string(filter, 'filterType')
             if filterType == 'LOT_SIZE':
                 amountMin = self.safe_number(filter, 'minQty')
                 amountMax = self.safe_number(filter, 'maxQty')
+                amountPrecision = self.safe_number(filter, 'stepSize')
             if filterType == 'PRICE_FILTER':
                 priceMin = self.safe_number(filter, 'minPrice')
                 priceMax = self.safe_number(filter, 'maxPrice')
-            if filterType == 'MIN_NOTIONAL':
-                costMin = self.safe_number(filter, 'minNotional')
-        if (costMin is None) and (amountMin is not None) and (priceMin is not None):
+                pricePrecision = self.safe_number(filter, 'tickSize')
+        if (amountMin is not None) and (priceMin is not None):
             costMin = amountMin * priceMin
         precision = {
-            'price': self.safe_number_2(market, 'quotePrecision', 'quoteAssetPrecision'),
-            'amount': self.safe_number(market, 'baseAssetPrecision'),
+            'price': pricePrecision,
+            'amount': amountPrecision,
+            'base': self.safe_number(market, 'baseAssetPrecision'),
+            'quote': self.safe_number_2(market, 'quotePrecision', 'quoteAssetPrecision'),
         }
         limits = {
             'amount': {
@@ -354,11 +366,12 @@ class hbtc(Exchange):
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
-            'active': True,
+            'active': active,
             'type': type,
             'spot': spot,
             'future': future,
             'option': option,
+            'margin': margin,
             'inverse': inverse,
             'precision': precision,
             'limits': limits,
@@ -377,18 +390,22 @@ class hbtc(Exchange):
         #                 "filters":[
         #                     {"minPrice":"0.01","maxPrice":"100000.00000000","tickSize":"0.01","filterType":"PRICE_FILTER"},
         #                     {"minQty":"0.0005","maxQty":"100000.00000000","stepSize":"0.000001","filterType":"LOT_SIZE"},
-        #                     {"minNotional":"5","filterType":"MIN_NOTIONAL"}
+        #                     {"minNotional":"0.01","filterType":"MIN_NOTIONAL"}
         #                 ],
         #                 "exchangeId":"301",
         #                 "symbol":"BTCUSDT",
         #                 "symbolName":"BTCUSDT",
         #                 "status":"TRADING",
         #                 "baseAsset":"BTC",
+        #                 "baseAssetName":"BTC",
         #                 "baseAssetPrecision":"0.000001",
         #                 "quoteAsset":"USDT",
+        #                 "quoteAssetName":"USDT",
         #                 "quotePrecision":"0.01",
-        #                 "icebergAllowed":false
-        #             },
+        #                 "icebergAllowed":false,
+        #                 "isAggregate":false,
+        #                 "allowMargin":true
+        #            },
         #         ],
         #         "options":[
         #             {
@@ -402,10 +419,14 @@ class hbtc(Exchange):
         #                 "symbolName":"BTC0501CS8500",
         #                 "status":"TRADING",
         #                 "baseAsset":"BTC0501CS8500",
+        #                 "baseAssetName":"BTC0306CS3800",
         #                 "baseAssetPrecision":"0.001",
         #                 "quoteAsset":"BUSDT",
+        #                 "quoteAssetName":"BUSDT",
         #                 "quotePrecision":"0.01",
         #                 "icebergAllowed":false
+        #                 "isAggregate":false,
+        #                 "allowMargin":false
         #             },
         #         ],
         #         "contracts":[
@@ -536,7 +557,7 @@ class hbtc(Exchange):
         #     }
         #
         timestamp = self.safe_integer(response, 'time')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -700,7 +721,11 @@ class hbtc(Exchange):
         #     }
         #
         balances = self.safe_value(response, 'balances')
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         if balances is not None:
             for i in range(0, len(balances)):
                 balance = balances[i]

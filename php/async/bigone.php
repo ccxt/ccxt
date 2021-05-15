@@ -195,9 +195,13 @@ class bigone extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $amountPrecisionString = $this->safe_string($market, 'base_scale');
+            $pricePrecisionString = $this->safe_string($market, 'quote_scale');
+            $amountLimit = $this->parse_precision($amountPrecisionString);
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
-                'amount' => $this->safe_integer($market, 'base_scale'),
-                'price' => $this->safe_integer($market, 'quote_scale'),
+                'amount' => intval($amountPrecisionString),
+                'price' => intval($pricePrecisionString),
             );
             $minCost = $this->safe_integer($market, 'min_quote_value');
             $entry = array(
@@ -212,11 +216,11 @@ class bigone extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => $this->parse_number($amountLimit),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $this->parse_number($priceLimit),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -404,7 +408,7 @@ class bigone extends Exchange {
         //     }
         //
         $orderbook = $this->safe_value($response, 'data', array());
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'quantity');
+        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'quantity');
     }
 
     public function parse_trade($trade, $market = null) {
@@ -662,7 +666,11 @@ class bigone extends Exchange {
         //         ),
         //     }
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $balances = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];

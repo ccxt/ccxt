@@ -527,7 +527,7 @@ module.exports = class huobipro extends Exchange {
             }
             const tick = this.safeValue (response, 'tick');
             const timestamp = this.safeInteger (tick, 'ts', this.safeInteger (response, 'ts'));
-            const result = this.parseOrderBook (tick, timestamp);
+            const result = this.parseOrderBook (tick, symbol, timestamp);
             result['nonce'] = this.safeInteger (tick, 'version');
             return result;
         }
@@ -638,10 +638,7 @@ module.exports = class huobipro extends Exchange {
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
         let feeCost = this.safeNumber (trade, 'filled-fees');
-        let feeCurrency = undefined;
-        if (market !== undefined) {
-            feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-currency'));
-        }
+        let feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-currency'));
         const filledPoints = this.safeNumber (trade, 'filled-points');
         if (filledPoints !== undefined) {
             if ((feeCost === undefined) || (feeCost === 0.0)) {
@@ -847,14 +844,6 @@ module.exports = class huobipro extends Exchange {
                     'amount': {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
                     },
                     'deposit': {
                         'min': this.safeNumber (currency, 'deposit-min-amount'),

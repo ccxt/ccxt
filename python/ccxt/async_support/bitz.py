@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -16,6 +15,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.precise import Precise
 
 
 class bitz(Exchange):
@@ -298,10 +298,13 @@ class bitz(Exchange):
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
+            pricePrecisionString = self.safe_string(market, 'priceFloat')
+            minPrice = self.parse_precision(pricePrecisionString)
             precision = {
                 'amount': self.safe_integer(market, 'numberFloat'),
-                'price': self.safe_integer(market, 'priceFloat'),
+                'price': int(pricePrecisionString),
             }
+            minAmount = self.safe_string(market, 'minTrade')
             result.append({
                 'info': market,
                 'id': id,
@@ -315,15 +318,15 @@ class bitz(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_number(market, 'minTrade'),
+                        'min': self.parse_number(minAmount),
                         'max': self.safe_number(market, 'maxTrade'),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': self.parse_number(minPrice),
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.parse_number(Precise.string_mul(minPrice, minAmount)),
                         'max': None,
                     },
                 },
@@ -357,7 +360,12 @@ class bitz(Exchange):
         #     }
         #
         balances = self.safe_value(response['data'], 'info')
-        result = {'info': response}
+        timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'name')
@@ -580,7 +588,7 @@ class bitz(Exchange):
         #
         orderbook = self.safe_value(response, 'data')
         timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         #
@@ -598,12 +606,11 @@ class bitz(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        price = self.safe_number(trade, 'p')
-        amount = self.safe_number(trade, 'n')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = self.price_to_precision(symbol, amount * price)
+        priceString = self.safe_string(trade, 'p')
+        amountString = self.safe_string(trade, 'n')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string(trade, 's')
         return {
             'timestamp': timestamp,

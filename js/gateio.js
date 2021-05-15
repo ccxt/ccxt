@@ -103,6 +103,8 @@ module.exports = class gateio extends Exchange {
                         'tradeHistory',
                         'feelist',
                         'withdraw',
+                        'get_sub_account_available',
+                        'sub_account_transfer',
                     ],
                 },
             },
@@ -157,9 +159,9 @@ module.exports = class gateio extends Exchange {
                 'limits': {
                     'cost': {
                         'min': {
-                            'BTC': 0.0001,
-                            'ETH': 0.001,
-                            'USDT': 1,
+                            'BTC': '0.0001',
+                            'ETH': '0.001',
+                            'USDT': '1',
                         },
                     },
                 },
@@ -173,6 +175,7 @@ module.exports = class gateio extends Exchange {
                 'MPH': 'Morpher', // conflict with 88MPH
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
+                'VAI': 'VAIOT',
             },
         });
     }
@@ -238,14 +241,6 @@ module.exports = class gateio extends Exchange {
                             'min': undefined,
                             'max': undefined,
                         },
-                        'price': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
                         'withdraw': {
                             'min': undefined,
                             'max': undefined,
@@ -303,19 +298,22 @@ module.exports = class gateio extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const pricePrecisionString = this.safeString (details, 'decimal_places');
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
                 'amount': this.safeInteger (details, 'amount_decimal_places'),
-                'price': this.safeInteger (details, 'decimal_places'),
+                'price': parseInt (pricePrecisionString),
             };
+            const amountLimit = this.safeString (details, 'min_amount');
             const amountLimits = {
-                'min': this.safeNumber (details, 'min_amount'),
+                'min': this.parseNumber (amountLimit),
                 'max': undefined,
             };
             const priceLimits = {
-                'min': Math.pow (10, -precision['price']),
+                'min': this.parseNumber (priceLimit),
                 'max': undefined,
             };
-            const defaultCost = amountLimits['min'] * priceLimits['min'];
+            const defaultCost = this.parseNumber (Precise.stringMul (amountLimit, priceLimit));
             const minCost = this.safeNumber (this.options['limits']['cost']['min'], quote, defaultCost);
             const costLimits = {
                 'min': minCost,
@@ -329,7 +327,8 @@ module.exports = class gateio extends Exchange {
             const disabled = this.safeInteger (details, 'trade_disabled');
             const active = !disabled;
             const uppercaseId = id.toUpperCase ();
-            const fee = this.safeNumber (details, 'fee');
+            const feeString = this.safeString (details, 'fee');
+            const feeScaled = Precise.stringDiv (feeString, '100');
             result.push ({
                 'id': id,
                 'uppercaseId': uppercaseId,
@@ -340,8 +339,8 @@ module.exports = class gateio extends Exchange {
                 'quoteId': quoteId,
                 'info': market,
                 'active': active,
-                'maker': fee / 100,
-                'taker': fee / 100,
+                'maker': this.parseNumber (feeScaled),
+                'taker': this.parseNumber (feeScaled),
                 'precision': precision,
                 'limits': limits,
             });
@@ -376,7 +375,7 @@ module.exports = class gateio extends Exchange {
             'id': this.marketId (symbol),
         };
         const response = await this.publicGetOrderBookId (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -826,7 +825,7 @@ module.exports = class gateio extends Exchange {
         const response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,
-            'id': undefined,
+            'id': this.safeString (response, 'withdrawid'),
         };
     }
 

@@ -276,7 +276,7 @@ module.exports = class coinmate extends Exchange {
         const response = await this.publicGetOrderBook (this.extend (request, params));
         const orderbook = response['data'];
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -612,25 +612,14 @@ module.exports = class coinmate extends Exchange {
         if (remaining === undefined) {
             remaining = this.safeNumber (order, 'amount');
         }
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'orderTradeType'));
-        let filled = undefined;
-        let cost = undefined;
-        if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max (amount - remaining, 0);
-            if (remaining === 0) {
-                status = 'closed';
-            }
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-        }
         const average = this.safeNumber (order, 'avgPrice');
         const marketId = this.safeString (order, 'currencyPair');
         const symbol = this.safeSymbol (marketId, market, '_');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
@@ -644,15 +633,15 @@ module.exports = class coinmate extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': average,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'status': status,
             'trades': undefined,
             'info': order,
             'fee': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

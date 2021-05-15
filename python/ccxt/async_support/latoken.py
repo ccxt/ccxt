@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -170,8 +169,10 @@ class latoken(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            pricePrecisionString = self.safe_string(market, 'pricePrecision')
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
-                'price': self.safe_integer(market, 'pricePrecision'),
+                'price': int(pricePrecisionString),
                 'amount': self.safe_integer(market, 'amountPrecision'),
             }
             limits = {
@@ -180,7 +181,7 @@ class latoken(Exchange):
                     'max': None,
                 },
                 'price': {
-                    'min': math.pow(10, -precision['price']),
+                    'min': self.parse_number(priceLimit),
                     'max': None,
                 },
                 'cost': {
@@ -240,14 +241,6 @@ class latoken(Exchange):
                         'min': None,
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': None,
@@ -274,6 +267,8 @@ class latoken(Exchange):
         #
         result = {
             'info': response,
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(response)):
             balance = response[i]
@@ -311,7 +306,7 @@ class latoken(Exchange):
         #         ]
         #     }
         #
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'quantity')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'quantity')
 
     def parse_ticker(self, ticker, market=None):
         #

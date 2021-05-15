@@ -293,7 +293,7 @@ class coinex extends Exchange {
             'limit' => (string) $limit,
         );
         $response = $this->publicGetMarketDepth (array_merge($request, $params));
-        return $this->parse_order_book($response['data']);
+        return $this->parse_order_book($response['data'], $symbol);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -426,7 +426,7 @@ class coinex extends Exchange {
         //     }
         //
         $result = array( 'info' => $response );
-        $balances = $this->safe_value($response, 'data');
+        $balances = $this->safe_value($response, 'data', array());
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
@@ -942,7 +942,7 @@ class coinex extends Exchange {
         $code = $this->safe_string($response, 'code');
         $data = $this->safe_value($response, 'data');
         $message = $this->safe_string($response, 'message');
-        if (($code !== '0') || ($data === null) || (($message !== 'Ok') && !$data)) {
+        if (($code !== '0') || ($data === null) || (($message !== 'Success') && ($message !== 'Ok') && !$data)) {
             $responseCodes = array(
                 '24' => '\\ccxt\\AuthenticationError',
                 '25' => '\\ccxt\\AuthenticationError',

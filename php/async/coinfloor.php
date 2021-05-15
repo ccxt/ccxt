@@ -110,16 +110,16 @@ class coinfloor extends Exchange {
         $baseIdLower = $this->safe_string_lower($market, 'baseId');
         $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
         $result[$base] = array(
-            'free' => $this->safe_number($response, $baseIdLower . '_available'),
-            'used' => $this->safe_number($response, $baseIdLower . '_reserved'),
-            'total' => $this->safe_number($response, $baseIdLower . '_balance'),
+            'free' => $this->safe_string($response, $baseIdLower . '_available'),
+            'used' => $this->safe_string($response, $baseIdLower . '_reserved'),
+            'total' => $this->safe_string($response, $baseIdLower . '_balance'),
         );
         $result[$quote] = array(
-            'free' => $this->safe_number($response, $quoteIdLower . '_available'),
-            'used' => $this->safe_number($response, $quoteIdLower . '_reserved'),
-            'total' => $this->safe_number($response, $quoteIdLower . '_balance'),
+            'free' => $this->safe_string($response, $quoteIdLower . '_available'),
+            'used' => $this->safe_string($response, $quoteIdLower . '_reserved'),
+            'total' => $this->safe_string($response, $quoteIdLower . '_balance'),
         );
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -128,7 +128,7 @@ class coinfloor extends Exchange {
             'id' => $this->market_id($symbol),
         );
         $response = yield $this->publicGetIdOrderBook (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function parse_ticker($ticker, $market = null) {

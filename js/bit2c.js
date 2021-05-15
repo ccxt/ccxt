@@ -148,7 +148,11 @@ module.exports = class bit2c extends Exchange {
         //         }
         //     }
         //
-        const result = { 'info': balance };
+        const result = {
+            'info': balance,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -170,7 +174,7 @@ module.exports = class bit2c extends Exchange {
             'pair': this.marketId (symbol),
         };
         const orderbook = await this.publicGetExchangesPairOrderbook (this.extend (request, params));
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {

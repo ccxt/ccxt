@@ -230,9 +230,13 @@ class zb extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $amountPrecisionString = $this->safe_string($market, 'amountScale');
+            $pricePrecisionString = $this->safe_string($market, 'priceScale');
+            $amountLimit = $this->parse_precision($amountPrecisionString);
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
-                'amount' => $this->safe_integer($market, 'amountScale'),
-                'price' => $this->safe_integer($market, 'priceScale'),
+                'amount' => intval($amountPrecisionString),
+                'price' => intval($pricePrecisionString),
             );
             $result[] = array(
                 'id' => $id,
@@ -245,11 +249,11 @@ class zb extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => $this->parse_number($amountLimit),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $this->parse_number($priceLimit),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -269,7 +273,11 @@ class zb extends Exchange {
         // todo => use this somehow
         // $permissions = $response['result']['base'];
         $balances = $this->safe_value($response['result'], 'coins');
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             //     {        enName => "BTC",
@@ -405,7 +413,7 @@ class zb extends Exchange {
             $request['size'] = $limit;
         }
         $response = $this->publicGetDepth (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

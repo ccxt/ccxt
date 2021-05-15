@@ -379,14 +379,6 @@ class xena extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($withdraw, 'minAmount'),
                         'max' => null,
@@ -528,7 +520,7 @@ class xena extends Exchange {
         $mdEntriesByType = $this->group_by($mdEntry, 'mdEntryType');
         $lastUpdateTime = $this->safe_integer($response, 'lastUpdateTime');
         $timestamp = intval($lastUpdateTime / 1000000);
-        return $this->parse_order_book($mdEntriesByType, $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
+        return $this->parse_order_book($mdEntriesByType, $symbol, $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 
     public function fetch_accounts($params = array ()) {
@@ -602,17 +594,28 @@ class xena extends Exchange {
         $response = $this->privateGetTradingAccountsAccountIdBalance (array_merge($request, $params));
         //
         //     {
-        //         "$balances" => array(
-        //             array("available":"0","onHold":"0","settled":"0","equity":"0","currency":"BAB","lastUpdated":1564811790485125345),
-        //             array("available":"0","onHold":"0","settled":"0","equity":"0","currency":"BSV","lastUpdated":1564811790485125345),
-        //             array("available":"0","onHold":"0","settled":"0","equity":"0","currency":"BTC","lastUpdated":1564811790485125345),
+        //         "msgType":"XAR",
+        //         "$balances":array(
+        //             {
+        //                 "currency":"BTC",
+        //                 "$lastUpdateTime":1619384111905916598,
+        //                 "available":"0.00549964",
+        //                 "onHold":"0",
+        //                 "settled":"0.00549964",
+        //                 "equity":"0.00549964"
+        //             }
         //         )
         //     }
         //
         $result = array( 'info' => $response );
+        $timestamp = null;
         $balances = $this->safe_value($response, 'balances', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
+            $lastUpdateTime = $this->safe_string($balance, 'lastUpdateTime');
+            $lastUpdated = mb_substr($lastUpdateTime, 0, 13 - 0);
+            $currentTimestamp = intval($lastUpdated);
+            $timestamp = ($timestamp === null) ? $currentTimestamp : max ($timestamp, $currentTimestamp);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -620,6 +623,8 @@ class xena extends Exchange {
             $account['used'] = $this->safe_string($balance, 'onHold');
             $result[$code] = $account;
         }
+        $result['timestamp'] = $timestamp;
+        $result['datetime'] = $this->iso8601($timestamp);
         return $this->parse_balance($result, false);
     }
 

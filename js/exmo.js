@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, NotSupported, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -654,8 +655,10 @@ module.exports = class exmo extends Exchange {
             const [ baseId, quoteId ] = symbol.split ('/');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const taker = this.safeNumber (market, 'commission_taker_percent');
-            const maker = this.safeNumber (market, 'commission_maker_percent');
+            const takerString = this.safeString (market, 'commission_taker_percent');
+            const makerString = this.safeString (market, 'commission_maker_percent');
+            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -664,8 +667,8 @@ module.exports = class exmo extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'taker': taker / 100,
-                'maker': maker / 100,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (market, 'min_quantity'),
@@ -791,7 +794,7 @@ module.exports = class exmo extends Exchange {
         }
         const response = await this.publicGetOrderBook (this.extend (request, params));
         const result = this.safeValue (response, market['id']);
-        return this.parseOrderBook (result, undefined, 'bid', 'ask');
+        return this.parseOrderBook (result, symbol, undefined, 'bid', 'ask');
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {

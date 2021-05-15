@@ -143,6 +143,7 @@ module.exports = class lykke extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'CAN': 'CanYaCoin',
                 'XPD': 'Lykke XPD',
             },
         });
@@ -191,7 +192,7 @@ module.exports = class lykke extends Exchange {
         if (side === undefined) {
             side = (amountString[0] === '-') ? 'sell' : 'buy';
         }
-        amountString = (amountString[0] === '-') ? amountString.slice (1) : amountString;
+        amountString = Precise.stringAbs (amountString);
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
@@ -358,8 +359,10 @@ module.exports = class lykke extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const pricePrecision = this.safeString (market, 'Accuracy');
+            const priceLimit = this.parsePrecision (pricePrecision);
             const precision = {
-                'price': this.safeInteger (market, 'Accuracy'),
+                'price': parseInt (pricePrecision),
                 'amount': this.safeInteger (market, 'InvertedAccuracy'),
             };
             result.push ({
@@ -372,15 +375,15 @@ module.exports = class lykke extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'min': this.safeNumber (market, 'MinVolume'),
+                        'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': this.parseNumber (priceLimit),
+                        'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'MinInvertedVolume'),
                         'max': undefined,
                     },
                 },
@@ -565,7 +568,7 @@ module.exports = class lykke extends Exchange {
             const sideTimestamp = this.parse8601 (side['Timestamp']);
             timestamp = (timestamp === undefined) ? sideTimestamp : Math.max (timestamp, sideTimestamp);
         }
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume');
+        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'Price', 'Volume');
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {

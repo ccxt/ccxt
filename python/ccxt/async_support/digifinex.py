@@ -277,14 +277,6 @@ class digifinex(Exchange):
                             'min': None,
                             'max': None,
                         },
-                        'price': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'cost': {
-                            'min': None,
-                            'max': None,
-                        },
                         'withdraw': {
                             'min': self.safe_number(currency, 'min_withdraw_amount'),
                             'max': None,
@@ -495,7 +487,7 @@ class digifinex(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(response, 'date')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

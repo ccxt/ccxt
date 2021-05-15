@@ -25,7 +25,7 @@ class bittrex extends Exchange {
             'countries' => array( 'US' ),
             'version' => 'v3',
             'rateLimit' => 1500,
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             // new metainfo interface
             'has' => array(
@@ -351,7 +351,7 @@ class bittrex extends Exchange {
         //     }
         //
         $sequence = $this->safe_integer($this->last_response_headers, 'Sequence');
-        $orderbook = $this->parse_order_book($response, null, 'bid', 'ask', 'rate', 'quantity');
+        $orderbook = $this->parse_order_book($response, $symbol, null, 'bid', 'ask', 'rate', 'quantity');
         $orderbook['nonce'] = $sequence;
         return $orderbook;
     }
@@ -396,14 +396,6 @@ class bittrex extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => 1 / pow(10, $precision),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => 1 / pow(10, $precision),
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
                         'max' => null,
                     ),
                     'withdraw' => array(

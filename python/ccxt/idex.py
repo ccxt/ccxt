@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
@@ -162,13 +161,15 @@ class idex(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            basePrecision = self.safe_integer(entry, 'baseAssetPrecision')
-            quotePrecision = self.safe_integer(entry, 'quoteAssetPrecision')
+            basePrecisionString = self.safe_string(entry, 'baseAssetPrecision')
+            quotePrecisionString = self.safe_string(entry, 'quoteAssetPrecision')
+            basePrecision = self.parse_precision(basePrecisionString)
+            quotePrecision = self.parse_precision(quotePrecisionString)
             status = self.safe_string(entry, 'status')
             active = status == 'active'
             precision = {
-                'amount': basePrecision,
-                'price': quotePrecision,
+                'amount': int(basePrecisionString),
+                'price': int(quotePrecisionString),
             }
             result.append({
                 'symbol': symbol,
@@ -182,11 +183,11 @@ class idex(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': self.parse_number(basePrecision),
                         'max': None,
                     },
                     'price': {
-                        'min': None,
+                        'min': self.parse_number(quotePrecision),
                         'max': None,
                     },
                     'cost': {
@@ -479,6 +480,7 @@ class idex(Exchange):
         response = self.publicGetOrderbook(self.extend(request, params))
         nonce = self.safe_integer(response, 'sequence')
         return {
+            'symbol': symbol,
             'timestamp': None,
             'datetime': None,
             'nonce': nonce,
@@ -514,9 +516,10 @@ class idex(Exchange):
             entry = response[i]
             name = self.safe_string(entry, 'name')
             currencyId = self.safe_string(entry, 'symbol')
-            precision = self.safe_integer(entry, 'exchangeDecimals')
+            precisionString = self.safe_string(entry, 'exchangeDecimals')
             code = self.safe_currency_code(currencyId)
-            lot = math.pow(-10, precision)
+            precision = self.parse_precision(precisionString)
+            lot = self.parse_number(precision)
             result[code] = {
                 'id': currencyId,
                 'code': code,
@@ -525,11 +528,9 @@ class idex(Exchange):
                 'name': name,
                 'active': None,
                 'fee': None,
-                'precision': precision,
+                'precision': int(precisionString),
                 'limits': {
                     'amount': {'min': lot, 'max': None},
-                    'price': {'min': lot, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': lot, 'max': None},
                 },
             }
@@ -567,6 +568,8 @@ class idex(Exchange):
                 raise e
         result = {
             'info': response,
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(response)):
             entry = response[i]
@@ -787,23 +790,13 @@ class idex(Exchange):
         price = self.safe_number(order, 'price')
         rawStatus = self.safe_string(order, 'status')
         status = self.parse_order_status(rawStatus)
-        fee = {
-            'currency': None,
-            'cost': None,
-        }
-        lastTrade = None
-        for i in range(0, len(trades)):
-            lastTrade = trades[i]
-            fee['currency'] = lastTrade['fee']['currency']
-            fee['cost'] = self.sum(fee['cost'], lastTrade['fee']['cost'])
-        lastTradeTimestamp = self.safe_integer(lastTrade, 'timestamp')
         return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
@@ -817,7 +810,7 @@ class idex(Exchange):
             'filled': filled,
             'remaining': None,
             'status': status,
-            'fee': fee,
+            'fee': None,
             'trades': trades,
         })
 

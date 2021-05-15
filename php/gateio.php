@@ -106,6 +106,8 @@ class gateio extends Exchange {
                         'tradeHistory',
                         'feelist',
                         'withdraw',
+                        'get_sub_account_available',
+                        'sub_account_transfer',
                     ),
                 ),
             ),
@@ -160,9 +162,9 @@ class gateio extends Exchange {
                 'limits' => array(
                     'cost' => array(
                         'min' => array(
-                            'BTC' => 0.0001,
-                            'ETH' => 0.001,
-                            'USDT' => 1,
+                            'BTC' => '0.0001',
+                            'ETH' => '0.001',
+                            'USDT' => '1',
                         ),
                     ),
                 ),
@@ -176,6 +178,7 @@ class gateio extends Exchange {
                 'MPH' => 'Morpher', // conflict with 88MPH
                 'SBTC' => 'Super Bitcoin',
                 'TNC' => 'Trinity Network Credit',
+                'VAI' => 'VAIOT',
             ),
         ));
     }
@@ -241,14 +244,6 @@ class gateio extends Exchange {
                             'min' => null,
                             'max' => null,
                         ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
                         'withdraw' => array(
                             'min' => null,
                             'max' => null,
@@ -273,7 +268,7 @@ class gateio extends Exchange {
         //                     "min_amount":1,
         //                     "min_amount_a":1,
         //                     "min_amount_b":3,
-        //                     "$fee":0.02,
+        //                     "fee":0.02,
         //                     "trade_disabled":0,
         //                     "buy_disabled":0,
         //                     "sell_disabled":0
@@ -306,19 +301,22 @@ class gateio extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $pricePrecisionString = $this->safe_string($details, 'decimal_places');
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
                 'amount' => $this->safe_integer($details, 'amount_decimal_places'),
-                'price' => $this->safe_integer($details, 'decimal_places'),
+                'price' => intval($pricePrecisionString),
             );
+            $amountLimit = $this->safe_string($details, 'min_amount');
             $amountLimits = array(
-                'min' => $this->safe_number($details, 'min_amount'),
+                'min' => $this->parse_number($amountLimit),
                 'max' => null,
             );
             $priceLimits = array(
-                'min' => pow(10, -$precision['price']),
+                'min' => $this->parse_number($priceLimit),
                 'max' => null,
             );
-            $defaultCost = $amountLimits['min'] * $priceLimits['min'];
+            $defaultCost = $this->parse_number(Precise::string_mul($amountLimit, $priceLimit));
             $minCost = $this->safe_number($this->options['limits']['cost']['min'], $quote, $defaultCost);
             $costLimits = array(
                 'min' => $minCost,
@@ -332,7 +330,8 @@ class gateio extends Exchange {
             $disabled = $this->safe_integer($details, 'trade_disabled');
             $active = !$disabled;
             $uppercaseId = strtoupper($id);
-            $fee = $this->safe_number($details, 'fee');
+            $feeString = $this->safe_string($details, 'fee');
+            $feeScaled = Precise::string_div($feeString, '100');
             $result[] = array(
                 'id' => $id,
                 'uppercaseId' => $uppercaseId,
@@ -343,8 +342,8 @@ class gateio extends Exchange {
                 'quoteId' => $quoteId,
                 'info' => $market,
                 'active' => $active,
-                'maker' => $fee / 100,
-                'taker' => $fee / 100,
+                'maker' => $this->parse_number($feeScaled),
+                'taker' => $this->parse_number($feeScaled),
                 'precision' => $precision,
                 'limits' => $limits,
             );
@@ -379,7 +378,7 @@ class gateio extends Exchange {
             'id' => $this->market_id($symbol),
         );
         $response = $this->publicGetOrderBookId (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -829,7 +828,7 @@ class gateio extends Exchange {
         $response = $this->privatePostWithdraw (array_merge($request, $params));
         return array(
             'info' => $response,
-            'id' => null,
+            'id' => $this->safe_string($response, 'withdrawid'),
         );
     }
 

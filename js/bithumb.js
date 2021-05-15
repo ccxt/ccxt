@@ -32,11 +32,12 @@ module.exports = class bithumb extends Exchange {
                 'fetchTrades': true,
                 'withdraw': true,
             },
+            'hostname': 'bithumb.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
                 'api': {
-                    'public': 'https://api.bithumb.com/public',
-                    'private': 'https://api.bithumb.com',
+                    'public': 'https://api.{hostname}/public',
+                    'private': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bithumb.com',
                 'doc': 'https://apidocs.bithumb.com',
@@ -111,11 +112,21 @@ module.exports = class bithumb extends Exchange {
             'options': {
                 'quoteCurrencies': {
                     'BTC': {
-                        'precision': {
-                            'price': 8,
+                        'limits': {
+                            'cost': {
+                                'min': 0.0002,
+                                'max': 100,
+                            },
                         },
                     },
-                    'KRW': {},
+                    'KRW': {
+                        'limits': {
+                            'cost': {
+                                'min': 500,
+                                'max': 5000000000,
+                            },
+                        },
+                    },
                 },
             },
         });
@@ -171,10 +182,7 @@ module.exports = class bithumb extends Exchange {
                             'min': undefined,
                             'max': undefined,
                         },
-                        'cost': {
-                            'min': 500,
-                            'max': 5000000000,
-                        },
+                        'cost': {}, // set via options
                     },
                     'baseId': undefined,
                     'quoteId': undefined,
@@ -211,7 +219,7 @@ module.exports = class bithumb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'currency': market['base'],
+            'currency': market['base'] + '_' + market['quote'],
         };
         if (limit !== undefined) {
             request['count'] = limit; // default 30, max 30
@@ -239,7 +247,7 @@ module.exports = class bithumb extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
-        return this.parseOrderBook (data, timestamp, 'bids', 'asks', 'price', 'quantity');
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -856,7 +864,7 @@ module.exports = class bithumb extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + endpoint;
+        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + endpoint;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
@@ -894,6 +902,9 @@ module.exports = class bithumb extends Exchange {
             const message = this.safeString (response, 'message');
             if (status !== undefined) {
                 if (status === '0000') {
+                    return; // no error
+                } else if (message === '거래 진행중인 내역이 존재하지 않습니다') {
+                    // https://github.com/ccxt/ccxt/issues/9017
                     return; // no error
                 }
                 const feedback = this.id + ' ' + body;

@@ -289,8 +289,6 @@ class bitpanda(Exchange):
                 'precision': self.safe_integer(currency, 'precision'),
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
             }
@@ -658,7 +656,7 @@ class bitpanda(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(response, 'time'))
-        return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

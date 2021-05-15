@@ -138,6 +138,7 @@ class bitfinex2 extends bitfinex {
                         'stats1/{key}:{size}:{symbol}:long/hist',
                         'stats1/{key}:{size}:{symbol}:short/last',
                         'stats1/{key}:{size}:{symbol}:short/hist',
+                        'candles/trade:{timeframe}:{symbol}:{period}/{section}',
                         'candles/trade:{timeframe}:{symbol}/{section}',
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
@@ -305,6 +306,7 @@ class bitfinex2 extends bitfinex {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    '10001' => '\\ccxt\\PermissionDenied', // api_key => permission invalid (#10001)
                     '10020' => '\\ccxt\\BadRequest',
                     '10100' => '\\ccxt\\AuthenticationError',
                     '10114' => '\\ccxt\\InvalidNonce',
@@ -381,18 +383,20 @@ class bitfinex2 extends bitfinex {
                 'price' => $this->safe_integer($market, 'price_precision'),
                 'amount' => 8, // https://github.com/ccxt/ccxt/issues/7310
             );
+            $minOrderSizeString = $this->safe_string($market, 'minimum_order_size');
+            $maxOrderSizeString = $this->safe_string($market, 'maximum_order_size');
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_number($market, 'minimum_order_size'),
-                    'max' => $this->safe_number($market, 'maximum_order_size'),
+                    'min' => $this->parse_number($minOrderSizeString),
+                    'max' => $this->parse_number($maxOrderSizeString),
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision['price']),
-                    'max' => pow(10, $precision['price']),
+                    'min' => $this->parse_number('1e-8'),
+                    'max' => null,
                 ),
             );
             $limits['cost'] = array(
-                'min' => $limits['amount']['min'] * $limits['price']['min'],
+                'min' => null,
                 'max' => null,
             );
             $margin = $this->safe_value($market, 'margin');
@@ -549,14 +553,6 @@ class bitfinex2 extends bitfinex {
                         'min' => 1 / pow(10, $precision),
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => 1 / pow(10, $precision),
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $fee,
                         'max' => null,
@@ -700,6 +696,7 @@ class bitfinex2 extends bitfinex {
         $orderbook = $this->publicGetBookSymbolPrecision ($fullRequest);
         $timestamp = $this->milliseconds();
         $result = array(
+            'symbol' => $symbol,
             'bids' => array(),
             'asks' => array(),
             'timestamp' => $timestamp,
@@ -837,11 +834,19 @@ class bitfinex2 extends bitfinex {
         $isPrivate = ($tradeLength > 5);
         $id = $this->safe_string($trade, 0);
         $amountIndex = $isPrivate ? 4 : 2;
-        $amount = $this->safe_number($trade, $amountIndex);
-        $cost = null;
-        $priceIndex = $isPrivate ? 5 : 3;
-        $price = $this->safe_number($trade, $priceIndex);
         $side = null;
+        $amountString = $this->safe_string($trade, $amountIndex);
+        $priceIndex = $isPrivate ? 5 : 3;
+        $priceString = $this->safe_string($trade, $priceIndex);
+        if ($amountString[0] === '-') {
+            $side = 'sell';
+            $amountString = mb_substr($amountString, 1);
+        } else {
+            $side = 'buy';
+        }
+        $amount = $this->parse_number($amountString);
+        $price = $this->parse_number($priceString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $orderId = null;
         $takerOrMaker = null;
         $type = null;
@@ -860,40 +865,21 @@ class bitfinex2 extends bitfinex {
             $orderId = $this->safe_string($trade, 3);
             $maker = $this->safe_integer($trade, 8);
             $takerOrMaker = ($maker === 1) ? 'maker' : 'taker';
-            $feeCost = $this->safe_number($trade, 9);
+            $feeCostString = $this->safe_string($trade, 9);
+            $feeCostString = Precise::string_neg($feeCostString);
+            $feeCost = $this->parse_number($feeCostString);
             $feeCurrencyId = $this->safe_string($trade, 10);
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
-            if ($feeCost !== null) {
-                $feeCost = -$feeCost;
-                if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-                    $feeCost = $this->fee_to_precision($symbol, $feeCost);
-                } else {
-                    $currencyId = 'f' . $feeCurrency;
-                    if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                        $currency = $this->currencies_by_id[$currencyId];
-                        $feeCost = $this->currency_to_precision($currency['code'], $feeCost);
-                    }
-                }
-                $fee = array(
-                    'cost' => floatval($feeCost),
-                    'currency' => $feeCurrency,
-                );
-            }
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
             $orderType = $trade[6];
             $type = $this->safe_string($this->options['exchangeTypes'], $orderType);
         }
         if ($symbol === null) {
             if ($market !== null) {
                 $symbol = $market['symbol'];
-            }
-        }
-        if ($amount !== null) {
-            $side = ($amount < 0) ? 'sell' : 'buy';
-            $amount = abs($amount);
-            if ($cost === null) {
-                if ($price !== null) {
-                    $cost = $amount * $price;
-                }
             }
         }
         return array(

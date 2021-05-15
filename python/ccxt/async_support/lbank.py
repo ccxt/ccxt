@@ -270,7 +270,7 @@ class lbank(Exchange):
             'size': size,
         }
         response = await self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def parse_trade(self, trade, market=None):
         symbol = None
@@ -384,7 +384,11 @@ class lbank(Exchange):
         #         }
         #     }
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         info = self.safe_value(response, 'info', {})
         free = self.safe_value(info, 'free', {})
         freeze = self.safe_value(info, 'freeze', {})

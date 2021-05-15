@@ -264,8 +264,6 @@ class delta extends Exchange {
                 'precision' => 1 / pow(10, $precision),
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
-                    'price' => array( 'min' => null, 'max' => null ),
-                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'min_withdrawal_amount'),
                         'max' => null,
@@ -603,7 +601,7 @@ class delta extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_order_book($result, null, 'buy', 'sell', 'price', 'size');
+        return $this->parse_order_book($result, $symbol, null, 'buy', 'sell', 'price', 'size');
     }
 
     public function parse_trade($trade, $market = null) {

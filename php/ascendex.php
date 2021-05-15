@@ -219,6 +219,7 @@ class ascendex extends Exchange {
                 'BOND' => 'BONDED',
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
+                'BYN' => 'Beyond Finance',
             ),
         ));
     }
@@ -316,14 +317,6 @@ class ascendex extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => pow(10, -$precision),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
                         'max' => null,
                     ),
                     'withdraw' => array(
@@ -570,7 +563,11 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $balances = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
@@ -616,7 +613,7 @@ class ascendex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $orderbook = $this->safe_value($data, 'data', array());
         $timestamp = $this->safe_integer($orderbook, 'ts');
-        $result = $this->parse_order_book($orderbook, $timestamp);
+        $result = $this->parse_order_book($orderbook, $symbol, $timestamp);
         $result['nonce'] = $this->safe_integer($orderbook, 'seqnum');
         return $result;
     }

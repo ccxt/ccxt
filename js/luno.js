@@ -209,7 +209,11 @@ module.exports = class luno extends Exchange {
         //     }
         //
         const wallets = this.safeValue (response, 'balance', []);
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < wallets.length; i++) {
             const wallet = wallets[i];
             const currencyId = this.safeString (wallet, 'asset');
@@ -245,7 +249,7 @@ module.exports = class luno extends Exchange {
         };
         const response = await this[method] (this.extend (request, params));
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp, 'bids', 'asks', 'price', 'volume');
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
     parseOrderStatus (status) {

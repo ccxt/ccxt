@@ -100,6 +100,7 @@ class yobit extends Exchange {
                 'CAT' => 'BitClave',
                 'CBC' => 'CryptoBossCoin',
                 'CMT' => 'CometCoin',
+                'COIN' => 'Coin.com',
                 'COV' => 'Coven Coin',
                 'COVX' => 'COV',
                 'CPC' => 'Capricoin',
@@ -117,6 +118,7 @@ class yobit extends Exchange {
                 'ESC' => 'EdwardSnowden',
                 'EUROPE' => 'EUROP',
                 'EXT' => 'LifeExtension',
+                'FUND' => 'FUNDChains',
                 'FUNK' => 'FUNKCoin',
                 'GCC' => 'GlobalCryptocurrency',
                 'GEN' => 'Genstake',
@@ -129,6 +131,7 @@ class yobit extends Exchange {
                 'INSANE' => 'INSN',
                 'JNT' => 'JointCoin',
                 'JPC' => 'JupiterCoin',
+                'JWL' => 'Jewels',
                 'KNC' => 'KingN Coin',
                 'LBTCX' => 'LiteBitcoin',
                 'LIZI' => 'LiZi',
@@ -136,8 +139,10 @@ class yobit extends Exchange {
                 'LOCX' => 'LOC',
                 'LUNYR' => 'LUN',
                 'LUN' => 'LunarCoin',  // they just change the ticker if it is already taken
+                'LUNA' => 'Luna Coin',
                 'MASK' => 'Yobit MASK',
                 'MDT' => 'Midnight',
+                'MIS' => 'MIScoin',
                 'NAV' => 'NavajoCoin',
                 'NBT' => 'NiceBytes',
                 'OMG' => 'OMGame',
@@ -232,7 +237,12 @@ class yobit extends Exchange {
         //     }
         //
         $balances = $this->safe_value($response, 'return', array());
-        $result = array( 'info' => $response );
+        $timestamp = $this->safe_integer($balances, 'server_time');
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         $free = $this->safe_value($balances, 'funds', array());
         $total = $this->safe_value($balances, 'funds_incl_orders', array());
         $currencyIds = is_array(array_merge($free, $total)) ? array_keys(array_merge($free, $total)) : array();
@@ -301,7 +311,11 @@ class yobit extends Exchange {
             );
             $hidden = $this->safe_integer($market, 'hidden');
             $active = ($hidden === 0);
-            $takerFee = $this->safe_number($market, 'fee');
+            $feeString = $this->safe_string($market, 'fee');
+            $feeString = Precise::string_div($feeString, '100');
+            // yobit maker = taker
+            $takerFee = $this->parse_number($feeString);
+            $makerFee = $this->parse_number($feeString);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -310,7 +324,8 @@ class yobit extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
-                'taker' => $takerFee / 100,
+                'taker' => $takerFee,
+                'maker' => $makerFee,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
@@ -334,7 +349,7 @@ class yobit extends Exchange {
             throw new ExchangeError($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
         }
         $orderbook = $response[$market['id']];
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {

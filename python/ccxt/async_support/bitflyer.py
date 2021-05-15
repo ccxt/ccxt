@@ -195,7 +195,7 @@ class bitflyer(Exchange):
             'product_code': self.market_id(symbol),
         }
         orderbook = await self.publicGetGetboard(self.extend(request, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'size')
+        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'size')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

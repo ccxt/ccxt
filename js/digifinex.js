@@ -264,14 +264,6 @@ module.exports = class digifinex extends Exchange {
                             'min': undefined,
                             'max': undefined,
                         },
-                        'price': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
                         'withdraw': {
                             'min': this.safeNumber (currency, 'min_withdraw_amount'),
                             'max': undefined,
@@ -493,7 +485,7 @@ module.exports = class digifinex extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (response, 'date');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

@@ -212,7 +212,11 @@ class luno extends Exchange {
         //     }
         //
         $wallets = $this->safe_value($response, 'balance', array());
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($wallets); $i++) {
             $wallet = $wallets[$i];
             $currencyId = $this->safe_string($wallet, 'asset');
@@ -248,7 +252,7 @@ class luno extends Exchange {
         );
         $response = yield $this->$method (array_merge($request, $params));
         $timestamp = $this->safe_integer($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp, 'bids', 'asks', 'price', 'volume');
+        return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
     public function parse_order_status($status) {

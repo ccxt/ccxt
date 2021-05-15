@@ -201,14 +201,6 @@ class braziliex extends Exchange {
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'MinWithdrawal'),
                         'max' => pow(10, $precision),
@@ -362,7 +354,7 @@ class braziliex extends Exchange {
             'market' => $this->market_id($symbol),
         );
         $response = $this->publicGetOrderbookMarket (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_trade($trade, $market = null) {

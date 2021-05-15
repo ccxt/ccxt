@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -305,45 +304,34 @@ class bitfinex(Exchange):
             },
             # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
             'commonCurrencies': {
-                'ABS': 'ABYSS',
-                'AIO': 'AION',
                 'ALG': 'ALGO',  # https://github.com/ccxt/ccxt/issues/6034
                 'AMP': 'AMPL',
-                'ATM': 'ATMI',
                 'ATO': 'ATOM',  # https://github.com/ccxt/ccxt/issues/5118
-                'BAB': 'BCH',
-                'CTX': 'CTXC',
-                'DAD': 'DADI',
+                'BCHABC': 'BCHA',
+                'BCHN': 'BCH',
                 'DAT': 'DATA',
+                'DOG': 'MDOGE',
                 'DSH': 'DASH',
-                'DRK': 'DRK',
                 # https://github.com/ccxt/ccxt/issues/7399
                 # https://coinmarketcap.com/currencies/pnetwork/
                 # https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'EDO': 'PNT',
-                'GSD': 'GUSD',
-                'HOT': 'Hydro Protocol',
-                'IOS': 'IOST',
+                'EUS': 'EURS',
+                'EUT': 'EURT',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
-                'MIT': 'MITH',
                 'MNA': 'MANA',
-                'NCA': 'NCASH',
                 'ORS': 'ORS Group',  # conflict with Origin Sport  #3230
-                'POY': 'POLY',
+                'PAS': 'PASS',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
                 'RBT': 'RBTC',
-                'SEE': 'SEER',
                 'SNG': 'SNGLS',
-                'SPK': 'SPANK',
                 'STJ': 'STORJ',
-                'TRI': 'TRIO',
                 'TSD': 'TUSD',
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
                 'UST': 'USDT',
-                'UTN': 'UTNP',
                 'VSY': 'VSYS',
                 'WAX': 'WAXP',
                 'XCH': 'XCHF',
@@ -568,18 +556,20 @@ class bitfinex(Exchange):
                 # Anything exceeding self will be rounded to the 8th decimal.
                 'amount': 8,
             }
+            minAmountString = self.safe_string(market, 'minimum_order_size')
+            maxAmountString = self.safe_string(market, 'maximum_order_size')
             limits = {
                 'amount': {
-                    'min': self.safe_number(market, 'minimum_order_size'),
-                    'max': self.safe_number(market, 'maximum_order_size'),
+                    'min': self.parse_number(minAmountString),
+                    'max': self.parse_number(maxAmountString),
                 },
                 'price': {
-                    'min': math.pow(10, -precision['price']),
-                    'max': math.pow(10, precision['price']),
+                    'min': self.parse_number('1e-8'),
+                    'max': None,
                 },
             }
             limits['cost'] = {
-                'min': limits['amount']['min'] * limits['price']['min'],
+                'min': None,
                 'max': None,
             }
             margin = self.safe_value(market, 'margin')
@@ -728,7 +718,7 @@ class bitfinex(Exchange):
             request['limit_bids'] = limit
             request['limit_asks'] = limit
         response = await self.publicGetBookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

@@ -142,7 +142,7 @@ class flowbtc(Exchange):
             'productPair': market['id'],
         }
         response = self.publicPostGetOrderBook(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bids', 'asks', 'px', 'qty')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'px', 'qty')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

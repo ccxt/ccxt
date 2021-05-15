@@ -250,7 +250,8 @@ module.exports = class stex extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             const code = this.safeCurrencyCode (this.safeString (currency, 'code'));
-            const precision = this.safeInteger (currency, 'precision');
+            const precision = this.safeString (currency, 'precision');
+            const amountLimit = this.parsePrecision (precision);
             const fee = this.safeNumber (currency, 'withdrawal_fee_const'); // todo: redesign
             const active = this.safeValue (currency, 'active', true);
             result[code] = {
@@ -262,11 +263,9 @@ module.exports = class stex extends Exchange {
                 'name': this.safeString (currency, 'name'),
                 'active': active,
                 'fee': fee,
-                'precision': precision,
+                'precision': parseInt (precision),
                 'limits': {
-                    'amount': { 'min': Math.pow (10, -precision), 'max': undefined },
-                    'price': { 'min': Math.pow (10, -precision), 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
+                    'amount': { 'min': this.parseNumber (amountLimit), 'max': undefined },
                     'deposit': {
                         'min': this.safeNumber (currency, 'minimum_deposit_amount'),
                         'max': undefined,
@@ -474,7 +473,7 @@ module.exports = class stex extends Exchange {
         //     }
         //
         const orderbook = this.safeValue (response, 'data', {});
-        return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'amount');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'bid', 'ask', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -809,7 +808,11 @@ module.exports = class stex extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];

@@ -149,6 +149,7 @@ module.exports = class mercado extends Exchange {
                 'amount': 8,
                 'price': 5,
             };
+            const priceLimit = '1e-5';
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -165,7 +166,7 @@ module.exports = class mercado extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': 1 / Math.pow (10, precision['price']),
+                        'min': this.parseNumber (priceLimit),
                         'max': undefined,
                     },
                     'cost': {
@@ -185,7 +186,7 @@ module.exports = class mercado extends Exchange {
             'coin': market['base'],
         };
         const response = await this.publicGetCoinOrderbook (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {

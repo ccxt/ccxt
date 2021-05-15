@@ -31,13 +31,12 @@ SOFTWARE.
 namespace ccxt;
 
 use kornrunner\Keccak;
-use kornrunner\Solidity;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.47.49';
+$version = '1.50.4';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -56,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.47.49';
+    const VERSION = '1.50.4';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -70,10 +69,13 @@ class Exchange {
         'bibox',
         'bigone',
         'binance',
+        'binancecoinm',
         'binanceus',
+        'binanceusdm',
         'bit2c',
         'bitbank',
         'bitbay',
+        'bitbns',
         'bitcoincom',
         'bitfinex',
         'bitfinex2',
@@ -92,7 +94,6 @@ class Exchange {
         'bitvavo',
         'bitz',
         'bl3p',
-        'bleutrade',
         'braziliex',
         'btcalpha',
         'btcbox',
@@ -127,10 +128,7 @@ class Exchange {
         'eterbase',
         'exmo',
         'exx',
-        'fcoin',
-        'fcoinjp',
         'flowbtc',
-        'foxbit',
         'ftx',
         'gateio',
         'gemini',
@@ -169,13 +167,11 @@ class Exchange {
         'ripio',
         'southxchange',
         'stex',
-        'surbitcoin',
         'therock',
         'tidebit',
         'tidex',
         'timex',
         'upbit',
-        'vbtc',
         'vcc',
         'wavesexchange',
         'whitebit',
@@ -297,6 +293,7 @@ class Exchange {
         'fetchTransactions' => 'fetch_transactions',
         'fetchDeposits' => 'fetch_deposits',
         'fetchWithdrawals' => 'fetch_withdrawals',
+        'fetchDepositAddress' => 'fetch_deposit_address',
         'fetchCurrencies' => 'fetch_currencies',
         'fetchMarkets' => 'fetch_markets',
         'fetchOrderStatus' => 'fetch_order_status',
@@ -324,6 +321,7 @@ class Exchange {
         'filterBySymbolSinceLimit' => 'filter_by_symbol_since_limit',
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
         'filterByArray' => 'filter_by_array',
+        'safeTicker' => 'safe_ticker',
         'parseTickers' => 'parse_tickers',
         'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
@@ -355,7 +353,6 @@ class Exchange {
         'currencyToPrecision' => 'currency_to_precision',
         'calculateFee' => 'calculate_fee',
         'checkRequiredDependencies' => 'check_required_dependencies',
-        'soliditySha3' => 'solidity_sha3',
         'remove0xPrefix' => 'remove0x_prefix',
         'hashMessage' => 'hash_message',
         'signHash' => 'sign_hash',
@@ -369,6 +366,7 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'safeNumber' => 'safe_number',
         'safeNumber2' => 'safe_number2',
+        'parsePrecision' => 'parse_precision',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1165,7 +1163,7 @@ class Exchange {
         $this->lastRestPollTimestamp = 0;
         $this->restRequestQueue = null;
         $this->restPollerLoopIsRunning = false;
-        $this->enableRateLimit = false;
+        $this->enableRateLimit = true;
         $this->enableLastJsonResponse = true;
         $this->enableLastHttpResponse = true;
         $this->enableLastResponseHeaders = true;
@@ -1443,7 +1441,7 @@ class Exchange {
     }
 
     public function on_json_response($response_body) {
-        return (is_string($response_body) && $this->quoteJsonNumbers) ? preg_replace('/":([+.0-9eE-]+),/', '":"$1",', $response_body) : $response_body;
+        return (is_string($response_body) && $this->quoteJsonNumbers) ? preg_replace('/":([+.0-9eE-]+)([,}])/', '":"$1"$2', $response_body) : $response_body;
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
@@ -1550,47 +1548,44 @@ class Exchange {
         curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($this->curl, CURLOPT_FAILONERROR, false);
 
-        $response_headers = array();
-        $http_status_text = '';
-
-        // this function is called by curl for each header received
-        curl_setopt($this->curl, CURLOPT_HEADERFUNCTION,
-            function ($curl, $header) use (&$response_headers, &$http_status_text) {
-                $length = strlen($header);
-                $tuple = explode(':', $header, 2);
-                if (count($tuple) !== 2) { // ignore invalid headers
-                    // if it's a "GET https://example.com/path 200 OK" line
-                    // try to parse the "OK" HTTP status string
-                    if (substr($header, 0, 4) === 'HTTP') {
-                        $parts = explode(' ', $header);
-                        if (count($parts) === 3) {
-                            $http_status_text = trim($parts[2]);
-                        }
-                    }
-                    return $length;
-                }
-                $key = trim($tuple[0]);
-                $key = implode('-', array_map(get_called_class() . '::capitalize', explode('-', $key)));
-                $value = trim($tuple[1]);
-                if (!array_key_exists($key, $response_headers)) {
-                    $response_headers[$key] = $value;
-                } else {
-                    if (is_array($response_headers[$key])) {
-                        $response_headers[$key][] = $value;
-                    } else {
-                        $response_headers[$key] = array($response_headers[$key], $value);
-                    }
-                }
-                return $length;
-            }
-        );
+        curl_setopt($this->curl, CURLOPT_HEADER, 1);
+        // match the same http version as python and js
+        curl_setopt($this->curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 
         // user-defined cURL options (if any)
         if (!empty($this->curl_options)) {
             curl_setopt_array($this->curl, $this->curl_options);
         }
 
-        $result = curl_exec($this->curl);
+        $response_headers = array();
+
+        $response = curl_exec($this->curl);
+
+        $headers_length = curl_getinfo($this->curl, CURLINFO_HEADER_SIZE);
+
+        $raw_headers = mb_substr($response, 0, $headers_length);
+
+        $raw_headers_array = explode("\r\n", trim($raw_headers));
+        $status_line = $raw_headers_array[0];
+        $parts = explode(' ', $status_line);
+        $http_status_text = count($parts) === 3 ? $parts[2] : null;
+        $raw_headers = array_slice($raw_headers_array, 1);
+        foreach ($raw_headers as $raw_header) {
+            if (strlen($raw_header)) {
+                $exploded = explode(': ', $raw_header);
+                if (count($exploded) > 1) {
+                    list($key, $value) = $exploded;
+                    // don't overwrite headers
+                    // https://stackoverflow.com/a/4371395/4802441
+                    if (array_key_exists($key, $response_headers)) {
+                        $response_headers[$key] = $response_headers[$key] . ', ' . $value;
+                    } else {
+                        $response_headers[$key] = $value;
+                    }
+                }
+            }
+        }
+        $result = mb_substr($response, $headers_length);
 
         $curl_errno = curl_errno($this->curl);
         $curl_error = curl_error($this->curl);
@@ -1775,8 +1770,9 @@ class Exchange {
         ));
     }
 
-    public function parse_order_book($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
+    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
         return array(
+            'symbol' => $symbol,
             'bids' => $this->sort_by(
                 is_array($orderbook) && array_key_exists($bids_key, $orderbook) ?
                     $this->parse_bids_asks($orderbook[$bids_key], $price_key, $amount_key) : array(),
@@ -1792,7 +1788,7 @@ class Exchange {
     }
 
     public function parse_balance($balance, $legacy = true) {
-        $currencies = $this->omit($balance, array('info', 'free', 'used', 'total'));
+        $currencies = $this->omit($balance, array('info', 'timestamp', 'datetime', 'free', 'used', 'total'));
 
         $balance['free'] = array();
         $balance['used'] = array();
@@ -1913,10 +1909,37 @@ class Exchange {
         return $result;
     }
 
-    public function parse_tickers($tickers, $symbols = null) {
+    public function safe_ticker($ticker, $market = null) {
+        $symbol = $this->safe_value($ticker, 'symbol');
+        if ($symbol === null) {
+            $ticker['symbol'] = $this->safe_symbol(null, $market);
+        }
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        if ($timestamp !== null) {
+            $ticker['timestamp'] = $timestamp;
+            $ticker['datetime'] = $this->iso8601($timestamp);
+        }
+        $baseVolume = $this->safe_value($ticker, 'baseVolume');
+        $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
+        $vwap = $this->safe_value($ticker, 'vwap');
+        if ($vwap === null) {
+            $ticker['vwap'] = $this->vwap($baseVolume, $quoteVolume);
+        }
+        $close = $this->safe_value($ticker, 'close');
+        $last = $this->safe_value($ticker, 'last');
+        if (($close === null) && ($last !== null)) {
+            $ticker['close'] = $last;
+        } else if (($last === null) && ($close !== null)) {
+            $ticker['last'] = $close;
+        }
+        return $ticker;
+    }
+
+    public function parse_tickers($tickers, $symbols = null, $params = array()) {
         $result = array();
-        for ($i = 0; $i < count($tickers); $i++) {
-            $result[] = $this->parse_ticker($tickers[$i]);
+        $values = is_array($tickers) ? array_values($tickers) : array();
+        for ($i = 0; $i < count($values); $i++) {
+            $result[] = array_merge($this->parse_ticker($values[$i]), $params);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -2115,8 +2138,18 @@ class Exchange {
         throw new NotSupported($this->id . ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks () for now');
     }
 
-    public function fetch_ticker($symbol, $params = array()) { // stub
-        throw new NotSupported($this->id . ' fetchTicker not supported yet');
+    public function fetch_ticker($symbol, $params = array ()) {
+        if ($this->has['fetchTickers']) {
+            $tickers = $this->fetch_tickers(array( $symbol ), $params);
+            $ticker = $this->safe_value($tickers, $symbol);
+            if ($ticker === null) {
+                throw new BadSymbol($this->id . ' fetchTickers could not find a $ticker for ' . $symbol);
+            } else {
+                return $ticker;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchTicker not supported yet');
+        }
     }
 
     public function fetch_tickers($symbols, $params = array()) { // stub
@@ -2168,8 +2201,22 @@ class Exchange {
         throw new NotSupported($this->id . ' fetch_withdrawals() not supported yet');
     }
 
+    // public function fetch_deposit_address($code, $params = array()) {
+    //     throw new NotSupported($this->id . ' fetch_deposit_address() not supported yet');
+    // }
+
     public function fetch_deposit_address($code, $params = array()) {
-        throw new NotSupported($this->id . ' fetch_deposit_address() not supported yet');
+        if ($this->has['fetchDepositAddresses']) {
+            $deposit_addresses = $this->fetch_deposit_addresses(array($code), $params);
+            $deposit_address = $this->safe_value($deposit_addresses, $code);
+            if ($deposit_address === null) {
+                throw new InvalidAddress($this->id . ' fetchDepositAddress could not find a deposit address for ' . $code . ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
+            } else {
+                return $deposit_address;
+            }
+        } else {
+            throw new NotSupported ($this->id + ' fetchDepositAddress not supported yet');
+        }
     }
 
     public function fetch_markets($params = array()) {
@@ -2469,6 +2516,12 @@ class Exchange {
         }
     }
 
+    public function __destruct() {
+        if ($this->curl !== null) {
+            curl_close($this->curl);
+        }
+    }
+
     public function has($feature = null) {
         if (!$feature) {
             return $this->has;
@@ -2745,10 +2798,6 @@ class Exchange {
         }
     }
 
-    public function soliditySha3($array) {
-        return @call_user_func_array('\\kornrunner\Solidity::sha3', $array);
-    }
-
     public static function base32_decode($s) {
         static $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
         $tmp = '';
@@ -2891,10 +2940,10 @@ class Exchange {
         $parseFee = $this->safe_value($order, 'fee') === null;
         $parseFees = $this->safe_value($order, 'fees') === null;
         $shouldParseFees = $parseFee || $parseFees;
-        $fees = $shouldParseFees ? array() : null;
+        $fees = $this->safe_value($order, 'fees', array());
         if ($parseFilled || $parseCost || $shouldParseFees) {
             $trades = $this->safe_value($order, 'trades');
-            if ($trades !== null) {
+            if (is_array($trades)) {
                 if ($parseFilled) {
                     $filled = 0;
                 }
@@ -2969,7 +3018,7 @@ class Exchange {
         }
         // ensure that the $average field is calculated correctly
         if ($average === null) {
-            if (($filled !== null) && ($cost !== null) && ($cost > 0)) {
+            if (($filled !== null) && ($cost !== null) && ($filled > 0)) {
                 $average = $cost / $filled;
             }
         }
@@ -3015,5 +3064,12 @@ class Exchange {
     public function safe_number_2($object, $key1, $key2, $default = null) {
         $value = $this->safe_string_2($object, $key1, $key2);
         return $this->parse_number($value, $default);
+    }
+
+    public function parse_precision($precision) {
+        if ($precision === null) {
+            return null;
+        }
+        return '1e' . Precise::string_neg($precision);
     }
 }

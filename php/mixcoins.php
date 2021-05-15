@@ -87,7 +87,7 @@ class mixcoins extends Exchange {
             'market' => $this->market_id($symbol),
         );
         $response = $this->publicGetDepth (array_merge($request, $params));
-        return $this->parse_order_book($response['result']);
+        return $this->parse_order_book($response['result'], $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

@@ -197,14 +197,6 @@ module.exports = class braziliex extends Exchange {
                         'min': Math.pow (10, -precision),
                         'max': Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'MinWithdrawal'),
                         'max': Math.pow (10, precision),
@@ -358,7 +350,7 @@ module.exports = class braziliex extends Exchange {
             'market': this.marketId (symbol),
         };
         const response = await this.publicGetOrderbookMarket (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTrade (trade, market = undefined) {

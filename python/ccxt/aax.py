@@ -250,6 +250,18 @@ class aax(Exchange):
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultType': 'spot',  # 'spot', 'future'
+                'types': {
+                    'spot': 'SPTP',
+                    'future': 'FUTP',
+                    'otc': 'F2CP',
+                    'saving': 'VLTP',
+                },
+                'accounts': {
+                    'SPTP': 'spot',
+                    'FUTP': 'future',
+                    'F2CP': 'otc',
+                    'VLTP': 'saving',
+                },
             },
         })
 
@@ -475,12 +487,6 @@ class aax(Exchange):
             'info': ticker,
         }
 
-    def fetch_ticker(self, symbol, params={}):
-        tickers = self.fetch_tickers(None, params)
-        if symbol in tickers:
-            return tickers[symbol]
-        raise BadSymbol(self.id + ' fetchTicker() symbol ' + symbol + ' ticker not found')
-
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         response = self.publicGetMarketTickers(params)
@@ -541,7 +547,7 @@ class aax(Exchange):
         #     }
         #
         timestamp = self.safe_integer(response, 't')  # need unix type
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def parse_trade(self, trade, market=None):
         #
@@ -608,7 +614,7 @@ class aax(Exchange):
             side = 'sell'
         if side is None:
             side = 'sell' if (priceString[0] == '-') else 'buy'
-        priceString = priceString[1:] if (priceString[0] == '-') else priceString
+        priceString = Precise.string_abs(priceString)
         price = self.parse_number(priceString)
         amount = self.parse_number(amountString)
         cost = self.parse_number(Precise.string_mul(priceString, amountString))
@@ -721,12 +727,7 @@ class aax(Exchange):
         self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
-        types = {
-            'spot': 'SPTP',
-            'future': 'FUTP',
-            'otc': 'F2CP',
-            'saving': 'VLTP',
-        }
+        types = self.safe_value(self.options, 'types', {})
         purseType = self.safe_string(types, type, type)
         request = {
             'purseType': purseType,
@@ -755,7 +756,12 @@ class aax(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        result = {'info': response}
+        timestamp = self.safe_integer(response, 'ts')
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
         for i in range(0, len(data)):
             balance = data[i]
             balanceType = self.safe_string(balance, 'purseType')
@@ -1518,15 +1524,9 @@ class aax(Exchange):
         remaining = self.safe_number(order, 'leavesQty')
         if (filled == 0) and (remaining == 0):
             remaining = None
-        cost = None
-        lastTradeTimestamp = None
-        if filled is not None:
-            if price is not None:
-                cost = filled * price
-            if filled > 0:
-                lastTradeTimestamp = self.safe_value(order, 'transactTime')
-                if isinstance(lastTradeTimestamp, basestring):
-                    lastTradeTimestamp = self.parse8601(lastTradeTimestamp)
+        lastTradeTimestamp = self.safe_value(order, 'transactTime')
+        if isinstance(lastTradeTimestamp, basestring):
+            lastTradeTimestamp = self.parse8601(lastTradeTimestamp)
         fee = None
         feeCost = self.safe_number(order, 'commission')
         if feeCost is not None:
@@ -1540,7 +1540,7 @@ class aax(Exchange):
                 'currency': feeCurrency,
                 'cost': feeCost,
             }
-        return {
+        return self.safe_order({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
@@ -1559,10 +1559,10 @@ class aax(Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'cost': cost,
+            'cost': None,
             'trades': None,
             'fee': fee,
-        }
+        })
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

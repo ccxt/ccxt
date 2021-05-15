@@ -217,6 +217,7 @@ module.exports = class ascendex extends Exchange {
                 'BOND': 'BONDED',
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
+                'BYN': 'Beyond Finance',
             },
         });
     }
@@ -314,14 +315,6 @@ module.exports = class ascendex extends Exchange {
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
@@ -568,7 +561,11 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -614,7 +611,7 @@ module.exports = class ascendex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const orderbook = this.safeValue (data, 'data', {});
         const timestamp = this.safeInteger (orderbook, 'ts');
-        const result = this.parseOrderBook (orderbook, timestamp);
+        const result = this.parseOrderBook (orderbook, symbol, timestamp);
         result['nonce'] = this.safeInteger (orderbook, 'seqnum');
         return result;
     }

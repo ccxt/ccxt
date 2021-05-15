@@ -92,7 +92,7 @@ class bitstamp1(Exchange):
         self.load_markets()
         orderbook = self.publicGetOrderBook(params)
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def fetch_ticker(self, symbol, params={}):
         if symbol != 'BTC/USD':

@@ -249,8 +249,10 @@ module.exports = class hitbtc extends Exchange {
             if (id.indexOf ('_') >= 0) {
                 symbol = id;
             }
-            const lot = this.safeNumber (market, 'quantityIncrement');
-            const step = this.safeNumber (market, 'tickSize');
+            const lotString = this.safeString (market, 'quantityIncrement');
+            const stepString = this.safeString (market, 'tickSize');
+            const lot = this.parseNumber (lotString);
+            const step = this.parseNumber (stepString);
             const precision = {
                 'price': step,
                 'amount': lot,
@@ -282,7 +284,7 @@ module.exports = class hitbtc extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': lot * step,
+                        'min': this.parseNumber (Precise.stringMul (lotString, stepString)),
                         'max': undefined,
                     },
                 },
@@ -396,14 +398,6 @@ module.exports = class hitbtc extends Exchange {
                         'min': 1 / Math.pow (10, decimals),
                         'max': Math.pow (10, decimals),
                     },
-                    'price': {
-                        'min': 1 / Math.pow (10, decimals),
-                        'max': Math.pow (10, decimals),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': Math.pow (10, precision),
@@ -445,7 +439,18 @@ module.exports = class hitbtc extends Exchange {
         const method = 'privateGet' + this.capitalize (typeId) + 'Balance';
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
-        const result = { 'info': response };
+        //
+        //     [
+        //         {"currency":"SPI","available":"0","reserved":"0"},
+        //         {"currency":"GRPH","available":"0","reserved":"0"},
+        //         {"currency":"DGTX","available":"0","reserved":"0"},
+        //     ]
+        //
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -513,7 +518,7 @@ module.exports = class hitbtc extends Exchange {
             request['limit'] = limit; // default = 100, 0 = unlimited
         }
         const response = await this.publicGetOrderbookSymbol (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'bid', 'ask', 'price', 'size');
+        return this.parseOrderBook (response, symbol, undefined, 'bid', 'ask', 'price', 'size');
     }
 
     parseTicker (ticker, market = undefined) {

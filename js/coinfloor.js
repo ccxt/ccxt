@@ -106,16 +106,16 @@ module.exports = class coinfloor extends Exchange {
         const baseIdLower = this.safeStringLower (market, 'baseId');
         const quoteIdLower = this.safeStringLower (market, 'quoteId');
         result[base] = {
-            'free': this.safeNumber (response, baseIdLower + '_available'),
-            'used': this.safeNumber (response, baseIdLower + '_reserved'),
-            'total': this.safeNumber (response, baseIdLower + '_balance'),
+            'free': this.safeString (response, baseIdLower + '_available'),
+            'used': this.safeString (response, baseIdLower + '_reserved'),
+            'total': this.safeString (response, baseIdLower + '_balance'),
         };
         result[quote] = {
-            'free': this.safeNumber (response, quoteIdLower + '_available'),
-            'used': this.safeNumber (response, quoteIdLower + '_reserved'),
-            'total': this.safeNumber (response, quoteIdLower + '_balance'),
+            'free': this.safeString (response, quoteIdLower + '_available'),
+            'used': this.safeString (response, quoteIdLower + '_reserved'),
+            'total': this.safeString (response, quoteIdLower + '_balance'),
         };
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -124,7 +124,7 @@ module.exports = class coinfloor extends Exchange {
             'id': this.marketId (symbol),
         };
         const response = await this.publicGetIdOrderBook (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTicker (ticker, market = undefined) {

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError, BadSymbol } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -112,6 +112,7 @@ module.exports = class qtrade extends Exchange {
                 'exact': {
                     'invalid_auth': AuthenticationError,
                     'insuff_funds': InsufficientFunds,
+                    'market_not_found': BadSymbol, // {"errors":[{"code":"market_not_found","title":"Requested market does not exist"}]}
                 },
             },
         });
@@ -273,14 +274,6 @@ module.exports = class qtrade extends Exchange {
                         'min': this.safeNumber (currency, 'minimum_order'),
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': undefined,
@@ -378,7 +371,7 @@ module.exports = class qtrade extends Exchange {
             orderbook[side] = result;
         }
         const timestamp = this.safeIntegerProduct (data, 'last_change', 0.001);
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -698,6 +691,8 @@ module.exports = class qtrade extends Exchange {
         let balances = this.safeValue (data, 'balances', []);
         const result = {
             'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -705,7 +700,7 @@ module.exports = class qtrade extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in result) ? result[code] : this.account ();
             account['free'] = this.safeString (balance, 'balance');
-            account['used'] = 0;
+            account['used'] = '0';
             result[code] = account;
         }
         balances = this.safeValue (data, 'order_balances', []);

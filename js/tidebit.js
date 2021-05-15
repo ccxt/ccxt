@@ -202,7 +202,7 @@ module.exports = class tidebit extends Exchange {
         request['market'] = market['id'];
         const response = await this.publicGetDepth (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {

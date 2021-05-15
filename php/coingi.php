@@ -187,7 +187,7 @@ class coingi extends Exchange {
             'bidCount' => $limit, // maximum returned number of bids 1-512
         );
         $orderbook = $this->currentGetOrderBookPairAskCountBidCountDepth (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'baseAmount');
+        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'baseAmount');
     }
 
     public function parse_ticker($ticker, $market = null) {

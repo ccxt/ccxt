@@ -532,7 +532,7 @@ class huobipro extends Exchange {
             }
             $tick = $this->safe_value($response, 'tick');
             $timestamp = $this->safe_integer($tick, 'ts', $this->safe_integer($response, 'ts'));
-            $result = $this->parse_order_book($tick, $timestamp);
+            $result = $this->parse_order_book($tick, $symbol, $timestamp);
             $result['nonce'] = $this->safe_integer($tick, 'version');
             return $result;
         }
@@ -643,10 +643,7 @@ class huobipro extends Exchange {
         $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
         $feeCost = $this->safe_number($trade, 'filled-fees');
-        $feeCurrency = null;
-        if ($market !== null) {
-            $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
-        }
+        $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
         $filledPoints = $this->safe_number($trade, 'filled-points');
         if ($filledPoints !== null) {
             if (($feeCost === null) || ($feeCost === 0.0)) {
@@ -852,14 +849,6 @@ class huobipro extends Exchange {
                     'amount' => array(
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
-                    ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
                     ),
                     'deposit' => array(
                         'min' => $this->safe_number($currency, 'deposit-min-amount'),

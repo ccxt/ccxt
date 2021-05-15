@@ -278,7 +278,7 @@ class coinmate extends Exchange {
         $response = $this->publicGetOrderBook (array_merge($request, $params));
         $orderbook = $response['data'];
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -616,23 +616,12 @@ class coinmate extends Exchange {
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->parse_order_type($this->safe_string($order, 'orderTradeType'));
-        $filled = null;
-        $cost = null;
-        if (($amount !== null) && ($remaining !== null)) {
-            $filled = max ($amount - $remaining, 0);
-            if ($remaining === 0) {
-                $status = 'closed';
-            }
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-        }
         $average = $this->safe_number($order, 'avgPrice');
         $marketId = $this->safe_string($order, 'currencyPair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
@@ -646,15 +635,15 @@ class coinmate extends Exchange {
             'price' => $price,
             'stopPrice' => $stopPrice,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'average' => $average,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'trades' => null,
             'info' => $order,
             'fee' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

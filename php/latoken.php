@@ -166,8 +166,10 @@ class latoken extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $pricePrecisionString = $this->safe_string($market, 'pricePrecision');
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
-                'price' => $this->safe_integer($market, 'pricePrecision'),
+                'price' => intval($pricePrecisionString),
                 'amount' => $this->safe_integer($market, 'amountPrecision'),
             );
             $limits = array(
@@ -176,7 +178,7 @@ class latoken extends Exchange {
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision['price']),
+                    'min' => $this->parse_number($priceLimit),
                     'max' => null,
                 ),
                 'cost' => array(
@@ -238,14 +240,6 @@ class latoken extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => null,
                         'max' => null,
@@ -274,6 +268,8 @@ class latoken extends Exchange {
         //
         $result = array(
             'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
         );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -314,7 +310,7 @@ class latoken extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'quantity');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'quantity');
     }
 
     public function parse_ticker($ticker, $market = null) {

@@ -175,7 +175,7 @@ class coinfalcon extends Exchange {
         );
         $response = yield $this->publicGetMarketsMarketOrders (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_order_book($data, null, 'bids', 'asks', 'price', 'size');
+        return $this->parse_order_book($data, $symbol, null, 'bids', 'asks', 'price', 'size');
     }
 
     public function parse_trade($trade, $market = null) {

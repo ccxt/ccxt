@@ -305,14 +305,6 @@ class equos extends Exchange {
                     'min' => null,
                     'max' => null,
                 ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
                 'withdraw' => array(
                     'min' => null,
                     'max' => null,
@@ -390,7 +382,7 @@ class equos extends Exchange {
         ];
     }
 
-    public function parse_order_book($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
+    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
         $result = array(
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -438,7 +430,7 @@ class equos extends Exchange {
         //         "auctionVolume":0.0
         //     }
         //
-        return $this->parse_order_book($response, null, 'bids', 'asks', 0, 1, $market);
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 0, 1, $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

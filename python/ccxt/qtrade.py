@@ -13,6 +13,7 @@ except NameError:
     basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.precise import Precise
@@ -123,6 +124,7 @@ class qtrade(Exchange):
                 'exact': {
                     'invalid_auth': AuthenticationError,
                     'insuff_funds': InsufficientFunds,
+                    'market_not_found': BadSymbol,  # {"errors":[{"code":"market_not_found","title":"Requested market does not exist"}]}
                 },
             },
         })
@@ -281,14 +283,6 @@ class qtrade(Exchange):
                         'min': self.safe_number(currency, 'minimum_order'),
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': None,
@@ -380,7 +374,7 @@ class qtrade(Exchange):
                 result.append([price, amount])
             orderbook[side] = result
         timestamp = self.safe_integer_product(data, 'last_change', 0.001)
-        return self.parse_order_book(orderbook, timestamp)
+        return self.parse_order_book(orderbook, symbol, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -685,6 +679,8 @@ class qtrade(Exchange):
         balances = self.safe_value(data, 'balances', [])
         result = {
             'info': response,
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -692,7 +688,7 @@ class qtrade(Exchange):
             code = self.safe_currency_code(currencyId)
             account = result[code] if (code in result) else self.account()
             account['free'] = self.safe_string(balance, 'balance')
-            account['used'] = 0
+            account['used'] = '0'
             result[code] = account
         balances = self.safe_value(data, 'order_balances', [])
         for i in range(0, len(balances)):

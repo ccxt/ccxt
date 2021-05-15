@@ -151,7 +151,11 @@ class xbtce extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetAsset ($params);
-        $result = array( 'info' => $balances );
+        $result = array(
+            'info' => $balances,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'Currency');
@@ -174,7 +178,7 @@ class xbtce extends Exchange {
         $response = $this->privateGetLevel2Filter (array_merge($request, $params));
         $orderbook = $response[0];
         $timestamp = $this->safe_integer($orderbook, 'Timestamp');
-        return $this->parse_order_book($orderbook, $timestamp, 'Bids', 'Asks', 'Price', 'Volume');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'Bids', 'Asks', 'Price', 'Volume');
     }
 
     public function parse_ticker($ticker, $market = null) {

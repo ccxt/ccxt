@@ -128,7 +128,7 @@ class kuna extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $quotes = array( 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt', 'gol' );
+        $quotes = array( 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' );
         $pricePrecisions = array(
             'UAH' => 0,
         );
@@ -193,7 +193,7 @@ class kuna extends Exchange {
         }
         $orderbook = yield $this->publicGetDepth (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function parse_ticker($ticker, $market = null) {

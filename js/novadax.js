@@ -377,7 +377,7 @@ module.exports = class novadax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
-        return this.parseOrderBook (data, timestamp, 'bids', 'asks');
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
     }
 
     parseTrade (trade, market = undefined) {
@@ -577,7 +577,11 @@ module.exports = class novadax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency');

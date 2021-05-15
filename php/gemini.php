@@ -325,7 +325,7 @@ class gemini extends Exchange {
             $request['limit_asks'] = $limit;
         }
         $response = $this->publicGetV1BookSymbol (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker_v1($symbol, $params = array ()) {

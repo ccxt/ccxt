@@ -229,14 +229,6 @@ module.exports = class whitebit extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minWithdrawal'),
                         'max': this.safeNumber (currency, 'maxWithdrawal'),
@@ -420,7 +412,7 @@ module.exports = class whitebit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const timestamp = this.parse8601 (this.safeString (result, 'lastUpdateTimestamp'));
-        return this.parseOrderBook (result, timestamp);
+        return this.parseOrderBook (result, symbol, timestamp);
     }
 
     async fetchTradesV1 (symbol, since = undefined, limit = undefined, params = {}) {

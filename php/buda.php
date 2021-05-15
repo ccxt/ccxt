@@ -180,23 +180,26 @@ class buda extends Exchange {
             $baseInfo = $this->fetch_currency_info($baseId, $currencies);
             $quoteInfo = $this->fetch_currency_info($quoteId, $currencies);
             $symbol = $base . '/' . $quote;
+            $pricePrecisionString = $this->safe_string($quoteInfo, 'input_decimals');
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
-                'amount' => $baseInfo['input_decimals'],
-                'price' => $quoteInfo['input_decimals'],
+                'amount' => $this->safe_integer($baseInfo, 'input_decimals'),
+                'price' => intval($pricePrecisionString),
             );
+            $minimumOrderAmount = $this->safe_value($market, 'minimum_order_amount', array());
             $limits = array(
                 'amount' => array(
-                    'min' => floatval($market['minimum_order_amount'][0]),
+                    'min' => $this->safe_number($minimumOrderAmount, 0),
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision['price']),
+                    'min' => $priceLimit,
                     'max' => null,
                 ),
-            );
-            $limits['cost'] = array(
-                'min' => $limits['amount']['min'] * $limits['price']['min'],
-                'max' => null,
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
             );
             $result[] = array(
                 'id' => $id,
@@ -238,14 +241,6 @@ class buda extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => $minimum,
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => $minimum,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
                         'max' => null,
                     ),
                     'deposit' => array(
@@ -430,7 +425,7 @@ class buda extends Exchange {
         );
         $response = $this->publicGetMarketsMarketOrderBook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'order_book');
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -585,10 +580,6 @@ class buda extends Exchange {
                 $price = $limitPrice;
             }
         }
-        $average = null;
-        if (($cost !== null) && ($filled !== null) && ($filled > 0)) {
-            $average = $this->price_to_precision($symbol, $cost / $filled);
-        }
         $paidFee = $this->safe_value($order, 'paid_fee', array());
         $feeCost = $this->safe_number($paidFee, 0);
         $fee = null;
@@ -600,7 +591,7 @@ class buda extends Exchange {
                 'code' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -615,14 +606,14 @@ class buda extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'average' => $average,
+            'average' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'trades' => null,
             'fee' => $fee,
-        );
+        ));
     }
 
     public function is_fiat($code) {

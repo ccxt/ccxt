@@ -11,6 +11,7 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\NullResponse;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
+use \ccxt\Precise;
 
 class cex extends Exchange {
 
@@ -265,14 +266,6 @@ class cex extends Exchange {
                         'min' => $this->safe_number($currency, 'minimumCurrencyAmount'),
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'minimalWithdrawalAmount'),
                         'max' => null,
@@ -405,7 +398,7 @@ class cex extends Exchange {
         }
         $response = yield $this->publicGetOrderBookPair (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -534,14 +527,11 @@ class cex extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         $type = null;
         $side = $this->safe_string($trade, 'type');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

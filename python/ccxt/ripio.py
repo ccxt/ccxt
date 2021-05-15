@@ -249,8 +249,6 @@ class ripio(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
             }
@@ -389,7 +387,7 @@ class ripio(Exchange):
         #         "updated_id":47225
         #     }
         #
-        orderbook = self.parse_order_book(response, None, 'buy', 'sell', 'price', 'amount')
+        orderbook = self.parse_order_book(response, symbol, None, 'buy', 'sell', 'price', 'amount')
         orderbook['nonce'] = self.safe_integer(response, 'updated_id')
         return orderbook
 

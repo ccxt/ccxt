@@ -248,6 +248,7 @@ module.exports = class kucoin extends Exchange {
                 'EDGE': 'DADI', // https://github.com/ccxt/ccxt/issues/5756
                 'WAX': 'WAXP',
                 'TRY': 'Trias',
+                'VAI': 'VAIOT',
             },
             'options': {
                 'version': 'v1',
@@ -373,8 +374,10 @@ module.exports = class kucoin extends Exchange {
             const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'enableTrading');
             const baseMaxSize = this.safeNumber (market, 'baseMaxSize');
-            const baseMinSize = this.safeNumber (market, 'baseMinSize');
-            const quoteMaxSize = this.safeNumber (market, 'quoteMaxSize');
+            const baseMinSizeString = this.safeString (market, 'baseMinSize');
+            const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
+            const baseMinSize = this.parseNumber (baseMinSizeString);
+            const quoteMaxSize = this.parseNumber (quoteMaxSizeString);
             const quoteMinSize = this.safeNumber (market, 'quoteMinSize');
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             const precision = {
@@ -388,7 +391,7 @@ module.exports = class kucoin extends Exchange {
                 },
                 'price': {
                     'min': this.safeNumber (market, 'priceIncrement'),
-                    'max': quoteMaxSize / baseMinSize,
+                    'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
                 },
                 'cost': {
                     'min': quoteMinSize,
@@ -827,7 +830,7 @@ module.exports = class kucoin extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (data, 'time');
-        const orderbook = this.parseOrderBook (data, timestamp, 'bids', 'asks', level - 2, level - 1);
+        const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', level - 2, level - 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
     }
@@ -1701,13 +1704,17 @@ module.exports = class kucoin extends Exchange {
             //         }
             //     }
             //
+            const result = {
+                'info': response,
+                'timestamp': undefined,
+                'datetime': undefined,
+            };
             const data = this.safeValue (response, 'data');
             const currencyId = this.safeString (data, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (data, 'availableBalance');
             account['total'] = this.safeString (data, 'accountEquity');
-            const result = { 'info': response };
             result[code] = account;
             return this.parseBalance (result, false);
         } else {
@@ -1726,7 +1733,11 @@ module.exports = class kucoin extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data', []);
-            const result = { 'info': response };
+            const result = {
+                'info': response,
+                'timestamp': undefined,
+                'datetime': undefined,
+            };
             for (let i = 0; i < data.length; i++) {
                 const balance = data[i];
                 const balanceType = this.safeString (balance, 'type');

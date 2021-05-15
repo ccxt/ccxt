@@ -291,7 +291,7 @@ module.exports = class coinex extends Exchange {
             'limit': limit.toString (),
         };
         const response = await this.publicGetMarketDepth (this.extend (request, params));
-        return this.parseOrderBook (response['data']);
+        return this.parseOrderBook (response['data'], symbol);
     }
 
     parseTrade (trade, market = undefined) {
@@ -424,7 +424,7 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data');
+        const balances = this.safeValue (response, 'data', {});
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -940,7 +940,7 @@ module.exports = class coinex extends Exchange {
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
         const message = this.safeString (response, 'message');
-        if ((code !== '0') || (data === undefined) || ((message !== 'Ok') && !data)) {
+        if ((code !== '0') || (data === undefined) || ((message !== 'Success') && (message !== 'Ok') && !data)) {
             const responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,

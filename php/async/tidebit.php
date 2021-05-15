@@ -206,7 +206,7 @@ class tidebit extends Exchange {
         $request['market'] = $market['id'];
         $response = yield $this->publicGetDepth (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_ticker($ticker, $market = null) {

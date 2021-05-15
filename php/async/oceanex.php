@@ -311,7 +311,7 @@ class oceanex extends Exchange {
         //
         $orderbook = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
@@ -357,7 +357,7 @@ class oceanex extends Exchange {
             $marketId = $this->safe_string($orderbook, 'market');
             $symbol = $this->safe_symbol($marketId);
             $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-            $result[$symbol] = $this->parse_order_book($orderbook, $timestamp);
+            $result[$symbol] = $this->parse_order_book($orderbook, $symbol, $timestamp);
         }
         return $result;
     }

@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -203,19 +202,11 @@ class tidex(Exchange):
                     },
                     'deposit': {
                         'active': canDeposit,
-                        'fee': 0.0,
+                        'fee': self.parse_number('0'),
                     },
                 },
                 'limits': {
                     'amount': {
-                        'min': None,
-                        'max': math.pow(10, precision),
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
                         'min': None,
                         'max': None,
                     },
@@ -280,7 +271,9 @@ class tidex(Exchange):
             }
             hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
-            takerFee = self.safe_number(market, 'fee')
+            takerFeeString = self.safe_string(market, 'fee')
+            takerFeeString = Precise.string_div(takerFeeString, '100')
+            takerFee = self.parse_number(takerFeeString)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -289,7 +282,7 @@ class tidex(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': takerFee / 100,
+                'taker': takerFee,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -299,8 +292,39 @@ class tidex(Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostGetInfoExt(params)
+        #
+        #     {
+        #         "success":1,
+        #         "return":{
+        #             "funds":{
+        #                 "btc":{"value":0.0000499885629956,"inOrders":0.0},
+        #                 "eth":{"value":0.000000030741708,"inOrders":0.0},
+        #                 "tdx":{"value":0.0000000155385356,"inOrders":0.0}
+        #             },
+        #             "rights":{
+        #                 "info":true,
+        #                 "trade":true,
+        #                 "withdraw":false
+        #             },
+        #             "transaction_count":0,
+        #             "open_orders":0,
+        #             "server_time":1619436907
+        #         },
+        #         "stat":{
+        #             "isSuccess":true,
+        #             "serverTime":"00:00:00.0001157",
+        #             "time":"00:00:00.0101364",
+        #             "errors":null
+        #         }
+        #     }
+        #
         balances = self.safe_value(response, 'return')
-        result = {'info': balances}
+        timestamp = self.safe_timestamp(balances, 'server_time')
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
         funds = self.safe_value(balances, 'funds', {})
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
@@ -326,7 +350,7 @@ class tidex(Exchange):
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, symbol)
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
         await self.load_markets()

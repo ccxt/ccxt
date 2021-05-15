@@ -290,45 +290,34 @@ class bitfinex extends Exchange {
             ),
             // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
             'commonCurrencies' => array(
-                'ABS' => 'ABYSS',
-                'AIO' => 'AION',
                 'ALG' => 'ALGO', // https://github.com/ccxt/ccxt/issues/6034
                 'AMP' => 'AMPL',
-                'ATM' => 'ATMI',
                 'ATO' => 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
-                'BAB' => 'BCH',
-                'CTX' => 'CTXC',
-                'DAD' => 'DADI',
+                'BCHABC' => 'BCHA',
+                'BCHN' => 'BCH',
                 'DAT' => 'DATA',
+                'DOG' => 'MDOGE',
                 'DSH' => 'DASH',
-                'DRK' => 'DRK',
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'EDO' => 'PNT',
-                'GSD' => 'GUSD',
-                'HOT' => 'Hydro Protocol',
-                'IOS' => 'IOST',
+                'EUS' => 'EURS',
+                'EUT' => 'EURT',
                 'IOT' => 'IOTA',
                 'IQX' => 'IQ',
-                'MIT' => 'MITH',
                 'MNA' => 'MANA',
-                'NCA' => 'NCASH',
                 'ORS' => 'ORS Group', // conflict with Origin Sport #3230
-                'POY' => 'POLY',
+                'PAS' => 'PASS',
                 'QSH' => 'QASH',
                 'QTM' => 'QTUM',
                 'RBT' => 'RBTC',
-                'SEE' => 'SEER',
                 'SNG' => 'SNGLS',
-                'SPK' => 'SPANK',
                 'STJ' => 'STORJ',
-                'TRI' => 'TRIO',
                 'TSD' => 'TUSD',
                 'YYW' => 'YOYOW',
                 'UDC' => 'USDC',
                 'UST' => 'USDT',
-                'UTN' => 'UTNP',
                 'VSY' => 'VSYS',
                 'WAX' => 'WAXP',
                 'XCH' => 'XCHF',
@@ -559,18 +548,20 @@ class bitfinex extends Exchange {
                 // Anything exceeding this will be rounded to the 8th decimal.
                 'amount' => 8,
             );
+            $minAmountString = $this->safe_string($market, 'minimum_order_size');
+            $maxAmountString = $this->safe_string($market, 'maximum_order_size');
             $limits = array(
                 'amount' => array(
-                    'min' => $this->safe_number($market, 'minimum_order_size'),
-                    'max' => $this->safe_number($market, 'maximum_order_size'),
+                    'min' => $this->parse_number($minAmountString),
+                    'max' => $this->parse_number($maxAmountString),
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision['price']),
-                    'max' => pow(10, $precision['price']),
+                    'min' => $this->parse_number('1e-8'),
+                    'max' => null,
                 ),
             );
             $limits['cost'] = array(
-                'min' => $limits['amount']['min'] * $limits['price']['min'],
+                'min' => null,
                 'max' => null,
             );
             $margin = $this->safe_value($market, 'margin');
@@ -736,7 +727,7 @@ class bitfinex extends Exchange {
             $request['limit_asks'] = $limit;
         }
         $response = $this->publicGetBookSymbol (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

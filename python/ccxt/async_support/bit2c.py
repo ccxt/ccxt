@@ -160,7 +160,11 @@ class bit2c(Exchange):
         #         }
         #     }
         #
-        result = {'info': balance}
+        result = {
+            'info': balance,
+            'timestamp': None,
+            'datetime': None,
+        }
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
@@ -179,7 +183,7 @@ class bit2c(Exchange):
             'pair': self.market_id(symbol),
         }
         orderbook = await self.publicGetExchangesPairOrderbook(self.extend(request, params))
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, symbol)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

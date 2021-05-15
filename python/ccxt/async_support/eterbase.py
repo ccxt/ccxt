@@ -316,14 +316,6 @@ class eterbase(Exchange):
                         'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
                     },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(currency, 'withdrawalMin'),
                         'max': self.safe_number(currency, 'withdrawalMax'),
@@ -546,7 +538,7 @@ class eterbase(Exchange):
         #     }
         #
         timestamp = self.safe_integer(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

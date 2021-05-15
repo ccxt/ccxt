@@ -243,8 +243,6 @@ module.exports = class ripio extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
             };
@@ -389,7 +387,7 @@ module.exports = class ripio extends Exchange {
         //         "updated_id":47225
         //     }
         //
-        const orderbook = this.parseOrderBook (response, undefined, 'buy', 'sell', 'price', 'amount');
+        const orderbook = this.parseOrderBook (response, symbol, undefined, 'buy', 'sell', 'price', 'amount');
         orderbook['nonce'] = this.safeInteger (response, 'updated_id');
         return orderbook;
     }

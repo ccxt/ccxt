@@ -147,6 +147,7 @@ class crex24(Exchange):
                 'BULL': 'BuySell',
                 'CREDIT': 'TerraCredit',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
+                'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
                 'IQ': 'IQ.Cash',
                 'PUT': 'PutinCoin',
@@ -308,14 +309,6 @@ class crex24(Exchange):
                         'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
                     },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'deposit': {
                         'min': self.safe_number(currency, 'minDeposit'),
                         'max': None,
@@ -382,7 +375,7 @@ class crex24(Exchange):
         #                     {price: 0.03124, volume: 2.63462933},
         #                     {price: 0.069, volume: 0.004}            ]}
         #
-        return self.parse_order_book(response, None, 'buyLevels', 'sellLevels', 'price', 'volume')
+        return self.parse_order_book(response, symbol, None, 'buyLevels', 'sellLevels', 'price', 'volume')
 
     def parse_ticker(self, ticker, market=None):
         #

@@ -153,6 +153,7 @@ class mercado extends Exchange {
                 'amount' => 8,
                 'price' => 5,
             );
+            $priceLimit = '1e-5';
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -169,7 +170,7 @@ class mercado extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => 1 / pow(10, $precision['price']),
+                        'min' => $this->parse_number($priceLimit),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -189,7 +190,7 @@ class mercado extends Exchange {
             'coin' => $market['base'],
         );
         $response = yield $this->publicGetCoinOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

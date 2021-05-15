@@ -116,6 +116,7 @@ module.exports = class coinone extends Exchange {
             }
             const base = this.safeCurrencyCode (baseId);
             result.push ({
+                'info': ticker,
                 'id': baseId,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -159,7 +160,7 @@ module.exports = class coinone extends Exchange {
         };
         const response = await this.publicGetOrderbook (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp, 'bid', 'ask', 'price', 'qty');
+        return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask', 'price', 'qty');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

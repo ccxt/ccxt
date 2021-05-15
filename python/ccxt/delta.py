@@ -270,8 +270,6 @@ class delta(Exchange):
                 'precision': 1 / math.pow(10, precision),
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {
                         'min': self.safe_number(currency, 'min_withdrawal_amount'),
                         'max': None,
@@ -593,7 +591,7 @@ class delta(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return self.parse_order_book(result, None, 'buy', 'sell', 'price', 'size')
+        return self.parse_order_book(result, symbol, None, 'buy', 'sell', 'price', 'size')
 
     def parse_trade(self, trade, market=None):
         #

@@ -206,7 +206,11 @@ class luno(Exchange):
         #     }
         #
         wallets = self.safe_value(response, 'balance', [])
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(wallets)):
             wallet = wallets[i]
             currencyId = self.safe_string(wallet, 'asset')
@@ -237,7 +241,7 @@ class luno(Exchange):
         }
         response = getattr(self, method)(self.extend(request, params))
         timestamp = self.safe_integer(response, 'timestamp')
-        return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'volume')
+        return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'volume')
 
     def parse_order_status(self, status):
         statuses = {

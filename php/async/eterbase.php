@@ -318,14 +318,6 @@ class eterbase extends Exchange {
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'withdrawalMin'),
                         'max' => $this->safe_number($currency, 'withdrawalMax'),
@@ -559,7 +551,7 @@ class eterbase extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

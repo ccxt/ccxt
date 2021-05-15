@@ -258,8 +258,10 @@ class hitbtc(Exchange):
             # bequant fix
             if id.find('_') >= 0:
                 symbol = id
-            lot = self.safe_number(market, 'quantityIncrement')
-            step = self.safe_number(market, 'tickSize')
+            lotString = self.safe_string(market, 'quantityIncrement')
+            stepString = self.safe_string(market, 'tickSize')
+            lot = self.parse_number(lotString)
+            step = self.parse_number(stepString)
             precision = {
                 'price': step,
                 'amount': lot,
@@ -291,7 +293,7 @@ class hitbtc(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': lot * step,
+                        'min': self.parse_number(Precise.string_mul(lotString, stepString)),
                         'max': None,
                     },
                 },
@@ -395,14 +397,6 @@ class hitbtc(Exchange):
                         'min': 1 / math.pow(10, decimals),
                         'max': math.pow(10, decimals),
                     },
-                    'price': {
-                        'min': 1 / math.pow(10, decimals),
-                        'max': math.pow(10, decimals),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': math.pow(10, precision),
@@ -440,7 +434,18 @@ class hitbtc(Exchange):
         method = 'privateGet' + self.capitalize(typeId) + 'Balance'
         query = self.omit(params, 'type')
         response = getattr(self, method)(query)
-        result = {'info': response}
+        #
+        #     [
+        #         {"currency":"SPI","available":"0","reserved":"0"},
+        #         {"currency":"GRPH","available":"0","reserved":"0"},
+        #         {"currency":"DGTX","available":"0","reserved":"0"},
+        #     ]
+        #
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -501,7 +506,7 @@ class hitbtc(Exchange):
         if limit is not None:
             request['limit'] = limit  # default = 100, 0 = unlimited
         response = self.publicGetOrderbookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bid', 'ask', 'price', 'size')
+        return self.parse_order_book(response, symbol, None, 'bid', 'ask', 'price', 'size')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['timestamp'])

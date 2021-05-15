@@ -148,7 +148,11 @@ class xbtce(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         balances = self.privateGetAsset(params)
-        result = {'info': balances}
+        result = {
+            'info': balances,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'Currency')
@@ -169,7 +173,7 @@ class xbtce(Exchange):
         response = self.privateGetLevel2Filter(self.extend(request, params))
         orderbook = response[0]
         timestamp = self.safe_integer(orderbook, 'Timestamp')
-        return self.parse_order_book(orderbook, timestamp, 'Bids', 'Asks', 'Price', 'Volume')
+        return self.parse_order_book(orderbook, symbol, timestamp, 'Bids', 'Asks', 'Price', 'Volume')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = 0

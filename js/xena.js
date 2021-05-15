@@ -371,14 +371,6 @@ module.exports = class xena extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (withdraw, 'minAmount'),
                         'max': undefined,
@@ -520,7 +512,7 @@ module.exports = class xena extends Exchange {
         const mdEntriesByType = this.groupBy (mdEntry, 'mdEntryType');
         const lastUpdateTime = this.safeInteger (response, 'lastUpdateTime');
         const timestamp = parseInt (lastUpdateTime / 1000000);
-        return this.parseOrderBook (mdEntriesByType, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
+        return this.parseOrderBook (mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 
     async fetchAccounts (params = {}) {
@@ -594,17 +586,28 @@ module.exports = class xena extends Exchange {
         const response = await this.privateGetTradingAccountsAccountIdBalance (this.extend (request, params));
         //
         //     {
-        //         "balances": [
-        //             {"available":"0","onHold":"0","settled":"0","equity":"0","currency":"BAB","lastUpdated":1564811790485125345},
-        //             {"available":"0","onHold":"0","settled":"0","equity":"0","currency":"BSV","lastUpdated":1564811790485125345},
-        //             {"available":"0","onHold":"0","settled":"0","equity":"0","currency":"BTC","lastUpdated":1564811790485125345},
+        //         "msgType":"XAR",
+        //         "balances":[
+        //             {
+        //                 "currency":"BTC",
+        //                 "lastUpdateTime":1619384111905916598,
+        //                 "available":"0.00549964",
+        //                 "onHold":"0",
+        //                 "settled":"0.00549964",
+        //                 "equity":"0.00549964"
+        //             }
         //         ]
         //     }
         //
         const result = { 'info': response };
+        let timestamp = undefined;
         const balances = this.safeValue (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
+            const lastUpdateTime = this.safeString (balance, 'lastUpdateTime');
+            const lastUpdated = lastUpdateTime.slice (0, 13);
+            const currentTimestamp = parseInt (lastUpdated);
+            timestamp = (timestamp === undefined) ? currentTimestamp : Math.max (timestamp, currentTimestamp);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -612,6 +615,8 @@ module.exports = class xena extends Exchange {
             account['used'] = this.safeString (balance, 'onHold');
             result[code] = account;
         }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
         return this.parseBalance (result, false);
     }
 

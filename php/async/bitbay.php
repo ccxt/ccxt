@@ -47,15 +47,16 @@ class bitbay extends Exchange {
                 '3d' => '259200',
                 '1w' => '604800',
             ),
+            'hostname' => 'bitbay.net',
             'urls' => array(
                 'referral' => 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
                 'www' => 'https://bitbay.net',
                 'api' => array(
-                    'public' => 'https://bitbay.net/API/Public',
-                    'private' => 'https://bitbay.net/API/Trading/tradingApi.php',
-                    'v1_01Public' => 'https://api.bitbay.net/rest',
-                    'v1_01Private' => 'https://api.bitbay.net/rest',
+                    'public' => 'https://{hostname}/API/Public',
+                    'private' => 'https://{hostname}/API/Trading/tradingApi.php',
+                    'v1_01Public' => 'https://api.{hostname}/rest',
+                    'v1_01Private' => 'https://api.{hostname}/rest',
                 ),
                 'doc' => array(
                     'https://bitbay.net/public-api',
@@ -437,7 +438,7 @@ class bitbay extends Exchange {
             'id' => $this->market_id($symbol),
         );
         $orderbook = yield $this->publicGetIdOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1165,7 +1166,7 @@ class bitbay extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api];
+        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname ));
         if ($api === 'public') {
             $query = $this->omit($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params) . '.json';

@@ -523,7 +523,7 @@ class huobipro(Exchange):
                 raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             tick = self.safe_value(response, 'tick')
             timestamp = self.safe_integer(tick, 'ts', self.safe_integer(response, 'ts'))
-            result = self.parse_order_book(tick, timestamp)
+            result = self.parse_order_book(tick, symbol, timestamp)
             result['nonce'] = self.safe_integer(tick, 'version')
             return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
@@ -628,9 +628,7 @@ class huobipro(Exchange):
         cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         feeCost = self.safe_number(trade, 'filled-fees')
-        feeCurrency = None
-        if market is not None:
-            feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
+        feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-currency'))
         filledPoints = self.safe_number(trade, 'filled-points')
         if filledPoints is not None:
             if (feeCost is None) or (feeCost == 0.0):
@@ -820,14 +818,6 @@ class huobipro(Exchange):
                     'amount': {
                         'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
                     },
                     'deposit': {
                         'min': self.safe_number(currency, 'deposit-min-amount'),

@@ -121,6 +121,7 @@ class coinone(Exchange):
                 continue
             base = self.safe_currency_code(baseId)
             result.append({
+                'info': ticker,
                 'id': baseId,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -160,7 +161,7 @@ class coinone(Exchange):
         }
         response = self.publicGetOrderbook(self.extend(request, params))
         timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, timestamp, 'bid', 'ask', 'price', 'qty')
+        return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask', 'price', 'qty')
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

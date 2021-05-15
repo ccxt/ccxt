@@ -453,14 +453,6 @@ class kraken(Exchange):
                         'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
                     },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': None,
                         'max': math.pow(10, precision),
@@ -533,7 +525,7 @@ class kraken(Exchange):
         wsName = self.safe_value(marketInfo, 'wsname')
         if wsName is not None:
             orderbook = self.safe_value(result, wsName, orderbook)
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, symbol)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -925,8 +917,22 @@ class kraken(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostBalance(params)
+        #
+        #     {
+        #         "error":[],
+        #         "result":{
+        #             "ZUSD":"58.8649",
+        #             "KFEE":"4399.43",
+        #             "XXBT":"0.0000034506",
+        #         }
+        #     }
+        #
         balances = self.safe_value(response, 'result', {})
-        result = {'info': balances}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]

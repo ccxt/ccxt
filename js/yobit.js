@@ -98,6 +98,7 @@ module.exports = class yobit extends Exchange {
                 'CAT': 'BitClave',
                 'CBC': 'CryptoBossCoin',
                 'CMT': 'CometCoin',
+                'COIN': 'Coin.com',
                 'COV': 'Coven Coin',
                 'COVX': 'COV',
                 'CPC': 'Capricoin',
@@ -115,6 +116,7 @@ module.exports = class yobit extends Exchange {
                 'ESC': 'EdwardSnowden',
                 'EUROPE': 'EUROP',
                 'EXT': 'LifeExtension',
+                'FUND': 'FUNDChains',
                 'FUNK': 'FUNKCoin',
                 'GCC': 'GlobalCryptocurrency',
                 'GEN': 'Genstake',
@@ -127,6 +129,7 @@ module.exports = class yobit extends Exchange {
                 'INSANE': 'INSN',
                 'JNT': 'JointCoin',
                 'JPC': 'JupiterCoin',
+                'JWL': 'Jewels',
                 'KNC': 'KingN Coin',
                 'LBTCX': 'LiteBitcoin',
                 'LIZI': 'LiZi',
@@ -134,8 +137,10 @@ module.exports = class yobit extends Exchange {
                 'LOCX': 'LOC',
                 'LUNYR': 'LUN',
                 'LUN': 'LunarCoin',  // they just change the ticker if it is already taken
+                'LUNA': 'Luna Coin',
                 'MASK': 'Yobit MASK',
                 'MDT': 'Midnight',
+                'MIS': 'MIScoin',
                 'NAV': 'NavajoCoin',
                 'NBT': 'NiceBytes',
                 'OMG': 'OMGame',
@@ -230,7 +235,12 @@ module.exports = class yobit extends Exchange {
         //     }
         //
         const balances = this.safeValue (response, 'return', {});
-        const result = { 'info': response };
+        const timestamp = this.safeInteger (balances, 'server_time');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         const free = this.safeValue (balances, 'funds', {});
         const total = this.safeValue (balances, 'funds_incl_orders', {});
         const currencyIds = Object.keys (this.extend (free, total));
@@ -299,7 +309,11 @@ module.exports = class yobit extends Exchange {
             };
             const hidden = this.safeInteger (market, 'hidden');
             const active = (hidden === 0);
-            const takerFee = this.safeNumber (market, 'fee');
+            let feeString = this.safeString (market, 'fee');
+            feeString = Precise.stringDiv (feeString, '100');
+            // yobit maker = taker
+            const takerFee = this.parseNumber (feeString);
+            const makerFee = this.parseNumber (feeString);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -308,7 +322,8 @@ module.exports = class yobit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': takerFee / 100,
+                'taker': takerFee,
+                'maker': makerFee,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -332,7 +347,7 @@ module.exports = class yobit extends Exchange {
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
         }
         const orderbook = response[market['id']];
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {

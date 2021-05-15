@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -258,7 +257,8 @@ class stex(Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.safe_currency_code(self.safe_string(currency, 'code'))
-            precision = self.safe_integer(currency, 'precision')
+            precision = self.safe_string(currency, 'precision')
+            amountLimit = self.parse_precision(precision)
             fee = self.safe_number(currency, 'withdrawal_fee_const')  # todo: redesign
             active = self.safe_value(currency, 'active', True)
             result[code] = {
@@ -270,11 +270,9 @@ class stex(Exchange):
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
                 'fee': fee,
-                'precision': precision,
+                'precision': int(precision),
                 'limits': {
-                    'amount': {'min': math.pow(10, -precision), 'max': None},
-                    'price': {'min': math.pow(10, -precision), 'max': None},
-                    'cost': {'min': None, 'max': None},
+                    'amount': {'min': self.parse_number(amountLimit), 'max': None},
                     'deposit': {
                         'min': self.safe_number(currency, 'minimum_deposit_amount'),
                         'max': None,
@@ -475,7 +473,7 @@ class stex(Exchange):
         #     }
         #
         orderbook = self.safe_value(response, 'data', {})
-        return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'amount')
+        return self.parse_order_book(orderbook, symbol, None, 'bid', 'ask', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -796,7 +794,11 @@ class stex(Exchange):
         #         ]
         #     }
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
             balance = balances[i]

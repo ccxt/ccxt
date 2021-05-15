@@ -300,14 +300,6 @@ module.exports = class bw extends Exchange {
                         'min': this.safeNumber (currency, 'limitAmount', 0),
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': this.safeNumber (currency, 'onceDrawLimit'),
@@ -456,7 +448,7 @@ module.exports = class bw extends Exchange {
         //
         const orderbook = this.safeValue (response, 'datas', []);
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {

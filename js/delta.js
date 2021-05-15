@@ -263,8 +263,6 @@ module.exports = class delta extends Exchange {
                 'precision': 1 / Math.pow (10, precision),
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'min_withdrawal_amount'),
                         'max': undefined,
@@ -602,7 +600,7 @@ module.exports = class delta extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return this.parseOrderBook (result, undefined, 'buy', 'sell', 'price', 'size');
+        return this.parseOrderBook (result, symbol, undefined, 'buy', 'sell', 'price', 'size');
     }
 
     parseTrade (trade, market = undefined) {

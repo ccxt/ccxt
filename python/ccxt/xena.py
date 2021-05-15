@@ -376,14 +376,6 @@ class xena(Exchange):
                         'min': None,
                         'max': None,
                     },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(withdraw, 'minAmount'),
                         'max': None,
@@ -515,7 +507,7 @@ class xena(Exchange):
         mdEntriesByType = self.group_by(mdEntry, 'mdEntryType')
         lastUpdateTime = self.safe_integer(response, 'lastUpdateTime')
         timestamp = int(lastUpdateTime / 1000000)
-        return self.parse_order_book(mdEntriesByType, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
+        return self.parse_order_book(mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
 
     def fetch_accounts(self, params={}):
         response = self.privateGetTradingAccounts(params)
@@ -580,23 +572,36 @@ class xena(Exchange):
         response = self.privateGetTradingAccountsAccountIdBalance(self.extend(request, params))
         #
         #     {
-        #         "balances": [
-        #             {"available":"0","onHold":"0","settled":"0","equity":"0","currency":"BAB","lastUpdated":1564811790485125345},
-        #             {"available":"0","onHold":"0","settled":"0","equity":"0","currency":"BSV","lastUpdated":1564811790485125345},
-        #             {"available":"0","onHold":"0","settled":"0","equity":"0","currency":"BTC","lastUpdated":1564811790485125345},
+        #         "msgType":"XAR",
+        #         "balances":[
+        #             {
+        #                 "currency":"BTC",
+        #                 "lastUpdateTime":1619384111905916598,
+        #                 "available":"0.00549964",
+        #                 "onHold":"0",
+        #                 "settled":"0.00549964",
+        #                 "equity":"0.00549964"
+        #             }
         #         ]
         #     }
         #
         result = {'info': response}
+        timestamp = None
         balances = self.safe_value(response, 'balances', [])
         for i in range(0, len(balances)):
             balance = balances[i]
+            lastUpdateTime = self.safe_string(balance, 'lastUpdateTime')
+            lastUpdated = lastUpdateTime[0:13]
+            currentTimestamp = int(lastUpdated)
+            timestamp = currentTimestamp if (timestamp is None) else max(timestamp, currentTimestamp)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'onHold')
             result[code] = account
+        result['timestamp'] = timestamp
+        result['datetime'] = self.iso8601(timestamp)
         return self.parse_balance(result, False)
 
     def parse_trade(self, trade, market=None):

@@ -263,6 +263,9 @@ class hbtc extends Exchange {
                     'method' => 'quoteGetTicker24hr',
                 ),
             ),
+            'commonCurrencies' => array(
+                'MIS' => 'Themis Protocol',
+            ),
         ));
     }
 
@@ -300,32 +303,41 @@ class hbtc extends Exchange {
             $spot = false;
             $option = true;
         }
+        $margin = $this->safe_value($market, 'allowMargin', null);
+        $isAggregate = $this->safe_value($market, 'isAggregate', null);
+        $active = true;
+        if ($isAggregate === true) {
+            $active = false;
+        }
         $amountMin = null;
         $amountMax = null;
         $priceMin = null;
         $priceMax = null;
         $costMin = null;
+        $pricePrecision = null;
+        $amountPrecision = null;
         for ($j = 0; $j < count($filters); $j++) {
             $filter = $filters[$j];
             $filterType = $this->safe_string($filter, 'filterType');
             if ($filterType === 'LOT_SIZE') {
                 $amountMin = $this->safe_number($filter, 'minQty');
                 $amountMax = $this->safe_number($filter, 'maxQty');
+                $amountPrecision = $this->safe_number($filter, 'stepSize');
             }
             if ($filterType === 'PRICE_FILTER') {
                 $priceMin = $this->safe_number($filter, 'minPrice');
                 $priceMax = $this->safe_number($filter, 'maxPrice');
-            }
-            if ($filterType === 'MIN_NOTIONAL') {
-                $costMin = $this->safe_number($filter, 'minNotional');
+                $pricePrecision = $this->safe_number($filter, 'tickSize');
             }
         }
-        if (($costMin === null) && ($amountMin !== null) && ($priceMin !== null)) {
+        if (($amountMin !== null) && ($priceMin !== null)) {
             $costMin = $amountMin * $priceMin;
         }
         $precision = array(
-            'price' => $this->safe_number_2($market, 'quotePrecision', 'quoteAssetPrecision'),
-            'amount' => $this->safe_number($market, 'baseAssetPrecision'),
+            'price' => $pricePrecision,
+            'amount' => $amountPrecision,
+            'base' => $this->safe_number($market, 'baseAssetPrecision'),
+            'quote' => $this->safe_number_2($market, 'quotePrecision', 'quoteAssetPrecision'),
         );
         $limits = array(
             'amount' => array(
@@ -348,11 +360,12 @@ class hbtc extends Exchange {
             'quote' => $quote,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'active' => true,
+            'active' => $active,
             'type' => $type,
             'spot' => $spot,
             'future' => $future,
             'option' => $option,
+            'margin' => $margin,
             'inverse' => $inverse,
             'precision' => $precision,
             'limits' => $limits,
@@ -372,18 +385,22 @@ class hbtc extends Exchange {
         //                 "filters":array(
         //                     array("minPrice":"0.01","maxPrice":"100000.00000000","tickSize":"0.01","filterType":"PRICE_FILTER"),
         //                     array("minQty":"0.0005","maxQty":"100000.00000000","stepSize":"0.000001","filterType":"LOT_SIZE"),
-        //                     array("minNotional":"5","filterType":"MIN_NOTIONAL")
+        //                     array("minNotional":"0.01","filterType":"MIN_NOTIONAL")
         //                 ),
         //                 "exchangeId":"301",
         //                 "symbol":"BTCUSDT",
         //                 "symbolName":"BTCUSDT",
         //                 "status":"TRADING",
         //                 "baseAsset":"BTC",
+        //                 "baseAssetName":"BTC",
         //                 "baseAssetPrecision":"0.000001",
         //                 "quoteAsset":"USDT",
+        //                 "quoteAssetName":"USDT",
         //                 "quotePrecision":"0.01",
-        //                 "icebergAllowed":false
-        //             ),
+        //                 "icebergAllowed":false,
+        //                 "isAggregate":false,
+        //                 "allowMargin":true
+        //            ),
         //         ),
         //         "$options":array(
         //             array(
@@ -397,10 +414,14 @@ class hbtc extends Exchange {
         //                 "symbolName":"BTC0501CS8500",
         //                 "status":"TRADING",
         //                 "baseAsset":"BTC0501CS8500",
+        //                 "baseAssetName":"BTC0306CS3800",
         //                 "baseAssetPrecision":"0.001",
         //                 "quoteAsset":"BUSDT",
+        //                 "quoteAssetName":"BUSDT",
         //                 "quotePrecision":"0.01",
         //                 "icebergAllowed":false
+        //                 "isAggregate":false,
+        //                 "allowMargin":false
         //             ),
         //         ),
         //         "$contracts":array(
@@ -536,7 +557,7 @@ class hbtc extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($response, 'time');
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -707,7 +728,11 @@ class hbtc extends Exchange {
         //     }
         //
         $balances = $this->safe_value($response, 'balances');
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         if ($balances !== null) {
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $balances[$i];

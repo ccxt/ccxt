@@ -146,6 +146,18 @@ class bitstamp(Exchange):
                         'zrx_address/',
                         'gusd_withdrawal/',
                         'gusd_address/',
+                        'aave_withdrawal/',
+                        'aave_address/',
+                        'bat_withdrawal/',
+                        'bat_address/',
+                        'uma_withdrawal/',
+                        'uma_address/',
+                        'snx_withdrawal/',
+                        'snx_address/',
+                        'uni_withdrawal/',
+                        'uni_address/',
+                        'yfi_withdrawal/',
+                        'yfi_address',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -278,9 +290,13 @@ class bitstamp(Exchange):
             symbol = base + '/' + quote
             symbolId = baseId + '_' + quoteId
             id = self.safe_string(market, 'url_symbol')
+            amountPrecisionString = self.safe_string(market, 'base_decimals')
+            pricePrecisionString = self.safe_string(market, 'counter_decimals')
+            amountLimit = self.parse_precision(amountPrecisionString)
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
-                'amount': self.safe_integer(market, 'base_decimals'),
-                'price': self.safe_integer(market, 'counter_decimals'),
+                'amount': int(amountPrecisionString),
+                'price': int(pricePrecisionString),
             }
             minimumOrder = self.safe_string(market, 'minimum_order')
             parts = minimumOrder.split(' ')
@@ -301,15 +317,15 @@ class bitstamp(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': self.parse_number(amountLimit),
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': self.parse_number(priceLimit),
                         'max': None,
                     },
                     'cost': {
-                        'min': float(cost),
+                        'min': self.parse_number(cost),
                         'max': None,
                     },
                 },
@@ -413,7 +429,7 @@ class bitstamp(Exchange):
         #
         microtimestamp = self.safe_integer(response, 'microtimestamp')
         timestamp = int(microtimestamp / 1000)
-        orderbook = self.parse_order_book(response, timestamp)
+        orderbook = self.parse_order_book(response, symbol, timestamp)
         orderbook['nonce'] = microtimestamp
         return orderbook
 
@@ -728,7 +744,29 @@ class bitstamp(Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         balance = await self.privatePostBalance(params)
-        result = {'info': balance}
+        #
+        #     {
+        #         "aave_available": "0.00000000",
+        #         "aave_balance": "0.00000000",
+        #         "aave_reserved": "0.00000000",
+        #         "aave_withdrawal_fee": "0.07000000",
+        #         "aavebtc_fee": "0.000",
+        #         "aaveeur_fee": "0.000",
+        #         "aaveusd_fee": "0.000",
+        #         "bat_available": "0.00000000",
+        #         "bat_balance": "0.00000000",
+        #         "bat_reserved": "0.00000000",
+        #         "bat_withdrawal_fee": "5.00000000",
+        #         "batbtc_fee": "0.000",
+        #         "bateur_fee": "0.000",
+        #         "batusd_fee": "0.000",
+        #     }
+        #
+        result = {
+            'info': balance,
+            'timestamp': None,
+            'datetime': None,
+        }
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]

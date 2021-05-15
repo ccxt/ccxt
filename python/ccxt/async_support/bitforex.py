@@ -16,6 +16,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.precise import Precise
@@ -237,7 +238,10 @@ class bitforex(Exchange):
                 },
             },
             'commonCurrencies': {
+                'ACE': 'ACE Entertainment',
                 'CREDIT': 'TerraCredit',
+                'CTC': 'Culture Ticket Chain',
+                'GOT': 'GoNetwork',
                 'HBC': 'Hybrid Bank Cash',
                 'IQ': 'IQ.Cash',
                 'UOS': 'UOS Network',
@@ -249,6 +253,7 @@ class bitforex(Exchange):
                 '1017': PermissionDenied,  # {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
                 '1019': BadSymbol,  # {"code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid"}
                 '3002': InsufficientFunds,
+                '4003': InvalidOrder,  # {"success":false,"code":"4003","message":"amount too small"}
                 '10204': DDoSProtection,
             },
         })
@@ -444,7 +449,7 @@ class bitforex(Exchange):
         response = await self.publicGetApiV1MarketDepth(self.extend(request, params))
         data = self.safe_value(response, 'data')
         timestamp = self.safe_integer(response, 'time')
-        return self.parse_order_book(data, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_order_status(self, status):
         statuses = {

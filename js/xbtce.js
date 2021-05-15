@@ -147,7 +147,11 @@ module.exports = class xbtce extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const balances = await this.privateGetAsset (params);
-        const result = { 'info': balances };
+        const result = {
+            'info': balances,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'Currency');
@@ -170,7 +174,7 @@ module.exports = class xbtce extends Exchange {
         const response = await this.privateGetLevel2Filter (this.extend (request, params));
         const orderbook = response[0];
         const timestamp = this.safeInteger (orderbook, 'Timestamp');
-        return this.parseOrderBook (orderbook, timestamp, 'Bids', 'Asks', 'Price', 'Volume');
+        return this.parseOrderBook (orderbook, symbol, timestamp, 'Bids', 'Asks', 'Price', 'Volume');
     }
 
     parseTicker (ticker, market = undefined) {

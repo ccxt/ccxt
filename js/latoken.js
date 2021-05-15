@@ -164,8 +164,10 @@ module.exports = class latoken extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const pricePrecisionString = this.safeString (market, 'pricePrecision');
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
-                'price': this.safeInteger (market, 'pricePrecision'),
+                'price': parseInt (pricePrecisionString),
                 'amount': this.safeInteger (market, 'amountPrecision'),
             };
             const limits = {
@@ -174,7 +176,7 @@ module.exports = class latoken extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': Math.pow (10, -precision['price']),
+                    'min': this.parseNumber (priceLimit),
                     'max': undefined,
                 },
                 'cost': {
@@ -236,14 +238,6 @@ module.exports = class latoken extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': undefined,
                         'max': undefined,
@@ -272,6 +266,8 @@ module.exports = class latoken extends Exchange {
         //
         const result = {
             'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -312,7 +308,7 @@ module.exports = class latoken extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'quantity');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
     parseTicker (ticker, market = undefined) {

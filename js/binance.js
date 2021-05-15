@@ -118,6 +118,8 @@ module.exports = class binance extends Exchange {
                         // these endpoints require this.apiKey + this.secret
                         'asset/assetDividend',
                         'asset/transfer',
+                        'asset/assetDetail',
+                        'asset/tradeFee',
                         'margin/loan',
                         'margin/repay',
                         'margin/account',
@@ -134,6 +136,8 @@ module.exports = class binance extends Exchange {
                         'margin/isolated/account',
                         'margin/isolated/pair',
                         'margin/isolated/allPairs',
+                        'fiatpayment/query/deposit/history',
+                        'fiatpayment/query/withdraw/history',
                         'futures/transfer',
                         'futures/loan/borrow/history',
                         'futures/loan/repay/history',
@@ -150,6 +154,7 @@ module.exports = class binance extends Exchange {
                         'capital/deposit/subAddress',
                         'capital/deposit/subHisrec',
                         'capital/withdraw/history',
+                        'bnbBurn',
                         'sub-account/futures/account',
                         'sub-account/futures/accountSummary',
                         'sub-account/futures/positionRisk',
@@ -231,6 +236,7 @@ module.exports = class binance extends Exchange {
                         'margin/order',
                         'margin/isolated/create',
                         'margin/isolated/transfer',
+                        'bnbBurn',
                         'sub-account/margin/transfer',
                         'sub-account/margin/enable',
                         'sub-account/margin/enable',
@@ -296,6 +302,7 @@ module.exports = class binance extends Exchange {
                         'broker/subAccountApi/ipRestriction/ipList',
                     ],
                 },
+                // deprecated
                 'wapi': {
                     'post': [
                         'withdraw',
@@ -1034,12 +1041,8 @@ module.exports = class binance extends Exchange {
                 // therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 entry['limits']['price'] = {
                     'min': this.safeNumber (filter, 'minPrice'),
-                    'max': undefined,
+                    'max': this.safeNumber (filter, 'maxPrice'),
                 };
-                const maxPrice = this.safeNumber (filter, 'maxPrice');
-                if ((maxPrice !== undefined) && (maxPrice > 0)) {
-                    entry['limits']['price']['max'] = maxPrice;
-                }
                 entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
             }
             if ('LOT_SIZE' in filtersByType) {
@@ -1229,8 +1232,12 @@ module.exports = class binance extends Exchange {
         //         }
         //     ]
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+        };
+        let timestamp = undefined;
         if ((type === 'spot') || (type === 'margin')) {
+            timestamp = this.safeInteger (response, 'updateTime');
             const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
@@ -1257,6 +1264,8 @@ module.exports = class binance extends Exchange {
                 result[code] = account;
             }
         }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
         return this.parseBalance (result, false);
     }
 
@@ -1276,7 +1285,27 @@ module.exports = class binance extends Exchange {
             method = 'dapiPublicGetDepth';
         }
         const response = await this[method] (this.extend (request, params));
-        const orderbook = this.parseOrderBook (response);
+        //
+        // future
+        //
+        //     {
+        //         "lastUpdateId":333598053905,
+        //         "E":1618631511986,
+        //         "T":1618631511964,
+        //         "bids":[
+        //             ["2493.56","20.189"],
+        //             ["2493.54","1.000"],
+        //             ["2493.51","0.005"],["2493.37","0.280"],["2493.31","0.865"],["2493.30","0.514"],["2493.29","2.309"],["2493.25","1.500"],["2493.23","0.012"],["2493.22","7.240"],["2493.21","3.349"],["2493.20","2.030"],["2493.19","58.118"],["2493.18","174.836"],["2493.17","14.436"],["2493.12","2.000"],["2493.09","3.232"],["2493.08","2.010"],["2493.07","2.000"],["2493.06","2.000"],["2493.05","2.684"],["2493.04","2.000"],["2493.03","2.000"],["2493.02","5.000"],["2493.01","2.000"],["2493.00","1.035"],["2492.99","8.546"],["2492.98","4.012"],["2492.96","40.937"],["2492.95","40.595"],["2492.94","21.051"],["2492.92","4.012"],["2492.91","0.200"],["2492.85","2.000"],["2492.83","24.929"],["2492.81","50.000"],["2492.80","0.030"],["2492.76","0.264"],["2492.73","32.098"],["2492.71","32.664"],["2492.70","4.228"],["2492.65","1.230"],["2492.61","5.598"],["2492.60","34.786"],["2492.58","10.393"],["2492.54","4.543"],["2492.50","0.400"],["2492.49","0.600"],["2492.48","4.941"],["2492.45","1.207"],["2492.43","4.878"],["2492.40","4.762"],["2492.39","36.489"],["2492.37","3.000"],["2492.36","4.882"],["2492.33","28.117"],["2492.29","0.490"],["2492.28","76.365"],["2492.27","0.200"],["2492.23","3.804"],["2492.22","1.000"],["2492.19","20.011"],["2492.17","13.500"],["2492.16","4.058"],["2492.14","35.673"],["2492.13","1.915"],["2492.12","76.896"],["2492.10","8.050"],["2492.01","16.615"],["2492.00","10.335"],["2491.95","5.880"],["2491.93","10.000"],["2491.92","3.916"],["2491.90","0.795"],["2491.87","22.000"],["2491.85","1.260"],["2491.84","4.014"],["2491.83","6.668"],["2491.73","0.855"],["2491.72","7.572"],["2491.71","7.000"],["2491.68","3.916"],["2491.66","2.500"],["2491.64","4.945"],["2491.63","2.302"],["2491.62","4.012"],["2491.61","16.170"],["2491.60","0.793"],["2491.59","0.403"],["2491.57","17.445"],["2491.56","88.177"],["2491.53","10.000"],["2491.47","0.013"],["2491.45","0.157"],["2491.44","11.733"],["2491.39","3.593"],["2491.38","3.570"],["2491.36","28.077"],["2491.35","0.808"],["2491.30","0.065"],["2491.29","4.880"],["2491.27","22.000"],["2491.24","9.021"],["2491.23","68.393"],["2491.22","0.050"],["2491.21","1.316"],["2491.20","4.000"],["2491.19","0.108"],["2491.18","0.498"],["2491.17","5.000"],["2491.14","10.000"],["2491.13","0.383"],["2491.12","125.959"],["2491.10","0.870"],["2491.08","10.518"],["2491.05","54.743"],["2491.01","7.980"],["2490.96","3.916"],["2490.95","0.135"],["2490.91","0.140"],["2490.89","8.424"],["2490.88","5.930"],["2490.84","1.208"],["2490.83","2.005"],["2490.82","5.517"],["2490.81","73.707"],["2490.80","1.042"],["2490.79","9.626"],["2490.72","3.916"],["2490.70","0.148"],["2490.69","0.403"],["2490.68","0.012"],["2490.67","21.887"],["2490.66","0.008"],["2490.64","11.500"],["2490.61","0.005"],["2490.58","68.175"],["2490.55","0.218"],["2490.54","14.132"],["2490.53","5.157"],["2490.50","0.018"],["2490.49","9.216"],["2490.48","3.979"],["2490.47","1.884"],["2490.44","0.003"],["2490.36","14.132"],["2490.35","2.008"],["2490.34","0.200"],["2490.33","0.015"],["2490.30","0.065"],["2490.29","5.500"],["2490.28","24.203"],["2490.26","4.373"],["2490.25","0.026"],["2490.24","4.000"],["2490.23","177.628"],["2490.22","14.132"],["2490.21","0.181"],["2490.20","0.645"],["2490.19","9.024"],["2490.18","0.108"],["2490.17","0.085"],["2490.16","0.077"],["2490.14","0.275"],["2490.10","0.080"],["2490.07","0.015"],["2490.04","6.056"],["2490.00","6.796"],["2489.98","0.005"],["2489.97","0.258"],["2489.96","10.084"],["2489.95","1.202"],["2489.91","10.121"],["2489.90","10.084"],["2489.88","0.040"],["2489.87","0.004"],["2489.85","0.003"],["2489.76","3.916"],["2489.73","10.084"],["2489.71","0.272"],["2489.70","12.834"],["2489.67","0.403"],["2489.66","0.362"],["2489.64","0.738"],["2489.63","193.236"],["2489.62","14.152"],["2489.61","0.157"],["2489.59","4.011"],["2489.57","0.015"],["2489.55","0.046"],["2489.52","3.921"],["2489.51","0.005"],["2489.45","80.000"],["2489.44","0.649"],["2489.43","10.088"],["2489.39","0.009"],["2489.37","14.132"],["2489.35","72.262"],["2489.34","10.084"],["2489.33","14.136"],["2489.32","23.953"],["2489.30","0.065"],["2489.28","8.136"],["2489.24","8.022"],["2489.19","14.132"],["2489.18","0.085"],["2489.17","0.108"],["2489.14","10.084"],["2489.13","3.142"],["2489.12","77.827"],["2489.11","10.084"],["2489.10","0.080"],["2489.09","50.024"],["2489.04","3.916"],["2489.03","0.008"],["2489.01","10.084"],["2488.99","0.135"],["2488.98","0.187"],["2488.96","0.324"],["2488.92","0.064"],["2488.85","16.056"],["2488.83","14.132"],["2488.80","3.916"],["2488.79","10.084"],["2488.77","4.414"],["2488.76","0.005"],["2488.75","13.685"],["2488.73","0.020"],["2488.69","0.157"],["2488.60","80.000"],["2488.58","10.164"],["2488.57","0.004"],["2488.56","3.933"],["2488.54","3.311"],["2488.51","12.814"],["2488.50","80.099"],["2488.48","0.684"],["2488.44","0.024"],["2488.42","68.180"],["2488.39","4.412"],["2488.38","26.138"],["2488.34","44.134"],["2488.32","8.014"],["2488.30","0.065"],["2488.29","0.009"],["2488.27","4.513"],["2488.26","4.222"],["2488.25","80.000"],["2488.23","0.007"],["2488.22","0.281"],["2488.19","0.100"],["2488.18","80.100"],["2488.17","80.000"],["2488.16","8.197"],["2488.15","79.184"],["2488.13","0.025"],["2488.11","0.050"],["2488.10","0.080"],["2488.08","3.919"],["2488.04","40.103"],["2488.03","0.120"],["2488.02","0.008"],["2488.01","0.140"],["2488.00","0.406"],["2487.99","0.384"],["2487.98","0.060"],["2487.96","8.010"],["2487.94","0.246"],["2487.93","0.020"],["2487.91","0.136"],["2487.87","0.403"],["2487.84","17.910"],["2487.81","0.005"],["2487.80","0.073"],["2487.74","36.000"],["2487.73","3.225"],["2487.72","0.018"],["2487.71","0.319"],["2487.70","0.006"],["2487.66","0.003"],["2487.64","0.003"],["2487.63","0.008"],["2487.62","0.040"],["2487.60","3.916"],["2487.54","0.805"],["2487.52","0.022"],["2487.51","0.003"],["2487.50","0.051"],["2487.49","6.081"],["2487.47","80.015"],["2487.46","4.735"],["2487.45","30.000"],["2487.41","0.096"],["2487.40","0.078"],["2487.39","0.103"],["2487.37","2.279"],["2487.36","8.152"],["2487.35","2.145"],["2487.32","12.816"],["2487.31","10.023"],["2487.30","0.157"],["2487.27","0.005"],["2487.26","4.010"],["2487.25","0.008"],["2487.24","0.003"],["2487.23","0.014"],["2487.20","0.085"],["2487.17","0.011"],["2487.14","3.217"],["2487.12","3.916"],["2487.11","0.300"],["2487.10","0.088"],["2487.08","10.097"],["2487.07","1.467"],["2487.04","0.600"],["2487.01","18.363"],["2487.00","0.292"],["2486.99","0.014"],["2486.98","0.144"],["2486.97","0.443"],["2486.92","0.005"],["2486.91","0.016"],["2486.89","3.364"],["2486.88","4.166"],["2486.84","24.306"],["2486.83","0.181"],["2486.81","0.015"],["2486.80","0.082"],["2486.79","0.007"],["2486.76","0.011"],["2486.74","0.050"],["2486.73","0.782"],["2486.72","0.004"],["2486.69","0.003"],["2486.68","8.018"],["2486.66","10.004"],["2486.65","40.391"],["2486.64","3.916"],["2486.61","0.489"],["2486.60","0.196"],["2486.57","0.396"],["2486.55","4.015"],["2486.51","3.000"],["2486.50","0.003"],["2486.48","0.005"],["2486.47","0.010"],["2486.45","4.011"],["2486.44","0.602"],["2486.43","0.566"],["2486.42","3.140"],["2486.40","3.958"],["2486.39","0.003"],["2486.34","0.010"],["2486.31","6.281"],["2486.27","0.005"],["2486.26","0.004"],["2486.23","10.088"],["2486.22","0.015"],["2486.17","0.030"],["2486.16","3.916"],["2486.15","0.020"],["2486.13","13.130"],["2486.12","82.414"],["2486.11","0.244"],["2486.10","0.132"],["2486.08","0.720"],["2486.06","0.385"],["2486.01","0.004"],["2486.00","2.359"],["2485.99","154.159"],["2485.98","20.054"],["2485.96","1.000"],["2485.95","0.190"],["2485.92","4.463"],["2485.90","1.557"],["2485.87","0.402"],["2485.85","0.114"],["2485.81","0.900"],["2485.76","4.700"],["2485.75","0.300"],["2485.74","0.196"],["2485.73","4.010"],["2485.72","0.323"],["2485.70","0.263"],["2485.69","0.261"],["2485.68","3.688"],["2485.67","0.005"],["2485.64","1.216"],["2485.63","0.005"],["2485.62","0.015"],["2485.61","0.033"],["2485.60","0.004"],["2485.58","2.012"],["2485.56","0.020"],["2485.54","0.699"],["2485.52","0.003"],["2485.51","1.830"],["2485.48","5.964"],["2485.47","0.015"],["2485.44","7.251"],["2485.43","0.006"],["2485.42","0.644"],["2485.40","8.026"],["2485.38","0.489"],["2485.36","0.014"],["2485.35","0.005"],["2485.31","1.507"],["2485.30","2.107"],["2485.29","0.039"],["2485.28","0.642"],["2485.26","1.990"],["2485.25","4.996"],["2485.23","0.003"],["2485.22","0.277"],["2485.21","0.121"],["2485.20","3.952"],["2485.18","0.006"],["2485.17","0.043"],["2485.15","4.008"],["2485.14","4.434"],["2485.13","1.003"],["2485.05","0.204"],["2485.04","0.254"],["2485.02","5.000"],["2485.01","0.050"],["2485.00","80.821"],["2484.96","3.941"],["2484.95","10.023"],["2484.94","13.935"],["2484.92","0.059"],["2484.90","150.000"],["2484.89","0.004"],["2484.88","150.127"],["2484.87","0.004"],["2484.85","0.100"],["2484.83","0.006"],["2484.82","0.030"],["2484.81","1.246"],["2484.80","0.003"],["2484.79","0.045"],["2484.77","0.003"],["2484.74","0.036"],["2484.72","3.919"],["2484.70","0.134"],["2484.68","1.111"],["2484.66","76.955"],["2484.60","2.580"],["2484.59","31.432"],["2484.58","1.468"],["2484.55","1.153"],["2484.54","0.265"],["2484.53","20.024"],["2484.51","1.047"],["2484.50","0.818"],["2484.49","0.022"],["2484.48","3.887"],["2484.46","0.048"],["2484.45","0.224"],["2484.44","0.174"],["2484.43","223.079"],["2484.42","0.014"],["2484.41","1.115"],["2484.39","26.090"],["2484.38","0.066"],["2484.37","0.121"],["2484.34","0.255"],["2484.33","23.968"],["2484.29","0.085"],["2484.27","1.128"],["2484.26","1.456"],["2484.24","3.916"],["2484.23","28.126"],["2484.22","1.329"],["2484.19","2.015"],["2484.18","0.263"],["2484.15","15.489"],["2484.14","1.135"],["2484.13","0.572"],["2484.12","8.032"],["2484.11","0.021"],["2484.09","0.059"],["2484.08","0.038"],["2484.07","0.147"],["2484.05","24.156"],["2484.04","0.008"],["2484.01","1.184"],["2484.00","4.641"],["2483.99","0.006"],["2483.97","0.294"],["2483.96","0.424"],["2483.94","3.660"],["2483.93","2.067"],["2483.92","0.008"],["2483.89","0.141"],["2483.88","1.089"],
+        //             ["2483.87","110.000"],["2483.85","4.018"],["2483.81","150.077"],["2483.80","0.003"],["2483.77","0.020"]
+        //         ],
+        //         "asks":[
+        //             ["2493.57","0.877"],
+        //             ["2493.62","0.063"],
+        //             ["2493.71","12.054"],
+        //         ]
+        //     }
+        const timestamp = this.safeInteger (response, 'T');
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
     }
@@ -2459,25 +2488,44 @@ module.exports = class binance extends Exchange {
         const request = {};
         if (code !== undefined) {
             currency = this.currency (code);
-            request['asset'] = currency['id'];
+            request['coin'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
             request['endTime'] = this.sum (since, 7776000000);
         }
-        const response = await this.wapiGetDepositHistory (this.extend (request, params));
-        //
-        //     {     success:    true,
-        //       depositList: [ { insertTime:  1517425007000,
-        //                            amount:  0.3,
-        //                           address: "0x0123456789abcdef",
-        //                        addressTag: "",
-        //                              txId: "0x0123456789abcdef",
-        //                             asset: "ETH",
-        //                            status:  1                                                                    } ] }
-        //
-        return this.parseTransactions (response['depositList'], currency, since, limit);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.sapiGetCapitalDepositHisrec (this.extend (request, params));
+        //     [
+        //       {
+        //         "amount": "0.01844487",
+        //         "coin": "BCH",
+        //         "network": "BCH",
+        //         "status": 1,
+        //         "address": "1NYxAJhW2281HK1KtJeaENBqHeygA88FzR",
+        //         "addressTag": "",
+        //         "txId": "bafc5902504d6504a00b7d0306a41154cbf1d1b767ab70f3bc226327362588af",
+        //         "insertTime": 1610784980000,
+        //         "transferType": 0,
+        //         "confirmTimes": "2/2"
+        //       },
+        //       {
+        //         "amount": "4500",
+        //         "coin": "USDT",
+        //         "network": "BSC",
+        //         "status": 1,
+        //         "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+        //         "addressTag": "",
+        //         "txId": "Internal transfer 51376627901",
+        //         "insertTime": 1618394381000,
+        //         "transferType": 1,
+        //         "confirmTimes": "1/15"
+        //     }
+        //   ]
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2486,38 +2534,57 @@ module.exports = class binance extends Exchange {
         const request = {};
         if (code !== undefined) {
             currency = this.currency (code);
-            request['asset'] = currency['id'];
+            request['coin'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
             request['endTime'] = this.sum (since, 7776000000);
         }
-        const response = await this.wapiGetWithdrawHistory (this.extend (request, params));
-        //
-        //     { withdrawList: [ {      amount:  14,
-        //                             address: "0x0123456789abcdef...",
-        //                         successTime:  1514489710000,
-        //                      transactionFee:  0.01,
-        //                          addressTag: "",
-        //                                txId: "0x0123456789abcdef...",
-        //                                  id: "0123456789abcdef...",
-        //                               asset: "ETH",
-        //                           applyTime:  1514488724000,
-        //                              status:  6                       },
-        //                       {      amount:  7600,
-        //                             address: "0x0123456789abcdef...",
-        //                         successTime:  1515323226000,
-        //                      transactionFee:  0.01,
-        //                          addressTag: "",
-        //                                txId: "0x0123456789abcdef...",
-        //                                  id: "0123456789abcdef...",
-        //                               asset: "ICN",
-        //                           applyTime:  1515322539000,
-        //                              status:  6                       }  ],
-        //            success:    true                                         }
-        //
-        return this.parseTransactions (response['withdrawList'], currency, since, limit);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.sapiGetCapitalWithdrawHistory (this.extend (request, params));
+        //     [
+        //       {
+        //         "id": "69e53ad305124b96b43668ceab158a18",
+        //         "amount": "28.75",
+        //         "transactionFee": "0.25",
+        //         "coin": "XRP",
+        //         "status": 6,
+        //         "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+        //         "addressTag": "101286922",
+        //         "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+        //         "applyTime": "2021-04-15 12:09:16",
+        //         "network": "XRP",
+        //         "transferType": 0
+        //       },
+        //       {
+        //         "id": "9a67628b16ba4988ae20d329333f16bc",
+        //         "amount": "20",
+        //         "transactionFee": "20",
+        //         "coin": "USDT",
+        //         "status": 6,
+        //         "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //         "txId": "0x77fbf2cf2c85b552f0fd31fd2e56dc95c08adae031d96f3717d8b17e1aea3e46",
+        //         "applyTime": "2021-04-15 12:06:53",
+        //         "network": "ETH",
+        //         "transferType": 0
+        //       },
+        //       {
+        //         "id": "a7cdc0afbfa44a48bd225c9ece958fe2",
+        //         "amount": "51",
+        //         "transactionFee": "1",
+        //         "coin": "USDT",
+        //         "status": 6,
+        //         "address": "TYDmtuWL8bsyjvcauUTerpfYyVhFtBjqyo",
+        //         "txId": "168a75112bce6ceb4823c66726ad47620ad332e69fe92d9cb8ceb76023f9a028",
+        //         "applyTime": "2021-04-13 12:46:59",
+        //         "network": "TRX",
+        //         "transferType": 0
+        //       }
+        //     ]
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -2545,28 +2612,32 @@ module.exports = class binance extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         insertTime:  1517425007000,
-        //         amount:  0.3,
-        //         address: "0x0123456789abcdef",
-        //         addressTag: "",
-        //         txId: "0x0123456789abcdef",
-        //         asset: "ETH",
-        //         status:  1
+        //       "amount": "4500",
+        //       "coin": "USDT",
+        //       "network": "BSC",
+        //       "status": 1,
+        //       "address": "0xc9c923c87347ca0f3451d6d308ce84f691b9f501",
+        //       "addressTag": "",
+        //       "txId": "Internal transfer 51376627901",
+        //       "insertTime": 1618394381000,
+        //       "transferType": 1,
+        //       "confirmTimes": "1/15"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         amount:  14,
-        //         address: "0x0123456789abcdef...",
-        //         successTime:  1514489710000,
-        //         transactionFee:  0.01,
-        //         addressTag: "",
-        //         txId: "0x0123456789abcdef...",
-        //         id: "0123456789abcdef...",
-        //         asset: "ETH",
-        //         applyTime:  1514488724000,
-        //         status:  6
+        //       "id": "69e53ad305124b96b43668ceab158a18",
+        //       "amount": "28.75",
+        //       "transactionFee": "0.25",
+        //       "coin": "XRP",
+        //       "status": 6,
+        //       "address": "r3T75fuLjX51mmfb5Sk1kMNuhBgBPJsjza",
+        //       "addressTag": "101286922",
+        //       "txId": "19A5B24ED0B697E4F0E9CD09FCB007170A605BC93C9280B9E6379C5E6EF0F65A",
+        //       "applyTime": "2021-04-15 12:09:16",
+        //       "network": "XRP",
+        //       "transferType": 0
         //     }
         //
         const id = this.safeString (transaction, 'id');
@@ -2581,11 +2652,11 @@ module.exports = class binance extends Exchange {
         if ((txid !== undefined) && (txid.indexOf ('Internal transfer ') >= 0)) {
             txid = txid.slice (18);
         }
-        const currencyId = this.safeString (transaction, 'asset');
+        const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
         const insertTime = this.safeInteger (transaction, 'insertTime');
-        const applyTime = this.safeInteger (transaction, 'applyTime');
+        const applyTime = this.parse8601 (this.safeString (transaction, 'applyTime'));
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
             if ((insertTime !== undefined) && (applyTime === undefined)) {
@@ -2604,6 +2675,8 @@ module.exports = class binance extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         const updated = this.safeInteger (transaction, 'successTime');
+        let internal = this.safeInteger (transaction, 'transferType', false);
+        internal = internal ? true : false;
         return {
             'info': transaction,
             'id': id,
@@ -2621,6 +2694,7 @@ module.exports = class binance extends Exchange {
             'currency': code,
             'status': status,
             'updated': updated,
+            'internal': internal,
             'fee': fee,
         };
     }
@@ -2805,34 +2879,35 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
-        const response = await this.wapiGetAssetDetail (params);
+        const response = await this.sapiGetAssetAssetDetail (params);
         //
         //     {
-        //         "success": true,
-        //         "assetDetail": {
-        //             "CTR": {
-        //                 "minWithdrawAmount": "70.00000000", //min withdraw amount
-        //                 "depositStatus": false,//deposit status
-        //                 "withdrawFee": 35, // withdraw fee
-        //                 "withdrawStatus": true, //withdraw status
-        //                 "depositTip": "Delisted, Deposit Suspended" //reason
-        //             },
-        //             "SKY": {
-        //                 "minWithdrawAmount": "0.02000000",
-        //                 "depositStatus": true,
-        //                 "withdrawFee": 0.01,
-        //                 "withdrawStatus": true
-        //             }
-        //         }
+        //       "VRAB": {
+        //         "withdrawFee": "100",
+        //         "minWithdrawAmount": "200",
+        //         "withdrawStatus": true,
+        //         "depositStatus": true
+        //       },
+        //       "NZD": {
+        //         "withdrawFee": "0",
+        //         "minWithdrawAmount": "0",
+        //         "withdrawStatus": false,
+        //         "depositStatus": false
+        //       },
+        //       "AKRO": {
+        //         "withdrawFee": "313",
+        //         "minWithdrawAmount": "626",
+        //         "withdrawStatus": true,
+        //         "depositStatus": true
+        //       },
         //     }
         //
-        const detail = this.safeValue (response, 'assetDetail', {});
-        const ids = Object.keys (detail);
+        const ids = Object.keys (response);
         const withdrawFees = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const code = this.safeCurrencyCode (id);
-            withdrawFees[code] = this.safeNumber (detail[id], 'withdrawFee');
+            withdrawFees[code] = this.safeNumber (response[id], 'withdrawFee');
         }
         return {
             'withdraw': withdrawFees,
@@ -2845,13 +2920,10 @@ module.exports = class binance extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        // name is optional, can be overrided via params
-        const name = address.slice (0, 20);
         const request = {
-            'asset': currency['id'],
+            'coin': currency['id'],
             'address': address,
-            'amount': parseFloat (amount),
-            'name': name, // name is optional, can be overrided via params
+            'amount': amount,
             // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
             // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
             // 'network': 'ETH', // 'BTC', 'TRX', etc, optional
@@ -2859,7 +2931,8 @@ module.exports = class binance extends Exchange {
         if (tag !== undefined) {
             request['addressTag'] = tag;
         }
-        const response = await this.wapiPostWithdraw (this.extend (request, params));
+        const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
+        //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return {
             'info': response,
             'id': this.safeString (response, 'id'),
@@ -2870,8 +2943,8 @@ module.exports = class binance extends Exchange {
         //
         //     {
         //         "symbol": "ADABNB",
-        //         "maker": 0.9000,
-        //         "taker": 1.0000
+        //         "makerCommission": 0.001,
+        //         "takerCommission": 0.001
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
@@ -2879,8 +2952,8 @@ module.exports = class binance extends Exchange {
         return {
             'info': fee,
             'symbol': symbol,
-            'maker': this.safeNumber (fee, 'maker'),
-            'taker': this.safeNumber (fee, 'taker'),
+            'maker': this.safeNumber (fee, 'makerCommission'),
+            'taker': this.safeNumber (fee, 'takerCommission'),
         };
     }
 
@@ -2890,18 +2963,15 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.wapiGetTradeFee (this.extend (request, params));
+        const response = await this.sapiGetAssetTradeFee (this.extend (request, params));
         //
-        //     {
-        //         "tradeFee": [
-        //             {
-        //                 "symbol": "ADABNB",
-        //                 "maker": 0.9000,
-        //                 "taker": 1.0000
-        //             }
-        //         ],
-        //         "success": true
-        //     }
+        //     [
+        //       {
+        //         "symbol": "BTCUSDT",
+        //         "makerCommission": "0.001",
+        //         "takerCommission": "0.001"
+        //       }
+        //     ]
         //
         const tradeFee = this.safeValue (response, 'tradeFee', []);
         const first = this.safeValue (tradeFee, 0, {});
@@ -2910,23 +2980,24 @@ module.exports = class binance extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.wapiGetTradeFee (params);
+        const response = await this.sapiGetAssetTradeFee (params);
         //
-        //     {
-        //         "tradeFee": [
-        //             {
-        //                 "symbol": "ADABNB",
-        //                 "maker": 0.9000,
-        //                 "taker": 1.0000
-        //             }
-        //         ],
-        //         "success": true
-        //     }
+        //    [
+        //       {
+        //         "symbol": "ZRXBNB",
+        //         "makerCommission": "0.001",
+        //         "takerCommission": "0.001"
+        //       },
+        //       {
+        //         "symbol": "ZRXBTC",
+        //         "makerCommission": "0.001",
+        //         "takerCommission": "0.001"
+        //       },
+        //    ]
         //
-        const tradeFee = this.safeValue (response, 'tradeFee', []);
         const result = {};
-        for (let i = 0; i < tradeFee.length; i++) {
-            const fee = this.parseTradingFee (tradeFee[i]);
+        for (let i = 0; i < response.length; i++) {
+            const fee = this.parseTradingFee (response[i]);
             const symbol = fee['symbol'];
             result[symbol] = fee;
         }
@@ -3077,5 +3148,25 @@ module.exports = class binance extends Exchange {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return response;
+    }
+
+    async futuresTransfer (code, amount, type, params = {}) {
+        if ((type < 1) || (type > 4)) {
+            throw new ArgumentsRequired (this.id + ' type must be between 1 and 4');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'amount': amount,
+            'type': type,
+        };
+        const response = await this.sapiPostFuturesTransfer (this.extend (request, params));
+        //
+        //   {
+        //       "tranId": 100000001
+        //   }
+        //
+        return this.parseTransfer (response, currency);
     }
 };

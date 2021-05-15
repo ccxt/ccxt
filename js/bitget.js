@@ -809,8 +809,8 @@ module.exports = class bitget extends Exchange {
         const tickSize = this.safeString (market, 'tick_size');
         const sizeIncrement = this.safeString (market, 'size_increment');
         const precision = {
-            'amount': parseFloat ('1e-' + sizeIncrement),
-            'price': parseFloat ('1e-' + tickSize),
+            'amount': this.parseNumber (this.parsePrecision (sizeIncrement)),
+            'price': this.parseNumber (this.parsePrecision (tickSize)),
         };
         const minAmount = this.safeNumber2 (market, 'min_size', 'base_min_size');
         const status = this.safeString (market, 'status');
@@ -932,8 +932,6 @@ module.exports = class bitget extends Exchange {
                 'precision': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
             };
@@ -998,7 +996,7 @@ module.exports = class bitget extends Exchange {
         const data = this.safeValue (response, 'data', response);
         const timestamp = this.safeInteger2 (data, 'timestamp', 'ts');
         const nonce = this.safeInteger (data, 'id');
-        const orderbook = this.parseOrderBook (data, timestamp);
+        const orderbook = this.parseOrderBook (data, symbol, timestamp);
         orderbook['nonce'] = nonce;
         return orderbook;
     }
@@ -1366,7 +1364,7 @@ module.exports = class bitget extends Exchange {
         if (feeCostString === undefined) {
             feeCostString = this.safeString (trade, 'filled_fees');
         } else {
-            feeCostString = (feeCostString[0] === '-') ? feeCostString.slice (1) : feeCostString;
+            feeCostString = Precise.stringNeg (feeCostString);
         }
         const feeCost = this.parseNumber (feeCostString);
         let fee = undefined;

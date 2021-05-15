@@ -173,7 +173,7 @@ module.exports = class coinfalcon extends Exchange {
         };
         const response = await this.publicGetMarketsMarketOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrderBook (data, undefined, 'bids', 'asks', 'price', 'size');
+        return this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 'price', 'size');
     }
 
     parseTrade (trade, market = undefined) {

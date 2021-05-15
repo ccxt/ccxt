@@ -119,6 +119,7 @@ class coinone extends Exchange {
             }
             $base = $this->safe_currency_code($baseId);
             $result[] = array(
+                'info' => $ticker,
                 'id' => $baseId,
                 'symbol' => $base . '/' . $quote,
                 'base' => $base,
@@ -162,7 +163,7 @@ class coinone extends Exchange {
         );
         $response = yield $this->publicGetOrderbook (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp, 'bid', 'ask', 'price', 'qty');
+        return $this->parse_order_book($response, $symbol, $timestamp, 'bid', 'ask', 'price', 'qty');
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

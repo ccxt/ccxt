@@ -288,7 +288,7 @@ class coinex(Exchange):
             'limit': str(limit),
         }
         response = self.publicGetMarketDepth(self.extend(request, params))
-        return self.parse_order_book(response['data'])
+        return self.parse_order_book(response['data'], symbol)
 
     def parse_trade(self, trade, market=None):
         # self method parses both public and private trades
@@ -412,7 +412,7 @@ class coinex(Exchange):
         #     }
         #
         result = {'info': response}
-        balances = self.safe_value(response, 'data')
+        balances = self.safe_value(response, 'data', {})
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -883,7 +883,7 @@ class coinex(Exchange):
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message')
-        if (code != '0') or (data is None) or ((message != 'Ok') and not data):
+        if (code != '0') or (data is None) or ((message != 'Success') and (message != 'Ok') and not data):
             responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,

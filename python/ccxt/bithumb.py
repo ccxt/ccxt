@@ -43,11 +43,12 @@ class bithumb(Exchange):
                 'fetchTrades': True,
                 'withdraw': True,
             },
+            'hostname': 'bithumb.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
                 'api': {
-                    'public': 'https://api.bithumb.com/public',
-                    'private': 'https://api.bithumb.com',
+                    'public': 'https://api.{hostname}/public',
+                    'private': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bithumb.com',
                 'doc': 'https://apidocs.bithumb.com',
@@ -122,11 +123,21 @@ class bithumb(Exchange):
             'options': {
                 'quoteCurrencies': {
                     'BTC': {
-                        'precision': {
-                            'price': 8,
+                        'limits': {
+                            'cost': {
+                                'min': 0.0002,
+                                'max': 100,
+                            },
                         },
                     },
-                    'KRW': {},
+                    'KRW': {
+                        'limits': {
+                            'cost': {
+                                'min': 500,
+                                'max': 5000000000,
+                            },
+                        },
+                    },
                 },
             },
         })
@@ -177,10 +188,7 @@ class bithumb(Exchange):
                             'min': None,
                             'max': None,
                         },
-                        'cost': {
-                            'min': 500,
-                            'max': 5000000000,
-                        },
+                        'cost': {},  # set via options
                     },
                     'baseId': None,
                     'quoteId': None,
@@ -212,7 +220,7 @@ class bithumb(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['base'],
+            'currency': market['base'] + '_' + market['quote'],
         }
         if limit is not None:
             request['count'] = limit  # default 30, max 30
@@ -239,7 +247,7 @@ class bithumb(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(data, 'timestamp')
-        return self.parse_order_book(data, timestamp, 'bids', 'asks', 'price', 'quantity')
+        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -810,7 +818,7 @@ class bithumb(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)
-        url = self.urls['api'][api] + endpoint
+        url = self.implode_params(self.urls['api'][api], {'hostname': self.hostname}) + endpoint
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
@@ -844,6 +852,9 @@ class bithumb(Exchange):
             message = self.safe_string(response, 'message')
             if status is not None:
                 if status == '0000':
+                    return  # no error
+                elif message == '거래 진행중인 내역이 존재하지 않습니다':
+                    # https://github.com/ccxt/ccxt/issues/9017
                     return  # no error
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, status, feedback)

@@ -16,6 +16,7 @@ module.exports = class aofex extends Exchange {
             'name': 'AOFEX',
             'countries': [ 'GB' ],
             'rateLimit': 1000,
+            'hostname': 'openapi.aofex.com',
             'has': {
                 'fetchMarkets': true,
                 'fetchCurrencies': false,
@@ -48,8 +49,8 @@ module.exports = class aofex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77670271-056d1080-6f97-11ea-9ac2-4268e9ed0c1f.jpg',
                 'api': {
-                    'public': 'https://openapi.aofex.com/openApi',
-                    'private': 'https://openapi.aofex.com/openApi',
+                    'public': 'https://{hostname}/openApi',
+                    'private': 'https://{hostname}/openApi',
                 },
                 'www': 'https://aofex.com',
                 'doc': 'https://aofex.zendesk.com/hc/en-us/sections/360005576574-API',
@@ -194,8 +195,10 @@ module.exports = class aofex extends Exchange {
             const symbol = base + '/' + quote;
             const numericId = this.safeInteger (market, 'id');
             const precision = this.safeValue (precisions, id, {});
-            const makerFee = this.safeNumber (market, 'maker_fee');
-            const takerFee = this.safeNumber (market, 'taker_fee');
+            const makerFeeString = this.safeString (market, 'maker_fee');
+            const takerFeeString = this.safeString (market, 'taker_fee');
+            const makerFee = this.parseNumber (Precise.stringDiv (makerFeeString, '1000'));
+            const takerFee = this.parseNumber (Precise.stringDiv (takerFeeString, '1000'));
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -205,8 +208,8 @@ module.exports = class aofex extends Exchange {
                 'base': base,
                 'quote': quote,
                 'active': undefined,
-                'maker': makerFee / 1000,
-                'taker': takerFee / 1000,
+                'maker': makerFee,
+                'taker': takerFee,
                 'precision': {
                     'amount': this.safeInteger (precision, 'amount'),
                     'price': this.safeInteger (precision, 'price'),
@@ -322,7 +325,11 @@ module.exports = class aofex extends Exchange {
         //         ]
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const balances = this.safeValue (response, 'result', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -391,7 +398,7 @@ module.exports = class aofex extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const timestamp = this.safeInteger (result, 'ts');
-        return this.parseOrderBook (result, timestamp);
+        return this.parseOrderBook (result, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -724,82 +731,32 @@ module.exports = class aofex extends Exchange {
                 amount = number;
             }
         }
-        let fee = undefined;
-        let trades = undefined;
-        let filled = undefined;
-        let feeCost = undefined;
-        let remaining = undefined;
-        let lastTradeTimestamp = undefined;
         // all orders except new orders and canceled orders
-        if ((orderStatus !== '1') && (orderStatus !== '6')) {
-            const rawTrades = this.safeValue (order, 'trades');
-            if (rawTrades !== undefined) {
-                for (let i = 0; i < rawTrades.length; i++) {
-                    rawTrades[i]['direction'] = side;
-                }
-                trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                    'symbol': market['symbol'],
-                    'order': id,
-                    'side': side,
-                    'type': type,
-                });
-                const tradesLength = trades.length;
-                if (tradesLength > 0) {
-                    const firstTrade = trades[0];
-                    feeCost = firstTrade['fee']['cost'];
-                    lastTradeTimestamp = firstTrade['timestamp'];
-                    filled = firstTrade['amount'];
-                    cost = firstTrade['cost'];
-                    for (let i = 1; i < trades.length; i++) {
-                        const trade = trades[i];
-                        feeCost = this.sum (feeCost, trade['fee']['cost']);
-                        filled = this.sum (filled, trade['amount']);
-                        cost = this.sum (cost, trade['cost']);
-                        lastTradeTimestamp = Math.max (lastTradeTimestamp, trade['timestamp']);
-                    }
-                    if (amount !== undefined) {
-                        filled = Math.min (amount, filled);
-                    }
-                    if (filled > 0) {
-                        average = cost / filled;
-                    }
-                }
-                if (feeCost !== undefined) {
-                    const feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
-                    fee = {
-                        'cost': feeCost,
-                        'currency': feeCurrencyCode,
-                    };
-                }
-            }
-        } else {
-            filled = 0;
-            cost = 0;
+        const rawTrades = this.safeValue (order, 'trades', []);
+        for (let i = 0; i < rawTrades.length; i++) {
+            rawTrades[i]['direction'] = side;
         }
-        if (cost === undefined) {
-            if (type === 'limit') {
-                cost = totalPrice;
-            } else if (side === 'buy') {
-                cost = number;
-            }
+        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+            'symbol': market['symbol'],
+            'order': id,
+            'type': type,
+        });
+        if (type === 'limit') {
+            cost = totalPrice;
+        } else if (side === 'buy') {
+            cost = number;
         }
-        if (filled === undefined) {
-            if ((type === 'limit') && (orderStatus === '3')) {
-                filled = amount;
-            }
+        let filled = undefined;
+        if ((type === 'limit') && (orderStatus === '3')) {
+            filled = amount;
         }
-        if (filled !== undefined) {
-            if (amount !== undefined) {
-                remaining = Math.max (amount - filled, 0);
-            }
-        }
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': market['symbol'],
             'type': type,
@@ -812,10 +769,10 @@ module.exports = class aofex extends Exchange {
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'trades': trades,
-            'fee': fee,
-        };
+            'fee': undefined,
+        });
     }
 
     async fetchClosedOrder (id, symbol = undefined, params = {}) {
@@ -1037,7 +994,7 @@ module.exports = class aofex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
+        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + '/' + path;
         let keys = Object.keys (params);
         const keysLength = keys.length;
         if (api === 'public') {

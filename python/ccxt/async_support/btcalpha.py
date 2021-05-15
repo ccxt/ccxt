@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
@@ -138,10 +137,13 @@ class btcalpha(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            pricePrecision = self.safe_string(market, 'price_precision')
+            priceLimit = self.parse_precision(pricePrecision)
             precision = {
                 'amount': 8,
-                'price': self.safe_integer(market, 'price_precision'),
+                'price': int(pricePrecision),
             }
+            amountLimit = self.safe_string(market, 'minimum_order_size')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -151,15 +153,15 @@ class btcalpha(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_number(market, 'minimum_order_size'),
+                        'min': self.parse_number(amountLimit),
                         'max': self.safe_number(market, 'maximum_order_size'),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': self.parse_number(priceLimit),
+                        'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.parse_number(Precise.string_mul(priceLimit, amountLimit)),
                         'max': None,
                     },
                 },
@@ -178,7 +180,7 @@ class btcalpha(Exchange):
             request['limit_sell'] = limit
             request['limit_buy'] = limit
         response = await self.publicGetOrderbookPairName(self.extend(request, params))
-        return self.parse_order_book(response, None, 'buy', 'sell', 'price', 'amount')
+        return self.parse_order_book(response, symbol, None, 'buy', 'sell', 'price', 'amount')
 
     def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):
         result = []

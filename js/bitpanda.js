@@ -280,8 +280,6 @@ module.exports = class bitpanda extends Exchange {
                 'precision': this.safeInteger (currency, 'precision'),
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'price': { 'min': undefined, 'max': undefined },
-                    'cost': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
                 },
             };
@@ -667,7 +665,7 @@ module.exports = class bitpanda extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (response, 'time'));
-        return this.parseOrderBook (response, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseOHLCV (ohlcv, market = undefined) {

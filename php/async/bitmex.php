@@ -405,6 +405,7 @@ class bitmex extends Exchange {
         }
         $response = yield $this->publicGetOrderBookL2 (array_merge($request, $params));
         $result = array(
+            'symbol' => $symbol,
             'bids' => array(),
             'asks' => array(),
             'timestamp' => null,

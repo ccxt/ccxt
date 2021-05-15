@@ -200,27 +200,29 @@ module.exports = class zaif extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
         const balances = this.safeValue (response, 'return', {});
-        const result = { 'info': response };
+        const deposit = this.safeValue (balances, 'deposit');
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const funds = this.safeValue (balances, 'funds', {});
         const currencyIds = Object.keys (funds);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeValue (funds, currencyId);
-            const account = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            };
-            if ('deposit' in balances) {
-                if (currencyId in balances['deposit']) {
-                    account['total'] = this.safeNumber (balances['deposit'], currencyId);
-                    account['used'] = account['total'] - account['free'];
+            const balance = this.safeString (funds, currencyId);
+            const account = this.account ();
+            account['free'] = balance;
+            account['total'] = balance;
+            if (deposit !== undefined) {
+                if (currencyId in deposit) {
+                    account['total'] = this.safeString (deposit, currencyId);
                 }
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -229,7 +231,7 @@ module.exports = class zaif extends Exchange {
             'pair': this.marketId (symbol),
         };
         const response = await this.publicGetDepthPair (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -378,7 +378,7 @@ class bibox extends Exchange {
             $request['size'] = $limit; // default = 200
         }
         $response = $this->publicGetMdata (array_merge($request, $params));
-        return $this->parse_order_book($response['result'], $this->safe_number($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
+        return $this->parse_order_book($response['result'], $symbol, $this->safe_number($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -481,14 +481,6 @@ class bibox extends Exchange {
                         'min' => pow(10, -$precision),
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'withdraw_min'),
                         'max' => null,
@@ -573,14 +565,6 @@ class bibox extends Exchange {
                     'amount' => array(
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
-                    ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => null,

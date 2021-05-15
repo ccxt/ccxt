@@ -280,7 +280,7 @@ module.exports = class lbank extends Exchange {
             'size': size,
         };
         const response = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTrade (trade, market = undefined) {
@@ -404,7 +404,11 @@ module.exports = class lbank extends Exchange {
         //         }
         //     }
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const info = this.safeValue (response, 'info', {});
         const free = this.safeValue (info, 'free', {});
         const freeze = this.safeValue (info, 'freeze', {});

@@ -125,6 +125,18 @@ module.exports = class bitstamp extends Exchange {
                         'zrx_address/',
                         'gusd_withdrawal/',
                         'gusd_address/',
+                        'aave_withdrawal/',
+                        'aave_address/',
+                        'bat_withdrawal/',
+                        'bat_address/',
+                        'uma_withdrawal/',
+                        'uma_address/',
+                        'snx_withdrawal/',
+                        'snx_address/',
+                        'uni_withdrawal/',
+                        'uni_address/',
+                        'yfi_withdrawal/',
+                        'yfi_address',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -258,9 +270,13 @@ module.exports = class bitstamp extends Exchange {
             const symbol = base + '/' + quote;
             const symbolId = baseId + '_' + quoteId;
             const id = this.safeString (market, 'url_symbol');
+            const amountPrecisionString = this.safeString (market, 'base_decimals');
+            const pricePrecisionString = this.safeString (market, 'counter_decimals');
+            const amountLimit = this.parsePrecision (amountPrecisionString);
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
-                'amount': this.safeInteger (market, 'base_decimals'),
-                'price': this.safeInteger (market, 'counter_decimals'),
+                'amount': parseInt (amountPrecisionString),
+                'price': parseInt (pricePrecisionString),
             };
             const minimumOrder = this.safeString (market, 'minimum_order');
             const parts = minimumOrder.split (' ');
@@ -281,15 +297,15 @@ module.exports = class bitstamp extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': this.parseNumber (amountLimit),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': this.parseNumber (priceLimit),
                         'max': undefined,
                     },
                     'cost': {
-                        'min': parseFloat (cost),
+                        'min': this.parseNumber (cost),
                         'max': undefined,
                     },
                 },
@@ -403,7 +419,7 @@ module.exports = class bitstamp extends Exchange {
         //
         const microtimestamp = this.safeInteger (response, 'microtimestamp');
         const timestamp = parseInt (microtimestamp / 1000);
-        const orderbook = this.parseOrderBook (response, timestamp);
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = microtimestamp;
         return orderbook;
     }
@@ -758,7 +774,29 @@ module.exports = class bitstamp extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const balance = await this.privatePostBalance (params);
-        const result = { 'info': balance };
+        //
+        //     {
+        //         "aave_available": "0.00000000",
+        //         "aave_balance": "0.00000000",
+        //         "aave_reserved": "0.00000000",
+        //         "aave_withdrawal_fee": "0.07000000",
+        //         "aavebtc_fee": "0.000",
+        //         "aaveeur_fee": "0.000",
+        //         "aaveusd_fee": "0.000",
+        //         "bat_available": "0.00000000",
+        //         "bat_balance": "0.00000000",
+        //         "bat_reserved": "0.00000000",
+        //         "bat_withdrawal_fee": "5.00000000",
+        //         "batbtc_fee": "0.000",
+        //         "bateur_fee": "0.000",
+        //         "batusd_fee": "0.000",
+        //     }
+        //
+        const result = {
+            'info': balance,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];

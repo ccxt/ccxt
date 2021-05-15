@@ -270,7 +270,7 @@ class coinegg extends Exchange {
             'quote' => $market['quoteId'],
         );
         $response = $this->publicGetDepthRegionQuote (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function parse_trade($trade, $market = null) {

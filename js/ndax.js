@@ -362,9 +362,10 @@ module.exports = class ndax extends Exchange {
         return result;
     }
 
-    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8) {
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8) {
         let nonce = undefined;
         const result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': undefined,
@@ -386,7 +387,7 @@ module.exports = class ndax extends Exchange {
                 nonce = Math.max (nonce, newNonce);
             }
             const bidask = this.parseBidAsk (level, priceKey, amountKey);
-            const levelSide = this.safeValue (level, 9);
+            const levelSide = this.safeInteger (level, 9);
             const side = levelSide ? asksKey : bidsKey;
             result[side].push (bidask);
         }
@@ -431,7 +432,7 @@ module.exports = class ndax extends Exchange {
         //         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
         //     ]
         //
-        return this.parseOrderBook (response);
+        return this.parseOrderBook (response, symbol);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -869,7 +870,11 @@ module.exports = class ndax extends Exchange {
         //         },
         //     ]
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'ProductId');
@@ -1250,7 +1255,7 @@ module.exports = class ndax extends Exchange {
             request['InstrumentId'] = market['id'];
         }
         if (since !== undefined) {
-            request['StartTimeStamp'] = since;
+            request['StartTimeStamp'] = parseInt (since / 1000);
         }
         if (limit !== undefined) {
             request['Depth'] = limit;
@@ -1454,7 +1459,7 @@ module.exports = class ndax extends Exchange {
             request['InstrumentId'] = market['id'];
         }
         if (since !== undefined) {
-            request['StartTimeStamp'] = since;
+            request['StartTimeStamp'] = parseInt (since / 1000);
         }
         if (limit !== undefined) {
             request['Depth'] = limit;

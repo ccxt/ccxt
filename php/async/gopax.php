@@ -200,8 +200,8 @@ class gopax extends Exchange {
         //                 "$marketAsk":array("amount":0.001,"unit":"ETH"),
         //                 "$marketBid":array("amount":10000,"unit":"KRW"),
         //             ),
-        //             "$makerFeePercent":0.2,
-        //             "$takerFeePercent":0.2,
+        //             "makerFeePercent":0.2,
+        //             "takerFeePercent":0.2,
         //         ),
         //     )
         //
@@ -222,10 +222,10 @@ class gopax extends Exchange {
             $minimums = $this->safe_value($market, 'restApiOrderAmountMin', array());
             $marketAsk = $this->safe_value($minimums, 'marketAsk', array());
             $marketBid = $this->safe_value($minimums, 'marketBid', array());
-            $takerFeePercent = $this->safe_number($market, 'takerFeePercent');
-            $makerFeePercent = $this->safe_number($market, 'makerFeePercent');
-            $taker = floatval($this->decimal_to_precision($takerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE));
-            $maker = floatval($this->decimal_to_precision($makerFeePercent / 100, ROUND, 0.00000001, TICK_SIZE));
+            $takerFeePercentString = $this->safe_string($market, 'takerFeePercent');
+            $makerFeePercentString = $this->safe_string($market, 'makerFeePercent');
+            $taker = $this->parse_number(Precise::string_div($takerFeePercentString, '100'));
+            $maker = $this->parse_number(Precise::string_div($makerFeePercentString, '100'));
             $result[] = array(
                 'id' => $id,
                 'info' => $market,
@@ -299,14 +299,6 @@ class gopax extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'withdrawalAmountMin'),
                         'max' => null,
@@ -341,7 +333,7 @@ class gopax extends Exchange {
         //     }
         //
         $nonce = $this->safe_integer($response, 'sequence');
-        $result = $this->parse_order_book($response, null, 'bid', 'ask', 1, 2);
+        $result = $this->parse_order_book($response, $symbol, null, 'bid', 'ask', 1, 2);
         $result['nonce'] = $nonce;
         return $result;
     }

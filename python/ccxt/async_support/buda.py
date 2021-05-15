@@ -179,23 +179,26 @@ class buda(Exchange):
             baseInfo = await self.fetch_currency_info(baseId, currencies)
             quoteInfo = await self.fetch_currency_info(quoteId, currencies)
             symbol = base + '/' + quote
+            pricePrecisionString = self.safe_string(quoteInfo, 'input_decimals')
+            priceLimit = self.parse_precision(pricePrecisionString)
             precision = {
-                'amount': baseInfo['input_decimals'],
-                'price': quoteInfo['input_decimals'],
+                'amount': self.safe_integer(baseInfo, 'input_decimals'),
+                'price': int(pricePrecisionString),
             }
+            minimumOrderAmount = self.safe_value(market, 'minimum_order_amount', [])
             limits = {
                 'amount': {
-                    'min': float(market['minimum_order_amount'][0]),
+                    'min': self.safe_number(minimumOrderAmount, 0),
                     'max': None,
                 },
                 'price': {
-                    'min': math.pow(10, -precision['price']),
+                    'min': priceLimit,
                     'max': None,
                 },
-            }
-            limits['cost'] = {
-                'min': limits['amount']['min'] * limits['price']['min'],
-                'max': None,
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
             }
             result.append({
                 'id': id,
@@ -234,14 +237,6 @@ class buda(Exchange):
                 'limits': {
                     'amount': {
                         'min': minimum,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': minimum,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
                         'max': None,
                     },
                     'deposit': {
@@ -410,7 +405,7 @@ class buda(Exchange):
         }
         response = await self.publicGetMarketsMarketOrderBook(self.extend(request, params))
         orderbook = self.safe_value(response, 'order_book')
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, symbol)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
@@ -549,9 +544,6 @@ class buda(Exchange):
         if price is None:
             if limitPrice is not None:
                 price = limitPrice
-        average = None
-        if (cost is not None) and (filled is not None) and (filled > 0):
-            average = self.price_to_precision(symbol, cost / filled)
         paidFee = self.safe_value(order, 'paid_fee', [])
         feeCost = self.safe_number(paidFee, 0)
         fee = None
@@ -562,7 +554,7 @@ class buda(Exchange):
                 'cost': feeCost,
                 'code': feeCurrencyCode,
             }
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -577,14 +569,14 @@ class buda(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'average': average,
+            'average': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'trades': None,
             'fee': fee,
-        }
+        })
 
     def is_fiat(self, code):
         fiats = {

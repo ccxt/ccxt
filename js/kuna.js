@@ -125,7 +125,7 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const quotes = [ 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt', 'gol' ];
+        const quotes = [ 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' ];
         const pricePrecisions = {
             'UAH': 0,
         };
@@ -190,7 +190,7 @@ module.exports = class kuna extends Exchange {
         }
         const orderbook = await this.publicGetDepth (this.extend (request, params));
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {

@@ -268,14 +268,6 @@ class digifinex extends Exchange {
                             'min' => null,
                             'max' => null,
                         ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
                         'withdraw' => array(
                             'min' => $this->safe_number($currency, 'min_withdraw_amount'),
                             'max' => null,
@@ -497,7 +489,7 @@ class digifinex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_timestamp($response, 'date');
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

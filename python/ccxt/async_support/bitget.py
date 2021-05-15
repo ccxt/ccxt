@@ -820,8 +820,8 @@ class bitget(Exchange):
         tickSize = self.safe_string(market, 'tick_size')
         sizeIncrement = self.safe_string(market, 'size_increment')
         precision = {
-            'amount': float('1e-' + sizeIncrement),
-            'price': float('1e-' + tickSize),
+            'amount': self.parse_number(self.parse_precision(sizeIncrement)),
+            'price': self.parse_number(self.parse_precision(tickSize)),
         }
         minAmount = self.safe_number_2(market, 'min_size', 'base_min_size')
         status = self.safe_string(market, 'status')
@@ -939,8 +939,6 @@ class bitget(Exchange):
                 'precision': None,
                 'limits': {
                     'amount': {'min': None, 'max': None},
-                    'price': {'min': None, 'max': None},
-                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
             }
@@ -1002,7 +1000,7 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data', response)
         timestamp = self.safe_integer_2(data, 'timestamp', 'ts')
         nonce = self.safe_integer(data, 'id')
-        orderbook = self.parse_order_book(data, timestamp)
+        orderbook = self.parse_order_book(data, symbol, timestamp)
         orderbook['nonce'] = nonce
         return orderbook
 
@@ -1350,7 +1348,7 @@ class bitget(Exchange):
         if feeCostString is None:
             feeCostString = self.safe_string(trade, 'filled_fees')
         else:
-            feeCostString = feeCostString[1:] if (feeCostString[0] == '-') else feeCostString
+            feeCostString = Precise.string_neg(feeCostString)
         feeCost = self.parse_number(feeCostString)
         fee = None
         if feeCost is not None:

@@ -363,9 +363,10 @@ class ndax(Exchange):
             })
         return result
 
-    def parse_order_book(self, orderbook, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=6, amountKey=8):
+    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=6, amountKey=8):
         nonce = None
         result = {
+            'symbol': symbol,
             'bids': [],
             'asks': [],
             'timestamp': None,
@@ -385,7 +386,7 @@ class ndax(Exchange):
                 newNonce = self.safe_integer(level, 0)
                 nonce = max(nonce, newNonce)
             bidask = self.parse_bid_ask(level, priceKey, amountKey)
-            levelSide = self.safe_value(level, 9)
+            levelSide = self.safe_integer(level, 9)
             side = asksKey if levelSide else bidsKey
             result[side].append(bidask)
         result['bids'] = self.sort_by(result['bids'], 0, True)
@@ -428,7 +429,7 @@ class ndax(Exchange):
         #         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
         #     ]
         #
-        return self.parse_order_book(response)
+        return self.parse_order_book(response, symbol)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -849,7 +850,11 @@ class ndax(Exchange):
         #         },
         #     ]
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'ProductId')
@@ -1212,7 +1217,7 @@ class ndax(Exchange):
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
         if since is not None:
-            request['StartTimeStamp'] = since
+            request['StartTimeStamp'] = int(since / 1000)
         if limit is not None:
             request['Depth'] = limit
         response = await self.privateGetGetTradesHistory(self.extend(request, params))
@@ -1405,7 +1410,7 @@ class ndax(Exchange):
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
         if since is not None:
-            request['StartTimeStamp'] = since
+            request['StartTimeStamp'] = int(since / 1000)
         if limit is not None:
             request['Depth'] = limit
         response = await self.privateGetGetOrdersHistory(self.extend(request, params))

@@ -361,7 +361,7 @@ class timex extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string($response, 'timestamp'));
-        return $this->parse_order_book($response, $timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
+        return $this->parse_order_book($response, $symbol, $timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -442,7 +442,7 @@ class timex extends Exchange {
 
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
-        $balances = yield $this->tradingGetBalances ($params);
+        $response = yield $this->tradingGetBalances ($params);
         //
         //     array(
         //         array("currency":"BTC","totalBalance":"0","lockedBalance":"0"),
@@ -452,9 +452,13 @@ class timex extends Exchange {
         //         array("currency":"USDT","totalBalance":"0","lockedBalance":"0")
         //     )
         //
-        $result = array( 'info' => $balances );
-        for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
+        for ($i = 0; $i < count($response); $i++) {
+            $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -963,8 +967,6 @@ class timex extends Exchange {
             'limits' => array(
                 'withdraw' => array( 'min' => $fee, 'max' => null ),
                 'amount' => array( 'min' => null, 'max' => null ),
-                'price' => array( 'min' => null, 'max' => null ),
-                'cost' => array( 'min' => null, 'max' => null ),
             ),
         );
     }

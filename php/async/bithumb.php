@@ -35,11 +35,12 @@ class bithumb extends Exchange {
                 'fetchTrades' => true,
                 'withdraw' => true,
             ),
+            'hostname' => 'bithumb.com',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
                 'api' => array(
-                    'public' => 'https://api.bithumb.com/public',
-                    'private' => 'https://api.bithumb.com',
+                    'public' => 'https://api.{hostname}/public',
+                    'private' => 'https://api.{hostname}',
                 ),
                 'www' => 'https://www.bithumb.com',
                 'doc' => 'https://apidocs.bithumb.com',
@@ -114,11 +115,21 @@ class bithumb extends Exchange {
             'options' => array(
                 'quoteCurrencies' => array(
                     'BTC' => array(
-                        'precision' => array(
-                            'price' => 8,
+                        'limits' => array(
+                            'cost' => array(
+                                'min' => 0.0002,
+                                'max' => 100,
+                            ),
                         ),
                     ),
-                    'KRW' => array(),
+                    'KRW' => array(
+                        'limits' => array(
+                            'cost' => array(
+                                'min' => 500,
+                                'max' => 5000000000,
+                            ),
+                        ),
+                    ),
                 ),
             ),
         ));
@@ -174,10 +185,7 @@ class bithumb extends Exchange {
                             'min' => null,
                             'max' => null,
                         ),
-                        'cost' => array(
-                            'min' => 500,
-                            'max' => 5000000000,
-                        ),
+                        'cost' => array(), // set via options
                     ),
                     'baseId' => null,
                     'quoteId' => null,
@@ -214,7 +222,7 @@ class bithumb extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'currency' => $market['base'],
+            'currency' => $market['base'] . '_' . $market['quote'],
         );
         if ($limit !== null) {
             $request['count'] = $limit; // default 30, max 30
@@ -242,7 +250,7 @@ class bithumb extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'timestamp');
-        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', 'price', 'quantity');
+        return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -859,7 +867,7 @@ class bithumb extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'][$api] . $endpoint;
+        $url = $this->implode_params($this->urls['api'][$api], array( 'hostname' => $this->hostname )) . $endpoint;
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query) {
@@ -897,6 +905,9 @@ class bithumb extends Exchange {
             $message = $this->safe_string($response, 'message');
             if ($status !== null) {
                 if ($status === '0000') {
+                    return; // no error
+                } else if ($message === '거래 진행중인 내역이 존재하지 않습니다') {
+                    // https://github.com/ccxt/ccxt/issues/9017
                     return; // no error
                 }
                 $feedback = $this->id . ' ' . $body;

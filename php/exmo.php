@@ -659,8 +659,10 @@ class exmo extends Exchange {
             list($baseId, $quoteId) = explode('/', $symbol);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $taker = $this->safe_number($market, 'commission_taker_percent');
-            $maker = $this->safe_number($market, 'commission_maker_percent');
+            $takerString = $this->safe_string($market, 'commission_taker_percent');
+            $makerString = $this->safe_string($market, 'commission_maker_percent');
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -669,8 +671,8 @@ class exmo extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
-                'taker' => $taker / 100,
-                'maker' => $maker / 100,
+                'taker' => $taker,
+                'maker' => $maker,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($market, 'min_quantity'),
@@ -796,7 +798,7 @@ class exmo extends Exchange {
         }
         $response = $this->publicGetOrderBook (array_merge($request, $params));
         $result = $this->safe_value($response, $market['id']);
-        return $this->parse_order_book($result, null, 'bid', 'ask');
+        return $this->parse_order_book($result, $symbol, null, 'bid', 'ask');
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {

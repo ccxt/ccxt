@@ -91,7 +91,7 @@ module.exports = class bitstamp1 extends Exchange {
         await this.loadMarkets ();
         const orderbook = await this.publicGetOrderBook (params);
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
     async fetchTicker (symbol, params = {}) {

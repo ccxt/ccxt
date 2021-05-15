@@ -151,7 +151,11 @@ class bit2c extends Exchange {
         //         }
         //     }
         //
-        $result = array( 'info' => $balance );
+        $result = array(
+            'info' => $balance,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
@@ -173,7 +177,7 @@ class bit2c extends Exchange {
             'pair' => $this->market_id($symbol),
         );
         $orderbook = yield $this->publicGetExchangesPairOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
