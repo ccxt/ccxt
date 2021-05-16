@@ -777,60 +777,102 @@ module.exports = class okex extends Exchange {
             //
             // spot markets
             //
-            //     [
-            //         {
-            //             base_currency: "EOS",
-            //             instrument_id: "EOS-OKB",
-            //             min_size: "0.01",
-            //             quote_currency: "OKB",
-            //             size_increment: "0.000001",
-            //             tick_size: "0.0001"
-            //         }
-            //     ]
+            //     {
+            //         "code":"0",
+            //         "data":[
+            //             {
+            //                 "alias":"",
+            //                 "baseCcy":"BTC",
+            //                 "category":"1",
+            //                 "ctMult":"",
+            //                 "ctType":"",
+            //                 "ctVal":"",
+            //                 "ctValCcy":"",
+            //                 "expTime":"",
+            //                 "instId":"BTC-USDT",
+            //                 "instType":"SPOT",
+            //                 "lever":"10",
+            //                 "listTime":"1548133413000",
+            //                 "lotSz":"0.00000001",
+            //                 "minSz":"0.00001",
+            //                 "optType":"",
+            //                 "quoteCcy":"USDT",
+            //                 "settleCcy":"",
+            //                 "state":"live",
+            //                 "stk":"",
+            //                 "tickSz":"0.1",
+            //                 "uly":""
+            //             }
+            //         ],
+            //         "msg":""
+            //     }
             //
             // futures markets
             //
-            //     [
-            //         {
-            //             instrument_id: "XRP-USD-200320",
-            //             underlying_index: "XRP",
-            //             quote_currency: "USD",
-            //             tick_size: "0.0001",
-            //             contract_val: "10",
-            //             listing: "2020-03-06",
-            //             delivery: "2020-03-20",
-            //             trade_increment: "1",
-            //             alias: "this_week",
-            //             underlying: "XRP-USD",
-            //             base_currency: "XRP",
-            //             settlement_currency: "XRP",
-            //             is_inverse: "true",
-            //             contract_val_currency: "USD",
-            //         }
-            //     ]
+            //     {
+            //         "code":"0",
+            //         "data":[
+            //             {
+            //                 "alias":"this_week", // next_week, quarter, next_quarter
+            //                 "baseCcy":"",
+            //                 "category":"1",
+            //                 "ctMult":"1",
+            //                 "ctType":"inverse",
+            //                 "ctVal":"100",
+            //                 "ctValCcy":"USD",
+            //                 "expTime":"1621584000000",
+            //                 "instId":"BTC-USD-210521",
+            //                 "instType":"FUTURES",
+            //                 "lever":"10",
+            //                 "listTime":"1620375000690",
+            //                 "lotSz":"1",
+            //                 "minSz":"1",
+            //                 "optType":"",
+            //                 "quoteCcy":"",
+            //                 "settleCcy":"BTC",
+            //                 "state":"live",
+            //                 "stk":"",
+            //                 "tickSz":"0.1",
+            //                 "uly":"BTC-USD"
+            //             },
+            //         ],
+            //         "msg":""
+            //     }
             //
             // swap markets
             //
-            //     [
-            //         {
-            //             instrument_id: "BSV-USD-SWAP",
-            //             underlying_index: "BSV",
-            //             quote_currency: "USD",
-            //             coin: "BSV",
-            //             contract_val: "10",
-            //             listing: "2018-12-21T07:53:47.000Z",
-            //             delivery: "2020-03-14T08:00:00.000Z",
-            //             size_increment: "1",
-            //             tick_size: "0.01",
-            //             base_currency: "BSV",
-            //             underlying: "BSV-USD",
-            //             settlement_currency: "BSV",
-            //             is_inverse: "true",
-            //             contract_val_currency: "USD"
-            //         }
-            //     ]
+            //     {
+            //         "code":"0",
+            //         "data":[
+            //             {
+            //                 "alias":"",
+            //                 "baseCcy":"",
+            //                 "category":"3",
+            //                 "ctMult":"1",
+            //                 "ctType":"linear",
+            //                 "ctVal":"1",
+            //                 "ctValCcy":"CSPR",
+            //                 "expTime":"",
+            //                 "instId":"CSPR-USDT-SWAP",
+            //                 "instType":"SWAP",
+            //                 "lever":"10",
+            //                 "listTime":"",
+            //                 "lotSz":"1",
+            //                 "minSz":"1",
+            //                 "optType":"",
+            //                 "quoteCcy":"",
+            //                 "settleCcy":"USDT",
+            //                 "state":"live",
+            //                 "stk":"",
+            //                 "tickSz":"0.0001",
+            //                 "uly":"CSPR-USDT"
+            //             }
+            //         ],
+            //         "msg":""
+            //     }
             //
-            return this.parseMarkets (response);
+            const data = this.safeValue (response, 'data', []);
+            return this.parseMarkets (data);
         } else {
             throw new NotSupported (this.id + ' fetchMarketsByType does not support market type ' + type);
         }
