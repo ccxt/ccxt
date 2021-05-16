@@ -210,6 +210,7 @@ class hitbtc(Exchange):
                 'PLA': 'PlayChip',
                 'PNT': 'Penta',
                 'SBTC': 'Super Bitcoin',
+                'STX': 'Stox',
                 'TV': 'Tokenville',
                 'USD': 'USDT',
                 'XPNT': 'PNT',

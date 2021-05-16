@@ -201,6 +201,7 @@ class hitbtc extends Exchange {
                 'PLA' => 'PlayChip',
                 'PNT' => 'Penta',
                 'SBTC' => 'Super Bitcoin',
+                'STX' => 'Stox',
                 'TV' => 'Tokenville',
                 'USD' => 'USDT',
                 'XPNT' => 'PNT',
