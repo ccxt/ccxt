@@ -1818,7 +1818,7 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', market['type'])
         orderType = self.safe_string(params, 'type', defaultType)
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
-        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId'])
+        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'created'])
         method = 'privatePostOrder'
         if orderType == 'future':
             method = 'fapiPrivatePostOrder'
