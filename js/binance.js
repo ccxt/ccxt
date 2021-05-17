@@ -3169,4 +3169,39 @@ module.exports = class binance extends Exchange {
         //
         return this.parseTransfer (response, currency);
     }
+
+    parseFundingRate (premiumIndex, market = undefined) {
+        // ensure it matches with https://www.binance.com/en/futures/funding-history/0
+        //
+        //   {
+        //     "symbol": "BTCUSDT",
+        //     "markPrice": "45802.81129892",
+        //     "indexPrice": "45745.47701915",
+        //     "estimatedSettlePrice": "45133.91753671",
+        //     "lastFundingRate": "0.00063521",
+        //     "interestRate": "0.00010000",
+        //     "nextFundingTime": "1621267200000",
+        //     "time": "1621252344001"
+        //  }
+        //
+        const timestamp = this.safeInteger (premiumIndex, 'time');
+        const marketId = this.safeString (premiumIndex, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const markPriceString = this.safeNumber (premiumIndex, 'markPrice');
+        const indexPriceString = this.safeNumber (premiumIndex, 'indexPrice');
+        const interestRateString = this.safeNumber (premiumIndex, 'interestRate');
+        // current funding rate
+        const fundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
+        return {
+            'info': premiumIndex,
+            'symbol': symbol,
+            'markPrice': markPriceString,
+            'indexPrice': indexPriceString,
+            'interestRate': interestRateString,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': fundingRate,
+            'nextFundingTime': this.safeInteger (premiumIndex, 'nextFundingTime'),
+        };
+    }
 };

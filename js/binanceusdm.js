@@ -106,4 +106,38 @@ module.exports = class binanceusdm extends binance {
         // transfer from usdm futures wallet to spot wallet
         return await this.futuresTransfer (code, amount, 2, params);
     }
+
+    async fetchFundingRate (symbol = undefined, params = undefined) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.fapiPublicGetPremiumIndex (this.extend (request, params));
+        //
+        //   {
+        //     "symbol": "BTCUSDT",
+        //     "markPrice": "45802.81129892",
+        //     "indexPrice": "45745.47701915",
+        //     "estimatedSettlePrice": "45133.91753671",
+        //     "lastFundingRate": "0.00063521",
+        //     "interestRate": "0.00010000",
+        //     "nextFundingTime": "1621267200000",
+        //     "time": "1621252344001"
+        //  }
+        //
+        if (Array.isArray (response)) {
+            const result = [];
+            const values = Object.values (response);
+            for (let i = 0; i < values.length; i++) {
+                const parsed = this.parseFundingRate (values[i]);
+                result.push (parsed);
+            }
+            return result;
+        } else {
+            return this.parseFundingRate (response);
+        }
+    }
 };
