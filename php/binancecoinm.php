@@ -99,4 +99,38 @@ class binancecoinm extends binance {
         // transfer from coinm futures wallet to spot wallet
         return $this->futuresTransfer ($code, $amount, 4, $params);
     }
+
+    public function fetch_funding_rate($symbol = null, $params = null) {
+        $this->load_markets();
+        $market = null;
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = $this->dapiPublicGetPremiumIndex (array_merge($request, $params));
+        //
+        //   {
+        //     "$symbol" => "BTCUSD",
+        //     "markPrice" => "45802.81129892",
+        //     "indexPrice" => "45745.47701915",
+        //     "estimatedSettlePrice" => "45133.91753671",
+        //     "lastFundingRate" => "0.00063521",
+        //     "interestRate" => "0.00010000",
+        //     "nextFundingTime" => "1621267200000",
+        //     "time" => "1621252344001"
+        //  }
+        //
+        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+            $result = array();
+            $values = is_array($response) ? array_values($response) : array();
+            for ($i = 0; $i < count($values); $i++) {
+                $parsed = $this->parseFundingRate ($values[$i]);
+                $result[] = $parsed;
+            }
+            return $result;
+        } else {
+            return $this->parseFundingRate ($response);
+        }
+    }
 }

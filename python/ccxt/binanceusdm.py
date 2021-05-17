@@ -102,3 +102,33 @@ class binanceusdm(binance):
     def transfer_out(self, code, amount, params={}):
         # transfer from usdm futures wallet to spot wallet
         return self.futuresTransfer(code, amount, 2, params)
+
+    def fetch_funding_rate(self, symbol=None, params=None):
+        self.load_markets()
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = self.fapiPublicGetPremiumIndex(self.extend(request, params))
+        #
+        #   {
+        #     "symbol": "BTCUSDT",
+        #     "markPrice": "45802.81129892",
+        #     "indexPrice": "45745.47701915",
+        #     "estimatedSettlePrice": "45133.91753671",
+        #     "lastFundingRate": "0.00063521",
+        #     "interestRate": "0.00010000",
+        #     "nextFundingTime": "1621267200000",
+        #     "time": "1621252344001"
+        #  }
+        #
+        if isinstance(response, list):
+            result = []
+            values = list(response.values())
+            for i in range(0, len(values)):
+                parsed = self.parseFundingRate(values[i])
+                result.append(parsed)
+            return result
+        else:
+            return self.parseFundingRate(response)
