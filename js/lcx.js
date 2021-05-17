@@ -512,7 +512,17 @@ module.exports = class lcx extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'private') {
+        if (api === 'public') {
+            if (method === 'POST') {
+                url += this.implodeParams (path, params);
+                body = this.json (query);
+            } else {
+                url += this.implodeParams (path, params);
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            }
+        } else if (api === 'private') {
             path = 'api' + '/' + path;
             const now = this.nonce ();
             this.checkRequiredCredentials ();
@@ -526,14 +536,14 @@ module.exports = class lcx extends Exchange {
                 'x-access-sign': signature,
                 'x-access-timestamp': now,
             };
-        }
-        url += this.implodeParams (path, params);
-        if (method === 'GET') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+            url += this.implodeParams (path, params);
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else if (Object.keys (query).length) {
+                body = this.json (query);
             }
-        } else if (Object.keys (query).length) {
-            body = this.json (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
