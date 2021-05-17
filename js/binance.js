@@ -3187,17 +3187,17 @@ module.exports = class binance extends Exchange {
         const timestamp = this.safeInteger (premiumIndex, 'time');
         const marketId = this.safeString (premiumIndex, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const markPriceString = this.safeNumber (premiumIndex, 'markPrice');
-        const indexPriceString = this.safeNumber (premiumIndex, 'indexPrice');
-        const interestRateString = this.safeNumber (premiumIndex, 'interestRate');
+        const markPrice = this.safeNumber (premiumIndex, 'markPrice');
+        const indexPrice = this.safeNumber (premiumIndex, 'indexPrice');
+        const interestRate = this.safeNumber (premiumIndex, 'interestRate');
         // current funding rate
         const fundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
         return {
             'info': premiumIndex,
             'symbol': symbol,
-            'markPrice': markPriceString,
-            'indexPrice': indexPriceString,
-            'interestRate': interestRateString,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'interestRate': interestRate,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fundingRate': fundingRate,
