@@ -517,7 +517,7 @@ module.exports = class lcx extends Exchange {
             const now = this.nonce ();
             this.checkRequiredCredentials ();
             let payload = method + '/' + path + this.json (query);
-            if (method == 'GET') {
+            if (method === 'GET') {
                 payload = method + '/' + path;
             }
             const signature = this.hmac (payload, this.secret, 'sha256', 'base64');
@@ -532,7 +532,7 @@ module.exports = class lcx extends Exchange {
             url += '?' + this.urlencode (query);
         }
         if (method === 'POST') {
-            if(Object.keys (query).length) {
+            if (Object.keys (query).length) {
                 body = this.json (query);
             }
         }
