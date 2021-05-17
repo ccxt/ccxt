@@ -19,31 +19,11 @@ module.exports = class okex extends Exchange {
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'pro': true,
             'has': {
-                'cancelOrder': true,
                 'CORS': false,
-                'createOrder': true,
-                'fetchBalance': true,
-                'fetchClosedOrders': true,
                 'fetchCurrencies': false, // see below
-                'fetchDepositAddress': true,
-                'fetchDeposits': true,
-                'fetchLedger': true,
                 'fetchMarkets': true,
-                'fetchMyTrades': true,
-                'fetchOHLCV': true,
-                'fetchOpenOrders': true,
-                'fetchOrder': true,
-                'fetchOrderBook': true,
-                'fetchOrders': false,
-                'fetchOrderTrades': true,
+                'fetchStatus': true,
                 'fetchTime': true,
-                'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchTrades': true,
-                'fetchTransactions': false,
-                'fetchWithdrawals': true,
-                'futures': true,
-                'withdraw': true,
             },
             'timeframes': {
                 '1m': '60',
@@ -557,6 +537,46 @@ module.exports = class okex extends Exchange {
                 'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             },
         });
+    }
+
+    async fetchStatus (params = {}) {
+        const response = await this.publicGetSystemStatus (params);
+        //
+        //     {
+        //         "code":"0",
+        //         "data":[
+        //             {
+        //                 "begin":"1621328400000",
+        //                 "end":"1621329000000",
+        //                 "href":"https://www.okex.com/support/hc/en-us/articles/360060882172",
+        //                 "scheDesc":"",
+        //                 "serviceType":"1", // 0 WebSocket, 1 Spot/Margin, 2 Futures, 3 Perpetual, 4 Options, 5 Trading service
+        //                 "state":"scheduled", // ongoing, completed, canceled
+        //                 "system":"classic", // classic, unified
+        //                 "title":"Classic Spot System Upgrade"
+        //             },
+        //         ],
+        //         "msg":""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const timestamp = this.milliseconds ();
+        const update = {
+            'info': response,
+            'updated': timestamp,
+            'status': 'ok',
+            'eta': undefined,
+        };
+        for (let i = 0; i < data.length; i++) {
+            const event = data[i];
+            const state = this.safeString (event, 'state');
+            if (state === 'ongoing') {
+                update['eta'] = this.safeInteger (event, 'end');
+                update['status'] = 'maintenance';
+            }
+        }
+        this.status = this.extend (this.status, update);
+        return this.status;
     }
 
     async fetchTime (params = {}) {
@@ -3352,8 +3372,8 @@ module.exports = class okex extends Exchange {
         request += isArray ? path : this.implodeParams (path, params);
         const query = isArray ? params : this.omit (params, this.extractParams (path));
         let url = this.implodeParams (this.urls['api']['rest'], { 'hostname': this.hostname }) + request;
-        const type = this.getPathAuthenticationType (path);
-        if (type === 'public') {
+        // const type = this.getPathAuthenticationType (path);
+        if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -3388,17 +3408,17 @@ module.exports = class okex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    getPathAuthenticationType (path) {
-        // https://github.com/ccxt/ccxt/issues/6651
-        // a special case to handle the optionGetUnderlying interefering with
-        // other endpoints containing this keyword
-        if (path === 'underlying') {
-            return 'public';
-        }
-        const auth = this.safeValue (this.options, 'auth', {});
-        const key = this.findBroadlyMatchedKey (auth, path);
-        return this.safeString (auth, key, 'private');
-    }
+    // getPathAuthenticationType (path) {
+    //     // https://github.com/ccxt/ccxt/issues/6651
+    //     // a special case to handle the optionGetUnderlying interefering with
+    //     // other endpoints containing this keyword
+    //     if (path === 'underlying') {
+    //         return 'public';
+    //     }
+    //     const auth = this.safeValue (this.options, 'auth', {});
+    //     const key = this.findBroadlyMatchedKey (auth, path);
+    //     return this.safeString (auth, key, 'private');
+    // }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
