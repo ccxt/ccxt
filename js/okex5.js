@@ -535,7 +535,7 @@ module.exports = class okex extends Exchange {
                     'type': 'Candles', // Candles or HistoryCandles
                 },
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ],
+                'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ], // spot, futures, swap, option
                 'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
                 'auth': {
                     'time': 'public',
@@ -589,122 +589,62 @@ module.exports = class okex extends Exchange {
     }
 
     parseMarket (market) {
-        //
-        // spot markets
-        //
-        //     {
-        //         base_currency: "EOS",
-        //         instrument_id: "EOS-OKB",
-        //         min_size: "0.01",
-        //         quote_currency: "OKB",
-        //         size_increment: "0.000001",
-        //         tick_size: "0.0001"
-        //     }
-        //
-        // futures markets
+
         //
         //     {
-        //         instrument_id: "XRP-USD-200320",
-        //         underlying_index: "XRP",
-        //         quote_currency: "USD",
-        //         tick_size: "0.0001",
-        //         contract_val: "10",
-        //         listing: "2020-03-06",
-        //         delivery: "2020-03-20",
-        //         trade_increment: "1",
-        //         alias: "this_week",
-        //         underlying: "XRP-USD",
-        //         base_currency: "XRP",
-        //         settlement_currency: "XRP",
-        //         is_inverse: "true",
-        //         contract_val_currency: "USD",
+        //         "alias":"", // this_week, next_week, quarter, next_quarter
+        //         "baseCcy":"BTC",
+        //         "category":"1",
+        //         "ctMult":"",
+        //         "ctType":"", // inverse, linear
+        //         "ctVal":"",
+        //         "ctValCcy":"",
+        //         "expTime":"",
+        //         "instId":"BTC-USDT", // BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
+        //         "instType":"SPOT", // SPOT, FUTURES, SWAP, OPTION
+        //         "lever":"10",
+        //         "listTime":"1548133413000",
+        //         "lotSz":"0.00000001",
+        //         "minSz":"0.00001",
+        //         "optType":"",
+        //         "quoteCcy":"USDT",
+        //         "settleCcy":"",
+        //         "state":"live",
+        //         "stk":"",
+        //         "tickSz":"0.1",
+        //         "uly":""
         //     }
         //
-        // swap markets
-        //
-        //     {
-        //         instrument_id: "BSV-USD-SWAP",
-        //         underlying_index: "BSV",
-        //         quote_currency: "USD",
-        //         coin: "BSV",
-        //         contract_val: "10",
-        //         listing: "2018-12-21T07:53:47.000Z",
-        //         delivery: "2020-03-14T08:00:00.000Z",
-        //         size_increment: "1",
-        //         tick_size: "0.01",
-        //         base_currency: "BSV",
-        //         underlying: "BSV-USD",
-        //         settlement_currency: "BSV",
-        //         is_inverse: "true",
-        //         contract_val_currency: "USD"
-        //     }
-        //
-        // options markets
-        //
-        //     {
-        //         instrument_id: 'BTC-USD-200327-4000-C',
-        //         underlying: 'BTC-USD',
-        //         settlement_currency: 'BTC',
-        //         contract_val: '0.1000',
-        //         option_type: 'C',
-        //         strike: '4000',
-        //         tick_size: '0.0005',
-        //         lot_size: '1.0000',
-        //         listing: '2019-12-25T08:30:36.302Z',
-        //         delivery: '2020-03-27T08:00:00.000Z',
-        //         state: '2',
-        //         trading_start_time: '2019-12-25T08:30:36.302Z',
-        //         timestamp: '2020-03-13T08:05:09.456Z',
-        //     }
-        //
-        const id = this.safeString (market, 'instrument_id');
-        let marketType = 'spot';
-        let spot = true;
-        let future = false;
-        let swap = false;
-        let option = false;
-        let baseId = this.safeString (market, 'base_currency');
-        let quoteId = this.safeString (market, 'quote_currency');
-        const contractVal = this.safeNumber (market, 'contract_val');
-        if (contractVal !== undefined) {
-            if ('option_type' in market) {
-                marketType = 'option';
-                spot = false;
-                option = true;
-                const underlying = this.safeString (market, 'underlying');
-                const parts = underlying.split ('-');
-                baseId = this.safeString (parts, 0);
-                quoteId = this.safeString (parts, 1);
-            } else {
-                marketType = 'swap';
-                spot = false;
-                swap = true;
-                const futuresAlias = this.safeString (market, 'alias');
-                if (futuresAlias !== undefined) {
-                    swap = false;
-                    future = true;
-                    marketType = 'futures';
-                    baseId = this.safeString (market, 'underlying_index');
-                }
-            }
+        const id = this.safeString (market, 'instId');
+        const type = this.safeStringLower (market, 'instType');
+        const spot = (type === 'spot');
+        const futures = (type === 'futures');
+        const swap = (type === 'swap');
+        const option = (type === 'option');
+        let baseId = this.safeString (market, 'baseCcy');
+        let quoteId = this.safeString (market, 'quoteCcy');
+        const underlying = this.safeString (market, 'uly');
+        if ((underlying !== undefined) && !spot) {
+            const parts = underlying.split ('-');
+            baseId = this.safeString (parts, 0);
+            quoteId = this.safeString (parts, 1);
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const symbol = spot ? (base + '/' + quote) : id;
-        const lotSize = this.safeNumber2 (market, 'lot_size', 'trade_increment');
-        const minPrice = this.safeString (market, 'tick_size');
+        const tickSize = this.safeString (market, 'tickSz');
         const precision = {
-            'amount': this.safeNumber (market, 'size_increment', lotSize),
-            'price': this.parseNumber (minPrice),
+            'amount': this.safeNumber (market, 'lotSz'),
+            'price': this.parseNumber (tickSize),
         };
-        const minAmountString = this.safeString2 (market, 'min_size', 'base_min_size');
+        const minAmountString = this.safeString (market, 'minSz');
         const minAmount = this.parseNumber (minAmountString);
         let minCost = undefined;
-        if ((minAmount !== undefined) && (minPrice !== undefined)) {
-            minCost = this.parseNumber (Precise.stringMul (minPrice, minAmountString));
+        if ((minAmount !== undefined) && (tickSize !== undefined)) {
+            minCost = this.parseNumber (Precise.stringMul (tickSize, minAmountString));
         }
         const active = true;
-        const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
+        const fees = this.safeValue2 (this.fees, type, 'trading', {});
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -713,9 +653,9 @@ module.exports = class okex extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'info': market,
-            'type': marketType,
+            'type': type,
             'spot': spot,
-            'futures': future,
+            'futures': futures,
             'swap': swap,
             'option': option,
             'active': active,
@@ -738,144 +678,54 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchMarketsByType (type, params = {}) {
+        const request = {
+            'instType': type.toUpperCase (),
+        };
         if (type === 'option') {
-            const underlying = await this.optionGetUnderlying (params);
-            let result = [];
-            for (let i = 0; i < underlying.length; i++) {
-                const response = await this.optionGetInstrumentsUnderlying ({
-                    'underlying': underlying[i],
-                });
-                //
-                // options markets
-                //
-                //     [
-                //         {
-                //             instrument_id: 'BTC-USD-200327-4000-C',
-                //             underlying: 'BTC-USD',
-                //             settlement_currency: 'BTC',
-                //             contract_val: '0.1000',
-                //             option_type: 'C',
-                //             strike: '4000',
-                //             tick_size: '0.0005',
-                //             lot_size: '1.0000',
-                //             listing: '2019-12-25T08:30:36.302Z',
-                //             delivery: '2020-03-27T08:00:00.000Z',
-                //             state: '2',
-                //             trading_start_time: '2019-12-25T08:30:36.302Z',
-                //             timestamp: '2020-03-13T08:05:09.456Z',
-                //         },
-                //     ]
-                //
-                result = this.arrayConcat (result, response);
+            const defaultUnderlying = this.safeValue (this.options, 'defaultUnderlying', 'BTC-USD');
+            const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
+            if (currencyId === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMarketsByType requires an underlying uly or marketId parameter for options markets');
+            } else {
+                request['uly'] = currencyId;
             }
-            return this.parseMarkets (result);
-        } else if ((type === 'spot') || (type === 'futures') || (type === 'swap')) {
-            const request = {
-                'instType': type.toUpperCase (),
-            };
-            const response = await this.publicGetPublicInstruments (this.extend (request, params));
-            //
-            // spot markets
-            //
-            //     {
-            //         "code":"0",
-            //         "data":[
-            //             {
-            //                 "alias":"",
-            //                 "baseCcy":"BTC",
-            //                 "category":"1",
-            //                 "ctMult":"",
-            //                 "ctType":"",
-            //                 "ctVal":"",
-            //                 "ctValCcy":"",
-            //                 "expTime":"",
-            //                 "instId":"BTC-USDT",
-            //                 "instType":"SPOT",
-            //                 "lever":"10",
-            //                 "listTime":"1548133413000",
-            //                 "lotSz":"0.00000001",
-            //                 "minSz":"0.00001",
-            //                 "optType":"",
-            //                 "quoteCcy":"USDT",
-            //                 "settleCcy":"",
-            //                 "state":"live",
-            //                 "stk":"",
-            //                 "tickSz":"0.1",
-            //                 "uly":""
-            //             }
-            //         ],
-            //         "msg":""
-            //     }
-            //
-            // futures markets
-            //
-            //     {
-            //         "code":"0",
-            //         "data":[
-            //             {
-            //                 "alias":"this_week", // next_week, quarter, next_quarter
-            //                 "baseCcy":"",
-            //                 "category":"1",
-            //                 "ctMult":"1",
-            //                 "ctType":"inverse",
-            //                 "ctVal":"100",
-            //                 "ctValCcy":"USD",
-            //                 "expTime":"1621584000000",
-            //                 "instId":"BTC-USD-210521",
-            //                 "instType":"FUTURES",
-            //                 "lever":"10",
-            //                 "listTime":"1620375000690",
-            //                 "lotSz":"1",
-            //                 "minSz":"1",
-            //                 "optType":"",
-            //                 "quoteCcy":"",
-            //                 "settleCcy":"BTC",
-            //                 "state":"live",
-            //                 "stk":"",
-            //                 "tickSz":"0.1",
-            //                 "uly":"BTC-USD"
-            //             },
-            //         ],
-            //         "msg":""
-            //     }
-            //
-            // swap markets
-            //
-            //     {
-            //         "code":"0",
-            //         "data":[
-            //             {
-            //                 "alias":"",
-            //                 "baseCcy":"",
-            //                 "category":"3",
-            //                 "ctMult":"1",
-            //                 "ctType":"linear",
-            //                 "ctVal":"1",
-            //                 "ctValCcy":"CSPR",
-            //                 "expTime":"",
-            //                 "instId":"CSPR-USDT-SWAP",
-            //                 "instType":"SWAP",
-            //                 "lever":"10",
-            //                 "listTime":"",
-            //                 "lotSz":"1",
-            //                 "minSz":"1",
-            //                 "optType":"",
-            //                 "quoteCcy":"",
-            //                 "settleCcy":"USDT",
-            //                 "state":"live",
-            //                 "stk":"",
-            //                 "tickSz":"0.0001",
-            //                 "uly":"CSPR-USDT"
-            //             }
-            //         ],
-            //         "msg":""
-            //     }
-            //
-            const data = this.safeValue (response, 'data', []);
-            return this.parseMarkets (data);
-        } else {
-            throw new NotSupported (this.id + ' fetchMarketsByType does not support market type ' + type);
         }
+        const response = await this.publicGetPublicInstruments (this.extend (request, params));
+        //
+        // spot, futures, swaps, options
+        //
+        //     {
+        //         "code":"0",
+        //         "data":[
+        //             {
+        //                 "alias":"", // this_week, next_week, quarter, next_quarter
+        //                 "baseCcy":"BTC",
+        //                 "category":"1",
+        //                 "ctMult":"",
+        //                 "ctType":"", // inverse, linear
+        //                 "ctVal":"",
+        //                 "ctValCcy":"",
+        //                 "expTime":"",
+        //                 "instId":"BTC-USDT", // BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
+        //                 "instType":"SPOT", // SPOT, FUTURES, SWAP, OPTION
+        //                 "lever":"10",
+        //                 "listTime":"1548133413000",
+        //                 "lotSz":"0.00000001",
+        //                 "minSz":"0.00001",
+        //                 "optType":"",
+        //                 "quoteCcy":"USDT",
+        //                 "settleCcy":"",
+        //                 "state":"live",
+        //                 "stk":"",
+        //                 "tickSz":"0.1",
+        //                 "uly":""
+        //             }
+        //         ],
+        //         "msg":""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseMarkets (data);
     }
 
     async fetchCurrencies (params = {}) {
@@ -1062,8 +912,10 @@ module.exports = class okex extends Exchange {
 
     async fetchTickersByType (type, symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const method = type + 'GetInstrumentsTicker';
-        const response = await this[method] (params);
+        const request = {
+            'type': type.toUpperCase (),
+        };
+        const response = await this.publicGetMarketTickers (this.extend (request, params));
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
