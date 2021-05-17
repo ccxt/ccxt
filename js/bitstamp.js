@@ -137,6 +137,12 @@ module.exports = class bitstamp extends Exchange {
                         'uni_address/',
                         'yfi_withdrawal/',
                         'yfi_address',
+                        'audio_withdrawal/',
+                        'audio_address/'
+                        'crv_withdrawal/',
+                        'crv_address/',
+                        'algo_withdrawal/',
+                        'algo_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
