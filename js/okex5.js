@@ -17,7 +17,6 @@ module.exports = class okex extends Exchange {
             'countries': [ 'CN', 'US' ],
             'version': 'v5',
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
-            'pro': true,
             'has': {
                 'CORS': false,
                 'fetchCurrencies': false, // see below
@@ -1054,149 +1053,58 @@ module.exports = class okex extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         //
-        // spot markets
-        //
-        //     {
-        //         close: "0.02684545",
-        //         high: "0.02685084",
-        //         low: "0.02683312",
-        //         open: "0.02683894",
-        //         time: "2018-12-17T20:28:00.000Z",
-        //         volume: "101.457222"
-        //     }
-        //
-        // futures markets
-        //
         //     [
-        //         1545072720000,
-        //         0.3159,
-        //         0.3161,
-        //         0.3144,
-        //         0.3149,
-        //         22886,
-        //         725179.26172331,
+        //         "1621447080000", // timestamp
+        //         "0.07073", // open
+        //         "0.07073", // high
+        //         "0.07064", // low
+        //         "0.07064", // close
+        //         "12.08863", // base volume
+        //         "0.854309" // quote volume
         //     ]
         //
-        if (Array.isArray (ohlcv)) {
-            const numElements = ohlcv.length;
-            const volumeIndex = (numElements > 6) ? 6 : 5;
-            let timestamp = this.safeValue (ohlcv, 0);
-            if (typeof timestamp === 'string') {
-                timestamp = this.parse8601 (timestamp);
-            }
-            return [
-                timestamp, // timestamp
-                this.safeNumber (ohlcv, 1),            // Open
-                this.safeNumber (ohlcv, 2),            // High
-                this.safeNumber (ohlcv, 3),            // Low
-                this.safeNumber (ohlcv, 4),            // Close
-                // this.safeNumber (ohlcv, 5),         // Quote Volume
-                // this.safeNumber (ohlcv, 6),         // Base Volume
-                this.safeNumber (ohlcv, volumeIndex),  // Volume, okex will return base volume in the 7th element for future markets
-            ];
-        } else {
-            return [
-                this.parse8601 (this.safeString (ohlcv, 'time')),
-                this.safeNumber (ohlcv, 'open'),    // Open
-                this.safeNumber (ohlcv, 'high'),    // High
-                this.safeNumber (ohlcv, 'low'),     // Low
-                this.safeNumber (ohlcv, 'close'),   // Close
-                this.safeNumber (ohlcv, 'volume'),  // Base Volume
-            ];
-        }
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const duration = this.parseTimeframe (timeframe);
         const request = {
             'instId': market['id'],
             'bar': this.timeframes[timeframe],
         };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
         const defaultType = this.safeString (options, 'type', 'Candles'); // Candles or HistoryCandles
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        const method = market['type'] + 'GetInstrumentsInstrumentId' + type;
-        if (type === 'Candles') {
-            if (since !== undefined) {
-                if (limit !== undefined) {
-                    request['end'] = this.iso8601 (this.sum (since, limit * duration * 1000));
-                }
-                request['start'] = this.iso8601 (since);
-            } else {
-                if (limit !== undefined) {
-                    const now = this.milliseconds ();
-                    request['start'] = this.iso8601 (now - limit * duration * 1000);
-                    request['end'] = this.iso8601 (now);
-                }
-            }
-        } else if (type === 'HistoryCandles') {
-            if (market['option']) {
-                throw new NotSupported (this.id + ' fetchOHLCV does not have ' + type + ' for ' + market['type'] + ' markets');
-            }
-            if (since !== undefined) {
-                if (limit === undefined) {
-                    limit = 300; // default
-                }
-                request['start'] = this.iso8601 (this.sum (since, limit * duration * 1000));
-                request['end'] = this.iso8601 (since);
-            } else {
-                if (limit !== undefined) {
-                    const now = this.milliseconds ();
-                    request['end'] = this.iso8601 (now - limit * duration * 1000);
-                    request['start'] = this.iso8601 (now);
-                }
-            }
+        const method = 'publicGetMarket' + type;
+        if (since !== undefined) {
+            request['after'] = since;
         }
         const response = await this[method] (this.extend (request, params));
         //
-        // spot markets
-        //
-        //     [
-        //         {
-        //             close: "0.02683401",
-        //             high: "0.02683401",
-        //             low: "0.02683401",
-        //             open: "0.02683401",
-        //             time: "2018-12-17T23:47:00.000Z",
-        //             volume: "0"
-        //         },
-        //         {
-        //             close: "0.02684545",
-        //             high: "0.02685084",
-        //             low: "0.02683312",
-        //             open: "0.02683894",
-        //             time: "2018-12-17T20:28:00.000Z",
-        //             volume: "101.457222"
-        //         }
-        //     ]
-        //
-        // futures
-        //
-        //     [
-        //         [
-        //             1545090660000,
-        //             0.3171,
-        //             0.3174,
-        //             0.3171,
-        //             0.3173,
-        //             1648,
-        //             51930.38579450868
-        //         ],
-        //         [
-        //             1545072720000,
-        //             0.3159,
-        //             0.3161,
-        //             0.3144,
-        //             0.3149,
-        //             22886,
-        //             725179.26172331
+        //     {
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":[
+        //             ["1621447080000","0.07073","0.07073","0.07064","0.07064","12.08863","0.854309"],
+        //             ["1621447020000","0.0708","0.0709","0.0707","0.07072","58.517435","4.143309"],
+        //             ["1621446960000","0.0707","0.07082","0.0707","0.07076","53.850841","3.810921"],
         //         ]
-        //     ]
+        //     }
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseAccountBalance (response) {
