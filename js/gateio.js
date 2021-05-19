@@ -173,6 +173,7 @@ module.exports = class gateio extends Exchange {
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'MPH': 'Morpher', // conflict with 88MPH
+                'RAI': 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
                 'VAI': 'VAIOT',
