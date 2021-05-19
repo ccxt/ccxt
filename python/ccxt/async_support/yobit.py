@@ -172,6 +172,7 @@ class yobit(Exchange):
                 'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
                 'PLC': 'Platin Coin',
+                'RAI': 'RaiderCoin',
                 'RCN': 'RCoin',
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
