@@ -990,132 +990,40 @@ module.exports = class okex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (public)
+        //     {
+        //         "instId":"ETH-BTC",
+        //         "side":"sell",
+        //         "sz":"0.119501",
+        //         "px":"0.07065",
+        //         "tradeId":"15826757",
+        //         "ts":"1621446178316"
+        //     }
         //
-        //     spot trades
-        //
-        //         {
-        //             time: "2018-12-17T23:31:08.268Z",
-        //             timestamp: "2018-12-17T23:31:08.268Z",
-        //             trade_id: "409687906",
-        //             price: "0.02677805",
-        //             size: "0.923467",
-        //             side: "sell"
-        //         }
-        //
-        //     futures trades, swap trades
-        //
-        //         {
-        //             trade_id: "1989230840021013",
-        //             side: "buy",
-        //             price: "92.42",
-        //             qty: "184", // missing in swap markets
-        //             size: "5", // missing in futures markets
-        //             timestamp: "2018-12-17T23:26:04.613Z"
-        //         }
-        //
-        // fetchOrderTrades (private)
-        //
-        //     spot trades, margin trades
-        //
-        //         {
-        //             "created_at":"2019-03-15T02:52:56.000Z",
-        //             "exec_type":"T", // whether the order is taker or maker
-        //             "fee":"0.00000082",
-        //             "instrument_id":"BTC-USDT",
-        //             "ledger_id":"3963052721",
-        //             "liquidity":"T", // whether the order is taker or maker
-        //             "order_id":"2482659399697408",
-        //             "price":"3888.6",
-        //             "product_id":"BTC-USDT",
-        //             "side":"buy",
-        //             "size":"0.00055306",
-        //             "timestamp":"2019-03-15T02:52:56.000Z"
-        //         },
-        //
-        //     futures trades, swap trades
-        //
-        //         {
-        //             "trade_id":"197429674631450625",
-        //             "instrument_id":"EOS-USD-SWAP",
-        //             "order_id":"6a-7-54d663a28-0",
-        //             "price":"3.633",
-        //             "order_qty":"1.0000",
-        //             "fee":"-0.000551",
-        //             "created_at":"2019-03-21T04:41:58.0Z", // missing in swap trades
-        //             "timestamp":"2019-03-25T05:56:31.287Z", // missing in futures trades
-        //             "exec_type":"M", // whether the order is taker or maker
-        //             "side":"short", // "buy" in futures trades
-        //         }
-        //
-        let symbol = undefined;
-        const marketId = this.safeString (trade, 'instrument_id');
-        let base = undefined;
-        let quote = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        } else if (marketId !== undefined) {
-            const parts = marketId.split ('-');
-            const numParts = parts.length;
-            if (numParts === 2) {
-                const [ baseId, quoteId ] = parts;
-                base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            } else {
-                symbol = marketId;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        }
-        const timestamp = this.parse8601 (this.safeString2 (trade, 'timestamp', 'created_at'));
-        const priceString = this.safeString (trade, 'price');
-        let amountString = this.safeString2 (trade, 'size', 'qty');
-        amountString = this.safeString (trade, 'order_qty', amountString);
+        const id = this.safeString (trade, 'tradeId');
+        const marketId = this.safeString (trade, 'instId');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (trade, 'ts');
+        const priceString = this.safeString (trade, 'px');
+        const amountString = this.safeString (trade, 'sz');
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
-        if (takerOrMaker === 'M') {
-            takerOrMaker = 'maker';
-        } else if (takerOrMaker === 'T') {
-            takerOrMaker = 'taker';
-        }
         const side = this.safeString (trade, 'side');
-        const feeCost = this.safeNumber (trade, 'fee');
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCurrency = (side === 'buy') ? base : quote;
-            fee = {
-                // fee is either a positive number (invitation rebate)
-                // or a negative number (transaction fee deduction)
-                // therefore we need to invert the fee
-                // more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost': -feeCost,
-                'currency': feeCurrency,
-            };
-        }
-        const orderId = this.safeString (trade, 'order_id');
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString2 (trade, 'trade_id', 'ledger_id'),
-            'order': orderId,
+            'id': id,
+            'order': undefined,
             'type': undefined,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': fee,
+            'fee': undefined,
         };
     }
 
