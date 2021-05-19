@@ -702,10 +702,11 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchMarketsByType (type, params = {}) {
+        const uppercaseType = type.toUpperCase ();
         const request = {
-            'instType': type.toUpperCase (),
+            'instType': uppercaseType,
         };
-        if (type === 'option') {
+        if (uppercaseType === 'OPTION') {
             const defaultUnderlying = this.safeValue (this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
@@ -842,54 +843,45 @@ module.exports = class okex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //     {         best_ask: "0.02665472",
-        //               best_bid: "0.02665221",
-        //          instrument_id: "ETH-BTC",
-        //             product_id: "ETH-BTC",
-        //                   last: "0.02665472",
-        //                    ask: "0.02665472", // missing in the docs
-        //                    bid: "0.02665221", // not mentioned in the docs
-        //               open_24h: "0.02645482",
-        //               high_24h: "0.02714633",
-        //                low_24h: "0.02614109",
-        //        base_volume_24h: "572298.901923",
-        //              timestamp: "2018-12-17T21:20:07.856Z",
-        //       quote_volume_24h: "15094.86831261"            }
+        //     {
+        //         "instType":"SPOT",
+        //         "instId":"ETH-BTC",
+        //         "last":"0.07319",
+        //         "lastSz":"0.044378",
+        //         "askPx":"0.07322",
+        //         "askSz":"4.2",
+        //         "bidPx":"0.0732",
+        //         "bidSz":"6.050058",
+        //         "open24h":"0.07801",
+        //         "high24h":"0.07975",
+        //         "low24h":"0.06019",
+        //         "volCcy24h":"11788.887619",
+        //         "vol24h":"167493.829229",
+        //         "ts":"1621440583784",
+        //         "sodUtc0":"0.07872",
+        //         "sodUtc8":"0.07345"
+        //     }
         //
-        const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        let symbol = undefined;
-        const marketId = this.safeString (ticker, 'instrument_id');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        } else if (marketId !== undefined) {
-            const parts = marketId.split ('-');
-            const numParts = parts.length;
-            if (numParts === 2) {
-                const [ baseId, quoteId ] = parts;
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            } else {
-                symbol = marketId;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const timestamp = this.safeInteger (ticker, 'ts');
+        const marketId = this.safeString (ticker, 'instId');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const last = this.safeNumber (ticker, 'last');
-        const open = this.safeNumber (ticker, 'open_24h');
+        const open = this.safeNumber (ticker, 'open24h');
+        const baseVolume = this.safeNumber (ticker, 'volCcy24h');
+        const quoteVolume = this.safeNumber (ticker, 'vol24h');
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high_24h'),
-            'low': this.safeNumber (ticker, 'low_24h'),
-            'bid': this.safeNumber (ticker, 'best_bid'),
-            'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
-            'ask': this.safeNumber (ticker, 'best_ask'),
-            'askVolume': this.safeNumber (ticker, 'best_ask_size'),
-            'vwap': undefined,
+            'high': this.safeNumber (ticker, 'high24h'),
+            'low': this.safeNumber (ticker, 'low24h'),
+            'bid': this.safeNumber (ticker, 'bidPx'),
+            'bidVolume': this.safeNumber (ticker, 'bidSz'),
+            'ask': this.safeNumber (ticker, 'askPx'),
+            'askVolume': this.safeNumber (ticker, 'askSz'),
+            'vwap': vwap,
             'open': open,
             'close': last,
             'last': last,
@@ -897,8 +889,8 @@ module.exports = class okex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'base_volume_24h'),
-            'quoteVolume': this.safeNumber (ticker, 'quote_volume_24h'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
@@ -906,42 +898,85 @@ module.exports = class okex extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['type'] + 'GetInstrumentsInstrumentIdTicker';
         const request = {
-            'instrument_id': market['id'],
+            'instId': market['id'],
         };
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicGetMarketTicker (this.extend (request, params));
         //
-        //     {         best_ask: "0.02665472",
-        //               best_bid: "0.02665221",
-        //          instrument_id: "ETH-BTC",
-        //             product_id: "ETH-BTC",
-        //                   last: "0.02665472",
-        //                    ask: "0.02665472",
-        //                    bid: "0.02665221",
-        //               open_24h: "0.02645482",
-        //               high_24h: "0.02714633",
-        //                low_24h: "0.02614109",
-        //        base_volume_24h: "572298.901923",
-        //              timestamp: "2018-12-17T21:20:07.856Z",
-        //       quote_volume_24h: "15094.86831261"            }
+        //     {
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":[
+        //             {
+        //                 "instType":"SPOT",
+        //                 "instId":"ETH-BTC",
+        //                 "last":"0.07319",
+        //                 "lastSz":"0.044378",
+        //                 "askPx":"0.07322",
+        //                 "askSz":"4.2",
+        //                 "bidPx":"0.0732",
+        //                 "bidSz":"6.050058",
+        //                 "open24h":"0.07801",
+        //                 "high24h":"0.07975",
+        //                 "low24h":"0.06019",
+        //                 "volCcy24h":"11788.887619",
+        //                 "vol24h":"167493.829229",
+        //                 "ts":"1621440583784",
+        //                 "sodUtc0":"0.07872",
+        //                 "sodUtc8":"0.07345"
+        //             }
+        //         ]
+        //     }
         //
-        return this.parseTicker (response);
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0, {});
+        return this.parseTicker (first, market);
     }
 
     async fetchTickersByType (type, symbols = undefined, params = {}) {
         await this.loadMarkets ();
+        const uppercaseType = type.toUpperCase ();
         const request = {
-            'type': type.toUpperCase (),
+            'instType': type.toUpperCase (),
         };
-        const response = await this.publicGetMarketTickers (this.extend (request, params));
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker (response[i]);
-            const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+        if (uppercaseType === 'OPTION') {
+            const defaultUnderlying = this.safeValue (this.options, 'defaultUnderlying', 'BTC-USD');
+            const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
+            if (currencyId === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchTickersByType requires an underlying uly or marketId parameter for options markets');
+            } else {
+                request['uly'] = currencyId;
+            }
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        const response = await this.publicGetMarketTickers (this.extend (request, params));
+        //
+        //     {
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":[
+        //             {
+        //                 "instType":"SPOT",
+        //                 "instId":"BCD-BTC",
+        //                 "last":"0.0000769",
+        //                 "lastSz":"5.4788",
+        //                 "askPx":"0.0000777",
+        //                 "askSz":"3.2197",
+        //                 "bidPx":"0.0000757",
+        //                 "bidSz":"4.7509",
+        //                 "open24h":"0.0000885",
+        //                 "high24h":"0.0000917",
+        //                 "low24h":"0.0000596",
+        //                 "volCcy24h":"9.2877",
+        //                 "vol24h":"124824.1985",
+        //                 "ts":"1621441741434",
+        //                 "sodUtc0":"0.0000905",
+        //                 "sodUtc8":"0.0000729"
+        //             },
+        //         ]
+        //     }
+        //
+        const tickers = this.safeValue (response, 'data', []);
+        return this.parseTickers (tickers, symbols);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
