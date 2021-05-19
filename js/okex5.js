@@ -805,44 +805,39 @@ module.exports = class okex extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = market['type'] + 'GetInstrumentsInstrumentId';
-        method += (market['type'] === 'swap') ? 'Depth' : 'Book';
         const request = {
-            'instrument_id': market['id'],
+            'instId': market['id'],
         };
+        limit = (limit === undefined) ? 20 : limit;
         if (limit !== undefined) {
-            request['size'] = limit; // max 200
+            request['sz'] = limit; // max 400
         }
-        const response = await this[method] (this.extend (request, params));
-        //
-        // spot
-        //
-        //     {      asks: [ ["0.02685268", "0.242571", "1"],
-        //                    ["0.02685493", "0.164085", "1"],
-        //                    ...
-        //                    ["0.02779", "1.039", "1"],
-        //                    ["0.027813", "0.0876", "1"]        ],
-        //            bids: [ ["0.02684052", "10.371849", "1"],
-        //                    ["0.02684051", "3.707", "4"],
-        //                    ...
-        //                    ["0.02634963", "0.132934", "1"],
-        //                    ["0.02634962", "0.264838", "2"]    ],
-        //       timestamp:   "2018-12-17T20:24:16.159Z"            }
-        //
-        // swap
+        const response = await this.publicGetMarketBooks (this.extend (request, params));
         //
         //     {
-        //         "asks":[
-        //             ["916.21","94","0","1"]
-        //         ],
-        //         "bids":[
-        //             ["916.1","15","0","1"]
-        //         ],
-        //         "time":"2021-04-16T02:04:48.282Z"
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":[
+        //             {
+        //                 "asks":[
+        //                     ["0.07228","4.211619","0","2"], // price, amount, liquidated orders, total open orders
+        //                     ["0.0723","299.880364","0","2"],
+        //                     ["0.07231","3.72832","0","1"],
+        //                 ],
+        //                 "bids":[
+        //                     ["0.07221","18.5","0","1"],
+        //                     ["0.0722","18.5","0","1"],
+        //                     ["0.07219","0.505407","0","1"],
+        //                 ],
+        //                 "ts":"1621438475342"
+        //             }
+        //         ]
         //     }
         //
-        const timestamp = this.parse8601 (this.safeString2 (response, 'timestamp', 'time'));
-        return this.parseOrderBook (response, symbol, timestamp);
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0, {});
+        const timestamp = this.safeInteger (first, 'ts');
+        return this.parseOrderBook (first, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
