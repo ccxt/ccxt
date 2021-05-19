@@ -23,7 +23,10 @@ module.exports = class okex extends Exchange {
                 'fetchCurrencies': false, // see below
                 'fetchMarkets': true,
                 'fetchStatus': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
+                'fetchTrades': true,
             },
             'timeframes': {
                 '1m': '60',
@@ -1119,45 +1122,26 @@ module.exports = class okex extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['type'] + 'GetInstrumentsInstrumentIdTrades';
-        if ((limit === undefined) || (limit > 100)) {
-            limit = 100; // maximum = default = 100
-        }
         const request = {
-            'instrument_id': market['id'],
-            'limit': limit,
-            // from: 'id',
-            // to: 'id',
+            'instId': market['id'],
         };
-        const response = await this[method] (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
+        }
+        const response = await this.publicGetMarketTrades (this.extend (request, params));
         //
-        // spot markets
+        //     {
+        //         "code":"0",
+        //         "msg":"",
+        //         "data":[
+        //             {"instId":"ETH-BTC","side":"sell","sz":"0.119501","px":"0.07065","tradeId":"15826757","ts":"1621446178316"},
+        //             {"instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"},
+        //             {"instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"},
+        //         ]
+        //     }
         //
-        //     [
-        //         {
-        //             time: "2018-12-17T23:31:08.268Z",
-        //             timestamp: "2018-12-17T23:31:08.268Z",
-        //             trade_id: "409687906",
-        //             price: "0.02677805",
-        //             size: "0.923467",
-        //             side: "sell"
-        //         }
-        //     ]
-        //
-        // futures markets, swap markets
-        //
-        //     [
-        //         {
-        //             trade_id: "1989230840021013",
-        //             side: "buy",
-        //             price: "92.42",
-        //             qty: "184", // missing in swap markets
-        //             size: "5", // missing in futures markets
-        //             timestamp: "2018-12-17T23:26:04.613Z"
-        //         }
-        //     ]
-        //
-        return this.parseTrades (response, market, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
