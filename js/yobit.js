@@ -154,6 +154,7 @@ module.exports = class yobit extends Exchange {
                 'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
                 'PLC': 'Platin Coin',
+                'RAI': 'RaiderCoin',
                 'RCN': 'RCoin',
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
