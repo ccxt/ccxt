@@ -344,7 +344,7 @@ class bitfinex2(bitfinex):
         #    [0]  # maintenance
         #
         response = self.publicGetPlatformStatus(params)
-        status = self.safe_value(response, 0)
+        status = self.safe_integer(response, 0)
         formattedStatus = 'ok' if (status == 1) else 'maintenance'
         self.status = self.extend(self.status, {
             'status': formattedStatus,

@@ -338,7 +338,7 @@ class bitfinex2 extends bitfinex {
         //    [0] // maintenance
         //
         $response = $this->publicGetPlatformStatus ($params);
-        $status = $this->safe_value($response, 0);
+        $status = $this->safe_integer($response, 0);
         $formattedStatus = ($status === 1) ? 'ok' : 'maintenance';
         $this->status = array_merge($this->status, array(
             'status' => $formattedStatus,
