@@ -33,7 +33,9 @@ declare module 'ccxt.pro' {
 
     export class bequant extends hitbtc {}
     export class binance extends Exchange {}
+    export class binancecoinm extends binance {}
     export class binanceus extends binance {}
+    export class binanceusdm extends binance {}
     export class bitcoincom extends hitbtc {}
     export class bitfinex extends Exchange {}
     export class bitmex extends Exchange {}

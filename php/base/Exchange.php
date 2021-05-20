@@ -23,7 +23,9 @@ class Exchange extends \ccxt\async\Exchange {
 Exchange::$exchanges = array(
     'bequant',
     'binance',
+    'binancecoinm',
     'binanceus',
+    'binanceusdm',
     'bitcoincom',
     'bitfinex',
     'bitmex',
