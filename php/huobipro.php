@@ -44,6 +44,7 @@ class huobipro extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchOrderTrades' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -676,6 +677,15 @@ class huobipro extends Exchange {
         );
     }
 
+    public function fetch_orders_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'order-id' => $id,
+        );
+        $response = $this->privateGetOrderMatchresults (array_merge($request, $params));
+        return $this->parse_trades($response['data'], null, $since, $limit);
+    }
+
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
@@ -692,8 +702,7 @@ class huobipro extends Exchange {
             $request['end-date'] = $this->ymd($this->sum($since, 86400000));
         }
         $response = $this->privateGetOrderMatchresults (array_merge($request, $params));
-        $trades = $this->parse_trades($response['data'], $market, $since, $limit);
-        return $trades;
+        return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = 1000, $params = array ()) {

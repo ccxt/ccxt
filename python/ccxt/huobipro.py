@@ -55,6 +55,7 @@ class huobipro(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchOrderTrades': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -658,6 +659,14 @@ class huobipro(Exchange):
             'fee': fee,
         }
 
+    def fetch_orders_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            'order-id': id,
+        }
+        response = self.privateGetOrderMatchresults(self.extend(request, params))
+        return self.parse_trades(response['data'], None, since, limit)
+
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
@@ -671,8 +680,7 @@ class huobipro(Exchange):
             request['start-date'] = self.ymd(since)  # a date within 61 days from today
             request['end-date'] = self.ymd(self.sum(since, 86400000))
         response = self.privateGetOrderMatchresults(self.extend(request, params))
-        trades = self.parse_trades(response['data'], market, since, limit)
-        return trades
+        return self.parse_trades(response['data'], market, since, limit)
 
     def fetch_trades(self, symbol, since=None, limit=1000, params={}):
         self.load_markets()
