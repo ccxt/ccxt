@@ -178,7 +178,7 @@ module.exports = class aax extends ccxt.aax {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message, subscription) {
+    handleTrades (client, message) {
         //
         //     {
         //         e: 'BTCUSDT@trade',
