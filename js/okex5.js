@@ -9,10 +9,10 @@ const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class okex extends Exchange {
+module.exports = class okex5 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'okex',
+            'id': 'okex5',
             'name': 'OKEX',
             'countries': [ 'CN', 'US' ],
             'version': 'v5',
@@ -514,7 +514,7 @@ module.exports = class okex extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'fetchOHLCV': {
-                    'type': 'Candles', // Candles or HistoryCandles
+                    'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
                 },
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot', 'futures', 'swap', 'option' ], // spot, futures, swap, option
@@ -3198,16 +3198,15 @@ module.exports = class okex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isArray = Array.isArray (params);
-        let request = '/api/' + this.version + '/';
-        request += isArray ? path : this.implodeParams (path, params);
-        const query = isArray ? params : this.omit (params, this.extractParams (path));
+        const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
         let url = this.implodeParams (this.urls['api']['rest'], { 'hostname': this.hostname }) + request;
         // const type = this.getPathAuthenticationType (path);
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (type === 'private') {
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.iso8601 (this.milliseconds ());
             headers = {
