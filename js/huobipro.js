@@ -40,6 +40,7 @@ module.exports = class huobipro extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -672,6 +673,15 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
+    async fetchOrdersTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'order-id': id,
+        };
+        const response = await this.privateGetOrderMatchresults (this.extend (request, params));
+        return this.parseTrades (response['data'], undefined, since, limit);
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -688,8 +698,7 @@ module.exports = class huobipro extends Exchange {
             request['end-date'] = this.ymd (this.sum (since, 86400000));
         }
         const response = await this.privateGetOrderMatchresults (this.extend (request, params));
-        const trades = this.parseTrades (response['data'], market, since, limit);
-        return trades;
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = 1000, params = {}) {
