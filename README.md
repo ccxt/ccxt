@@ -88,11 +88,11 @@ Installing CCXT Pro requires visiting the https://ccxt.pro website and obtaining
 - contributions, pull requests and feedback appreciated
 ```
 
-See the [full installation instructions](https://github.com/ccxt/ccxt/wiki/ccxt.pro.install).
+See [CCXT Pro Install](https://github.com/ccxt/ccxt/wiki/ccxt.pro.install) for installation instructions.
 
 ## Documentation
 
-Read the [Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) for more details.
+Read the [CCXT Pro Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro) for more details.
 
 ## Usage
 
