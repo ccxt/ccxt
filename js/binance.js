@@ -3247,7 +3247,7 @@ module.exports = class binance extends Exchange {
             contractsString = Math.round (notionalFloat * entryPriceFloat / market['contractSize']).toString ();
         }
         const contracts = this.parseNumber (Precise.stringAbs (contractsString));
-        const leverageBracket = this.options['leverageBrackets'][symbol];
+        const leverageBracket = this.options['leverageBrackets'][normalizedSymbol];
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
