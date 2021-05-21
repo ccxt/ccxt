@@ -86,6 +86,7 @@ module.exports = class binance extends Exchange {
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
+                    'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
@@ -390,6 +391,11 @@ module.exports = class binance extends Exchange {
                         'allOpenOrders',
                         'batchOrders',
                         'listenKey',
+                    ],
+                },
+                'dapiPrivateV2': {
+                    'get': [
+                        'leverageBracket',
                     ],
                 },
                 'fapiPublic': {
@@ -2985,7 +2991,7 @@ module.exports = class binance extends Exchange {
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
-        } else if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        } else if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query = undefined;
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
@@ -3225,12 +3231,6 @@ module.exports = class binance extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        let normalizedSymbol = undefined;
-        if (market['delivery']) {
-            normalizedSymbol = market['base'] + '/' + market['quote'];
-        } else {
-            normalizedSymbol = symbol;
-        }
         const leverageString = this.safeString (position, 'leverage');
         const leverage = parseInt (leverageString);
         const initialMarginString = this.safeString (position, 'initialMargin');
@@ -3255,7 +3255,7 @@ module.exports = class binance extends Exchange {
             contractsString = Math.round (notionalFloat * entryPriceFloat / market['contractSize']).toString ();
         }
         const contracts = this.parseNumber (Precise.stringAbs (contractsString));
-        const leverageBracket = this.options['leverageBrackets'][normalizedSymbol];
+        const leverageBracket = this.options['leverageBrackets'][symbol];
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
@@ -3359,13 +3359,7 @@ module.exports = class binance extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        let normalizedSymbol = undefined;
-        if (market['delivery']) {
-            normalizedSymbol = market['base'] + '/' + market['quote'];
-        } else {
-            normalizedSymbol = symbol;
-        }
-        const leverageBracket = this.options['leverageBrackets'][normalizedSymbol];
+        const leverageBracket = this.options['leverageBrackets'][symbol];
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
         const notionalFloatAbs = parseFloat (notionalStringAbs);
