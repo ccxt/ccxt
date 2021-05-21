@@ -1846,6 +1846,12 @@ module.exports = class okex5 extends Exchange {
             currency = this.currency (code);
             request['ccy'] = currency['id'];
         }
+        if (since !== undefined) {
+            request['after'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
         const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
         //
         //     {
@@ -1890,15 +1896,55 @@ module.exports = class okex5 extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        let method = 'accountGetWithdrawalHistory';
+        const request = {
+            // 'ccy': currency['id'],
+            // 'state': 2, // -3: pending cancel, -2 canceled, -1 failed, 0, pending, 1 sending, 2 sent, 3 awaiting email verification, 4 awaiting manual verification, 5 awaiting identity verification
+            // 'after': since,
+            // 'before': this.milliseconds (),
+            // 'limit': limit, // default 100, max 100
+        };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
-            method += 'Currency';
+            request['ccy'] = currency['id'];
         }
-        const response = await this[method] (this.extend (request, params));
+        if (since !== undefined) {
+            request['after'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
+        const response = await this.privateGetAssetWithdrawalHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "amt": "0.094",
+        //                 "wdId": "4703879",
+        //                 "fee": "0.01000000eth",
+        //                 "txId": "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
+        //                 "ccy": "ETH",
+        //                 "from": "13426335357",
+        //                 "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+        //                 "ts": "1597026383085",
+        //                 "state": "2"
+        //             },
+        //             {
+        //                 "amt": "0.01",
+        //                 "wdId": "4703879",
+        //                 "fee": "0.00000000btc",
+        //                 "txId": "",
+        //                 "ccy": "BTC",
+        //                 "from": "13426335357",
+        //                 "to": "13426335357",
+        //                 "ts": "1597026383085",
+        //                 "state": "2"
+        //             }
+        //         ]
+        //     }
+        //
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
@@ -1912,7 +1958,7 @@ module.exports = class okex5 extends Exchange {
         //         '2': 'recharge success'
         //     }
         //
-        // withdrawal statues
+        // withdrawal statuses
         //
         //     {
         //        '-3': 'pending cancel',
@@ -1954,29 +2000,28 @@ module.exports = class okex5 extends Exchange {
         // fetchWithdrawals
         //
         //     {
-        //         amount: "4.72100000",
-        //         withdrawal_id: "1729116",
-        //         fee: "0.01000000eth",
-        //         txid: "0xf653125bbf090bcfe4b5e8e7b8f586a9d87aa7de94598702758c0802b…",
-        //         currency: "ETH",
-        //         from: "7147338839",
-        //         to: "0x26a3CB49578F07000575405a57888681249c35Fd",
-        //         timestamp: "2018-08-17T07:03:42.000Z",
-        //         status: "2"
+        //         "amt": "0.094",
+        //         "wdId": "4703879",
+        //         "fee": "0.01000000eth",
+        //         "txId": "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
+        //         "ccy": "ETH",
+        //         "from": "13426335357",
+        //         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+        //         "ts": "1597026383085",
+        //         "state": "2"
         //     }
         //
         // fetchDeposits
         //
         //     {
-        //         "amount": "4.19511659",
-        //         "txid": "14c9a8c925647cdb7e5b2937ea9aefe2b29b2c273150ad3f44b3b8a4635ed437",
-        //         "currency": "XMR",
-        //         "from": "",
-        //         "to": "48PjH3ksv1fiXniKvKvyH5UtFs5WhfS2Vf7U3TwzdRJtCc7HJWvCQe56dRahyhQyTAViXZ8Nzk4gQg6o4BJBMUoxNy8y8g7",
-        //         "tag": "1234567",
-        //         "deposit_id": 11571659, <-- we can use this
-        //         "timestamp": "2019-10-01T14:54:19.000Z",
-        //         "status": "2"
+        //         "amt": "0.01044408",
+        //         "txId": "1915737_3_0_0_asset",
+        //         "ccy": "BTC",
+        //         "from": "13801825426",
+        //         "to": "",
+        //         "ts": "1597026383085",
+        //         "state": "2",
+        //         "depId": "4703879"
         //     }
         //
         let type = undefined;
