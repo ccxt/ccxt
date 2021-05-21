@@ -21,6 +21,7 @@ module.exports = class okex5 extends Exchange {
                 'CORS': false,
                 'fetchBalance': true,
                 'fetchCurrencies': false, // see below
+                'fetchDepositAddress': true,
                 'fetchMarkets': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -1833,15 +1834,57 @@ module.exports = class okex5 extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        let method = 'accountGetDepositHistory';
+        const request = {
+            // 'ccy': currency['id'],
+            // 'state': 2, // 0 waiting for confirmation, 1 deposit credited, 2 deposit successful
+            // 'after': since,
+            // 'before' this.milliseconds (),
+            // 'limit': limit, // default 100, max 100
+        };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
-            method += 'Currency';
+            request['ccy'] = currency['id'];
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "amt": "0.01044408",
+        //                 "txId": "1915737_3_0_0_asset",
+        //                 "ccy": "BTC",
+        //                 "from": "13801825426",
+        //                 "to": "",
+        //                 "ts": "1597026383085",
+        //                 "state": "2",
+        //                 "depId": "4703879"
+        //             },
+        //             {
+        //                 "amt": "491.6784211",
+        //                 "txId": "1744594_3_184_0_asset",
+        //                 "ccy": "OKB",
+        //                 "from": "",
+        //                 "to": "",
+        //                 "ts": "1597026383085",
+        //                 "state": "2",
+        //                 "depId": "4703809"
+        //             },
+        //             {
+        //                 "amt": "223.18782496",
+        //                 "txId": "6d892c669225b1092c780bf0da0c6f912fc7dc8f6b8cc53b003288624c",
+        //                 "ccy": "USDT",
+        //                 "from": "",
+        //                 "to": "39kK4XvgEuM7rX9frgyHoZkWqx4iKu1spD",
+        //                 "ts": "1597026383085",
+        //                 "state": "2",
+        //                 "depId": "4703779"
+        //             }
+        //         ]
+        //     }
+        //
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
