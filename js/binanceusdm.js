@@ -14,8 +14,18 @@ module.exports = class binanceusdm extends binance {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg',
             },
+            'has': {
+                'fetchPositions': true,
+                'fetchIsolatedPositions': true,
+                'fetchFundingRate': true,
+                'fetchFundingHistory': true,
+            },
             'options': {
                 'defaultType': 'future',
+                // https://www.binance.com/en/support/faq/360033162192
+                // tier amount, maintenance margin, initial margin
+                'leverageBrackets': undefined,
+                'marginTypes': {},
             },
             // https://www.binance.com/en/fee/futureFee
             'fees': {
@@ -139,5 +149,89 @@ module.exports = class binanceusdm extends binance {
         } else {
             return this.parseFundingRate (response);
         }
+    }
+
+    async loadLeverageBrackets (reload = false, params = {}) {
+        await this.loadMarkets ();
+        // by default cache the leverage bracket
+        // it contains useful stuff like the maintenance margin and initial margin for positions
+        if ((this.options['leverageBrackets'] === undefined) || (reload)) {
+            const response = await this.fapiPrivateGetLeverageBracket (params);
+            this.options['leverageBrackets'] = {};
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const marketId = this.safeString (entry, 'symbol');
+                const symbol = this.safeSymbol (marketId);
+                const brackets = this.safeValue (entry, 'brackets');
+                const result = [];
+                for (let j = 0; j < brackets.length; j++) {
+                    const bracket = brackets[j];
+                    // we use floats here internally on purpose
+                    const notionalFloor = this.safeFloat (bracket, 'notionalFloor');
+                    const maintenanceMarginPercentage = this.safeString (bracket, 'maintMarginRatio');
+                    result.push ([ notionalFloor, maintenanceMarginPercentage ]);
+                }
+                this.options['leverageBrackets'][symbol] = result;
+            }
+        }
+        return this.options['leverageBrackets'];
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadLeverageBrackets ();
+        const account = await this.fapiPrivateGetAccount (params);
+        const result = this.parseAccountPositions (account);
+        if (symbols === undefined) {
+            return result;
+        } else {
+            return this.filterByArray (result, 'symbol', symbols);
+        }
+    }
+
+    async fetchIsolatedPositions (symbol = undefined, params = {}) {
+        // only supported in usdm futures
+        await this.loadMarkets ();
+        await this.loadLeverageBrackets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.fapiPrivateGetPositionRisk (this.extend (request, params));
+        if (symbol === undefined) {
+            const result = [];
+            for (let i = 0; i < response.length; i++) {
+                const parsed = this.parsePositionRisk (response[i], market);
+                if (parsed['marginType'] === 'isolated') {
+                    result.push (parsed);
+                }
+            }
+            return result;
+        } else {
+            return this.parsePositionRisk (this.safeValue (response, 0), market);
+        }
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = undefined) {
+        await this.loadMarkets ();
+        let market = undefined;
+        // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
+        const request = {
+            'incomeType': 'FUNDING_FEE',
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.fapiPrivateGetIncome (this.extend (request, params));
+        return this.parseIncomes (response, market, since, limit);
     }
 };
