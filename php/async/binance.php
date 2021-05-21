@@ -1597,7 +1597,8 @@ class binance extends Exchange {
         $price = $this->parse_number($priceString);
         $amount = $this->parse_number($amountString);
         $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        $id = $this->safe_string_2($trade, 'a', 'id');
+        $id = $this->safe_string_2($trade, 't', 'a');
+        $id = $this->safe_string($trade, 'id', $id);
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
         if (is_array($trade) && array_key_exists('m', $trade)) {
