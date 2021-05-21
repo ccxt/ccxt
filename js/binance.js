@@ -3370,7 +3370,6 @@ module.exports = class binance extends Exchange {
             }
             maintenanceMarginPercentageString = bracket[1];
         }
-        maintenanceMarginPercentageString = '0.004'
         const notional = this.parseNumber (notionalStringAbs);
         const contractsAbs = Precise.stringAbs (this.safeString (position, 'positionAmt'));
         const contracts = this.parseNumber (contractsAbs);
