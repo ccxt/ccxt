@@ -63,9 +63,11 @@ php -f path/to/example.php # substitute for actual filename here
 
 [CCXT - Cryptocurrency Exchange Trading Library Tutorial](https://www.youtube.com/watch?v=2Zdm2ISdm1Q) – A YouTube video tutorial on CCXT!
 
-[CCXT Crypto Bot - Order Execution with Python](https://www.youtube.com/watch?v=1PEyddA1y5E) – making a CCXT Bot on YouTube!
+[CCXT Crypto Bot - Order Execution with Python](https://www.youtube.com/watch?v=1PEyddA1y5E) – Making a CCXT Bot on YouTube!
 
-[FTX API (Crypto Exchange) and Google Cloud Functions](https://www.youtube.com/watch?v=mtpA3vDg5js) – a video on trading with CCXT and Google Cloud Functions!
+[FTX API (Crypto Exchange) and Google Cloud Functions](https://www.youtube.com/watch?v=mtpA3vDg5js) – A video on trading with CCXT and Google Cloud Functions!
+
+[CCXT - Crypto Trading](https://www.youtube.com/playlist?list=PLvzuUVysUFOv5XEPHeqefgyHZcDfLxH-W) – An awesome video playlist on CCXT and tons of other cool videos by [Part Time Larry](https://www.youtube.com/c/parttimelarry)!
 
 [Writing a crypto trading bot](https://www.kleemans.ch/writing-a-crypto-trading-bot) – How to write an automated trading bot, for fun and profit.
 
