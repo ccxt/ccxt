@@ -3230,8 +3230,15 @@ module.exports = class binance extends Exchange {
         } else {
             normalizedSymbol = symbol;
         }
+        const leverageString = this.safeString (position, 'leverage');
+        const leverage = parseInt (leverageString);
         const initialMarginString = this.safeString (position, 'initialMargin');
         const initialMargin = this.parseNumber (initialMarginString);
+        let initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
+        const rational = (1000 % leverage) === 0;
+        if (!rational) {
+            initialMarginPercentageString = Precise.stringDiv (Precise.stringAdd (initialMarginPercentageString, '1e-8'), '1', 8);
+        }
         const maintenanceMarginString = this.safeString (position, 'maintMargin');
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
         const entryPriceString = this.safeString (position, 'entryPrice');
@@ -3257,7 +3264,6 @@ module.exports = class binance extends Exchange {
             maintenanceMarginPercentageString = bracket[1];
         }
         const maintenanceMarginPercentage = this.parseNumber (maintenanceMarginPercentageString);
-        const leverage = this.safeNumber (position, 'leverage');
         const unrealizedPnlString = this.safeString (position, 'unrealizedProfit');
         const unrealizedPnl = this.parseNumber (unrealizedPnlString);
         let timestamp = this.safeInteger (position, 'updateTime');
@@ -3292,6 +3298,7 @@ module.exports = class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'initialMargin': initialMargin,
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentageString),
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
             'entryPrice': entryPrice,
@@ -3397,7 +3404,7 @@ module.exports = class binance extends Exchange {
         if (!rational) {
             initialMarginPercentageString = Precise.stringAdd (initialMarginPercentageString, '1e-8');
         }
-        const initialMarginString = Precise.stringMul (notionalStringAbs, initialMarginPercentageString);
+        const initialMarginString = Precise.stringDiv (Precise.stringMul (notionalStringAbs, initialMarginPercentageString), '1', 8);
         const initialMargin = this.parseNumber (initialMarginString);
         let marginRatio = undefined;
         let side = undefined;
