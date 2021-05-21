@@ -340,7 +340,7 @@ exchange.setSandboxMode (true) // enable sandbox mode
 
 ```Python
 # Python
-const exchange = ccxt.binance(config)
+exchange = ccxt.binance(config)
 exchange.set_sandbox_mode(True)  # enable sandbox mode
 ```
 
