@@ -1592,7 +1592,7 @@ module.exports = class binance extends Exchange {
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let id = this.safeString2 (trade, 't', 'a');
-        id = this.safeString ('id');
+        id = this.safeString (trade, 'id', id);
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
         if ('m' in trade) {
