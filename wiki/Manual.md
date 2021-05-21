@@ -340,8 +340,8 @@ exchange.setSandboxMode (true) // enable sandbox mode
 
 ```Python
 # Python
-const exchange = new ccxt.binance(config)
-exchange.set_sandbox_mode(true)  # enable sandbox mode
+const exchange = ccxt.binance(config)
+exchange.set_sandbox_mode(True)  # enable sandbox mode
 ```
 
 ```PHP
