@@ -144,13 +144,12 @@ module.exports = class binancecoinm extends binance {
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
         if ((this.options['leverageBrackets'] === undefined) || (reload)) {
-            const response = await this.dapiPrivateGetLeverageBracket (params);
+            const response = await this.dapiPrivateV2GetLeverageBracket (params);
             this.options['leverageBrackets'] = {};
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
-                const marketId = this.safeString (entry, 'pair');
-                const normalizedMarketId = marketId + '_PERP';
-                const symbol = this.safeSymbol (normalizedMarketId);
+                const marketId = this.safeString (entry, 'symbol');
+                const symbol = this.safeSymbol (marketId);
                 const brackets = this.safeValue (entry, 'brackets');
                 const result = [];
                 for (let j = 0; j < brackets.length; j++) {
