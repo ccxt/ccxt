@@ -19,6 +19,7 @@ module.exports = class okex5 extends Exchange {
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'has': {
                 'CORS': false,
+                'fetchBalance': true,
                 'fetchCurrencies': false, // see below
                 'fetchMarkets': true,
                 'fetchStatus': true,
@@ -1718,18 +1719,26 @@ module.exports = class okex5 extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
-        //         address: '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
-        //         currency: 'eth'
-        //         tag: 'abcde12345', // will be missing if the token does not require a deposit tag
-        //         payment_id: 'abcde12345', // will not be returned if the token does not require a payment_id
-        //         // can_deposit: 1, // 0 or 1, documented but missing
-        //         // can_withdraw: 1, // 0 or 1, documented but missing
+        //         "addr": "okbtothemoon",
+        //         "memo": "971668", // may be missing
+        //         "tag":"52055", // may be missing
+        //         "pmtId": "", // may be missing
+        //         "ccy": "BTC",
+        //         "to": "6", // 1 SPOT, 3 FUTURES, 6 FUNDING, 9 SWAP, 12 OPTION, 18 Unified account
+        //         "selected": true
         //     }
         //
-        const address = this.safeString (depositAddress, 'address');
-        let tag = this.safeString2 (depositAddress, 'tag', 'payment_id');
+        //     {
+        //         "ccy":"usdt-erc20",
+        //         "to":"6",
+        //         "addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa",
+        //         "selected":true
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'addr');
+        let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
         tag = this.safeString (depositAddress, 'memo', tag);
-        const currencyId = this.safeString (depositAddress, 'currency');
+        const currencyId = this.safeString (depositAddress, 'ccy');
         const code = this.safeCurrencyCode (currencyId);
         this.checkAddress (address);
         return {
@@ -1745,18 +1754,32 @@ module.exports = class okex5 extends Exchange {
         const parts = code.split ('-');
         const currency = this.currency (parts[0]);
         const request = {
-            'currency': currency['id'],
+            'ccy': currency['id'],
         };
-        const response = await this.accountGetDepositAddress (this.extend (request, params));
+        const response = await this.privateGetAssetDepositAddress (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             address: '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
-        //             currency: 'eth'
-        //         }
-        //     ]
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "addr": "okbtothemoon",
+        //                 "memo": "971668", // may be missing
+        //                 "tag":"52055", // may be missing
+        //                 "pmtId": "", // may be missing
+        //                 "ccy": "BTC",
+        //                 "to": "6", // 1 SPOT, 3 FUTURES, 6 FUNDING, 9 SWAP, 12 OPTION, 18 Unified account
+        //                 "selected": true
+        //             },
+        //             // {"ccy":"usdt-erc20","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
+        //             // {"ccy":"usdt-trc20","to":"6","addr":"TRrd5SiSZrfQVRKm4e9SRSbn2LNTYqCjqx","selected":true},
+        //             // {"ccy":"usdt_okexchain","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
+        //             // {"ccy":"usdt_kip20","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
+        //         ]
+        //     }
         //
-        const addressesByCode = this.parseDepositAddresses (response);
+        const data = this.safeValue (response, 'data', []);
+        const addressesByCode = this.parseDepositAddresses (data);
         const address = this.safeValue (addressesByCode, code);
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
