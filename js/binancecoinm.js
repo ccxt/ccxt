@@ -16,6 +16,13 @@ module.exports = class binancecoinm extends binance {
             },
             'options': {
                 'defaultType': 'delivery',
+                'leverageBrackets': undefined,
+            },
+            'has': {
+                'fetchPositions': true,
+                'fetchIsolatedPositions': true,
+                'fetchFundingRate': true,
+                'fetchFundingHistory': true,
             },
             // https://www.binance.com/en/fee/deliveryFee
             'fees': {
@@ -130,5 +137,90 @@ module.exports = class binancecoinm extends binance {
         } else {
             return this.parseFundingRate (response);
         }
+    }
+
+    async loadLeverageBrackets (reload = false, params = {}) {
+        await this.loadMarkets ();
+        // by default cache the leverage bracket
+        // it contains useful stuff like the maintenance margin and initial margin for positions
+        if ((this.options['leverageBrackets'] === undefined) || (reload)) {
+            const response = await this.dapiPrivateGetLeverageBracket (params);
+            this.options['leverageBrackets'] = {};
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const marketId = this.safeString (entry, 'pair');
+                const normalizedMarketId = marketId + '_PERP';
+                const symbol = this.safeSymbol (normalizedMarketId);
+                const brackets = this.safeValue (entry, 'brackets');
+                const result = [];
+                for (let j = 0; j < brackets.length; j++) {
+                    const bracket = brackets[j];
+                    // we use floats here internally on purpose
+                    const qtyFloor = this.safeFloat (bracket, 'qtyFloor');
+                    const maintenanceMarginPercentage = this.safeString (bracket, 'maintMarginRatio');
+                    result.push ([ qtyFloor, maintenanceMarginPercentage ]);
+                }
+                this.options['leverageBrackets'][symbol] = result;
+            }
+        }
+        return this.options['leverageBrackets'];
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadLeverageBrackets ();
+        const account = await this.dapiPrivateGetAccount (params);
+        const result = this.parseAccountPositions (account);
+        if (symbols === undefined) {
+            return result;
+        } else {
+            return this.filterByArray (result, 'symbol', symbols);
+        }
+    }
+
+    async fetchIsolatedPositions (symbol = undefined, params = {}) {
+        // only supported in usdm futures
+        await this.loadMarkets ();
+        await this.loadLeverageBrackets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.dapiPrivateGetPositionRisk (this.extend (request, params));
+        if (symbol === undefined) {
+            const result = [];
+            for (let i = 0; i < response.length; i++) {
+                const parsed = this.parsePositionRisk (response[i], market);
+                if (parsed['marginType'] === 'isolated') {
+                    result.push (parsed);
+                }
+            }
+            return result;
+        } else {
+            return this.parsePositionRisk (this.safeValue (response, 0), market);
+        }
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = undefined) {
+        await this.loadMarkets ();
+        let market = undefined;
+        // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
+        const request = {
+            'incomeType': 'FUNDING_FEE',
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.dapiPrivateGetIncome (this.extend (request, params));
+        return this.parseIncomes (response, market, since, limit);
     }
 };
