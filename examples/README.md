@@ -65,6 +65,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [CCXT Crypto Bot - Order Execution with Python](https://www.youtube.com/watch?v=1PEyddA1y5E) – making a CCXT Bot on YouTube!
 
+[FTX API (Crypto Exchange) and Google Cloud Functions](https://www.youtube.com/watch?v=mtpA3vDg5js) – a video on trading with CCXT and Google Cloud Functions!
+
 [Writing a crypto trading bot](https://www.kleemans.ch/writing-a-crypto-trading-bot) – How to write an automated trading bot, for fun and profit.
 
 [graphql-ccxt](https://github.com/fibo/graphql-ccxt) – Joins together GraphQL and CCXT: can fetch prices, read balance, open orders, ... on multiple exchanges at once.
