@@ -18,6 +18,13 @@ class binancecoinm extends binance {
             ),
             'options' => array(
                 'defaultType' => 'delivery',
+                'leverageBrackets' => null,
+            ),
+            'has' => array(
+                'fetchPositions' => true,
+                'fetchIsolatedPositions' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingHistory' => true,
             ),
             // https://www.binance.com/en/fee/deliveryFee
             'fees' => array(
@@ -132,5 +139,90 @@ class binancecoinm extends binance {
         } else {
             return $this->parseFundingRate ($response);
         }
+    }
+
+    public function load_leverage_brackets($reload = false, $params = array ()) {
+        yield $this->load_markets();
+        // by default cache the leverage $bracket
+        // it contains useful stuff like the maintenance margin and initial margin for positions
+        if (($this->options['leverageBrackets'] === null) || ($reload)) {
+            $response = yield $this->dapiPrivateGetLeverageBracket ($params);
+            $this->options['leverageBrackets'] = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $marketId = $this->safe_string($entry, 'pair');
+                $normalizedMarketId = $marketId . '_PERP';
+                $symbol = $this->safe_symbol($normalizedMarketId);
+                $brackets = $this->safe_value($entry, 'brackets');
+                $result = array();
+                for ($j = 0; $j < count($brackets); $j++) {
+                    $bracket = $brackets[$j];
+                    // we use floats here internally on purpose
+                    $qtyFloor = $this->safe_float($bracket, 'qtyFloor');
+                    $maintenanceMarginPercentage = $this->safe_string($bracket, 'maintMarginRatio');
+                    $result[] = array( $qtyFloor, $maintenanceMarginPercentage );
+                }
+                $this->options['leverageBrackets'][$symbol] = $result;
+            }
+        }
+        return $this->options['leverageBrackets'];
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        yield $this->load_leverage_brackets();
+        $account = yield $this->dapiPrivateGetAccount ($params);
+        $result = $this->parseAccountPositions ($account);
+        if ($symbols === null) {
+            return $result;
+        } else {
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }
+    }
+
+    public function fetch_isolated_positions($symbol = null, $params = array ()) {
+        // only supported in usdm futures
+        yield $this->load_markets();
+        yield $this->load_leverage_brackets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = yield $this->dapiPrivateGetPositionRisk (array_merge($request, $params));
+        if ($symbol === null) {
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $parsed = $this->parsePositionRisk ($response[$i], $market);
+                if ($parsed['marginType'] === 'isolated') {
+                    $result[] = $parsed;
+                }
+            }
+            return $result;
+        } else {
+            return $this->parsePositionRisk ($this->safe_value($response, 0), $market);
+        }
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = null) {
+        yield $this->load_markets();
+        $market = null;
+        // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
+        $request = array(
+            'incomeType' => 'FUNDING_FEE',
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->dapiPrivateGetIncome (array_merge($request, $params));
+        return $this->parseIncomes ($response, $market, $since, $limit);
     }
 }

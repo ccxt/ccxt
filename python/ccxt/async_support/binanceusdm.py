@@ -15,8 +15,18 @@ class binanceusdm(binance):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg',
             },
+            'has': {
+                'fetchPositions': True,
+                'fetchIsolatedPositions': True,
+                'fetchFundingRate': True,
+                'fetchFundingHistory': True,
+            },
             'options': {
                 'defaultType': 'future',
+                # https://www.binance.com/en/support/faq/360033162192
+                # tier amount, maintenance margin, initial margin
+                'leverageBrackets': None,
+                'marginTypes': {},
             },
             # https://www.binance.com/en/fee/futureFee
             'fees': {
@@ -132,3 +142,72 @@ class binanceusdm(binance):
             return result
         else:
             return self.parseFundingRate(response)
+
+    async def load_leverage_brackets(self, reload=False, params={}):
+        await self.load_markets()
+        # by default cache the leverage bracket
+        # it contains useful stuff like the maintenance margin and initial margin for positions
+        if (self.options['leverageBrackets'] is None) or (reload):
+            response = await self.fapiPrivateGetLeverageBracket(params)
+            self.options['leverageBrackets'] = {}
+            for i in range(0, len(response)):
+                entry = response[i]
+                marketId = self.safe_string(entry, 'symbol')
+                symbol = self.safe_symbol(marketId)
+                brackets = self.safe_value(entry, 'brackets')
+                result = []
+                for j in range(0, len(brackets)):
+                    bracket = brackets[j]
+                    # we use floats here internally on purpose
+                    notionalFloor = self.safe_float(bracket, 'notionalFloor')
+                    maintenanceMarginPercentage = self.safe_string(bracket, 'maintMarginRatio')
+                    result.append([notionalFloor, maintenanceMarginPercentage])
+                self.options['leverageBrackets'][symbol] = result
+        return self.options['leverageBrackets']
+
+    async def fetch_positions(self, symbols=None, params={}):
+        await self.load_markets()
+        await self.load_leverage_brackets()
+        account = await self.fapiPrivateGetAccount(params)
+        result = self.parseAccountPositions(account)
+        if symbols is None:
+            return result
+        else:
+            return self.filter_by_array(result, 'symbol', symbols)
+
+    async def fetch_isolated_positions(self, symbol=None, params={}):
+        # only supported in usdm futures
+        await self.load_markets()
+        await self.load_leverage_brackets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = await self.fapiPrivateGetPositionRisk(self.extend(request, params))
+        if symbol is None:
+            result = []
+            for i in range(0, len(response)):
+                parsed = self.parsePositionRisk(response[i], market)
+                if parsed['marginType'] == 'isolated':
+                    result.append(parsed)
+            return result
+        else:
+            return self.parsePositionRisk(self.safe_value(response, 0), market)
+
+    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params=None):
+        await self.load_markets()
+        market = None
+        # "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
+        request = {
+            'incomeType': 'FUNDING_FEE',
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.fapiPrivateGetIncome(self.extend(request, params))
+        return self.parseIncomes(response, market, since, limit)

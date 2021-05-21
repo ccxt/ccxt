@@ -16,8 +16,18 @@ class binanceusdm extends binance {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg',
             ),
+            'has' => array(
+                'fetchPositions' => true,
+                'fetchIsolatedPositions' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingHistory' => true,
+            ),
             'options' => array(
                 'defaultType' => 'future',
+                // https://www.binance.com/en/support/faq/360033162192
+                // tier amount, maintenance margin, initial margin
+                'leverageBrackets' => null,
+                'marginTypes' => array(),
             ),
             // https://www.binance.com/en/fee/futureFee
             'fees' => array(
@@ -141,5 +151,89 @@ class binanceusdm extends binance {
         } else {
             return $this->parseFundingRate ($response);
         }
+    }
+
+    public function load_leverage_brackets($reload = false, $params = array ()) {
+        $this->load_markets();
+        // by default cache the leverage $bracket
+        // it contains useful stuff like the maintenance margin and initial margin for positions
+        if (($this->options['leverageBrackets'] === null) || ($reload)) {
+            $response = $this->fapiPrivateGetLeverageBracket ($params);
+            $this->options['leverageBrackets'] = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $marketId = $this->safe_string($entry, 'symbol');
+                $symbol = $this->safe_symbol($marketId);
+                $brackets = $this->safe_value($entry, 'brackets');
+                $result = array();
+                for ($j = 0; $j < count($brackets); $j++) {
+                    $bracket = $brackets[$j];
+                    // we use floats here internally on purpose
+                    $notionalFloor = $this->safe_float($bracket, 'notionalFloor');
+                    $maintenanceMarginPercentage = $this->safe_string($bracket, 'maintMarginRatio');
+                    $result[] = array( $notionalFloor, $maintenanceMarginPercentage );
+                }
+                $this->options['leverageBrackets'][$symbol] = $result;
+            }
+        }
+        return $this->options['leverageBrackets'];
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $this->load_leverage_brackets();
+        $account = $this->fapiPrivateGetAccount ($params);
+        $result = $this->parseAccountPositions ($account);
+        if ($symbols === null) {
+            return $result;
+        } else {
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }
+    }
+
+    public function fetch_isolated_positions($symbol = null, $params = array ()) {
+        // only supported in usdm futures
+        $this->load_markets();
+        $this->load_leverage_brackets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = $this->fapiPrivateGetPositionRisk (array_merge($request, $params));
+        if ($symbol === null) {
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $parsed = $this->parsePositionRisk ($response[$i], $market);
+                if ($parsed['marginType'] === 'isolated') {
+                    $result[] = $parsed;
+                }
+            }
+            return $result;
+        } else {
+            return $this->parsePositionRisk ($this->safe_value($response, 0), $market);
+        }
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = null) {
+        $this->load_markets();
+        $market = null;
+        // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
+        $request = array(
+            'incomeType' => 'FUNDING_FEE',
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->fapiPrivateGetIncome (array_merge($request, $params));
+        return $this->parseIncomes ($response, $market, $since, $limit);
     }
 }

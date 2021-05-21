@@ -580,10 +580,6 @@ class binance(Exchange):
                     'future': 'x-xcKtGhcu',
                     'delivery': 'x-xcKtGhcu',
                 },
-                'fetchPositions': {
-                    'future': 'fapiPrivateV2GetAccount',  # 'fapiPrivateGetPositionRisk'
-                    'delivery': 'dapiPrivateGetAccount',  # 'dapiPrivateGetPositionRisk'
-                },
                 'accountsByType': {
                     'main': 'MAIN',
                     'spot': 'MAIN',
@@ -1004,6 +1000,7 @@ class binance(Exchange):
             status = self.safe_string_2(market, 'status', 'contractStatus')
             active = (status == 'TRADING')
             margin = self.safe_value(market, 'isMarginTradingAllowed', future or delivery)
+            contractSize = self.safe_float(market, 'contractSize')
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1020,6 +1017,7 @@ class binance(Exchange):
                 'delivery': delivery,
                 'active': active,
                 'precision': precision,
+                'contractSize': contractSize,
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -precision['amount']),
@@ -2126,102 +2124,12 @@ class binance(Exchange):
         else:
             return response
 
-    async def fetch_positions(self, symbols=None, params={}):
-        await self.load_markets()
-        defaultType = self.safe_string(self.options, 'defaultType', 'future')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
-        options = self.safe_value(self.options, 'fetchPositions', {})
-        defaultMethod = 'dapiPrivateGetAccount' if (type == 'delivery') else 'fapiPrivateV2GetAccount'
-        method = self.safe_string(options, type, defaultMethod)
-        response = await getattr(self, method)(params)
-        #
-        # futures, delivery
-        #
-        #     {
-        #         "feeTier":0,
-        #         "canTrade":true,
-        #         "canDeposit":true,
-        #         "canWithdraw":true,
-        #         "updateTime":0,
-        #         "assets":[
-        #             {
-        #                 "asset":"ETH",
-        #                 "walletBalance":"0.09886711",
-        #                 "unrealizedProfit":"0.00000000",
-        #                 "marginBalance":"0.09886711",
-        #                 "maintMargin":"0.00000000",
-        #                 "initialMargin":"0.00000000",
-        #                 "positionInitialMargin":"0.00000000",
-        #                 "openOrderInitialMargin":"0.00000000",
-        #                 "maxWithdrawAmount":"0.09886711",
-        #                 "crossWalletBalance":"0.09886711",
-        #                 "crossUnPnl":"0.00000000",
-        #                 "availableBalance":"0.09886711"
-        #             }
-        #         ],
-        #         "positions":[
-        #             {
-        #                 "symbol":"BTCUSD_201225",
-        #                 "initialMargin":"0",
-        #                 "maintMargin":"0",
-        #                 "unrealizedProfit":"0.00000000",
-        #                 "positionInitialMargin":"0",
-        #                 "openOrderInitialMargin":"0",
-        #                 "leverage":"20",
-        #                 "isolated":false,
-        #                 "positionSide":"BOTH",
-        #                 "entryPrice":"0.00000000",
-        #                 "maxQty":"250",  # "maxNotional" on futures
-        #             },
-        #         ]
-        #     }
-        #
-        # fapiPrivateGetPositionRisk, dapiPrivateGetPositionRisk
-        #
-        # [
-        #   {
-        #     symbol: 'XRPUSD_210625',
-        #     positionAmt: '0',
-        #     entryPrice: '0.00000000',
-        #     markPrice: '0.00000000',
-        #     unRealizedProfit: '0.00000000',
-        #     liquidationPrice: '0',
-        #     leverage: '20',
-        #     maxQty: '500000',
-        #     marginType: 'cross',
-        #     isolatedMargin: '0.00000000',
-        #     isAutoAddMargin: 'false',
-        #     positionSide: 'BOTH',
-        #     notionalValue: '0',
-        #     isolatedWallet: '0'
-        #   },
-        #   {
-        #     symbol: 'BTCUSD_210326',
-        #     positionAmt: '1',
-        #     entryPrice: '60665.79999885',
-        #     markPrice: '60696.76856843',
-        #     unRealizedProfit: '0.00000084',
-        #     liquidationPrice: '58034.68208092',
-        #     leverage: '20',
-        #     maxQty: '50',
-        #     marginType: 'isolated',
-        #     isolatedMargin: '0.00008345',
-        #     isAutoAddMargin: 'false',
-        #     positionSide: 'BOTH',
-        #     notionalValue: '0.00164753',
-        #     isolatedWallet: '0.00008261'
-        #   },
-        # ]
-        #
-        return self.safe_value(response, 'positions', response)
-
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchMyTrades', 'defaultType', market['type'])
+        defaultType = self.safe_string_2(self.options, 'fetchMyTrades', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         method = None
@@ -2635,6 +2543,44 @@ class binance(Exchange):
             'status': status,
         }
 
+    def parse_income(self, income, market=None):
+        #
+        #     {
+        #       "symbol": "ETHUSDT",
+        #       "incomeType": "FUNDING_FEE",
+        #       "income": "0.00134317",
+        #       "asset": "USDT",
+        #       "time": "1621584000000",
+        #       "info": "FUNDING_FEE",
+        #       "tranId": "4480321991774044580",
+        #       "tradeId": ""
+        #     }
+        #
+        marketId = self.safe_string(income, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        amount = self.safe_number(income, 'income')
+        currencyId = self.safe_string(income, 'asset')
+        code = self.safe_currency_code(currencyId)
+        id = self.safe_string(income, 'tranId')
+        timestamp = self.safe_integer(income, 'time')
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': id,
+            'amount': amount,
+        }
+
+    def parse_incomes(self, incomes, market=None, since=None, limit=None):
+        result = []
+        for i in range(0, len(incomes)):
+            entry = incomes[i]
+            parsed = self.parse_income(entry, market)
+            result.append(parsed)
+        return self.filter_by_since_limit(result, since, limit, 'timestamp')
+
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         await self.load_markets()
         currency = self.currency(code)
@@ -3034,4 +2980,273 @@ class binance(Exchange):
             'fundingRate': fundingRate,
             'nextFundingTimestamp': nextFundingTime,
             'nextFundingDatetime': self.iso8601(nextFundingTime),
+        }
+
+    def parse_account_positions(self, account):
+        positions = self.safe_value(account, 'positions')
+        assets = self.safe_value(account, 'assets')
+        balances = {}
+        for i in range(0, len(assets)):
+            entry = assets[i]
+            currencyId = self.safe_string(entry, 'asset')
+            code = self.safe_currency_code(currencyId)
+            crossWalletBalance = self.safe_string(entry, 'crossWalletBalance')
+            crossUnPnl = self.safe_string(entry, 'crossUnPnl')
+            balances[code] = Precise.string_add(crossWalletBalance, crossUnPnl)
+        result = []
+        for i in range(0, len(positions)):
+            position = positions[i]
+            marketId = self.safe_string(position, 'symbol')
+            market = self.safe_market(marketId)
+            code = market['quote'] if (self.options['defaultType'] == 'future') else market['base']
+            parsed = self.parse_position(self.extend(position, {
+                'crossMargin': balances[code],
+            }), market)
+            result.append(parsed)
+        return result
+
+    def parse_position(self, position, market=None):
+        #
+        # usdm
+        #    {
+        #       "symbol": "BTCBUSD",
+        #       "initialMargin": "0",
+        #       "maintMargin": "0",
+        #       "unrealizedProfit": "0.00000000",
+        #       "positionInitialMargin": "0",
+        #       "openOrderInitialMargin": "0",
+        #       "leverage": "20",
+        #       "isolated": False,
+        #       "entryPrice": "0.0000",
+        #       "maxNotional": "100000",
+        #       "positionSide": "BOTH",
+        #       "positionAmt": "0.000",
+        #       "notional": "0",
+        #       "isolatedWallet": "0",
+        #       "updateTime": "0",
+        #       "crossMargin": "100.93634809",
+        #     }
+        #
+        # coinm
+        #     {
+        #       "symbol": "BTCUSD_210625",
+        #       "initialMargin": "0.00024393",
+        #       "maintMargin": "0.00002439",
+        #       "unrealizedProfit": "-0.00000163",
+        #       "positionInitialMargin": "0.00024393",
+        #       "openOrderInitialMargin": "0",
+        #       "leverage": "10",
+        #       "isolated": False,
+        #       "positionSide": "BOTH",
+        #       "entryPrice": "41021.20000069",
+        #       "maxQty": "100",
+        #       "notionalValue": "0.00243939",
+        #       "isolatedWallet": "0",
+        #       "crossMargin": "0.314"
+        #     }
+        #
+        marketId = self.safe_string(position, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        normalizedSymbol = None
+        if market['delivery']:
+            normalizedSymbol = market['base'] + '/' + market['quote']
+        else:
+            normalizedSymbol = symbol
+        leverageString = self.safe_string(position, 'leverage')
+        leverage = int(leverageString)
+        initialMarginString = self.safe_string(position, 'initialMargin')
+        initialMargin = self.parse_number(initialMarginString)
+        initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
+        rational = (1000 % leverage) == 0
+        if not rational:
+            initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
+        maintenanceMarginString = self.safe_string(position, 'maintMargin')
+        maintenanceMargin = self.parse_number(maintenanceMarginString)
+        entryPriceString = self.safe_string(position, 'entryPrice')
+        entryPriceFloat = float(entryPriceString)
+        entryPrice = self.parse_number(entryPriceString)
+        notionalString = self.safe_string_2(position, 'notional', 'notionalValue')
+        notionalStringAbs = Precise.string_abs(notionalString)
+        notionalFloat = float(notionalString)
+        notionalFloatAbs = float(notionalStringAbs)
+        notional = self.parse_number(Precise.string_abs(notionalString))
+        contractsString = self.safe_string(position, 'positionAmt')
+        if contractsString is None:
+            contractsString = int(round(notionalFloat * entryPriceFloat / str(market['contractSize'])))
+        contracts = self.parse_number(Precise.string_abs(contractsString))
+        leverageBracket = self.options['leverageBrackets'][normalizedSymbol]
+        maintenanceMarginPercentageString = None
+        for i in range(0, len(leverageBracket)):
+            bracket = leverageBracket[i]
+            if notionalFloatAbs < bracket[0]:
+                break
+            maintenanceMarginPercentageString = bracket[1]
+        maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
+        unrealizedPnlString = self.safe_string(position, 'unrealizedProfit')
+        unrealizedPnl = self.parse_number(unrealizedPnlString)
+        timestamp = self.safe_integer(position, 'updateTime')
+        if timestamp == 0:
+            timestamp = None
+        isolated = self.safe_value(position, 'isolated')
+        marginType = None
+        collateralString = None
+        if isolated:
+            marginType = 'isolated'
+            walletBalance = self.safe_string(position, 'isolatedWallet')
+            collateralString = Precise.string_add(walletBalance, unrealizedPnlString)
+        else:
+            marginType = 'cross'
+            collateralString = self.safe_string(position, 'crossMargin')
+        collateral = self.parse_number(collateralString)
+        marginRatio = None
+        side = None
+        percentage = None
+        if notionalFloat == 0.0:
+            entryPrice = None
+        else:
+            side = 'short' if (notionalFloat < 0) else 'long'
+            marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
+            percentage = self.parse_number(Precise.string_div(unrealizedPnlString, initialMarginString, 4))
+        return {
+            'info': position,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'initialMargin': initialMargin,
+            'initialMarginPercentage': self.parse_number(initialMarginPercentageString),
+            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'entryPrice': entryPrice,
+            'notional': notional,
+            'leverage': leverage,
+            'unrealizedPnl': unrealizedPnl,
+            'contracts': contracts,
+            'marginRatio': marginRatio,
+            'liquidationPrice': None,
+            'markPrice': None,
+            'collateral': collateral,
+            'marginType': marginType,
+            'side': side,
+            'percentage': percentage,
+        }
+
+    def parse_position_risk(self, position, market=None):
+        #
+        # usdm
+        #     {
+        #       "symbol": "BTCUSDT",
+        #       "positionAmt": "0.001",
+        #       "entryPrice": "43578.07000",
+        #       "markPrice": "43532.30000000",
+        #       "unRealizedProfit": "-0.04577000",
+        #       "liquidationPrice": "21841.24993976",
+        #       "leverage": "2",
+        #       "maxNotionalValue": "300000000",
+        #       "marginType": "isolated",
+        #       "isolatedMargin": "21.77841506",
+        #       "isAutoAddMargin": "false",
+        #       "positionSide": "BOTH",
+        #       "notional": "43.53230000",
+        #       "isolatedWallet": "21.82418506",
+        #       "updateTime": "1621358023886"
+        #     }
+        #
+        # coinm
+        #     {
+        #       "symbol": "BTCUSD_PERP",
+        #       "positionAmt": "2",
+        #       "entryPrice": "37643.10000021",
+        #       "markPrice": "38103.05510455",
+        #       "unRealizedProfit": "0.00006413",
+        #       "liquidationPrice": "25119.97445760",
+        #       "leverage": "2",
+        #       "maxQty": "1500",
+        #       "marginType": "isolated",
+        #       "isolatedMargin": "0.00274471",
+        #       "isAutoAddMargin": "false",
+        #       "positionSide": "BOTH",
+        #       "notionalValue": "0.00524892",
+        #       "isolatedWallet": "0.00268058"
+        #     }
+        #
+        marketId = self.safe_string(position, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        normalizedSymbol = None
+        if market['delivery']:
+            normalizedSymbol = market['base'] + '/' + market['quote']
+        else:
+            normalizedSymbol = symbol
+        leverageBracket = self.options['leverageBrackets'][normalizedSymbol]
+        notionalString = self.safe_string_2(position, 'notional', 'notionalValue')
+        notionalStringAbs = Precise.string_abs(notionalString)
+        notionalFloatAbs = float(notionalStringAbs)
+        notionalFloat = float(notionalString)
+        maintenanceMarginPercentageString = None
+        for i in range(0, len(leverageBracket)):
+            bracket = leverageBracket[i]
+            if notionalFloatAbs < bracket[0]:
+                break
+            maintenanceMarginPercentageString = bracket[1]
+        notional = self.parse_number(notionalStringAbs)
+        contractsAbs = Precise.string_abs(self.safe_string(position, 'positionAmt'))
+        contracts = self.parse_number(contractsAbs)
+        unrealizedPnlString = self.safe_string(position, 'unRealizedProfit')
+        unrealizedPnl = self.parse_number(unrealizedPnlString)
+        leverageString = self.safe_string(position, 'leverage')
+        leverage = int(leverageString)
+        liquidationPrice = self.safe_number(position, 'liquidationPrice')
+        collateralString = self.safe_string(position, 'isolatedMargin')
+        collateralFloat = float(collateralString)
+        collateral = self.parse_number(collateralString)
+        markPriceString = self.safe_string(position, 'markPrice')
+        markPriceFloat = float(markPriceString)
+        markPrice = None
+        if markPriceFloat != 0.0:
+            markPrice = self.parse_number(markPriceString)
+        entryPrice = self.safe_number(position, 'entryPrice')
+        timestamp = self.safe_integer(position, 'updateTime')
+        maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
+        maintenanceMarginString = Precise.string_mul(maintenanceMarginPercentageString, notionalStringAbs)
+        maintenanceMargin = self.parse_number(maintenanceMarginString)
+        initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
+        rational = (1000 % leverage) == 0
+        if not rational:
+            initialMarginPercentageString = Precise.string_add(initialMarginPercentageString, '1e-8')
+        initialMarginString = Precise.string_div(Precise.string_mul(notionalStringAbs, initialMarginPercentageString), '1', 8)
+        initialMargin = self.parse_number(initialMarginString)
+        marginRatio = None
+        side = None
+        percentage = None
+        if collateralFloat == 0.0:
+            collateral = None
+        else:
+            marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
+            side = 'short' if (notionalFloat < 0) else 'long'
+            percentage = self.parse_number(Precise.string_div(unrealizedPnlString, initialMarginString, 4))
+        marginType = self.safe_string(position, 'marginType')
+        if marginType == 'cross':
+            liquidationPrice = None
+        return {
+            'info': position,
+            'symbol': symbol,
+            'contracts': contracts,
+            'unrealizedPnl': unrealizedPnl,
+            'leverage': leverage,
+            'liquidationPrice': liquidationPrice,
+            'collateral': collateral,
+            'notional': notional,
+            'markPrice': markPrice,
+            'entryPrice': entryPrice,
+            'timestamp': timestamp,
+            'initialMargin': initialMargin,
+            'initialMarginPercentage': self.parse_number(initialMarginPercentageString),
+            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'marginRatio': marginRatio,
+            'datetime': self.iso8601(timestamp),
+            'marginType': marginType,
+            'side': side,
+            'percentage': percentage,
         }
