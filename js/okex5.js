@@ -1322,49 +1322,7 @@ module.exports = class okex5 extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseSwapBalance (response) {
-        //
-        //     {
-        //         "info": [
-        //             {
-        //                 "equity":"3.0139",
-        //                 "fixed_balance":"0.0000",
-        //                 "instrument_id":"EOS-USD-SWAP",
-        //                 "margin":"0.5523",
-        //                 "margin_frozen":"0.0000",
-        //                 "margin_mode":"crossed",
-        //                 "margin_ratio":"1.0913",
-        //                 "realized_pnl":"-0.0006",
-        //                 "timestamp":"2019-03-25T03:46:10.336Z",
-        //                 "total_avail_balance":"3.0000",
-        //                 "unrealized_pnl":"0.0145"
-        //             }
-        //         ]
-        //     }
-        //
-        // their root field name is "info", so our info will contain their info
-        const result = { 'info': response };
-        let timestamp = undefined;
-        const info = this.safeValue (response, 'info', []);
-        for (let i = 0; i < info.length; i++) {
-            const balance = info[i];
-            const marketId = this.safeString (balance, 'instrument_id');
-            let symbol = marketId;
-            if (marketId in this.markets_by_id) {
-                symbol = this.markets_by_id[marketId]['symbol'];
-            }
-            const balanceTimestamp = this.parse8601 (this.safeString (balance, 'timestamp'));
-            timestamp = (timestamp === undefined) ? balanceTimestamp : Math.max (timestamp, balanceTimestamp);
-            const account = this.account ();
-            // it may be incorrect to use total, free and used for swap accounts
-            account['total'] = this.safeNumber (balance, 'equity');
-            account['free'] = this.safeNumber (balance, 'total_avail_balance');
-            result[symbol] = account;
-        }
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601 (timestamp);
-        return this.parseBalance (result);
-    }
+
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
@@ -1417,39 +1375,23 @@ module.exports = class okex5 extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        let timestamp = undefined;
-        // const info = this.safeValue (response, 'info', []);
-        // for (let i = 0; i < info.length; i++) {
-        //     const balance = info[i];
-        //     const marketId = this.safeString (balance, 'instrument_id');
-        //     let symbol = marketId;
-        //     if (marketId in this.markets_by_id) {
-        //         symbol = this.markets_by_id[marketId]['symbol'];
-        //     }
-        //     const balanceTimestamp = this.parse8601 (this.safeString (balance, 'timestamp'));
-        //     timestamp = (timestamp === undefined) ? balanceTimestamp : Math.max (timestamp, balanceTimestamp);
-        //     const account = this.account ();
-        //     // it may be incorrect to use total, free and used for swap accounts
-        //     account['total'] = this.safeString (balance, 'equity');
-        //     account['free'] = this.safeString (balance, 'total_avail_balance');
-        //     result[symbol] = account;
-        // }
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0, {});
+        const timestamp = this.safeInteger (first, 'uTime');
+        const details = this.safeValue (first, 'details', []);
+        for (let i = 0; i < details.length; i++) {
+            const balance = details[i];
+            const currencyId = this.safeString (balance, 'ccy');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            // it may be incorrect to use total, free and used for swap accounts
+            account['total'] = this.safeString (balance, 'eq');
+            account['free'] = this.safeString (balance, 'availEq');
+            result[code] = account;
+        }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
         return this.parseBalance (result, false);
-    }
-
-    parseBalanceByType (type, response) {
-        if ((type === 'account') || (type === 'spot')) {
-            return this.parseAccountBalance (response);
-        } else if (type === 'margin') {
-            return this.parseMarginBalance (response);
-        } else if (type === 'futures') {
-            return this.parseFuturesBalance (response);
-        } else if (type === 'swap') {
-            return this.parseSwapBalance (response);
-        }
-        throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
