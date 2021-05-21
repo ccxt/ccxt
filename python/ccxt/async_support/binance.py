@@ -1562,7 +1562,8 @@ class binance(Exchange):
         price = self.parse_number(priceString)
         amount = self.parse_number(amountString)
         cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        id = self.safe_string_2(trade, 'a', 'id')
+        id = self.safe_string_2(trade, 't', 'a')
+        id = self.safe_string(trade, 'id', id)
         side = None
         orderId = self.safe_string(trade, 'orderId')
         if 'm' in trade:
