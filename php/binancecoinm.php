@@ -146,13 +146,12 @@ class binancecoinm extends binance {
         // by default cache the leverage $bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
         if (($this->options['leverageBrackets'] === null) || ($reload)) {
-            $response = $this->dapiPrivateGetLeverageBracket ($params);
+            $response = $this->dapiPrivateV2GetLeverageBracket ($params);
             $this->options['leverageBrackets'] = array();
             for ($i = 0; $i < count($response); $i++) {
                 $entry = $response[$i];
-                $marketId = $this->safe_string($entry, 'pair');
-                $normalizedMarketId = $marketId . '_PERP';
-                $symbol = $this->safe_symbol($normalizedMarketId);
+                $marketId = $this->safe_string($entry, 'symbol');
+                $symbol = $this->safe_symbol($marketId);
                 $brackets = $this->safe_value($entry, 'brackets');
                 $result = array();
                 for ($j = 0; $j < count($brackets); $j++) {

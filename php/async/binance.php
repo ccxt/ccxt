@@ -92,6 +92,7 @@ class binance extends Exchange {
                     'sapi' => 'https://api.binance.com/sapi/v1',
                     'dapiPublic' => 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate' => 'https://dapi.binance.com/dapi/v1',
+                    'dapiPrivateV2' => 'https://dapi.binance.com/dapi/v2',
                     'dapiData' => 'https://dapi.binance.com/futures/data',
                     'fapiPublic' => 'https://fapi.binance.com/fapi/v1',
                     'fapiPrivate' => 'https://fapi.binance.com/fapi/v1',
@@ -396,6 +397,11 @@ class binance extends Exchange {
                         'allOpenOrders',
                         'batchOrders',
                         'listenKey',
+                    ),
+                ),
+                'dapiPrivateV2' => array(
+                    'get' => array(
+                        'leverageBracket',
                     ),
                 ),
                 'fapiPublic' => array(
@@ -2991,7 +2997,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } else if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
+        } else if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
             $query = null;
             $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
@@ -3231,12 +3237,6 @@ class binance extends Exchange {
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $normalizedSymbol = null;
-        if ($market['delivery']) {
-            $normalizedSymbol = $market['base'] . '/' . $market['quote'];
-        } else {
-            $normalizedSymbol = $symbol;
-        }
         $leverageString = $this->safe_string($position, 'leverage');
         $leverage = intval($leverageString);
         $initialMarginString = $this->safe_string($position, 'initialMargin');
@@ -3261,7 +3261,7 @@ class binance extends Exchange {
             $contractsString = (int) round($notionalFloat * $entryPriceFloat / (string) $market['contractSize']);
         }
         $contracts = $this->parse_number(Precise::string_abs($contractsString));
-        $leverageBracket = $this->options['leverageBrackets'][$normalizedSymbol];
+        $leverageBracket = $this->options['leverageBrackets'][$symbol];
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
@@ -3365,13 +3365,7 @@ class binance extends Exchange {
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $normalizedSymbol = null;
-        if ($market['delivery']) {
-            $normalizedSymbol = $market['base'] . '/' . $market['quote'];
-        } else {
-            $normalizedSymbol = $symbol;
-        }
-        $leverageBracket = $this->options['leverageBrackets'][$normalizedSymbol];
+        $leverageBracket = $this->options['leverageBrackets'][$symbol];
         $notionalString = $this->safe_string_2($position, 'notional', 'notionalValue');
         $notionalStringAbs = Precise::string_abs($notionalString);
         $notionalFloatAbs = floatval($notionalStringAbs);

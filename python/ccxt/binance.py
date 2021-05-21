@@ -104,6 +104,7 @@ class binance(Exchange):
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
+                    'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
@@ -408,6 +409,11 @@ class binance(Exchange):
                         'allOpenOrders',
                         'batchOrders',
                         'listenKey',
+                    ],
+                },
+                'dapiPrivateV2': {
+                    'get': [
+                        'leverageBracket',
                     ],
                 },
                 'fapiPublic': {
@@ -2837,7 +2843,7 @@ class binance(Exchange):
                     body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+        elif (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
             recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
@@ -3048,11 +3054,6 @@ class binance(Exchange):
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        normalizedSymbol = None
-        if market['delivery']:
-            normalizedSymbol = market['base'] + '/' + market['quote']
-        else:
-            normalizedSymbol = symbol
         leverageString = self.safe_string(position, 'leverage')
         leverage = int(leverageString)
         initialMarginString = self.safe_string(position, 'initialMargin')
@@ -3075,7 +3076,7 @@ class binance(Exchange):
         if contractsString is None:
             contractsString = int(round(notionalFloat * entryPriceFloat / str(market['contractSize'])))
         contracts = self.parse_number(Precise.string_abs(contractsString))
-        leverageBracket = self.options['leverageBrackets'][normalizedSymbol]
+        leverageBracket = self.options['leverageBrackets'][symbol]
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
@@ -3173,12 +3174,7 @@ class binance(Exchange):
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        normalizedSymbol = None
-        if market['delivery']:
-            normalizedSymbol = market['base'] + '/' + market['quote']
-        else:
-            normalizedSymbol = symbol
-        leverageBracket = self.options['leverageBrackets'][normalizedSymbol]
+        leverageBracket = self.options['leverageBrackets'][symbol]
         notionalString = self.safe_string_2(position, 'notional', 'notionalValue')
         notionalStringAbs = Precise.string_abs(notionalString)
         notionalFloatAbs = float(notionalStringAbs)

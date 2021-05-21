@@ -136,13 +136,12 @@ class binancecoinm(binance):
         # by default cache the leverage bracket
         # it contains useful stuff like the maintenance margin and initial margin for positions
         if (self.options['leverageBrackets'] is None) or (reload):
-            response = self.dapiPrivateGetLeverageBracket(params)
+            response = self.dapiPrivateV2GetLeverageBracket(params)
             self.options['leverageBrackets'] = {}
             for i in range(0, len(response)):
                 entry = response[i]
-                marketId = self.safe_string(entry, 'pair')
-                normalizedMarketId = marketId + '_PERP'
-                symbol = self.safe_symbol(normalizedMarketId)
+                marketId = self.safe_string(entry, 'symbol')
+                symbol = self.safe_symbol(marketId)
                 brackets = self.safe_value(entry, 'brackets')
                 result = []
                 for j in range(0, len(brackets)):
