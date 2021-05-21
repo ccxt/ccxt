@@ -568,7 +568,9 @@ class coinbasepro(Exchange):
         side = 'sell' if (trade['side'] == 'buy') else 'buy'
         orderId = self.safe_string(trade, 'order_id')
         # Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
-        if orderId is not None:
+        makerOrderId = self.safe_string(trade, 'makerOrderId')
+        takerOrderId = self.safe_string(trade, 'takerOrderId')
+        if (orderId is not None) or ((makerOrderId is not None) and (takerOrderId is not None)):
             side = 'buy' if (trade['side'] == 'buy') else 'sell'
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
