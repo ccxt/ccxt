@@ -22,12 +22,14 @@ module.exports = class okex5 extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': false, // see below
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchMarkets': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '1m',
