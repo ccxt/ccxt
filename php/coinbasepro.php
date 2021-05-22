@@ -566,8 +566,8 @@ class coinbasepro extends Exchange {
         $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
         $orderId = $this->safe_string($trade, 'order_id');
         // Coinbase Pro returns inverted $side to fetchMyTrades vs fetchTrades
-        $makerOrderId = $this->safe_string($trade, 'makerOrderId');
-        $takerOrderId = $this->safe_string($trade, 'takerOrderId');
+        $makerOrderId = $this->safe_string($trade, 'maker_order_id');
+        $takerOrderId = $this->safe_string($trade, 'taker_order_id');
         if (($orderId !== null) || (($makerOrderId !== null) && ($takerOrderId !== null))) {
             $side = ($trade['side'] === 'buy') ? 'buy' : 'sell';
         }
