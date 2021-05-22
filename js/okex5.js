@@ -6,6 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
+const string = require('./base/functions/string');
 
 //  ---------------------------------------------------------------------------
 
@@ -1893,7 +1894,8 @@ module.exports = class okex5 extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTransactions (response, currency, since, limit, params);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, params);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1947,7 +1949,8 @@ module.exports = class okex5 extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTransactions (response, currency, since, limit, params);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, params);
     }
 
     parseTransactionStatus (status) {
@@ -1956,22 +1959,22 @@ module.exports = class okex5 extends Exchange {
         //
         //     {
         //         '0': 'waiting for confirmation',
-        //         '1': 'confirmation account',
-        //         '2': 'recharge success'
+        //         '1': 'deposit credited',
+        //         '2': 'deposit successful'
         //     }
         //
         // withdrawal statuses
         //
         //     {
         //        '-3': 'pending cancel',
-        //        '-2': 'cancelled',
+        //        '-2': 'canceled',
         //        '-1': 'failed',
         //         '0': 'pending',
         //         '1': 'sending',
         //         '2': 'sent',
-        //         '3': 'email confirmation',
-        //         '4': 'manual confirmation',
-        //         '5': 'awaiting identity confirmation'
+        //         '3': 'awaiting email verification',
+        //         '4': 'awaiting manual verification',
+        //         '5': 'awaiting identity verification'
         //     }
         //
         const statuses = {
@@ -2009,6 +2012,9 @@ module.exports = class okex5 extends Exchange {
         //         "ccy": "ETH",
         //         "from": "13426335357",
         //         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+        //         'tag': string,
+        //         'pmtId': string,
+        //         'memo': string,
         //         "ts": "1597026383085",
         //         "state": "2"
         //     }
@@ -2028,40 +2034,31 @@ module.exports = class okex5 extends Exchange {
         //
         let type = undefined;
         let id = undefined;
-        let address = undefined;
-        const withdrawalId = this.safeString (transaction, 'withdrawal_id');
+        const withdrawalId = this.safeString (transaction, 'wdId');
         const addressFrom = this.safeString (transaction, 'from');
         const addressTo = this.safeString (transaction, 'to');
-        const tagTo = this.safeString (transaction, 'tag');
+        const address = addressTo;
+        let tagTo = this.safeString2 (transaction, 'tag', 'memo');
+        tagTo = this.safeString2 (transaction, 'pmtId', tagTo);
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
             id = withdrawalId;
-            address = addressTo;
         } else {
             // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
-            id = this.safeString2 (transaction, 'payment_id', 'deposit_id');
+            id = this.safeString (transaction, 'depId');
             type = 'deposit';
-            address = addressTo;
         }
-        const currencyId = this.safeString (transaction, 'currency');
+        const currencyId = this.safeString (transaction, 'ccy');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeNumber (transaction, 'amount');
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const txid = this.safeString (transaction, 'txid');
-        const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
+        const amount = this.safeNumber (transaction, 'amt');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const txid = this.safeString (transaction, 'txId');
+        const timestamp = this.safeInteger (transaction, 'ts');
         let feeCost = undefined;
         if (type === 'deposit') {
             feeCost = 0;
         } else {
-            if (currencyId !== undefined) {
-                const feeWithCurrencyId = this.safeString (transaction, 'fee');
-                if (feeWithCurrencyId !== undefined) {
-                    // https://github.com/ccxt/ccxt/pull/5748
-                    const lowercaseCurrencyId = currencyId.toLowerCase ();
-                    const feeWithoutCurrencyId = feeWithCurrencyId.replace (lowercaseCurrencyId, '');
-                    feeCost = parseFloat (feeWithoutCurrencyId);
-                }
-            }
+            feeCost = this.safeNumber (transaction, 'fee');
         }
         // todo parse tags
         return {
