@@ -673,10 +673,10 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    async fetchOrdersTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'order-id': id,
+            'id': id,
         };
         const response = await this.privateGetOrderMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], undefined, since, limit);
