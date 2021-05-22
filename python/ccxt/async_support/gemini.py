@@ -457,7 +457,7 @@ class gemini(Exchange):
             if average is not None:
                 cost = filled * average
         type = self.safe_string(order, 'type')
-        if type == 'exchange limit':
+        if type == 'exchange limit' or type.upper() == 'INSTANT':
             type = 'limit'
         elif type == 'market buy' or type == 'market sell':
             type = 'market'

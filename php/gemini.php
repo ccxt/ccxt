@@ -462,7 +462,7 @@ class gemini extends Exchange {
             }
         }
         $type = $this->safe_string($order, 'type');
-        if ($type === 'exchange limit') {
+        if ($type === 'exchange limit' || strtoupper($type) === 'INSTANT') {
             $type = 'limit';
         } else if ($type === 'market buy' || $type === 'market sell') {
             $type = 'market';
