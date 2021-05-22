@@ -677,10 +677,10 @@ class huobipro extends Exchange {
         );
     }
 
-    public function fetch_orders_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'order-id' => $id,
+            'id' => $id,
         );
         $response = $this->privateGetOrderMatchresults (array_merge($request, $params));
         return $this->parse_trades($response['data'], null, $since, $limit);

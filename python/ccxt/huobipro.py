@@ -659,10 +659,10 @@ class huobipro(Exchange):
             'fee': fee,
         }
 
-    def fetch_orders_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
-            'order-id': id,
+            'id': id,
         }
         response = self.privateGetOrderMatchresults(self.extend(request, params))
         return self.parse_trades(response['data'], None, since, limit)

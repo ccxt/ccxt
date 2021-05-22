@@ -659,10 +659,10 @@ class huobipro(Exchange):
             'fee': fee,
         }
 
-    async def fetch_orders_trades(self, id, symbol=None, since=None, limit=None, params={}):
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
-            'order-id': id,
+            'id': id,
         }
         response = await self.privateGetOrderMatchresults(self.extend(request, params))
         return self.parse_trades(response['data'], None, since, limit)
