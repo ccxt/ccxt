@@ -2928,8 +2928,7 @@ module.exports = class binance extends Exchange {
         //       }
         //     ]
         //
-        const tradeFee = this.safeValue (response, 'tradeFee', []);
-        const first = this.safeValue (tradeFee, 0, {});
+        const first = this.safeValue (response, 0, {});
         return this.parseTradingFee (first);
     }
 
