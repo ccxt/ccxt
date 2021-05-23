@@ -89,7 +89,7 @@ module.exports = class cex extends Exchange {
                         'open_position/{pair}/',
                         'open_positions/{pair}/',
                         'place_order/{pair}/',
-                        'raw_tx_history'
+                        'raw_tx_history',
                     ],
                 },
             },
