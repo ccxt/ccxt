@@ -238,7 +238,7 @@ module.exports = class binanceusdm extends binance {
         return this.parseIncomes (response, market, since, limit);
     }
 
-    async changeLeverage (symbol, leverage, params = {}) {
+    async setLeverage (symbol, leverage, params = {}) {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 125)) {
