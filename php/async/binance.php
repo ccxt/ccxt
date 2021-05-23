@@ -2934,8 +2934,7 @@ class binance extends Exchange {
         //       }
         //     )
         //
-        $tradeFee = $this->safe_value($response, 'tradeFee', array());
-        $first = $this->safe_value($tradeFee, 0, array());
+        $first = $this->safe_value($response, 0, array());
         return $this->parse_trading_fee($first);
     }
 

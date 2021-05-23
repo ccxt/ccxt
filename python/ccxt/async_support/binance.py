@@ -2789,8 +2789,7 @@ class binance(Exchange):
         #       }
         #     ]
         #
-        tradeFee = self.safe_value(response, 'tradeFee', [])
-        first = self.safe_value(tradeFee, 0, {})
+        first = self.safe_value(response, 0, {})
         return self.parse_trading_fee(first)
 
     async def fetch_trading_fees(self, params={}):
