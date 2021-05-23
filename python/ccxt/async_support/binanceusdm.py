@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.binance import binance
+from ccxt.base.errors import BadRequest
 
 
 class binanceusdm(binance):
@@ -20,6 +21,8 @@ class binanceusdm(binance):
                 'fetchIsolatedPositions': True,
                 'fetchFundingRate': True,
                 'fetchFundingHistory': True,
+                'setLeverage': True,
+                'setMode': True,
             },
             'options': {
                 'defaultType': 'future',
@@ -173,7 +176,7 @@ class binanceusdm(binance):
         if symbols is None:
             return result
         else:
-            return self.filter_by_array(result, 'symbol', symbols)
+            return self.filter_by_array(result, 'symbol', symbols, False)
 
     async def fetch_isolated_positions(self, symbol=None, params={}):
         # only supported in usdm futures
@@ -211,3 +214,35 @@ class binanceusdm(binance):
             request['limit'] = limit
         response = await self.fapiPrivateGetIncome(self.extend(request, params))
         return self.parseIncomes(response, market, since, limit)
+
+    async def set_leverage(self, symbol, leverage, params={}):
+        # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (leverage < 1) or (leverage > 125):
+            raise BadRequest(self.id + ' leverage should be between 1 and 125')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        }
+        return await self.fapiPrivatePostLeverage(self.extend(request, params))
+
+    async def set_mode(self, symbol, marginType, params={}):
+        #
+        # {"code": -4048 , "msg": "Margin type cannot be changed if there exists position."}
+        #
+        # or
+        #
+        # {"code": 200, "msg": "success"}
+        #
+        marginType = marginType.upper()
+        if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
+            raise BadRequest(self.id + ' marginType must be either isolated or crossed')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'marginType': marginType,
+        }
+        return await self.fapiPrivatePostMarginType(self.extend(request, params))

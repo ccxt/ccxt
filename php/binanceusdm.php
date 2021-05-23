@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\BadRequest;
 
 class binanceusdm extends binance {
 
@@ -21,6 +22,8 @@ class binanceusdm extends binance {
                 'fetchIsolatedPositions' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingHistory' => true,
+                'setLeverage' => true,
+                'setMode' => true,
             ),
             'options' => array(
                 'defaultType' => 'future',
@@ -187,7 +190,7 @@ class binanceusdm extends binance {
         if ($symbols === null) {
             return $result;
         } else {
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array($result, 'symbol', $symbols, false);
         }
     }
 
@@ -235,5 +238,41 @@ class binanceusdm extends binance {
         }
         $response = $this->fapiPrivateGetIncome (array_merge($request, $params));
         return $this->parseIncomes ($response, $market, $since, $limit);
+    }
+
+    public function set_leverage($symbol, $leverage, $params = array ()) {
+        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (($leverage < 1) || ($leverage > 125)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage' => $leverage,
+        );
+        return $this->fapiPrivatePostLeverage (array_merge($request, $params));
+    }
+
+    public function set_mode($symbol, $marginType, $params = array ()) {
+        //
+        // array( "code" => -4048 , "msg" => "Margin type cannot be changed if there exists position." )
+        //
+        // or
+        //
+        // array( "code" => 200, "msg" => "success" )
+        //
+        $marginType = strtoupper($marginType);
+        if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
+            throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'marginType' => $marginType,
+        );
+        return $this->fapiPrivatePostMarginType (array_merge($request, $params));
     }
 }
