@@ -176,7 +176,7 @@ module.exports = class binancecoinm extends binance {
         if (symbols === undefined) {
             return result;
         } else {
-            return this.filterByArray (result, 'symbol', symbols, false)
+            return this.filterByArray (result, 'symbol', symbols, false);
         }
     }
 
