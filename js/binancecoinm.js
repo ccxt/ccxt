@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const binance = require ('./binance.js');
+const { BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -23,6 +24,8 @@ module.exports = class binancecoinm extends binance {
                 'fetchIsolatedPositions': true,
                 'fetchFundingRate': true,
                 'fetchFundingHistory': true,
+                'setLeverage': true,
+                'setMode': true,
             },
             // https://www.binance.com/en/fee/deliveryFee
             'fees': {
@@ -173,7 +176,7 @@ module.exports = class binancecoinm extends binance {
         if (symbols === undefined) {
             return result;
         } else {
-            return this.filterByArray (result, 'symbol', symbols);
+            return this.filterByArray (result, 'symbol', symbols, false)
         }
     }
 
@@ -221,5 +224,41 @@ module.exports = class binancecoinm extends binance {
         }
         const response = await this.dapiPrivateGetIncome (this.extend (request, params));
         return this.parseIncomes (response, market, since, limit);
+    }
+
+    async setLeverage (symbol, leverage, params = {}) {
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if ((leverage < 1) || (leverage > 125)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 125');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        return await this.dapiPrivatePostLeverage (this.extend (request, params));
+    }
+
+    async setMode (symbol, marginType, params = {}) {
+        //
+        // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
+        //
+        // or
+        //
+        // { "code": 200, "msg": "success" }
+        //
+        marginType = marginType.toUpperCase ();
+        if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
+            throw new BadRequest (this.id + ' marginType must be either isolated or crossed');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'marginType': marginType,
+        };
+        return await this.dapiPrivatePostMarginType (this.extend (request, params));
     }
 };
