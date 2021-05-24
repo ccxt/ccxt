@@ -458,7 +458,7 @@ module.exports = class gemini extends Exchange {
             }
         }
         let type = this.safeString (order, 'type');
-        if (type === 'exchange limit') {
+        if (type === 'exchange limit' || type.toUpperCase () === 'INSTANT') {
             type = 'limit';
         } else if (type === 'market buy' || type === 'market sell') {
             type = 'market';
