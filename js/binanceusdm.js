@@ -151,11 +151,7 @@ module.exports = class binanceusdm extends binance {
             const parsed = this.parseFundingRate (entry);
             result.push (parsed);
         }
-        if (symbols === undefined) {
-            return result;
-        } else {
-            return this.filterByArray (result, 'symbol', symbols, false);
-        }
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     async loadLeverageBrackets (reload = false, params = {}) {
