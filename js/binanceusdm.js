@@ -120,7 +120,7 @@ module.exports = class binanceusdm extends binance {
         return await this.futuresTransfer (code, amount, 2, params);
     }
 
-    async fetchFundingRate (symbol = undefined, params = undefined) {
+    async fetchFundingRate (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -217,7 +217,7 @@ module.exports = class binanceusdm extends binance {
         }
     }
 
-    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = undefined) {
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
