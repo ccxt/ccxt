@@ -142,7 +142,7 @@ module.exports = class binancecoinm extends binance {
             const parsed = this.parseFundingRate (entry);
             result.push (parsed);
         }
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async loadLeverageBrackets (reload = false, params = {}) {
