@@ -1293,11 +1293,10 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
-        const type = this.safeString (this.options, 'defaultType', 'spot');
         let method = 'publicGetDepth';
-        if (type === 'future') {
+        if (market['linear']) {
             method = 'fapiPublicGetDepth';
-        } else if (type === 'delivery') {
+        } else if (market['inverse']) {
             method = 'dapiPublicGetDepth';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1885,7 +1884,7 @@ module.exports = class binance extends Exchange {
         let method = 'privatePostOrder';
         if (orderType === 'future') {
             method = 'fapiPrivatePostOrder';
-        } else if (orderType === 'inverse') {
+        } else if (orderType === 'delivery') {
             method = 'dapiPrivatePostOrder';
         } else if (orderType === 'margin') {
             method = 'sapiPostMarginOrder';
