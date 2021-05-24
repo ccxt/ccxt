@@ -1399,11 +1399,10 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const type = this.safeString (this.options, 'defaultType', 'spot');
         let method = 'publicGetTicker24hr';
-        if (type === 'future') {
+        if (market['linear']) {
             method = 'fapiPublicGetTicker24hr';
-        } else if (type === 'delivery') {
+        } else if (market['inverse']) {
             method = 'dapiPublicGetTicker24hr';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1498,11 +1497,10 @@ module.exports = class binance extends Exchange {
                 request['endTime'] = Math.min (now, endTime);
             }
         }
-        const type = this.safeString (this.options, 'defaultType', 'spot');
         let method = 'publicGetKlines';
-        if (type === 'future') {
+        if (market['linear']) {
             method = 'fapiPublicGetKlines';
-        } else if (type === 'delivery') {
+        } else if (market['inverse']) {
             method = 'dapiPublicGetKlines';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1885,11 +1883,11 @@ module.exports = class binance extends Exchange {
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId' ]);
         let method = 'privatePostOrder';
-        if (orderType === 'future') {
+        if (market['linear']) {
             method = 'fapiPrivatePostOrder';
-        } else if (orderType === 'delivery') {
+        } else if (market['inverse']) {
             method = 'dapiPrivatePostOrder';
-        } else if (orderType === 'margin') {
+        } else if (market['margin']) {
             method = 'sapiPostMarginOrder';
         }
         // the next 5 lines are added to support for testing orders
@@ -1921,7 +1919,7 @@ module.exports = class binance extends Exchange {
         } else {
             request['newClientOrderId'] = clientOrderId;
         }
-        if ((orderType === 'spot') || (orderType === 'margin')) {
+        if (market['spot'] || market['margin']) {
             request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else {
             // delivery and future
