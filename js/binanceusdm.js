@@ -120,14 +120,12 @@ module.exports = class binanceusdm extends binance {
         return await this.futuresTransfer (code, amount, 2, params);
     }
 
-    async fetchFundingRate (symbol = undefined, params = {}) {
+    async fetchFundingRate (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
-        const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
         const response = await this.fapiPublicGetPremiumIndex (this.extend (request, params));
         //
         //   {
@@ -141,15 +139,22 @@ module.exports = class binanceusdm extends binance {
         //     "time": "1621252344001"
         //  }
         //
-        if (Array.isArray (response)) {
-            const result = [];
-            for (let i = 0; i < response.length; i++) {
-                const parsed = this.parseFundingRate (response[i]);
-                result.push (parsed);
-            }
+        return this.parseFundingRate (response);
+    }
+
+    async fetchFundingRates (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.fapiPublicGetPremiumIndex (params);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const parsed = this.parseFundingRate (entry);
+            result.push (parsed);
+        }
+        if (symbols === undefined) {
             return result;
         } else {
-            return this.parseFundingRate (response);
+            return this.filterByArray (result, 'symbol', symbols, false);
         }
     }
 
