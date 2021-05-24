@@ -131,9 +131,8 @@ module.exports = class binancecoinm extends binance {
         //
         if (Array.isArray (response)) {
             const result = [];
-            const values = Object.values (response);
-            for (let i = 0; i < values.length; i++) {
-                const parsed = this.parseFundingRate (values[i]);
+            for (let i = 0; i < response.length; i++) {
+                const parsed = this.parseFundingRate (response[i]);
                 result.push (parsed);
             }
             return result;
