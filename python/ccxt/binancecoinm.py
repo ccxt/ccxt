@@ -126,9 +126,8 @@ class binancecoinm(binance):
         #
         if isinstance(response, list):
             result = []
-            values = list(response.values())
-            for i in range(0, len(values)):
-                parsed = self.parseFundingRate(values[i])
+            for i in range(0, len(response)):
+                parsed = self.parseFundingRate(response[i])
                 result.append(parsed)
             return result
         else:

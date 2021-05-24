@@ -133,9 +133,8 @@ class binancecoinm extends binance {
         //
         if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
             $result = array();
-            $values = is_array($response) ? array_values($response) : array();
-            for ($i = 0; $i < count($values); $i++) {
-                $parsed = $this->parseFundingRate ($values[$i]);
+            for ($i = 0; $i < count($response); $i++) {
+                $parsed = $this->parseFundingRate ($response[$i]);
                 $result[] = $parsed;
             }
             return $result;
