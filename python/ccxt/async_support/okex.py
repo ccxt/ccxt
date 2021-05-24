@@ -2371,7 +2371,7 @@ class okex(Exchange):
         #
         address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string_2(depositAddress, 'tag', 'payment_id')
-        tag = self.safe_string(depositAddress, 'memo', tag)
+        tag = self.safe_string_2(depositAddress, 'memo', 'Memo', tag)
         currencyId = self.safe_string(depositAddress, 'currency')
         code = self.safe_currency_code(currencyId)
         self.check_address(address)
