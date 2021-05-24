@@ -222,13 +222,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.50.29/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.50.29/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.50.30/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.50.30/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.50.29/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.50.30/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -355,8 +355,6 @@ const ccxt = require ('ccxt');
         , exchange = new exchangeClass ({
             'apiKey': 'YOUR_API_KEY',
             'secret': 'YOUR_SECRET',
-            'timeout': 30000,
-            'enableRateLimit': true, // required! https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
         })
 
     console.log (kraken.id,    await kraken.loadMarkets ())
@@ -406,8 +404,6 @@ exchange_class = getattr(ccxt, exchange_id)
 exchange = exchange_class({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
-    'timeout': 30000,
-    'enableRateLimit': True,  # required! https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
 })
 
 hitbtc_markets = hitbtc.load_markets()
@@ -454,8 +450,6 @@ $exchange_class = "\\ccxt\\$exchange_id";
 $exchange = new $exchange_class (array (
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
-    'timeout' => 30000,
-    'enableRateLimit' => true,  // required! https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
 ));
 
 $poloniex_markets = $poloniex->load_markets ();
