@@ -1011,7 +1011,10 @@ module.exports = class binance extends Exchange {
             const status = this.safeString2 (market, 'status', 'contractStatus');
             const active = (status === 'TRADING');
             const margin = this.safeValue (market, 'isMarginTradingAllowed', false);
-            const contractSize = this.safeFloat (market, 'contractSize', 1);
+            let contractSize = undefined;
+            if (future || delivery) {
+                contractSize = this.safeFloat (market, 'contractSize', 1);
+            }
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
