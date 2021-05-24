@@ -1883,11 +1883,11 @@ module.exports = class binance extends Exchange {
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId' ]);
         let method = 'privatePostOrder';
-        if (market['linear']) {
+        if (orderType === 'future') {
             method = 'fapiPrivatePostOrder';
-        } else if (market['inverse']) {
+        } else if (orderType === 'inverse') {
             method = 'dapiPrivatePostOrder';
-        } else if (market['margin']) {
+        } else if (orderType === 'margin') {
             method = 'sapiPostMarginOrder';
         }
         // the next 5 lines are added to support for testing orders
@@ -1973,7 +1973,7 @@ module.exports = class binance extends Exchange {
         } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             stopPriceIsRequired = true;
             quantityIsRequired = true;
-            if ((orderType === 'future') || (orderType === 'delivery')) {
+            if (market['linear'] || market['inverse']) {
                 priceIsRequired = true;
             }
         } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
