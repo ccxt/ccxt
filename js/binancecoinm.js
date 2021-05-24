@@ -108,37 +108,41 @@ module.exports = class binancecoinm extends binance {
         return await this.futuresTransfer (code, amount, 4, params);
     }
 
-    async fetchFundingRate (symbol = undefined, params = {}) {
+    async fetchFundingRate (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
-        const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
         const response = await this.dapiPublicGetPremiumIndex (this.extend (request, params));
         //
-        //   {
-        //     "symbol": "BTCUSD",
-        //     "markPrice": "45802.81129892",
-        //     "indexPrice": "45745.47701915",
-        //     "estimatedSettlePrice": "45133.91753671",
-        //     "lastFundingRate": "0.00063521",
-        //     "interestRate": "0.00010000",
-        //     "nextFundingTime": "1621267200000",
-        //     "time": "1621252344001"
-        //  }
+        //     [
+        //       {
+        //         "symbol": "ETHUSD_PERP",
+        //         "pair": "ETHUSD",
+        //         "markPrice": "2452.47558343",
+        //         "indexPrice": "2454.04584679",
+        //         "estimatedSettlePrice": "2464.80622965",
+        //         "lastFundingRate": "0.00004409",
+        //         "interestRate": "0.00010000",
+        //         "nextFundingTime": "1621900800000",
+        //         "time": "1621875158012"
+        //       }
+        //     ]
         //
-        if (Array.isArray (response)) {
-            const result = [];
-            for (let i = 0; i < response.length; i++) {
-                const parsed = this.parseFundingRate (response[i]);
-                result.push (parsed);
-            }
-            return result;
-        } else {
-            return this.parseFundingRate (response);
+        return this.parseFundingRate (response[0]);
+    }
+
+    async fetchFundingRates (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.dapiPublicGetPremiumIndex (params);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const parsed = this.parseFundingRate (entry);
+            result.push (parsed);
         }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async loadLeverageBrackets (reload = false, params = {}) {
