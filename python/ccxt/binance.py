@@ -3215,7 +3215,7 @@ class binance(Exchange):
         side = None
         percentage = None
         if collateralFloat == 0.0:
-            collateral = None
+            liquidationPrice = None
         else:
             marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
             side = 'short' if (notionalFloat < 0) else 'long'

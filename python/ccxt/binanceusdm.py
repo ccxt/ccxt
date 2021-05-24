@@ -116,7 +116,7 @@ class binanceusdm(binance):
         # transfer from usdm futures wallet to spot wallet
         return self.futuresTransfer(code, amount, 2, params)
 
-    def fetch_funding_rate(self, symbol=None, params=None):
+    def fetch_funding_rate(self, symbol=None, params={}):
         self.load_markets()
         market = None
         request = {}
@@ -198,7 +198,7 @@ class binanceusdm(binance):
         else:
             return self.parsePositionRisk(self.safe_value(response, 0), market)
 
-    def fetch_funding_history(self, symbol=None, since=None, limit=None, params=None):
+    def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
         # "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"

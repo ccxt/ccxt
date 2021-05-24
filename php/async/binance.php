@@ -3410,7 +3410,7 @@ class binance extends Exchange {
         $side = null;
         $percentage = null;
         if ($collateralFloat === 0.0) {
-            $collateral = null;
+            $liquidationPrice = null;
         } else {
             $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
             $side = ($notionalFloat < 0) ? 'short' : 'long';

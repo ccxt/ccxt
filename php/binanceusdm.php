@@ -122,7 +122,7 @@ class binanceusdm extends binance {
         return $this->futuresTransfer ($code, $amount, 2, $params);
     }
 
-    public function fetch_funding_rate($symbol = null, $params = null) {
+    public function fetch_funding_rate($symbol = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array();
@@ -219,7 +219,7 @@ class binanceusdm extends binance {
         }
     }
 
-    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = null) {
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"

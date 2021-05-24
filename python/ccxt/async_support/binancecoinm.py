@@ -104,7 +104,7 @@ class binancecoinm(binance):
         # transfer from coinm futures wallet to spot wallet
         return await self.futuresTransfer(code, amount, 4, params)
 
-    async def fetch_funding_rate(self, symbol=None, params=None):
+    async def fetch_funding_rate(self, symbol=None, params={}):
         await self.load_markets()
         market = None
         request = {}
@@ -186,7 +186,7 @@ class binancecoinm(binance):
         else:
             return self.parsePositionRisk(self.safe_value(response, 0), market)
 
-    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params=None):
+    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
         # "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
