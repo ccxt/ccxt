@@ -122,14 +122,12 @@ class binanceusdm extends binance {
         return $this->futuresTransfer ($code, $amount, 2, $params);
     }
 
-    public function fetch_funding_rate($symbol = null, $params = array ()) {
+    public function fetch_funding_rate($symbol, $params = array ()) {
         $this->load_markets();
-        $market = null;
-        $request = array();
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
         $response = $this->fapiPublicGetPremiumIndex (array_merge($request, $params));
         //
         //   {
@@ -143,16 +141,19 @@ class binanceusdm extends binance {
         //     "time" => "1621252344001"
         //  }
         //
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $parsed = $this->parseFundingRate ($response[$i]);
-                $result[] = $parsed;
-            }
-            return $result;
-        } else {
-            return $this->parseFundingRate ($response);
+        return $this->parseFundingRate ($response);
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->fapiPublicGetPremiumIndex ($params);
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $parsed = $this->parseFundingRate ($entry);
+            $result[] = $parsed;
         }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function load_leverage_brackets($reload = false, $params = array ()) {

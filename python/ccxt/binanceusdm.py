@@ -116,13 +116,12 @@ class binanceusdm(binance):
         # transfer from usdm futures wallet to spot wallet
         return self.futuresTransfer(code, amount, 2, params)
 
-    def fetch_funding_rate(self, symbol=None, params={}):
+    def fetch_funding_rate(self, symbol, params={}):
         self.load_markets()
-        market = None
-        request = {}
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
         response = self.fapiPublicGetPremiumIndex(self.extend(request, params))
         #
         #   {
@@ -136,14 +135,17 @@ class binanceusdm(binance):
         #     "time": "1621252344001"
         #  }
         #
-        if isinstance(response, list):
-            result = []
-            for i in range(0, len(response)):
-                parsed = self.parseFundingRate(response[i])
-                result.append(parsed)
-            return result
-        else:
-            return self.parseFundingRate(response)
+        return self.parseFundingRate(response)
+
+    def fetch_funding_rates(self, symbols=None, params={}):
+        self.load_markets()
+        response = self.fapiPublicGetPremiumIndex(params)
+        result = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            parsed = self.parseFundingRate(entry)
+            result.append(parsed)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def load_leverage_brackets(self, reload=False, params={}):
         self.load_markets()

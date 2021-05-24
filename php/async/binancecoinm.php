@@ -110,37 +110,41 @@ class binancecoinm extends binance {
         return yield $this->futuresTransfer ($code, $amount, 4, $params);
     }
 
-    public function fetch_funding_rate($symbol = null, $params = array ()) {
+    public function fetch_funding_rate($symbol, $params = array ()) {
         yield $this->load_markets();
-        $market = null;
-        $request = array();
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
         $response = yield $this->dapiPublicGetPremiumIndex (array_merge($request, $params));
         //
-        //   {
-        //     "$symbol" => "BTCUSD",
-        //     "markPrice" => "45802.81129892",
-        //     "indexPrice" => "45745.47701915",
-        //     "estimatedSettlePrice" => "45133.91753671",
-        //     "lastFundingRate" => "0.00063521",
-        //     "interestRate" => "0.00010000",
-        //     "nextFundingTime" => "1621267200000",
-        //     "time" => "1621252344001"
-        //  }
+        //     array(
+        //       {
+        //         "$symbol" => "ETHUSD_PERP",
+        //         "pair" => "ETHUSD",
+        //         "markPrice" => "2452.47558343",
+        //         "indexPrice" => "2454.04584679",
+        //         "estimatedSettlePrice" => "2464.80622965",
+        //         "lastFundingRate" => "0.00004409",
+        //         "interestRate" => "0.00010000",
+        //         "nextFundingTime" => "1621900800000",
+        //         "time" => "1621875158012"
+        //       }
+        //     )
         //
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $parsed = $this->parseFundingRate ($response[$i]);
-                $result[] = $parsed;
-            }
-            return $result;
-        } else {
-            return $this->parseFundingRate ($response);
+        return $this->parseFundingRate ($response[0]);
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->dapiPublicGetPremiumIndex ($params);
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $parsed = $this->parseFundingRate ($entry);
+            $result[] = $parsed;
         }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function load_leverage_brackets($reload = false, $params = array ()) {

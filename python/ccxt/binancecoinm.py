@@ -104,34 +104,39 @@ class binancecoinm(binance):
         # transfer from coinm futures wallet to spot wallet
         return self.futuresTransfer(code, amount, 4, params)
 
-    def fetch_funding_rate(self, symbol=None, params={}):
+    def fetch_funding_rate(self, symbol, params={}):
         self.load_markets()
-        market = None
-        request = {}
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
         response = self.dapiPublicGetPremiumIndex(self.extend(request, params))
         #
-        #   {
-        #     "symbol": "BTCUSD",
-        #     "markPrice": "45802.81129892",
-        #     "indexPrice": "45745.47701915",
-        #     "estimatedSettlePrice": "45133.91753671",
-        #     "lastFundingRate": "0.00063521",
-        #     "interestRate": "0.00010000",
-        #     "nextFundingTime": "1621267200000",
-        #     "time": "1621252344001"
-        #  }
+        #     [
+        #       {
+        #         "symbol": "ETHUSD_PERP",
+        #         "pair": "ETHUSD",
+        #         "markPrice": "2452.47558343",
+        #         "indexPrice": "2454.04584679",
+        #         "estimatedSettlePrice": "2464.80622965",
+        #         "lastFundingRate": "0.00004409",
+        #         "interestRate": "0.00010000",
+        #         "nextFundingTime": "1621900800000",
+        #         "time": "1621875158012"
+        #       }
+        #     ]
         #
-        if isinstance(response, list):
-            result = []
-            for i in range(0, len(response)):
-                parsed = self.parseFundingRate(response[i])
-                result.append(parsed)
-            return result
-        else:
-            return self.parseFundingRate(response)
+        return self.parseFundingRate(response[0])
+
+    def fetch_funding_rates(self, symbols=None, params={}):
+        self.load_markets()
+        response = self.dapiPublicGetPremiumIndex(params)
+        result = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            parsed = self.parseFundingRate(entry)
+            result.append(parsed)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def load_leverage_brackets(self, reload=False, params={}):
         self.load_markets()
