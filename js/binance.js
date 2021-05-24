@@ -3381,7 +3381,7 @@ module.exports = class binance extends Exchange {
         let liquidationPrice = this.safeNumber (position, 'liquidationPrice');
         const collateralString = this.safeString (position, 'isolatedMargin');
         const collateralFloat = parseFloat (collateralString);
-        let collateral = this.parseNumber (collateralString);
+        const collateral = this.parseNumber (collateralString);
         const markPriceString = this.safeString (position, 'markPrice');
         const markPriceFloat = parseFloat (markPriceString);
         let markPrice = undefined;
@@ -3404,7 +3404,7 @@ module.exports = class binance extends Exchange {
         let side = undefined;
         let percentage = undefined;
         if (collateralFloat === 0.0) {
-            collateral = undefined;
+            liquidationPrice = undefined;
         } else {
             marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
             side = (notionalFloat < 0) ? 'short' : 'long';
