@@ -2453,7 +2453,7 @@ module.exports = class okex extends Exchange {
         //
         const address = this.safeString (depositAddress, 'address');
         let tag = this.safeString2 (depositAddress, 'tag', 'payment_id');
-        tag = this.safeString (depositAddress, 'memo', tag);
+        tag = this.safeString2 (depositAddress, 'memo', 'Memo', tag);
         const currencyId = this.safeString (depositAddress, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         this.checkAddress (address);
