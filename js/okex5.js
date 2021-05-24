@@ -33,6 +33,7 @@ module.exports = class okex5 extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1797,7 +1798,7 @@ module.exports = class okex5 extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (tag) {
+        if (tag !== undefined) {
             address = address + ':' + tag;
         }
         const fee = this.safeString (params, 'fee');
@@ -1805,36 +1806,40 @@ module.exports = class okex5 extends Exchange {
             throw new ArgumentsRequired (this.id + " withdraw() requires a `fee` string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
         }
         const request = {
-            'currency': currency['id'],
-            'to_address': address,
-            'destination': '4', // 2 = OKCoin International, 3 = OKEx 4 = others
-            'amount': this.numberToString (amount),
-            'fee': fee, // String. Network transaction fee ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set as 0. Withdrawal to external digital asset address requires network transaction fee.
+            'ccy': currency['id'],
+            'toAddr': address,
+            'dest': '4', // 2 = OKCoin International, 3 = OKEx 4 = others
+            'amt': this.numberToString (amount),
+            'fee': this.numberToString (fee), // withdrawals to OKCoin or OKEx are fee-free, please set 0
         };
         if ('password' in params) {
-            request['trade_pwd'] = params['password'];
-        } else if ('trade_pwd' in params) {
-            request['trade_pwd'] = params['trade_pwd'];
+            request['pwd'] = params['password'];
+        } else if ('pwd' in params) {
+            request['pwd'] = params['pwd'];
         } else if (this.password) {
-            request['trade_pwd'] = this.password;
+            request['pwd'] = this.password;
         }
-        const query = this.omit (params, [ 'fee', 'password', 'trade_pwd' ]);
-        if (!('trade_pwd' in request)) {
-            throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a password / trade_pwd parameter');
+        const query = this.omit (params, [ 'fee', 'password', 'pwd' ]);
+        if (!('pwd' in request)) {
+            throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a password / pwd parameter');
         }
-        const response = await this.accountPostWithdrawal (this.extend (request, query));
+        const response = await this.privatePostAssetWithdrawal (this.extend (request, query));
         //
         //     {
-        //         "amount":"0.1",
-        //         "withdrawal_id":"67485",
-        //         "currency":"btc",
-        //         "result":true
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "amt": "0.1",
+        //                 "wdId": "67485",
+        //                 "ccy": "BTC"
+        //             }
+        //         ]
         //     }
         //
-        return {
-            'info': response,
-            'id': this.safeString (response, 'withdrawal_id'),
-        };
+        const data = this.safeValue (response, 'data', []);
+        const transaction = this.safeValue (data, 0);
+        return this.parseTransaction (transaction, currency);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1998,10 +2003,9 @@ module.exports = class okex5 extends Exchange {
         // withdraw
         //
         //     {
-        //         "amount":"0.1",
-        //         "withdrawal_id":"67485",
-        //         "currency":"btc",
-        //         "result":true
+        //         "amt": "0.1",
+        //         "wdId": "67485",
+        //         "ccy": "BTC"
         //     }
         //
         // fetchWithdrawals
@@ -2476,7 +2480,7 @@ module.exports = class okex5 extends Exchange {
         //         ]
         //     }
         //
-        return response;
+        return this.safeValue (response, 'data', []);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
