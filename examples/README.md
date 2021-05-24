@@ -67,6 +67,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [FTX API (Crypto Exchange) and Google Cloud Functions](https://www.youtube.com/watch?v=mtpA3vDg5js) – A video on trading with CCXT and Google Cloud Functions!
 
+[Coinbase Pro, TradingView Webhooks, and Google Cloud Functions](https://www.youtube.com/watch?v=3jA2vAJSdAI) – How to automate your trading by connecting Coinbase Pro to Google Cloud Functions using TradingView Webhooks and CCXT!
+
 [CCXT - Crypto Trading](https://www.youtube.com/playlist?list=PLvzuUVysUFOv5XEPHeqefgyHZcDfLxH-W) – An awesome video playlist on CCXT and tons of other cool videos by [Part Time Larry](https://www.youtube.com/c/parttimelarry)!
 
 [Writing a crypto trading bot](https://www.kleemans.ch/writing-a-crypto-trading-bot) – How to write an automated trading bot, for fun and profit.
