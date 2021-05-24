@@ -2551,70 +2551,67 @@ module.exports = class okex5 extends Exchange {
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let method = undefined;
-        const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if ((type === 'futures') || (type === 'swap')) {
-            method = type + 'GetPosition';
-        } else if (type === 'option') {
-            const underlying = this.safeString (params, 'underlying');
-            if (underlying === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions() requires an underlying parameter for ' + type + ' markets');
-            }
-            method = type + 'GetUnderlyingPosition';
-        } else {
-            throw new NotSupported (this.id + ' fetchPositions() does not support ' + type + ' markets, supported market types are futures, swap or option');
+        // const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType');
+        // const type = this.safeString (params, 'type', defaultType);
+        const type = this.safeString (params, 'type');
+        params = this.omit (params, 'type');
+        const request = {
+            // instType String No Instrument type, MARGIN, SWAP, FUTURES, OPTION
+            // instId will be checked against instType when both parameters are passed, and the position information of the instId will be returned.
+            // instId String No Instrument ID, e.g. BTC-USD-190927-5000-C
+            // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
+        };
+        if (type !== undefined) {
+            request['instType'] = type.toUpperCase ();
         }
         params = this.omit (params, 'type');
-        const response = await this[method] (params);
-        //
-        // futures
-        //
-        //     ...
-        //
-        //
-        // swap
-        //
-        //     ...
-        //
-        // option
+        const response = await this.privateGetAccountPositions (params);
         //
         //     {
-        //         "holding":[
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
         //             {
-        //                 "instrument_id":"BTC-USD-190927-12500-C",
-        //                 "position":"20",
-        //                 "avg_cost":"3.26",
-        //                 "avail_position":"20",
-        //                 "settlement_price":"0.017",
-        //                 "total_pnl":"50",
-        //                 "pnl_ratio":"0.3",
-        //                 "realized_pnl":"40",
-        //                 "unrealized_pnl":"10",
-        //                 "pos_margin":"100",
-        //                 "option_value":"70",
-        //                 "created_at":"2019-08-30T03:09:20.315Z",
-        //                 "updated_at":"2019-08-30T03:40:18.318Z"
-        //             },
-        //             {
-        //                 "instrument_id":"BTC-USD-190927-12500-P",
-        //                 "position":"20",
-        //                 "avg_cost":"3.26",
-        //                 "avail_position":"20",
-        //                 "settlement_price":"0.019",
-        //                 "total_pnl":"50",
-        //                 "pnl_ratio":"0.3",
-        //                 "realized_pnl":"40",
-        //                 "unrealized_pnl":"10",
-        //                 "pos_margin":"100",
-        //                 "option_value":"70",
-        //                 "created_at":"2019-08-30T03:09:20.315Z",
-        //                 "updated_at":"2019-08-30T03:40:18.318Z"
+        //                 "adl":"1",
+        //                 "availPos":"1",
+        //                 "avgPx":"2566.31",
+        //                 "cTime":"1619507758793",
+        //                 "ccy":"ETH",
+        //                 "deltaBS":"",
+        //                 "deltaPA":"",
+        //                 "gammaBS":"",
+        //                 "gammaPA":"",
+        //                 "imr":"",
+        //                 "instId":"ETH-USD-210430",
+        //                 "instType":"FUTURES",
+        //                 "interest":"0",
+        //                 "last":"2566.22",
+        //                 "lever":"10",
+        //                 "liab":"",
+        //                 "liabCcy":"",
+        //                 "liqPx":"2352.8496681818233",
+        //                 "margin":"0.0003896645377994",
+        //                 "mgnMode":"isolated",
+        //                 "mgnRatio":"11.731726509588816",
+        //                 "mmr":"0.0000311811092368",
+        //                 "optVal":"",
+        //                 "pTime":"1619507761462",
+        //                 "pos":"1",
+        //                 "posCcy":"",
+        //                 "posId":"307173036051017730",
+        //                 "posSide":"long",
+        //                 "thetaBS":"",
+        //                 "thetaPA":"",
+        //                 "tradeId":"109844",
+        //                 "uTime":"1619507761462",
+        //                 "upl":"-0.0000009932766034",
+        //                 "uplRatio":"-0.0025490556801078",
+        //                 "vegaBS":"",
+        //                 "vegaPA":""
         //             }
         //         ]
         //     }
         //
-        // todo unify parsePosition/parsePositions
         return response;
     }
 
