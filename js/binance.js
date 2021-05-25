@@ -1340,10 +1340,40 @@ module.exports = class binance extends Exchange {
         //         count: 87544
         //     }
         //
+        // coinm
+        //     {
+        //         baseVolume: '214549.95171161',
+        //         closeTime: '1621965286847',
+        //         count: '1283779',
+        //         firstId: '152560106',
+        //         highPrice: '39938.3',
+        //         lastId: '153843955',
+        //         lastPrice: '37993.4',
+        //         lastQty: '1',
+        //         lowPrice: '36457.2',
+        //         openPrice: '37783.4',
+        //         openTime: '1621878840000',
+        //         pair: 'BTCUSD',
+        //         priceChange: '210.0',
+        //         priceChangePercent: '0.556',
+        //         symbol: 'BTCUSD_PERP',
+        //         volume: '81990451',
+        //         weightedAvgPrice: '38215.08713747'
+        //     }
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber (ticker, 'lastPrice');
+        const isCoinm = ('baseVolume' in ticker);
+        let baseVolume = undefined;
+        let quoteVolume = undefined;
+        if (isCoinm) {
+            baseVolume = this.safeNumber (ticker, 'baseVolume');
+            quoteVolume = this.safeNumber (ticker, 'volume');
+        } else {
+            baseVolume = this.safeNumber (ticker, 'volume');
+            quoteVolume = this.safeNumber (ticker, 'quoteVolume');
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1362,8 +1392,8 @@ module.exports = class binance extends Exchange {
             'change': this.safeNumber (ticker, 'priceChange'),
             'percentage': this.safeNumber (ticker, 'priceChangePercent'),
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
-            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
