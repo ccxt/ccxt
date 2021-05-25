@@ -6,7 +6,6 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
-const string = require('./base/functions/string');
 
 //  ---------------------------------------------------------------------------
 
@@ -20,6 +19,8 @@ module.exports = class okex5 extends Exchange {
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'has': {
                 'CORS': false,
+                'cancelOrder': true,
+                'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': false, // see below
                 'fetchDepositAddress': true,
@@ -2889,30 +2890,24 @@ module.exports = class okex5 extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return; // fallback to default error handler
         }
-        const feedback = this.id + ' ' + body;
-        if (code === 503) {
-            // {"message":"name resolution failed"}
-            throw new ExchangeNotAvailable (feedback);
-        }
         //
-        //     {"error_message":"Order does not exist","result":"true","error_code":"35029","order_id":"-1"}
+        //     {"code":"1","data":[{"clOrdId":"","ordId":"","sCode":"51119","sMsg":"Order placement failed due to insufficient balance. ","tag":""}],"msg":""}
         //
-        const message = this.safeString (response, 'message');
-        const errorCode = this.safeString2 (response, 'code', 'error_code');
-        const nonEmptyMessage = ((message !== undefined) && (message !== ''));
-        const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '0');
-        if (nonEmptyMessage) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-        }
-        if (nonZeroErrorCode) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-        }
-        if (nonZeroErrorCode || nonEmptyMessage) {
+        const code = this.safeInteger (response, 'code');
+        if (code === 1) {
+            const feedback = this.id + ' ' + body;
+            const data = this.safeValue (response, 'data', []);
+            for (let i = 0; i < data.length; i++) {
+                const error = data[i];
+                const errorCode = this.safeString (error, 'sCode');
+                const message = this.safeString (error, 'sMsg');
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            }
             throw new ExchangeError (feedback); // unknown message
         }
     }
