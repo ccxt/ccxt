@@ -1338,7 +1338,7 @@ class binance extends Exchange {
         //         highPrice => '0.03388900',
         //         lowPrice => '0.03306900',
         //         volume => '205478.41000000',
-        //         quoteVolume => '6868.48826294',
+        //         $quoteVolume => '6868.48826294',
         //         openTime => 1601469986932,
         //         closeTime => 1601556386932,
         //         firstId => 196098772,
@@ -1346,10 +1346,41 @@ class binance extends Exchange {
         //         count => 87544
         //     }
         //
+        // coinm
+        //     {
+        //         $baseVolume => '214549.95171161',
+        //         closeTime => '1621965286847',
+        //         count => '1283779',
+        //         firstId => '152560106',
+        //         highPrice => '39938.3',
+        //         lastId => '153843955',
+        //         lastPrice => '37993.4',
+        //         lastQty => '1',
+        //         lowPrice => '36457.2',
+        //         openPrice => '37783.4',
+        //         openTime => '1621878840000',
+        //         pair => 'BTCUSD',
+        //         priceChange => '210.0',
+        //         priceChangePercent => '0.556',
+        //         $symbol => 'BTCUSD_PERP',
+        //         volume => '81990451',
+        //         weightedAvgPrice => '38215.08713747'
+        //     }
+        //
         $timestamp = $this->safe_integer($ticker, 'closeTime');
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_number($ticker, 'lastPrice');
+        $isCoinm = (is_array($ticker) && array_key_exists('baseVolume', $ticker));
+        $baseVolume = null;
+        $quoteVolume = null;
+        if ($isCoinm) {
+            $baseVolume = $this->safe_number($ticker, 'baseVolume');
+            $quoteVolume = $this->safe_number($ticker, 'volume');
+        } else {
+            $baseVolume = $this->safe_number($ticker, 'volume');
+            $quoteVolume = $this->safe_number($ticker, 'quoteVolume');
+        }
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1368,8 +1399,8 @@ class binance extends Exchange {
             'change' => $this->safe_number($ticker, 'priceChange'),
             'percentage' => $this->safe_number($ticker, 'priceChangePercent'),
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
-            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }

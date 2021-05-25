@@ -1327,10 +1327,40 @@ class binance(Exchange):
         #         count: 87544
         #     }
         #
+        # coinm
+        #     {
+        #         baseVolume: '214549.95171161',
+        #         closeTime: '1621965286847',
+        #         count: '1283779',
+        #         firstId: '152560106',
+        #         highPrice: '39938.3',
+        #         lastId: '153843955',
+        #         lastPrice: '37993.4',
+        #         lastQty: '1',
+        #         lowPrice: '36457.2',
+        #         openPrice: '37783.4',
+        #         openTime: '1621878840000',
+        #         pair: 'BTCUSD',
+        #         priceChange: '210.0',
+        #         priceChangePercent: '0.556',
+        #         symbol: 'BTCUSD_PERP',
+        #         volume: '81990451',
+        #         weightedAvgPrice: '38215.08713747'
+        #     }
+        #
         timestamp = self.safe_integer(ticker, 'closeTime')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_number(ticker, 'lastPrice')
+        isCoinm = ('baseVolume' in ticker)
+        baseVolume = None
+        quoteVolume = None
+        if isCoinm:
+            baseVolume = self.safe_number(ticker, 'baseVolume')
+            quoteVolume = self.safe_number(ticker, 'volume')
+        else:
+            baseVolume = self.safe_number(ticker, 'volume')
+            quoteVolume = self.safe_number(ticker, 'quoteVolume')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1349,8 +1379,8 @@ class binance(Exchange):
             'change': self.safe_number(ticker, 'priceChange'),
             'percentage': self.safe_number(ticker, 'priceChangePercent'),
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
-            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
