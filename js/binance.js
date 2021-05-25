@@ -3253,7 +3253,8 @@ module.exports = class binance extends Exchange {
         if (contractsString === undefined) {
             contractsString = Math.round (notionalFloat * entryPriceFloat / market['contractSize']).toString ();
         }
-        const contracts = this.parseNumber (Precise.stringAbs (contractsString));
+        const contractsStringAbs = Precise.stringAbs (contractsString);
+        const contracts = this.parseNumber (contractsStringAbs);
         const leverageBracket = this.options['leverageBrackets'][symbol];
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
@@ -3285,12 +3286,42 @@ module.exports = class binance extends Exchange {
         let marginRatio = undefined;
         let side = undefined;
         let percentage = undefined;
+        let liquidationPrice = undefined;
         if (notionalFloat === 0.0) {
             entryPrice = undefined;
         } else {
             side = (notionalFloat < 0) ? 'short' : 'long';
             marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
-            percentage = this.parseNumber (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4));
+            percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
+            // calculate liquidation price
+            // liquidationPrice = ((collateral - unrealisedProfit) / (contracts * (±1 + mmp))) (±entry / (±1 + mmp))
+            // where ± is negative for long and positive for short
+            let onePlusMaintenanceMarginPercentageString = undefined;
+            let entryPriceSignString = entryPriceString;
+            if (side === 'short') {
+                onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('1', maintenanceMarginPercentageString);
+            } else {
+                onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('-1', maintenanceMarginPercentageString);
+                entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
+            }
+            const entryWalletBalanceString = Precise.stringSub (collateralString, unrealizedPnlString);
+            const leftSide = Precise.stringDiv (entryWalletBalanceString, Precise.stringMul (contractsStringAbs, onePlusMaintenanceMarginPercentageString));
+            const rightSide = Precise.stringDiv (entryPriceSignString, onePlusMaintenanceMarginPercentageString);
+            const pricePrecision = market['precision']['price'];
+            const pricePrecisionPlusOne = pricePrecision + 1;
+            const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString ();
+            // round half up
+            const rounder = new Precise ('5e-' + pricePrecisionPlusOneString);
+            const rounderString = rounder.toString ();
+            const liquidationPriceStringRaw = Precise.stringAdd (leftSide, rightSide);
+            const liquidationPriceRoundedString = Precise.stringAdd (rounderString, liquidationPriceStringRaw);
+            let truncatedLiquidationPrice = Precise.stringDiv (liquidationPriceRoundedString, '1', pricePrecision);
+            if (truncatedLiquidationPrice[0] === '-') {
+                // user cannot be liquidated
+                // since he has more collateral than the size of the position
+                truncatedLiquidationPrice = undefined;
+            }
+            liquidationPrice = this.parseNumber (truncatedLiquidationPrice);
         }
         return {
             'info': position,
@@ -3307,7 +3338,7 @@ module.exports = class binance extends Exchange {
             'unrealizedPnl': unrealizedPnl,
             'contracts': contracts,
             'marginRatio': marginRatio,
-            'liquidationPrice': undefined,
+            'liquidationPrice': liquidationPrice,
             'markPrice': undefined,
             'collateral': collateral,
             'marginType': marginType,
@@ -3408,7 +3439,7 @@ module.exports = class binance extends Exchange {
         } else {
             marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
             side = (notionalFloat < 0) ? 'short' : 'long';
-            percentage = this.parseNumber (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4));
+            percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
         }
         const marginType = this.safeString (position, 'marginType');
         if (marginType === 'cross') {
