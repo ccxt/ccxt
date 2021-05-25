@@ -2997,7 +2997,10 @@ class binance(Exchange):
             code = self.safe_currency_code(currencyId)
             crossWalletBalance = self.safe_string(entry, 'crossWalletBalance')
             crossUnPnl = self.safe_string(entry, 'crossUnPnl')
-            balances[code] = Precise.string_add(crossWalletBalance, crossUnPnl)
+            balances[code] = {
+                'crossMargin': Precise.string_add(crossWalletBalance, crossUnPnl),
+                'crossWalletBalance': crossWalletBalance,
+            }
         result = []
         for i in range(0, len(positions)):
             position = positions[i]
@@ -3005,7 +3008,8 @@ class binance(Exchange):
             market = self.safe_market(marketId)
             code = market['quote'] if (self.options['defaultType'] == 'future') else market['base']
             parsed = self.parse_position(self.extend(position, {
-                'crossMargin': balances[code],
+                'crossMargin': balances[code]['crossMargin'],
+                'crossWalletBalance': balances[code]['crossWalletBalance'],
             }), market)
             result.append(parsed)
         return result
@@ -3048,6 +3052,7 @@ class binance(Exchange):
         #       "notionalValue": "0.00243939",
         #       "isolatedWallet": "0",
         #       "crossMargin": "0.314"
+        #       "crossWalletBalance": "34",
         #     }
         #
         marketId = self.safe_string(position, 'symbol')
@@ -3061,6 +3066,7 @@ class binance(Exchange):
         rational = (1000 % leverage) == 0
         if not rational:
             initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
+        usdm = ('notional' in position)
         maintenanceMarginString = self.safe_string(position, 'maintMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
         entryPriceString = self.safe_string(position, 'entryPrice')
@@ -3074,7 +3080,8 @@ class binance(Exchange):
         contractsString = self.safe_string(position, 'positionAmt')
         if contractsString is None:
             contractsString = int(round(notionalFloat * entryPriceFloat / str(market['contractSize'])))
-        contracts = self.parse_number(Precise.string_abs(contractsString))
+        contractsStringAbs = Precise.string_abs(contractsString)
+        contracts = self.parse_number(contractsStringAbs)
         leverageBracket = self.options['leverageBrackets'][symbol]
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
@@ -3091,23 +3098,57 @@ class binance(Exchange):
         isolated = self.safe_value(position, 'isolated')
         marginType = None
         collateralString = None
+        walletBalance = None
         if isolated:
             marginType = 'isolated'
             walletBalance = self.safe_string(position, 'isolatedWallet')
             collateralString = Precise.string_add(walletBalance, unrealizedPnlString)
         else:
             marginType = 'cross'
+            walletBalance = self.safe_string(position, 'crossWalletBalance')
             collateralString = self.safe_string(position, 'crossMargin')
         collateral = self.parse_number(collateralString)
         marginRatio = None
         side = None
         percentage = None
+        liquidationPrice = None
         if notionalFloat == 0.0:
             entryPrice = None
         else:
             side = 'short' if (notionalFloat < 0) else 'long'
             marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
-            percentage = self.parse_number(Precise.string_div(unrealizedPnlString, initialMarginString, 4))
+            percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
+            if usdm:
+                # calculate liquidation price
+                #
+                # liquidationPrice = (walletBalance / (contracts * (±1 + mmp)))(±entryPrice / (±1 + mmp))
+                #
+                # mmp = maintenanceMarginPercentage
+                # where ± is negative for long and positive for short
+                # TODO: calculate liquidation price for coinm contracts
+                onePlusMaintenanceMarginPercentageString = None
+                entryPriceSignString = entryPriceString
+                if side == 'short':
+                    onePlusMaintenanceMarginPercentageString = Precise.string_add('1', maintenanceMarginPercentageString)
+                else:
+                    onePlusMaintenanceMarginPercentageString = Precise.string_add('-1', maintenanceMarginPercentageString)
+                    entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
+                leftSide = Precise.string_div(walletBalance, Precise.string_mul(contractsStringAbs, onePlusMaintenanceMarginPercentageString))
+                rightSide = Precise.string_div(entryPriceSignString, onePlusMaintenanceMarginPercentageString)
+                pricePrecision = market['precision']['price']
+                pricePrecisionPlusOne = pricePrecision + 1
+                pricePrecisionPlusOneString = str(pricePrecisionPlusOne)
+                # round half up
+                rounder = Precise('5e-' + pricePrecisionPlusOneString)
+                rounderString = str(rounder)
+                liquidationPriceStringRaw = Precise.string_add(leftSide, rightSide)
+                liquidationPriceRoundedString = Precise.string_add(rounderString, liquidationPriceStringRaw)
+                truncatedLiquidationPrice = Precise.string_div(liquidationPriceRoundedString, '1', pricePrecision)
+                if truncatedLiquidationPrice[0] == '-':
+                    # user cannot be liquidated
+                    # since he has more collateral than the size of the position
+                    truncatedLiquidationPrice = None
+                liquidationPrice = self.parse_number(truncatedLiquidationPrice)
         return {
             'info': position,
             'symbol': symbol,
@@ -3123,7 +3164,7 @@ class binance(Exchange):
             'unrealizedPnl': unrealizedPnl,
             'contracts': contracts,
             'marginRatio': marginRatio,
-            'liquidationPrice': None,
+            'liquidationPrice': liquidationPrice,
             'markPrice': None,
             'collateral': collateral,
             'marginType': marginType,
@@ -3219,7 +3260,7 @@ class binance(Exchange):
         else:
             marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateralString, 4))
             side = 'short' if (notionalFloat < 0) else 'long'
-            percentage = self.parse_number(Precise.string_div(unrealizedPnlString, initialMarginString, 4))
+            percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
         marginType = self.safe_string(position, 'marginType')
         if marginType == 'cross':
             liquidationPrice = None

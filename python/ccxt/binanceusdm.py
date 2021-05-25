@@ -135,7 +135,7 @@ class binanceusdm(binance):
         #     "time": "1621252344001"
         #  }
         #
-        return self.parseFundingRate(response)
+        return self.parse_funding_rate(response)
 
     def fetch_funding_rates(self, symbols=None, params={}):
         self.load_markets()
@@ -143,7 +143,7 @@ class binanceusdm(binance):
         result = []
         for i in range(0, len(response)):
             entry = response[i]
-            parsed = self.parseFundingRate(entry)
+            parsed = self.parse_funding_rate(entry)
             result.append(parsed)
         return self.filter_by_array(result, 'symbol', symbols)
 
@@ -173,7 +173,7 @@ class binanceusdm(binance):
         self.load_markets()
         self.load_leverage_brackets()
         account = self.fapiPrivateGetAccount(params)
-        result = self.parseAccountPositions(account)
+        result = self.parse_account_positions(account)
         if symbols is None:
             return result
         else:
@@ -192,12 +192,12 @@ class binanceusdm(binance):
         if symbol is None:
             result = []
             for i in range(0, len(response)):
-                parsed = self.parsePositionRisk(response[i], market)
+                parsed = self.parse_position_risk(response[i], market)
                 if parsed['marginType'] == 'isolated':
                     result.append(parsed)
             return result
         else:
-            return self.parsePositionRisk(self.safe_value(response, 0), market)
+            return self.parse_position_risk(self.safe_value(response, 0), market)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -214,7 +214,7 @@ class binanceusdm(binance):
         if limit is not None:
             request['limit'] = limit
         response = self.fapiPrivateGetIncome(self.extend(request, params))
-        return self.parseIncomes(response, market, since, limit)
+        return self.parse_incomes(response, market, since, limit)
 
     def set_leverage(self, symbol, leverage, params={}):
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS

@@ -141,7 +141,7 @@ class binanceusdm extends binance {
         //     "time" => "1621252344001"
         //  }
         //
-        return $this->parseFundingRate ($response);
+        return $this->parse_funding_rate ($response);
     }
 
     public function fetch_funding_rates($symbols = null, $params = array ()) {
@@ -150,7 +150,7 @@ class binanceusdm extends binance {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
-            $parsed = $this->parseFundingRate ($entry);
+            $parsed = $this->parse_funding_rate ($entry);
             $result[] = $parsed;
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
@@ -186,7 +186,7 @@ class binanceusdm extends binance {
         yield $this->load_markets();
         yield $this->load_leverage_brackets();
         $account = yield $this->fapiPrivateGetAccount ($params);
-        $result = $this->parseAccountPositions ($account);
+        $result = $this->parse_account_positions ($account);
         if ($symbols === null) {
             return $result;
         } else {
@@ -208,14 +208,14 @@ class binanceusdm extends binance {
         if ($symbol === null) {
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $parsed = $this->parsePositionRisk ($response[$i], $market);
+                $parsed = $this->parse_position_risk ($response[$i], $market);
                 if ($parsed['marginType'] === 'isolated') {
                     $result[] = $parsed;
                 }
             }
             return $result;
         } else {
-            return $this->parsePositionRisk ($this->safe_value($response, 0), $market);
+            return $this->parse_position_risk ($this->safe_value($response, 0), $market);
         }
     }
 
@@ -237,7 +237,7 @@ class binanceusdm extends binance {
             $request['limit'] = $limit;
         }
         $response = yield $this->fapiPrivateGetIncome (array_merge($request, $params));
-        return $this->parseIncomes ($response, $market, $since, $limit);
+        return $this->parse_incomes ($response, $market, $since, $limit);
     }
 
     public function set_leverage($symbol, $leverage, $params = array ()) {

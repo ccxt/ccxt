@@ -2709,7 +2709,7 @@ class binance extends Exchange {
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
             $entry = $incomes[$i];
-            $parsed = $this->parse_income($entry, $market);
+            $parsed = $this->parse_income ($entry, $market);
             $result[] = $parsed;
         }
         return $this->filter_by_since_limit($result, $since, $limit, 'timestamp');
@@ -3176,7 +3176,10 @@ class binance extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $crossWalletBalance = $this->safe_string($entry, 'crossWalletBalance');
             $crossUnPnl = $this->safe_string($entry, 'crossUnPnl');
-            $balances[$code] = Precise::string_add($crossWalletBalance, $crossUnPnl);
+            $balances[$code] = array(
+                'crossMargin' => Precise::string_add($crossWalletBalance, $crossUnPnl),
+                'crossWalletBalance' => $crossWalletBalance,
+            );
         }
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
@@ -3185,7 +3188,8 @@ class binance extends Exchange {
             $market = $this->safe_market($marketId);
             $code = ($this->options['defaultType'] === 'future') ? $market['quote'] : $market['base'];
             $parsed = $this->parse_position(array_merge($position, array(
-                'crossMargin' => $balances[$code],
+                'crossMargin' => $balances[$code]['crossMargin'],
+                'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
             )), $market);
             $result[] = $parsed;
         }
@@ -3194,7 +3198,7 @@ class binance extends Exchange {
 
     public function parse_position($position, $market = null) {
         //
-        // usdm
+        // $usdm
         //    {
         //       "$symbol" => "BTCBUSD",
         //       "$initialMargin" => "0",
@@ -3230,6 +3234,7 @@ class binance extends Exchange {
         //       "notionalValue" => "0.00243939",
         //       "isolatedWallet" => "0",
         //       "crossMargin" => "0.314"
+        //       "crossWalletBalance" => "34",
         //     }
         //
         $marketId = $this->safe_string($position, 'symbol');
@@ -3244,6 +3249,7 @@ class binance extends Exchange {
         if (!$rational) {
             $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
         }
+        $usdm = (is_array($position) && array_key_exists('notional', $position));
         $maintenanceMarginString = $this->safe_string($position, 'maintMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
         $entryPriceString = $this->safe_string($position, 'entryPrice');
@@ -3258,7 +3264,8 @@ class binance extends Exchange {
         if ($contractsString === null) {
             $contractsString = (int) round($notionalFloat * $entryPriceFloat / (string) $market['contractSize']);
         }
-        $contracts = $this->parse_number(Precise::string_abs($contractsString));
+        $contractsStringAbs = Precise::string_abs($contractsString);
+        $contracts = $this->parse_number($contractsStringAbs);
         $leverageBracket = $this->options['leverageBrackets'][$symbol];
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
@@ -3278,24 +3285,61 @@ class binance extends Exchange {
         $isolated = $this->safe_value($position, 'isolated');
         $marginType = null;
         $collateralString = null;
+        $walletBalance = null;
         if ($isolated) {
             $marginType = 'isolated';
             $walletBalance = $this->safe_string($position, 'isolatedWallet');
             $collateralString = Precise::string_add($walletBalance, $unrealizedPnlString);
         } else {
             $marginType = 'cross';
+            $walletBalance = $this->safe_string($position, 'crossWalletBalance');
             $collateralString = $this->safe_string($position, 'crossMargin');
         }
         $collateral = $this->parse_number($collateralString);
         $marginRatio = null;
         $side = null;
         $percentage = null;
+        $liquidationPrice = null;
         if ($notionalFloat === 0.0) {
             $entryPrice = null;
         } else {
             $side = ($notionalFloat < 0) ? 'short' : 'long';
             $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
-            $percentage = $this->parse_number(Precise::string_div($unrealizedPnlString, $initialMarginString, 4));
+            $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100'));
+            if ($usdm) {
+                // calculate liquidation price
+                //
+                // $liquidationPrice = ($walletBalance / ($contracts * (±1 . mmp))) (±$entryPrice / (±1 . mmp))
+                //
+                // mmp = $maintenanceMarginPercentage
+                // where ± is negative for long and positive for short
+                // TODO => calculate liquidation price for coinm $contracts
+                $onePlusMaintenanceMarginPercentageString = null;
+                $entryPriceSignString = $entryPriceString;
+                if ($side === 'short') {
+                    $onePlusMaintenanceMarginPercentageString = Precise::string_add('1', $maintenanceMarginPercentageString);
+                } else {
+                    $onePlusMaintenanceMarginPercentageString = Precise::string_add('-1', $maintenanceMarginPercentageString);
+                    $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
+                }
+                $leftSide = Precise::string_div($walletBalance, Precise::string_mul($contractsStringAbs, $onePlusMaintenanceMarginPercentageString));
+                $rightSide = Precise::string_div($entryPriceSignString, $onePlusMaintenanceMarginPercentageString);
+                $pricePrecision = $market['precision']['price'];
+                $pricePrecisionPlusOne = $pricePrecision + 1;
+                $pricePrecisionPlusOneString = (string) $pricePrecisionPlusOne;
+                // round half up
+                $rounder = new Precise ('5e-' . $pricePrecisionPlusOneString);
+                $rounderString = (string) $rounder;
+                $liquidationPriceStringRaw = Precise::string_add($leftSide, $rightSide);
+                $liquidationPriceRoundedString = Precise::string_add($rounderString, $liquidationPriceStringRaw);
+                $truncatedLiquidationPrice = Precise::string_div($liquidationPriceRoundedString, '1', $pricePrecision);
+                if ($truncatedLiquidationPrice[0] === '-') {
+                    // user cannot be liquidated
+                    // since he has more $collateral than the size of the $position
+                    $truncatedLiquidationPrice = null;
+                }
+                $liquidationPrice = $this->parse_number($truncatedLiquidationPrice);
+            }
         }
         return array(
             'info' => $position,
@@ -3312,7 +3356,7 @@ class binance extends Exchange {
             'unrealizedPnl' => $unrealizedPnl,
             'contracts' => $contracts,
             'marginRatio' => $marginRatio,
-            'liquidationPrice' => null,
+            'liquidationPrice' => $liquidationPrice,
             'markPrice' => null,
             'collateral' => $collateral,
             'marginType' => $marginType,
@@ -3413,7 +3457,7 @@ class binance extends Exchange {
         } else {
             $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
             $side = ($notionalFloat < 0) ? 'short' : 'long';
-            $percentage = $this->parse_number(Precise::string_div($unrealizedPnlString, $initialMarginString, 4));
+            $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100'));
         }
         $marginType = $this->safe_string($position, 'marginType');
         if ($marginType === 'cross') {
