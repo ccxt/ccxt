@@ -1360,6 +1360,7 @@ module.exports = class binance extends Exchange {
         //         volume: '81990451',
         //         weightedAvgPrice: '38215.08713747'
         //     }
+        //
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
