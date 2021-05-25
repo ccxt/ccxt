@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded, NetworkError } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded, NetworkError } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -22,10 +22,13 @@ module.exports = class okex5 extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': false, // see below
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchStatus': true,
@@ -703,46 +706,60 @@ module.exports = class okex5 extends Exchange {
 
     async fetchCurrencies (params = {}) {
         // has['fetchCurrencies'] is currently set to false
-        // despite that their docs say these endpoints are public:
-        //     https://www.okex.com/api/account/v3/withdrawal/fee
-        //     https://www.okex.com/api/account/v3/currencies
-        // it will still reply with { "code":30001, "message": "OK-ACCESS-KEY header is required" }
+        // it will reply with {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
         // if you attempt to access it without authentication
-        const response = await this.accountGetCurrencies (params);
+        const response = await this.privateGetAssetCurrencies (params);
         //
-        //     [
-        //         {
-        //             name: '',
-        //             currency: 'BTC',
-        //             can_withdraw: '1',
-        //             can_deposit: '1',
-        //             min_withdrawal: '0.0100000000000000'
-        //         },
-        //     ]
+        //     {
+        //         "code":"0",
+        //         "data":[
+        //             {
+        //                 "canDep":true,
+        //                 "canInternal":true,
+        //                 "canWd":true,
+        //                 "ccy":"USDT",
+        //                 "chain":"USDT-ERC20",
+        //                 "maxFee":"40",
+        //                 "minFee":"20",
+        //                 "minWd":"2",
+        //                 "name":""
+        //             }
+        //         ],
+        //         "msg":""
+        //     }
         //
+        const data = this.safeValue (response, 'data', []);
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString (currency, 'currency');
+        const dataByCurrencyId = this.groupBy (data, 'ccy');
+        const currencyIds = Object.keys (dataByCurrencyId);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const chains = dataByCurrencyId[currencyId];
+            const first = this.safeValue (chains, 0);
+            const id = this.safeString (first, 'ccy');
             const code = this.safeCurrencyCode (id);
             const precision = 0.00000001; // default precision, todo: fix "magic constants"
-            const name = this.safeString (currency, 'name');
-            const canDeposit = this.safeInteger (currency, 'can_deposit');
-            const canWithdraw = this.safeInteger (currency, 'can_withdraw');
-            const active = (canDeposit && canWithdraw) ? true : false;
+            let name = this.safeString (first, 'name');
+            if ((name !== undefined) && (name.length < 1)) {
+                name = undefined;
+            }
+            const canDeposit = this.safeValue (first, 'canDep');
+            const canWithdraw = this.safeValue (first, 'canWd');
+            const canInternal = this.safeValue (first, 'canInternal');
+            const active = (canDeposit && canWithdraw && canInternal) ? true : false;
             result[code] = {
                 'id': id,
                 'code': code,
-                'info': currency,
+                'info': chains,
                 'type': undefined,
                 'name': name,
                 'active': active,
-                'fee': undefined, // todo: redesign
+                'fee': this.safeNumber (first, 'minFee'),
                 'precision': precision,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': {
-                        'min': this.safeNumber (currency, 'min_withdrawal'),
+                        'min': this.safeNumber (first, 'ccy'),
                         'max': undefined,
                     },
                 },
@@ -1308,7 +1325,7 @@ module.exports = class okex5 extends Exchange {
         //         "sMsg": ""
         //     }
         //
-        // fetchOrder
+        // fetchOrder, fetchOpenOrders
         //
         //     {
         //         "accFillSz":"0",
@@ -1475,147 +1492,140 @@ module.exports = class okex5 extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrdersByState (state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByState() requires a symbol argument');
-        }
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        let type = undefined;
-        if (market['futures'] || market['swap']) {
-            type = market['type'];
-        } else {
-            const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', market['type']);
-            type = this.safeString (params, 'type', defaultType);
-        }
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrdersByState() requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
-        }
         const request = {
-            'instrument_id': market['id'],
-            // '-2': failed,
-            // '-1': cancelled,
-            //  '0': open ,
-            //  '1': partially filled,
-            //  '2': fully filled,
-            //  '3': submitting,
-            //  '4': cancelling,
-            //  '6': incomplete（open+partially filled),
-            //  '7': complete（cancelled+fully filled),
-            'state': state,
+            // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'uly': currency['id'],
+            // 'instId': market['id'],
+            // 'ordType': 'limit', // market, limit, post_only, fok, ioc, comma-separated
+            // 'state': 'live', // live, partially_filled
+            // 'after': orderId,
+            // 'before': orderId,
+            // 'limit': limit, // default 100, max 100
         };
-        let method = type + 'GetOrders';
-        if (market['futures'] || market['swap']) {
-            method += 'InstrumentId';
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instId'] = market['id'];
         }
-        const query = this.omit (params, 'type');
-        const response = await this[method] (this.extend (request, query));
-        //
-        // spot, margin
-        //
-        //     [
-        //         // in fact, this documented API response does not correspond
-        //         // to their actual API response for spot markets
-        //         // OKEX v3 API returns a plain array of orders (see below)
-        //         [
-        //             {
-        //                 "client_oid":"oktspot76",
-        //                 "created_at":"2019-03-18T07:26:49.000Z",
-        //                 "filled_notional":"3.9734",
-        //                 "filled_size":"0.001",
-        //                 "funds":"",
-        //                 "instrument_id":"BTC-USDT",
-        //                 "notional":"",
-        //                 "order_id":"2500723297813504",
-        //                 "order_type":"0",
-        //                 "price":"4013",
-        //                 "product_id":"BTC-USDT",
-        //                 "side":"buy",
-        //                 "size":"0.001",
-        //                 "status":"filled",
-        //                 "state": "2",
-        //                 "timestamp":"2019-03-18T07:26:49.000Z",
-        //                 "type":"limit"
-        //             },
-        //         ],
-        //         {
-        //             "before":"2500723297813504",
-        //             "after":"2500650881647616"
-        //         }
-        //     ]
-        //
-        // futures, swap
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
+        const response = await this.privateGetTradeOrdersPending (this.extend (request, params));
         //
         //     {
-        //         "result":true,  // missing in swap orders
-        //         "order_info": [
+        //         "code":"0",
+        //         "data":[
         //             {
-        //                 "instrument_id":"EOS-USD-190628",
-        //                 "size":"10",
-        //                 "timestamp":"2019-03-20T10:04:55.000Z",
-        //                 "filled_qty":"10",
-        //                 "fee":"-0.00841043",
-        //                 "order_id":"2512669605501952",
-        //                 "price":"3.668",
-        //                 "price_avg":"3.567",
-        //                 "status":"2",
-        //                 "state": "2",
-        //                 "type":"4",
-        //                 "contract_val":"10",
-        //                 "leverage":"10", // missing in swap orders
-        //                 "client_oid":"",
-        //                 "pnl":"1.09510794", // missing in swap orders
-        //                 "order_type":"0"
-        //             },
-        //         ]
+        //                 "accFillSz":"0",
+        //                 "avgPx":"",
+        //                 "cTime":"1621910749815",
+        //                 "category":"normal",
+        //                 "ccy":"",
+        //                 "clOrdId":"",
+        //                 "fee":"0",
+        //                 "feeCcy":"ETH",
+        //                 "fillPx":"",
+        //                 "fillSz":"0",
+        //                 "fillTime":"",
+        //                 "instId":"ETH-USDT",
+        //                 "instType":"SPOT",
+        //                 "lever":"",
+        //                 "ordId":"317251910906576896",
+        //                 "ordType":"limit",
+        //                 "pnl":"0",
+        //                 "posSide":"net",
+        //                 "px":"2000",
+        //                 "rebate":"0",
+        //                 "rebateCcy":"USDT",
+        //                 "side":"buy",
+        //                 "slOrdPx":"",
+        //                 "slTriggerPx":"",
+        //                 "state":"live",
+        //                 "sz":"0.001",
+        //                 "tag":"",
+        //                 "tdMode":"cash",
+        //                 "tpOrdPx":"",
+        //                 "tpTriggerPx":"",
+        //                 "tradeId":"",
+        //                 "uTime":"1621910749815"
+        //             }
+        //         ],
+        //         "msg":""
         //     }
         //
-        let orders = undefined;
-        if (market['swap'] || market['futures']) {
-            orders = this.safeValue (response, 'order_info', []);
-        } else {
-            orders = response;
-            const responseLength = response.length;
-            if (responseLength < 1) {
-                return [];
-            }
-            // in fact, this documented API response does not correspond
-            // to their actual API response for spot markets
-            // OKEX v3 API returns a plain array of orders
-            if (responseLength > 1) {
-                const before = this.safeValue (response[1], 'before');
-                if (before !== undefined) {
-                    orders = response[0];
-                }
-            }
-        }
-        return this.parseOrders (orders, market, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // '-2': failed,
-        // '-1': cancelled,
-        //  '0': open ,
-        //  '1': partially filled,
-        //  '2': fully filled,
-        //  '3': submitting,
-        //  '4': cancelling,
-        //  '6': incomplete（open+partially filled),
-        //  '7': complete（cancelled+fully filled),
-        return await this.fetchOrdersByState ('6', symbol, since, limit, params);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // '-2': failed,
-        // '-1': cancelled,
-        //  '0': open ,
-        //  '1': partially filled,
-        //  '2': fully filled,
-        //  '3': submitting,
-        //  '4': cancelling,
-        //  '6': incomplete（open+partially filled),
-        //  '7': complete（cancelled+fully filled),
-        return await this.fetchOrdersByState ('7', symbol, since, limit, params);
+        await this.loadMarkets ();
+        const request = {
+            // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'uly': currency['id'],
+            // 'instId': market['id'],
+            // 'ordType': 'limit', // market, limit, post_only, fok, ioc, comma-separated
+            // 'state': 'filled', // filled, canceled
+            // 'after': orderId,
+            // 'before': orderId,
+            // 'limit': limit, // default 100, max 100
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instId'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
+        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
+        const method = this.safeString (options, 'method', 'privateGetTradeOrdersHistory');
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "code":"0",
+        //         "data":[
+        //             {
+        //                 "accFillSz":"0",
+        //                 "avgPx":"",
+        //                 "cTime":"1621910749815",
+        //                 "category":"normal",
+        //                 "ccy":"",
+        //                 "clOrdId":"",
+        //                 "fee":"0",
+        //                 "feeCcy":"ETH",
+        //                 "fillPx":"",
+        //                 "fillSz":"0",
+        //                 "fillTime":"",
+        //                 "instId":"ETH-USDT",
+        //                 "instType":"SPOT",
+        //                 "lever":"",
+        //                 "ordId":"317251910906576896",
+        //                 "ordType":"limit",
+        //                 "pnl":"0",
+        //                 "posSide":"net",
+        //                 "px":"2000",
+        //                 "rebate":"0",
+        //                 "rebateCcy":"USDT",
+        //                 "side":"buy",
+        //                 "slOrdPx":"",
+        //                 "slTriggerPx":"",
+        //                 "state":"live",
+        //                 "sz":"0.001",
+        //                 "tag":"",
+        //                 "tdMode":"cash",
+        //                 "tpOrdPx":"",
+        //                 "tpTriggerPx":"",
+        //                 "tradeId":"",
+        //                 "uTime":"1621910749815"
+        //             }
+        //         ],
+        //         "msg":""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
