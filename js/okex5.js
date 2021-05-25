@@ -1188,81 +1188,99 @@ module.exports = class okex5 extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
-            'instrument_id': market['id'],
-            // 'client_oid': 'abcdef1234567890', // [a-z0-9]{1,32}
-            // 'order_type': '0', // 0 = Normal limit order, 1 = Post only, 2 = Fill Or Kill, 3 = Immediatel Or Cancel, 4 = Market for futures only
+        const request = {
+            'instId': market['id'],
+            //
+            //     Simple:
+            //     - SPOT and OPTION buyer: cash
+            //
+            //     Single-currency margin:
+            //     - Isolated MARGIN: isolated
+            //     - Cross MARGIN: cross
+            //     - Cross SPOT: cash
+            //     - Cross FUTURES/SWAP/OPTION: cross
+            //     - Isolated FUTURES/SWAP/OPTION: isolated
+            //
+            //     Multi-currency margin:
+            //     - Isolated MARGIN: isolated
+            //     - Cross SPOT: cross
+            //     - Cross FUTURES/SWAP/OPTION: cross
+            //     - Isolated FUTURES/SWAP/OPTION: isolated
+            //
+            'tdMode': 'cash', // cash, cross, isolated
+            // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
+            // 'clOrdId': clientOrderId, // up to 32 characters, must be unique
+            // 'tag': tag, // up to 8 characters
+            //
+            //     In long/short mode, side and posSide need to be combined
+            //
+            //     buy with long means open long
+            //     sell with long means close long
+            //     sell with short means open short
+            //     buy with short means close short
+            //
+            'side': side,
+            // 'posSide': 'long', // long, short, // required in the long/short mode, and can only be long or short
+            'ordType': type, // market, limit, post_only, fok, ioc
+            //
+            //     for SPOT/MARGIN bought and sold at a limit price, sz refers to the amount of trading currency
+            //     for SPOT/MARGIN bought at a market price, sz refers to the amount of quoted currency
+            //     for SPOT/MARGIN sold at a market price, sz refers to the amount of trading currency
+            //     for FUTURES/SWAP/OPTION buying and selling, sz refers to the number of contracts
+            //
+            // 'sz': this.amountToPrecision (symbol, amount),
+            // 'px': this.priceToPrecision (symbol, price), // limit orders only
+            // 'reduceOnly': false, // MARGIN orders only
         };
-        const clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (clientOrderId !== undefined) {
-            request['client_oid'] = clientOrderId;
-            params = this.omit (params, [ 'client_oid', 'clientOrderId' ]);
+            request['clOrdId'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
         }
-        let method = undefined;
-        if (market['futures'] || market['swap']) {
-            const size = market['futures'] ? this.numberToString (amount) : this.amountToPrecision (symbol, amount);
-            request = this.extend (request, {
-                'type': type, // 1:open long 2:open short 3:close long 4:close short for futures
-                'size': size,
-                // 'match_price': '0', // Order at best counter party price? (0:no 1:yes). The default is 0. If it is set as 1, the price parameter will be ignored. When posting orders at best bid price, order_type can only be 0 (regular order).
-            });
-            const orderType = this.safeString (params, 'order_type');
-            // order_type === '4' means a market order
-            const isMarketOrder = (type === 'market') || (orderType === '4');
-            if (isMarketOrder) {
-                request['order_type'] = '4';
-            } else {
-                request['price'] = this.priceToPrecision (symbol, price);
-            }
-            if (market['futures']) {
-                request['leverage'] = '10'; // or '20'
-            }
-            method = market['type'] + 'PostOrder';
-        } else {
-            const marginTrading = this.safeString (params, 'margin_trading', '1');  // 1 = spot, 2 = margin
-            request = this.extend (request, {
-                'side': side,
-                'type': type, // limit/market
-                'margin_trading': marginTrading, // 1 = spot, 2 = margin
-            });
-            if (type === 'limit') {
-                request['price'] = this.priceToPrecision (symbol, price);
-                request['size'] = this.amountToPrecision (symbol, amount);
-            } else if (type === 'market') {
-                // for market buy it requires the amount of quote currency to spend
-                if (side === 'buy') {
-                    let notional = this.safeNumber (params, 'notional');
-                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-                    if (createMarketBuyOrderRequiresPrice) {
-                        if (price !== undefined) {
-                            if (notional === undefined) {
-                                notional = amount * price;
-                            }
-                        } else if (notional === undefined) {
-                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+        if (type === 'market') {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                let notional = this.safeNumber (params, 'sz');
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price !== undefined) {
+                        if (notional === undefined) {
+                            notional = amount * price;
                         }
-                    } else {
-                        notional = (notional === undefined) ? amount : notional;
+                    } else if (notional === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
                     }
-                    const precision = market['precision']['price'];
-                    request['notional'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
                 } else {
-                    request['size'] = this.amountToPrecision (symbol, amount);
+                    notional = (notional === undefined) ? amount : notional;
                 }
+                const precision = market['precision']['price'];
+                request['sz'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
+            } else {
+                request['sz'] = this.amountToPrecision (symbol, amount);
             }
-            method = (marginTrading === '2') ? 'marginPostOrders' : 'spotPostOrders';
+        } else {
+            request['px'] = this.priceToPrecision (symbol, price);
+            request['sz'] = this.amountToPrecision (symbol, amount);
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privatePostTradeOrder (this.extend (request, params));
         //
         //     {
-        //         "client_oid":"oktspot79",
-        //         "error_code":"",
-        //         "error_message":"",
-        //         "order_id":"2510789768709120",
-        //         "result":true
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "clOrdId": "oktswap6",
+        //                 "ordId": "312269865356374016",
+        //                 "tag": "",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             }
+        //         ]
         //     }
         //
-        const order = this.parseOrder (response, market);
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0);
+        const order = this.parseOrder (first, market);
         return this.extend (order, {
             'type': type,
             'side': side,
