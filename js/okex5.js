@@ -1248,59 +1248,23 @@ module.exports = class okex5 extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let type = undefined;
-        if (market['futures'] || market['swap']) {
-            type = market['type'];
-        } else {
-            const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', market['type']);
-            type = this.safeString (params, 'type', defaultType);
-        }
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " cancelOrder() requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
-        }
-        let method = type + 'PostCancelOrder';
         const request = {
-            'instrument_id': market['id'],
+            'instId': market['id'],
+            // 'ordId': id, // either ordId or clOrdId is required
+            // 'clOrdId': clientOrderId,
         };
-        if (market['futures'] || market['swap']) {
-            method += 'InstrumentId';
-        } else {
-            method += 's';
-        }
-        const clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (clientOrderId !== undefined) {
-            method += 'ClientOid';
-            request['client_oid'] = clientOrderId;
+            request['clOrdId'] = clientOrderId;
         } else {
-            method += 'OrderId';
-            request['order_id'] = id;
+            request['ordId'] = id;
         }
-        const query = this.omit (params, [ 'type', 'client_oid', 'clientOrderId' ]);
-        const response = await this[method] (this.extend (request, query));
-        const result = ('result' in response) ? response : this.safeValue (response, market['id'], {});
-        //
-        // spot, margin
-        //
-        //     {
-        //         "btc-usdt": [
-        //             {
-        //                 "result":true,
-        //                 "client_oid":"a123",
-        //                 "order_id": "2510832677225473"
-        //             }
-        //         ]
-        //     }
-        //
-        // futures, swap
-        //
-        //     {
-        //         "result": true,
-        //         "client_oid": "oktfuture10", // missing if requested by order_id
-        //         "order_id": "2517535534836736",
-        //         "instrument_id": "EOS-USD-190628"
-        //     }
-        //
-        return this.parseOrder (result, market);
+        const query = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
+        const response = await this.privatePostTradeCancelOrder (this.extend (request, query));
+        // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
+        const data = this.safeValue (response, 'data', []);
+        const order = this.safeValue (data, 0);
+        return this.parseOrder (order, market);
     }
 
     parseOrderStatus (status) {
@@ -1561,8 +1525,12 @@ module.exports = class okex5 extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const options = this.safeString2 (this.options, 'fetchClosedOrders', {});
+        const defaultType = this.safeString (options, 'type', 'spot');
+        let type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
         const request = {
-            // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
             // 'instId': market['id'],
             // 'ordType': 'limit', // market, limit, post_only, fok, ioc, comma-separated
@@ -1574,12 +1542,15 @@ module.exports = class okex5 extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            if (market['futures'] || market['swap']) {
+                type = market['type'];
+            }
             request['instId'] = market['id'];
         }
+        request['instType'] = type.toUpperCase ();
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        const options = this.safeValue (this.options, 'fetchClosedOrders', {});
         const method = this.safeString (options, 'method', 'privateGetTradeOrdersHistory');
         const response = await this[method] (this.extend (request, params));
         //
