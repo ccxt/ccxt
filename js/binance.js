@@ -3303,7 +3303,10 @@ module.exports = class binance extends Exchange {
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
             if (usdm) {
                 // calculate liquidation price
-                // liquidationPrice = (walletBalance / (contracts * (±1 + mmp))) (±entry / (±1 + mmp))
+                //
+                // liquidationPrice = (walletBalance / (contracts * (±1 + mmp))) (±entryPrice / (±1 + mmp))
+                //
+                // mmp = maintenanceMarginPercentage
                 // where ± is negative for long and positive for short
                 // TODO: calculate liquidation price for coinm contracts
                 let onePlusMaintenanceMarginPercentageString = undefined;
