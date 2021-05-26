@@ -1131,12 +1131,12 @@ class okex5 extends Exchange {
         //                 "$details":array(
         //                     {
         //                         "availBal":"",
-        //                         "availEq":"28.21006347",
+        //                         "$availEq":"28.21006347",
         //                         "cashBal":"28.21006347",
         //                         "ccy":"USDT",
         //                         "crossLiab":"",
         //                         "disEq":"28.2687404020176",
-        //                         "eq":"28.21006347",
+        //                         "$eq":"28.21006347",
         //                         "eqUsd":"28.2687404020176",
         //                         "frozenBal":"0",
         //                         "interest":"",
@@ -1166,6 +1166,49 @@ class okex5 extends Exchange {
         //         "msg":""
         //     }
         //
+        //     {
+        //         "$code":"0",
+        //         "$data":array(
+        //             {
+        //                 "adjEq":"",
+        //                 "$details":array(
+        //                     {
+        //                         "availBal":"0.049",
+        //                         "$availEq":"",
+        //                         "cashBal":"0.049",
+        //                         "ccy":"BTC",
+        //                         "crossLiab":"",
+        //                         "disEq":"1918.55678",
+        //                         "$eq":"0.049",
+        //                         "eqUsd":"1918.55678",
+        //                         "frozenBal":"0",
+        //                         "interest":"",
+        //                         "isoEq":"",
+        //                         "isoLiab":"",
+        //                         "liab":"",
+        //                         "maxLoan":"",
+        //                         "mgnRatio":"",
+        //                         "notionalLever":"",
+        //                         "ordFrozen":"0",
+        //                         "twap":"0",
+        //                         "uTime":"1621973128591",
+        //                         "upl":"",
+        //                         "uplLiab":""
+        //                     }
+        //                 ),
+        //                 "imr":"",
+        //                 "isoEq":"",
+        //                 "mgnRatio":"",
+        //                 "mmr":"",
+        //                 "notionalUsd":"",
+        //                 "ordFroz":"",
+        //                 "totalEq":"1918.55678",
+        //                 "uTime":"1622045126908"
+        //             }
+        //         ),
+        //         "msg":""
+        //     }
+        //
         $result = array( 'info' => $response );
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0, array());
@@ -1177,8 +1220,15 @@ class okex5 extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             // it may be incorrect to use total, free and used for swap accounts
-            $account['total'] = $this->safe_string($balance, 'eq');
-            $account['free'] = $this->safe_string($balance, 'availEq');
+            $eq = $this->safe_string($balance, 'eq');
+            $availEq = $this->safe_string($balance, 'availEq');
+            if ((strlen($eq) < 1) || (strlen($availEq) < 1)) {
+                $account['free'] = $this->safe_string($balance, 'availBal');
+                $account['used'] = $this->safe_string($balance, 'cashBal');
+            } else {
+                $account['total'] = $eq;
+                $account['free'] = $availEq;
+            }
             $result[$code] = $account;
         }
         $result['timestamp'] = $timestamp;

@@ -1146,6 +1146,49 @@ class okex5(Exchange):
         #         "msg":""
         #     }
         #
+        #     {
+        #         "code":"0",
+        #         "data":[
+        #             {
+        #                 "adjEq":"",
+        #                 "details":[
+        #                     {
+        #                         "availBal":"0.049",
+        #                         "availEq":"",
+        #                         "cashBal":"0.049",
+        #                         "ccy":"BTC",
+        #                         "crossLiab":"",
+        #                         "disEq":"1918.55678",
+        #                         "eq":"0.049",
+        #                         "eqUsd":"1918.55678",
+        #                         "frozenBal":"0",
+        #                         "interest":"",
+        #                         "isoEq":"",
+        #                         "isoLiab":"",
+        #                         "liab":"",
+        #                         "maxLoan":"",
+        #                         "mgnRatio":"",
+        #                         "notionalLever":"",
+        #                         "ordFrozen":"0",
+        #                         "twap":"0",
+        #                         "uTime":"1621973128591",
+        #                         "upl":"",
+        #                         "uplLiab":""
+        #                     }
+        #                 ],
+        #                 "imr":"",
+        #                 "isoEq":"",
+        #                 "mgnRatio":"",
+        #                 "mmr":"",
+        #                 "notionalUsd":"",
+        #                 "ordFroz":"",
+        #                 "totalEq":"1918.55678",
+        #                 "uTime":"1622045126908"
+        #             }
+        #         ],
+        #         "msg":""
+        #     }
+        #
         result = {'info': response}
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0, {})
@@ -1157,8 +1200,14 @@ class okex5(Exchange):
             code = self.safe_currency_code(currencyId)
             account = self.account()
             # it may be incorrect to use total, free and used for swap accounts
-            account['total'] = self.safe_string(balance, 'eq')
-            account['free'] = self.safe_string(balance, 'availEq')
+            eq = self.safe_string(balance, 'eq')
+            availEq = self.safe_string(balance, 'availEq')
+            if (len(eq) < 1) or (len(availEq) < 1):
+                account['free'] = self.safe_string(balance, 'availBal')
+                account['used'] = self.safe_string(balance, 'cashBal')
+            else:
+                account['total'] = eq
+                account['free'] = availEq
             result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
