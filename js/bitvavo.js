@@ -701,7 +701,12 @@ module.exports = class bitvavo extends Exchange {
             // 'end': this.milliseconds (),
         };
         if (since !== undefined) {
+            const duration = this.parseTimeframe (timeframe);
             request['start'] = since;
+            if (limit === undefined) {
+                limit = 1440;
+            }
+            request['end'] = this.sum (since, limit * duration * 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 1440, max 1440
