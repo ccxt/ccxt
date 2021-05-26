@@ -733,7 +733,7 @@ class ndax extends Exchange {
             $amountString = $this->safe_string($trade, 2);
             $timestamp = $this->safe_integer($trade, 6);
             $id = $this->safe_string($trade, 0);
-            $marketId = $this->safe_integer($trade, 1);
+            $marketId = $this->safe_string($trade, 1);
             $takerSide = $this->safe_value($trade, 8);
             $side = $takerSide ? 'sell' : 'buy';
             $orderId = $this->safe_string($trade, 4);

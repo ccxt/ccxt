@@ -720,7 +720,7 @@ class ndax(Exchange):
             amountString = self.safe_string(trade, 2)
             timestamp = self.safe_integer(trade, 6)
             id = self.safe_string(trade, 0)
-            marketId = self.safe_integer(trade, 1)
+            marketId = self.safe_string(trade, 1)
             takerSide = self.safe_value(trade, 8)
             side = 'sell' if takerSide else 'buy'
             orderId = self.safe_string(trade, 4)
