@@ -1,0 +1,60 @@
+environment:
+  matrix:
+    - nodejs_version: '13'
+install:
+  - ps: Install-Product node $env:nodejs_version
+  - set LIB=C:\OpenSSL-Win64\lib;%LIB%
+  - set INCLUDE=C:\OpenSSL-Win64\include;%INCLUDE%
+  - set CI=true
+  - npm install --global npm@latest
+  - set PATH=%APPDATA%\npm;C:\Python38;C:\Python38\Scripts;%PATH%
+  # Remove python2.7 from path
+  - set PATH=%PATH:C:\Python27;=%
+  - set PATH=%PATH:C:\Python27\Scripts;=%
+  - echo %PATH%
+  - dir C:\
+  - npm install
+  - python --version
+  - pip --version
+  - python -m pip install --upgrade pip setuptools
+  - pip install tox
+  - pip install requests
+  - pip install cryptography
+  - set PATH=C:\Program Files\curl;%PATH%
+  - setx PATH "%PATH%"
+  - ps: Set-Service wuauserv -StartupType Manual
+  - cinst -y php --allow-empty-checksums
+  - cd c:\tools\php80
+  - copy php.ini-production php.ini
+  - echo date.timezone="UTC" >> php.ini
+  - echo extension_dir=ext >> php.ini
+  - echo extension=php_curl.dll >> php.ini
+  - echo extension=php_mbstring.dll >> php.ini
+  - cd %APPVEYOR_BUILD_FOLDER%
+matrix:
+  fast_finish: true
+build: off
+clone_depth: 1
+test_script:
+  - refreshenv
+  - node --version
+  - npm --version
+  - python --version
+  - npm run force-build
+  # - npm run test-base
+cache:
+  - '%APPDATA%\npm-cache'
+  - '%LOCALAPPDATA%\pip\Cache'
+after_build:
+  # Remove old or huge cache files to hopefully not exceed the 1GB cache limit.
+  #
+  # If the cache limit is reached, the cache will not be updated (of not even
+  # created in the first run). So this is a trade of between keeping the cache
+  # current and having a cache at all.
+  # NB: This is done only `on_success` since the cache in uploaded only on
+  # success anyway.
+  - C:\cygwin\bin\find "%LOCALAPPDATA%\pip" -type f -mtime +360 -delete
+  - C:\cygwin\bin\find "%LOCALAPPDATA%\pip" -type f -size +10M -delete
+  - C:\cygwin\bin\find "%LOCALAPPDATA%\pip" -empty -delete
+  # Show size of cache
+  - C:\cygwin\bin\du -hs "%LOCALAPPDATA%\pip\Cache"

@@ -1,0 +1,5 @@
+# Include the license file
+include LICENSE.txt
+
+# Include the package.json file
+include package.json

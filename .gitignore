@@ -1,0 +1,34 @@
+
+# You shouldn't edit these files, as they're generated automatically from ccxt.js by build scripts.
+# Please read https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support for details.
+#
+.vscode
+build/ccxt.wiki
+node_modules/
+npm-debug.log
+.DS_Store
+config.js
+config.py
+config.php
+ccxt.egg-info/
+tmp/
+*.pyc
+.tox/
+coverage
+.nyc_output
+travis-keys.sh
+exchanges.json
+ccxt.sublime-workspace
+.idea
+yarn.lock
+keys.local.json
+nbproject/
+vendor/
+python/build
+python/dist
+python/package-lock.json
+python/package.json
+python/keys.json
+python/LICENSE.txt
+.env
+*.swp

@@ -1,0 +1,50 @@
+language: python
+dist: focal
+python:
+  - "3.7"
+cache:
+ directories:
+   # - $HOME/.cache/pip
+   # - $HOME/.npm
+   # - node_modules
+
+before_install:
+- set -e
+- . $HOME/.nvm/nvm.sh
+- nvm ls
+# - nvm install 14.9.0 -v
+# - nvm use 14.9.0
+- nvm use stable
+- rm -rf node_modules
+- npm install
+- git checkout package.json package-lock.json
+- sudo -H pip install --upgrade setuptools
+- sudo -H pip install --upgrade pip wheel requests pyopenssl
+- sudo -H pip install --ignore-installed six
+- sudo -H pip install --upgrade tox twine
+- pip install --upgrade setuptools
+- pip install --upgrade aiohttp requests cryptography pyopenssl
+- git pull --tags
+- composer install
+- composer require --ignore-platform-reqs react/http recoil/react
+script:
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
+- npm run force-build
+- cd python
+- tox -e doc
+- cd ..
+- npm run test-base
+- bash -c 'node run-tests --js --python-async --php-async 5' 2>&1
+- git checkout master composer.json
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh; fi
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then cd python && env PYPI_PASSWORD=${PYPI_PASSWORD} ./deploy.sh && cd ..; fi
+after_failure:
+- dmesg | grep -i kill
+deploy:
+  - provider: npm
+    email: igor.kroitor@gmail.com
+    api_key:
+      secure: euGp3OIlxbY+ZqgJYOAE1MH4EyCVIRLxMksHcj+w/V6MEkRchLIUDE68kLdK5ZUFGHnoFQtR1N65i428gvcjy8P/0K0p9maVpZaHuk0Q2GrnIAAe0D6jZu2s2D0JPhWCZ5U4Aiek5ExhTblEYWTwOtpG/JwAa+2/IT+2DvtNf37HBM0tEvI3FLRexTv74vMDH172681UFHz2h0dvfgOzBwCiydsp6eihnV90AetsYT4Y9VpZDjAdmATO1ydLw8SnH2skWssmH8snyDDVOPkdu6mRBHZB6ckSZzyQLiIbn4dlzAt6Zi1/NjSJg4z/+vIK8o8SOHPu3AkCab+E6kBeuCBnphquIa/i3bToxJSa1AScisg+5rQZCsY/L7ey8El/nOvVn7B6xATk7w4Cm/dy5gTyriNqgFoJvDLhlntfPp+7w9GGc7Hi6UL9RWw0CCW9c2I1cyDmNpSv95gspMJAI847ykaHgXl01Cxo2yWGqwxpCR/suqdTySvo3NgqFQrM2aRkPQT+yQlL2hrrqX2l2w7gU+2y9W89WB/75x674RR3fpSID6HGrt52frZDk1mgi6ggHv0ta+hOHQCIhLM7tB/pR9ehF4RGcVjRTEBa0CG2XeXDWDFDjLEzZPmvf6vCL+PDMk91sR6YB+djsaPEwLV6pjWngYSrNdYVe1djdl8=
+env:
+  global:
+    secure: CQBKPcipKTvfgBi8KXaJ6KyjJL5GcWPEW7WrKZcTeM2AaNqTX8w3yuqjsezxVnQWLG3TzEI0m1K31Fv9wfZHsMwRIr5py6AeAc4C2JgaKs3FSAFJ3m46a9hK7FIeC0xMdXszPJx7534XiuG8nMJRbwbNNswb35GekysKU87g5Sf6U7UFFeyyyQdchiPF85lYBt/AJSArNsfHMd0RKQY5pHdAHNNB70qFECIBeC6MYiUFBHydw2ist/bSWa9GYEh3LxUNMQ7bbxuzD6+sVMU2PW61gEpa3I9HB7NTQvPp+YbYWqBwS++SKCuqkalXdMPeCIINu64T1UtFGZNWvw9xfg8T8GwGHwZnNZ1o3WCXKo9/+FC70OAb76mblEXllhQs+gBL5g/bqdQBKfGrYIACHBRE3pzNPSRn7oY3hpk7NLoJRbB28OQ5ymJrDc8hctoXwgD3KrIM91+6YqycOifidLFHecg/VA2bjSx/ql69sVhNchaBJ8b7EMMIjo1DrFIv43XJ7DHX+2yZFJD8uv5eCGHkfXv6XfV5312TYzGYsxpfJ9my9tdTGxop2BXzaf1nYqrI+RPKIZrh6FgiXgRaetwRpWl4G+DqxKbKtfzYlZtYU2JeJ7Z5AMwLHyvxxcuOH3MrE+vk5nbU5gE9E3m5o7yH+d7Qj5liCyXk0zxijn0=
