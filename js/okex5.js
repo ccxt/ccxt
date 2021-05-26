@@ -1162,6 +1162,49 @@ module.exports = class okex5 extends Exchange {
         //         "msg":""
         //     }
         //
+        //     {
+        //         "code":"0",
+        //         "data":[
+        //             {
+        //                 "adjEq":"",
+        //                 "details":[
+        //                     {
+        //                         "availBal":"0.049",
+        //                         "availEq":"",
+        //                         "cashBal":"0.049",
+        //                         "ccy":"BTC",
+        //                         "crossLiab":"",
+        //                         "disEq":"1918.55678",
+        //                         "eq":"0.049",
+        //                         "eqUsd":"1918.55678",
+        //                         "frozenBal":"0",
+        //                         "interest":"",
+        //                         "isoEq":"",
+        //                         "isoLiab":"",
+        //                         "liab":"",
+        //                         "maxLoan":"",
+        //                         "mgnRatio":"",
+        //                         "notionalLever":"",
+        //                         "ordFrozen":"0",
+        //                         "twap":"0",
+        //                         "uTime":"1621973128591",
+        //                         "upl":"",
+        //                         "uplLiab":""
+        //                     }
+        //                 ],
+        //                 "imr":"",
+        //                 "isoEq":"",
+        //                 "mgnRatio":"",
+        //                 "mmr":"",
+        //                 "notionalUsd":"",
+        //                 "ordFroz":"",
+        //                 "totalEq":"1918.55678",
+        //                 "uTime":"1622045126908"
+        //             }
+        //         ],
+        //         "msg":""
+        //     }
+        //
         const result = { 'info': response };
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0, {});
@@ -1173,8 +1216,15 @@ module.exports = class okex5 extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             // it may be incorrect to use total, free and used for swap accounts
-            account['total'] = this.safeString (balance, 'eq');
-            account['free'] = this.safeString (balance, 'availEq');
+            const eq = this.safeString (balance, 'eq');
+            const availEq = this.safeString (balance, 'availEq');
+            if ((eq.length < 1) || (availEq.length < 1)) {
+                account['free'] = this.safeString (balance, 'availBal');
+                account['used'] = this.safeString (balance, 'cashBal');
+            } else {
+                account['total'] = eq;
+                account['free'] = availEq;
+            }
             result[code] = account;
         }
         result['timestamp'] = timestamp;
