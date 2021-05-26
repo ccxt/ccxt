@@ -137,6 +137,7 @@ module.exports = class binance extends Exchange {
                         'margin/isolated/account',
                         'margin/isolated/pair',
                         'margin/isolated/allPairs',
+                        'margin/interestRateHistory',
                         'fiatpayment/query/deposit/history',
                         'fiatpayment/query/withdraw/history',
                         'futures/transfer',
