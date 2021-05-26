@@ -659,6 +659,8 @@ class coinbasepro extends Exchange {
             if ($limit === null) {
                 // https://docs.pro.coinbase.com/#get-historic-rates
                 $limit = 300; // max = 300
+            } else {
+                $limit = min (300, $limit);
             }
             $request['end'] = $this->iso8601($this->sum(($limit - 1) * $granularity * 1000, $since));
         }
