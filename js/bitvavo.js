@@ -701,6 +701,7 @@ module.exports = class bitvavo extends Exchange {
             // 'end': this.milliseconds (),
         };
         if (since !== undefined) {
+            // https://github.com/ccxt/ccxt/issues/9227
             const duration = this.parseTimeframe (timeframe);
             request['start'] = since;
             if (limit === undefined) {
