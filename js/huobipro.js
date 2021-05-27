@@ -679,7 +679,7 @@ module.exports = class huobipro extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateGetOrderMatchresults (this.extend (request, params));
+        const response = await this.privateGetOrderOrdersIdMatchresults (this.extend (request, params));
         return this.parseTrades (response['data'], undefined, since, limit);
     }
 
