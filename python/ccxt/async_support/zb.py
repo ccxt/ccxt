@@ -33,6 +33,7 @@ class zb(Exchange):
                 'createMarketOrder': False,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
                 'fetchDeposits': True,
@@ -103,12 +104,18 @@ class zb(Exchange):
                 'api': {
                     'public': 'https://api.zb.today/data',
                     'private': 'https://trade.zb.today/api',
+                    'trade': 'https://trade.zb.today/api',
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
             },
             'api': {
+                'trade': {
+                    'get': [
+                        'getFeeInfo',
+                    ],
+                },
                 'public': {
                     'get': [
                         'markets',
@@ -117,7 +124,6 @@ class zb(Exchange):
                         'depth',
                         'trades',
                         'kline',
-                        'getFeeInfo',
                         'getGroupMarkets',
                     ],
                 },
@@ -270,6 +276,74 @@ class zb(Exchange):
                 },
                 'info': market,
             })
+        return result
+
+    async def fetch_currencies(self, params={}):
+        response = await self.tradeGetGetFeeInfo(params)
+        #
+        #     {
+        #         "code":1000,
+        #         "message":"success",
+        #         "result":{
+        #             "USDT":[
+        #                 {
+        #                     "chainName":"TRC20",
+        #                     "canWithdraw":true,
+        #                     "fee":1.0,
+        #                     "mainChainName":"TRX",
+        #                     "canDeposit":true
+        #                 },
+        #                 {
+        #                     "chainName":"OMNI",
+        #                     "canWithdraw":true,
+        #                     "fee":5.0,
+        #                     "mainChainName":"BTC",
+        #                     "canDeposit":true
+        #                 },
+        #                 {
+        #                     "chainName":"ERC20",
+        #                     "canWithdraw":true,
+        #                     "fee":15.0,
+        #                     "mainChainName":"ETH",
+        #                     "canDeposit":true
+        #                 }
+        #             ],
+        #         }
+        #     }
+        #
+        currencies = self.safe_value(response, 'result', {})
+        ids = list(currencies.keys())
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            currency = currencies[id]
+            code = self.safe_currency_code(id)
+            precision = None
+            isWithdrawEnabled = True
+            isDepositEnabled = True
+            fees = {}
+            for j in range(0, len(currency)):
+                networkItem = currency[j]
+                network = self.safe_string(networkItem, 'chainName')
+                # name = self.safe_string(networkItem, 'name')
+                withdrawFee = self.safe_number(networkItem, 'fee')
+                depositEnable = self.safe_value(networkItem, 'canDeposit')
+                withdrawEnable = self.safe_value(networkItem, 'canWithdraw')
+                isDepositEnabled = isDepositEnabled or depositEnable
+                isWithdrawEnabled = isWithdrawEnabled or withdrawEnable
+                fees[network] = withdrawFee
+            active = (isWithdrawEnabled and isDepositEnabled)
+            result[code] = {
+                'id': id,
+                'name': None,
+                'code': code,
+                'precision': precision,
+                'info': currency,
+                'active': active,
+                'fee': None,
+                'fees': fees,
+                'limits': self.limits,
+            }
         return result
 
     async def fetch_balance(self, params={}):
@@ -943,6 +1017,10 @@ class zb(Exchange):
         url = self.urls['api'][api]
         if api == 'public':
             url += '/' + self.version + '/' + path
+            if params:
+                url += '?' + self.urlencode(params)
+        elif api == 'trade':
+            url += '/' + path
             if params:
                 url += '?' + self.urlencode(params)
         else:

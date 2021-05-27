@@ -27,6 +27,7 @@ class zb extends Exchange {
                 'createMarketOrder' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
                 'fetchDeposits' => true,
@@ -97,12 +98,18 @@ class zb extends Exchange {
                 'api' => array(
                     'public' => 'https://api.zb.today/data',
                     'private' => 'https://trade.zb.today/api',
+                    'trade' => 'https://trade.zb.today/api',
                 ),
                 'www' => 'https://www.zb.com',
                 'doc' => 'https://www.zb.com/i/developer',
                 'fees' => 'https://www.zb.com/i/rate',
             ),
             'api' => array(
+                'trade' => array(
+                    'get' => array(
+                        'getFeeInfo',
+                    ),
+                ),
                 'public' => array(
                     'get' => array(
                         'markets',
@@ -111,7 +118,6 @@ class zb extends Exchange {
                         'depth',
                         'trades',
                         'kline',
-                        'getFeeInfo',
                         'getGroupMarkets',
                     ),
                 ),
@@ -264,6 +270,77 @@ class zb extends Exchange {
                     ),
                 ),
                 'info' => $market,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_currencies($params = array ()) {
+        $response = $this->tradeGetGetFeeInfo ($params);
+        //
+        //     {
+        //         "$code":1000,
+        //         "message":"success",
+        //         "$result":{
+        //             "USDT":array(
+        //                 array(
+        //                     "chainName":"TRC20",
+        //                     "canWithdraw":true,
+        //                     "fee":1.0,
+        //                     "mainChainName":"TRX",
+        //                     "canDeposit":true
+        //                 ),
+        //                 array(
+        //                     "chainName":"OMNI",
+        //                     "canWithdraw":true,
+        //                     "fee":5.0,
+        //                     "mainChainName":"BTC",
+        //                     "canDeposit":true
+        //                 ),
+        //                 {
+        //                     "chainName":"ERC20",
+        //                     "canWithdraw":true,
+        //                     "fee":15.0,
+        //                     "mainChainName":"ETH",
+        //                     "canDeposit":true
+        //                 }
+        //             ),
+        //         }
+        //     }
+        //
+        $currencies = $this->safe_value($response, 'result', array());
+        $ids = is_array($currencies) ? array_keys($currencies) : array();
+        $result = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $ids[$i];
+            $currency = $currencies[$id];
+            $code = $this->safe_currency_code($id);
+            $precision = null;
+            $isWithdrawEnabled = true;
+            $isDepositEnabled = true;
+            $fees = array();
+            for ($j = 0; $j < count($currency); $j++) {
+                $networkItem = $currency[$j];
+                $network = $this->safe_string($networkItem, 'chainName');
+                // $name = $this->safe_string($networkItem, 'name');
+                $withdrawFee = $this->safe_number($networkItem, 'fee');
+                $depositEnable = $this->safe_value($networkItem, 'canDeposit');
+                $withdrawEnable = $this->safe_value($networkItem, 'canWithdraw');
+                $isDepositEnabled = $isDepositEnabled || $depositEnable;
+                $isWithdrawEnabled = $isWithdrawEnabled || $withdrawEnable;
+                $fees[$network] = $withdrawFee;
+            }
+            $active = ($isWithdrawEnabled && $isDepositEnabled);
+            $result[$code] = array(
+                'id' => $id,
+                'name' => null,
+                'code' => $code,
+                'precision' => $precision,
+                'info' => $currency,
+                'active' => $active,
+                'fee' => null,
+                'fees' => $fees,
+                'limits' => $this->limits,
             );
         }
         return $result;
@@ -998,6 +1075,11 @@ class zb extends Exchange {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
             $url .= '/' . $this->version . '/' . $path;
+            if ($params) {
+                $url .= '?' . $this->urlencode($params);
+            }
+        } else if ($api === 'trade') {
+            $url .= '/' . $path;
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
