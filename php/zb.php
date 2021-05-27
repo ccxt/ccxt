@@ -69,12 +69,17 @@ class zb extends Exchange {
                     '1005' => '\\ccxt\\AuthenticationError', // 'Funds security password is incorrect, please confirm and re-enter.',
                     '1006' => '\\ccxt\\AuthenticationError', // 'Real-name certification pending approval or audit does not pass',
                     '1009' => '\\ccxt\\ExchangeNotAvailable', // 'This interface is under maintenance',
+                    '1010' => '\\ccxt\\ExchangeNotAvailable', // Not available now
+                    '1012' => '\\ccxt\\PermissionDenied', // Insufficient permissions
+                    '1013' => '\\ccxt\\ExchangeError', // Cannot trade, please contact email => support@zb.cn for support.
+                    '1014' => '\\ccxt\\ExchangeError', // Cannot sell during the pre-sale period
                     '2001' => '\\ccxt\\InsufficientFunds', // 'Insufficient CNY Balance',
                     '2002' => '\\ccxt\\InsufficientFunds', // 'Insufficient BTC Balance',
                     '2003' => '\\ccxt\\InsufficientFunds', // 'Insufficient LTC Balance',
                     '2005' => '\\ccxt\\InsufficientFunds', // 'Insufficient ETH Balance',
                     '2006' => '\\ccxt\\InsufficientFunds', // 'Insufficient ETC Balance',
                     '2007' => '\\ccxt\\InsufficientFunds', // 'Insufficient BTS Balance',
+                    '2008' => '\\ccxt\\InsufficientFunds', // EOSInsufficient account balance
                     '2009' => '\\ccxt\\InsufficientFunds', // 'Account balance is not enough',
                     '3001' => '\\ccxt\\OrderNotFound', // 'Pending orders not found',
                     '3002' => '\\ccxt\\InvalidOrder', // 'Invalid price',
@@ -85,9 +90,47 @@ class zb extends Exchange {
                     '3007' => '\\ccxt\\AuthenticationError', // 'The request time has expired',
                     '3008' => '\\ccxt\\OrderNotFound', // 'Transaction records not found',
                     '3009' => '\\ccxt\\InvalidOrder', // 'The price exceeds the limit',
+                    '3010' => '\\ccxt\\PermissionDenied', // It fails to place an order, due to you have set up to prohibit trading of this market.
                     '3011' => '\\ccxt\\InvalidOrder', // 'The entrusted price is abnormal, please modify it and place order again',
+                    '3012' => '\\ccxt\\InvalidOrder', // Duplicate custom customerOrderId
                     '4001' => '\\ccxt\\ExchangeNotAvailable', // 'API interface is locked or not enabled',
-                    '4002' => '\\ccxt\\DDoSProtection', // 'Request too often',
+                    '4002' => '\\ccxt\\RateLimitExceeded', // 'Request too often',
+                    // WS errors
+                    //  '1000' => '\\ccxt\\ExchangeError', // The call is successful.
+                    //  '1001' => '\\ccxt\\ExchangeError', // General error prompt
+                    //  '1002' => '\\ccxt\\ExchangeError', // Internal Error
+                    //  '1003' => '\\ccxt\\ExchangeError', // Fail to verify
+                    //  '1004' => '\\ccxt\\ExchangeError', // The transaction password is locked
+                    //  '1005' => '\\ccxt\\ExchangeError', // Wrong transaction password, please check it and re-enter。
+                    //  '1006' => '\\ccxt\\ExchangeError', // Real-name authentication is pending approval or unapproved
+                    //  '1007' => '\\ccxt\\ExchangeError', // Channel does not exist
+                    //  '1009' => '\\ccxt\\ExchangeError', // This interface is under maintenance
+                    //  '1010' => '\\ccxt\\ExchangeError', // Not available now
+                    //  '1012' => '\\ccxt\\ExchangeError', // Insufficient permissions
+                    //  '1013' => '\\ccxt\\ExchangeError', // Cannot trade, please contact email => support@zb.cn for support.
+                    //  '1014' => '\\ccxt\\ExchangeError', // Cannot sell during the pre-sale period
+                    //  '2001' => '\\ccxt\\ExchangeError', // Insufficient CNY account balance
+                    //  '2002' => '\\ccxt\\ExchangeError', // Insufficient BTC account balance
+                    //  '2003' => '\\ccxt\\ExchangeError', // Insufficient LTC account balance
+                    //  '2005' => '\\ccxt\\ExchangeError', // Insufficient ETH account balance
+                    //  '2006' => '\\ccxt\\ExchangeError', // ETCInsufficient account balance
+                    //  '2007' => '\\ccxt\\ExchangeError', // BTSInsufficient account balance
+                    //  '2008' => '\\ccxt\\ExchangeError', // EOSInsufficient account balance
+                    //  '2009' => '\\ccxt\\ExchangeError', // BCCInsufficient account balance
+                    //  '3001' => '\\ccxt\\ExchangeError', // Order not found or is completed
+                    //  '3002' => '\\ccxt\\ExchangeError', // Invalid amount
+                    //  '3003' => '\\ccxt\\ExchangeError', // Invalid quantity
+                    //  '3004' => '\\ccxt\\ExchangeError', // User does not exist
+                    //  '3005' => '\\ccxt\\ExchangeError', // Invalid parameter
+                    //  '3006' => '\\ccxt\\ExchangeError', // Invalid IP or not consistent with the bound IP
+                    //  '3007' => '\\ccxt\\ExchangeError', // The request time has expired
+                    //  '3008' => '\\ccxt\\ExchangeError', // Transaction not found
+                    //  '3009' => '\\ccxt\\ExchangeError', // The price exceeds the limit
+                    //  '3010' => '\\ccxt\\ExchangeError', // It fails to place an order, due to you have set up to prohibit trading of this market.
+                    //  '3011' => '\\ccxt\\ExchangeError', // The entrusted price is abnormal, please modify it and place order again
+                    //  '3012' => '\\ccxt\\ExchangeError', // Duplicate custom customerOrderId
+                    //  '4001' => '\\ccxt\\ExchangeError', // APIThe interface is locked for one hour
+                    //  '4002' => '\\ccxt\\ExchangeError', // Request too frequently
                 ),
                 'broad' => array(
                     '提币地址有误，请先添加提币地址。' => '\\ccxt\\InvalidAddress', // array("code":1001,"message":"提币地址有误，请先添加提币地址。")
