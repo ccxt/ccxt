@@ -117,6 +117,8 @@ class zb(Exchange):
                         'depth',
                         'trades',
                         'kline',
+                        'getFeeInfo',
+                        'getGroupMarkets',
                     ],
                 },
                 'private': {
@@ -144,7 +146,7 @@ class zb(Exchange):
                         'addSubUser',
                         'getSubUserList',
                         'doTransferFunds',
-                        'createSubUserKey',
+                        'createSubUserKey',  # removed on 2021-03-16 according to the update log in the API doc
                         # leverage API
                         'getLeverAssetsInfo',
                         'getLeverBills',
