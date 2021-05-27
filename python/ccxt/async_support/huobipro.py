@@ -665,7 +665,7 @@ class huobipro(Exchange):
         request = {
             'id': id,
         }
-        response = await self.privateGetOrderMatchresults(self.extend(request, params))
+        response = await self.privateGetOrderOrdersIdMatchresults(self.extend(request, params))
         return self.parse_trades(response['data'], None, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

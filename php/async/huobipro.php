@@ -684,7 +684,7 @@ class huobipro extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $response = yield $this->privateGetOrderMatchresults (array_merge($request, $params));
+        $response = yield $this->privateGetOrderOrdersIdMatchresults (array_merge($request, $params));
         return $this->parse_trades($response['data'], null, $since, $limit);
     }
 
