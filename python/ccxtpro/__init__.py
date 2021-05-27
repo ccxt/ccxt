@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.7.1'
+__version__ = '0.7.2'
 
 # -----------------------------------------------------------------------------
 
@@ -58,7 +58,6 @@ from ccxt import OrderNotFillable                   # noqa: F401
 
 # CCXT exchanges
 
-from ccxt.async_support.aax import aax                                    # noqa: F401
 from ccxt.async_support.aofex import aofex                                # noqa: F401
 from ccxt.async_support.ascendex import ascendex                          # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
@@ -149,6 +148,7 @@ from ccxt.async_support.zb import zb                                      # noqa
 
 # CCXT Pro exchanges
 
+from ccxtpro.aax import aax                                               # noqa: F401
 from ccxtpro.bequant import bequant                                       # noqa: F401
 from ccxtpro.binance import binance                                       # noqa: F401
 from ccxtpro.binancecoinm import binancecoinm                             # noqa: F401
