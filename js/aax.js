@@ -20,6 +20,7 @@ module.exports = class aax extends Exchange {
             'version': 'v2',
             'hostname': 'aaxpro.com', // aax.com
             'certified': true,
+            'pro': true,
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
