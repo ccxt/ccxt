@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -16,6 +17,8 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import RequestTimeout
 from ccxt.base.precise import Precise
 
 
@@ -67,6 +70,43 @@ class zb(Exchange):
                 '1w': '1week',
             },
             'exceptions': {
+                'ws': {
+                    #  '1000': ExchangeError,  # The call is successful.
+                    '1001': ExchangeError,  # General error prompt
+                    '1002': ExchangeError,  # Internal Error
+                    '1003': AuthenticationError,  # Fail to verify
+                    '1004': AuthenticationError,  # The transaction password is locked
+                    '1005': AuthenticationError,  # Wrong transaction password, please check it and re-enter。
+                    '1006': PermissionDenied,  # Real-name authentication is pending approval or unapproved
+                    '1007': ExchangeError,  # Channel does not exist
+                    '1009': OnMaintenance,  # This interface is under maintenance
+                    '1010': ExchangeNotAvailable,  # Not available now
+                    '1012': PermissionDenied,  # Insufficient permissions
+                    '1013': ExchangeError,  # Cannot trade, please contact email: support@zb.cn for support.
+                    '1014': ExchangeError,  # Cannot sell during the pre-sale period
+                    '2001': InsufficientFunds,  # Insufficient CNY account balance
+                    '2002': InsufficientFunds,  # Insufficient BTC account balance
+                    '2003': InsufficientFunds,  # Insufficient LTC account balance
+                    '2005': InsufficientFunds,  # Insufficient ETH account balance
+                    '2006': InsufficientFunds,  # ETCInsufficient account balance
+                    '2007': InsufficientFunds,  # BTSInsufficient account balance
+                    '2008': InsufficientFunds,  # EOSInsufficient account balance
+                    '2009': InsufficientFunds,  # BCCInsufficient account balance
+                    '3001': OrderNotFound,  # Order not found or is completed
+                    '3002': InvalidOrder,  # Invalid amount
+                    '3003': InvalidOrder,  # Invalid quantity
+                    '3004': AuthenticationError,  # User does not exist
+                    '3005': BadRequest,  # Invalid parameter
+                    '3006': PermissionDenied,  # Invalid IP or not consistent with the bound IP
+                    '3007': RequestTimeout,  # The request time has expired
+                    '3008': ExchangeError,  # Transaction not found
+                    '3009': InvalidOrder,  # The price exceeds the limit
+                    '3010': PermissionDenied,  # It fails to place an order, due to you have set up to prohibit trading of self market.
+                    '3011': InvalidOrder,  # The entrusted price is abnormal, please modify it and place order again
+                    '3012': InvalidOrder,  # Duplicate custom customerOrderId
+                    '4001': AccountSuspended,  # APIThe interface is locked for one hour
+                    '4002': RateLimitExceeded,  # Request too frequently
+                },
                 'exact': {
                     # '1000': 'Successful operation',
                     '1001': ExchangeError,  # 'General error message',
@@ -102,42 +142,6 @@ class zb(Exchange):
                     '3012': InvalidOrder,  # Duplicate custom customerOrderId
                     '4001': ExchangeNotAvailable,  # 'API interface is locked or not enabled',
                     '4002': RateLimitExceeded,  # 'Request too often',
-                    # WS errors
-                    #  '1000': ExchangeError,  # The call is successful.
-                    #  '1001': ExchangeError,  # General error prompt
-                    #  '1002': ExchangeError,  # Internal Error
-                    #  '1003': ExchangeError,  # Fail to verify
-                    #  '1004': ExchangeError,  # The transaction password is locked
-                    #  '1005': ExchangeError,  # Wrong transaction password, please check it and re-enter。
-                    #  '1006': ExchangeError,  # Real-name authentication is pending approval or unapproved
-                    #  '1007': ExchangeError,  # Channel does not exist
-                    #  '1009': ExchangeError,  # This interface is under maintenance
-                    #  '1010': ExchangeError,  # Not available now
-                    #  '1012': ExchangeError,  # Insufficient permissions
-                    #  '1013': ExchangeError,  # Cannot trade, please contact email: support@zb.cn for support.
-                    #  '1014': ExchangeError,  # Cannot sell during the pre-sale period
-                    #  '2001': ExchangeError,  # Insufficient CNY account balance
-                    #  '2002': ExchangeError,  # Insufficient BTC account balance
-                    #  '2003': ExchangeError,  # Insufficient LTC account balance
-                    #  '2005': ExchangeError,  # Insufficient ETH account balance
-                    #  '2006': ExchangeError,  # ETCInsufficient account balance
-                    #  '2007': ExchangeError,  # BTSInsufficient account balance
-                    #  '2008': ExchangeError,  # EOSInsufficient account balance
-                    #  '2009': ExchangeError,  # BCCInsufficient account balance
-                    #  '3001': ExchangeError,  # Order not found or is completed
-                    #  '3002': ExchangeError,  # Invalid amount
-                    #  '3003': ExchangeError,  # Invalid quantity
-                    #  '3004': ExchangeError,  # User does not exist
-                    #  '3005': ExchangeError,  # Invalid parameter
-                    #  '3006': ExchangeError,  # Invalid IP or not consistent with the bound IP
-                    #  '3007': ExchangeError,  # The request time has expired
-                    #  '3008': ExchangeError,  # Transaction not found
-                    #  '3009': ExchangeError,  # The price exceeds the limit
-                    #  '3010': ExchangeError,  # It fails to place an order, due to you have set up to prohibit trading of self market.
-                    #  '3011': ExchangeError,  # The entrusted price is abnormal, please modify it and place order again
-                    #  '3012': ExchangeError,  # Duplicate custom customerOrderId
-                    #  '4001': ExchangeError,  # APIThe interface is locked for one hour
-                    #  '4002': ExchangeError,  # Request too frequently
                 },
                 'broad': {
                     '提币地址有误，请先添加提币地址。': InvalidAddress,  # {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
