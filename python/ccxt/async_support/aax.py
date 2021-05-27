@@ -39,6 +39,7 @@ class aax(Exchange):
             'version': 'v2',
             'hostname': 'aaxpro.com',  # aax.com
             'certified': True,
+            'pro': True,
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,

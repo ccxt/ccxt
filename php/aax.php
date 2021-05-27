@@ -22,6 +22,7 @@ class aax extends Exchange {
             'version' => 'v2',
             'hostname' => 'aaxpro.com', // aax.com
             'certified' => true,
+            'pro' => true,
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
