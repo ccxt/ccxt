@@ -659,7 +659,7 @@ module.exports = class coinbasepro extends Exchange {
             } else {
                 limit = Math.min (300, limit);
             }
-            request['end'] = this.iso8601 (this.sum ((limit - 1) * granularity * 1000, since));
+            request['end'] = this.iso8601 (this.sum (limit * granularity * 1000, since));
         }
         const response = await this.publicGetProductsIdCandles (this.extend (request, params));
         //
