@@ -22,6 +22,7 @@ module.exports = class zb extends Exchange {
                 'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchDeposits': true,
@@ -92,12 +93,18 @@ module.exports = class zb extends Exchange {
                 'api': {
                     'public': 'https://api.zb.today/data',
                     'private': 'https://trade.zb.today/api',
+                    'trade': 'https://trade.zb.today/api',
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
             },
             'api': {
+                'trade': {
+                    'get': [
+                        'getFeeInfo',
+                    ],
+                },
                 'public': {
                     'get': [
                         'markets',
@@ -106,7 +113,6 @@ module.exports = class zb extends Exchange {
                         'depth',
                         'trades',
                         'kline',
-                        'getFeeInfo',
                         'getGroupMarkets',
                     ],
                 },
@@ -260,6 +266,77 @@ module.exports = class zb extends Exchange {
                 },
                 'info': market,
             });
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.tradeGetGetFeeInfo (params);
+        //
+        //     {
+        //         "code":1000,
+        //         "message":"success",
+        //         "result":{
+        //             "USDT":[
+        //                 {
+        //                     "chainName":"TRC20",
+        //                     "canWithdraw":true,
+        //                     "fee":1.0,
+        //                     "mainChainName":"TRX",
+        //                     "canDeposit":true
+        //                 },
+        //                 {
+        //                     "chainName":"OMNI",
+        //                     "canWithdraw":true,
+        //                     "fee":5.0,
+        //                     "mainChainName":"BTC",
+        //                     "canDeposit":true
+        //                 },
+        //                 {
+        //                     "chainName":"ERC20",
+        //                     "canWithdraw":true,
+        //                     "fee":15.0,
+        //                     "mainChainName":"ETH",
+        //                     "canDeposit":true
+        //                 }
+        //             ],
+        //         }
+        //     }
+        //
+        const currencies = this.safeValue (response, 'result', {});
+        const ids = Object.keys (currencies);
+        const result = {};
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const currency = currencies[id];
+            const code = this.safeCurrencyCode (id);
+            const precision = undefined;
+            let isWithdrawEnabled = true;
+            let isDepositEnabled = true;
+            const fees = {};
+            for (let j = 0; j < currency.length; j++) {
+                const networkItem = currency[j];
+                const network = this.safeString (networkItem, 'chainName');
+                // const name = this.safeString (networkItem, 'name');
+                const withdrawFee = this.safeNumber (networkItem, 'fee');
+                const depositEnable = this.safeValue (networkItem, 'canDeposit');
+                const withdrawEnable = this.safeValue (networkItem, 'canWithdraw');
+                isDepositEnabled = isDepositEnabled || depositEnable;
+                isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
+                fees[network] = withdrawFee;
+            }
+            const active = (isWithdrawEnabled && isDepositEnabled);
+            result[code] = {
+                'id': id,
+                'name': undefined,
+                'code': code,
+                'precision': precision,
+                'info': currency,
+                'active': active,
+                'fee': undefined,
+                'fees': fees,
+                'limits': this.limits,
+            };
         }
         return result;
     }
@@ -993,6 +1070,11 @@ module.exports = class zb extends Exchange {
         let url = this.urls['api'][api];
         if (api === 'public') {
             url += '/' + this.version + '/' + path;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        } else if (api === 'trade') {
+            url += '/' + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
