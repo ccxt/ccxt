@@ -1847,7 +1847,7 @@ module.exports = class binance extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const filledString = this.safeString (order, 'executedQty', '0');
         const filled = this.parseNumber (filledString);
-        const floatFilled = parseFloat (filledString);
+        const filledFloat = parseFloat (filledString);
         let timestamp = undefined;
         let lastTradeTimestamp = undefined;
         if ('time' in order) {
@@ -1856,7 +1856,7 @@ module.exports = class binance extends Exchange {
             timestamp = this.safeInteger (order, 'transactTime');
         } else if ('updateTime' in order) {
             if (status === 'open') {
-                if (floatFilled > 0) {
+                if (filledFloat > 0) {
                     lastTradeTimestamp = this.safeInteger (order, 'updateTime');
                 } else {
                     timestamp = this.safeInteger (order, 'updateTime');
