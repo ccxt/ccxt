@@ -1223,7 +1223,7 @@ class okex5 extends Exchange {
             $availEq = $this->safe_string($balance, 'availEq');
             if ((strlen($eq) < 1) || (strlen($availEq) < 1)) {
                 $account['free'] = $this->safe_string($balance, 'availBal');
-                $account['used'] = $this->safe_string($balance, 'cashBal');
+                $account['used'] = $this->safe_string($balance, 'frozenBal');
             } else {
                 $account['total'] = $eq;
                 $account['free'] = $availEq;
