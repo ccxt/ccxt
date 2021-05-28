@@ -1204,7 +1204,7 @@ class okex5(Exchange):
             availEq = self.safe_string(balance, 'availEq')
             if (len(eq) < 1) or (len(availEq) < 1):
                 account['free'] = self.safe_string(balance, 'availBal')
-                account['used'] = self.safe_string(balance, 'cashBal')
+                account['used'] = self.safe_string(balance, 'frozenBal')
             else:
                 account['total'] = eq
                 account['free'] = availEq
