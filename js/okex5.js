@@ -1220,7 +1220,7 @@ module.exports = class okex5 extends Exchange {
             const availEq = this.safeString (balance, 'availEq');
             if ((eq.length < 1) || (availEq.length < 1)) {
                 account['free'] = this.safeString (balance, 'availBal');
-                account['used'] = this.safeString (balance, 'cashBal');
+                account['used'] = this.safeString (balance, 'frozenBal');
             } else {
                 account['total'] = eq;
                 account['free'] = availEq;
