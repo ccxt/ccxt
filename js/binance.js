@@ -1845,15 +1845,27 @@ module.exports = class binance extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
+        const filled = this.safeNumber (order, 'executedQty');
         let timestamp = undefined;
+        let lastTradeTimestamp = undefined;
         if ('time' in order) {
             timestamp = this.safeInteger (order, 'time');
         } else if ('transactTime' in order) {
             timestamp = this.safeInteger (order, 'transactTime');
+        } else if ('updateTime' in order) {
+            if (status === 'open') {
+                if (filled > 0) {
+                    lastTradeTimestamp = this.safeInteger (order, 'updateTime');
+                } else {
+                    timestamp = this.safeInteger (order, 'updateTime');
+                }
+            }
         }
-        const price = this.safeNumber (order, 'price');
+        let price = this.safeNumber (order, 'price');
+        if (price <= 0) {
+            price = undefined;
+        }
         const amount = this.safeNumber (order, 'origQty');
-        const filled = this.safeNumber (order, 'executedQty');
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
@@ -1876,7 +1888,7 @@ module.exports = class binance extends Exchange {
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
