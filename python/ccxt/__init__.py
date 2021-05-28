@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.50.52'
+__version__ = '1.50.53'
 
 # ----------------------------------------------------------------------------
 
@@ -120,7 +120,6 @@ from ccxt.coinegg import coinegg                            # noqa: F401
 from ccxt.coinex import coinex                              # noqa: F401
 from ccxt.coinfalcon import coinfalcon                      # noqa: F401
 from ccxt.coinfloor import coinfloor                        # noqa: F401
-from ccxt.coingi import coingi                              # noqa: F401
 from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
@@ -241,7 +240,6 @@ exchanges = [
     'coinex',
     'coinfalcon',
     'coinfloor',
-    'coingi',
     'coinmarketcap',
     'coinmate',
     'coinone',
