@@ -430,7 +430,12 @@ module.exports = class luno extends Exchange {
         let takerOrMaker = undefined;
         let side = undefined;
         if (orderId !== undefined) {
-            side = (trade['type'] === 'ASK') ? 'sell' : 'buy';
+            const type = this.safeString (trade, 'type');
+            if ((type === 'ASK') || (type === 'SELL')) {
+                side = 'sell';
+            } else if ((type === 'BID') || (type === 'BUY')) {
+                side = 'buy';
+            }
             if (side === 'sell' && trade['is_buy']) {
                 takerOrMaker = 'maker';
             } else if (side === 'buy' && !trade['is_buy']) {
