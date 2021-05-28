@@ -29,7 +29,7 @@ class zb(Exchange):
             'id': 'zb',
             'name': 'ZB',
             'countries': ['CN'],
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'version': 'v1',
             'has': {
                 'cancelOrder': True,
@@ -450,7 +450,7 @@ class zb(Exchange):
         #         "canDeposit": True
         #     }
         #
-        address = self.safe_string(depositAddress, 'key')
+        address = self.safe_string_2(depositAddress, 'key', 'address')
         tag = None
         memo = self.safe_string(depositAddress, 'memo')
         if memo is not None:

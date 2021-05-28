@@ -20,7 +20,7 @@ class zb extends Exchange {
             'id' => 'zb',
             'name' => 'ZB',
             'countries' => array( 'CN' ),
-            'rateLimit' => 1000,
+            'rateLimit' => 100,
             'version' => 'v1',
             'has' => array(
                 'cancelOrder' => true,
@@ -449,7 +449,7 @@ class zb extends Exchange {
         //         "canDeposit" => true
         //     }
         //
-        $address = $this->safe_string($depositAddress, 'key');
+        $address = $this->safe_string_2($depositAddress, 'key', 'address');
         $tag = null;
         $memo = $this->safe_string($depositAddress, 'memo');
         if ($memo !== null) {
