@@ -1801,9 +1801,9 @@ class binance(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        filled = self.safe_number(order, 'executedQty')
-        # using safeFloat here until we add comparisons to Precise
-        floatFilled = self.safe_float(order, 'executedQty')
+        filledString = self.safe_string(order, 'executedQty', '0')
+        filled = self.parse_number(filledString)
+        filledFloat = float(filledString)
         timestamp = None
         lastTradeTimestamp = None
         if 'time' in order:
@@ -1812,16 +1812,14 @@ class binance(Exchange):
             timestamp = self.safe_integer(order, 'transactTime')
         elif 'updateTime' in order:
             if status == 'open':
-                if floatFilled > 0:
+                if filledFloat > 0:
                     lastTradeTimestamp = self.safe_integer(order, 'updateTime')
                 else:
                     timestamp = self.safe_integer(order, 'updateTime')
-        average = self.safe_number(order, 'avgPrice')
-        price = self.safe_number(order, 'price')
-        # using safeFloat here until we add comparisons to Precise
-        floatPrice = self.safe_float(order, 'price')
-        if floatPrice <= 0:
-            price = None
+        averageString = self.safe_string(order, 'avgPrice')
+        average = self.parse_number(self.omit_zero(averageString))
+        priceString = self.safe_string(order, 'price')
+        price = self.parse_number(self.omit_zero(priceString))
         amount = self.safe_number(order, 'origQty')
         # - Spot/Margin market: cummulativeQuoteQty
         # - Futures market: cumQuote.
@@ -1837,7 +1835,8 @@ class binance(Exchange):
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX')
-        stopPrice = self.safe_number(order, 'stopPrice')
+        stopPriceString = self.safe_string(order, 'stopPrice')
+        stopPrice = self.parse_number(self.omit_zero(stopPriceString))
         return self.safe_order({
             'info': order,
             'id': id,

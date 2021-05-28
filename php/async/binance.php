@@ -1851,9 +1851,9 @@ class binance extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $filled = $this->safe_number($order, 'executedQty');
-        // using safeFloat here until we add comparisons to Precise
-        $floatFilled = $this->safe_float($order, 'executedQty');
+        $filledString = $this->safe_string($order, 'executedQty', '0');
+        $filled = $this->parse_number($filledString);
+        $filledFloat = floatval($filledString);
         $timestamp = null;
         $lastTradeTimestamp = null;
         if (is_array($order) && array_key_exists('time', $order)) {
@@ -1862,20 +1862,17 @@ class binance extends Exchange {
             $timestamp = $this->safe_integer($order, 'transactTime');
         } else if (is_array($order) && array_key_exists('updateTime', $order)) {
             if ($status === 'open') {
-                if ($floatFilled > 0) {
+                if ($filledFloat > 0) {
                     $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
                 } else {
                     $timestamp = $this->safe_integer($order, 'updateTime');
                 }
             }
         }
-        $average = $this->safe_number($order, 'avgPrice');
-        $price = $this->safe_number($order, 'price');
-        // using safeFloat here until we add comparisons to Precise
-        $floatPrice = $this->safe_float($order, 'price');
-        if ($floatPrice <= 0) {
-            $price = null;
-        }
+        $averageString = $this->safe_string($order, 'avgPrice');
+        $average = $this->parse_number($this->omit_zero($averageString));
+        $priceString = $this->safe_string($order, 'price');
+        $price = $this->parse_number($this->omit_zero($priceString));
         $amount = $this->safe_number($order, 'origQty');
         // - Spot/Margin $market => cummulativeQuoteQty
         // - Futures $market => cumQuote.
@@ -1892,7 +1889,8 @@ class binance extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'GTX');
-        $stopPrice = $this->safe_number($order, 'stopPrice');
+        $stopPriceString = $this->safe_string($order, 'stopPrice');
+        $stopPrice = $this->parse_number($this->omit_zero($stopPriceString));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
