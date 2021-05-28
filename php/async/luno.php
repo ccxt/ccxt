@@ -284,7 +284,13 @@ class luno extends Exchange {
         $timestamp = $this->safe_integer($order, 'creation_timestamp');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $status = ($status === 'open') ? $status : $status;
-        $side = ($order['type'] === 'ASK') ? 'sell' : 'buy';
+        $side = null;
+        $orderType = $this->safe_string($order, 'type');
+        if (($orderType === 'ASK') || ($orderType === 'SELL')) {
+            $side = 'sell';
+        } else if (($orderType === 'BID') || ($orderType === 'BUY')) {
+            $side = 'buy';
+        }
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
         $price = $this->safe_number($order, 'limit_price');
@@ -427,13 +433,18 @@ class luno extends Exchange {
 
     public function parse_trade($trade, $market) {
         // For public $trade data (is_buy === True) indicates 'buy' $side but for private $trade data
-        // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy $side->
+        // is_buy indicates maker or taker. The value of "$type" (ASK/BID) indicate sell/buy $side->
         // Private $trade data includes ID field which public $trade data does not.
         $orderId = $this->safe_string($trade, 'order_id');
         $takerOrMaker = null;
         $side = null;
         if ($orderId !== null) {
-            $side = ($trade['type'] === 'ASK') ? 'sell' : 'buy';
+            $type = $this->safe_string($trade, 'type');
+            if (($type === 'ASK') || ($type === 'SELL')) {
+                $side = 'sell';
+            } else if (($type === 'BID') || ($type === 'BUY')) {
+                $side = 'buy';
+            }
             if ($side === 'sell' && $trade['is_buy']) {
                 $takerOrMaker = 'maker';
             } else if ($side === 'buy' && !$trade['is_buy']) {
