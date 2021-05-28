@@ -329,7 +329,7 @@ module.exports = class bybit extends Exchange {
                     'EOS/USD': 'inverse',
                     'XRP/USD': 'inverse',
                 },
-                'defaultType': 'inverseFuture',  // may also be inverse or inverseFuture
+                'defaultType': 'linear',  // may also be inverse or inverseFuture
                 'code': 'BTC',
                 'cancelAllOrders': {
                     // 'method': 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
@@ -728,7 +728,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 200, default 200
         }
-        const defaultType = this.safeString (this.options, 'defaultType', 'inverseFuture');
+        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
         const method = (marketType === 'linear') ? 'publicLinearGetKline' : 'v2PublicGetKlineList';
@@ -1375,7 +1375,7 @@ module.exports = class bybit extends Exchange {
         }
         const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
         const basePrice = this.safeValue (params, 'base_price');
-        const defaultType = this.safeString (this.options, 'defaultType', 'inverseFuture');
+        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
         let method = undefined;
@@ -1593,7 +1593,7 @@ module.exports = class bybit extends Exchange {
             // conditional orders ---------------------------------------------
             // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
         };
-        const defaultType = this.safeString (this.options, 'defaultType', 'inverseFuture');
+        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
         let method = undefined;
@@ -1673,7 +1673,7 @@ module.exports = class bybit extends Exchange {
             request['limit'] = limit;
         }
         const options = this.safeValue (this.options, 'fetchOrders', {});
-        const defaultType = this.safeString (this.options, 'defaultType', 'inverseFuture');
+        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
         let defaultMethod = undefined;
@@ -1881,7 +1881,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 50
         }
-        const defaultType = this.safeString (this.options, 'defaultType', 'inverseFuture');
+        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
         let method = undefined;
