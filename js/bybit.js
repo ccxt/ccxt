@@ -329,7 +329,7 @@ module.exports = class bybit extends Exchange {
                     'EOS/USD': 'inverse',
                     'XRP/USD': 'inverse',
                 },
-                'defaultType': 'linear',  // may also be inverse or inverseFuture
+                'defaultType': 'linear',  // linear, inverse, futures
                 'code': 'BTC',
                 'cancelAllOrders': {
                     // 'method': 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
@@ -728,10 +728,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 200, default 200
         }
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol, defaultType);
-        const method = (marketType === 'linear') ? 'publicLinearGetKline' : 'v2PublicGetKlineList';
+        const method = market['linear'] ? 'publicLinearGetKline' : 'v2PublicGetKlineList';
         const response = await this[method] (this.extend (request, params));
         //
         // inverse perpetual BTC/USD
@@ -882,9 +879,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 500, max 1000
         }
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol);
-        const method = (marketType === 'linear') ? 'publicLinearGetRecentTradingRecords' : 'v2PublicGetTradingRecords';
+        const method = market['linear'] ? 'publicLinearGetRecentTradingRecords' : 'v2PublicGetTradingRecords';
         const response = await this[method] (this.extend (request, params));
         //
         //     {
