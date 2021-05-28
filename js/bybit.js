@@ -222,6 +222,7 @@ module.exports = class bybit extends Exchange {
                     '10007': AuthenticationError, // api_key not found in your request parameters
                     '10010': PermissionDenied, // request ip mismatch
                     '10017': BadRequest, // request path not found or request method is invalid
+                    '10018': RateLimitExceeded, // exceed ip rate limit
                     '20001': OrderNotFound, // Order not exists
                     '20003': InvalidOrder, // missing parameter side
                     '20004': InvalidOrder, // invalid parameter side
@@ -285,9 +286,9 @@ module.exports = class bybit extends Exchange {
                     '30037': InvalidOrder, // order already cancelled
                     '30041': ExchangeError, // no position found
                     '30042': InsufficientFunds, // insufficient wallet balance
-                    '30043': PermissionDenied, // operation not allowed as position is undergoing liquidation
-                    '30044': PermissionDenied, // operation not allowed as position is undergoing AD
-                    '30045': PermissionDenied, // operation not allowed as position is not normal status
+                    '30043': InvalidOrder, // operation not allowed as position is undergoing liquidation
+                    '30044': InvalidOrder, // operation not allowed as position is undergoing AD
+                    '30045': InvalidOrder, // operation not allowed as position is not normal status
                     '30049': InsufficientFunds, // insufficient available balance
                     '30050': ExchangeError, // any adjustments made will trigger immediate liquidation
                     '30051': ExchangeError, // due to risk limit, cannot adjust leverage
@@ -297,6 +298,9 @@ module.exports = class bybit extends Exchange {
                     '30063': ExchangeError, // reduce-only rule not satisfied
                     '30067': InsufficientFunds, // insufficient available balance
                     '30068': ExchangeError, // exit value must be positive
+                    '30074': InvalidOrder, // can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is raising to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or greater than stop_px, please adjust base_price or stop_px
+                    '30075': InvalidOrder, // can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is falling to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or less than stop_px, please adjust base_price or stop_px
+                    '33004': AuthenticationError, // apikey already expired
                     '34026': ExchangeError, // the limit is no change
                 },
                 'broad': {
