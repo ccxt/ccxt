@@ -1490,8 +1490,6 @@ module.exports = class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an symbol argument');
         }
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1505,20 +1503,24 @@ module.exports = class bybit extends Exchange {
             // 'p_r_trigger_price': 123.45, // new trigger price also known as stop_px
         };
         let method = undefined;
-        if (marketType === 'linear') {
-            method = 'privateLinearPostOrderReplace';
-        } else if (marketType === 'inverse') {
-            method = 'v2PrivatePostOrderReplace';
-        } else if (marketType === 'inverseFuture') {
+        if (market['swap']) {
+            if (market['linear']) {
+                method = 'privateLinearPostOrderReplace';
+            } else if (market['inverse']) {
+                method = 'v2PrivatePostOrderReplace';
+            }
+        } else if (market['futures']) {
             method = 'futuresPrivatePostOrderReplace';
         }
         const stopOrderId = this.safeString (params, 'stop_order_id');
         if (stopOrderId !== undefined) {
-            if (marketType === 'linear') {
-                method = 'privateLinearPostStopOrderReplace';
-            } else if (marketType === 'inverse') {
-                method = 'v2PrivatePostStopOrderReplace';
-            } else if (marketType === 'inverseFuture') {
+            if (market['swap']) {
+                if (market['linear']) {
+                    method = 'privateLinearPostStopOrderReplace';
+                } else if (market['inverse']) {
+                    method = 'v2PrivatePostStopOrderReplace';
+                }
+            } else if (market['futures']) {
                 method = 'futuresPrivatePostStopOrderReplace';
             }
             request['stop_order_id'] = stopOrderId;
@@ -1588,15 +1590,14 @@ module.exports = class bybit extends Exchange {
             // conditional orders ---------------------------------------------
             // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
         };
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol, defaultType);
         let method = undefined;
-        if (marketType === 'linear') {
-            method = 'privateLinearPostOrderCancel';
-        } else if (marketType === 'inverse') {
-            method = 'v2PrivatePostOrderCancel';
-        } else if (marketType === 'inverseFuture') {
+        if (market['swap']) {
+            if (market['linear']) {
+                method = 'privateLinearPostOrderCancel';
+            } else if (market['inverse']) {
+                method = 'v2PrivatePostOrderCancel';
+            }
+        } else if (market['futures']) {
             method = 'futuresPrivatePostOrderCancel';
         }
         const stopOrderId = this.safeString (params, 'stop_order_id');
@@ -1606,11 +1607,13 @@ module.exports = class bybit extends Exchange {
                 request['order_id'] = id;
             }
         } else {
-            if (marketType === 'linear') {
-                method = 'privateLinearPostStopOrderCancel';
-            } else if (marketType === 'inverse') {
-                method = 'v2PrivatePostStopOrderCancel';
-            } else if (marketType === 'inverseFuture') {
+            if (market['swap']) {
+                if (market['linear']) {
+                    method = 'privateLinearPostStopOrderCancel';
+                } else if (market['inverse']) {
+                    method = 'v2PrivatePostStopOrderCancel';
+                }
+            } else if (market['futures']) {
                 method = 'futuresPrivatePostStopOrderCancel';
             }
         }
