@@ -1861,6 +1861,7 @@ module.exports = class binance extends Exchange {
                 }
             }
         }
+        const average = this.safeNumber (order, 'avgPrice');
         let price = this.safeNumber (order, 'price');
         if (price <= 0) {
             price = undefined;
@@ -1898,7 +1899,7 @@ module.exports = class binance extends Exchange {
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
-            'average': undefined,
+            'average': average,
             'filled': filled,
             'remaining': undefined,
             'status': status,
