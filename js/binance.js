@@ -1845,9 +1845,9 @@ module.exports = class binance extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const filled = this.safeNumber (order, 'executedQty');
-        // using safeFloat here until we add comparisons to Precise
-        const floatFilled = this.safeFloat (order, 'executedQty');
+        const filledString = this.safeString (order, 'executedQty', '0');
+        const filled = this.parseNumber (filledString);
+        const filledFloat = parseFloat (filledString);
         let timestamp = undefined;
         let lastTradeTimestamp = undefined;
         if ('time' in order) {
@@ -1856,20 +1856,17 @@ module.exports = class binance extends Exchange {
             timestamp = this.safeInteger (order, 'transactTime');
         } else if ('updateTime' in order) {
             if (status === 'open') {
-                if (floatFilled > 0) {
+                if (filledFloat > 0) {
                     lastTradeTimestamp = this.safeInteger (order, 'updateTime');
                 } else {
                     timestamp = this.safeInteger (order, 'updateTime');
                 }
             }
         }
-        const average = this.safeNumber (order, 'avgPrice');
-        let price = this.safeNumber (order, 'price');
-        // using safeFloat here until we add comparisons to Precise
-        const floatPrice = this.safeFloat (order, 'price');
-        if (floatPrice <= 0) {
-            price = undefined;
-        }
+        const averageString = this.safeString (order, 'avgPrice');
+        const average = this.parseNumber (this.omitZero (averageString));
+        const priceString = this.safeString (order, 'price');
+        const price = this.parseNumber (this.omitZero (priceString));
         const amount = this.safeNumber (order, 'origQty');
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
@@ -1886,7 +1883,8 @@ module.exports = class binance extends Exchange {
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
-        const stopPrice = this.safeNumber (order, 'stopPrice');
+        const stopPriceString = this.safeString (order, 'stopPrice');
+        const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
         return this.safeOrder ({
             'info': order,
             'id': id,

@@ -224,6 +224,7 @@ class Exchange {
         'numberToString' => 'number_to_string',
         'precisionFromString' => 'precision_from_string',
         'decimalToPrecision' => 'decimal_to_precision',
+        'omitZero' => 'omit_zero',
         'isJsonEncodedObject' => 'is_json_encoded_object',
         'stringToBinary' => 'string_to_binary',
         'stringToBase64' => 'string_to_base64',
@@ -3070,5 +3071,15 @@ class Exchange {
             return null;
         }
         return '1e' . Precise::string_neg($precision);
+    }
+
+    public function omit_zero($string_number) {
+        if ($string_number === null) {
+            return null;
+        }
+        if (floatval($string_number) === null) {
+            return null;
+        }
+        return $string_number;
     }
 }
