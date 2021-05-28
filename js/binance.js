@@ -1846,6 +1846,8 @@ module.exports = class binance extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const filled = this.safeNumber (order, 'executedQty');
+        // using safeFloat here until we add comparisons to Precise
+        const floatFilled = this.safeFloat (order, 'executedQty');
         let timestamp = undefined;
         let lastTradeTimestamp = undefined;
         if ('time' in order) {
@@ -1854,7 +1856,7 @@ module.exports = class binance extends Exchange {
             timestamp = this.safeInteger (order, 'transactTime');
         } else if ('updateTime' in order) {
             if (status === 'open') {
-                if (filled > 0) {
+                if (floatFilled > 0) {
                     lastTradeTimestamp = this.safeInteger (order, 'updateTime');
                 } else {
                     timestamp = this.safeInteger (order, 'updateTime');
@@ -1863,7 +1865,9 @@ module.exports = class binance extends Exchange {
         }
         const average = this.safeNumber (order, 'avgPrice');
         let price = this.safeNumber (order, 'price');
-        if (price <= 0) {
+        // using safeFloat here until we add comparisons to Precise
+        const floatPrice = this.safeFloat (order, 'price');
+        if (floatPrice <= 0) {
             price = undefined;
         }
         const amount = this.safeNumber (order, 'origQty');
