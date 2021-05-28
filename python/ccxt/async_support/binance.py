@@ -1801,14 +1801,28 @@ class binance(Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
+        filled = self.safe_number(order, 'executedQty')
+        # using safeFloat here until we add comparisons to Precise
+        floatFilled = self.safe_float(order, 'executedQty')
         timestamp = None
+        lastTradeTimestamp = None
         if 'time' in order:
             timestamp = self.safe_integer(order, 'time')
         elif 'transactTime' in order:
             timestamp = self.safe_integer(order, 'transactTime')
+        elif 'updateTime' in order:
+            if status == 'open':
+                if floatFilled > 0:
+                    lastTradeTimestamp = self.safe_integer(order, 'updateTime')
+                else:
+                    timestamp = self.safe_integer(order, 'updateTime')
+        average = self.safe_number(order, 'avgPrice')
         price = self.safe_number(order, 'price')
+        # using safeFloat here until we add comparisons to Precise
+        floatPrice = self.safe_float(order, 'price')
+        if floatPrice <= 0:
+            price = None
         amount = self.safe_number(order, 'origQty')
-        filled = self.safe_number(order, 'executedQty')
         # - Spot/Margin market: cummulativeQuoteQty
         # - Futures market: cumQuote.
         #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
@@ -1830,7 +1844,7 @@ class binance(Exchange):
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -1840,7 +1854,7 @@ class binance(Exchange):
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
-            'average': None,
+            'average': average,
             'filled': filled,
             'remaining': None,
             'status': status,

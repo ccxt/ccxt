@@ -1851,15 +1851,32 @@ class binance extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
+        $filled = $this->safe_number($order, 'executedQty');
+        // using safeFloat here until we add comparisons to Precise
+        $floatFilled = $this->safe_float($order, 'executedQty');
         $timestamp = null;
+        $lastTradeTimestamp = null;
         if (is_array($order) && array_key_exists('time', $order)) {
             $timestamp = $this->safe_integer($order, 'time');
         } else if (is_array($order) && array_key_exists('transactTime', $order)) {
             $timestamp = $this->safe_integer($order, 'transactTime');
+        } else if (is_array($order) && array_key_exists('updateTime', $order)) {
+            if ($status === 'open') {
+                if ($floatFilled > 0) {
+                    $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
+                } else {
+                    $timestamp = $this->safe_integer($order, 'updateTime');
+                }
+            }
         }
+        $average = $this->safe_number($order, 'avgPrice');
         $price = $this->safe_number($order, 'price');
+        // using safeFloat here until we add comparisons to Precise
+        $floatPrice = $this->safe_float($order, 'price');
+        if ($floatPrice <= 0) {
+            $price = null;
+        }
         $amount = $this->safe_number($order, 'origQty');
-        $filled = $this->safe_number($order, 'executedQty');
         // - Spot/Margin $market => cummulativeQuoteQty
         // - Futures $market => cumQuote.
         //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
@@ -1882,7 +1899,7 @@ class binance extends Exchange {
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
@@ -1892,7 +1909,7 @@ class binance extends Exchange {
             'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => null,
+            'average' => $average,
             'filled' => $filled,
             'remaining' => null,
             'status' => $status,
