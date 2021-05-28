@@ -1372,31 +1372,29 @@ module.exports = class bybit extends Exchange {
         }
         const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
         const basePrice = this.safeValue (params, 'base_price');
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol, defaultType);
         let method = undefined;
-        if (marketType === 'linear') {
-            method = 'privateLinearPostOrderCreate';
-        } else if (marketType === 'inverse') {
-            method = 'v2PrivatePostOrderCreate';
-        } else if (marketType === 'futures') {
+        if (market['swap']) {
+            if (market['linear']) {
+                method = 'privateLinearPostOrderCreate';
+                request['reduce_only'] = false;
+                request['close_on_trigger'] = false;
+            } else if (market['inverse']) {
+                method = 'v2PrivatePostOrderCreate';
+            }
+        } else if (market['futures']) {
             method = 'futuresPrivatePostOrderCreate';
-        }
-        if (marketType === 'linear') {
-            method = 'privateLinearPostOrderCreate';
-            request['reduce_only'] = false;
-            request['close_on_trigger'] = false;
         }
         if (stopPx !== undefined) {
             if (basePrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
             } else {
-                if (marketType === 'linear') {
-                    method = 'privateLinearPostStopOrderCreate';
-                } else if (marketType === 'inverse') {
-                    method = 'v2PrivatePostStopOrderCreate';
-                } else if (marketType === 'futures') {
+                if (market['swap']) {
+                    if (market['linear']) {
+                        method = 'privateLinearPostStopOrderCreate';
+                    } else if (market['inverse']) {
+                        method = 'v2PrivatePostStopOrderCreate';
+                    }
+                } else if (market['futures']) {
                     method = 'futuresPrivatePostStopOrderCreate';
                 }
                 request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
