@@ -441,7 +441,7 @@ module.exports = class bybit extends Exchange {
             let type = 'swap';
             if (baseQuote !== id) {
                 symbol = id;
-                type = 'future';
+                type = 'futures';
             }
             const lotSizeFilter = this.safeValue (market, 'lot_size_filter', {});
             const priceFilter = this.safeValue (market, 'price_filter', {});
@@ -456,7 +456,7 @@ module.exports = class bybit extends Exchange {
             }
             const spot = (type === 'spot');
             const swap = (type === 'swap');
-            const future = (type === 'future');
+            const futures = (type === 'futures');
             const option = (type === 'option');
             result.push ({
                 'id': id,
@@ -470,7 +470,7 @@ module.exports = class bybit extends Exchange {
                 'type': type,
                 'spot': spot,
                 'swap': swap,
-                'future': future,
+                'futures': futures,
                 'option': option,
                 'linear': linear,
                 'inverse': inverse,
@@ -1229,14 +1229,14 @@ module.exports = class bybit extends Exchange {
             // conditional orders ---------------------------------------------
             // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
         };
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol);
         let method = undefined;
-        if (marketType === 'linear') {
-            method = 'privateLinearGetOrderSearch';
-        } else if (marketType === 'inverse') {
-            method = 'v2PrivateGetOrder';
-        } else if (marketType === 'inverseFuture') {
+        if (market['swap']) {
+            if (market['linear']) {
+                method = 'privateLinearGetOrderSearch';
+            } else if (market['inverse']) {
+                method = 'v2PrivateGetOrder';
+            }
+        } else if (market['futures']) {
             method = 'futuresPrivateGetOrder';
         }
         const stopOrderId = this.safeString (params, 'stop_order_id');
@@ -1246,11 +1246,13 @@ module.exports = class bybit extends Exchange {
                 request['order_id'] = id;
             }
         } else {
-            if (marketType === 'linear') {
-                method = 'privateLinearGetStopOrderSearch';
-            } else if (marketType === 'inverse') {
-                method = 'v2PrivateGetStopOrder';
-            } else if (marketType === 'inverseFuture') {
+            if (market['swap']) {
+                if (market['linear']) {
+                    method = 'privateLinearGetStopOrderSearch';
+                } else if (market['inverse']) {
+                    method = 'v2PrivateGetStopOrder';
+                }
+            } else if (market['futures']) {
                 method = 'futuresPrivateGetStopOrder';
             }
         }
@@ -1383,7 +1385,7 @@ module.exports = class bybit extends Exchange {
             method = 'privateLinearPostOrderCreate';
         } else if (marketType === 'inverse') {
             method = 'v2PrivatePostOrderCreate';
-        } else if (marketType === 'inverseFuture') {
+        } else if (marketType === 'futures') {
             method = 'futuresPrivatePostOrderCreate';
         }
         if (marketType === 'linear') {
@@ -1399,7 +1401,7 @@ module.exports = class bybit extends Exchange {
                     method = 'privateLinearPostStopOrderCreate';
                 } else if (marketType === 'inverse') {
                     method = 'v2PrivatePostStopOrderCreate';
-                } else if (marketType === 'inverseFuture') {
+                } else if (marketType === 'futures') {
                     method = 'futuresPrivatePostStopOrderCreate';
                 }
                 request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
@@ -1677,11 +1679,15 @@ module.exports = class bybit extends Exchange {
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
         let defaultMethod = undefined;
-        if (marketType === 'linear') {
+        const marketDefined = (market !== undefined);
+        const linear = (marketDefined && market['linear']) || (marketType === 'linear');
+        const inverse = (marketDefined && market['inverse']) || (marketType === 'inverse');
+        const futures = (marketDefined && market['futures']) || (marketType === 'futures');
+        if (linear) {
             defaultMethod = 'privateLinearGetOrderList';
-        } else if (marketType === 'inverse') {
+        } else if (inverse) {
             defaultMethod = 'v2PrivateGetOrderList';
-        } else if (marketType === 'inverseFuture') {
+        } else if (futures) {
             defaultMethod = 'futuresPrivateGetOrderList';
         }
         let query = params;
@@ -1694,11 +1700,11 @@ module.exports = class bybit extends Exchange {
                 request['stop_order_status'] = stopOrderStatus;
                 query = this.omit (params, 'stop_order_status');
             }
-            if (marketType === 'linear') {
+            if (linear) {
                 defaultMethod = 'privateLinearGetStopOrderList';
-            } else if (marketType === 'inverse') {
+            } else if (inverse) {
                 defaultMethod = 'v2PrivateGetStopOrderList';
-            } else if (marketType === 'inverseFuture') {
+            } else if (futures) {
                 defaultMethod = 'futuresPrivateGetStopOrderList';
             }
         }
