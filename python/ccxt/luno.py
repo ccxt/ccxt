@@ -271,7 +271,12 @@ class luno(Exchange):
         timestamp = self.safe_integer(order, 'creation_timestamp')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         status = status if (status == 'open') else status
-        side = 'sell' if (order['type'] == 'ASK') else 'buy'
+        side = None
+        orderType = self.safe_string(order, 'type')
+        if (orderType == 'ASK') or (orderType == 'SELL'):
+            side = 'sell'
+        elif (orderType == 'BID') or (orderType == 'BUY'):
+            side = 'buy'
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market)
         price = self.safe_number(order, 'limit_price')
@@ -404,7 +409,11 @@ class luno(Exchange):
         takerOrMaker = None
         side = None
         if orderId is not None:
-            side = 'sell' if (trade['type'] == 'ASK') else 'buy'
+            type = self.safe_string(trade, 'type')
+            if (type == 'ASK') or (type == 'SELL'):
+                side = 'sell'
+            elif (type == 'BID') or (type == 'BUY'):
+                side = 'buy'
             if side == 'sell' and trade['is_buy']:
                 takerOrMaker = 'maker'
             elif side == 'buy' and not trade['is_buy']:
