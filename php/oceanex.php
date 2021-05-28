@@ -16,7 +16,7 @@ class oceanex extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'oceanex',
             'name' => 'OceanEx',
-            'countries' => array( 'US' ),
+            'countries' => array( 'LU', 'CN', 'SG' ),
             'version' => 'v1',
             'rateLimit' => 3000,
             'urls' => array(

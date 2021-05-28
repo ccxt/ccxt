@@ -20,7 +20,7 @@ class oceanex(Exchange):
         return self.deep_extend(super(oceanex, self).describe(), {
             'id': 'oceanex',
             'name': 'OceanEx',
-            'countries': ['US'],
+            'countries': ['LU', 'CN', 'SG'],
             'version': 'v1',
             'rateLimit': 3000,
             'urls': {
