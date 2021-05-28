@@ -1632,14 +1632,14 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         const options = this.safeValue (this.options, 'cancelAllOrders', {});
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol);
         let defaultMethod = undefined;
-        if (marketType === 'linear') {
-            defaultMethod = 'privateLinearPostOrderCancelAll';
-        } else if (marketType === 'inverse') {
-            defaultMethod = 'v2PrivatePostOrderCancelAll';
-        } else if (marketType === 'inverseFuture') {
+        if (market['swap']) {
+            if (market['linear']) {
+                defaultMethod = 'privateLinearPostOrderCancelAll';
+            } else if (market['inverse']) {
+                defaultMethod = 'v2PrivatePostOrderCancelAll';
+            }
+        } else if (market['futures']) {
             defaultMethod = 'futuresPrivatePostOrderCancelAll';
         }
         const method = this.safeString (options, 'method', defaultMethod);
@@ -1677,7 +1677,7 @@ module.exports = class bybit extends Exchange {
         let defaultMethod = undefined;
         const marketDefined = (market !== undefined);
         const linear = (marketDefined && market['linear']) || (marketType === 'linear');
-        const inverse = (marketDefined && market['inverse']) || (marketType === 'inverse');
+        const inverse = (marketDefined && market['swap'] && market['inverse']) || (marketType === 'inverse');
         const futures = (marketDefined && market['futures']) || (marketType === 'futures');
         if (linear) {
             defaultMethod = 'privateLinearGetOrderList';
@@ -1886,12 +1886,16 @@ module.exports = class bybit extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'linear');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol, defaultType);
+        const marketDefined = (market !== undefined);
+        const linear = (marketDefined && market['linear']) || (marketType === 'linear');
+        const inverse = (marketDefined && market['swap'] && market['inverse']) || (marketType === 'inverse');
+        const futures = (marketDefined && market['futures']) || (marketType === 'futures');
         let method = undefined;
-        if (marketType === 'linear') {
+        if (linear) {
             method = 'privateLinearGetTradeExecutionList';
-        } else if (marketType === 'inverse') {
+        } else if (inverse) {
             method = 'v2PrivateGetExecutionList';
-        } else if (marketType === 'inverseFuture') {
+        } else if (futures) {
             method = 'futuresPrivateGetExecutionList';
         }
         const response = await this[method] (this.extend (request, params));
