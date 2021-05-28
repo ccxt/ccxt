@@ -281,7 +281,13 @@ module.exports = class luno extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         let status = this.parseOrderStatus (this.safeString (order, 'state'));
         status = (status === 'open') ? status : status;
-        const side = (order['type'] === 'ASK') ? 'sell' : 'buy';
+        let side = undefined;
+        const orderType = this.safeString (order, 'type');
+        if ((orderType === 'ASK') || (orderType === 'SELL')) {
+            side = 'sell';
+        } else if ((orderType === 'BID') || (orderType === 'BUY')) {
+            side = 'buy';
+        }
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market);
         const price = this.safeNumber (order, 'limit_price');
