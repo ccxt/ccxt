@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.50.61'
+__version__ = '1.50.62'
 
 # ----------------------------------------------------------------------------
 
@@ -181,7 +181,6 @@ from ccxt.upbit import upbit                                # noqa: F401
 from ccxt.vcc import vcc                                    # noqa: F401
 from ccxt.wavesexchange import wavesexchange                # noqa: F401
 from ccxt.whitebit import whitebit                          # noqa: F401
-from ccxt.xbtce import xbtce                                # noqa: F401
 from ccxt.xena import xena                                  # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
@@ -301,7 +300,6 @@ exchanges = [
     'vcc',
     'wavesexchange',
     'whitebit',
-    'xbtce',
     'xena',
     'yobit',
     'zaif',
