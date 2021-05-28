@@ -19,7 +19,7 @@ class okex extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'okex',
             'name' => 'OKEX',
-            'countries' => array( 'CN', 'US' ),
+            'countries' => array( 'CN' ),
             'version' => 'v3',
             'rateLimit' => 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'pro' => true,
