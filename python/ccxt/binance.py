@@ -995,7 +995,13 @@ class binance(Exchange):
             quote = self.safe_currency_code(quoteId)
             contractType = self.safe_string(market, 'contractType')
             idSymbol = (future or delivery) and (contractType != 'PERPETUAL')
-            symbol = id if idSymbol else (base + '/' + quote)
+            symbol = None
+            expiry = None
+            if idSymbol:
+                symbol = id
+                expiry = self.safe_integer(market, 'deliveryDate')
+            else:
+                symbol = base + '/' + quote
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
             precision = {
@@ -1006,8 +1012,10 @@ class binance(Exchange):
             }
             status = self.safe_string_2(market, 'status', 'contractStatus')
             active = (status == 'TRADING')
-            margin = self.safe_value(market, 'isMarginTradingAllowed', future or delivery)
-            contractSize = self.safe_float(market, 'contractSize')
+            margin = self.safe_value(market, 'isMarginTradingAllowed', False)
+            contractSize = None
+            if future or delivery:
+                contractSize = self.safe_float(market, 'contractSize', 1)
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1017,11 +1025,14 @@ class binance(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'type': type,
                 'spot': spot,
                 'margin': margin,
                 'future': future,
                 'delivery': delivery,
+                'linear': future,
+                'inverse': delivery,
+                'expiry': expiry,
+                'expiryDatetime': self.iso8601(expiry),
                 'active': active,
                 'precision': precision,
                 'contractSize': contractSize,
@@ -1273,9 +1284,9 @@ class binance(Exchange):
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         method = 'publicGetDepth'
-        if market['future']:
+        if market['linear']:
             method = 'fapiPublicGetDepth'
-        elif market['delivery']:
+        elif market['inverse']:
             method = 'dapiPublicGetDepth'
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -1403,9 +1414,9 @@ class binance(Exchange):
             'symbol': market['id'],
         }
         method = 'publicGetTicker24hr'
-        if market['future']:
+        if market['linear']:
             method = 'fapiPublicGetTicker24hr'
-        elif market['delivery']:
+        elif market['inverse']:
             method = 'dapiPublicGetTicker24hr'
         response = getattr(self, method)(self.extend(request, params))
         if isinstance(response, list):
@@ -1491,9 +1502,9 @@ class binance(Exchange):
                 now = self.milliseconds()
                 request['endTime'] = min(now, endTime)
         method = 'publicGetKlines'
-        if market['future']:
+        if market['linear']:
             method = 'fapiPublicGetKlines'
-        elif market['delivery']:
+        elif market['inverse']:
             method = 'dapiPublicGetKlines'
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -1864,7 +1875,7 @@ class binance(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', market['type'])
+        defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', 'spot')
         orderType = self.safe_string(params, 'type', defaultType)
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
         params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId'])
@@ -1884,7 +1895,7 @@ class binance(Exchange):
         uppercaseType = type.upper()
         validOrderTypes = self.safe_value(market['info'], 'orderTypes')
         if not self.in_array(uppercaseType, validOrderTypes):
-            raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type in ' + market['type'] + ' market ' + symbol)
+            raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type in market ' + symbol)
         request = {
             'symbol': market['id'],
             'type': uppercaseType,
@@ -1949,7 +1960,7 @@ class binance(Exchange):
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
             stopPriceIsRequired = True
             quantityIsRequired = True
-            if market['future'] or market['delivery']:
+            if market['linear'] or market['inverse']:
                 priceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
             quantityIsRequired = True
@@ -1996,7 +2007,7 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
+        defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         method = 'privateGetOrder'
         if type == 'future':
@@ -2022,7 +2033,7 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchOrders', 'defaultType', market['type'])
+        defaultType = self.safe_string_2(self.options, 'fetchOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         method = 'privateGetAllOrders'
         if type == 'future':
@@ -2095,7 +2106,7 @@ class binance(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-            defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', market['type'])
+            defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
             type = self.safe_string(params, 'type', defaultType)
             query = self.omit(params, 'type')
         elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
@@ -2126,7 +2137,7 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', market['type'])
+        defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         # https://github.com/ccxt/ccxt/issues/6507
         origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
@@ -2179,7 +2190,7 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'fetchMyTrades', 'defaultType')
+        defaultType = self.safe_string_2(self.options, 'fetchMyTrades', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         method = None

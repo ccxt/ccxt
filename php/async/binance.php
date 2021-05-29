@@ -999,7 +999,14 @@ class binance extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $contractType = $this->safe_string($market, 'contractType');
             $idSymbol = ($future || $delivery) && ($contractType !== 'PERPETUAL');
-            $symbol = $idSymbol ? $id : ($base . '/' . $quote);
+            $symbol = null;
+            $expiry = null;
+            if ($idSymbol) {
+                $symbol = $id;
+                $expiry = $this->safe_integer($market, 'deliveryDate');
+            } else {
+                $symbol = $base . '/' . $quote;
+            }
             $filters = $this->safe_value($market, 'filters', array());
             $filtersByType = $this->index_by($filters, 'filterType');
             $precision = array(
@@ -1010,8 +1017,11 @@ class binance extends Exchange {
             );
             $status = $this->safe_string_2($market, 'status', 'contractStatus');
             $active = ($status === 'TRADING');
-            $margin = $this->safe_value($market, 'isMarginTradingAllowed', $future || $delivery);
-            $contractSize = $this->safe_float($market, 'contractSize');
+            $margin = $this->safe_value($market, 'isMarginTradingAllowed', false);
+            $contractSize = null;
+            if ($future || $delivery) {
+                $contractSize = $this->safe_float($market, 'contractSize', 1);
+            }
             $entry = array(
                 'id' => $id,
                 'lowercaseId' => $lowercaseId,
@@ -1021,11 +1031,14 @@ class binance extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
-                'type' => $type,
                 'spot' => $spot,
                 'margin' => $margin,
                 'future' => $future,
                 'delivery' => $delivery,
+                'linear' => $future,
+                'inverse' => $delivery,
+                'expiry' => $expiry,
+                'expiryDatetime' => $this->iso8601($expiry),
                 'active' => $active,
                 'precision' => $precision,
                 'contractSize' => $contractSize,
@@ -1290,9 +1303,9 @@ class binance extends Exchange {
             $request['limit'] = $limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
         $method = 'publicGetDepth';
-        if ($market['future']) {
+        if ($market['linear']) {
             $method = 'fapiPublicGetDepth';
-        } else if ($market['delivery']) {
+        } else if ($market['inverse']) {
             $method = 'dapiPublicGetDepth';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1426,9 +1439,9 @@ class binance extends Exchange {
             'symbol' => $market['id'],
         );
         $method = 'publicGetTicker24hr';
-        if ($market['future']) {
+        if ($market['linear']) {
             $method = 'fapiPublicGetTicker24hr';
-        } else if ($market['delivery']) {
+        } else if ($market['inverse']) {
             $method = 'dapiPublicGetTicker24hr';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1524,9 +1537,9 @@ class binance extends Exchange {
             }
         }
         $method = 'publicGetKlines';
-        if ($market['future']) {
+        if ($market['linear']) {
             $method = 'fapiPublicGetKlines';
-        } else if ($market['delivery']) {
+        } else if ($market['inverse']) {
             $method = 'dapiPublicGetKlines';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -1919,7 +1932,7 @@ class binance extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'createOrder', 'defaultType', $market['type']);
+        $defaultType = $this->safe_string_2($this->options, 'createOrder', 'defaultType', 'spot');
         $orderType = $this->safe_string($params, 'type', $defaultType);
         $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
         $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId' ));
@@ -1942,7 +1955,7 @@ class binance extends Exchange {
         $uppercaseType = strtoupper($type);
         $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
         if (!$this->in_array($uppercaseType, $validOrderTypes)) {
-            throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type in ' . $market['type'] . ' $market ' . $symbol);
+            throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type in $market ' . $symbol);
         }
         $request = array(
             'symbol' => $market['id'],
@@ -2014,7 +2027,7 @@ class binance extends Exchange {
         } else if (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
             $stopPriceIsRequired = true;
             $quantityIsRequired = true;
-            if ($market['future'] || $market['delivery']) {
+            if ($market['linear'] || $market['inverse']) {
                 $priceIsRequired = true;
             }
         } else if (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
@@ -2073,7 +2086,7 @@ class binance extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', $market['type']);
+        $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $method = 'privateGetOrder';
         if ($type === 'future') {
@@ -2103,7 +2116,7 @@ class binance extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'fetchOrders', 'defaultType', $market['type']);
+        $defaultType = $this->safe_string_2($this->options, 'fetchOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $method = 'privateGetAllOrders';
         if ($type === 'future') {
@@ -2180,7 +2193,7 @@ class binance extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', $market['type']);
+            $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $defaultType);
             $query = $this->omit($params, 'type');
         } else if ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
@@ -2216,7 +2229,7 @@ class binance extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', $market['type']);
+        $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
         $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
@@ -2277,7 +2290,7 @@ class binance extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'fetchMyTrades', 'defaultType');
+        $defaultType = $this->safe_string_2($this->options, 'fetchMyTrades', 'defaultType', 'spot');
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
         $method = null;
