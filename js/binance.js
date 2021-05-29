@@ -993,7 +993,14 @@ module.exports = class binance extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const contractType = this.safeString (market, 'contractType');
             const idSymbol = (future || delivery) && (contractType !== 'PERPETUAL');
-            const symbol = idSymbol ? id : (base + '/' + quote);
+            let symbol = undefined;
+            let expiry = undefined;
+            if (idSymbol) {
+                symbol = id;
+                expiry = this.safeInteger (market, 'deliveryDate');
+            } else {
+                symbol = base + '/' + quote;
+            }
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
             const precision = {
@@ -1004,8 +1011,11 @@ module.exports = class binance extends Exchange {
             };
             const status = this.safeString2 (market, 'status', 'contractStatus');
             const active = (status === 'TRADING');
-            const margin = this.safeValue (market, 'isMarginTradingAllowed', future || delivery);
-            const contractSize = this.safeFloat (market, 'contractSize');
+            const margin = this.safeValue (market, 'isMarginTradingAllowed', false);
+            let contractSize = undefined;
+            if (future || delivery) {
+                contractSize = this.safeFloat (market, 'contractSize', 1);
+            }
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1015,11 +1025,14 @@ module.exports = class binance extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'type': type,
                 'spot': spot,
                 'margin': margin,
                 'future': future,
                 'delivery': delivery,
+                'linear': future,
+                'inverse': delivery,
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
                 'active': active,
                 'precision': precision,
                 'contractSize': contractSize,
@@ -1284,9 +1297,9 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
         let method = 'publicGetDepth';
-        if (market['future']) {
+        if (market['linear']) {
             method = 'fapiPublicGetDepth';
-        } else if (market['delivery']) {
+        } else if (market['inverse']) {
             method = 'dapiPublicGetDepth';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1420,9 +1433,9 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         let method = 'publicGetTicker24hr';
-        if (market['future']) {
+        if (market['linear']) {
             method = 'fapiPublicGetTicker24hr';
-        } else if (market['delivery']) {
+        } else if (market['inverse']) {
             method = 'dapiPublicGetTicker24hr';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1518,9 +1531,9 @@ module.exports = class binance extends Exchange {
             }
         }
         let method = 'publicGetKlines';
-        if (market['future']) {
+        if (market['linear']) {
             method = 'fapiPublicGetKlines';
-        } else if (market['delivery']) {
+        } else if (market['inverse']) {
             method = 'dapiPublicGetKlines';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1913,7 +1926,7 @@ module.exports = class binance extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', market['type']);
+        const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
         const orderType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId' ]);
@@ -1936,7 +1949,7 @@ module.exports = class binance extends Exchange {
         const uppercaseType = type.toUpperCase ();
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
-            throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in ' + market['type'] + ' market ' + symbol);
+            throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
         }
         const request = {
             'symbol': market['id'],
@@ -2008,7 +2021,7 @@ module.exports = class binance extends Exchange {
         } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             stopPriceIsRequired = true;
             quantityIsRequired = true;
-            if (market['future'] || market['delivery']) {
+            if (market['linear'] || market['inverse']) {
                 priceIsRequired = true;
             }
         } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
@@ -2067,7 +2080,7 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', market['type']);
+        const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         let method = 'privateGetOrder';
         if (type === 'future') {
@@ -2097,7 +2110,7 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', market['type']);
+        const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         let method = 'privateGetAllOrders';
         if (type === 'future') {
@@ -2174,7 +2187,7 @@ module.exports = class binance extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', market['type']);
+            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
             type = this.safeString (params, 'type', defaultType);
             query = this.omit (params, 'type');
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
@@ -2210,7 +2223,7 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', market['type']);
+        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         // https://github.com/ccxt/ccxt/issues/6507
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
@@ -2271,7 +2284,7 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType');
+        const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         let method = undefined;
