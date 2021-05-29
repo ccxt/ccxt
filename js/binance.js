@@ -1026,6 +1026,8 @@ module.exports = class binance extends Exchange {
                 'info': market,
                 'spot': spot,
                 'margin': margin,
+                'future': future,
+                'delivery': delivery,
                 'linear': future,
                 'inverse': delivery,
                 'expiry': expiry,
