@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
+from ccxt.base.precise import Precise
 
 
 class lykke(Exchange):
@@ -19,12 +19,19 @@ class lykke(Exchange):
             'has': {
                 'CORS': False,
                 'fetchOHLCV': False,
-                'fetchTrades': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
+                'fetchTrades': True,
                 'fetchMyTrades': True,
+                'createOrder': True,
+                'cancelOrder': True,
+                'cancelAllOrders': True,
+                'fetchBalance': True,
+                'fetchMarkets': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
             },
             'timeframes': {
                 '1m': 'Minute',
@@ -112,6 +119,10 @@ class lykke(Exchange):
                         'Orders/stoplimit',
                         'Orders/bulk',
                     ],
+                    'delete': [
+                        'Orders',
+                        'Orders/{id}',
+                    ],
                 },
             },
             'fees': {
@@ -133,6 +144,7 @@ class lykke(Exchange):
                 },
             },
             'commonCurrencies': {
+                'CAN': 'CanYaCoin',
                 'XPD': 'Lykke XPD',
             },
         })
@@ -169,25 +181,20 @@ class lykke(Exchange):
         #         Price: 9847.427,
         #         Fee: {Amount: null, Type: 'Unknown', FeeAssetId: null}
         #     },
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'AssetPairId')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'AssetPairId')
+        symbol = self.safe_symbol(marketId, market)
         id = self.safe_string_2(trade, 'id', 'Id')
         orderId = self.safe_string(trade, 'OrderId')
         timestamp = self.parse8601(self.safe_string_2(trade, 'dateTime', 'DateTime'))
-        price = self.safe_float_2(trade, 'price', 'Price')
-        amount = self.safe_float_2(trade, 'volume', 'Amount')
+        priceString = self.safe_string_2(trade, 'price', 'Price')
+        amountString = self.safe_string_2(trade, 'volume', 'Amount')
         side = self.safe_string_lower(trade, 'action')
         if side is None:
-            if amount < 0:
-                side = 'sell'
-            else:
-                side = 'buy'
-        amount = abs(amount)
-        cost = price * amount
+            side = 'sell' if (amountString[0] == '-') else 'buy'
+        amountString = Precise.string_abs(amountString)
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = {
             'cost': 0,  # There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
             'currency': market['quote'],
@@ -242,13 +249,23 @@ class lykke(Exchange):
             currencyId = self.safe_string(balance, 'AssetId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'Balance')
-            account['used'] = self.safe_float(balance, 'Reserved')
+            account['total'] = self.safe_string(balance, 'Balance')
+            account['used'] = self.safe_string(balance, 'Reserved')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostOrdersIdCancel({'id': id})
+        request = {'id': id}
+        return await self.privateDeleteOrdersId(self.extend(request, params))
+
+    async def cancel_all_orders(self, symbol=None, params={}):
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['assetPairId'] = market['id']
+        return await self.privateDeleteOrders(self.extend(request, params))
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -257,16 +274,46 @@ class lykke(Exchange):
             'AssetPairId': market['id'],
             'OrderAction': self.capitalize(side),
             'Volume': amount,
+            'Asset': market['baseId'],
         }
-        if type == 'market':
-            query['Asset'] = market['base'] if (side == 'buy') else market['quote']
-        elif type == 'limit':
+        if type == 'limit':
             query['Price'] = price
-        method = 'privatePostOrders' + self.capitalize(type)
+        method = 'privatePostOrdersV2' + self.capitalize(type)
         result = await getattr(self, method)(self.extend(query, params))
+        #
+        # market
+        #
+        #     {
+        #         "Price": 0
+        #     }
+        #
+        # limit
+        #
+        #     {
+        #         "Id":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        #     }
+        #
+        id = self.safe_string(result, 'Id')
+        price = self.safe_number(result, 'Price')
         return {
-            'id': None,
+            'id': id,
             'info': result,
+            'clientOrderId': None,
+            'timestamp': None,
+            'datetime': None,
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': None,
+            'average': None,
+            'filled': None,
+            'remaining': None,
+            'status': None,
+            'fee': None,
+            'trades': None,
         }
 
     async def fetch_markets(self, params={}):
@@ -298,9 +345,11 @@ class lykke(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            pricePrecision = self.safe_string(market, 'Accuracy')
+            priceLimit = self.parse_precision(pricePrecision)
             precision = {
-                'amount': self.safe_integer(market, 'Accuracy'),
-                'price': self.safe_integer(market, 'InvertedAccuracy'),
+                'price': int(pricePrecision),
+                'amount': self.safe_integer(market, 'InvertedAccuracy'),
             }
             result.append({
                 'id': id,
@@ -312,15 +361,15 @@ class lykke(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'min': self.safe_number(market, 'MinVolume'),
+                        'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': self.parse_number(priceLimit),
+                        'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'MinInvertedVolume'),
                         'max': None,
                     },
                 },
@@ -334,16 +383,16 @@ class lykke(Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        close = self.safe_float(ticker, 'lastPrice')
+        close = self.safe_number(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_float(ticker, 'bid'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -354,7 +403,7 @@ class lykke(Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, 'volume24H'),
+            'quoteVolume': self.safe_number(ticker, 'volume24H'),
             'info': ticker,
         }
 
@@ -400,31 +449,25 @@ class lykke(Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'Status'))
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'AssetPairId')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'AssetPairId')
+        symbol = self.safe_symbol(marketId, market)
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'LastMatchTime'))
         timestamp = None
         if ('Registered' in order) and (order['Registered']):
             timestamp = self.parse8601(order['Registered'])
         elif ('CreatedAt' in order) and (order['CreatedAt']):
             timestamp = self.parse8601(order['CreatedAt'])
-        price = self.safe_float(order, 'Price')
+        price = self.safe_number(order, 'Price')
         side = None
-        amount = self.safe_float(order, 'Volume')
+        amount = self.safe_number(order, 'Volume')
         if amount < 0:
             side = 'sell'
             amount = abs(amount)
         else:
             side = 'buy'
-        remaining = abs(self.safe_float(order, 'RemainingVolume'))
-        filled = amount - remaining
-        cost = filled * price
+        remaining = abs(self.safe_number(order, 'RemainingVolume'))
         id = self.safe_string(order, 'Id')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -433,17 +476,20 @@ class lykke(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
-            'cost': cost,
+            'stopPrice': None,
+            'cost': None,
             'average': None,
             'amount': amount,
-            'filled': filled,
+            'filled': None,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': None,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -492,11 +538,11 @@ class lykke(Exchange):
                 orderbook['asks'] = self.array_concat(orderbook['asks'], side['Prices'])
             sideTimestamp = self.parse8601(side['Timestamp'])
             timestamp = sideTimestamp if (timestamp is None) else max(timestamp, sideTimestamp)
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume')
+        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'Price', 'Volume')
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
-        price = self.safe_float(bidask, priceKey)
-        amount = self.safe_float(bidask, amountKey)
+        price = self.safe_number(bidask, priceKey)
+        amount = self.safe_number(bidask, amountKey)
         if amount < 0:
             amount = -amount
         return [price, amount]
@@ -511,7 +557,7 @@ class lykke(Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
-            if method == 'GET':
+            if (method == 'GET') or (method == 'DELETE'):
                 if query:
                     url += '?' + self.urlencode(query)
             self.check_required_credentials()

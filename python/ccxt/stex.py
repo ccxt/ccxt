@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -13,6 +12,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.precise import Precise
 
 
 class stex(Exchange):
@@ -26,25 +26,30 @@ class stex(Exchange):
             'certified': False,
             # new metainfo interface
             'has': {
+                'cancelAllOrders': True,
+                'cancelOrder': True,
                 'CORS': False,
+                'createDepositAddress': True,
                 'createMarketOrder': False,  # limit orders only
-                'fetchCurrencies': True,
-                'fetchMarkets': True,
-                'fetchTicker': True,
-                'fetchTickers': True,
-                'fetchOrderBook': True,
-                'fetchOHLCV': True,
+                'createOrder': True,
                 'fetchBalance': True,
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchFundingFees': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchMyTrades': True,
+                'fetchOrderBook': True,
                 'fetchOrderTrades': True,
-                'fetchDepositAddress': True,
-                'createDepositAddress': True,
-                'fetchDeposits': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
-                'fetchFundingFees': True,
             },
             'version': 'v3',
             'urls': {
@@ -185,7 +190,13 @@ class stex(Exchange):
                 },
             },
             'commonCurrencies': {
+                'BC': 'Bitcoin Confidential',
+                'BITS': 'Bitcoinus',
+                'BITSW': 'BITS',
                 'BHD': 'Bithold',
+                'BTH': 'Bithereum',
+                'MPH': 'Chasyr Token',
+                'SBTC': 'SBTCT',  # SiamBitcoin
             },
             'options': {
                 'parseOrderToPrecision': False,
@@ -246,8 +257,9 @@ class stex(Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.safe_currency_code(self.safe_string(currency, 'code'))
-            precision = self.safe_integer(currency, 'precision')
-            fee = self.safe_float(currency, 'withdrawal_fee_const')  # todo: redesign
+            precision = self.safe_string(currency, 'precision')
+            amountLimit = self.parse_precision(precision)
+            fee = self.safe_number(currency, 'withdrawal_fee_const')  # todo: redesign
             active = self.safe_value(currency, 'active', True)
             result[code] = {
                 'id': id,
@@ -258,17 +270,15 @@ class stex(Exchange):
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
                 'fee': fee,
-                'precision': precision,
+                'precision': int(precision),
                 'limits': {
-                    'amount': {'min': math.pow(10, -precision), 'max': None},
-                    'price': {'min': math.pow(10, -precision), 'max': None},
-                    'cost': {'min': None, 'max': None},
+                    'amount': {'min': self.parse_number(amountLimit), 'max': None},
                     'deposit': {
-                        'min': self.safe_float(currency, 'minimum_deposit_amount'),
+                        'min': self.safe_number(currency, 'minimum_deposit_amount'),
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_float(currency, 'minimum_withdrawal_amount'),
+                        'min': self.safe_number(currency, 'minimum_withdrawal_amount'),
                         'max': None,
                     },
                 },
@@ -327,11 +337,11 @@ class stex(Exchange):
                 'price': self.safe_integer(market, 'market_precision'),
             }
             active = self.safe_value(market, 'active')
-            minBuyPrice = self.safe_float(market, 'min_buy_price')
-            minSellPrice = self.safe_float(market, 'min_sell_price')
+            minBuyPrice = self.safe_number(market, 'min_buy_price')
+            minSellPrice = self.safe_number(market, 'min_sell_price')
             minPrice = max(minBuyPrice, minSellPrice)
-            buyFee = self.safe_float(market, 'buy_fee_percent') / 100
-            sellFee = self.safe_float(market, 'sell_fee_percent') / 100
+            buyFee = self.safe_number(market, 'buy_fee_percent') / 100
+            sellFee = self.safe_number(market, 'sell_fee_percent') / 100
             fee = max(buyFee, sellFee)
             result.append({
                 'id': id,
@@ -350,7 +360,7 @@ class stex(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'min_order_amount'),
+                        'min': self.safe_number(market, 'min_order_amount'),
                         'max': None,
                     },
                     'price': {'min': minPrice, 'max': None},
@@ -414,6 +424,25 @@ class stex(Exchange):
         ticker = self.safe_value(response, 'data', {})
         return self.parse_ticker(ticker, market)
 
+    def fetch_time(self, params={}):
+        response = self.publicGetPing(params)
+        #
+        #     {
+        #         "success": True,
+        #         "data": {
+        #             "server_datetime": {
+        #                 "date": "2019-01-22 15:13:34.233796",
+        #                 "timezone_type": 3,
+        #                 "timezone": "UTC"
+        #             },
+        #             "server_timestamp": 1548170014
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        serverDatetime = self.safe_value(data, 'server_datetime', {})
+        return self.parse8601(self.safe_string(serverDatetime, 'date'))
+
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -444,7 +473,7 @@ class stex(Exchange):
         #     }
         #
         orderbook = self.safe_value(response, 'data', {})
-        return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'amount')
+        return self.parse_order_book(orderbook, symbol, None, 'bid', 'ask', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -487,21 +516,10 @@ class stex(Exchange):
         #     }
         #
         timestamp = self.safe_integer(ticker, 'timestamp')
-        symbol = None
-        marketId = self.safe_string(ticker, 'id')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        else:
-            marketId = self.safe_string(ticker, 'symbol')
-            if marketId is not None:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
-        open = self.safe_float(ticker, 'open')
+        marketId = self.safe_string_2(ticker, 'id', 'symbol')
+        symbol = self.safe_symbol(marketId, market, '_')
+        last = self.safe_number(ticker, 'last')
+        open = self.safe_number(ticker, 'open')
         change = None
         percentage = None
         if last is not None:
@@ -512,11 +530,11 @@ class stex(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -526,16 +544,10 @@ class stex(Exchange):
             'change': change,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volumeQuote'),
-            'quoteVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_number(ticker, 'volumeQuote'),
+            'quoteVolume': self.safe_number(ticker, 'volume'),
             'info': ticker,
         }
-
-    def parse_tickers(self, tickers, symbols=None):
-        result = []
-        for i in range(0, len(tickers)):
-            result.append(self.parse_ticker(tickers[i]))
-        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -601,11 +613,11 @@ class stex(Exchange):
         #
         return [
             self.safe_integer(ohlcv, 'time'),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1d', since=None, limit=None, params={}):
@@ -676,11 +688,11 @@ class stex(Exchange):
         #
         id = self.safe_string(trade, 'id')
         timestamp = self.safe_timestamp(trade, 'timestamp')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = None
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
@@ -782,16 +794,20 @@ class stex(Exchange):
         #         ]
         #     }
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             code = self.safe_currency_code(self.safe_string(balance, 'currency_id'))
             account = self.account()
-            account['free'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'frozen_balance')
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'frozen_balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order_status(self, status):
         statuses = {
@@ -845,23 +861,12 @@ class stex(Exchange):
         #
         id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = None
-        marketId = self.safe_string(order, 'currency_pair_id')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        else:
-            marketId = self.safe_string(order, 'currency_pair_name')
-            if marketId is not None:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        marketId = self.safe_string_2(order, 'currency_pair_id', 'currency_pair_name')
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_timestamp(order, 'timestamp')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'initial_amount')
-        filled = self.safe_float(order, 'processed_amount')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'initial_amount')
+        filled = self.safe_number(order, 'processed_amount')
         remaining = None
         cost = None
         if filled is not None:
@@ -884,6 +889,7 @@ class stex(Exchange):
                 'symbol': symbol,
                 'order': id,
             })
+        stopPrice = self.safe_number(order, 'trigger_price')
         result = {
             'info': order,
             'id': id,
@@ -893,8 +899,11 @@ class stex(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -911,7 +920,7 @@ class stex(Exchange):
             if numFees > 0:
                 result['fees'] = []
                 for i in range(0, len(fees)):
-                    feeCost = self.safe_float(fees[i], 'amount')
+                    feeCost = self.safe_number(fees[i], 'amount')
                     if feeCost is not None:
                         feeCurrencyId = self.safe_string(fees[i], 'currency_id')
                         feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -1166,7 +1175,7 @@ class stex(Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1456,13 +1465,13 @@ class stex(Exchange):
         if (code is None) and (currency is not None):
             code = currency['code']
         type = 'deposit' if ('deposit_status_id' in transaction) else 'withdrawal'
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string_lower(transaction, 'status'))
         timestamp = self.safe_timestamp_2(transaction, 'timestamp', 'created_ts')
         updated = self.safe_timestamp(transaction, 'updated_ts')
         txid = self.safe_string(transaction, 'txid')
         fee = None
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(transaction, 'fee_currency_id', 'deposit_fee_currency_id')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -1686,8 +1695,8 @@ class stex(Exchange):
         for i in range(0, len(data)):
             id = self.safe_string(data[i], 'id')
             code = self.safe_currency_code(id)
-            withdrawFees[code] = self.safe_float(data[i], 'withdrawal_fee_const')
-            depositFees[code] = self.safe_float(data[i], 'deposit_fee_const')
+            withdrawFees[code] = self.safe_number(data[i], 'withdrawal_fee_const')
+            depositFees[code] = self.safe_number(data[i], 'deposit_fee_const')
         return {
             'withdraw': withdrawFees,
             'deposit': depositFees,

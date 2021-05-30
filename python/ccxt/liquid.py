@@ -8,12 +8,15 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class liquid(Exchange):
@@ -26,14 +29,22 @@ class liquid(Exchange):
             'version': '2',
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchCurrencies': True,
-                'fetchTickers': True,
-                'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'editOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchCurrencies': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
                 'withdraw': True,
             },
             'urls': {
@@ -44,7 +55,7 @@ class liquid(Exchange):
                     'https://developers.liquid.com',
                 ],
                 'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
-                'referral': 'https://www.liquid.com?affiliate=SbzC62lt30976',
+                'referral': 'https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976',
             },
             'api': {
                 'public': {
@@ -60,6 +71,7 @@ class liquid(Exchange):
                 },
                 'private': {
                     'get': [
+                        'accounts',  # undocumented https://github.com/ccxt/ccxt/pull/7493
                         'accounts/balance',
                         'accounts/main_asset',
                         'accounts/{id}',
@@ -104,6 +116,81 @@ class liquid(Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': True,
+                    'percentage': True,
+                    'taker': 0.0030,
+                    'maker': 0.0000,
+                    'tiers': {
+                        'perpetual': {
+                            'maker': [
+                                [0, 0.0000],
+                                [25000, 0.0000],
+                                [50000, -0.00025],
+                                [100000, -0.00025],
+                                [1000000, -0.00025],
+                                [10000000, -0.00025],
+                                [25000000, -0.00025],
+                                [50000000, -0.00025],
+                                [75000000, -0.00025],
+                                [100000000, -0.00025],
+                                [200000000, -0.00025],
+                                [300000000, -0.00025],
+                            ],
+                            'taker': [
+                                [0, 0.00120],
+                                [25000, 0.00115],
+                                [50000, 0.00110],
+                                [100000, 0.00105],
+                                [1000000, 0.00100],
+                                [10000000, 0.00095],
+                                [25000000, 0.00090],
+                                [50000000, 0.00085],
+                                [75000000, 0.00080],
+                                [100000000, 0.00075],
+                                [200000000, 0.00070],
+                                [300000000, 0.00065],
+                            ],
+                        },
+                        'spot': {
+                            'taker': [
+                                [0, 0.003],
+                                [10000, 0.0029],
+                                [20000, 0.0028],
+                                [50000, 0.0026],
+                                [100000, 0.0020],
+                                [1000000, 0.0016],
+                                [5000000, 0.0012],
+                                [10000000, 0.0010],
+                                [25000000, 0.0009],
+                                [50000000, 0.0008],
+                                [100000000, 0.0007],
+                                [200000000, 0.0006],
+                                [500000000, 0.0004],
+                                [1000000000, 0.0003],
+                            ],
+                            'maker': [
+                                [0, 0.0000],
+                                [10000, 0.0020],
+                                [20000, 0.0019],
+                                [50000, 0.0018],
+                                [100000, 0.0016],
+                                [1000000, 0.0008],
+                                [5000000, 0.0007],
+                                [10000000, 0.0005],
+                                [25000000, 0.0000],
+                                [50000000, 0.0000],
+                                [100000000, 0.0000],
+                                [200000000, 0.0000],
+                                [500000000, 0.0000],
+                                [1000000000, 0.0000],
+                            ],
+                        },
+                    },
+                },
+            },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
@@ -114,10 +201,14 @@ class liquid(Exchange):
                 'not_enough_free_balance': InsufficientFunds,
                 'must_be_positive': InvalidOrder,
                 'less_than_order_size': InvalidOrder,
+                'price_too_high': InvalidOrder,
+                'price_too_small': InvalidOrder,  # {"errors":{"order":["price_too_small"]}}
+                'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
                 'HOT': 'HOT Token',
+                'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
             },
             'options': {
                 'cancelOrderException': True,
@@ -151,32 +242,22 @@ class liquid(Exchange):
             id = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(id)
             active = currency['depositable'] and currency['withdrawable']
-            amountPrecision = self.safe_integer(currency, 'display_precision')
-            pricePrecision = self.safe_integer(currency, 'quoting_precision')
-            precision = max(amountPrecision, pricePrecision)
+            amountPrecision = self.safe_integer(currency, 'assets_precision')
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': code,
                 'active': active,
-                'fee': self.safe_float(currency, 'withdrawal_fee'),
-                'precision': precision,
+                'fee': self.safe_number(currency, 'withdrawal_fee'),
+                'precision': amountPrecision,
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -amountPrecision),
                         'max': math.pow(10, amountPrecision),
                     },
-                    'price': {
-                        'min': math.pow(10, -pricePrecision),
-                        'max': math.pow(10, pricePrecision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': self.safe_float(currency, 'minimum_withdrawal'),
+                        'min': self.safe_number(currency, 'minimum_withdrawal'),
                         'max': None,
                     },
                 },
@@ -188,30 +269,40 @@ class liquid(Exchange):
         #
         #     [
         #         {
-        #             id: '7',
-        #             product_type: 'CurrencyPair',
-        #             code: 'CASH',
-        #             name: ' CASH Trading',
-        #             market_ask: 8865.79147,
-        #             market_bid: 8853.95988,
-        #             indicator: 1,
-        #             currency: 'SGD',
-        #             currency_pair_code: 'BTCSGD',
-        #             symbol: 'S$',
-        #             btc_minimum_withdraw: null,
-        #             fiat_minimum_withdraw: null,
-        #             pusher_channel: 'product_cash_btcsgd_7',
-        #             taker_fee: 0,
-        #             maker_fee: 0,
-        #             low_market_bid: '8803.25579',
-        #             high_market_ask: '8905.0',
-        #             volume_24h: '15.85443468',
-        #             last_price_24h: '8807.54625',
-        #             last_traded_price: '8857.77206',
-        #             last_traded_quantity: '0.00590974',
-        #             quoted_currency: 'SGD',
-        #             base_currency: 'BTC',
-        #             disabled: False,
+        #             "id":"637",
+        #             "product_type":"CurrencyPair",
+        #             "code":"CASH",
+        #             "name":null,
+        #             "market_ask":"0.00000797",
+        #             "market_bid":"0.00000727",
+        #             "indicator":null,
+        #             "currency":"BTC",
+        #             "currency_pair_code":"TFTBTC",
+        #             "symbol":null,
+        #             "btc_minimum_withdraw":null,
+        #             "fiat_minimum_withdraw":null,
+        #             "pusher_channel":"product_cash_tftbtc_637",
+        #             "taker_fee":"0.0",
+        #             "maker_fee":"0.0",
+        #             "low_market_bid":"0.00000685",
+        #             "high_market_ask":"0.00000885",
+        #             "volume_24h":"3696.0755956",
+        #             "last_price_24h":"0.00000716",
+        #             "last_traded_price":"0.00000766",
+        #             "last_traded_quantity":"1748.0377978",
+        #             "average_price":null,
+        #             "quoted_currency":"BTC",
+        #             "base_currency":"TFT",
+        #             "tick_size":"0.00000001",
+        #             "disabled":false,
+        #             "margin_enabled":false,
+        #             "cfd_enabled":false,
+        #             "perpetual_enabled":false,
+        #             "last_event_timestamp":"1596962820.000797146",
+        #             "timestamp":"1596962820.000797146",
+        #             "multiplier_up":"9.0",
+        #             "multiplier_down":"0.1",
+        #             "average_time_interval":null
         #         },
         #     ]
         #
@@ -219,32 +310,44 @@ class liquid(Exchange):
         #
         #     [
         #         {
-        #             "id": "603",
-        #             "product_type": "Perpetual",
-        #             "code": "CASH",
-        #             "name": null,
-        #             "market_ask": "1143900",
-        #             "market_bid": "1143250",
-        #             "currency": "JPY",
-        #             "currency_pair_code": "P-BTCJPY",
-        #             "pusher_channel": "product_cash_p-btcjpy_603",
-        #             "taker_fee": "0.0",
-        #             "maker_fee": "0.0",
-        #             "low_market_bid": "1124450.0",
-        #             "high_market_ask": "1151750.0",
-        #             "volume_24h": "0.1756",
-        #             "last_price_24h": "1129850.0",
-        #             "last_traded_price": "1144700.0",
-        #             "last_traded_quantity": "0.014",
-        #             "quoted_currency": "JPY",
-        #             "base_currency": "P-BTC",
-        #             "tick_size": "50.0",
-        #             "perpetual_enabled": True,
-        #             "index_price": "1142636.03935",
-        #             "mark_price": "1143522.18417",
-        #             "funding_rate": "0.00033",
-        #             "fair_price": "1143609.31009",
-        #             "timestamp": "1581558659.195353100",
+        #             "id":"604",
+        #             "product_type":"Perpetual",
+        #             "code":"CASH",
+        #             "name":null,
+        #             "market_ask":"11721.5",
+        #             "market_bid":"11719.0",
+        #             "indicator":null,
+        #             "currency":"USD",
+        #             "currency_pair_code":"P-BTCUSD",
+        #             "symbol":"$",
+        #             "btc_minimum_withdraw":null,
+        #             "fiat_minimum_withdraw":null,
+        #             "pusher_channel":"product_cash_p-btcusd_604",
+        #             "taker_fee":"0.0012",
+        #             "maker_fee":"0.0",
+        #             "low_market_bid":"11624.5",
+        #             "high_market_ask":"11859.0",
+        #             "volume_24h":"0.271",
+        #             "last_price_24h":"11621.5",
+        #             "last_traded_price":"11771.5",
+        #             "last_traded_quantity":"0.09",
+        #             "average_price":"11771.5",
+        #             "quoted_currency":"USD",
+        #             "base_currency":"P-BTC",
+        #             "tick_size":"0.5",
+        #             "disabled":false,
+        #             "margin_enabled":false,
+        #             "cfd_enabled":false,
+        #             "perpetual_enabled":true,
+        #             "last_event_timestamp":"1596963309.418853092",
+        #             "timestamp":"1596963309.418853092",
+        #             "multiplier_up":null,
+        #             "multiplier_down":"0.1",
+        #             "average_time_interval":300,
+        #             "index_price":"11682.8124",
+        #             "mark_price":"11719.96781",
+        #             "funding_rate":"0.00273",
+        #             "fair_price":"11720.2745"
         #         },
         #     ]
         #
@@ -272,28 +375,31 @@ class liquid(Exchange):
                 symbol = self.safe_string(market, 'currency_pair_code')
             else:
                 symbol = base + '/' + quote
-            maker = self.safe_float(market, 'maker_fee')
-            taker = self.safe_float(market, 'taker_fee')
+            maker = self.fees['trading']['maker']
+            taker = self.fees['trading']['taker']
+            if type == 'swap':
+                maker = self.safe_number(market, 'maker_fee', self.fees['trading']['maker'])
+                taker = self.safe_number(market, 'taker_fee', self.fees['trading']['taker'])
             disabled = self.safe_value(market, 'disabled', False)
             active = not disabled
             baseCurrency = self.safe_value(currenciesByCode, base)
-            quoteCurrency = self.safe_value(currenciesByCode, quote)
             precision = {
-                'amount': 8,
-                'price': 8,
+                'amount': 0.00000001,
+                'price': self.safe_number(market, 'tick_size'),
             }
             minAmount = None
             if baseCurrency is not None:
-                minAmount = self.safe_float(baseCurrency['info'], 'minimum_order_quantity')
-                # precision['amount'] = self.safe_integer(baseCurrency['info'], 'quoting_precision')
+                minAmount = self.safe_number(baseCurrency['info'], 'minimum_order_quantity')
+            lastPrice = self.safe_number(market, 'last_traded_price')
             minPrice = None
-            if quoteCurrency is not None:
-                precision['price'] = self.safe_integer(quoteCurrency['info'], 'quoting_precision')
-                minPrice = math.pow(10, -precision['price'])
-            minCost = None
-            if minPrice is not None:
-                if minAmount is not None:
-                    minCost = minPrice * minAmount
+            maxPrice = None
+            if lastPrice:
+                multiplierDown = self.safe_number(market, 'multiplier_down')
+                multiplierUp = self.safe_number(market, 'multiplier_up')
+                if multiplierDown is not None:
+                    minPrice = lastPrice * multiplierDown
+                if multiplierUp is not None:
+                    maxPrice = lastPrice * multiplierUp
             limits = {
                 'amount': {
                     'min': minAmount,
@@ -301,10 +407,10 @@ class liquid(Exchange):
                 },
                 'price': {
                     'min': minPrice,
-                    'max': None,
+                    'max': maxPrice,
                 },
                 'cost': {
-                    'min': minCost,
+                    'min': None,
                     'max': None,
                 },
             }
@@ -329,23 +435,65 @@ class liquid(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetAccountsBalance(params)
+        response = self.privateGetAccounts(params)
         #
-        #     [
-        #         {"currency":"USD","balance":"0.0"},
-        #         {"currency":"BTC","balance":"0.0"},
-        #         {"currency":"ETH","balance":"0.1651354"}
-        #     ]
+        #     {
+        #         crypto_accounts: [
+        #             {
+        #                 id: 2221179,
+        #                 currency: 'USDT',
+        #                 balance: '0.0',
+        #                 reserved_balance: '0.0',
+        #                 pusher_channel: 'user_xxxxx_account_usdt',
+        #                 lowest_offer_interest_rate: null,
+        #                 highest_offer_interest_rate: null,
+        #                 address: '0',
+        #                 currency_symbol: 'USDT',
+        #                 minimum_withdraw: null,
+        #                 currency_type: 'crypto'
+        #             },
+        #         ],
+        #         fiat_accounts: [
+        #             {
+        #                 id: 1112734,
+        #                 currency: 'USD',
+        #                 balance: '0.0',
+        #                 reserved_balance: '0.0',
+        #                 pusher_channel: 'user_xxxxx_account_usd',
+        #                 lowest_offer_interest_rate: null,
+        #                 highest_offer_interest_rate: null,
+        #                 currency_symbol: '$',
+        #                 send_to_btc_address: null,
+        #                 exchange_rate: '1.0',
+        #                 currency_type: 'fiat'
+        #             }
+        #         ]
+        #     }
         #
-        result = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        crypto = self.safe_value(response, 'crypto_accounts', [])
+        fiat = self.safe_value(response, 'fiat_accounts', [])
+        for i in range(0, len(crypto)):
+            balance = crypto[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'balance')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'reserved_balance')
             result[code] = account
-        return self.parse_balance(result)
+        for i in range(0, len(fiat)):
+            balance = fiat[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'reserved_balance')
+            result[code] = account
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -353,7 +501,7 @@ class liquid(Exchange):
             'id': self.market_id(symbol),
         }
         response = self.publicGetProductsIdPriceLevels(self.extend(request, params))
-        return self.parse_order_book(response, None, 'buy_price_levels', 'sell_price_levels')
+        return self.parse_order_book(response, symbol, None, 'buy_price_levels', 'sell_price_levels')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -362,7 +510,7 @@ class liquid(Exchange):
             if ticker['last_traded_price']:
                 length = len(ticker['last_traded_price'])
                 if length > 0:
-                    last = self.safe_float(ticker, 'last_traded_price')
+                    last = self.safe_number(ticker, 'last_traded_price')
         symbol = None
         if market is None:
             marketId = self.safe_string(ticker, 'id')
@@ -380,7 +528,7 @@ class liquid(Exchange):
         change = None
         percentage = None
         average = None
-        open = self.safe_float(ticker, 'last_price_24h')
+        open = self.safe_number(ticker, 'last_price_24h')
         if open is not None and last is not None:
             change = last - open
             average = self.sum(last, open) / 2
@@ -390,11 +538,11 @@ class liquid(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high_market_ask'),
-            'low': self.safe_float(ticker, 'low_market_bid'),
-            'bid': self.safe_float(ticker, 'market_bid'),
+            'high': self.safe_number(ticker, 'high_market_ask'),
+            'low': self.safe_number(ticker, 'low_market_bid'),
+            'bid': self.safe_number(ticker, 'market_bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'market_ask'),
+            'ask': self.safe_number(ticker, 'market_ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -404,7 +552,7 @@ class liquid(Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'volume_24h'),
+            'baseVolume': self.safe_number(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -417,7 +565,7 @@ class liquid(Exchange):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -445,12 +593,11 @@ class liquid(Exchange):
         takerOrMaker = None
         if mySide is not None:
             takerOrMaker = 'taker' if (takerSide == mySide) else 'maker'
-        cost = None
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'quantity')
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'quantity')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string(trade, 'id')
         symbol = None
         if market is not None:
@@ -554,7 +701,7 @@ class liquid(Exchange):
     def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if price is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires the price argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires the price argument')
         request = {
             'order': {
                 'quantity': self.amount_to_precision(symbol, amount),
@@ -637,9 +784,9 @@ class liquid(Exchange):
         marketId = self.safe_string(order, 'product_id')
         market = self.safe_value(self.markets_by_id, marketId)
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        amount = self.safe_float(order, 'quantity')
-        filled = self.safe_float(order, 'filled_quantity')
-        price = self.safe_float(order, 'price')
+        amount = self.safe_number(order, 'quantity')
+        filled = self.safe_number(order, 'filled_quantity')
+        price = self.safe_number(order, 'price')
         symbol = None
         feeCurrency = None
         if market is not None:
@@ -648,7 +795,7 @@ class liquid(Exchange):
         type = self.safe_string(order, 'order_type')
         tradeCost = 0
         tradeFilled = 0
-        average = self.safe_float(order, 'average_price')
+        average = self.safe_number(order, 'average_price')
         trades = self.parse_trades(self.safe_value(order, 'executions', []), market, None, None, {
             'order': orderId,
             'type': type,
@@ -684,10 +831,13 @@ class liquid(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'status': status,
             'symbol': symbol,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': filled,
             'cost': cost,
@@ -696,7 +846,7 @@ class liquid(Exchange):
             'trades': trades,
             'fee': {
                 'currency': feeCurrency,
-                'cost': self.safe_float(order, 'order_fee'),
+                'cost': self.safe_number(order, 'order_fee'),
             },
             'info': order,
         }
@@ -840,7 +990,7 @@ class liquid(Exchange):
         updated = self.safe_timestamp(transaction, 'updated_at')
         type = 'withdrawal'
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        amount = self.safe_float(transaction, 'amount')
+        amount = self.safe_number(transaction, 'amount')
         return {
             'info': transaction,
             'id': id,

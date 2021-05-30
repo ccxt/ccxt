@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,9 +16,15 @@ module.exports = class bit2c extends Exchange {
             'countries': [ 'IL' ], // Israel
             'rateLimit': 3000,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchOpenOrders': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -80,11 +87,18 @@ module.exports = class bit2c extends Exchange {
                 },
             },
             'options': {
-                'fetchTradesMethod': 'public_get_exchanges_pair_lasttrades',
+                'fetchTradesMethod': 'public_get_exchanges_pair_trades',
             },
             'exceptions': {
-                // { "error" : "Please provide valid APIkey" }
-                // { "error" : "Please provide valid nonce in Request UInt64.TryParse failed for nonce :" }
+                'exact': {
+                    'Please provide valid APIkey': AuthenticationError, // { "error" : "Please provide valid APIkey" }
+                },
+                'broad': {
+                    // { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
+                    // { "error": "Please provide valid nonce in Request UInt64.TryParse failed for nonce :" }
+                    'Please provide valid nonce': InvalidNonce,
+                    'please approve new terms of use on site': PermissionDenied, // { "error" : "please approve new terms of use on site." }
+                },
             },
         });
     }
@@ -134,7 +148,11 @@ module.exports = class bit2c extends Exchange {
         //         }
         //     }
         //
-        const result = { 'info': balance };
+        const result = {
+            'info': balance,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -142,12 +160,12 @@ module.exports = class bit2c extends Exchange {
             const currencyId = this.currencyId (code);
             const uppercase = currencyId.toUpperCase ();
             if (uppercase in balance) {
-                account['free'] = this.safeFloat (balance, 'AVAILABLE_' + uppercase);
-                account['total'] = this.safeFloat (balance, uppercase);
+                account['free'] = this.safeString (balance, 'AVAILABLE_' + uppercase);
+                account['total'] = this.safeString (balance, uppercase);
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -156,7 +174,7 @@ module.exports = class bit2c extends Exchange {
             'pair': this.marketId (symbol),
         };
         const orderbook = await this.publicGetExchangesPairOrderbook (this.extend (request, params));
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, symbol);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -166,22 +184,22 @@ module.exports = class bit2c extends Exchange {
         };
         const ticker = await this.publicGetExchangesPairTicker (this.extend (request, params));
         const timestamp = this.milliseconds ();
-        const averagePrice = this.safeFloat (ticker, 'av');
-        const baseVolume = this.safeFloat (ticker, 'a');
+        const averagePrice = this.safeNumber (ticker, 'av');
+        const baseVolume = this.safeNumber (ticker, 'a');
         let quoteVolume = undefined;
         if (baseVolume !== undefined && averagePrice !== undefined) {
             quoteVolume = baseVolume * averagePrice;
         }
-        const last = this.safeFloat (ticker, 'll');
+        const last = this.safeNumber (ticker, 'll');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeFloat (ticker, 'h'),
+            'bid': this.safeNumber (ticker, 'h'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'l'),
+            'ask': this.safeNumber (ticker, 'l'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -204,6 +222,12 @@ module.exports = class bit2c extends Exchange {
         const request = {
             'pair': market['id'],
         };
+        if (since !== undefined) {
+            request['date'] = parseInt (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // max 100000
+        }
         const response = await this[method] (this.extend (request, params));
         if (typeof response === 'string') {
             throw new ExchangeError (response);
@@ -257,14 +281,8 @@ module.exports = class bit2c extends Exchange {
 
     parseOrder (order, market = undefined) {
         const timestamp = this.safeInteger (order, 'created');
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const price = this.safeNumber (order, 'price');
+        const amount = this.safeNumber (order, 'amount');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -277,7 +295,7 @@ module.exports = class bit2c extends Exchange {
         }
         const id = this.safeString (order, 'id');
         const status = this.safeString (order, 'status');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -286,17 +304,20 @@ module.exports = class bit2c extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': undefined,
             'remaining': undefined,
-            'cost': cost,
+            'cost': undefined,
             'trades': undefined,
             'fee': undefined,
             'info': order,
             'average': undefined,
-        };
+        });
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -322,16 +343,16 @@ module.exports = class bit2c extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
         let id = undefined;
-        let price = undefined;
-        let amount = undefined;
+        let priceString = undefined;
+        let amountString = undefined;
         let orderId = undefined;
         let feeCost = undefined;
         let side = undefined;
         const reference = this.safeString (trade, 'reference');
         if (reference !== undefined) {
             timestamp = this.safeTimestamp (trade, 'ticks');
-            price = this.safeFloat (trade, 'price');
-            amount = this.safeFloat (trade, 'firstAmount');
+            priceString = this.safeString (trade, 'price');
+            amountString = this.safeString (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains 'pair|orderId|tradeId'
             if (market === undefined) {
                 const marketId = this.safeString (trade, 'pair');
@@ -349,12 +370,12 @@ module.exports = class bit2c extends Exchange {
             } else if (side === 1) {
                 side = 'sell';
             }
-            feeCost = this.safeFloat (trade, 'feeAmount');
+            feeCost = this.safeNumber (trade, 'feeAmount');
         } else {
             timestamp = this.safeTimestamp (trade, 'date');
             id = this.safeString (trade, 'tid');
-            price = this.safeFloat (trade, 'price');
-            amount = this.safeFloat (trade, 'amount');
+            priceString = this.safeString (trade, 'price');
+            amountString = this.safeString (trade, 'amount');
             side = this.safeValue (trade, 'isBid');
             if (side !== undefined) {
                 if (side) {
@@ -368,6 +389,9 @@ module.exports = class bit2c extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         return {
             'info': trade,
             'id': id,
@@ -380,7 +404,7 @@ module.exports = class bit2c extends Exchange {
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': {
                 'cost': feeCost,
                 'currency': 'NIS',
@@ -411,10 +435,27 @@ module.exports = class bit2c extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
-                'sign': this.decode (signature),
+                'sign': signature,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        //
+        //     { "error" : "please approve new terms of use on site." }
+        //     { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
+        //
+        const error = this.safeString (response, 'error');
+        if (error !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
 

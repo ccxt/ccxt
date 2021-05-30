@@ -17,6 +17,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.precise import Precise
 
 
 class braziliex(Exchange):
@@ -28,12 +29,19 @@ class braziliex(Exchange):
             'countries': ['BR'],
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchCurrencies': True,
-                'fetchTickers': True,
-                'fetchOpenOrders': True,
-                'fetchMyTrades': True,
                 'fetchDepositAddress': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -185,11 +193,11 @@ class braziliex(Exchange):
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': self.safe_float(currency, 'txWithdrawalFee'),
+                        'fee': self.safe_number(currency, 'txWithdrawalFee'),
                     },
                     'deposit': {
                         'active': canDeposit,
-                        'fee': self.safe_float(currency, 'txDepositFee'),
+                        'fee': self.safe_number(currency, 'txDepositFee'),
                     },
                 },
                 'limits': {
@@ -197,20 +205,12 @@ class braziliex(Exchange):
                         'min': math.pow(10, -precision),
                         'max': math.pow(10, precision),
                     },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': self.safe_float(currency, 'MinWithdrawal'),
+                        'min': self.safe_number(currency, 'MinWithdrawal'),
                         'max': math.pow(10, precision),
                     },
                     'deposit': {
-                        'min': self.safe_float(currency, 'minDeposit'),
+                        'min': self.safe_number(currency, 'minDeposit'),
                         'max': None,
                     },
                 },
@@ -256,9 +256,9 @@ class braziliex(Exchange):
             quoteIsFiat = self.safe_integer(quoteCurrency, 'is_fiat', 0)
             minCost = None
             if quoteIsFiat:
-                minCost = self.safe_float(baseCurrency, 'minAmountTradeFIAT')
+                minCost = self.safe_number(baseCurrency, 'minAmountTradeFIAT')
             else:
-                minCost = self.safe_float(baseCurrency, 'minAmountTrade' + uppercaseQuoteId)
+                minCost = self.safe_number(baseCurrency, 'minAmountTrade' + uppercaseQuoteId)
             isActive = self.safe_integer(market, 'active')
             active = (isActive == 1)
             precision = {
@@ -297,27 +297,27 @@ class braziliex(Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = self.milliseconds()
-        last = self.safe_float(ticker, 'last')
+        last = self.safe_number(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'highestBid24'),
-            'low': self.safe_float(ticker, 'lowestAsk24'),
-            'bid': self.safe_float(ticker, 'highestBid'),
+            'high': self.safe_number(ticker, 'highestBid24'),
+            'low': self.safe_number(ticker, 'lowestAsk24'),
+            'bid': self.safe_number(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'lowestAsk'),
+            'ask': self.safe_number(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'percentChange'),
+            'change': self.safe_number(ticker, 'percentChange'),
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'baseVolume24'),
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume24'),
+            'baseVolume': self.safe_number(ticker, 'baseVolume24'),
+            'quoteVolume': self.safe_number(ticker, 'quoteVolume24'),
             'info': ticker,
         }
 
@@ -337,10 +337,10 @@ class braziliex(Exchange):
         ids = list(response.keys())
         for i in range(0, len(ids)):
             marketId = ids[i]
-            market = self.markets_by_id[marketId]
+            market = self.safe_market(marketId)
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(response[marketId], market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -348,16 +348,20 @@ class braziliex(Exchange):
             'market': self.market_id(symbol),
         }
         response = self.publicGetOrderbookMarket(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string_2(trade, 'date_exec', 'date'))
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        cost = self.safe_float(trade, 'total')
+        cost = self.safe_number(trade, 'total')
+        if cost is None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = self.safe_string(trade, 'order_number')
         type = 'limit'
         side = self.safe_string(trade, 'type')
@@ -397,10 +401,10 @@ class braziliex(Exchange):
             balance = balances[currencyId]
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
-            account['total'] = self.safe_float(balance, 'total')
+            account['free'] = self.safe_string(balance, 'available')
+            account['total'] = self.safe_string(balance, 'total')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def parse_order(self, order, market=None):
         #
@@ -415,29 +419,21 @@ class braziliex(Exchange):
         #         "date":"2017-03-12 15:13:33"
         #     }
         #
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'market')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(order, 'market')
+        symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_integer(order, 'timestamp')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(order, 'date'))
-        price = self.safe_float(order, 'price')
-        cost = self.safe_float(order, 'total', 0.0)
-        amount = self.safe_float(order, 'amount')
-        filledPercentage = self.safe_float(order, 'progress')
+        price = self.safe_number(order, 'price')
+        cost = self.safe_number(order, 'total')
+        amount = self.safe_number(order, 'amount')
+        filledPercentage = self.safe_number(order, 'progress')
         filled = amount * filledPercentage
-        remaining = float(self.amount_to_precision(symbol, amount - filled))
-        info = order
-        if 'info' in info:
-            info = order['info']
         id = self.safe_string(order, 'order_number')
         fee = self.safe_value(order, 'fee')  # propagated from createOrder
         status = 'closed' if (filledPercentage == 1.0) else 'open'
-        return {
+        side = self.safe_string(order, 'type')
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
@@ -446,17 +442,20 @@ class braziliex(Exchange):
             'status': status,
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'timeInForce': None,
+            'postOnly': None,
+            'side': side,
             'price': price,
+            'stopPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'trades': None,
             'fee': fee,
-            'info': info,
+            'info': order,
             'average': None,
-        }
+        })
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -470,29 +469,48 @@ class braziliex(Exchange):
             'amount': amount,
         }
         response = getattr(self, method)(self.extend(request, params))
+        #
+        # sell
+        #
+        #     {
+        #         "success":1,
+        #         "message":"  ##RESERVED FOR ORDER / SELL / XMR_BTC / AMOUNT: 0.01 XMR / PRICE: 0.017 BTC / TOTAL: 0.00017000 BTC / FEE: 0.00002500 XMR ",
+        #         "order_number":"590b962ba5b98335965fa0a8"
+        #     }
+        #
+        # buy
+        #
+        #     {
+        #         "success":1,
+        #         "message":"  ##RESERVED FOR ORDER / BUY / XMR_BTC / AMOUNT: 0.005 XMR / PRICE: 0.017 BTC / TOTAL: 0.00008500 BTC / FEE: 0.00000021 BTC ",
+        #         "order_number":"590b962ba5b98335965fa0c0"
+        #     }
+        #
         success = self.safe_integer(response, 'success')
         if success != 1:
             raise InvalidOrder(self.id + ' ' + self.json(response))
-        parts = response['message'].split(' / ')
+        message = self.safe_string(response, 'message')
+        parts = message.split(' / ')
         parts = parts[1:]
         feeParts = parts[5].split(' ')
+        amountParts = parts[2].split(' ')
+        priceParts = parts[3].split(' ')
+        totalParts = parts[4].split(' ')
         order = self.parse_order({
             'timestamp': self.milliseconds(),
             'order_number': response['order_number'],
-            'type': parts[0].lower(),
+            'type': self.safe_string_lower(parts, 0),
             'market': parts[0].lower(),
-            'amount': parts[2].split(' ')[1],
-            'price': parts[3].split(' ')[1],
-            'total': parts[4].split(' ')[1],
+            'amount': self.safe_string(amountParts, 1),
+            'price': self.safe_string(priceParts, 1),
+            'total': self.safe_string(totalParts, 1),
             'fee': {
-                'cost': float(feeParts[1]),
-                'currency': feeParts[2],
+                'cost': self.safe_number(feeParts, 1),
+                'currency': self.safe_string(feeParts, 2),
             },
             'progress': '0.0',
             'info': response,
         }, market)
-        id = order['id']
-        self.orders[id] = order
         return order
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -523,7 +541,8 @@ class braziliex(Exchange):
             'market': market['id'],
         }
         response = self.privatePostOpenOrders(self.extend(request, params))
-        return self.parse_orders(response['order_open'], market, since, limit)
+        orders = self.safe_value(response, 'order_open', [])
+        return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -532,7 +551,8 @@ class braziliex(Exchange):
             'market': market['id'],
         }
         response = self.privatePostTradeHistory(self.extend(request, params))
-        return self.parse_trades(response['trade_history'], market, since, limit)
+        trades = self.safe_value(response, 'trade_history', [])
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()

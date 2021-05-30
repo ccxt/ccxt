@@ -20,9 +20,20 @@ class itbit extends Exchange {
             'rateLimit' => 2000,
             'version' => 'v1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => true,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
+                'fetchTransactions' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -71,6 +82,9 @@ class itbit extends Exchange {
                 'ETH/USD' => array( 'id' => 'ETHUSD', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'baseId' => 'ETH', 'quoteId' => 'USD' ),
                 'ETH/EUR' => array( 'id' => 'ETHEUR', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR', 'baseId' => 'ETH', 'quoteId' => 'EUR' ),
                 'ETH/SGD' => array( 'id' => 'ETHSGD', 'symbol' => 'ETH/SGD', 'base' => 'ETH', 'quote' => 'SGD', 'baseId' => 'ETH', 'quoteId' => 'SGD' ),
+                'PAXGUSD' => array( 'id' => 'PAXGUSD', 'symbol' => 'PAXG/USD', 'base' => 'PAXG', 'quote' => 'USD', 'baseId' => 'PAXG', 'quoteId' => 'USD' ),
+                'BCHUSD' => array( 'id' => 'BCHUSD', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD', 'baseId' => 'BCH', 'quoteId' => 'USD' ),
+                'LTCUSD' => array( 'id' => 'LTCUSD', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'baseId' => 'LTC', 'quoteId' => 'USD' ),
             ),
             'fees' => array(
                 'trading' => array(
@@ -90,7 +104,7 @@ class itbit extends Exchange {
             'symbol' => $this->market_id($symbol),
         );
         $orderbook = $this->publicGetMarketsSymbolOrderBook (array_merge($request, $params));
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, $symbol);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -104,25 +118,25 @@ class itbit extends Exchange {
             throw new ExchangeError($this->id . ' fetchTicker returned a bad response => ' . $this->json($ticker));
         }
         $timestamp = $this->parse8601($serverTimeUTC);
-        $vwap = $this->safe_float($ticker, 'vwap24h');
-        $baseVolume = $this->safe_float($ticker, 'volume24h');
+        $vwap = $this->safe_number($ticker, 'vwap24h');
+        $baseVolume = $this->safe_number($ticker, 'volume24h');
         $quoteVolume = null;
         if ($baseVolume !== null && $vwap !== null) {
             $quoteVolume = $baseVolume * $vwap;
         }
-        $last = $this->safe_float($ticker, 'lastPrice');
+        $last = $this->safe_number($ticker, 'lastPrice');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high24h'),
-            'low' => $this->safe_float($ticker, 'low24h'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high24h'),
+            'low' => $this->safe_number($ticker, 'low24h'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => $this->safe_float($ticker, 'openToday'),
+            'open' => $this->safe_number($ticker, 'openToday'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -169,23 +183,20 @@ class itbit extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
         $side = $this->safe_string($trade, 'direction');
         $orderId = $this->safe_string($trade, 'orderId');
-        $feeCost = $this->safe_float($trade, 'commissionPaid');
+        $feeCost = $this->safe_number($trade, 'commissionPaid');
         $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
-        $rebatesApplied = $this->safe_float($trade, 'rebatesApplied');
+        $rebatesApplied = $this->safe_number($trade, 'rebatesApplied');
         if ($rebatesApplied !== null) {
             $rebatesApplied = -$rebatesApplied;
         }
         $rebateCurrencyId = $this->safe_string($trade, 'rebateCurrency');
         $rebateCurrency = $this->safe_currency_code($rebateCurrencyId);
-        $price = $this->safe_float_2($trade, 'price', 'rate');
-        $amount = $this->safe_float_2($trade, 'currency1Amount', 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string_2($trade, 'price', 'rate');
+        $amountString = $this->safe_string_2($trade, 'currency1Amount', 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = null;
         $marketId = $this->safe_string($trade, 'instrument');
         if ($marketId !== null) {
@@ -258,7 +269,7 @@ class itbit extends Exchange {
         $this->load_markets();
         $walletId = $this->safe_string($params, 'walletId');
         if ($walletId === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $walletId parameter');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $walletId parameter');
         }
         $request = array(
             'walletId' => $walletId,
@@ -307,7 +318,7 @@ class itbit extends Exchange {
                 'txid' => $txnHash,
                 'type' => $transactionType,
                 'status' => $status,
-                'amount' => $this->safe_float($item, 'amount'),
+                'amount' => $this->safe_number($item, 'amount'),
                 'fee' => null,
                 'info' => $item,
             );
@@ -327,7 +338,7 @@ class itbit extends Exchange {
         $this->load_markets();
         $walletId = $this->safe_string($params, 'walletId');
         if ($walletId === null) {
-            throw new ExchangeError($this->id . ' fetchMyTrades requires a $walletId parameter');
+            throw new ExchangeError($this->id . ' fetchMyTrades() requires a $walletId parameter');
         }
         $request = array(
             'walletId' => $walletId,
@@ -346,7 +357,7 @@ class itbit extends Exchange {
         //         "latestExecutionId" => "332", // most recent execution at time of $response
         //         "recordsPerPage" => "50",
         //         "tradingHistory" => array(
-        //             {
+        //             array(
         //                 "orderId" => "248ffda4-83a0-4033-a5bb-8929d523f59f",
         //                 "timestamp" => "2015-05-11T14:48:01.9870000Z",
         //                 "instrument" => "XBTUSD",
@@ -361,7 +372,7 @@ class itbit extends Exchange {
         //                 "rebatesApplied" => "-0.000125265", // negative values represent amount of rebate balance used for $trades removing liquidity from order book; positive values represent amount of rebate balance earned from $trades adding liquidity to order book
         //                 "rebateCurrency" => "USD",
         //                 "executionId" => "23132"
-        //             },
+        //             ),
         //         ),
         //     }
         //
@@ -407,17 +418,17 @@ class itbit extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'availableBalance');
-            $account['total'] = $this->safe_float($balance, 'totalBalance');
+            $account['free'] = $this->safe_string($balance, 'availableBalance');
+            $account['total'] = $this->safe_string($balance, 'totalBalance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_wallets($params = array ()) {
         $this->load_markets();
         if (!$this->uid) {
-            throw new AuthenticationError($this->id . ' fetchWallets requires uid API credential');
+            throw new AuthenticationError($this->id . ' fetchWallets() requires uid API credential');
         }
         $request = array(
             'userId' => $this->uid,
@@ -455,7 +466,7 @@ class itbit extends Exchange {
         }
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
         if (!$walletIdInParams) {
-            throw new ExchangeError($this->id . ' fetchOrders requires a $walletId parameter');
+            throw new ExchangeError($this->id . ' fetchOrders() requires a $walletId parameter');
         }
         $walletId = $params['walletId'];
         $request = array(
@@ -495,31 +506,23 @@ class itbit extends Exchange {
         //         "funds" => null,
         //         "metadata" => array(),
         //         "clientOrderIdentifier" => null,
-        //         "postOnly" => "False"
+        //         "$postOnly" => "False"
         //     }
         //
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');
         $symbol = $this->markets_by_id[$order['instrument']]['symbol'];
         $timestamp = $this->parse8601($order['createdTime']);
-        $amount = $this->safe_float($order, 'amount');
-        $filled = $this->safe_float($order, 'amountFilled');
-        $remaining = null;
-        $cost = null;
+        $amount = $this->safe_number($order, 'amount');
+        $filled = $this->safe_number($order, 'amountFilled');
         $fee = null;
-        $price = $this->safe_float($order, 'price');
-        $average = $this->safe_float($order, 'volumeWeightedAveragePrice');
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-            }
-            if ($average !== null) {
-                $cost = $filled * $average;
-            }
-        }
+        $price = $this->safe_number($order, 'price');
+        $average = $this->safe_number($order, 'volumeWeightedAveragePrice');
         $clientOrderId = $this->safe_string($order, 'clientOrderIdentifier');
         $id = $this->safe_string($order, 'id');
-        return array(
+        $postOnlyString = $this->safe_string($order, 'postOnly');
+        $postOnly = ($postOnlyString === 'True');
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -529,17 +532,20 @@ class itbit extends Exchange {
             'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'cost' => $cost,
+            'stopPrice' => null,
+            'cost' => null,
             'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'fee' => $fee,
             // 'trades' => $this->parse_trades($order['trades'], $market),
             'trades' => null,
-        );
+        ));
     }
 
     public function nonce() {
@@ -553,7 +559,7 @@ class itbit extends Exchange {
         }
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
         if (!$walletIdInParams) {
-            throw new ExchangeError($this->id . ' createOrder requires a walletId parameter');
+            throw new ExchangeError($this->id . ' createOrder() requires a walletId parameter');
         }
         $amount = (string) $amount;
         $price = (string) $price;
@@ -578,7 +584,7 @@ class itbit extends Exchange {
         $this->load_markets();
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
         if (!$walletIdInParams) {
-            throw new ExchangeError($this->id . ' fetchOrder requires a walletId parameter');
+            throw new ExchangeError($this->id . ' fetchOrder() requires a walletId parameter');
         }
         $request = array(
             'id' => $id,
@@ -590,7 +596,7 @@ class itbit extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
         if (!$walletIdInParams) {
-            throw new ExchangeError($this->id . ' cancelOrder requires a walletId parameter');
+            throw new ExchangeError($this->id . ' cancelOrder() requires a walletId parameter');
         }
         $request = array(
             'id' => $id,
@@ -619,7 +625,7 @@ class itbit extends Exchange {
             $binhash = $this->binary_concat($binaryUrl, $hash);
             $signature = $this->hmac($binhash, $this->encode($this->secret), 'sha512', 'base64');
             $headers = array(
-                'Authorization' => $this->apiKey . ':' . $this->decode($signature),
+                'Authorization' => $this->apiKey . ':' . $signature,
                 'Content-Type' => 'application/json',
                 'X-Auth-Timestamp' => $timestamp,
                 'X-Auth-Nonce' => $nonce,

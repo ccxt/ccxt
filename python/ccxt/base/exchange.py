@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.30.75'
+__version__ = '1.50.69'
 
 # -----------------------------------------------------------------------------
 
@@ -23,8 +23,9 @@ from ccxt.base.errors import RateLimitExceeded
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
 from ccxt.base.decimal_to_precision import number_to_string
+from ccxt.base.precise import Precise
 
 # -----------------------------------------------------------------------------
 
@@ -38,6 +39,8 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # ecdsa signing
 from ccxt.static_dependencies import ecdsa
+from ccxt.static_dependencies import keccak
+
 # eddsa signing
 try:
     import axolotl_curve25519 as eddsa
@@ -67,11 +70,12 @@ import hmac
 import io
 import json
 import math
+import random
 from numbers import Number
 import re
 from requests import Session
 from requests.utils import default_user_agent
-from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException
+from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException, ConnectionError as requestsConnectionError
 # import socket
 from ssl import SSLError
 # import sys
@@ -102,14 +106,6 @@ except ImportError:
     import urllib as _urlencode          # Python 2
 
 # -----------------------------------------------------------------------------
-# web3/0x imports
-
-try:
-    from web3 import Web3, HTTPProvider
-except ImportError:
-    Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
-
-# -----------------------------------------------------------------------------
 
 
 class Exchange(object):
@@ -121,7 +117,7 @@ class Exchange(object):
     pro = False
 
     # rate limiter settings
-    enableRateLimit = False
+    enableRateLimit = True
     rateLimit = 2000  # milliseconds = seconds * 1000
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
@@ -298,8 +294,13 @@ class Exchange(object):
         'withdraw': False,
     }
     precisionMode = DECIMAL_PLACES
+    paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
+    quoteJsonNumbers = True
+    number = float  # or str (a pointer to a class)
+    # whether fees should be summed by currency code
+    reduceFees = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
     restRequestQueue = None
@@ -314,9 +315,7 @@ class Exchange(object):
     last_json_response = None
     last_response_headers = None
 
-    requiresWeb3 = False
     requiresEddsa = False
-    web3 = None
     base58_encoder = None
     base58_decoder = None
     # no lower case l or upper case I, O
@@ -338,7 +337,6 @@ class Exchange(object):
         self.headers = dict() if self.headers is None else self.headers
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
-        self.orders = dict() if self.orders is None else self.orders
         self.tickers = dict() if self.tickers is None else self.tickers
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
@@ -394,9 +392,6 @@ class Exchange(object):
         self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
-        if self.requiresWeb3 and Web3 and not self.web3:
-            self.web3 = Web3(HTTPProvider())
-
     def __del__(self):
         if self.session:
             self.session.close()
@@ -413,42 +408,45 @@ class Exchange(object):
     def set_sandbox_mode(self, enabled):
         if enabled:
             if 'test' in self.urls:
-                self.urls['api_backup'] = self.urls['api']
+                self.urls['apiBackup'] = self.urls['api']
                 self.urls['api'] = self.urls['test']
             else:
                 raise NotSupported(self.id + ' does not have a sandbox URL')
-        elif 'api_backup' in self.urls:
-            self.urls['api'] = self.urls['api_backup']
-            del self.urls['api_backup']
+        elif 'apiBackup' in self.urls:
+            self.urls['api'] = self.urls['apiBackup']
+            del self.urls['apiBackup']
 
     @classmethod
-    def define_rest_api(cls, api, method_name, options={}):
+    def define_rest_api(cls, api, method_name, paths=[]):
         delimiters = re.compile('[^a-zA-Z0-9]')
         entry = getattr(cls, method_name)  # returns a function (instead of a bound method)
-        for api_type, methods in api.items():
-            for http_method, urls in methods.items():
-                for url in urls:
-                    url = url.strip()
-                    split_path = delimiters.split(url)
-
-                    uppercase_method = http_method.upper()
-                    lowercase_method = http_method.lower()
-                    camelcase_method = lowercase_method.capitalize()
-                    camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
+        for key, value in api.items():
+            if isinstance(value, list):
+                uppercase_method = key.upper()
+                lowercase_method = key.lower()
+                camelcase_method = lowercase_method.capitalize()
+                for path in value:
+                    path = path.strip()
+                    split_path = delimiters.split(path)
                     lowercase_path = [x.strip().lower() for x in split_path]
-                    underscore_suffix = '_'.join([k for k in lowercase_path if len(k)])
-
-                    camelcase = api_type + camelcase_method + Exchange.capitalize(camelcase_suffix)
-                    underscore = api_type + '_' + lowercase_method + '_' + underscore_suffix.lower()
-
-                    if 'suffixes' in options:
-                        if 'camelcase' in options['suffixes']:
-                            camelcase += options['suffixes']['camelcase']
-                        if 'underscore' in options['suffixes']:
-                            underscore += options['suffixes']['underscore']
+                    camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
+                    underscore_suffix = '_'.join([x for x in lowercase_path if len(x)])
+                    camelcase_prefix = ''
+                    underscore_prefix = ''
+                    if len(paths):
+                        camelcase_prefix = paths[0]
+                        underscore_prefix = paths[0]
+                        if len(paths) > 1:
+                            camelcase_prefix += ''.join([Exchange.capitalize(x) for x in paths[1:]])
+                            underscore_prefix += '_' + '_'.join([x.strip() for p in paths[1:] for x in delimiters.split(p)])
+                            api_argument = paths
+                        else:
+                            api_argument = paths[0]
+                    camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
+                    underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
 
                     def partialer():
-                        outer_kwargs = {'path': url, 'api': api_type, 'method': uppercase_method}
+                        outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method}
 
                         @functools.wraps(entry)
                         def inner(_self, params=None):
@@ -465,6 +463,8 @@ class Exchange(object):
                     to_bind = partialer()
                     setattr(cls, camelcase, to_bind)
                     setattr(cls, underscore, to_bind)
+            else:
+                cls.define_rest_api(value, method_name, paths + [key])
 
     def throttle(self):
         now = float(self.milliseconds())
@@ -513,9 +513,6 @@ class Exchange(object):
                 return key
         return None
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body):
-        pass
-
     def prepare_request_headers(self, headers=None):
         headers = headers or {}
         headers.update(self.headers)
@@ -527,10 +524,25 @@ class Exchange(object):
         if self.proxy:
             headers.update({'Origin': self.origin})
         headers.update({'Accept-Encoding': 'gzip, deflate'})
-        return headers
+        return self.set_headers(headers)
 
     def print(self, *args):
         print(*args)
+
+    def set_headers(self, headers):
+        return headers
+
+    def handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body):
+        pass
+
+    def on_rest_response(self, code, reason, url, method, response_headers, response_body, request_headers, request_body):
+        return response_body.strip()
+
+    def on_json_response(self, response_body):
+        if self.quoteJsonNumbers:
+            return json.loads(response_body, parse_float=str, parse_int=str)
+        else:
+            return json.loads(response_body)
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -563,11 +575,11 @@ class Exchange(object):
             )
             # does not try to detect encoding
             response.encoding = 'utf-8'
-            http_response = response.text
+            headers = response.headers
             http_status_code = response.status_code
             http_status_text = response.reason
+            http_response = self.on_rest_response(http_status_code, http_status_text, url, method, headers, response.text, request_headers, request_body)
             json_response = self.parse_json(http_response)
-            headers = response.headers
             # FIXME remove last_x_responses from subclasses
             if self.enableLastHttpResponse:
                 self.last_http_response = http_response
@@ -581,64 +593,67 @@ class Exchange(object):
             response.raise_for_status()
 
         except Timeout as e:
-            raise RequestTimeout(method + ' ' + url)
+            details = ' '.join([self.id, method, url])
+            raise RequestTimeout(details) from e
 
         except TooManyRedirects as e:
-            raise ExchangeError(method + ' ' + url)
+            details = ' '.join([self.id, method, url])
+            raise ExchangeError(details) from e
 
         except SSLError as e:
-            raise ExchangeError(method + ' ' + url)
+            details = ' '.join([self.id, method, url])
+            raise ExchangeError(details) from e
 
         except HTTPError as e:
+            details = ' '.join([self.id, method, url])
             self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
-            self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
-            raise ExchangeError(method + ' ' + url)
+            self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
+            raise ExchangeError(details) from e
+
+        except requestsConnectionError as e:
+            error_string = str(e)
+            details = ' '.join([self.id, method, url])
+            if 'Read timed out' in error_string:
+                raise RequestTimeout(details) from e
+            else:
+                raise NetworkError(details) from e
+
+        except ConnectionResetError as e:
+            error_string = str(e)
+            details = ' '.join([self.id, method, url])
+            raise NetworkError(details) from e
 
         except RequestException as e:  # base exception class
             error_string = str(e)
-            if ('ECONNRESET' in error_string) or ('Connection aborted.' in error_string):
-                raise NetworkError(method + ' ' + url + ' ' + error_string)
+            details = ' '.join([self.id, method, url])
+            if any(x in error_string for x in ['ECONNRESET', 'Connection aborted.', 'Connection broken:']):
+                raise NetworkError(details) from e
             else:
-                raise ExchangeError(method + ' ' + url + ' ' + error_string)
+                raise ExchangeError(details) from e
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
-        self.handle_rest_response(http_response, json_response, url, method)
         if json_response is not None:
             return json_response
-        if self.is_text_response(headers):
+        elif self.is_text_response(headers):
             return http_response
-        return response.content
+        else:
+            return response.content
 
-    def handle_rest_errors(self, http_status_code, http_status_text, body, url, method):
-        error = None
+    def handle_http_status_code(self, http_status_code, http_status_text, url, method, body):
         string_code = str(http_status_code)
         if string_code in self.httpExceptions:
-            error = self.httpExceptions[string_code]
-            if error == ExchangeNotAvailable:
-                if re.search('(cloudflare|incapsula|overload|ddos)', body, flags=re.IGNORECASE):
-                    error = DDoSProtection
-        if error:
-            raise error(' '.join([method, url, string_code, http_status_text, body]))
-
-    def handle_rest_response(self, response, json_response, url, method):
-        if self.is_json_encoded_object(response) and json_response is None:
-            ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
-            exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
-            if ddos_protection:
-                raise DDoSProtection(' '.join([method, url, response]))
-            if exchange_not_available:
-                message = response + ' exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
-                raise ExchangeNotAvailable(' '.join([method, url, response, message]))
-            raise ExchangeError(' '.join([method, url, response]))
+            Exception = self.httpExceptions[string_code]
+            raise Exception(' '.join([self.id, method, url, string_code, http_status_text, body]))
 
     def parse_json(self, http_response):
         try:
             if Exchange.is_json_encoded_object(http_response):
-                return json.loads(http_response)
+                return self.on_json_response(http_response)
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
 
     def is_text_response(self, headers):
+        # https://github.com/ccxt/ccxt/issues/5302
         content_type = headers.get('Content-Type', '')
         return content_type.startswith('application/json') or content_type.startswith('text/')
 
@@ -682,9 +697,14 @@ class Exchange(object):
         if not Exchange.key_exists(dictionary, key):
             return default_value
         value = dictionary[key]
-        if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
-            return int(value)
-        return default_value
+        try:
+            # needed to avoid breaking on "100.0"
+            # https://stackoverflow.com/questions/1094717/convert-a-string-to-integer-with-decimal-in-python#1094721
+            return int(float(value))
+        except ValueError:
+            return default_value
+        except TypeError:
+            return default_value
 
     @staticmethod
     def safe_integer_product(dictionary, key, factor, default_value=None):
@@ -769,8 +789,16 @@ class Exchange(object):
         return ('%d' % num)
 
     @staticmethod
+    def uuid22(length=22):
+        return format(random.getrandbits(length * 4), 'x')
+
+    @staticmethod
     def uuid():
         return str(uuid.uuid4())
+
+    @staticmethod
+    def uuidv1():
+        return str(uuid.uuid1()).replace('-', '')
 
     @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
@@ -880,15 +908,15 @@ class Exchange(object):
         return string
 
     @staticmethod
-    def urlencode(params={}):
+    def urlencode(params={}, doseq=False):
         for key, value in params.items():
             if isinstance(value, bool):
                 params[key] = 'true' if value else 'false'
-        return _urlencode.urlencode(params)
+        return _urlencode.urlencode(params, doseq)
 
     @staticmethod
     def urlencode_with_array_repeat(params={}):
-        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params))
+        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params, True))
 
     @staticmethod
     def rawencode(params={}):
@@ -1059,21 +1087,26 @@ class Exchange(object):
 
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
-        h = hashlib.new(algorithm, request)
-        if digest == 'hex':
-            return h.hexdigest()
-        elif digest == 'base64':
-            return base64.b64encode(h.digest())
-        return h.digest()
+        if algorithm == 'keccak':
+            binary = bytes(keccak.SHA3(request))
+        else:
+            h = hashlib.new(algorithm, request)
+            binary = h.digest()
+        if digest == 'base64':
+            return Exchange.binary_to_base64(binary)
+        elif digest == 'hex':
+            return Exchange.binary_to_base16(binary)
+        return binary
 
     @staticmethod
     def hmac(request, secret, algorithm=hashlib.sha256, digest='hex'):
         h = hmac.new(secret, request, algorithm)
+        binary = h.digest()
         if digest == 'hex':
-            return h.hexdigest()
+            return Exchange.binary_to_base16(binary)
         elif digest == 'base64':
-            return base64.b64encode(h.digest())
-        return h.digest()
+            return Exchange.binary_to_base64(binary)
+        return binary
 
     @staticmethod
     def binary_concat(*args):
@@ -1096,6 +1129,20 @@ class Exchange(object):
     @staticmethod
     def binary_to_base64(s):
         return Exchange.decode(base64.standard_b64encode(s))
+
+    @staticmethod
+    def base64_to_binary(s):
+        return base64.standard_b64decode(s)
+
+    @staticmethod
+    def string_to_base64(s):
+        # will return string in the future
+        binary = Exchange.encode(s) if isinstance(s, str) else s
+        return Exchange.encode(Exchange.binary_to_base64(binary))
+
+    @staticmethod
+    def base64_to_string(s):
+        return base64.b64decode(s).decode('utf-8')
 
     @staticmethod
     def jwt(request, secret, alg='HS256'):
@@ -1179,10 +1226,6 @@ class Exchange(object):
         return Exchange.binary_to_base58(signature)
 
     @staticmethod
-    def unjson(input):
-        return json.loads(input)
-
-    @staticmethod
     def json(data, params=None):
         return json.dumps(data, separators=(',', ':'))
 
@@ -1194,11 +1237,11 @@ class Exchange(object):
 
     @staticmethod
     def encode(string):
-        return string.encode()
+        return string.encode('latin-1')
 
     @staticmethod
     def decode(string):
-        return string.decode()
+        return string.decode('latin-1')
 
     @staticmethod
     def to_array(value):
@@ -1251,19 +1294,19 @@ class Exchange(object):
         return len(parts[1]) if len(parts) > 1 else 0
 
     def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
 
     def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
 
     def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode, self.paddingMode)
 
     def fee_to_precision(self, symbol, fee):
-        return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode, self.paddingMode)
 
     def currency_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode)
+        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
@@ -1375,11 +1418,19 @@ class Exchange(object):
     def cancel_unified_order(self, order, params={}):
         return self.cancel_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
-    def fetch_bids_asks(self, symbols=None, params={}):
+    def fetch_bids_asks(self, symbols=None, params={}) -> dict:
         raise NotSupported('API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
     def fetch_ticker(self, symbol, params={}):
-        raise NotSupported('fetch_ticker() not supported yet')
+        if self.has['fetchTickers']:
+            tickers = self.fetch_tickers([symbol], params)
+            ticker = self.safe_value(tickers, symbol)
+            if ticker is None:
+                raise BadSymbol(self.id + ' fetchTickers could not find a ticker for ' + symbol)
+            else:
+                return ticker
+        else:
+            raise NotSupported(self.id + ' fetchTicker not supported yet')
 
     def fetch_tickers(self, symbols=None, params={}):
         raise NotSupported('API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
@@ -1387,12 +1438,6 @@ class Exchange(object):
     def fetch_order_status(self, id, symbol=None, params={}):
         order = self.fetch_order(id, symbol, params)
         return order['status']
-
-    def purge_cached_orders(self, before):
-        orders = self.to_array(self.orders)
-        orders = [order for order in orders if (order['status'] == 'open') or (order['timestamp'] >= before)]
-        self.orders = self.index_by(orders, 'id')
-        return self.orders
 
     def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported('fetch_order() is not supported yet')
@@ -1415,38 +1460,50 @@ class Exchange(object):
     def fetch_order_trades(self, id, symbol=None, params={}):
         raise NotSupported('fetch_order_trades() is not supported yet')
 
-    def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_transactions() is not supported yet')
 
-    def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_deposits() is not supported yet')
 
-    def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    def fetch_deposit_address(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_deposit_address() is not supported yet')
+    # def fetch_deposit_addresses(self, codes=None, params={}):
+    #     raise NotSupported('fetch_deposit_addresses() is not supported yet')
+
+    def fetch_deposit_address(self, code, params={}):
+        if self.has['fetchDepositAddresses']:
+            deposit_addresses = self.fetch_deposit_addresses([code], params)
+            deposit_address = self.safe_value(deposit_addresses, code)
+            if deposit_address is None:
+                raise NotSupported(self.id + ' fetch_deposit_address could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
+            else:
+                return deposit_address
+        else:
+            raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
 
     def parse_ohlcv(self, ohlcv, market=None):
-        return ohlcv[0:6] if isinstance(ohlcv, list) else ohlcv
+        if isinstance(ohlcv, list):
+            return [
+                self.safe_integer(ohlcv, 0),
+                self.safe_float(ohlcv, 1),
+                self.safe_float(ohlcv, 2),
+                self.safe_float(ohlcv, 3),
+                self.safe_float(ohlcv, 4),
+                self.safe_float(ohlcv, 5),
+            ]
+        else:
+            return ohlcv
 
     def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        ohlcvs = self.to_array(ohlcvs)
-        num_ohlcvs = len(ohlcvs)
-        result = []
-        i = 0
-        while i < num_ohlcvs:
-            if limit and (len(result) >= limit):
-                break
-            ohlcv = self.parse_ohlcv(ohlcvs[i], market)
-            i = i + 1
-            if since and (ohlcv[0] < since):
-                continue
-            result.append(ohlcv)
-        return self.sort_by(result, 0)
+        parsed = [self.parse_ohlcv(ohlcv, market) for ohlcv in ohlcvs]
+        sorted = self.sort_by(parsed, 0)
+        tail = since is None
+        return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
     def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
-        return [float(bidask[price_key]), float(bidask[amount_key])]
+        return [self.safe_number(bidask, price_key), self.safe_number(bidask, amount_key)]
 
     def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
         result = []
@@ -1470,8 +1527,9 @@ class Exchange(object):
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
 
-    def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
+    def parse_order_book(self, orderbook, symbol, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         return {
+            'symbol': symbol,
             'bids': self.sort_by(self.parse_bids_asks(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else [], 0, True),
             'asks': self.sort_by(self.parse_bids_asks(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else [], 0),
             'timestamp': timestamp,
@@ -1479,21 +1537,33 @@ class Exchange(object):
             'nonce': None,
         }
 
-    def parse_balance(self, balance):
-        currencies = self.omit(balance, ['info', 'free', 'used', 'total']).keys()
+    def parse_balance(self, balance, legacy=True):
+        currencies = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']).keys()
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
         for currency in currencies:
             if balance[currency].get('total') is None:
                 if balance[currency].get('free') is not None and balance[currency].get('used') is not None:
-                    balance[currency]['total'] = self.sum(balance[currency].get('free'), balance[currency].get('used'))
+                    if legacy:
+                        balance[currency]['total'] = self.sum(balance[currency].get('free'), balance[currency].get('used'))
+                    else:
+                        balance[currency]['total'] = Precise.string_add(balance[currency]['free'], balance[currency]['used'])
             if balance[currency].get('free') is None:
                 if balance[currency].get('total') is not None and balance[currency].get('used') is not None:
-                    balance[currency]['free'] = self.sum(balance[currency]['total'], -balance[currency]['used'])
+                    if legacy:
+                        balance[currency]['free'] = self.sum(balance[currency]['total'], -balance[currency]['used'])
+                    else:
+                        balance[currency]['free'] = Precise.string_sub(balance[currency]['total'], balance[currency]['used'])
             if balance[currency].get('used') is None:
                 if balance[currency].get('total') is not None and balance[currency].get('free') is not None:
-                    balance[currency]['used'] = self.sum(balance[currency]['total'], -balance[currency]['free'])
+                    if legacy:
+                        balance[currency]['used'] = self.sum(balance[currency]['total'], -balance[currency]['free'])
+                    else:
+                        balance[currency]['used'] = Precise.string_sub(balance[currency]['total'], balance[currency]['free'])
+            balance[currency]['free'] = self.parse_number(balance[currency]['free'])
+            balance[currency]['used'] = self.parse_number(balance[currency]['used'])
+            balance[currency]['total'] = self.parse_number(balance[currency]['total'])
             balance['free'][currency] = balance[currency]['free']
             balance['used'][currency] = balance[currency]['used']
             balance['total'][currency] = balance[currency]['total']
@@ -1538,12 +1608,16 @@ class Exchange(object):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
             raise NotSupported('fetch_ohlcv() not supported yet')
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
-        return self.build_ohlcv(trades, timeframe, since, limit)
+        return self.build_ohlcvc(trades, timeframe, since, limit)
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        ohlcvs = self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
+        return [ohlcv[0:-1] for ohlcv in ohlcvs]
 
     def fetch_status(self, params={}):
         if self.has['fetchTime']:
@@ -1588,10 +1662,10 @@ class Exchange(object):
             result[v].append(ohlcvs[i][5])
         return result
 
-    def build_ohlcv(self, trades, timeframe='1m', since=None, limit=None):
+    def build_ohlcvc(self, trades, timeframe='1m', since=None, limit=None):
         ms = self.parse_timeframe(timeframe) * 1000
         ohlcvs = []
-        (high, low, close, volume) = (2, 3, 4, 5)
+        (timestamp, open, high, low, close, volume, count) = (0, 1, 2, 3, 4, 5, 6)
         num_trades = len(trades)
         oldest = (num_trades - 1) if limit is None else min(num_trades - 1, limit)
         for i in range(0, oldest):
@@ -1600,7 +1674,8 @@ class Exchange(object):
                 continue
             opening_time = int(math.floor(trade['timestamp'] / ms) * ms)  # Shift the edge of the m/h/d (but not M)
             j = len(ohlcvs)
-            if (j == 0) or opening_time >= ohlcvs[j - 1][0] + ms:
+            candle = j - 1
+            if (j == 0) or opening_time >= ohlcvs[candle][timestamp] + ms:
                 # moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.append([
                     opening_time,
@@ -1609,13 +1684,15 @@ class Exchange(object):
                     trade['price'],
                     trade['price'],
                     trade['amount'],
+                    1,  # count
                 ])
             else:
                 # still processing the same timeframe -> update opening trade
-                ohlcvs[j - 1][high] = max(ohlcvs[j - 1][high], trade['price'])
-                ohlcvs[j - 1][low] = min(ohlcvs[j - 1][low], trade['price'])
-                ohlcvs[j - 1][close] = trade['price']
-                ohlcvs[j - 1][volume] += trade['amount']
+                ohlcvs[candle][high] = max(ohlcvs[candle][high], trade['price'])
+                ohlcvs[candle][low] = min(ohlcvs[candle][low], trade['price'])
+                ohlcvs[candle][close] = trade['price']
+                ohlcvs[candle][volume] += trade['amount']
+                ohlcvs[candle][count] += 1
         return ohlcvs
 
     @staticmethod
@@ -1647,12 +1724,66 @@ class Exchange(object):
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
+    def safe_ticker(self, ticker, market=None):
+        symbol = self.safe_value(ticker, 'symbol')
+        if symbol is None:
+            ticker['symbol'] = self.safe_symbol(None, market)
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        if timestamp is not None:
+            ticker['timestamp'] = timestamp
+            ticker['datetime'] = self.iso8601(timestamp)
+        baseVolume = self.safe_value(ticker, 'baseVolume')
+        quoteVolume = self.safe_value(ticker, 'quoteVolume')
+        vwap = self.safe_value(ticker, 'vwap')
+        if vwap is None:
+            ticker['vwap'] = self.vwap(baseVolume, quoteVolume)
+        close = self.safe_value(ticker, 'close')
+        last = self.safe_value(ticker, 'last')
+        if (close is None) and (last is not None):
+            ticker['close'] = last
+        elif (last is None) and (close is not None):
+            ticker['last'] = close
+        return ticker
+
+    def parse_tickers(self, tickers, symbols=None, params={}):
+        result = []
+        values = self.to_array(tickers)
+        for i in range(0, len(values)):
+            result.append(self.extend(self.parse_ticker(values[i]), params))
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def parse_deposit_addresses(self, addresses, codes=None):
+        result = []
+        for i in range(0, len(addresses)):
+            address = self.parse_deposit_address(addresses[i])
+            result.append(address)
+        if codes:
+            result = self.filter_by_array(result, 'currency', codes)
+        return self.index_by(result, 'currency')
+
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
         array = [self.extend(self.parse_trade(trade, market), params) for trade in array]
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
-        return self.filter_by_symbol_since_limit(array, symbol, since, limit)
+        tail = since is None
+        return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
+
+    def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
+        array = self.to_array(transactions)
+        array = [self.extend(self.parse_transaction(transaction, currency), params) for transaction in array]
+        array = self.sort_by(array, 'timestamp')
+        code = currency['code'] if currency else None
+        tail = since is None
+        return self.filter_by_currency_since_limit(array, code, since, limit, tail)
+
+    def parse_transfers(self, transfers, currency=None, since=None, limit=None, params={}):
+        array = self.to_array(transfers)
+        array = [self.extend(self.parse_transfer(transfer, currency), params) for transfer in array]
+        array = self.sort_by(array, 'timestamp')
+        code = currency['code'] if currency else None
+        tail = since is None
+        return self.filter_by_currency_since_limit(array, code, since, limit, tail)
 
     def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
         array = self.to_array(data)
@@ -1665,33 +1796,62 @@ class Exchange(object):
                 result.append(self.extend(entry, params))
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if currency else None
-        return self.filter_by_currency_since_limit(result, code, since, limit)
-
-    def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
-        array = self.to_array(transactions)
-        array = [self.extend(self.parse_transaction(transaction, currency), params) for transaction in array]
-        array = self.sort_by(array, 'timestamp')
-        code = currency['code'] if currency else None
-        return self.filter_by_currency_since_limit(array, code, since, limit)
+        tail = since is None
+        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
-        array = self.to_array(orders)
-        array = [self.extend(self.parse_order(order, market), params) for order in array]
+        if isinstance(orders, list):
+            array = [self.extend(self.parse_order(order, market), params) for order in orders]
+        else:
+            array = [self.extend(self.parse_order(self.extend({'id': id}, order), market), params) for id, order in orders.items()]
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
-        return self.filter_by_symbol_since_limit(array, symbol, since, limit)
+        tail = since is None
+        return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
+
+    def safe_market(self, marketId, market=None, delimiter=None):
+        if marketId is not None:
+            if self.markets_by_id is not None and marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            elif delimiter is not None:
+                baseId, quoteId = marketId.split(delimiter)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+                return {
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                }
+        if market is not None:
+            return market
+        return {
+            'symbol': marketId,
+            'base': None,
+            'quote': None,
+            'baseId': None,
+            'quoteId': None,
+        }
+
+    def safe_symbol(self, marketId, market=None, delimiter=None):
+        market = self.safe_market(marketId, market, delimiter)
+        return market['symbol']
+
+    def safe_currency(self, currency_id, currency=None):
+        if currency_id is None and currency is not None:
+            return currency
+        if (self.currencies_by_id is not None) and (currency_id in self.currencies_by_id):
+            return self.currencies_by_id[currency_id]
+        return {
+            'id': currency_id,
+            'code': self.common_currency_code(currency_id.upper()) if currency_id is not None else currency_id
+        }
 
     def safe_currency_code(self, currency_id, currency=None):
-        code = None
-        if currency_id is not None:
-            currency_id = str(currency_id)
-            if self.currencies_by_id is not None and currency_id in self.currencies_by_id:
-                code = self.currencies_by_id[currency_id]['code']
-            else:
-                code = self.common_currency_code(currency_id.upper())
-        if code is None and currency is not None:
-            code = currency['code']
-        return code
+        currency = self.safe_currency(currency_id, currency)
+        return currency['code']
 
     def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
@@ -1700,21 +1860,21 @@ class Exchange(object):
         if since is not None:
             array = [entry for entry in array if entry[key] >= since]
         if limit is not None:
-            array = array[-limit:] if tail and (since is None) else array[:limit]
+            array = array[-limit:] if tail else array[:limit]
         return array
 
-    def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None):
-        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit)
+    def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None, tail=False):
+        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
 
-    def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None):
-        return self.filter_by_value_since_limit(array, 'currency', code, since, limit)
+    def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None, tail=False):
+        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
     def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
         if since is not None:
             array = [entry for entry in array if entry[key] >= since]
         if limit is not None:
-            array = array[-limit:] if tail and (since is None) else array[:limit]
+            array = array[-limit:] if tail else array[:limit]
         return array
 
     def filter_by_symbol(self, array, symbol=None):
@@ -1753,6 +1913,9 @@ class Exchange(object):
             return self.markets[symbol]
         raise BadSymbol('{} does not have market symbol {}'.format(self.id, symbol))
 
+    def currency_ids(self, codes):
+        return [self.currency_id(code) for code in codes]
+
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
 
@@ -1762,13 +1925,37 @@ class Exchange(object):
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
+        feeSide = self.safe_string(market, 'feeSide', 'quote')
+        key = 'quote'
+        cost = None
+        if feeSide == 'quote':
+            # the fee is always in quote currency
+            cost = amount * price
+        elif feeSide == 'base':
+            # the fee is always in base currency
+            cost = amount
+        elif feeSide == 'get':
+            # the fee is always in the currency you get
+            cost = amount
+            if side == 'sell':
+                cost *= price
+            else:
+                key = 'base'
+        elif feeSide == 'give':
+            # the fee is always in the currency you give
+            cost = amount
+            if side == 'buy':
+                cost *= price
+            else:
+                key = 'base'
         rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * price))
+        if cost is not None:
+            cost *= rate
         return {
-            'rate': rate,
             'type': takerOrMaker,
-            'currency': market['quote'],
-            'cost': float(self.fee_to_precision(symbol, rate * cost)),
+            'currency': market[key],
+            'rate': rate,
+            'cost': cost,
         }
 
     def edit_limit_buy_order(self, id, symbol, *args):
@@ -1786,37 +1973,33 @@ class Exchange(object):
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
 
-    def create_limit_order(self, symbol, *args):
-        return self.create_order(symbol, 'limit', *args)
+    def create_limit_order(self, symbol, side, amount, price, params={}) -> dict:
+        return self.create_order(symbol, 'limit', side, amount, price, params)
 
-    def create_market_order(self, symbol, *args):
-        return self.create_order(symbol, 'market', *args)
+    def create_market_order(self, symbol, side, amount, price=None, params={}) -> dict:
+        return self.create_order(symbol, 'market', side, amount, price, params)
 
-    def create_limit_buy_order(self, symbol, *args):
-        return self.create_order(symbol, 'limit', 'buy', *args)
+    def create_limit_buy_order(self, symbol, amount, price, params={}) -> dict:
+        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
 
-    def create_limit_sell_order(self, symbol, *args):
-        return self.create_order(symbol, 'limit', 'sell', *args)
+    def create_limit_sell_order(self, symbol, amount, price, params={}) -> dict:
+        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
 
-    def create_market_buy_order(self, symbol, amount, params={}):
+    def create_market_buy_order(self, symbol, amount, params={}) -> dict:
         return self.create_order(symbol, 'market', 'buy', amount, None, params)
 
-    def create_market_sell_order(self, symbol, amount, params={}):
+    def create_market_sell_order(self, symbol, amount, params={}) -> dict:
         return self.create_order(symbol, 'market', 'sell', amount, None, params)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
 
-    # -------------------------------------------------------------------------
-    # web3 / 0x methods
+    def vwap(self, baseVolume, quoteVolume):
+        return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None
 
-    @staticmethod
-    def has_web3():
-        return Web3 is not None
+    # -------------------------------------------------------------------------
 
     def check_required_dependencies(self):
-        if self.requiresWeb3 and not Exchange.has_web3():
-            raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
         if self.requiresEddsa and eddsa is None:
             raise NotSupported('Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
 
@@ -1843,143 +2026,18 @@ class Exchange(object):
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
         public_key_bytes = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()
-        public_key_hash = self.web3.sha3(public_key_bytes)
+        public_key_hash = keccak.SHA3(public_key_bytes)
         return '0x' + Exchange.decode(base64.b16encode(public_key_hash))[-40:].lower()
 
-    def soliditySha3(self, array):
-        values = self.solidityValues(array)
-        types = self.solidityTypes(values)
-        return self.web3.soliditySha3(types, values).hex()
-
-    def solidityTypes(self, array):
-        return ['address' if self.web3.isAddress(value) else 'uint256' for value in array]
-
-    def solidityValues(self, array):
-        return [self.web3.toChecksumAddress(value) if self.web3.isAddress(value) else (int(value, 16) if str(value)[:2] == '0x' else int(value)) for value in array]
-
-    def getZeroExOrderHash2(self, order):
-        return self.soliditySha3([
-            order['exchangeContractAddress'],  # address
-            order['maker'],  # address
-            order['taker'],  # address
-            order['makerTokenAddress'],  # address
-            order['takerTokenAddress'],  # address
-            order['feeRecipient'],  # address
-            order['makerTokenAmount'],  # uint256
-            order['takerTokenAmount'],  # uint256
-            order['makerFee'],  # uint256
-            order['takerFee'],  # uint256
-            order['expirationUnixTimestampSec'],  # uint256
-            order['salt'],  # uint256
-        ])
-
-    def getZeroExOrderHash(self, order):
-        unpacked = [
-            self.web3.toChecksumAddress(order['exchangeContractAddress']),  # { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
-            self.web3.toChecksumAddress(order['maker']),                    # { value: order.maker, type: types_1.SolidityTypes.Address },
-            self.web3.toChecksumAddress(order['taker']),                    # { value: order.taker, type: types_1.SolidityTypes.Address },
-            self.web3.toChecksumAddress(order['makerTokenAddress']),        # { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
-            self.web3.toChecksumAddress(order['takerTokenAddress']),        # { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
-            self.web3.toChecksumAddress(order['feeRecipient']),             # { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
-            int(order['makerTokenAmount']),             # { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            int(order['takerTokenAmount']),             # { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            int(order['makerFee']),                     # { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
-            int(order['takerFee']),                     # { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
-            int(order['expirationUnixTimestampSec']),   # { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
-            int(order['salt']),                         # { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
-        ]
-        types = [
-            'address',  # { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
-            'address',  # { value: order.maker, type: types_1.SolidityTypes.Address },
-            'address',  # { value: order.taker, type: types_1.SolidityTypes.Address },
-            'address',  # { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
-            'address',  # { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
-            'address',  # { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
-            'uint256',  # { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            'uint256',  # { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            'uint256',  # { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
-            'uint256',  # { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
-            'uint256',  # { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
-            'uint256',  # { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
-        ]
-        return self.web3.soliditySha3(types, unpacked).hex()
-
     @staticmethod
-    def remove_0x_prefix(value):
+    def remove0x_prefix(value):
         if value[:2] == '0x':
             return value[2:]
         return value
 
-    def getZeroExOrderHashV2(self, order):
-        # https://github.com/0xProject/0x-monorepo/blob/development/python-packages/order_utils/src/zero_ex/order_utils/__init__.py
-        def pad_20_bytes_to_32(twenty_bytes):
-            return bytes(12) + twenty_bytes
-
-        def int_to_32_big_endian_bytes(i):
-            return i.to_bytes(32, byteorder="big")
-
-        def to_bytes(value):
-            if not isinstance(value, str):
-                raise TypeError("Value must be an instance of str")
-            if len(value) % 2:
-                value = "0x0" + self.remove_0x_prefix(value)
-            return base64.b16decode(self.remove_0x_prefix(value), casefold=True)
-
-        domain_struct_header = b"\x91\xab=\x17\xe3\xa5\n\x9d\x89\xe6?\xd3\x0b\x92\xbe\x7fS6\xb0;({\xb9Fxz\x83\xa9\xd6*'f\xf0\xf2F\x18\xf4\xc4\xbe\x1eb\xe0&\xfb\x03\x9a \xef\x96\xf4IR\x94\x81}\x10'\xff\xaam\x1fp\xe6\x1e\xad|[\xef\x02x\x16\xa8\x00\xda\x176DO\xb5\x8a\x80~\xf4\xc9`;xHg?~:h\xeb\x14\xa5"
-        order_schema_hash = b'w\x05\x01\xf8\x8a&\xed\xe5\xc0J \xef\x87yi\xe9a\xeb\x11\xfc\x13\xb7\x8a\xafAKc=\xa0\xd4\xf8o'
-        header = b"\x19\x01"
-
-        domain_struct_hash = self.web3.sha3(
-            domain_struct_header +
-            pad_20_bytes_to_32(to_bytes(order["exchangeAddress"]))
-        )
-
-        order_struct_hash = self.web3.sha3(
-            order_schema_hash +
-            pad_20_bytes_to_32(to_bytes(order["makerAddress"])) +
-            pad_20_bytes_to_32(to_bytes(order["takerAddress"])) +
-            pad_20_bytes_to_32(to_bytes(order["feeRecipientAddress"])) +
-            pad_20_bytes_to_32(to_bytes(order["senderAddress"])) +
-            int_to_32_big_endian_bytes(int(order["makerAssetAmount"])) +
-            int_to_32_big_endian_bytes(int(order["takerAssetAmount"])) +
-            int_to_32_big_endian_bytes(int(order["makerFee"])) +
-            int_to_32_big_endian_bytes(int(order["takerFee"])) +
-            int_to_32_big_endian_bytes(int(order["expirationTimeSeconds"])) +
-            int_to_32_big_endian_bytes(int(order["salt"])) +
-            self.web3.sha3(to_bytes(order["makerAssetData"])) +
-            self.web3.sha3(to_bytes(order["takerAssetData"]))
-        )
-
-        sha3 = self.web3.sha3(
-            header +
-            domain_struct_hash +
-            order_struct_hash
-        )
-        return '0x' + base64.b16encode(sha3).decode('ascii').lower()
-
-    def signZeroExOrderV2(self, order, privateKey):
-        orderHash = self.getZeroExOrderHashV2(order)
-        signature = self.signMessage(orderHash[-64:], privateKey)
-        return self.extend(order, {
-            'orderHash': orderHash,
-            'signature': self._convertECSignatureToSignatureHex(signature),
-        })
-
-    def _convertECSignatureToSignatureHex(self, signature):
-        # https://github.com/0xProject/0x-monorepo/blob/development/packages/order-utils/src/signature_utils.ts
-        v = signature["v"]
-        if v != 27 and v != 28:
-            v = v + 27
-        return (
-            hex(v) +
-            signature["r"][-64:] +
-            signature["s"][-64:] +
-            "03"
-        )
-
     def hashMessage(self, message):
-        message_bytes = base64.b16decode(Exchange.encode(Exchange.remove_0x_prefix(message)), True)
-        hash_bytes = self.web3.sha3(b"\x19Ethereum Signed Message:\n" + Exchange.encode(str(len(message_bytes))) + message_bytes)
+        message_bytes = base64.b16decode(Exchange.encode(Exchange.remove0x_prefix(message)), True)
+        hash_bytes = keccak.SHA3(b"\x19Ethereum Signed Message:\n" + Exchange.encode(str(len(message_bytes))) + message_bytes)
         return '0x' + Exchange.decode(base64.b16encode(hash_bytes)).lower()
 
     @staticmethod
@@ -1990,6 +2048,10 @@ class Exchange(object):
             's': '0x' + signature['s'],
             'v': 27 + signature['v'],
         }
+
+    def sign_message_string(self, message, privateKey):
+        signature = self.signMessage(message, privateKey)
+        return signature['r'] + Exchange.remove0x_prefix(signature['s']) + Exchange.binary_to_base16(Exchange.number_to_be(signature['v'], 1))
 
     def signMessage(self, message, privateKey):
         #
@@ -2070,6 +2132,10 @@ class Exchange(object):
     def base16_to_binary(s):
         return base64.b16decode(s, True)
 
+    @staticmethod
+    def binary_to_base16(s):
+        return Exchange.decode(base64.b16encode(s)).lower()
+
     # python supports arbitrarily big integers
     @staticmethod
     def integer_divide(a, b):
@@ -2120,3 +2186,145 @@ class Exchange(object):
             string.append(Exchange.base58_encoder[next_character])
         string.reverse()
         return ''.join(string)
+
+    def reduce_fees_by_currency(self, fees):
+        reduced = {}
+        for i in range(0, len(fees)):
+            fee = fees[i]
+            feeCurrencyCode = self.safe_value(fee, 'currency')
+            if feeCurrencyCode is not None:
+                if feeCurrencyCode in reduced:
+                    reduced[feeCurrencyCode]['cost'] = self.sum(reduced[feeCurrencyCode]['cost'], fee['cost'])
+                else:
+                    reduced[feeCurrencyCode] = {
+                        'cost': fee['cost'],
+                        'currency': feeCurrencyCode,
+                    }
+        return list(reduced.values())
+
+    def safe_order(self, order):
+        # Cost
+        # Remaining
+        # Average
+        # Price
+        # Amount
+        # Filled
+        #
+        # first we try to calculate the order fields from the trades
+        amount = self.safe_value(order, 'amount')
+        remaining = self.safe_value(order, 'remaining')
+        filled = self.safe_value(order, 'filled')
+        cost = self.safe_value(order, 'cost')
+        average = self.safe_value(order, 'average')
+        price = self.safe_value(order, 'price')
+        lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
+        parseFilled = (filled is None)
+        parseCost = (cost is None)
+        parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
+        parseFee = self.safe_value(order, 'fee') is None
+        parseFees = self.safe_value(order, 'fees') is None
+        shouldParseFees = parseFee or parseFees
+        fees = self.safe_value(order, 'fees', [])
+        if parseFilled or parseCost or shouldParseFees:
+            trades = self.safe_value(order, 'trades')
+            if isinstance(trades, list):
+                if parseFilled:
+                    filled = 0
+                if parseCost:
+                    cost = 0
+                for i in range(0, len(trades)):
+                    trade = trades[i]
+                    tradeAmount = self.safe_value(trade, 'amount')
+                    if parseFilled and (tradeAmount is not None):
+                        filled = self.sum(filled, tradeAmount)
+                    tradeCost = self.safe_value(trade, 'cost')
+                    if parseCost and (tradeCost is not None):
+                        cost = self.sum(cost, tradeCost)
+                    tradeTimestamp = self.safe_value(trade, 'timestamp')
+                    if parseLastTradeTimeTimestamp and (tradeTimestamp is not None):
+                        if lastTradeTimeTimestamp is None:
+                            lastTradeTimeTimestamp = tradeTimestamp
+                        else:
+                            lastTradeTimeTimestamp = max(lastTradeTimeTimestamp, tradeTimestamp)
+                    if shouldParseFees:
+                        tradeFees = self.safe_value(trade, 'fees')
+                        if tradeFees is not None:
+                            for j in range(0, len(tradeFees)):
+                                tradeFee = tradeFees[j]
+                                fees.append(self.extend({}, tradeFee))
+                        else:
+                            tradeFee = self.safe_value(trade, 'fee')
+                            if tradeFee is not None:
+                                fees.append(self.extend({}, tradeFee))
+        if shouldParseFees:
+            reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
+            reducedLength = len(reducedFees)
+            if not parseFee and (reducedLength == 0):
+                reducedFees.append(order['fee'])
+            if parseFees:
+                order['fees'] = reducedFees
+            if parseFee and (reducedLength == 1):
+                order['fee'] = reducedFees[0]
+        if amount is None:
+            # ensure amount = filled + remaining
+            if filled is not None and remaining is not None:
+                amount = self.sum(filled, remaining)
+            elif self.safe_string(order, 'status') == 'closed':
+                amount = filled
+        if filled is None:
+            if amount is not None and remaining is not None:
+                filled = max(self.sum(amount, -remaining), 0)
+        if remaining is None:
+            if amount is not None and filled is not None:
+                remaining = max(self.sum(amount, -filled), 0)
+        # ensure that the average field is calculated correctly
+        if average is None:
+            if (filled is not None) and (cost is not None) and (filled > 0):
+                average = cost / filled
+        # also ensure the cost field is calculated correctly
+        costPriceExists = (average is not None) or (price is not None)
+        if parseCost and (filled is not None) and costPriceExists:
+            cost = (price * filled) if (average is None) else (average * filled)
+        # support for market orders
+        orderType = self.safe_value(order, 'type')
+        emptyPrice = price is None or price == 0.0
+        if emptyPrice and (orderType == 'market'):
+            price = average
+        return self.extend(order, {
+            'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
+        })
+
+    def parse_number(self, value, default=None):
+        if value is None:
+            return default
+        else:
+            try:
+                return self.number(value)
+            except Exception:
+                return default
+
+    def safe_number(self, dictionary, key, default=None):
+        value = self.safe_string(dictionary, key)
+        return self.parse_number(value, default)
+
+    def safe_number_2(self, dictionary, key1, key2, default=None):
+        value = self.safe_string_2(dictionary, key1, key2)
+        return self.parse_number(value, default)
+
+    def parse_precision(self, precision):
+        if precision is None:
+            return None
+        return '1e' + Precise.string_neg(precision)
+
+    def omit_zero(self, string_number):
+        if string_number is None:
+            return None
+        if float(string_number) == 0:
+            return None
+        return string_number

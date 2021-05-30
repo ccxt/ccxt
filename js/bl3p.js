@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -17,14 +18,17 @@ module.exports = class bl3p extends Exchange {
             'comment': 'An exchange market by BitonicNL',
             'has': {
                 'CORS': false,
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
                 'api': 'https://api.bl3p.eu',
-                'www': [
-                    'https://bl3p.eu',
-                    'https://bitonic.nl',
-                ],
+                'www': 'https://bl3p.eu', // 'https://bitonic.nl'
                 'doc': [
                     'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
                     'https://bl3p.eu/api',
@@ -78,17 +82,19 @@ module.exports = class bl3p extends Exchange {
             const available = this.safeValue (wallet, 'available', {});
             const balance = this.safeValue (wallet, 'balance', {});
             const account = this.account ();
-            account['free'] = this.safeFloat (available, 'value');
-            account['total'] = this.safeFloat (balance, 'value');
+            account['free'] = this.safeString (available, 'value');
+            account['total'] = this.safeString (balance, 'value');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+        const price = this.safeNumber (bidask, priceKey);
+        const size = this.safeNumber (bidask, amountKey);
         return [
-            bidask[priceKey] / 100000.0,
-            bidask[amountKey] / 100000000.0,
+            price / 100000.0,
+            size / 100000000.0,
         ];
     }
 
@@ -99,7 +105,7 @@ module.exports = class bl3p extends Exchange {
         };
         const response = await this.publicGetMarketOrderbook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data');
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price_int', 'amount_int');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -108,16 +114,16 @@ module.exports = class bl3p extends Exchange {
         };
         const ticker = await this.publicGetMarketTicker (this.extend (request, params));
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -127,7 +133,7 @@ module.exports = class bl3p extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker['volume'], '24h'),
+            'baseVolume': this.safeNumber (ticker['volume'], '24h'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -136,20 +142,13 @@ module.exports = class bl3p extends Exchange {
     parseTrade (trade, market = undefined) {
         const id = this.safeString (trade, 'trade_id');
         const timestamp = this.safeInteger (trade, 'date');
-        let price = this.safeFloat (trade, 'price_int');
-        if (price !== undefined) {
-            price /= 100000.0;
-        }
-        let amount = this.safeFloat (trade, 'amount_int');
-        if (amount !== undefined) {
-            amount /= 100000000.0;
-        }
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
-        }
+        let priceString = this.safeString (trade, 'price_int');
+        priceString = Precise.stringDiv (priceString, '100000');
+        let amountString = this.safeString (trade, 'amount_int');
+        amountString = Precise.stringDiv (amountString, '100000000');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -225,7 +224,7 @@ module.exports = class bl3p extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Rest-Key': this.apiKey,
-                'Rest-Sign': this.decode (signature),
+                'Rest-Sign': signature,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

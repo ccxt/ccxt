@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
-use \ccxt\OrderNotFound;
 use \ccxt\NotSupported;
 
 class exmo extends Exchange {
@@ -22,23 +21,28 @@ class exmo extends Exchange {
             'rateLimit' => 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version' => 'v1.1',
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
-                'fetchClosedOrders' => 'emulated',
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchFundingFees' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => 'emulated',
-                'fetchOrders' => 'emulated',
-                'fetchOrderTrades' => true,
+                'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
-                'fetchMyTrades' => true,
+                'fetchOrderTrades' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => true,
-                'withdraw' => true,
+                'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
-                'fetchFundingFees' => true,
-                'fetchCurrencies' => true,
                 'fetchTransactions' => true,
-                'fetchOHLCV' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -79,11 +83,14 @@ class exmo extends Exchange {
                 'public' => array(
                     'get' => array(
                         'currency',
+                        'currency/list/extended',
                         'order_book',
                         'pair_settings',
                         'ticker',
                         'trades',
                         'candles_history',
+                        'required_amount',
+                        'payments/providers/crypto/list',
                     ),
                 ),
                 'private' => array(
@@ -97,18 +104,20 @@ class exmo extends Exchange {
                         'user_trades',
                         'user_cancelled_orders',
                         'order_trades',
-                        'required_amount',
                         'deposit_address',
                         'withdraw_crypt',
                         'withdraw_get_txid',
                         'excode_create',
                         'excode_load',
+                        'code_check',
                         'wallet_history',
+                        'wallet_operations',
                     ),
                 ),
             ),
             'fees' => array(
                 'trading' => array(
+                    'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
                     'maker' => 0.2 / 100,
@@ -366,7 +375,7 @@ class exmo extends Exchange {
                                     array( 'prov' => 'Payeer', 'dep' => '3.95%', 'wd' => '-' ),
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '2.49%' ),
-                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% . 0.5 USD', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% + 0.5 USD', 'wd' => '-' ),
                                     array( 'prov' => 'Visa', 'dep' => '3.45%', 'wd' => '-' ),
                                     array( 'prov' => 'Frick Bank', 'dep' => '0 USD', 'wd' => '-' ),
                                 ),
@@ -375,7 +384,7 @@ class exmo extends Exchange {
                                 'group' => 'eur',
                                 'title' => 'EUR',
                                 'items' => array(
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '4.5% . 0.5  EUR', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '4.5% + 0.5  EUR', 'wd' => '-' ),
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'Visa', 'dep' => '2.95%', 'wd' => '-' ),
                                     array( 'prov' => 'Frick Internal Transfer', 'dep' => '0 EUR', 'wd' => '-' ),
@@ -401,7 +410,7 @@ class exmo extends Exchange {
                                     array( 'prov' => 'Qiwi', 'dep' => '1.49%', 'wd' => '2.49%' ),
                                     array( 'prov' => 'Yandex Money', 'dep' => '1.49%', 'wd' => '1.95 %' ),
                                     array( 'prov' => 'AdvCash', 'dep' => '0.99%', 'wd' => '0.99%' ),
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '2.99%', 'wd' => '3.99% . 60 RUB' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '2.99%', 'wd' => '3.99% + 60 RUB' ),
                                 ),
                             ),
                             array(
@@ -417,7 +426,7 @@ class exmo extends Exchange {
                                 'items' => array(
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'Visa', 'dep' => '3.05%', 'wd' => '-' ),
-                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% . 2 TRY', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard (Simplex)', 'dep' => '4.5% + 2 TRY', 'wd' => '-' ),
                                     array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '-' ),
                                 ),
                             ),
@@ -428,14 +437,14 @@ class exmo extends Exchange {
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'Terminal', 'dep' => '2.6%', 'wd' => '-' ),
                                     array( 'prov' => 'Visa/MasterCard EasyTransfer', 'dep' => '-', 'wd' => '2.99%' ),
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '1% . 5 UAH', 'wd' => '-' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '1% + 5 UAH', 'wd' => '-' ),
                                 ),
                             ),
                             array(
                                 'group' => 'kzt',
                                 'title' => 'KZT',
                                 'items' => array(
-                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '3.5%', 'wd' => '2.99% . 450 KZT' ),
+                                    array( 'prov' => 'Visa/MasterCard', 'dep' => '3.5%', 'wd' => '2.99% + 450 KZT' ),
                                     array( 'prov' => 'EX-CODE', 'dep' => '', 'wd' => '0.2%' ),
                                     array( 'prov' => 'AdvCash', 'dep' => '0%', 'wd' => '-' ),
                                 ),
@@ -467,6 +476,7 @@ class exmo extends Exchange {
                     'API rate limit exceeded' => '\\ccxt\\RateLimitExceeded', // array("result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":array(),"begin":1579392000,"end":1579478400)
                 ),
             ),
+            'orders' => array(), // orders cache / emulation
         ));
     }
 
@@ -484,7 +494,7 @@ class exmo extends Exchange {
             if ($numParts < 2) {
                 throw new NotSupported($this->id . ' fetchTradingFees format has changed');
             }
-            $fee = floatval (str_replace('%', '', $parts[0])) * 0.01;
+            $fee = floatval(str_replace('%', '', $parts[0])) * 0.01;
             $taker = $fee;
             $maker = $fee;
             return array(
@@ -510,7 +520,7 @@ class exmo extends Exchange {
         $isPercentage = (mb_strpos($input, '%') !== false);
         $parts = explode(' ', $input);
         $value = str_replace('%', '', $parts[0]);
-        $result = floatval ($value);
+        $result = floatval($value);
         if (($result > 0) && $isPercentage) {
             throw new ExchangeError($this->id . ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' . $input);
         }
@@ -577,18 +587,18 @@ class exmo extends Exchange {
             list($baseId, $quoteId) = explode('/', $marketId);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $maxAmount = $this->safe_float($limit, 'max_q');
-            $maxPrice = $this->safe_float($limit, 'max_p');
-            $maxCost = $this->safe_float($limit, 'max_a');
-            $minAmount = $this->safe_float($limit, 'min_q');
-            $minPrice = $this->safe_float($limit, 'min_p');
-            $minCost = $this->safe_float($limit, 'min_a');
-            $minAmounts[$base] = min ($this->safe_float($minAmounts, $base, $minAmount), $minAmount);
-            $maxAmounts[$base] = max ($this->safe_float($maxAmounts, $base, $maxAmount), $maxAmount);
-            $minPrices[$quote] = min ($this->safe_float($minPrices, $quote, $minPrice), $minPrice);
-            $minCosts[$quote] = min ($this->safe_float($minCosts, $quote, $minCost), $minCost);
-            $maxPrices[$quote] = max ($this->safe_float($maxPrices, $quote, $maxPrice), $maxPrice);
-            $maxCosts[$quote] = max ($this->safe_float($maxCosts, $quote, $maxCost), $maxCost);
+            $maxAmount = $this->safe_number($limit, 'max_q');
+            $maxPrice = $this->safe_number($limit, 'max_p');
+            $maxCost = $this->safe_number($limit, 'max_a');
+            $minAmount = $this->safe_number($limit, 'min_q');
+            $minPrice = $this->safe_number($limit, 'min_p');
+            $minCost = $this->safe_number($limit, 'min_a');
+            $minAmounts[$base] = min ($this->safe_number($minAmounts, $base, $minAmount), $minAmount);
+            $maxAmounts[$base] = max ($this->safe_number($maxAmounts, $base, $maxAmount), $maxAmount);
+            $minPrices[$quote] = min ($this->safe_number($minPrices, $quote, $minPrice), $minPrice);
+            $minCosts[$quote] = min ($this->safe_number($minCosts, $quote, $minCost), $minCost);
+            $maxPrices[$quote] = max ($this->safe_number($maxPrices, $quote, $maxPrice), $maxPrice);
+            $maxCosts[$quote] = max ($this->safe_number($maxCosts, $quote, $maxCost), $maxCost);
         }
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -605,16 +615,16 @@ class exmo extends Exchange {
                 'precision' => 8,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($minAmounts, $code),
-                        'max' => $this->safe_float($maxAmounts, $code),
+                        'min' => $this->safe_number($minAmounts, $code),
+                        'max' => $this->safe_number($maxAmounts, $code),
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($minPrices, $code),
-                        'max' => $this->safe_float($maxPrices, $code),
+                        'min' => $this->safe_number($minPrices, $code),
+                        'max' => $this->safe_number($maxPrices, $code),
                     ),
                     'cost' => array(
-                        'min' => $this->safe_float($minCosts, $code),
-                        'max' => $this->safe_float($maxCosts, $code),
+                        'min' => $this->safe_number($minCosts, $code),
+                        'max' => $this->safe_number($maxCosts, $code),
                     ),
                 ),
                 'info' => $id,
@@ -649,8 +659,10 @@ class exmo extends Exchange {
             list($baseId, $quoteId) = explode('/', $symbol);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $taker = $this->safe_float($market, 'commission_taker_percent');
-            $maker = $this->safe_float($market, 'commission_maker_percent');
+            $takerString = $this->safe_string($market, 'commission_taker_percent');
+            $makerString = $this->safe_string($market, 'commission_maker_percent');
+            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -659,20 +671,20 @@ class exmo extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
-                'taker' => $taker / 100,
-                'maker' => $maker / 100,
+                'taker' => $taker,
+                'maker' => $maker,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'min_quantity'),
-                        'max' => $this->safe_float($market, 'max_quantity'),
+                        'min' => $this->safe_number($market, 'min_quantity'),
+                        'max' => $this->safe_number($market, 'max_quantity'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($market, 'min_price'),
-                        'max' => $this->safe_float($market, 'max_price'),
+                        'min' => $this->safe_number($market, 'min_price'),
+                        'max' => $this->safe_number($market, 'max_price'),
                     ),
                     'cost' => array(
-                        'min' => $this->safe_float($market, 'min_amount'),
-                        'max' => $this->safe_float($market, 'max_amount'),
+                        'min' => $this->safe_number($market, 'min_amount'),
+                        'max' => $this->safe_number($market, 'max_amount'),
                     ),
                 ),
                 'precision' => array(
@@ -698,24 +710,24 @@ class exmo extends Exchange {
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument or a $limit argument');
+                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
             } else {
                 if ($limit > $maxLimit) {
                     throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
                 }
-                $request['from'] = intval ($now / 1000) - $limit * $duration - 1;
-                $request['to'] = intval ($now / 1000);
+                $request['from'] = intval($now / 1000) - $limit * $duration - 1;
+                $request['to'] = intval($now / 1000);
             }
         } else {
-            $request['from'] = intval ($since / 1000) - 1;
+            $request['from'] = intval($since / 1000) - 1;
             if ($limit === null) {
-                $request['to'] = intval ($now / 1000);
+                $request['to'] = intval($now / 1000);
             } else {
                 if ($limit > $maxLimit) {
                     throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
                 }
                 $to = $this->sum($since, $limit * $duration * 1000);
-                $request['to'] = intval ($to / 1000);
+                $request['to'] = intval($to / 1000);
             }
         }
         $response = $this->publicGetCandlesHistory (array_merge($request, $params));
@@ -745,11 +757,11 @@ class exmo extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 't'),
-            $this->safe_float($ohlcv, 'o'),
-            $this->safe_float($ohlcv, 'h'),
-            $this->safe_float($ohlcv, 'l'),
-            $this->safe_float($ohlcv, 'c'),
-            $this->safe_float($ohlcv, 'v'),
+            $this->safe_number($ohlcv, 'o'),
+            $this->safe_number($ohlcv, 'h'),
+            $this->safe_number($ohlcv, 'l'),
+            $this->safe_number($ohlcv, 'c'),
+            $this->safe_number($ohlcv, 'v'),
         );
     }
 
@@ -757,20 +769,22 @@ class exmo extends Exchange {
         $this->load_markets();
         $response = $this->privatePostUserInfo ($params);
         $result = array( 'info' => $response );
-        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        $free = $this->safe_value($response, 'balances', array());
+        $used = $this->safe_value($response, 'reserved', array());
+        $codes = is_array($free) ? array_keys($free) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $currencyId = $this->currency_id($code);
             $account = $this->account();
-            if (is_array($response['balances']) && array_key_exists($currencyId, $response['balances'])) {
-                $account['free'] = $this->safe_float($response['balances'], $currencyId);
+            if (is_array($free) && array_key_exists($currencyId, $free)) {
+                $account['free'] = $this->safe_string($free, $currencyId);
             }
-            if (is_array($response['reserved']) && array_key_exists($currencyId, $response['reserved'])) {
-                $account['used'] = $this->safe_float($response['reserved'], $currencyId);
+            if (is_array($used) && array_key_exists($currencyId, $used)) {
+                $account['used'] = $this->safe_string($used, $currencyId);
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -784,7 +798,7 @@ class exmo extends Exchange {
         }
         $response = $this->publicGetOrderBook (array_merge($request, $params));
         $result = $this->safe_value($response, $market['id']);
-        return $this->parse_order_book($result, null, 'bid', 'ask');
+        return $this->parse_order_book($result, $symbol, null, 'bid', 'ask');
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
@@ -828,16 +842,16 @@ class exmo extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_float($ticker, 'last_trade');
+        $last = $this->safe_number($ticker, 'last_trade');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy_price'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy_price'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell_price'),
+            'ask' => $this->safe_number($ticker, 'sell_price'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -846,9 +860,9 @@ class exmo extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_float($ticker, 'avg'),
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
-            'quoteVolume' => $this->safe_float($ticker, 'vol_curr'),
+            'average' => $this->safe_number($ticker, 'avg'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'quoteVolume' => $this->safe_number($ticker, 'vol_curr'),
             'info' => $ticker,
         );
     }
@@ -865,7 +879,7 @@ class exmo extends Exchange {
             $ticker = $response[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -909,9 +923,9 @@ class exmo extends Exchange {
         $symbol = null;
         $id = $this->safe_string($trade, 'trade_id');
         $orderId = $this->safe_string($trade, 'order_id');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'quantity');
-        $cost = $this->safe_float($trade, 'amount');
+        $price = $this->safe_number($trade, 'price');
+        $amount = $this->safe_number($trade, 'quantity');
+        $cost = $this->safe_number($trade, 'amount');
         $side = $this->safe_string($trade, 'type');
         $type = null;
         $marketId = $this->safe_string($trade, 'pair');
@@ -930,11 +944,11 @@ class exmo extends Exchange {
         }
         $takerOrMaker = $this->safe_string($trade, 'exec_type');
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'commission_amount');
+        $feeCost = $this->safe_number($trade, 'commission_amount');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commission_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $feeRate = $this->safe_float($trade, 'commission_percent');
+            $feeRate = $this->safe_number($trade, 'commission_percent');
             if ($feeRate !== null) {
                 $feeRate /= 1000;
             }
@@ -1059,10 +1073,10 @@ class exmo extends Exchange {
         $response = $this->privatePostOrderCreate (array_merge($request, $params));
         $id = $this->safe_string($response, 'order_id');
         $timestamp = $this->milliseconds();
-        $amount = floatval ($amount);
-        $price = floatval ($price);
+        $amount = floatval($amount);
+        $price = floatval($price);
         $status = 'open';
-        $order = array(
+        return array(
             'id' => $id,
             'info' => $response,
             'timestamp' => $timestamp,
@@ -1082,60 +1096,45 @@ class exmo extends Exchange {
             'clientOrderId' => null,
             'average' => null,
         );
-        $this->orders[$id] = $order;
-        return $order;
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array( 'order_id' => $id );
-        $response = $this->privatePostOrderCancel (array_merge($request, $params));
-        if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
-            $this->orders[$id]['status'] = 'canceled';
-        }
-        return $response;
+        return $this->privatePostOrderCancel (array_merge($request, $params));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        try {
-            $request = array(
-                'order_id' => (string) $id,
-            );
-            $response = $this->privatePostOrderTrades (array_merge($request, $params));
-            //
-            //     {
-            //         "type" => "buy",
-            //         "in_currency" => "BTC",
-            //         "in_amount" => "1",
-            //         "out_currency" => "USD",
-            //         "out_amount" => "100",
-            //         "trades" => array(
-            //             {
-            //                 "trade_id" => 3,
-            //                 "date" => 1435488248,
-            //                 "type" => "buy",
-            //                 "pair" => "BTC_USD",
-            //                 "order_id" => 12345,
-            //                 "quantity" => 1,
-            //                 "price" => 100,
-            //                 "amount" => 100
-            //             }
-            //         )
-            //     }
-            //
-            $order = $this->parse_order($response);
-            return array_merge($order, array(
-                'id' => (string) $id,
-            ));
-        } catch (Exception $e) {
-            if ($e instanceof OrderNotFound) {
-                if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
-                    return $this->orders[$id];
-                }
-            }
-        }
-        throw new OrderNotFound($this->id . ' fetchOrder $order $id ' . (string) $id . ' not found in cache.');
+        $request = array(
+            'order_id' => (string) $id,
+        );
+        $response = $this->privatePostOrderTrades (array_merge($request, $params));
+        //
+        //     {
+        //         "type" => "buy",
+        //         "in_currency" => "BTC",
+        //         "in_amount" => "1",
+        //         "out_currency" => "USD",
+        //         "out_amount" => "100",
+        //         "trades" => array(
+        //             {
+        //                 "trade_id" => 3,
+        //                 "date" => 1435488248,
+        //                 "type" => "buy",
+        //                 "pair" => "BTC_USD",
+        //                 "order_id" => 12345,
+        //                 "quantity" => 1,
+        //                 "price" => 100,
+        //                 "amount" => 100
+        //             }
+        //         )
+        //     }
+        //
+        $order = $this->parse_order($response);
+        return array_merge($order, array(
+            'id' => (string) $id,
+        ));
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1176,48 +1175,7 @@ class exmo extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function update_cached_orders($openOrders, $symbol) {
-        // update local cache with open orders
-        for ($j = 0; $j < count($openOrders); $j++) {
-            $id = $openOrders[$j]['id'];
-            $this->orders[$id] = $openOrders[$j];
-        }
-        $openOrdersIndexedById = $this->index_by($openOrders, 'id');
-        $cachedOrderIds = is_array($this->orders) ? array_keys($this->orders) : array();
-        for ($k = 0; $k < count($cachedOrderIds); $k++) {
-            // match each cached $order to an $order in the open orders array
-            // possible reasons why a cached $order may be missing in the open orders array:
-            // - $order was closed or canceled -> update cache
-            // - $symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            $id = $cachedOrderIds[$k];
-            $order = $this->orders[$id];
-            if (!(is_array($openOrdersIndexedById) && array_key_exists($id, $openOrdersIndexedById))) {
-                // cached $order is not in open orders array
-                // if we fetched orders by $symbol and it doesn't match the cached $order -> won't update the cached $order
-                if ($symbol !== null && $symbol !== $order['symbol']) {
-                    continue;
-                }
-                // $order is cached but not present in the list of open orders -> mark the cached $order as closed
-                if ($order['status'] === 'open') {
-                    $order = array_merge($order, array(
-                        'status' => 'closed', // likewise it might have been canceled externally (unnoticed by "us")
-                        'cost' => null,
-                        'filled' => $order['amount'],
-                        'remaining' => 0.0,
-                    ));
-                    if ($order['cost'] === null) {
-                        if ($order['filled'] !== null) {
-                            $order['cost'] = $order['filled'] * $order['price'];
-                        }
-                    }
-                    $this->orders[$id] = $order;
-                }
-            }
-        }
-        return $this->to_array($this->orders);
-    }
-
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostUserOpenOrders ($params);
         $marketIds = is_array($response) ? array_keys($response) : array();
@@ -1231,19 +1189,6 @@ class exmo extends Exchange {
             $parsedOrders = $this->parse_orders($response[$marketId], $market);
             $orders = $this->array_concat($orders, $parsedOrders);
         }
-        $this->update_cached_orders($orders, $symbol);
-        return $this->filter_by_symbol_since_limit($this->to_array($this->orders), $symbol, $since, $limit);
-    }
-
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->fetch_orders($symbol, $since, $limit, $params);
-        $orders = $this->filter_by($this->orders, 'status', 'open');
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
-    }
-
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->fetch_orders($symbol, $since, $limit, $params);
-        $orders = $this->filter_by($this->orders, 'status', 'closed');
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
@@ -1302,13 +1247,13 @@ class exmo extends Exchange {
                 $market = $this->markets_by_id[$marketId];
             }
         }
-        $amount = $this->safe_float($order, 'quantity');
+        $amount = $this->safe_number($order, 'quantity');
         if ($amount === null) {
             $amountField = ($side === 'buy') ? 'in_amount' : 'out_amount';
-            $amount = $this->safe_float($order, $amountField);
+            $amount = $this->safe_number($order, $amountField);
         }
-        $price = $this->safe_float($order, 'price');
-        $cost = $this->safe_float($order, 'amount');
+        $price = $this->safe_number($order, 'price');
+        $cost = $this->safe_number($order, 'amount');
         $filled = 0.0;
         $trades = array();
         $transactions = $this->safe_value($order, 'trades', array());
@@ -1380,8 +1325,11 @@ class exmo extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -1426,24 +1374,6 @@ class exmo extends Exchange {
         return null;
     }
 
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $rate = $market[$takerOrMaker];
-        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
-        $key = 'quote';
-        if ($side === 'sell') {
-            $cost *= $price;
-        } else {
-            $key = 'base';
-        }
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
-        );
-    }
-
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1483,12 +1413,12 @@ class exmo extends Exchange {
         //            "$status" => "processing",
         //            "$provider" => "Qiwi (LA) [12345]",
         //            "$amount" => "1",
-        //            "account" => "",
+        //            "$account" => "",
         //            "$txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
         //          }
         //
         $timestamp = $this->safe_timestamp($transaction, 'dt');
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         if ($amount !== null) {
             $amount = abs($amount);
         }
@@ -1497,19 +1427,28 @@ class exmo extends Exchange {
         $type = $this->safe_string($transaction, 'type');
         $currencyId = $this->safe_string($transaction, 'curr');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $address = $this->safe_string($transaction, 'account');
-        if ($address !== null) {
-            $parts = explode(':', $address);
-            $numParts = is_array($parts) ? count($parts) : 0;
-            if ($numParts === 2) {
-                $address = str_replace(' ', '', $parts[1]);
+        $address = null;
+        $tag = null;
+        $comment = null;
+        $account = $this->safe_string($transaction, 'account');
+        if ($type === 'deposit') {
+            $comment = $account;
+        } else if ($type === 'withdrawal') {
+            $address = $account;
+            if ($address !== null) {
+                $parts = explode(':', $address);
+                $numParts = is_array($parts) ? count($parts) : 0;
+                if ($numParts === 2) {
+                    $address = $this->safe_string($parts, 1);
+                    $address = str_replace(' ', '', $address);
+                }
             }
         }
         $fee = null;
         // fixed funding fees only (for now)
         if (!$this->fees['funding']['percentage']) {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
-            $feeCost = $this->safe_float($this->options['fundingFees'][$key], $code);
+            $feeCost = $this->safe_number($this->options['fundingFees'][$key], $code);
             // users don't pay for cashbacks, no fees for that
             $provider = $this->safe_string($transaction, 'provider');
             if ($provider === 'cashback') {
@@ -1530,16 +1469,21 @@ class exmo extends Exchange {
         return array(
             'info' => $transaction,
             'id' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'currency' => $code,
             'amount' => $amount,
             'address' => $address,
-            'tag' => null, // refix it properly
+            'addressTo' => $address,
+            'addressFrom' => null,
+            'tag' => $tag,
+            'tagTo' => $tag,
+            'tagFrom' => null,
             'status' => $status,
             'type' => $type,
             'updated' => null,
+            'comment' => $comment,
             'txid' => $txid,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
             'fee' => $fee,
         );
     }
@@ -1548,7 +1492,7 @@ class exmo extends Exchange {
         $this->load_markets();
         $request = array();
         if ($since !== null) {
-            $request['date'] = intval ($since / 1000);
+            $request['date'] = intval($since / 1000);
         }
         $currency = null;
         if ($code !== null) {

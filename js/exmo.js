@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, NotSupported, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,23 +17,28 @@ module.exports = class exmo extends Exchange {
             'rateLimit': 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1.1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchClosedOrders': 'emulated',
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchFundingFees': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': 'emulated',
-                'fetchOrders': 'emulated',
-                'fetchOrderTrades': true,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': true,
-                'fetchMyTrades': true,
+                'fetchOrderTrades': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
-                'withdraw': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchFundingFees': true,
-                'fetchCurrencies': true,
                 'fetchTransactions': true,
-                'fetchOHLCV': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -73,11 +79,14 @@ module.exports = class exmo extends Exchange {
                 'public': {
                     'get': [
                         'currency',
+                        'currency/list/extended',
                         'order_book',
                         'pair_settings',
                         'ticker',
                         'trades',
                         'candles_history',
+                        'required_amount',
+                        'payments/providers/crypto/list',
                     ],
                 },
                 'private': {
@@ -91,18 +100,20 @@ module.exports = class exmo extends Exchange {
                         'user_trades',
                         'user_cancelled_orders',
                         'order_trades',
-                        'required_amount',
                         'deposit_address',
                         'withdraw_crypt',
                         'withdraw_get_txid',
                         'excode_create',
                         'excode_load',
+                        'code_check',
                         'wallet_history',
+                        'wallet_operations',
                     ],
                 },
             },
             'fees': {
                 'trading': {
+                    'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
                     'maker': 0.2 / 100,
@@ -461,6 +472,7 @@ module.exports = class exmo extends Exchange {
                     'API rate limit exceeded': RateLimitExceeded, // {"result":false,"error":"API rate limit exceeded for 99.33.55.224. Retry after 60 sec.","history":[],"begin":1579392000,"end":1579478400}
                 },
             },
+            'orders': {}, // orders cache / emulation
         });
     }
 
@@ -571,18 +583,18 @@ module.exports = class exmo extends Exchange {
             const [ baseId, quoteId ] = marketId.split ('/');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const maxAmount = this.safeFloat (limit, 'max_q');
-            const maxPrice = this.safeFloat (limit, 'max_p');
-            const maxCost = this.safeFloat (limit, 'max_a');
-            const minAmount = this.safeFloat (limit, 'min_q');
-            const minPrice = this.safeFloat (limit, 'min_p');
-            const minCost = this.safeFloat (limit, 'min_a');
-            minAmounts[base] = Math.min (this.safeFloat (minAmounts, base, minAmount), minAmount);
-            maxAmounts[base] = Math.max (this.safeFloat (maxAmounts, base, maxAmount), maxAmount);
-            minPrices[quote] = Math.min (this.safeFloat (minPrices, quote, minPrice), minPrice);
-            minCosts[quote] = Math.min (this.safeFloat (minCosts, quote, minCost), minCost);
-            maxPrices[quote] = Math.max (this.safeFloat (maxPrices, quote, maxPrice), maxPrice);
-            maxCosts[quote] = Math.max (this.safeFloat (maxCosts, quote, maxCost), maxCost);
+            const maxAmount = this.safeNumber (limit, 'max_q');
+            const maxPrice = this.safeNumber (limit, 'max_p');
+            const maxCost = this.safeNumber (limit, 'max_a');
+            const minAmount = this.safeNumber (limit, 'min_q');
+            const minPrice = this.safeNumber (limit, 'min_p');
+            const minCost = this.safeNumber (limit, 'min_a');
+            minAmounts[base] = Math.min (this.safeNumber (minAmounts, base, minAmount), minAmount);
+            maxAmounts[base] = Math.max (this.safeNumber (maxAmounts, base, maxAmount), maxAmount);
+            minPrices[quote] = Math.min (this.safeNumber (minPrices, quote, minPrice), minPrice);
+            minCosts[quote] = Math.min (this.safeNumber (minCosts, quote, minCost), minCost);
+            maxPrices[quote] = Math.max (this.safeNumber (maxPrices, quote, maxPrice), maxPrice);
+            maxCosts[quote] = Math.max (this.safeNumber (maxCosts, quote, maxCost), maxCost);
         }
         const result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -599,16 +611,16 @@ module.exports = class exmo extends Exchange {
                 'precision': 8,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (minAmounts, code),
-                        'max': this.safeFloat (maxAmounts, code),
+                        'min': this.safeNumber (minAmounts, code),
+                        'max': this.safeNumber (maxAmounts, code),
                     },
                     'price': {
-                        'min': this.safeFloat (minPrices, code),
-                        'max': this.safeFloat (maxPrices, code),
+                        'min': this.safeNumber (minPrices, code),
+                        'max': this.safeNumber (maxPrices, code),
                     },
                     'cost': {
-                        'min': this.safeFloat (minCosts, code),
-                        'max': this.safeFloat (maxCosts, code),
+                        'min': this.safeNumber (minCosts, code),
+                        'max': this.safeNumber (maxCosts, code),
                     },
                 },
                 'info': id,
@@ -643,8 +655,10 @@ module.exports = class exmo extends Exchange {
             const [ baseId, quoteId ] = symbol.split ('/');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const taker = this.safeFloat (market, 'commission_taker_percent');
-            const maker = this.safeFloat (market, 'commission_maker_percent');
+            const takerString = this.safeString (market, 'commission_taker_percent');
+            const makerString = this.safeString (market, 'commission_maker_percent');
+            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -653,20 +667,20 @@ module.exports = class exmo extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'taker': taker / 100,
-                'maker': maker / 100,
+                'taker': taker,
+                'maker': maker,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'min_quantity'),
-                        'max': this.safeFloat (market, 'max_quantity'),
+                        'min': this.safeNumber (market, 'min_quantity'),
+                        'max': this.safeNumber (market, 'max_quantity'),
                     },
                     'price': {
-                        'min': this.safeFloat (market, 'min_price'),
-                        'max': this.safeFloat (market, 'max_price'),
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
-                        'min': this.safeFloat (market, 'min_amount'),
-                        'max': this.safeFloat (market, 'max_amount'),
+                        'min': this.safeNumber (market, 'min_amount'),
+                        'max': this.safeNumber (market, 'max_amount'),
                     },
                 },
                 'precision': {
@@ -692,7 +706,7 @@ module.exports = class exmo extends Exchange {
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a since argument or a limit argument');
+                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
             } else {
                 if (limit > maxLimit) {
                     throw new BadRequest (this.id + ' fetchOHLCV will serve ' + maxLimit.toString () + ' candles at most');
@@ -739,11 +753,11 @@ module.exports = class exmo extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 't'),
-            this.safeFloat (ohlcv, 'o'),
-            this.safeFloat (ohlcv, 'h'),
-            this.safeFloat (ohlcv, 'l'),
-            this.safeFloat (ohlcv, 'c'),
-            this.safeFloat (ohlcv, 'v'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
         ];
     }
 
@@ -751,20 +765,22 @@ module.exports = class exmo extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostUserInfo (params);
         const result = { 'info': response };
-        const codes = Object.keys (this.currencies);
+        const free = this.safeValue (response, 'balances', {});
+        const used = this.safeValue (response, 'reserved', {});
+        const codes = Object.keys (free);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currencyId = this.currencyId (code);
             const account = this.account ();
-            if (currencyId in response['balances']) {
-                account['free'] = this.safeFloat (response['balances'], currencyId);
+            if (currencyId in free) {
+                account['free'] = this.safeString (free, currencyId);
             }
-            if (currencyId in response['reserved']) {
-                account['used'] = this.safeFloat (response['reserved'], currencyId);
+            if (currencyId in used) {
+                account['used'] = this.safeString (used, currencyId);
             }
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -778,7 +794,7 @@ module.exports = class exmo extends Exchange {
         }
         const response = await this.publicGetOrderBook (this.extend (request, params));
         const result = this.safeValue (response, market['id']);
-        return this.parseOrderBook (result, undefined, 'bid', 'ask');
+        return this.parseOrderBook (result, symbol, undefined, 'bid', 'ask');
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
@@ -822,16 +838,16 @@ module.exports = class exmo extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last_trade');
+        const last = this.safeNumber (ticker, 'last_trade');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy_price'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy_price'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell_price'),
+            'ask': this.safeNumber (ticker, 'sell_price'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -840,9 +856,9 @@ module.exports = class exmo extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeFloat (ticker, 'avg'),
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'vol_curr'),
+            'average': this.safeNumber (ticker, 'avg'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'quoteVolume': this.safeNumber (ticker, 'vol_curr'),
             'info': ticker,
         };
     }
@@ -859,7 +875,7 @@ module.exports = class exmo extends Exchange {
             const ticker = response[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -903,9 +919,9 @@ module.exports = class exmo extends Exchange {
         let symbol = undefined;
         const id = this.safeString (trade, 'trade_id');
         const orderId = this.safeString (trade, 'order_id');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'quantity');
-        const cost = this.safeFloat (trade, 'amount');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'quantity');
+        const cost = this.safeNumber (trade, 'amount');
         const side = this.safeString (trade, 'type');
         const type = undefined;
         const marketId = this.safeString (trade, 'pair');
@@ -924,11 +940,11 @@ module.exports = class exmo extends Exchange {
         }
         const takerOrMaker = this.safeString (trade, 'exec_type');
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'commission_amount');
+        const feeCost = this.safeNumber (trade, 'commission_amount');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commission_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            let feeRate = this.safeFloat (trade, 'commission_percent');
+            let feeRate = this.safeNumber (trade, 'commission_percent');
             if (feeRate !== undefined) {
                 feeRate /= 1000;
             }
@@ -1056,7 +1072,7 @@ module.exports = class exmo extends Exchange {
         amount = parseFloat (amount);
         price = parseFloat (price);
         const status = 'open';
-        const order = {
+        return {
             'id': id,
             'info': response,
             'timestamp': timestamp,
@@ -1076,60 +1092,45 @@ module.exports = class exmo extends Exchange {
             'clientOrderId': undefined,
             'average': undefined,
         };
-        this.orders[id] = order;
-        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = { 'order_id': id };
-        const response = await this.privatePostOrderCancel (this.extend (request, params));
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-        }
-        return response;
+        return await this.privatePostOrderCancel (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        try {
-            const request = {
-                'order_id': id.toString (),
-            };
-            const response = await this.privatePostOrderTrades (this.extend (request, params));
-            //
-            //     {
-            //         "type": "buy",
-            //         "in_currency": "BTC",
-            //         "in_amount": "1",
-            //         "out_currency": "USD",
-            //         "out_amount": "100",
-            //         "trades": [
-            //             {
-            //                 "trade_id": 3,
-            //                 "date": 1435488248,
-            //                 "type": "buy",
-            //                 "pair": "BTC_USD",
-            //                 "order_id": 12345,
-            //                 "quantity": 1,
-            //                 "price": 100,
-            //                 "amount": 100
-            //             }
-            //         ]
-            //     }
-            //
-            const order = this.parseOrder (response);
-            return this.extend (order, {
-                'id': id.toString (),
-            });
-        } catch (e) {
-            if (e instanceof OrderNotFound) {
-                if (id in this.orders) {
-                    return this.orders[id];
-                }
-            }
-        }
-        throw new OrderNotFound (this.id + ' fetchOrder order id ' + id.toString () + ' not found in cache.');
+        const request = {
+            'order_id': id.toString (),
+        };
+        const response = await this.privatePostOrderTrades (this.extend (request, params));
+        //
+        //     {
+        //         "type": "buy",
+        //         "in_currency": "BTC",
+        //         "in_amount": "1",
+        //         "out_currency": "USD",
+        //         "out_amount": "100",
+        //         "trades": [
+        //             {
+        //                 "trade_id": 3,
+        //                 "date": 1435488248,
+        //                 "type": "buy",
+        //                 "pair": "BTC_USD",
+        //                 "order_id": 12345,
+        //                 "quantity": 1,
+        //                 "price": 100,
+        //                 "amount": 100
+        //             }
+        //         ]
+        //     }
+        //
+        const order = this.parseOrder (response);
+        return this.extend (order, {
+            'id': id.toString (),
+        });
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1170,48 +1171,7 @@ module.exports = class exmo extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    updateCachedOrders (openOrders, symbol) {
-        // update local cache with open orders
-        for (let j = 0; j < openOrders.length; j++) {
-            const id = openOrders[j]['id'];
-            this.orders[id] = openOrders[j];
-        }
-        const openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        const cachedOrderIds = Object.keys (this.orders);
-        for (let k = 0; k < cachedOrderIds.length; k++) {
-            // match each cached order to an order in the open orders array
-            // possible reasons why a cached order may be missing in the open orders array:
-            // - order was closed or canceled -> update cache
-            // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            const id = cachedOrderIds[k];
-            let order = this.orders[id];
-            if (!(id in openOrdersIndexedById)) {
-                // cached order is not in open orders array
-                // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if (symbol !== undefined && symbol !== order['symbol']) {
-                    continue;
-                }
-                // order is cached but not present in the list of open orders -> mark the cached order as closed
-                if (order['status'] === 'open') {
-                    order = this.extend (order, {
-                        'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
-                        'cost': undefined,
-                        'filled': order['amount'],
-                        'remaining': 0.0,
-                    });
-                    if (order['cost'] === undefined) {
-                        if (order['filled'] !== undefined) {
-                            order['cost'] = order['filled'] * order['price'];
-                        }
-                    }
-                    this.orders[id] = order;
-                }
-            }
-        }
-        return this.toArray (this.orders);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostUserOpenOrders (params);
         const marketIds = Object.keys (response);
@@ -1225,19 +1185,6 @@ module.exports = class exmo extends Exchange {
             const parsedOrders = this.parseOrders (response[marketId], market);
             orders = this.arrayConcat (orders, parsedOrders);
         }
-        this.updateCachedOrders (orders, symbol);
-        return this.filterBySymbolSinceLimit (this.toArray (this.orders), symbol, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.fetchOrders (symbol, since, limit, params);
-        const orders = this.filterBy (this.orders, 'status', 'open');
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.fetchOrders (symbol, since, limit, params);
-        const orders = this.filterBy (this.orders, 'status', 'closed');
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
@@ -1296,13 +1243,13 @@ module.exports = class exmo extends Exchange {
                 market = this.markets_by_id[marketId];
             }
         }
-        let amount = this.safeFloat (order, 'quantity');
+        let amount = this.safeNumber (order, 'quantity');
         if (amount === undefined) {
             const amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
-            amount = this.safeFloat (order, amountField);
+            amount = this.safeNumber (order, amountField);
         }
-        let price = this.safeFloat (order, 'price');
-        let cost = this.safeFloat (order, 'amount');
+        let price = this.safeNumber (order, 'price');
+        let cost = this.safeNumber (order, 'amount');
         let filled = 0.0;
         const trades = [];
         const transactions = this.safeValue (order, 'trades', []);
@@ -1374,8 +1321,11 @@ module.exports = class exmo extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1418,24 +1368,6 @@ module.exports = class exmo extends Exchange {
             return this.markets[symbols[0]];
         }
         return undefined;
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        const rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
-        let key = 'quote';
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
-        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -1482,7 +1414,7 @@ module.exports = class exmo extends Exchange {
         //          }
         //
         const timestamp = this.safeTimestamp (transaction, 'dt');
-        let amount = this.safeFloat (transaction, 'amount');
+        let amount = this.safeNumber (transaction, 'amount');
         if (amount !== undefined) {
             amount = Math.abs (amount);
         }
@@ -1491,19 +1423,28 @@ module.exports = class exmo extends Exchange {
         const type = this.safeString (transaction, 'type');
         const currencyId = this.safeString (transaction, 'curr');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let address = this.safeString (transaction, 'account');
-        if (address !== undefined) {
-            const parts = address.split (':');
-            const numParts = parts.length;
-            if (numParts === 2) {
-                address = parts[1].replace (' ', '');
+        let address = undefined;
+        const tag = undefined;
+        let comment = undefined;
+        const account = this.safeString (transaction, 'account');
+        if (type === 'deposit') {
+            comment = account;
+        } else if (type === 'withdrawal') {
+            address = account;
+            if (address !== undefined) {
+                const parts = address.split (':');
+                const numParts = parts.length;
+                if (numParts === 2) {
+                    address = this.safeString (parts, 1);
+                    address = address.replace (' ', '');
+                }
             }
         }
         let fee = undefined;
         // fixed funding fees only (for now)
         if (!this.fees['funding']['percentage']) {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
-            let feeCost = this.safeFloat (this.options['fundingFees'][key], code);
+            let feeCost = this.safeNumber (this.options['fundingFees'][key], code);
             // users don't pay for cashbacks, no fees for that
             const provider = this.safeString (transaction, 'provider');
             if (provider === 'cashback') {
@@ -1524,16 +1465,21 @@ module.exports = class exmo extends Exchange {
         return {
             'info': transaction,
             'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amount,
             'address': address,
-            'tag': undefined, // refix it properly
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
             'status': status,
             'type': type,
             'updated': undefined,
+            'comment': comment,
             'txid': txid,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
             'fee': fee,
         };
     }

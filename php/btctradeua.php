@@ -18,9 +18,15 @@ class btctradeua extends Exchange {
             'countries' => array( 'UA' ), // Ukraine,
             'rateLimit' => 3000,
             'has' => array(
+                'cancelOrder' => true,
                 'CORS' => false,
                 'createMarketOrder' => false,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
                 'signIn' => true,
             ),
             'urls' => array(
@@ -103,10 +109,10 @@ class btctradeua extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -131,7 +137,7 @@ class btctradeua extends Exchange {
                 $orderbook['asks'] = $asks['list'];
             }
         }
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'currency_trade');
+        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'currency_trade');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -231,7 +237,7 @@ class btctradeua extends Exchange {
         $timestamp = $this->parse8601($ymdhms);
         // server reports local time, adjust to UTC
         $md = implode('', array($month, $day));
-        $md = intval ($md);
+        $md = intval($md);
         // a special case for DST
         // subtract 2 hours during winter
         if ($md < 325 || $md > 1028) {
@@ -246,14 +252,11 @@ class btctradeua extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $type = 'limit';
         $side = $this->safe_string($trade, 'type');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amnt_trade');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amnt_trade');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -331,11 +334,14 @@ class btctradeua extends Exchange {
             'status' => 'open',
             'symbol' => $symbol,
             'type' => null,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $this->safe_string($order, 'type'),
-            'price' => $this->safe_float($order, 'price'),
-            'amount' => $this->safe_float($order, 'amnt_trade'),
+            'price' => $this->safe_number($order, 'price'),
+            'stopPrice' => null,
+            'amount' => $this->safe_number($order, 'amnt_trade'),
             'filled' => 0,
-            'remaining' => $this->safe_float($order, 'amnt_trade'),
+            'remaining' => $this->safe_number($order, 'amnt_trade'),
             'trades' => null,
             'info' => $order,
             'cost' => null,
@@ -346,7 +352,7 @@ class btctradeua extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);

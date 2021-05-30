@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 const { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,20 +17,27 @@ module.exports = class bithumb extends Exchange {
             'countries': [ 'KR' ], // South Korea
             'rateLimit': 500,
             'has': {
-                'CORS': true,
-                'createOrder': true,
                 'cancelOrder': true,
+                'CORS': true,
                 'createMarketOrder': true,
-                'fetchTickers': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
                 'withdraw': true,
             },
+            'hostname': 'bithumb.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
                 'api': {
-                    'public': 'https://api.bithumb.com/public',
-                    'private': 'https://api.bithumb.com',
+                    'public': 'https://api.{hostname}/public',
+                    'private': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bithumb.com',
                 'doc': 'https://apidocs.bithumb.com',
@@ -40,10 +48,13 @@ module.exports = class bithumb extends Exchange {
                     'get': [
                         'ticker/{currency}',
                         'ticker/all',
+                        'ticker/ALL_BTC',
+                        'ticker/ALL_KRW',
                         'orderbook/{currency}',
                         'orderbook/all',
                         'transaction_history/{currency}',
                         'transaction_history/all',
+                        'candlestick/{currency}/{interval}',
                     ],
                 },
                 'private': {
@@ -87,6 +98,37 @@ module.exports = class bithumb extends Exchange {
                 'Unknown Error': ExchangeError,
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
+            'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '10m': '10m',
+                '30m': '30m',
+                '1h': '1h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '24h',
+            },
+            'options': {
+                'quoteCurrencies': {
+                    'BTC': {
+                        'limits': {
+                            'cost': {
+                                'min': 0.0002,
+                                'max': 100,
+                            },
+                        },
+                    },
+                    'KRW': {
+                        'limits': {
+                            'cost': {
+                                'min': 500,
+                                'max': 5000000000,
+                            },
+                        },
+                    },
+                },
+            },
         });
     }
 
@@ -95,54 +137,58 @@ module.exports = class bithumb extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetTickerAll (params);
-        const data = this.safeValue (response, 'data');
-        const currencyIds = Object.keys (data);
         const result = [];
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            if (currencyId === 'date') {
-                continue;
-            }
-            const market = data[currencyId];
-            const base = currencyId;
-            const quote = 'KRW';
-            const symbol = currencyId + '/' + quote;
-            let active = true;
-            if (Array.isArray (market)) {
-                const numElements = market.length;
-                if (numElements === 0) {
-                    active = false;
+        const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
+        const quotes = Object.keys (quoteCurrencies);
+        for (let i = 0; i < quotes.length; i++) {
+            const quote = quotes[i];
+            const extension = this.safeValue (quoteCurrencies, quote, {});
+            const method = 'publicGetTickerALL' + quote;
+            const response = await this[method] (params);
+            const data = this.safeValue (response, 'data');
+            const currencyIds = Object.keys (data);
+            for (let j = 0; j < currencyIds.length; j++) {
+                const currencyId = currencyIds[j];
+                if (currencyId === 'date') {
+                    continue;
                 }
+                const market = data[currencyId];
+                const base = this.safeCurrencyCode (currencyId);
+                const symbol = currencyId + '/' + quote;
+                let active = true;
+                if (Array.isArray (market)) {
+                    const numElements = market.length;
+                    if (numElements === 0) {
+                        active = false;
+                    }
+                }
+                const entry = this.deepExtend ({
+                    'id': currencyId,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'info': market,
+                    'active': active,
+                    'precision': {
+                        'amount': 4,
+                        'price': 4,
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {}, // set via options
+                    },
+                    'baseId': undefined,
+                    'quoteId': undefined,
+                }, extension);
+                result.push (entry);
             }
-            result.push ({
-                'id': currencyId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
-                'active': active,
-                'precision': {
-                    'amount': 4,
-                    'price': 4,
-                },
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': 500,
-                        'max': 5000000000,
-                    },
-                },
-                'baseId': undefined,
-                'quoteId': undefined,
-            });
         }
         return result;
     }
@@ -161,19 +207,19 @@ module.exports = class bithumb extends Exchange {
             const account = this.account ();
             const currency = this.currency (code);
             const lowerCurrencyId = this.safeStringLower (currency, 'id');
-            account['total'] = this.safeFloat (balances, 'total_' + lowerCurrencyId);
-            account['used'] = this.safeFloat (balances, 'in_use_' + lowerCurrencyId);
-            account['free'] = this.safeFloat (balances, 'available_' + lowerCurrencyId);
+            account['total'] = this.safeString (balances, 'total_' + lowerCurrencyId);
+            account['used'] = this.safeString (balances, 'in_use_' + lowerCurrencyId);
+            account['free'] = this.safeString (balances, 'available_' + lowerCurrencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'currency': market['base'],
+            'currency': market['base'] + '_' + market['quote'],
         };
         if (limit !== undefined) {
             request['count'] = limit; // default 30, max 30
@@ -201,7 +247,7 @@ module.exports = class bithumb extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
-        return this.parseOrderBook (data, timestamp, 'bids', 'asks', 'price', 'quantity');
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -228,8 +274,8 @@ module.exports = class bithumb extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const open = this.safeFloat (ticker, 'opening_price');
-        const close = this.safeFloat (ticker, 'closing_price');
+        const open = this.safeNumber (ticker, 'opening_price');
+        const close = this.safeNumber (ticker, 'closing_price');
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
@@ -240,21 +286,18 @@ module.exports = class bithumb extends Exchange {
             }
             average = this.sum (open, close) / 2;
         }
-        const baseVolume = this.safeFloat (ticker, 'units_traded_24H');
-        const quoteVolume = this.safeFloat (ticker, 'acc_trade_value_24H');
-        let vwap = undefined;
-        if (quoteVolume !== undefined && baseVolume !== undefined) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const baseVolume = this.safeNumber (ticker, 'units_traded_24H');
+        const quoteVolume = this.safeNumber (ticker, 'acc_trade_value_24H');
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'max_price'),
-            'low': this.safeFloat (ticker, 'min_price'),
-            'bid': this.safeFloat (ticker, 'buy_price'),
+            'high': this.safeNumber (ticker, 'max_price'),
+            'low': this.safeNumber (ticker, 'min_price'),
+            'bid': this.safeNumber (ticker, 'buy_price'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell_price'),
+            'ask': this.safeNumber (ticker, 'sell_price'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
@@ -314,7 +357,7 @@ module.exports = class bithumb extends Exchange {
                 result[symbol] = this.parseTicker (ticker, market);
             }
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -345,6 +388,62 @@ module.exports = class bithumb extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseTicker (data, market);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         1576823400000, // 기준 시간
+        //         '8284000', // 시가
+        //         '8286000', // 종가
+        //         '8289000', // 고가
+        //         '8276000', // 저가
+        //         '15.41503692' // 거래량
+        //     ]
+        //
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 5),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currency': market['base'],
+            'interval': this.timeframes[timeframe],
+        };
+        const response = await this.publicGetCandlestickCurrencyInterval (this.extend (request, params));
+        //
+        //     {
+        //         'status': '0000',
+        //         'data': {
+        //             [
+        //                 1576823400000, // 기준 시간
+        //                 '8284000', // 시가
+        //                 '8286000', // 종가
+        //                 '8289000', // 고가
+        //                 '8276000', // 저가
+        //                 '15.41503692' // 거래량
+        //             ],
+        //             [
+        //                 1576824000000, // 기준 시간
+        //                 '8284000', // 시가
+        //                 '8281000', // 종가
+        //                 '8289000', // 고가
+        //                 '8275000', // 저가
+        //                 '6.19584467' // 거래량
+        //             ],
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -398,18 +497,16 @@ module.exports = class bithumb extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'units_traded');
-        let cost = this.safeFloat (trade, 'total');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString2 (trade, 'units_traded', 'units');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        let cost = this.safeNumber (trade, 'total');
         if (cost === undefined) {
-            if (amount !== undefined) {
-                if (price !== undefined) {
-                    cost = price * amount;
-                }
-            }
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             const feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
@@ -468,7 +565,7 @@ module.exports = class bithumb extends Exchange {
         const market = this.market (symbol);
         const request = {
             'order_currency': market['id'],
-            'Payment_currency': market['quote'],
+            'payment_currency': market['quote'],
             'units': amount,
         };
         let method = 'privatePostTradePlace';
@@ -481,7 +578,7 @@ module.exports = class bithumb extends Exchange {
         const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'order_id');
         if (id === undefined) {
-            throw new InvalidOrder (this.id + ' createOrder did not return an order id');
+            throw new InvalidOrder (this.id + ' createOrder() did not return an order id');
         }
         return {
             'info': response,
@@ -494,7 +591,7 @@ module.exports = class bithumb extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -509,25 +606,26 @@ module.exports = class bithumb extends Exchange {
         //     {
         //         "status": "0000",
         //         "data": {
-        //             "transaction_date": "1572497603668315",
-        //             "type": "bid",
-        //             "order_status": "Completed",
-        //             "order_currency": "BTC",
-        //             "payment_currency": "KRW",
-        //             "order_price": "8601000",
-        //             "order_qty": "0.007",
-        //             "cancel_date": "",
-        //             "cancel_type": "",
-        //             "contract": [
+        //             order_date: '1603161798539254',
+        //             type: 'ask',
+        //             order_status: 'Cancel',
+        //             order_currency: 'BTC',
+        //             payment_currency: 'KRW',
+        //             watch_price: '0',
+        //             order_price: '13344000',
+        //             order_qty: '0.0125',
+        //             cancel_date: '1603161803809993',
+        //             cancel_type: '사용자취소',
+        //             contract: [
         //                 {
-        //                     "transaction_date": "1572497603902030",
-        //                     "price": "8601000",
-        //                     "units": "0.005",
-        //                     "fee_currency": "KRW",
-        //                     "fee": "107.51",
-        //                     "total": "43005"
-        //                 },
-        //             ]
+        //                     transaction_date: '1603161799976383',
+        //                     price: '13344000',
+        //                     units: '0.0015',
+        //                     fee_currency: 'KRW',
+        //                     fee: '0',
+        //                     total: '20016'
+        //                 }
+        //             ],
         //         }
         //     }
         //
@@ -545,6 +643,7 @@ module.exports = class bithumb extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
         //
         // fetchOrder
         //
@@ -570,6 +669,29 @@ module.exports = class bithumb extends Exchange {
         //         ]
         //     }
         //
+        //     {
+        //         order_date: '1603161798539254',
+        //         type: 'ask',
+        //         order_status: 'Cancel',
+        //         order_currency: 'BTC',
+        //         payment_currency: 'KRW',
+        //         watch_price: '0',
+        //         order_price: '13344000',
+        //         order_qty: '0.0125',
+        //         cancel_date: '1603161803809993',
+        //         cancel_type: '사용자취소',
+        //         contract: [
+        //             {
+        //                 transaction_date: '1603161799976383',
+        //                 price: '13344000',
+        //                 units: '0.0015',
+        //                 fee_currency: 'KRW',
+        //                 fee: '0',
+        //                 total: '20016'
+        //             }
+        //         ],
+        //     }
+        //
         // fetchOpenOrders
         //
         //     {
@@ -587,24 +709,20 @@ module.exports = class bithumb extends Exchange {
         const sideProperty = this.safeValue2 (order, 'type', 'side');
         const side = (sideProperty === 'bid') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'order_status'));
-        let price = this.safeFloat2 (order, 'order_price', 'price');
+        let price = this.safeNumber2 (order, 'order_price', 'price');
         let type = 'limit';
         if (price === 0) {
             price = undefined;
             type = 'market';
         }
-        const amount = this.safeFloat2 (order, 'order_qty', 'units');
-        let remaining = this.safeFloat (order, 'units_remaining');
+        const amount = this.safeNumber2 (order, 'order_qty', 'units');
+        let remaining = this.safeNumber (order, 'units_remaining');
         if (remaining === undefined) {
             if (status === 'closed') {
                 remaining = 0;
-            } else {
+            } else if (status !== 'canceled') {
                 remaining = amount;
             }
-        }
-        let filled = undefined;
-        if ((amount !== undefined) && (remaining !== undefined)) {
-            filled = amount - remaining;
         }
         let symbol = undefined;
         const baseId = this.safeString (order, 'order_currency');
@@ -617,17 +735,14 @@ module.exports = class bithumb extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const rawTrades = this.safeValue (order, 'contract');
-        let trades = undefined;
         const id = this.safeString (order, 'order_id');
-        if (rawTrades !== undefined) {
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                'side': side,
-                'symbol': symbol,
-                'order': id,
-            });
-        }
-        return {
+        const rawTrades = this.safeValue (order, 'contract', []);
+        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
+            'side': side,
+            'symbol': symbol,
+            'order': id,
+        });
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -636,22 +751,25 @@ module.exports = class bithumb extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': undefined,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': trades,
-        };
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -691,10 +809,10 @@ module.exports = class bithumb extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         const side_in_params = ('side' in params);
         if (!side_in_params) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a `symbol` argument and a `side` parameter (sell or buy)');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument and a `side` parameter (sell or buy)');
         }
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a `symbol` argument and a `side` parameter (sell or buy)');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument and a `side` parameter (sell or buy)');
         }
         const market = this.market (symbol);
         const side = (params['side'] === 'buy') ? 'bid' : 'ask';
@@ -725,7 +843,7 @@ module.exports = class bithumb extends Exchange {
             'address': address,
             'currency': currency['id'],
         };
-        if (currency === 'XRP' || currency === 'XMR') {
+        if (currency === 'XRP' || currency === 'XMR' || currency === 'EOS' || currency === 'STEEM') {
             const destination = this.safeString (params, 'destination');
             if ((tag === undefined) && (destination === undefined)) {
                 throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
@@ -746,7 +864,7 @@ module.exports = class bithumb extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + endpoint;
+        let url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + endpoint;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
@@ -760,12 +878,12 @@ module.exports = class bithumb extends Exchange {
             const nonce = this.nonce ().toString ();
             const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
-            const signature64 = this.decode (this.stringToBase64 (this.encode (signature)));
+            const signature64 = this.decode (this.stringToBase64 (signature));
             headers = {
                 'Accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Api-Key': this.apiKey,
-                'Api-Sign': signature64.toString (),
+                'Api-Sign': signature64,
                 'Api-Nonce': nonce,
             };
         }
@@ -784,6 +902,9 @@ module.exports = class bithumb extends Exchange {
             const message = this.safeString (response, 'message');
             if (status !== undefined) {
                 if (status === '0000') {
+                    return; // no error
+                } else if (message === '거래 진행중인 내역이 존재하지 않습니다') {
+                    // https://github.com/ccxt/ccxt/issues/9017
                     return; // no error
                 }
                 const feedback = this.id + ' ' + body;

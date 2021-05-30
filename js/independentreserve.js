@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -14,10 +15,21 @@ module.exports = class independentreserve extends Exchange {
             'countries': [ 'AU', 'NZ' ], // Australia, New Zealand
             'rateLimit': 1000,
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchClosedOrders': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg',
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg',
                 'api': {
                     'public': 'https://api.independentreserve.com/Public',
                     'private': 'https://api.independentreserve.com/Private',
@@ -115,11 +127,11 @@ module.exports = class independentreserve extends Exchange {
             const currencyId = this.safeString (balance, 'CurrencyCode');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'AvailableBalance');
-            account['total'] = this.safeFloat (balance, 'TotalBalance');
+            account['free'] = this.safeString (balance, 'AvailableBalance');
+            account['total'] = this.safeString (balance, 'TotalBalance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -131,7 +143,7 @@ module.exports = class independentreserve extends Exchange {
         };
         const response = await this.publicGetGetOrderBook (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (response, 'CreatedTimestampUtc'));
-        return this.parseOrderBook (response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
+        return this.parseOrderBook (response, symbol, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -140,16 +152,16 @@ module.exports = class independentreserve extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'LastPrice');
+        const last = this.safeNumber (ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'DayHighestPrice'),
-            'low': this.safeFloat (ticker, 'DayLowestPrice'),
-            'bid': this.safeFloat (ticker, 'CurrentHighestBidPrice'),
+            'high': this.safeNumber (ticker, 'DayHighestPrice'),
+            'low': this.safeNumber (ticker, 'DayLowestPrice'),
+            'bid': this.safeNumber (ticker, 'CurrentHighestBidPrice'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'CurrentLowestOfferPrice'),
+            'ask': this.safeNumber (ticker, 'CurrentLowestOfferPrice'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -158,8 +170,8 @@ module.exports = class independentreserve extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeFloat (ticker, 'DayAvgPrice'),
-            'baseVolume': this.safeFloat (ticker, 'DayVolumeXbtInSecondaryCurrrency'),
+            'average': this.safeNumber (ticker, 'DayAvgPrice'),
+            'baseVolume': this.safeNumber (ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -178,6 +190,8 @@ module.exports = class independentreserve extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
+        // fetchOrder
+        //
         //     {
         //         "OrderGuid": "c7347e4c-b865-4c94-8f74-d934d4b0b177",
         //         "CreatedTimestampUtc": "2014-09-23T12:39:34.3817763Z",
@@ -192,9 +206,26 @@ module.exports = class independentreserve extends Exchange {
         //         "SecondaryCurrencyCode": "Usd"
         //     }
         //
+        // fetchOpenOrders & fetchClosedOrders
+        //
+        //     {
+        //         "OrderGuid": "b8f7ad89-e4e4-4dfe-9ea3-514d38b5edb3",
+        //         "CreatedTimestampUtc": "2020-09-08T03:04:18.616367Z",
+        //         "OrderType": "LimitOffer",
+        //         "Volume": 0.0005,
+        //         "Outstanding": 0.0005,
+        //         "Price": 113885.83,
+        //         "AvgPrice": 113885.83,
+        //         "Value": 56.94,
+        //         "Status": "Open",
+        //         "PrimaryCurrencyCode": "Xbt",
+        //         "SecondaryCurrencyCode": "Usd",
+        //         "FeePercent": 0.005,
+        //     }
+        //
         let symbol = undefined;
         const baseId = this.safeString (order, 'PrimaryCurrencyCode');
-        const quoteId = this.safeString (order, 'PrimaryCurrencyCode');
+        const quoteId = this.safeString (order, 'SecondaryCurrencyCode');
         let base = undefined;
         let quote = undefined;
         if ((baseId !== undefined) && (quoteId !== undefined)) {
@@ -206,34 +237,26 @@ module.exports = class independentreserve extends Exchange {
             base = market['base'];
             quote = market['quote'];
         }
-        let orderType = this.safeValue (order, 'Type');
-        if (orderType.indexOf ('Market') >= 0) {
-            orderType = 'market';
-        } else if (orderType.indexOf ('Limit') >= 0) {
-            orderType = 'limit';
-        }
+        let orderType = this.safeString2 (order, 'Type', 'OrderType');
         let side = undefined;
         if (orderType.indexOf ('Bid') >= 0) {
             side = 'buy';
         } else if (orderType.indexOf ('Offer') >= 0) {
             side = 'sell';
         }
-        const timestamp = this.parse8601 (this.safeString (order, 'CreatedTimestampUtc'));
-        let amount = this.safeFloat (order, 'VolumeOrdered');
-        if (amount === undefined) {
-            amount = this.safeFloat (order, 'Volume');
+        if (orderType.indexOf ('Market') >= 0) {
+            orderType = 'market';
+        } else if (orderType.indexOf ('Limit') >= 0) {
+            orderType = 'limit';
         }
-        const filled = this.safeFloat (order, 'VolumeFilled');
-        let remaining = undefined;
-        const feeRate = this.safeFloat (order, 'FeePercent');
+        const timestamp = this.parse8601 (this.safeString (order, 'CreatedTimestampUtc'));
+        const amount = this.safeNumber2 (order, 'VolumeOrdered', 'Volume');
+        const filled = this.safeNumber (order, 'VolumeFilled');
+        const remaining = this.safeNumber (order, 'Outstanding');
+        const feeRate = this.safeNumber (order, 'FeePercent');
         let feeCost = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                remaining = amount - filled;
-                if (feeRate !== undefined) {
-                    feeCost = feeRate * filled;
-                }
-            }
+        if (feeRate !== undefined) {
+            feeCost = feeRate * filled;
         }
         const fee = {
             'rate': feeRate,
@@ -242,10 +265,10 @@ module.exports = class independentreserve extends Exchange {
         };
         const id = this.safeString (order, 'OrderGuid');
         const status = this.parseOrderStatus (this.safeString (order, 'Status'));
-        const cost = this.safeFloat (order, 'Value');
-        const average = this.safeFloat (order, 'AvgPrice');
-        const price = this.safeFloat (order, 'Price', average);
-        return {
+        const cost = this.safeNumber (order, 'Value');
+        const average = this.safeNumber (order, 'AvgPrice');
+        const price = this.safeNumber (order, 'Price');
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -254,8 +277,11 @@ module.exports = class independentreserve extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,
@@ -264,7 +290,7 @@ module.exports = class independentreserve extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        };
+        });
     }
 
     parseOrderStatus (status) {
@@ -292,6 +318,44 @@ module.exports = class independentreserve extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = this.ordered ({});
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['primaryCurrencyCode'] = market['baseId'];
+            request['secondaryCurrencyCode'] = market['quoteId'];
+        }
+        if (limit === undefined) {
+            limit = 50;
+        }
+        request['pageIndex'] = 1;
+        request['pageSize'] = limit;
+        const response = await this.privatePostGetOpenOrders (this.extend (request, params));
+        const data = this.safeValue (response, 'Data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = this.ordered ({});
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['primaryCurrencyCode'] = market['baseId'];
+            request['secondaryCurrencyCode'] = market['quoteId'];
+        }
+        if (limit === undefined) {
+            limit = 50;
+        }
+        request['pageIndex'] = 1;
+        request['pageSize'] = limit;
+        const response = await this.privatePostGetClosedOrders (this.extend (request, params));
+        const data = this.safeValue (response, 'Data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = 50, params = {}) {
         await this.loadMarkets ();
         const pageIndex = this.safeInteger (params, 'pageIndex', 1);
@@ -314,18 +378,18 @@ module.exports = class independentreserve extends Exchange {
         const timestamp = this.parse8601 (trade['TradeTimestampUtc']);
         const id = this.safeString (trade, 'TradeGuid');
         const orderId = this.safeString (trade, 'OrderGuid');
-        const price = this.safeFloat2 (trade, 'Price', 'SecondaryCurrencyTradePrice');
-        const amount = this.safeFloat2 (trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
+        const priceString = this.safeString2 (trade, 'Price', 'SecondaryCurrencyTradePrice');
+        const amountString = this.safeString2 (trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const baseId = this.safeString (trade, 'PrimaryCurrencyCode');
+        const quoteId = this.safeString (trade, 'SecondaryCurrencyCode');
+        let marketId = undefined;
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            marketId = baseId + '/' + quoteId;
         }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '/');
         let side = this.safeString (trade, 'OrderType');
         if (side !== undefined) {
             if (side.indexOf ('Bid') >= 0) {

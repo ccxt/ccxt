@@ -20,12 +20,19 @@ class braziliex extends Exchange {
             'countries' => array( 'BR' ),
             'rateLimit' => 1000,
             'has' => array(
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchCurrencies' => true,
-                'fetchTickers' => true,
-                'fetchOpenOrders' => true,
-                'fetchMyTrades' => true,
                 'fetchDepositAddress' => true,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -182,11 +189,11 @@ class braziliex extends Exchange {
                 'funding' => array(
                     'withdraw' => array(
                         'active' => $canWithdraw,
-                        'fee' => $this->safe_float($currency, 'txWithdrawalFee'),
+                        'fee' => $this->safe_number($currency, 'txWithdrawalFee'),
                     ),
                     'deposit' => array(
                         'active' => $canDeposit,
-                        'fee' => $this->safe_float($currency, 'txDepositFee'),
+                        'fee' => $this->safe_number($currency, 'txDepositFee'),
                     ),
                 ),
                 'limits' => array(
@@ -194,20 +201,12 @@ class braziliex extends Exchange {
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'MinWithdrawal'),
+                        'min' => $this->safe_number($currency, 'MinWithdrawal'),
                         'max' => pow(10, $precision),
                     ),
                     'deposit' => array(
-                        'min' => $this->safe_float($currency, 'minDeposit'),
+                        'min' => $this->safe_number($currency, 'minDeposit'),
                         'max' => null,
                     ),
                 ),
@@ -255,9 +254,9 @@ class braziliex extends Exchange {
             $quoteIsFiat = $this->safe_integer($quoteCurrency, 'is_fiat', 0);
             $minCost = null;
             if ($quoteIsFiat) {
-                $minCost = $this->safe_float($baseCurrency, 'minAmountTradeFIAT');
+                $minCost = $this->safe_number($baseCurrency, 'minAmountTradeFIAT');
             } else {
-                $minCost = $this->safe_float($baseCurrency, 'minAmountTrade' . $uppercaseQuoteId);
+                $minCost = $this->safe_number($baseCurrency, 'minAmountTrade' . $uppercaseQuoteId);
             }
             $isActive = $this->safe_integer($market, 'active');
             $active = ($isActive === 1);
@@ -300,27 +299,27 @@ class braziliex extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->milliseconds();
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'highestBid24'),
-            'low' => $this->safe_float($ticker, 'lowestAsk24'),
-            'bid' => $this->safe_float($ticker, 'highestBid'),
+            'high' => $this->safe_number($ticker, 'highestBid24'),
+            'low' => $this->safe_number($ticker, 'lowestAsk24'),
+            'bid' => $this->safe_number($ticker, 'highestBid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'lowestAsk'),
+            'ask' => $this->safe_number($ticker, 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'percentChange'),
+            'change' => $this->safe_number($ticker, 'percentChange'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'baseVolume24'),
-            'quoteVolume' => $this->safe_float($ticker, 'quoteVolume24'),
+            'baseVolume' => $this->safe_number($ticker, 'baseVolume24'),
+            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume24'),
             'info' => $ticker,
         );
     }
@@ -342,11 +341,11 @@ class braziliex extends Exchange {
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $marketId = $ids[$i];
-            $market = $this->markets_by_id[$marketId];
+            $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($response[$marketId], $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -355,18 +354,23 @@ class braziliex extends Exchange {
             'market' => $this->market_id($symbol),
         );
         $response = $this->publicGetOrderbookMarket (array_merge($request, $params));
-        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'date_exec', 'date'));
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $cost = $this->safe_float($trade, 'total');
+        $cost = $this->safe_number($trade, 'total');
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        }
         $orderId = $this->safe_string($trade, 'order_number');
         $type = 'limit';
         $side = $this->safe_string($trade, 'type');
@@ -408,11 +412,11 @@ class braziliex extends Exchange {
             $balance = $balances[$currencyId];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_float($balance, 'available');
-            $account['total'] = $this->safe_float($balance, 'total');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order($order, $market = null) {
@@ -428,34 +432,22 @@ class braziliex extends Exchange {
         //         "date":"2017-03-12 15:13:33"
         //     }
         //
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'market');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'market');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_integer($order, 'timestamp');
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($order, 'date'));
         }
-        $price = $this->safe_float($order, 'price');
-        $cost = $this->safe_float($order, 'total', 0.0);
-        $amount = $this->safe_float($order, 'amount');
-        $filledPercentage = $this->safe_float($order, 'progress');
+        $price = $this->safe_number($order, 'price');
+        $cost = $this->safe_number($order, 'total');
+        $amount = $this->safe_number($order, 'amount');
+        $filledPercentage = $this->safe_number($order, 'progress');
         $filled = $amount * $filledPercentage;
-        $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
-        $info = $order;
-        if (is_array($info) && array_key_exists('info', $info)) {
-            $info = $order['info'];
-        }
         $id = $this->safe_string($order, 'order_number');
         $fee = $this->safe_value($order, 'fee'); // propagated from createOrder
         $status = ($filledPercentage === 1.0) ? 'closed' : 'open';
-        return array(
+        $side = $this->safe_string($order, 'type');
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -464,17 +456,20 @@ class braziliex extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
-            'side' => $order['type'],
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'trades' => null,
             'fee' => $fee,
-            'info' => $info,
+            'info' => $order,
             'average' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -489,30 +484,49 @@ class braziliex extends Exchange {
             'amount' => $amount,
         );
         $response = $this->$method (array_merge($request, $params));
+        //
+        // sell
+        //
+        //     {
+        //         "$success":1,
+        //         "$message":" ##RESERVED FOR ORDER / SELL / XMR_BTC / AMOUNT => 0.01 XMR / PRICE => 0.017 BTC / TOTAL => 0.00017000 BTC / FEE => 0.00002500 XMR ",
+        //         "order_number":"590b962ba5b98335965fa0a8"
+        //     }
+        //
+        // buy
+        //
+        //     {
+        //         "$success":1,
+        //         "$message":" ##RESERVED FOR ORDER / BUY / XMR_BTC / AMOUNT => 0.005 XMR / PRICE => 0.017 BTC / TOTAL => 0.00008500 BTC / FEE => 0.00000021 BTC ",
+        //         "order_number":"590b962ba5b98335965fa0c0"
+        //     }
+        //
         $success = $this->safe_integer($response, 'success');
         if ($success !== 1) {
             throw new InvalidOrder($this->id . ' ' . $this->json($response));
         }
-        $parts = explode(' / ', $response['message']);
+        $message = $this->safe_string($response, 'message');
+        $parts = explode(' / ', $message);
         $parts = mb_substr($parts, 1);
         $feeParts = explode(' ', $parts[5]);
+        $amountParts = explode(' ', $parts[2]);
+        $priceParts = explode(' ', $parts[3]);
+        $totalParts = explode(' ', $parts[4]);
         $order = $this->parse_order(array(
             'timestamp' => $this->milliseconds(),
             'order_number' => $response['order_number'],
-            'type' => strtolower($parts[0]),
+            'type' => $this->safe_string_lower($parts, 0),
             'market' => strtolower($parts[0]),
-            'amount' => explode(' ', $parts[2])[1],
-            'price' => explode(' ', $parts[3])[1],
-            'total' => explode(' ', $parts[4])[1],
+            'amount' => $this->safe_string($amountParts, 1),
+            'price' => $this->safe_string($priceParts, 1),
+            'total' => $this->safe_string($totalParts, 1),
             'fee' => array(
-                'cost' => floatval ($feeParts[1]),
-                'currency' => $feeParts[2],
+                'cost' => $this->safe_number($feeParts, 1),
+                'currency' => $this->safe_string($feeParts, 2),
             ),
             'progress' => '0.0',
             'info' => $response,
         ), $market);
-        $id = $order['id'];
-        $this->orders[$id] = $order;
         return $order;
     }
 
@@ -547,7 +561,8 @@ class braziliex extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->privatePostOpenOrders (array_merge($request, $params));
-        return $this->parse_orders($response['order_open'], $market, $since, $limit);
+        $orders = $this->safe_value($response, 'order_open', array());
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -557,7 +572,8 @@ class braziliex extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->privatePostTradeHistory (array_merge($request, $params));
-        return $this->parse_trades($response['trade_history'], $market, $since, $limit);
+        $trades = $this->safe_value($response, 'trade_history', array());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {

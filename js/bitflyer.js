@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,19 +16,27 @@ module.exports = class bitflyer extends Exchange {
             'countries': [ 'JP' ],
             'version': 'v1',
             'rateLimit': 1000, // their nonce-timestamp is in seconds...
+            'hostname': 'bitflyer.com', // or bitflyer.com
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'withdraw': true,
-                'fetchMyTrades': true,
-                'fetchOrders': true,
-                'fetchOrder': 'emulated',
-                'fetchOpenOrders': 'emulated',
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': 'emulated',
+                'fetchOrder': 'emulated',
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTrades': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api': 'https://api.bitflyer.jp',
-                'www': 'https://bitflyer.jp',
+                'api': 'https://api.{hostname}',
+                'www': 'https://bitflyer.com',
                 'doc': 'https://lightning.bitflyer.com/docs?lang=en',
             },
             'api': {
@@ -177,11 +186,11 @@ module.exports = class bitflyer extends Exchange {
             const currencyId = this.safeString (balance, 'currency_code');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'amount');
-            account['free'] = this.safeFloat (balance, 'available');
+            account['total'] = this.safeString (balance, 'amount');
+            account['free'] = this.safeString (balance, 'available');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -190,7 +199,7 @@ module.exports = class bitflyer extends Exchange {
             'product_code': this.marketId (symbol),
         };
         const orderbook = await this.publicGetGetboard (this.extend (request, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'size');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price', 'size');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -200,16 +209,16 @@ module.exports = class bitflyer extends Exchange {
         };
         const ticker = await this.publicGetGetticker (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        const last = this.safeFloat (ticker, 'ltp');
+        const last = this.safeNumber (ticker, 'ltp');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeFloat (ticker, 'best_bid'),
+            'bid': this.safeNumber (ticker, 'best_bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'best_ask'),
+            'ask': this.safeNumber (ticker, 'best_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -219,7 +228,7 @@ module.exports = class bitflyer extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume_by_product'),
+            'baseVolume': this.safeNumber (ticker, 'volume_by_product'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -243,14 +252,11 @@ module.exports = class bitflyer extends Exchange {
             order = this.safeString (trade, 'child_order_acceptance_id');
         }
         const timestamp = this.parse8601 (this.safeString (trade, 'exec_date'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'size');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'size');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (market !== undefined) {
@@ -326,26 +332,17 @@ module.exports = class bitflyer extends Exchange {
 
     parseOrder (order, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (order, 'child_order_date'));
-        const amount = this.safeFloat (order, 'size');
-        const remaining = this.safeFloat (order, 'outstanding_size');
-        const filled = this.safeFloat (order, 'executed_size');
-        const price = this.safeFloat (order, 'price');
-        const cost = price * filled;
+        const amount = this.safeNumber (order, 'size');
+        const remaining = this.safeNumber (order, 'outstanding_size');
+        const filled = this.safeNumber (order, 'executed_size');
+        const price = this.safeNumber (order, 'price');
         const status = this.parseOrderStatus (this.safeString (order, 'child_order_state'));
         const type = this.safeStringLower (order, 'child_order_type');
         const side = this.safeStringLower (order, 'side');
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'product_code');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'product_code');
+        const symbol = this.safeSymbol (marketId, market);
         let fee = undefined;
-        const feeCost = this.safeFloat (order, 'total_commission');
+        const feeCost = this.safeNumber (order, 'total_commission');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -354,7 +351,7 @@ module.exports = class bitflyer extends Exchange {
             };
         }
         const id = this.safeString (order, 'child_order_acceptance_id');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
@@ -364,16 +361,19 @@ module.exports = class bitflyer extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
-            'cost': cost,
+            'stopPrice': undefined,
+            'cost': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
             'average': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
@@ -422,7 +422,7 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -434,6 +434,36 @@ module.exports = class bitflyer extends Exchange {
         }
         const response = await this.privateGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'product_code': this.marketIds (symbols),
+        };
+        const response = await this.privateGetpositions (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "product_code": "FX_BTC_JPY",
+        //             "side": "BUY",
+        //             "price": 36000,
+        //             "size": 10,
+        //             "commission": 0,
+        //             "swap_point_accumulate": -35,
+        //             "require_collateral": 120000,
+        //             "open_date": "2015-11-03T10:04:45.011",
+        //             "leverage": 3,
+        //             "pnl": 965,
+        //             "sfd": -0.5
+        //         }
+        //     ]
+        //
+        // todo unify parsePosition/parsePositions
+        return response;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -467,7 +497,8 @@ module.exports = class bitflyer extends Exchange {
                 request += '?' + this.urlencode (params);
             }
         }
-        const url = this.urls['api'] + request;
+        const baseUrl = this.implodeParams (this.urls['api'], { 'hostname': this.hostname });
+        const url = baseUrl + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

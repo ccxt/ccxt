@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,9 +17,16 @@ module.exports = class exx extends Exchange {
             'rateLimit': 1000 / 10,
             'userAgent': this.userAgents['chrome'],
             'has': {
-                'fetchOrder': true,
-                'fetchTickers': true,
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
                 'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/37770292-fbf613d0-2de4-11e8-9f79-f2dc451b8ccb.jpg',
@@ -83,6 +91,7 @@ module.exports = class exx extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'DOS': 'DEMOS',
                 'TV': 'TIV', // Ti-Value
             },
             'exceptions': {
@@ -103,9 +112,13 @@ module.exports = class exx extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const active = market['isOpen'] === true;
+            const amountPrecisionString = this.safeString (market, 'amountScale');
+            const pricePrecisionString = this.safeString (market, 'priceScale');
+            const amountLimit = this.parsePrecision (amountPrecisionString);
+            const priceLimit = this.parsePrecision (pricePrecisionString);
             const precision = {
-                'amount': parseInt (market['amountScale']),
-                'price': parseInt (market['priceScale']),
+                'amount': parseInt (amountPrecisionString),
+                'price': parseInt (pricePrecisionString),
             };
             result.push ({
                 'id': id,
@@ -118,15 +131,15 @@ module.exports = class exx extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'min': this.parseNumber (amountLimit),
+                        'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': this.parseNumber (priceLimit),
+                        'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'minAmount'),
                         'max': undefined,
                     },
                 },
@@ -140,26 +153,26 @@ module.exports = class exx extends Exchange {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'date');
         ticker = ticker['ticker'];
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'riseRate'),
+            'change': this.safeNumber (ticker, 'riseRate'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -194,7 +207,7 @@ module.exports = class exx extends Exchange {
             };
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -204,19 +217,16 @@ module.exports = class exx extends Exchange {
         };
         const response = await this.publicGetDepth (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp (trade, 'date');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -261,14 +271,13 @@ module.exports = class exx extends Exchange {
             const currencyId = currencies[i];
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeFloat (balance, 'balance'),
-                'used': this.safeFloat (balance, 'freeze'),
-                'total': this.safeFloat (balance, 'total'),
-            };
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'freeze');
+            account['total'] = this.safeString (balance, 'total');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     parseOrder (order, market = undefined) {
@@ -288,11 +297,10 @@ module.exports = class exx extends Exchange {
         //
         const symbol = market['symbol'];
         const timestamp = parseInt (order['trade_date']);
-        const price = this.safeFloat (order, 'price');
-        const cost = this.safeFloat (order, 'trade_money');
-        const amount = this.safeFloat (order, 'total_amount');
-        const filled = this.safeFloat (order, 'trade_amount', 0.0);
-        const remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
+        const price = this.safeNumber (order, 'price');
+        const cost = this.safeNumber (order, 'trade_money');
+        const amount = this.safeNumber (order, 'total_amount');
+        const filled = this.safeNumber (order, 'trade_amount', 0.0);
         let status = this.safeInteger (order, 'status');
         if (status === 1) {
             status = 'canceled';
@@ -304,11 +312,11 @@ module.exports = class exx extends Exchange {
         let fee = undefined;
         if ('fees' in order) {
             fee = {
-                'cost': this.safeFloat (order, 'fees'),
+                'cost': this.safeNumber (order, 'fees'),
                 'currency': market['quote'],
             };
         }
-        return {
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -317,17 +325,20 @@ module.exports = class exx extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': 'limit',
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': order['type'],
             'price': price,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'trades': undefined,
             'fee': fee,
             'info': order,
             'average': undefined,
-        };
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -349,7 +360,6 @@ module.exports = class exx extends Exchange {
             'type': side,
             'info': response,
         }, market);
-        this.orders[id] = order;
         return order;
     }
 
@@ -377,6 +387,9 @@ module.exports = class exx extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request = {
             'currency': market['id'],

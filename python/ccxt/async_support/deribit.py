@@ -19,6 +19,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class deribit(Exchange):
@@ -32,28 +33,32 @@ class deribit(Exchange):
             'userAgent': None,
             'rateLimit': 500,
             'has': {
+                'cancelAllOrders': True,
+                'cancelOrder': True,
                 'CORS': True,
+                'createDepositAddress': True,
+                'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
-                'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
-                'fetchMyTrades': True,
-                'fetchTickers': True,
-                'fetchOHLCV': True,
                 'fetchDepositAddress': True,
-                'createDepositAddress': True,
-                'fetchOrderTrades': True,
-                'createOrder': True,
-                'cancelOrder': True,
-                'cancelAllOrders': True,
-                'withdraw': True,
-                'fetchTime': True,
-                'fetchStatus': True,
                 'fetchDeposits': True,
-                'fetchWithdrawals': True,
+                'fetchMarkets': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': False,
+                'fetchOrderTrades': True,
+                'fetchStatus': True,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTime': True,
+                'fetchTrades': True,
                 'fetchTransactions': False,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -441,8 +446,8 @@ class deribit(Exchange):
                 future = (type == 'future')
                 option = (type == 'option')
                 active = self.safe_value(market, 'is_active')
-                minTradeAmount = self.safe_float(market, 'min_trade_amount')
-                tickSize = self.safe_float(market, 'tick_size')
+                minTradeAmount = self.safe_number(market, 'min_trade_amount')
+                tickSize = self.safe_number(market, 'tick_size')
                 precision = {
                     'amount': minTradeAmount,
                     'price': tickSize,
@@ -454,8 +459,8 @@ class deribit(Exchange):
                     'quote': quote,
                     'active': active,
                     'precision': precision,
-                    'taker': self.safe_float(market, 'taker_commission'),
-                    'maker': self.safe_float(market, 'maker_commission'),
+                    'taker': self.safe_number(market, 'taker_commission'),
+                    'maker': self.safe_number(market, 'maker_commission'),
                     'limits': {
                         'amount': {
                             'min': minTradeAmount,
@@ -535,11 +540,11 @@ class deribit(Exchange):
         currencyId = self.safe_string(balance, 'currency')
         currencyCode = self.safe_currency_code(currencyId)
         account = self.account()
-        account['free'] = self.safe_float(balance, 'availableFunds')
-        account['used'] = self.safe_float(balance, 'maintenanceMargin')
-        account['total'] = self.safe_float(balance, 'equity')
+        account['free'] = self.safe_string(balance, 'availableFunds')
+        account['used'] = self.safe_string(balance, 'maintenanceMargin')
+        account['total'] = self.safe_string(balance, 'equity')
         result[currencyCode] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
@@ -653,23 +658,19 @@ class deribit(Exchange):
         #
         timestamp = self.safe_integer_2(ticker, 'timestamp', 'creation_timestamp')
         marketId = self.safe_string(ticker, 'instrument_name')
-        symbol = marketId
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        last = self.safe_float_2(ticker, 'last_price', 'last')
+        symbol = self.safe_symbol(marketId, market)
+        last = self.safe_number_2(ticker, 'last_price', 'last')
         stats = self.safe_value(ticker, 'stats', ticker)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float_2(stats, 'high', 'max_price'),
-            'low': self.safe_float_2(stats, 'low', 'min_price'),
-            'bid': self.safe_float_2(ticker, 'best_bid_price', 'bid_price'),
-            'bidVolume': self.safe_float(ticker, 'best_bid_amount'),
-            'ask': self.safe_float_2(ticker, 'best_ask_price', 'ask_price'),
-            'askVolume': self.safe_float(ticker, 'best_ask_amount'),
+            'high': self.safe_number_2(stats, 'high', 'max_price'),
+            'low': self.safe_number_2(stats, 'low', 'min_price'),
+            'bid': self.safe_number_2(ticker, 'best_bid_price', 'bid_price'),
+            'bidVolume': self.safe_number(ticker, 'best_bid_amount'),
+            'ask': self.safe_number_2(ticker, 'best_ask_price', 'ask_price'),
+            'askVolume': self.safe_number(ticker, 'best_ask_amount'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -679,7 +680,7 @@ class deribit(Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_float(stats, 'volume'),
+            'quoteVolume': self.safe_number(stats, 'volume'),
             'info': ticker,
         }
 
@@ -778,7 +779,7 @@ class deribit(Exchange):
         now = self.milliseconds()
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV requires a since argument or a limit argument')
+                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
             else:
                 request['start_timestamp'] = now - (limit - 1) * duration * 1000
                 request['end_timestamp'] = now
@@ -854,27 +855,21 @@ class deribit(Exchange):
         #     }
         #
         id = self.safe_string(trade, 'trade_id')
-        symbol = None
         marketId = self.safe_string(trade, 'instrument_name')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string(trade, 'direction')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         liquidity = self.safe_string(trade, 'liquidity')
         takerOrMaker = None
         if liquidity is not None:
             # M = maker, T = taker, MT = both
             takerOrMaker = 'maker' if (liquidity == 'M') else 'taker'
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
@@ -992,7 +987,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result', {})
         timestamp = self.safe_integer(result, 'timestamp')
         nonce = self.safe_integer(result, 'change_id')
-        orderbook = self.parse_order_book(result, timestamp)
+        orderbook = self.parse_order_book(result, symbol, timestamp)
         orderbook['nonce'] = nonce
         return orderbook
 
@@ -1002,9 +997,17 @@ class deribit(Exchange):
             'cancelled': 'canceled',
             'filled': 'closed',
             'rejected': 'rejected',
-            # 'untriggered': 'open',
+            'untriggered': 'open',
         }
         return self.safe_string(statuses, status, status)
+
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'good_til_cancelled': 'GTC',
+            'fill_or_kill': 'FOK',
+            'immediate_or_cancel': 'IOC',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
 
     def parse_order(self, order, market=None):
         #
@@ -1037,68 +1040,57 @@ class deribit(Exchange):
         timestamp = self.safe_integer(order, 'creation_timestamp')
         lastUpdate = self.safe_integer(order, 'last_update_timestamp')
         id = self.safe_string(order, 'order_id')
-        price = self.safe_float(order, 'price')
-        average = self.safe_float(order, 'average_price')
-        amount = self.safe_float(order, 'amount')
-        filled = self.safe_float(order, 'filled_amount')
+        price = self.safe_number(order, 'price')
+        average = self.safe_number(order, 'average_price')
+        amount = self.safe_number(order, 'amount')
+        filled = self.safe_number(order, 'filled_amount')
         lastTradeTimestamp = None
         if filled is not None:
             if filled > 0:
                 lastTradeTimestamp = lastUpdate
-        remaining = None
-        cost = None
-        if filled is not None:
-            if amount is not None:
-                remaining = amount - filled
-            if price is not None:
-                cost = price * filled
         status = self.parse_order_status(self.safe_string(order, 'order_state'))
         marketId = self.safe_string(order, 'instrument_name')
-        symbol = None
-        base = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            base = market['base']
-        if market is not None:
-            if symbol is None:
-                symbol = market['symbol']
-            if base is None:
-                base = market['base']
+        market = self.safe_market(marketId, market)
         side = self.safe_string_lower(order, 'direction')
-        feeCost = self.safe_float(order, 'commission')
+        feeCost = self.safe_number(order, 'commission')
         fee = None
         if feeCost is not None:
             feeCost = abs(feeCost)
             fee = {
                 'cost': feeCost,
-                'currency': base,
+                'currency': market['base'],
             }
         type = self.safe_string(order, 'order_type')
         # injected in createOrder
         trades = self.safe_value(order, 'trades')
         if trades is not None:
             trades = self.parse_trades(trades, market)
-        return {
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
+        stopPrice = self.safe_value(order, 'stop_price')
+        postOnly = self.safe_value(order, 'post_only')
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': trades,
-        }
+        })
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -1168,13 +1160,14 @@ class deribit(Exchange):
             if price is not None:
                 request['price'] = self.price_to_precision(symbol, price)
             else:
-                raise ArgumentsRequired(self.id + ' createOrder requires a price argument for a ' + type + ' order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
         if stopPriceIsRequired:
-            stopPrice = self.safe_float_2(params, 'stop_price', 'stopPrice')
+            stopPrice = self.safe_number_2(params, 'stop_price', 'stopPrice')
             if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder requires a stop_price or stopPrice param for a ' + type + ' order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stop_price or stopPrice param for a ' + type + ' order')
             else:
                 request['stop_price'] = self.price_to_precision(symbol, stopPrice)
+            params = self.omit(params, ['stop_price', 'stopPrice'])
         method = 'privateGet' + self.capitalize(side)
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -1237,9 +1230,9 @@ class deribit(Exchange):
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if amount is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires an amount argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
         if price is None:
-            raise ArgumentsRequired(self.id + ' editOrder requires a price argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires a price argument')
         await self.load_markets()
         request = {
             'order_id': id,
@@ -1542,7 +1535,7 @@ class deribit(Exchange):
         updated = self.safe_integer(transaction, 'updated_timestamp')
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         address = self.safe_string(transaction, 'address')
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = self.safe_number(transaction, 'fee')
         type = 'deposit'
         fee = None
         if feeCost is not None:
@@ -1564,12 +1557,90 @@ class deribit(Exchange):
             'tagTo': None,
             'tagFrom': None,
             'type': type,
-            'amount': self.safe_float(transaction, 'amount'),
+            'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
             'status': status,
             'updated': updated,
             'fee': fee,
         }
+
+    async def fetch_position(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrument_name': market['id'],
+        }
+        response = await self.privateGetGetPosition(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 404,
+        #         "result": {
+        #             "average_price": 0,
+        #             "delta": 0,
+        #             "direction": "buy",
+        #             "estimated_liquidation_price": 0,
+        #             "floating_profit_loss": 0,
+        #             "index_price": 3555.86,
+        #             "initial_margin": 0,
+        #             "instrument_name": "BTC-PERPETUAL",
+        #             "leverage": 100,
+        #             "kind": "future",
+        #             "maintenance_margin": 0,
+        #             "mark_price": 3556.62,
+        #             "open_orders_margin": 0.000165889,
+        #             "realized_profit_loss": 0,
+        #             "settlement_price": 3555.44,
+        #             "size": 0,
+        #             "size_currency": 0,
+        #             "total_profit_loss": 0
+        #         }
+        #     }
+        #
+        # todo unify parsePosition/parsePositions
+        result = self.safe_value(response, 'result')
+        return result
+
+    async def fetch_positions(self, symbols=None, params={}):
+        await self.load_markets()
+        code = self.code_from_options('fetchPositions')
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privateGetGetPositions(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": 2236,
+        #         "result": [
+        #             {
+        #                 "average_price": 7440.18,
+        #                 "delta": 0.006687487,
+        #                 "direction": "buy",
+        #                 "estimated_liquidation_price": 1.74,
+        #                 "floating_profit_loss": 0,
+        #                 "index_price": 7466.79,
+        #                 "initial_margin": 0.000197283,
+        #                 "instrument_name": "BTC-PERPETUAL",
+        #                 "kind": "future",
+        #                 "leverage": 34,
+        #                 "maintenance_margin": 0.000143783,
+        #                 "mark_price": 7476.65,
+        #                 "open_orders_margin": 0.000197288,
+        #                 "realized_funding": -1e-8,
+        #                 "realized_profit_loss": -9e-9,
+        #                 "settlement_price": 7476.65,
+        #                 "size": 50,
+        #                 "size_currency": 0.006687487,
+        #                 "total_profit_loss": 0.000032781
+        #             }
+        #         ]
+        #     }
+        #
+        # todo unify parsePosition/parsePositions
+        result = self.safe_value(response, 'result', [])
+        return result
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)

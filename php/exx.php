@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\ExchangeNotAvailable;
 
 class exx extends Exchange {
@@ -19,9 +20,16 @@ class exx extends Exchange {
             'rateLimit' => 1000 / 10,
             'userAgent' => $this->userAgents['chrome'],
             'has' => array(
-                'fetchOrder' => true,
-                'fetchTickers' => true,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/37770292-fbf613d0-2de4-11e8-9f79-f2dc451b8ccb.jpg',
@@ -86,6 +94,7 @@ class exx extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'DOS' => 'DEMOS',
                 'TV' => 'TIV', // Ti-Value
             ),
             'exceptions' => array(
@@ -106,9 +115,13 @@ class exx extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $active = $market['isOpen'] === true;
+            $amountPrecisionString = $this->safe_string($market, 'amountScale');
+            $pricePrecisionString = $this->safe_string($market, 'priceScale');
+            $amountLimit = $this->parse_precision($amountPrecisionString);
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
-                'amount' => intval ($market['amountScale']),
-                'price' => intval ($market['priceScale']),
+                'amount' => intval($amountPrecisionString),
+                'price' => intval($pricePrecisionString),
             );
             $result[] = array(
                 'id' => $id,
@@ -121,15 +134,15 @@ class exx extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
-                        'max' => pow(10, $precision['amount']),
+                        'min' => $this->parse_number($amountLimit),
+                        'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
-                        'max' => pow(10, $precision['price']),
+                        'min' => $this->parse_number($priceLimit),
+                        'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'minAmount'),
                         'max' => null,
                     ),
                 ),
@@ -143,26 +156,26 @@ class exx extends Exchange {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 'date');
         $ticker = $ticker['ticker'];
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'riseRate'),
+            'change' => $this->safe_number($ticker, 'riseRate'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -197,7 +210,7 @@ class exx extends Exchange {
             );
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -207,19 +220,16 @@ class exx extends Exchange {
         );
         $response = $this->publicGetDepth (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'date');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -264,14 +274,13 @@ class exx extends Exchange {
             $currencyId = $currencies[$i];
             $balance = $balances[$currencyId];
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_float($balance, 'balance'),
-                'used' => $this->safe_float($balance, 'freeze'),
-                'total' => $this->safe_float($balance, 'total'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'balance');
+            $account['used'] = $this->safe_string($balance, 'freeze');
+            $account['total'] = $this->safe_string($balance, 'total');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order($order, $market = null) {
@@ -290,12 +299,11 @@ class exx extends Exchange {
         //     }
         //
         $symbol = $market['symbol'];
-        $timestamp = intval ($order['trade_date']);
-        $price = $this->safe_float($order, 'price');
-        $cost = $this->safe_float($order, 'trade_money');
-        $amount = $this->safe_float($order, 'total_amount');
-        $filled = $this->safe_float($order, 'trade_amount', 0.0);
-        $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
+        $timestamp = intval($order['trade_date']);
+        $price = $this->safe_number($order, 'price');
+        $cost = $this->safe_number($order, 'trade_money');
+        $amount = $this->safe_number($order, 'total_amount');
+        $filled = $this->safe_number($order, 'trade_amount', 0.0);
         $status = $this->safe_integer($order, 'status');
         if ($status === 1) {
             $status = 'canceled';
@@ -307,11 +315,11 @@ class exx extends Exchange {
         $fee = null;
         if (is_array($order) && array_key_exists('fees', $order)) {
             $fee = array(
-                'cost' => $this->safe_float($order, 'fees'),
+                'cost' => $this->safe_number($order, 'fees'),
                 'currency' => $market['quote'],
             );
         }
-        return array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -320,17 +328,20 @@ class exx extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $order['type'],
             'price' => $price,
+            'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
             'average' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -352,7 +363,6 @@ class exx extends Exchange {
             'type' => $side,
             'info' => $response,
         ), $market);
-        $this->orders[$id] = $order;
         return $order;
     }
 
@@ -380,12 +390,15 @@ class exx extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'currency' => $market['id'],
         );
         $response = $this->privateGetGetOpenOrders (array_merge($request, $params));
-        if (!gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
             return array();
         }
         return $this->parse_orders($response, $market, $since, $limit);

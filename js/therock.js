@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidAddress } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,16 +17,24 @@ module.exports = class therock extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchTickers': true,
-                'fetchMyTrades': true,
-                'fetchLedger': true,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
-                'fetchTransactions': 'emulated',
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchDeposits': true,
+                'fetchLedger': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTransactions': 'emulated',
+                'fetchWithdrawals': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -163,8 +172,8 @@ module.exports = class therock extends Exchange {
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
                 const symbol = base + '/' + quote;
-                const buy_fee = this.safeFloat (market, 'buy_fee');
-                const sell_fee = this.safeFloat (market, 'sell_fee');
+                const buy_fee = this.safeNumber (market, 'buy_fee');
+                const sell_fee = this.safeNumber (market, 'sell_fee');
                 let taker = Math.max (buy_fee, sell_fee);
                 taker = taker / 100;
                 const maker = taker;
@@ -185,11 +194,11 @@ module.exports = class therock extends Exchange {
                     },
                     'limits': {
                         'amount': {
-                            'min': this.safeFloat (market, 'minimum_quantity_offer'),
+                            'min': this.safeNumber (market, 'minimum_quantity_offer'),
                             'max': undefined,
                         },
                         'price': {
-                            'min': this.safeFloat (market, 'minimum_price_offer'),
+                            'min': this.safeNumber (market, 'minimum_price_offer'),
                             'max': undefined,
                         },
                         'cost': {
@@ -213,11 +222,11 @@ module.exports = class therock extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'trading_balance');
-            account['total'] = this.safeFloat (balance, 'balance');
+            account['free'] = this.safeString (balance, 'trading_balance');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -227,7 +236,7 @@ module.exports = class therock extends Exchange {
         };
         const orderbook = await this.publicGetFundsIdOrderbook (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (orderbook, 'date'));
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -236,27 +245,27 @@ module.exports = class therock extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': this.safeNumber (ticker, 'open'),
             'close': last,
             'last': last,
-            'previousClose': this.safeFloat (ticker, 'close'), // previous day close, if any
+            'previousClose': this.safeNumber (ticker, 'close'), // previous day close, if any
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume_traded'),
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeNumber (ticker, 'volume_traded'),
+            'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
         };
     }
@@ -269,12 +278,12 @@ module.exports = class therock extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const market = this.markets_by_id[id];
+            const market = this.safeMarket (id);
             const symbol = market['symbol'];
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -325,21 +334,17 @@ module.exports = class therock extends Exchange {
         //                         currency: "EUR",
         //                         trade_id:  440492                     }   ] }
         //
-        if (!market) {
-            market = this.markets_by_id[trade['fund_id']];
-        }
+        const marketId = this.safeString (trade, 'fund_id');
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (trade, 'date'));
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order_id');
         const side = this.safeString (trade, 'side');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let fee = undefined;
         let feeCost = undefined;
         const transactions = this.safeValue (trade, 'transactions', []);
@@ -349,17 +354,13 @@ module.exports = class therock extends Exchange {
             if (feeCost === undefined) {
                 feeCost = 0;
             }
-            feeCost = this.sum (feeCost, this.safeFloat (feeTransactions[i], 'price'));
+            feeCost = this.sum (feeCost, this.safeNumber (feeTransactions[i], 'price'));
         }
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
                 'currency': market['quote'],
             };
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
         }
         return {
             'info': trade,
@@ -508,7 +509,7 @@ module.exports = class therock extends Exchange {
         }
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeFloat (item, 'price');
+        const amount = this.safeNumber (item, 'price');
         const timestamp = this.parse8601 (this.safeString (item, 'date'));
         const status = 'ok';
         return {
@@ -740,7 +741,7 @@ module.exports = class therock extends Exchange {
         }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeFloat (transaction, 'price');
+        const amount = this.safeNumber (transaction, 'price');
         const timestamp = this.parse8601 (this.safeString (transaction, 'date'));
         const status = 'ok';
         // todo parse tags
@@ -909,25 +910,21 @@ module.exports = class therock extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'id');
-        let symbol = undefined;
         const marketId = this.safeString (order, 'fund_id');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.parse8601 (this.safeString (order, 'date'));
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
-        const amount = this.safeFloat (order, 'amount');
-        const remaining = this.safeFloat (order, 'amount_unfilled');
+        const amount = this.safeNumber (order, 'amount');
+        const remaining = this.safeNumber (order, 'amount_unfilled');
         let filled = undefined;
         if (amount !== undefined) {
             if (remaining !== undefined) {
                 filled = amount - remaining;
             }
         }
-        const price = this.safeFloat (order, 'price');
+        const price = this.safeNumber (order, 'price');
         let trades = this.safeValue (order, 'trades');
         let cost = undefined;
         let average = undefined;
@@ -954,6 +951,7 @@ module.exports = class therock extends Exchange {
                 cost = 0;
             }
         }
+        const stopPrice = this.safeNumber (order, 'conditional_price');
         return {
             'id': id,
             'clientOrderId': undefined,
@@ -964,8 +962,11 @@ module.exports = class therock extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -992,7 +993,7 @@ module.exports = class therock extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1037,7 +1038,7 @@ module.exports = class therock extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1076,7 +1077,7 @@ module.exports = class therock extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

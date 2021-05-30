@@ -19,12 +19,19 @@ class lykke extends Exchange {
             'has' => array(
                 'CORS' => false,
                 'fetchOHLCV' => false,
-                'fetchTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
+                'fetchTrades' => true,
                 'fetchMyTrades' => true,
+                'createOrder' => true,
+                'cancelOrder' => true,
+                'cancelAllOrders' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
             ),
             'timeframes' => array(
                 '1m' => 'Minute',
@@ -112,6 +119,10 @@ class lykke extends Exchange {
                         'Orders/stoplimit',
                         'Orders/bulk',
                     ),
+                    'delete' => array(
+                        'Orders',
+                        'Orders/{id}',
+                    ),
                 ),
             ),
             'fees' => array(
@@ -133,6 +144,7 @@ class lykke extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'CAN' => 'CanYaCoin',
                 'XPD' => 'Lykke XPD',
             ),
         ));
@@ -170,29 +182,21 @@ class lykke extends Exchange {
         //         Price => 9847.427,
         //         Fee => array( Amount => null, Type => 'Unknown', FeeAssetId => null )
         //     ),
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'AssetPairId');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($trade, 'AssetPairId');
+        $symbol = $this->safe_symbol($marketId, $market);
         $id = $this->safe_string_2($trade, 'id', 'Id');
         $orderId = $this->safe_string($trade, 'OrderId');
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'dateTime', 'DateTime'));
-        $price = $this->safe_float_2($trade, 'price', 'Price');
-        $amount = $this->safe_float_2($trade, 'volume', 'Amount');
+        $priceString = $this->safe_string_2($trade, 'price', 'Price');
+        $amountString = $this->safe_string_2($trade, 'volume', 'Amount');
         $side = $this->safe_string_lower($trade, 'action');
         if ($side === null) {
-            if ($amount < 0) {
-                $side = 'sell';
-            } else {
-                $side = 'buy';
-            }
+            $side = ($amountString[0] === '-') ? 'sell' : 'buy';
         }
-        $amount = abs($amount);
-        $cost = $price * $amount;
+        $amountString = Precise::string_abs($amountString);
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = array(
             'cost' => 0, // There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
             'currency' => $market['quote'],
@@ -253,15 +257,27 @@ class lykke extends Exchange {
             $currencyId = $this->safe_string($balance, 'AssetId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_float($balance, 'Balance');
-            $account['used'] = $this->safe_float($balance, 'Reserved');
+            $account['total'] = $this->safe_string($balance, 'Balance');
+            $account['used'] = $this->safe_string($balance, 'Reserved');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        return $this->privatePostOrdersIdCancel (array( 'id' => $id ));
+        $request = array( 'id' => $id );
+        return $this->privateDeleteOrdersId (array_merge($request, $params));
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['assetPairId'] = $market['id'];
+        }
+        return $this->privateDeleteOrders (array_merge($request, $params));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -271,17 +287,47 @@ class lykke extends Exchange {
             'AssetPairId' => $market['id'],
             'OrderAction' => $this->capitalize($side),
             'Volume' => $amount,
+            'Asset' => $market['baseId'],
         );
-        if ($type === 'market') {
-            $query['Asset'] = ($side === 'buy') ? $market['base'] : $market['quote'];
-        } else if ($type === 'limit') {
+        if ($type === 'limit') {
             $query['Price'] = $price;
         }
-        $method = 'privatePostOrders' . $this->capitalize($type);
+        $method = 'privatePostOrdersV2' . $this->capitalize($type);
         $result = $this->$method (array_merge($query, $params));
+        //
+        // $market
+        //
+        //     {
+        //         "Price" => 0
+        //     }
+        //
+        // limit
+        //
+        //     {
+        //         "Id":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        //     }
+        //
+        $id = $this->safe_string($result, 'Id');
+        $price = $this->safe_number($result, 'Price');
         return array(
-            'id' => null,
+            'id' => $id,
             'info' => $result,
+            'clientOrderId' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => null,
+            'average' => null,
+            'filled' => null,
+            'remaining' => null,
+            'status' => null,
+            'fee' => null,
+            'trades' => null,
         );
     }
 
@@ -314,9 +360,11 @@ class lykke extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $pricePrecision = $this->safe_string($market, 'Accuracy');
+            $priceLimit = $this->parse_precision($pricePrecision);
             $precision = array(
-                'amount' => $this->safe_integer($market, 'Accuracy'),
-                'price' => $this->safe_integer($market, 'InvertedAccuracy'),
+                'price' => intval($pricePrecision),
+                'amount' => $this->safe_integer($market, 'InvertedAccuracy'),
             );
             $result[] = array(
                 'id' => $id,
@@ -328,15 +376,15 @@ class lykke extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
-                        'max' => pow(10, $precision['amount']),
+                        'min' => $this->safe_number($market, 'MinVolume'),
+                        'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
-                        'max' => pow(10, $precision['price']),
+                        'min' => $this->parse_number($priceLimit),
+                        'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'MinInvertedVolume'),
                         'max' => null,
                     ),
                 ),
@@ -353,16 +401,16 @@ class lykke extends Exchange {
         if ($market) {
             $symbol = $market['symbol'];
         }
-        $close = $this->safe_float($ticker, 'lastPrice');
+        $close = $this->safe_number($ticker, 'lastPrice');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -373,7 +421,7 @@ class lykke extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, 'volume24H'),
+            'quoteVolume' => $this->safe_number($ticker, 'volume24H'),
             'info' => $ticker,
         );
     }
@@ -422,14 +470,8 @@ class lykke extends Exchange {
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'Status'));
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'AssetPairId');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'AssetPairId');
+        $symbol = $this->safe_symbol($marketId, $market);
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'LastMatchTime'));
         $timestamp = null;
         if ((is_array($order) && array_key_exists('Registered', $order)) && ($order['Registered'])) {
@@ -437,20 +479,18 @@ class lykke extends Exchange {
         } else if ((is_array($order) && array_key_exists('CreatedAt', $order)) && ($order['CreatedAt'])) {
             $timestamp = $this->parse8601($order['CreatedAt']);
         }
-        $price = $this->safe_float($order, 'Price');
+        $price = $this->safe_number($order, 'Price');
         $side = null;
-        $amount = $this->safe_float($order, 'Volume');
+        $amount = $this->safe_number($order, 'Volume');
         if ($amount < 0) {
             $side = 'sell';
             $amount = abs($amount);
         } else {
             $side = 'buy';
         }
-        $remaining = abs($this->safe_float($order, 'RemainingVolume'));
-        $filled = $amount - $remaining;
-        $cost = $filled * $price;
+        $remaining = abs($this->safe_number($order, 'RemainingVolume'));
         $id = $this->safe_string($order, 'Id');
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -459,17 +499,20 @@ class lykke extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => null,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'cost' => $cost,
+            'stopPrice' => null,
+            'cost' => null,
             'average' => null,
             'amount' => $amount,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -526,12 +569,12 @@ class lykke extends Exchange {
             $sideTimestamp = $this->parse8601($side['Timestamp']);
             $timestamp = ($timestamp === null) ? $sideTimestamp : max ($timestamp, $sideTimestamp);
         }
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'Price', 'Volume');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'Price', 'Volume');
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
-        $price = $this->safe_float($bidask, $priceKey);
-        $amount = $this->safe_float($bidask, $amountKey);
+        $price = $this->safe_number($bidask, $priceKey);
+        $amount = $this->safe_number($bidask, $amountKey);
         if ($amount < 0) {
             $amount = -$amount;
         }
@@ -550,7 +593,7 @@ class lykke extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         } else if ($api === 'private') {
-            if ($method === 'GET') {
+            if (($method === 'GET') || ($method === 'DELETE')) {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }

@@ -22,4 +22,7 @@ class bitkk(zb):
                 'doc': 'https://www.bitkk.com/i/developer',
                 'fees': 'https://www.bitkk.com/i/rate',
             },
+            'commonCurrencies': {
+                'BCH': 'BCHOLD',
+            },
         })

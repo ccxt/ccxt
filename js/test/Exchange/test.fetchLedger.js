@@ -16,13 +16,13 @@ module.exports = async (exchange, code) => {
 
     if (exchange.has.fetchLedger) {
 
-        let items = await exchange.fetchLedger (code)
+        const items = await exchange.fetchLedger (code)
 
         assert (items instanceof Array)
 
         log ('fetched', items.length.toString ().green, 'ledger items')
 
-        let now = Date.now ()
+        const now = Date.now ()
 
         for (let i = 0; i < items.length; i++) {
             testLedgerItem (exchange, items[i], code, now)
@@ -32,7 +32,7 @@ module.exports = async (exchange, code) => {
         }
 
         if (exchange.has.fetchLedgerItem) {
-            let { id } = items.pop ()
+            const { id } = items.pop ()
             let item = await exchange.fetchLedgerItem (id)
             if (Array.isArray (item)) {
                 item = item[0]

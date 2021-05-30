@@ -13,7 +13,11 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class bit2c(Exchange):
@@ -25,9 +29,15 @@ class bit2c(Exchange):
             'countries': ['IL'],  # Israel
             'rateLimit': 3000,
             'has': {
+                'cancelOrder': True,
                 'CORS': False,
-                'fetchOpenOrders': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchMyTrades': True,
+                'fetchOpenOrders': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
+                'fetchTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -90,11 +100,18 @@ class bit2c(Exchange):
                 },
             },
             'options': {
-                'fetchTradesMethod': 'public_get_exchanges_pair_lasttrades',
+                'fetchTradesMethod': 'public_get_exchanges_pair_trades',
             },
             'exceptions': {
-                # {"error" : "Please provide valid APIkey"}
-                # {"error" : "Please provide valid nonce in Request UInt64.TryParse failed for nonce :"}
+                'exact': {
+                    'Please provide valid APIkey': AuthenticationError,  # {"error" : "Please provide valid APIkey"}
+                },
+                'broad': {
+                    # {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
+                    # {"error": "Please provide valid nonce in Request UInt64.TryParse failed for nonce :"}
+                    'Please provide valid nonce': InvalidNonce,
+                    'please approve new terms of use on site': PermissionDenied,  # {"error" : "please approve new terms of use on site."}
+                },
             },
         })
 
@@ -143,7 +160,11 @@ class bit2c(Exchange):
         #         }
         #     }
         #
-        result = {'info': balance}
+        result = {
+            'info': balance,
+            'timestamp': None,
+            'datetime': None,
+        }
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
@@ -151,10 +172,10 @@ class bit2c(Exchange):
             currencyId = self.currency_id(code)
             uppercase = currencyId.upper()
             if uppercase in balance:
-                account['free'] = self.safe_float(balance, 'AVAILABLE_' + uppercase)
-                account['total'] = self.safe_float(balance, uppercase)
+                account['free'] = self.safe_string(balance, 'AVAILABLE_' + uppercase)
+                account['total'] = self.safe_string(balance, uppercase)
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -162,7 +183,7 @@ class bit2c(Exchange):
             'pair': self.market_id(symbol),
         }
         orderbook = self.publicGetExchangesPairOrderbook(self.extend(request, params))
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, symbol)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -171,21 +192,21 @@ class bit2c(Exchange):
         }
         ticker = self.publicGetExchangesPairTicker(self.extend(request, params))
         timestamp = self.milliseconds()
-        averagePrice = self.safe_float(ticker, 'av')
-        baseVolume = self.safe_float(ticker, 'a')
+        averagePrice = self.safe_number(ticker, 'av')
+        baseVolume = self.safe_number(ticker, 'a')
         quoteVolume = None
         if baseVolume is not None and averagePrice is not None:
             quoteVolume = baseVolume * averagePrice
-        last = self.safe_float(ticker, 'll')
+        last = self.safe_number(ticker, 'll')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_float(ticker, 'h'),
+            'bid': self.safe_number(ticker, 'h'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'l'),
+            'ask': self.safe_number(ticker, 'l'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -207,6 +228,10 @@ class bit2c(Exchange):
         request = {
             'pair': market['id'],
         }
+        if since is not None:
+            request['date'] = int(since)
+        if limit is not None:
+            request['limit'] = limit  # max 100000
         response = getattr(self, method)(self.extend(request, params))
         if isinstance(response, basestring):
             raise ExchangeError(response)
@@ -253,12 +278,8 @@ class bit2c(Exchange):
 
     def parse_order(self, order, market=None):
         timestamp = self.safe_integer(order, 'created')
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -269,7 +290,7 @@ class bit2c(Exchange):
             side = 'sell'
         id = self.safe_string(order, 'id')
         status = self.safe_string(order, 'status')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
@@ -278,17 +299,20 @@ class bit2c(Exchange):
             'status': status,
             'symbol': symbol,
             'type': None,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
             'filled': None,
             'remaining': None,
-            'cost': cost,
+            'cost': None,
             'trades': None,
             'fee': None,
             'info': order,
             'average': None,
-        }
+        })
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -309,16 +333,16 @@ class bit2c(Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = None
         id = None
-        price = None
-        amount = None
+        priceString = None
+        amountString = None
         orderId = None
         feeCost = None
         side = None
         reference = self.safe_string(trade, 'reference')
         if reference is not None:
             timestamp = self.safe_timestamp(trade, 'ticks')
-            price = self.safe_float(trade, 'price')
-            amount = self.safe_float(trade, 'firstAmount')
+            priceString = self.safe_string(trade, 'price')
+            amountString = self.safe_string(trade, 'firstAmount')
             reference_parts = reference.split('|')  # reference contains 'pair|orderId|tradeId'
             if market is None:
                 marketId = self.safe_string(trade, 'pair')
@@ -333,12 +357,12 @@ class bit2c(Exchange):
                 side = 'buy'
             elif side == 1:
                 side = 'sell'
-            feeCost = self.safe_float(trade, 'feeAmount')
+            feeCost = self.safe_number(trade, 'feeAmount')
         else:
             timestamp = self.safe_timestamp(trade, 'date')
             id = self.safe_string(trade, 'tid')
-            price = self.safe_float(trade, 'price')
-            amount = self.safe_float(trade, 'amount')
+            priceString = self.safe_string(trade, 'price')
+            amountString = self.safe_string(trade, 'amount')
             side = self.safe_value(trade, 'isBid')
             if side is not None:
                 if side:
@@ -348,6 +372,9 @@ class bit2c(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'info': trade,
             'id': id,
@@ -360,7 +387,7 @@ class bit2c(Exchange):
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': {
                 'cost': feeCost,
                 'currency': 'NIS',
@@ -388,6 +415,20 @@ class bit2c(Exchange):
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': self.apiKey,
-                'sign': self.decode(signature),
+                'sign': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return  # fallback to default error handler
+        #
+        #     {"error" : "please approve new terms of use on site."}
+        #     {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
+        #
+        error = self.safe_string(response, 'error')
+        if error is not None:
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
+            raise ExchangeError(feedback)  # unknown message

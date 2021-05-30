@@ -19,14 +19,17 @@ class bl3p extends Exchange {
             'comment' => 'An exchange market by BitonicNL',
             'has' => array(
                 'CORS' => false,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchOrderBook' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
                 'api' => 'https://api.bl3p.eu',
-                'www' => array(
-                    'https://bl3p.eu',
-                    'https://bitonic.nl',
-                ),
+                'www' => 'https://bl3p.eu', // 'https://bitonic.nl'
                 'doc' => array(
                     'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
                     'https://bl3p.eu/api',
@@ -80,18 +83,20 @@ class bl3p extends Exchange {
             $available = $this->safe_value($wallet, 'available', array());
             $balance = $this->safe_value($wallet, 'balance', array());
             $account = $this->account();
-            $account['free'] = $this->safe_float($available, 'value');
-            $account['total'] = $this->safe_float($balance, 'value');
+            $account['free'] = $this->safe_string($available, 'value');
+            $account['total'] = $this->safe_string($balance, 'value');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
-        return [
-            $bidask[$priceKey] / 100000.0,
-            $bidask[$amountKey] / 100000000.0,
-        ];
+        $price = $this->safe_number($bidask, $priceKey);
+        $size = $this->safe_number($bidask, $amountKey);
+        return array(
+            $price / 100000.0,
+            $size / 100000000.0,
+        );
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -101,7 +106,7 @@ class bl3p extends Exchange {
         );
         $response = $this->publicGetMarketOrderbook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'data');
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price_int', 'amount_int');
+        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -110,16 +115,16 @@ class bl3p extends Exchange {
         );
         $ticker = $this->publicGetMarketTicker (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $last = $this->safe_float($ticker, 'last');
+        $last = $this->safe_number($ticker, 'last');
         return array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -129,7 +134,7 @@ class bl3p extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker['volume'], '24h'),
+            'baseVolume' => $this->safe_number($ticker['volume'], '24h'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -138,20 +143,13 @@ class bl3p extends Exchange {
     public function parse_trade($trade, $market = null) {
         $id = $this->safe_string($trade, 'trade_id');
         $timestamp = $this->safe_integer($trade, 'date');
-        $price = $this->safe_float($trade, 'price_int');
-        if ($price !== null) {
-            $price /= 100000.0;
-        }
-        $amount = $this->safe_float($trade, 'amount_int');
-        if ($amount !== null) {
-            $amount /= 100000000.0;
-        }
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $amount * $price;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price_int');
+        $priceString = Precise::string_div($priceString, '100000');
+        $amountString = $this->safe_string($trade, 'amount_int');
+        $amountString = Precise::string_div($amountString, '100000000');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -186,12 +184,12 @@ class bl3p extends Exchange {
         $market = $this->market($symbol);
         $order = array(
             'market' => $market['id'],
-            'amount_int' => intval ($amount * 100000000),
+            'amount_int' => intval($amount * 100000000),
             'fee_currency' => $market['quote'],
             'type' => ($side === 'buy') ? 'bid' : 'ask',
         );
         if ($type === 'limit') {
-            $order['price_int'] = intval ($price * 100000.0);
+            $order['price_int'] = intval($price * 100000.0);
         }
         $response = $this->privatePostMarketMoneyOrderAdd (array_merge($order, $params));
         $orderId = $this->safe_string($response['data'], 'order_id');
@@ -227,7 +225,7 @@ class bl3p extends Exchange {
             $headers = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Rest-Key' => $this->apiKey,
-                'Rest-Sign' => $this->decode($signature),
+                'Rest-Sign' => $signature,
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

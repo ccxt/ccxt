@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, OrderNotFound, ArgumentsRequired, BadSymbol, BadRequest, NullResponse, InvalidOrder, BadResponse, NotSupported, ExchangeNotAvailable, RequestTimeout, RateLimitExceeded, PermissionDenied, InsufficientFunds, InvalidAddress } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,27 +18,32 @@ module.exports = class hbtc extends Exchange {
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
+                'cancelOrder': true,
                 'CORS': false,
-                'fetchTime': true,
+                'createOrder': true,
+                'fetchAccounts': true,
+                'fetchBalance': true,
                 'fetchBidAsk': true,
                 'fetchBidsAsks': true,
-                'fetchTickers': true,
-                'fetchTicker': true,
-                'fetchDepositAddress': false,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
-                'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchTradingLimits': true,
+                'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchDeposits': true,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'withdraw': true,
-                'fetchCurrencies': false,
-                'fetchDeposits': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
-                'fetchAccounts': true,
-                'fetchLedger': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -253,6 +259,9 @@ module.exports = class hbtc extends Exchange {
                     'method': 'quoteGetTicker24hr',
                 },
             },
+            'commonCurrencies': {
+                'MIS': 'Themis Protocol',
+            },
         });
     }
 
@@ -290,32 +299,41 @@ module.exports = class hbtc extends Exchange {
             spot = false;
             option = true;
         }
+        const margin = this.safeValue (market, 'allowMargin', undefined);
+        const isAggregate = this.safeValue (market, 'isAggregate', undefined);
+        let active = true;
+        if (isAggregate === true) {
+            active = false;
+        }
         let amountMin = undefined;
         let amountMax = undefined;
         let priceMin = undefined;
         let priceMax = undefined;
         let costMin = undefined;
+        let pricePrecision = undefined;
+        let amountPrecision = undefined;
         for (let j = 0; j < filters.length; j++) {
             const filter = filters[j];
             const filterType = this.safeString (filter, 'filterType');
             if (filterType === 'LOT_SIZE') {
-                amountMin = this.safeFloat (filter, 'minQty');
-                amountMax = this.safeFloat (filter, 'maxQty');
+                amountMin = this.safeNumber (filter, 'minQty');
+                amountMax = this.safeNumber (filter, 'maxQty');
+                amountPrecision = this.safeNumber (filter, 'stepSize');
             }
             if (filterType === 'PRICE_FILTER') {
-                priceMin = this.safeFloat (filter, 'minPrice');
-                priceMax = this.safeFloat (filter, 'maxPrice');
-            }
-            if (filterType === 'MIN_NOTIONAL') {
-                costMin = this.safeFloat (filter, 'minNotional');
+                priceMin = this.safeNumber (filter, 'minPrice');
+                priceMax = this.safeNumber (filter, 'maxPrice');
+                pricePrecision = this.safeNumber (filter, 'tickSize');
             }
         }
-        if ((costMin === undefined) && (amountMin !== undefined) && (priceMin !== undefined)) {
+        if ((amountMin !== undefined) && (priceMin !== undefined)) {
             costMin = amountMin * priceMin;
         }
         const precision = {
-            'price': this.safeFloat2 (market, 'quotePrecision', 'quoteAssetPrecision'),
-            'amount': this.safeFloat (market, 'baseAssetPrecision'),
+            'price': pricePrecision,
+            'amount': amountPrecision,
+            'base': this.safeNumber (market, 'baseAssetPrecision'),
+            'quote': this.safeNumber2 (market, 'quotePrecision', 'quoteAssetPrecision'),
         };
         const limits = {
             'amount': {
@@ -338,11 +356,12 @@ module.exports = class hbtc extends Exchange {
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
-            'active': true,
+            'active': active,
             'type': type,
             'spot': spot,
             'future': future,
             'option': option,
+            'margin': margin,
             'inverse': inverse,
             'precision': precision,
             'limits': limits,
@@ -362,18 +381,22 @@ module.exports = class hbtc extends Exchange {
         //                 "filters":[
         //                     {"minPrice":"0.01","maxPrice":"100000.00000000","tickSize":"0.01","filterType":"PRICE_FILTER"},
         //                     {"minQty":"0.0005","maxQty":"100000.00000000","stepSize":"0.000001","filterType":"LOT_SIZE"},
-        //                     {"minNotional":"5","filterType":"MIN_NOTIONAL"}
+        //                     {"minNotional":"0.01","filterType":"MIN_NOTIONAL"}
         //                 ],
         //                 "exchangeId":"301",
         //                 "symbol":"BTCUSDT",
         //                 "symbolName":"BTCUSDT",
         //                 "status":"TRADING",
         //                 "baseAsset":"BTC",
+        //                 "baseAssetName":"BTC",
         //                 "baseAssetPrecision":"0.000001",
         //                 "quoteAsset":"USDT",
+        //                 "quoteAssetName":"USDT",
         //                 "quotePrecision":"0.01",
-        //                 "icebergAllowed":false
-        //             },
+        //                 "icebergAllowed":false,
+        //                 "isAggregate":false,
+        //                 "allowMargin":true
+        //            },
         //         ],
         //         "options":[
         //             {
@@ -387,10 +410,14 @@ module.exports = class hbtc extends Exchange {
         //                 "symbolName":"BTC0501CS8500",
         //                 "status":"TRADING",
         //                 "baseAsset":"BTC0501CS8500",
+        //                 "baseAssetName":"BTC0306CS3800",
         //                 "baseAssetPrecision":"0.001",
         //                 "quoteAsset":"BUSDT",
+        //                 "quoteAssetName":"BUSDT",
         //                 "quotePrecision":"0.01",
         //                 "icebergAllowed":false
+        //                 "isAggregate":false,
+        //                 "allowMargin":false
         //             },
         //         ],
         //         "contracts":[
@@ -526,7 +553,7 @@ module.exports = class hbtc extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'time');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -551,14 +578,6 @@ module.exports = class hbtc extends Exchange {
         //     }
         //
         return this.parseTicker (response, market);
-    }
-
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     async fetchBidAsk (symbol, params = {}) {
@@ -705,15 +724,19 @@ module.exports = class hbtc extends Exchange {
         //     }
         //
         const balances = this.safeValue (response, 'balances');
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         if (balances !== undefined) {
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
                 const currencyId = this.safeString2 (balance, 'asset', 'tokenName');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                account['free'] = this.safeFloat (balance, 'free');
-                account['used'] = this.safeFloat (balance, 'locked');
+                account['free'] = this.safeString (balance, 'free');
+                account['used'] = this.safeString (balance, 'locked');
                 result[code] = account;
             }
         } else {
@@ -723,12 +746,12 @@ module.exports = class hbtc extends Exchange {
                 const code = this.safeCurrencyCode (currencyId);
                 const balance = response[currencyId];
                 const account = this.account ();
-                account['free'] = this.safeFloat (balance, 'availableMargin');
-                account['total'] = this.safeFloat (balance, 'total');
+                account['free'] = this.safeString (balance, 'availableMargin');
+                account['total'] = this.safeString (balance, 'total');
                 result[code] = account;
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance (result, false);
     }
 
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
@@ -769,11 +792,11 @@ module.exports = class hbtc extends Exchange {
         //
         return [
             this.safeInteger (ohlcv, 0),
-            this.safeFloat (ohlcv, 1),
-            this.safeFloat (ohlcv, 2),
-            this.safeFloat (ohlcv, 3),
-            this.safeFloat (ohlcv, 4),
-            this.safeFloat (ohlcv, 5),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -836,7 +859,7 @@ module.exports = class hbtc extends Exchange {
                 method = 'optionGetMyTrades';
             } else {
                 if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument for ' + type + ' markets');
+                    throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument for ' + type + ' markets');
                 }
                 const market = this.market (symbol);
                 request['symbol'] = market['id'];
@@ -1459,8 +1482,8 @@ module.exports = class hbtc extends Exchange {
         //
         const currencyId = this.safeString (item, 'tokenId');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const amount = this.safeFloat (item, 'change');
-        const after = this.safeFloat (item, 'total');
+        const amount = this.safeNumber (item, 'change');
+        const after = this.safeNumber (item, 'total');
         const direction = (amount < 0) ? 'out' : 'in';
         let before = undefined;
         if (after !== undefined && amount !== undefined) {
@@ -1600,8 +1623,8 @@ module.exports = class hbtc extends Exchange {
         } else {
             type = 'withdrawal';
         }
-        const amount = this.safeFloat (transaction, 'quantity');
-        const feeCost = this.safeFloat (transaction, 'fee');
+        const amount = this.safeNumber (transaction, 'quantity');
+        const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (transaction, 'feeTokenId');
@@ -1659,17 +1682,11 @@ module.exports = class hbtc extends Exchange {
         //         "askQty": "9.00000000"
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (ticker, 'time');
-        const open = this.safeFloat (ticker, 'openPrice');
-        const close = this.safeFloat (ticker, 'lastPrice');
+        const open = this.safeNumber (ticker, 'openPrice');
+        const close = this.safeNumber (ticker, 'lastPrice');
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
@@ -1680,22 +1697,19 @@ module.exports = class hbtc extends Exchange {
                 percentage = (change / open) * 100;
             }
         }
-        const quoteVolume = this.safeFloat (ticker, 'quoteVolume');
-        const baseVolume = this.safeFloat (ticker, 'volume');
-        let vwap = undefined;
-        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0) {
-            vwap = quoteVolume / baseVolume;
-        }
+        const quoteVolume = this.safeNumber (ticker, 'quoteVolume');
+        const baseVolume = this.safeNumber (ticker, 'volume');
+        const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'highPrice'),
-            'low': this.safeFloat (ticker, 'lowPrice'),
-            'bid': this.safeFloat2 (ticker, 'bestBidPrice', 'bidPrice'),
-            'bidVolume': this.safeFloat (ticker, 'bidQty'),
-            'ask': this.safeFloat2 (ticker, 'bestAskPrice', 'askPrice'),
-            'askVolume': this.safeFloat (ticker, 'askQty'),
+            'high': this.safeNumber (ticker, 'highPrice'),
+            'low': this.safeNumber (ticker, 'lowPrice'),
+            'bid': this.safeNumber2 (ticker, 'bestBidPrice', 'bidPrice'),
+            'bidVolume': this.safeNumber (ticker, 'bidQty'),
+            'ask': this.safeNumber2 (ticker, 'bestAskPrice', 'askPrice'),
+            'askVolume': this.safeNumber (ticker, 'askQty'),
             'vwap': vwap,
             'open': open,
             'close': close,
@@ -1745,17 +1759,14 @@ module.exports = class hbtc extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'id');
-        const timestamp = this.safeFloat (trade, 'time');
+        const timestamp = this.safeNumber (trade, 'time');
         const type = undefined;
         const orderId = this.safeString (trade, 'orderId');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'qty');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'qty');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let side = undefined;
         let takerOrMaker = undefined;
         if ('isBuyerMaker' in trade) {
@@ -1769,7 +1780,7 @@ module.exports = class hbtc extends Exchange {
             side = isBuyer ? 'buy' : 'sell';
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'commission');
+        const feeCost = this.safeNumber (trade, 'commission');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commissionAsset');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1871,42 +1882,34 @@ module.exports = class hbtc extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.safeInteger (order, 'transactTime');
         }
-        let symbol = undefined;
-        if (market === undefined) {
-            let marketId = this.safeString (order, 'symbol');
-            if (marketId !== undefined) {
-                marketId = marketId.toUpperCase ();
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                }
-            }
-        }
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
-        let price = this.safeFloat (order, 'price');
-        let average = this.safeFloat (order, 'avgPrice');
+        let price = this.safeNumber (order, 'price');
+        let average = this.safeNumber (order, 'avgPrice');
         let amount = undefined;
-        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
+        let cost = this.safeNumber (order, 'cummulativeQuoteQty');
         let filled = undefined;
         let remaining = undefined;
         if (type === undefined) {
             type = this.safeStringLower (order, 'orderType');
             if ((market !== undefined) && market['inverse']) {
-                cost = this.safeFloat (order, 'executedQty');
+                cost = this.safeNumber (order, 'executedQty');
                 amount = undefined;
             }
             if (cost === 0.0) {
                 filled = 0;
             }
         } else {
-            amount = this.safeFloat (order, 'origQty');
+            amount = this.safeNumber (order, 'origQty');
             if (type === 'market') {
                 price = undefined;
                 if (side === 'buy') {
                     amount = undefined;
                 }
             }
-            filled = this.safeFloat (order, 'executedQty');
+            filled = this.safeNumber (order, 'executedQty');
             if (filled !== undefined) {
                 if (amount !== undefined) {
                     remaining = amount - filled;
@@ -1917,9 +1920,8 @@ module.exports = class hbtc extends Exchange {
             average = undefined;
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const stopPrice = this.safeNumber (order, 'stopPrice');
         const result = {
             'info': order,
             'id': id,
@@ -1929,8 +1931,10 @@ module.exports = class hbtc extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': timeInForce,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -1946,7 +1950,7 @@ module.exports = class hbtc extends Exchange {
         if (numFees > 0) {
             result['fees'] = [];
             for (let i = 0; i < fees.length; i++) {
-                const feeCost = this.safeFloat (fees[i], 'fee');
+                const feeCost = this.safeNumber (fees[i], 'fee');
                 if (feeCost !== undefined) {
                     const feeCurrencyId = this.safeString (fees[i], 'feeToken');
                     const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1965,6 +1969,7 @@ module.exports = class hbtc extends Exchange {
             'NEW': 'open',
             'CANCELED': 'canceled',
             'FILLED': 'closed',
+            'PARTIALLY_FILLED': 'open',
             'PENDING_CANCEL': 'canceled',
         };
         return this.safeString (statuses, status, status);

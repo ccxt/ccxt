@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -15,6 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class timex(Exchange):
@@ -27,16 +27,23 @@ class timex(Exchange):
             'version': 'v1',
             'rateLimit': 1500,
             'has': {
-                'CORS': False,
+                'cancelOrder': True,
                 'cancelOrders': True,
+                'CORS': False,
+                'createOrder': True,
                 'editOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTrades': True,
                 'fetchTradingFee': True,  # maker fee only
             },
             'timeframes': {
@@ -353,7 +360,7 @@ class timex(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(response, 'timestamp'))
-        return self.parse_order_book(response, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount')
+        return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount')
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -427,7 +434,7 @@ class timex(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.tradingGetBalances(params)
+        response = self.tradingGetBalances(params)
         #
         #     [
         #         {"currency":"BTC","totalBalance":"0","lockedBalance":"0"},
@@ -437,30 +444,37 @@ class timex(Exchange):
         #         {"currency":"USDT","totalBalance":"0","lockedBalance":"0"}
         #     ]
         #
-        result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        for i in range(0, len(response)):
+            balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['total'] = self.safe_float(balance, 'totalBalance')
-            account['used'] = self.safe_float(balance, 'lockedBalance')
+            account['total'] = self.safe_string(balance, 'totalBalance')
+            account['used'] = self.safe_string(balance, 'lockedBalance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(result, False)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
+        uppercaseSide = side.upper()
+        uppercaseType = type.upper()
         request = {
             'symbol': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
-            'side': side.upper(),
+            'side': uppercaseSide,
+            'orderTypes': uppercaseType,
             # 'clientOrderId': '123',
             # 'expireIn': 1575523308,  # in seconds
             # 'expireTime': 1575523308,  # unix timestamp
         }
         query = params
-        if type == 'limit':
+        if uppercaseType == 'LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
             defaultExpireIn = self.safe_integer(self.options, 'expireIn')
             expireTime = self.safe_value(params, 'expireTime')
@@ -470,7 +484,7 @@ class timex(Exchange):
             elif expireIn is not None:
                 request['expireIn'] = expireIn
             else:
-                raise InvalidOrder(self.id + ' createOrder method requires a expireTime or expireIn param for a ' + type + ' order, you can also set the expireIn exchange-wide option')
+                raise InvalidOrder(self.id + ' createOrder() method requires a expireTime or expireIn param for a ' + type + ' order, you can also set the expireIn exchange-wide option')
             query = self.omit(params, ['expireTime', 'expireIn'])
         else:
             request['price'] = 0
@@ -782,7 +796,7 @@ class timex(Exchange):
         result = self.safe_value(response, 0, {})
         return {
             'info': response,
-            'maker': self.safe_float(result, 'fee'),
+            'maker': self.safe_number(result, 'fee'),
             'taker': None,
         }
 
@@ -818,18 +832,18 @@ class timex(Exchange):
             'amount': self.precision_from_string(self.safe_string(market, 'quantityIncrement')),
             'price': self.precision_from_string(self.safe_string(market, 'tickSize')),
         }
-        amountIncrement = self.safe_float(market, 'quantityIncrement')
-        minBase = self.safe_float(market, 'baseMinSize')
+        amountIncrement = self.safe_number(market, 'quantityIncrement')
+        minBase = self.safe_number(market, 'baseMinSize')
         minAmount = max(amountIncrement, minBase)
-        priceIncrement = self.safe_float(market, 'tickSize')
-        minCost = self.safe_float(market, 'quoteMinSize')
+        priceIncrement = self.safe_number(market, 'tickSize')
+        minCost = self.safe_number(market, 'quoteMinSize')
         limits = {
             'amount': {'min': minAmount, 'max': None},
             'price': {'min': priceIncrement, 'max': None},
             'cost': {'min': max(minCost, minAmount * priceIncrement), 'max': None},
         }
-        taker = self.safe_float(market, 'takerFee')
-        maker = self.safe_float(market, 'makerFee')
+        taker = self.safe_number(market, 'takerFee')
+        maker = self.safe_number(market, 'makerFee')
         return {
             'id': id,
             'symbol': symbol,
@@ -889,7 +903,7 @@ class timex(Exchange):
         name = self.safe_string(currency, 'name')
         precision = self.safe_integer(currency, 'decimals')
         active = self.safe_value(currency, 'active')
-        # fee = self.safe_float(currency, 'withdrawalFee')
+        # fee = self.safe_number(currency, 'withdrawalFee')
         feeString = self.safe_string(currency, 'withdrawalFee')
         tradeDecimals = self.safe_integer(currency, 'tradeDecimals')
         fee = None
@@ -917,16 +931,8 @@ class timex(Exchange):
             'limits': {
                 'withdraw': {'min': fee, 'max': None},
                 'amount': {'min': None, 'max': None},
-                'price': {'min': None, 'max': None},
-                'cost': {'min': None, 'max': None},
             },
         }
-
-    def parse_tickers(self, rawTickers, symbols=None):
-        tickers = []
-        for i in range(0, len(rawTickers)):
-            tickers.append(self.parse_ticker(rawTickers[i]))
-        return self.filter_by_array(tickers, 'symbol', symbols)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -944,22 +950,11 @@ class timex(Exchange):
         #         "volumeQuote": 0.07312
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'market')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('/')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market, '/')
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        last = self.safe_float(ticker, 'last')
-        open = self.safe_float(ticker, 'open')
+        last = self.safe_number(ticker, 'last')
+        open = self.safe_number(ticker, 'open')
         change = None
         average = None
         if last is not None and open is not None:
@@ -973,11 +968,11 @@ class timex(Exchange):
             'info': ticker,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -987,8 +982,8 @@ class timex(Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'volumeQuote'),
+            'baseVolume': self.safe_number(ticker, 'volume'),
+            'quoteVolume': self.safe_number(ticker, 'volumeQuote'),
         }
 
     def parse_trade(self, trade, market=None):
@@ -1006,28 +1001,27 @@ class timex(Exchange):
         # fetchMyTrades, fetchOrder(private)
         #
         #     {
-        #         "fee": "0.3",
-        #         "id": 100,
-        #         "makerOrTaker": "MAKER",
-        #         "makerOrderId": "string",
-        #         "price": "0.017",
-        #         "quantity": "0.3",
+        #         "id": "7613414",
+        #         "makerOrderId": "0x8420af060722f560098f786a2894d4358079b6ea5d14b395969ed77bc87a623a",
+        #         "takerOrderId": "0x1235ef158a361815b54c9988b6241c85aedcbc1fe81caf8df8587d5ab0373d1a",
+        #         "symbol": "LTCUSDT",
         #         "side": "BUY",
-        #         "symbol": "TIMEETH",
-        #         "takerOrderId": "string",
-        #         "timestamp": "2019-12-08T04:54:11.171Z"
-        #     }
+        #         "quantity": "0.2",
+        #         "fee": "0.22685",
+        #         "feeToken": "USDT",
+        #         "price": "226.85",
+        #         "makerOrTaker": "TAKER",
+        #         "timestamp": "2021-04-09T15:39:45.608"
+        #    }
         #
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'quantity')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'quantity')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
+        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         id = self.safe_string(trade, 'id')
         side = self.safe_string_lower_2(trade, 'direction', 'side')
         takerOrMaker = self.safe_string_lower(trade, 'makerOrTaker')
@@ -1035,16 +1029,13 @@ class timex(Exchange):
         if takerOrMaker is not None:
             orderId = self.safe_string(trade, takerOrMaker + 'OrderId')
         fee = None
-        feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_number(trade, 'fee')
+        feeCurrency = self.safe_currency_code(self.safe_string(trade, 'feeToken'))
         if feeCost is not None:
-            feeCurrency = None if (market is None) else market['quote']
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = self.cost_to_precision(symbol, amount * price)
         return {
             'info': trade,
             'id': id,
@@ -1075,11 +1066,11 @@ class timex(Exchange):
         #
         return [
             self.parse8601(self.safe_string(ohlcv, 'timestamp')),
-            self.safe_float(ohlcv, 'open'),
-            self.safe_float(ohlcv, 'high'),
-            self.safe_float(ohlcv, 'low'),
-            self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     def parse_order(self, order, market=None):
@@ -1106,62 +1097,50 @@ class timex(Exchange):
         id = self.safe_string(order, 'id')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        symbol = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(order, 'createdAt'))
-        price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'quantity')
-        filled = self.safe_float(order, 'filledQuantity')
-        canceledQuantity = self.safe_float(order, 'cancelledQuantity')
-        remaining = None
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'quantity')
+        filled = self.safe_number(order, 'filledQuantity')
+        canceledQuantity = self.safe_number(order, 'cancelledQuantity')
         status = None
         if (amount is not None) and (filled is not None):
-            remaining = max(amount - filled, 0.0)
             if filled >= amount:
                 status = 'closed'
             elif (canceledQuantity is not None) and (canceledQuantity > 0):
                 status = 'canceled'
             else:
                 status = 'open'
-        cost = float(self.cost_to_precision(symbol, price * filled))
-        fee = None
-        lastTradeTimestamp = None
-        trades = None
-        rawTrades = self.safe_value(order, 'trades')
-        if rawTrades is not None:
-            trades = self.parse_trades(rawTrades, market, None, None, {
-                'order': id,
-            })
-        if trades is not None:
-            numTrades = len(trades)
-            if numTrades > 0:
-                lastTradeTimestamp = trades[numTrades - 1]['timestamp']
+        rawTrades = self.safe_value(order, 'trades', [])
+        trades = self.parse_trades(rawTrades, market, None, None, {
+            'order': id,
+            'type': type,
+        })
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        return {
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'average': None,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
-            'fee': fee,
+            'fee': None,
             'trades': trades,
-        }
+        })
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + api + '/' + path
@@ -1169,7 +1148,7 @@ class timex(Exchange):
             url += '?' + self.urlencode_with_array_repeat(params)
         if api != 'public':
             self.check_required_credentials()
-            auth = base64.b64encode(self.encode(self.apiKey + ':' + self.secret))
+            auth = self.string_to_base64(self.apiKey + ':' + self.secret)
             secret = 'Basic ' + self.decode(auth)
             headers = {'authorization': secret}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

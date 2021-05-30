@@ -16,11 +16,18 @@ class coinegg extends Exchange {
             'name' => 'CoinEgg',
             'countries' => array( 'CN', 'UK' ),
             'has' => array(
-                'fetchOrder' => true,
-                'fetchOrders' => true,
-                'fetchOpenOrders' => 'emulated',
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchMarkets' => true,
                 'fetchMyTrades' => false,
+                'fetchOpenOrders' => 'emulated',
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchTicker' => true,
                 'fetchTickers' => false,
+                'fetchTrades' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
@@ -149,6 +156,7 @@ class coinegg extends Exchange {
             ),
             'commonCurrencies' => array(
                 'JBC' => 'JubaoCoin',
+                'SBTC' => 'Super Bitcoin',
             ),
         ));
     }
@@ -208,8 +216,8 @@ class coinegg extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $this->milliseconds();
-        $last = $this->safe_float($ticker, 'last');
-        $percentage = $this->safe_float($ticker, 'change');
+        $last = $this->safe_number($ticker, 'last');
+        $percentage = $this->safe_number($ticker, 'change');
         $open = null;
         $change = null;
         $average = null;
@@ -223,11 +231,11 @@ class coinegg extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker, 'buy'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell'),
+            'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -237,8 +245,8 @@ class coinegg extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
-            'quoteVolume' => $this->safe_float($ticker, 'quoteVol'),
+            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'quoteVolume' => $this->safe_number($ticker, 'quoteVol'),
             'info' => $ticker,
         );
     }
@@ -262,20 +270,17 @@ class coinegg extends Exchange {
             'quote' => $market['quoteId'],
         );
         $response = $this->publicGetDepthRegionQuote (array_merge($request, $params));
-        return $this->parse_order_book($response);
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'date');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
+        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $symbol = $market['symbol'];
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $this->cost_to_precision($symbol, $price * $amount);
-            }
-        }
         $type = 'limit';
         $side = $this->safe_string($trade, 'type');
         $id = $this->safe_string($trade, 'tid');
@@ -322,9 +327,9 @@ class coinegg extends Exchange {
                 $result[$code] = $this->account();
             }
             $type = ($accountType === 'lock') ? 'used' : 'free';
-            $result[$code][$type] = $this->safe_float($balances, $key);
+            $result[$code][$type] = $this->safe_string($balances, $key);
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function parse_order($order, $market = null) {
@@ -333,15 +338,9 @@ class coinegg extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'datetime'));
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount_original');
-        $remaining = $this->safe_float($order, 'amount_outstanding');
-        $filled = null;
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                $filled = $amount - $remaining;
-            }
-        }
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'amount_original');
+        $remaining = $this->safe_number($order, 'amount_outstanding');
         $status = $this->safe_string($order, 'status');
         if ($status === 'cancelled') {
             $status = 'canceled';
@@ -352,7 +351,7 @@ class coinegg extends Exchange {
         $type = 'limit';
         $side = $this->safe_string($order, 'type');
         $id = $this->safe_string($order, 'id');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -361,17 +360,20 @@ class coinegg extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => null,
             'cost' => null,
             'amount' => $amount,
-            'filled' => $filled,
+            'filled' => null,
             'remaining' => $remaining,
             'trades' => null,
             'fee' => null,
             'info' => $info,
             'average' => null,
-        );
+        ));
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -395,7 +397,6 @@ class coinegg extends Exchange {
             'type' => $side,
             'info' => $response,
         ), $market);
-        $this->orders[$id] = $order;
         return $order;
     }
 
@@ -419,7 +420,8 @@ class coinegg extends Exchange {
             'quote' => $market['quoteId'],
         );
         $response = $this->privatePostTradeViewRegionQuote (array_merge($request, $params));
-        return $this->parse_order($response['data'], $market);
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_order($data, $market);
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -433,7 +435,8 @@ class coinegg extends Exchange {
             $request['since'] = $since / 1000;
         }
         $response = $this->privatePostTradeListRegionQuote (array_merge($request, $params));
-        return $this->parse_orders($response['data'], $market, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

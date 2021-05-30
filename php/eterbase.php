@@ -19,7 +19,6 @@ class eterbase extends Exchange {
             'countries' => array( 'SK' ), // Slovakia
             'rateLimit' => 500,
             'version' => 'v1',
-            'certified' => true,
             'has' => array(
                 'CORS' => false,
                 'publicAPI' => true,
@@ -115,6 +114,7 @@ class eterbase extends Exchange {
                 'secret' => true,
                 'uid' => true,
             ),
+            'precisionMode' => SIGNIFICANT_DIGITS,
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
             ),
@@ -122,6 +122,7 @@ class eterbase extends Exchange {
                 'exact' => array(
                     'Invalid cost' => '\\ccxt\\InvalidOrder', // array("message":"Invalid cost","_links":array("self":array("href":"/orders","templated":false)))
                     'Invalid order ID' => '\\ccxt\\InvalidOrder', // array("message":"Invalid order ID","_links":array("self":array("href":"/orders/4a151805-d594-4a96-9d64-e3984f2441f7","templated":false)))
+                    'Invalid market !' => '\\ccxt\\BadSymbol', // array("message":"Invalid market !","_links":array("self":array("href":"/markets/300/order-book","templated":false)))
                 ),
                 'broad' => array(
                     'Failed to convert argument' => '\\ccxt\\BadRequest',
@@ -218,7 +219,7 @@ class eterbase extends Exchange {
             $rule = $rules[$i];
             $attribute = $this->safe_string($rule, 'attribute');
             $condition = $this->safe_string($rule, 'condition');
-            $value = $this->safe_float($rule, 'value');
+            $value = $this->safe_number($rule, 'value');
             if (($attribute === 'Qty') && ($condition === 'Min')) {
                 $minAmount = $value;
             } else if (($attribute === 'Qty') && ($condition === 'Max')) {
@@ -308,24 +309,16 @@ class eterbase extends Exchange {
                 'type' => $type,
                 'name' => $name,
                 'active' => $active,
-                'fee' => $this->safe_float($currency, 'withdrawalFee'),
+                'fee' => $this->safe_number($currency, 'withdrawalFee'),
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
                         'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
-                    'price' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
-                        'min' => $this->safe_float($currency, 'withdrawalMin'),
-                        'max' => $this->safe_float($currency, 'withdrawalMax'),
+                        'min' => $this->safe_number($currency, 'withdrawalMin'),
+                        'max' => $this->safe_number($currency, 'withdrawalMax'),
                     ),
                 ),
             );
@@ -350,28 +343,19 @@ class eterbase extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'marketId');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        $symbol = null;
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($ticker, 'time');
-        $last = $this->safe_float($ticker, 'price');
-        $baseVolume = $this->safe_float($ticker, 'volumeBase');
-        $quoteVolume = $this->safe_float($ticker, 'volume');
-        $vwap = null;
-        if (($quoteVolume !== null) && ($baseVolume !== null) && $baseVolume) {
-            $vwap = $quoteVolume / $baseVolume;
-        }
-        $percentage = $this->safe_float($ticker, 'change');
+        $last = $this->safe_number($ticker, 'price');
+        $baseVolume = $this->safe_number($ticker, 'volumeBase');
+        $quoteVolume = $this->safe_number($ticker, 'volume');
+        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $percentage = $this->safe_number($ticker, 'change');
         $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -411,14 +395,6 @@ class eterbase extends Exchange {
         //     }
         //
         return $this->parse_ticker($response, $market);
-    }
-
-    public function parse_tickers($tickers, $symbols = null) {
-        $result = array();
-        for ($i = 0; $i < count($tickers); $i++) {
-            $result[] = $this->parse_ticker($tickers[$i]);
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -475,10 +451,12 @@ class eterbase extends Exchange {
         //         "filledAt" => 1556355722341
         //     }
         //
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'qty');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'qty');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeAsset');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
@@ -487,9 +465,9 @@ class eterbase extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        $cost = $this->safe_float($trade, 'qty');
-        if (($cost === null) && ($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
+        $cost = $this->safe_number($trade, 'qty');
+        if ($cost === null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $timestamp = $this->safe_integer_2($trade, 'executedAt', 'filledAt');
         $tradeSide = $this->safe_string($trade, 'side');
@@ -501,14 +479,8 @@ class eterbase extends Exchange {
         }
         $orderId = $this->safe_string($trade, 'orderId');
         $id = $this->safe_string($trade, 'id');
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'marketId');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         return array(
             'info' => $trade,
             'id' => $id,
@@ -577,7 +549,7 @@ class eterbase extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -593,11 +565,11 @@ class eterbase extends Exchange {
         //
         return array(
             $this->safe_integer($ohlcv, 'time'),
-            $this->safe_float($ohlcv, 'open'),
-            $this->safe_float($ohlcv, 'high'),
-            $this->safe_float($ohlcv, 'low'),
-            $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volume'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
         );
     }
 
@@ -621,7 +593,7 @@ class eterbase extends Exchange {
             $request['start'] = $now - $duration * $limit * 1000;
             $request['end'] = $now;
         } else {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument, or a $limit argument, or both');
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument, or a $limit argument, or both');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -660,14 +632,13 @@ class eterbase extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'assetId');
             $code = $this->safe_currency_code($currencyId);
-            $account = array(
-                'free' => $this->safe_float($balance, 'available'),
-                'used' => $this->safe_float($balance, 'reserved'),
-                'total' => $this->safe_float($balance, 'balance'),
-            );
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'available');
+            $account['used'] = $this->safe_string($balance, 'reserved');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance($result, false);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -731,9 +702,9 @@ class eterbase extends Exchange {
         //         "remainingQty" => "1.23456",
         //         "$remainingCost" => "1.23456",
         //         "limitPrice" => "1.23456",
-        //         "stopPrice" => "1.23456",
-        //         "postOnly" => false,
-        //         "timeInForce" => "GTC",
+        //         "$stopPrice" => "1.23456",
+        //         "$postOnly" => false,
+        //         "$timeInForce" => "GTC",
         //         "state" => 1,
         //         "closeReason" => "FILLED",
         //         "placedAt" => 1556355722341,
@@ -751,8 +722,8 @@ class eterbase extends Exchange {
         //         "$type":1,
         //         "$side":1,
         //         "$cost":"25",
-        //         "postOnly":false,
-        //         "timeInForce":"GTC",
+        //         "$postOnly":false,
+        //         "$timeInForce":"GTC",
         //         "state":1,
         //         "placedAt":1589510846735
         //     }
@@ -767,8 +738,8 @@ class eterbase extends Exchange {
         //         "$side":1,
         //         "qty":"1000",
         //         "limitPrice":"100",
-        //         "postOnly":false,
-        //         "timeInForce":"GTC",
+        //         "$postOnly":false,
+        //         "$timeInForce":"GTC",
         //         "state":1,
         //         "placedAt":1589403938682,
         //     }
@@ -776,13 +747,7 @@ class eterbase extends Exchange {
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->safe_integer($order, 'placedAt');
         $marketId = $this->safe_integer($order, 'marketId');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         if ($status === 'closed') {
             $status = $this->parse_order_status($this->safe_string($order, 'closeReason'));
@@ -800,18 +765,18 @@ class eterbase extends Exchange {
         } else {
             $type = 'stoplimit';
         }
-        $price = $this->safe_float($order, 'limitPrice');
-        $amount = $this->safe_float($order, 'qty');
-        $remaining = $this->safe_float($order, 'remainingQty');
+        $price = $this->safe_number($order, 'limitPrice');
+        $amount = $this->safe_number($order, 'qty');
+        $remaining = $this->safe_number($order, 'remainingQty');
         $filled = null;
-        $remainingCost = $this->safe_float($order, 'remainingCost');
+        $remainingCost = $this->safe_number($order, 'remainingCost');
         if (($remainingCost !== null) && ($remainingCost === 0.0)) {
             $remaining = 0;
         }
         if (($amount !== null) && ($remaining !== null)) {
             $filled = max (0, $amount - $remaining);
         }
-        $cost = $this->safe_float($order, 'cost');
+        $cost = $this->safe_number($order, 'cost');
         if ($type === 'market') {
             if ($price === 0.0) {
                 if (($cost !== null) && ($filled !== null)) {
@@ -827,6 +792,9 @@ class eterbase extends Exchange {
                 $average = $cost / $filled;
             }
         }
+        $timeInForce = $this->safe_string($order, 'timeInForce');
+        $stopPrice = $this->safe_number($order, 'stopPrice');
+        $postOnly = $this->safe_value($order, 'postOnly');
         return array(
             'info' => $order,
             'id' => $id,
@@ -836,8 +804,11 @@ class eterbase extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -995,7 +966,7 @@ class eterbase extends Exchange {
         }
         if (($uppercaseType === 'MARKET') && ($uppercaseSide === 'BUY')) {
             // for $market buy it requires the $amount of quote currency to spend
-            $cost = $this->safe_float($params, 'cost');
+            $cost = $this->safe_number($params, 'cost');
             if ($this->options['createMarketBuyOrderRequiresPrice']) {
                 if ($cost === null) {
                     if ($price !== null) {
@@ -1127,8 +1098,7 @@ class eterbase extends Exchange {
                 $message .= "\ndigest" . ':' . ' ' . $digest;  // eslint-disable-line quotes
                 $headersCSV .= ' ' . 'digest';
             }
-            $signature64 = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256', 'base64');
-            $signature = $this->decode($signature64);
+            $signature = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256', 'base64');
             $authorizationHeader = 'hmac username="' . $this->apiKey . '",algorithm="hmac-sha256",headers="' . $headersCSV . '",' . 'signature="' . $signature . '"';
             $httpHeaders = array(
                 'Date' => $date,
