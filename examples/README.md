@@ -135,6 +135,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [CCXTが便利な理由！CCXTライブラリをインストールしよう](https://ryota-trade.com/?p=476) – An article in Japanese on getting CCXT up and runining.
 
+[暗号通貨自動売買 RSI CCXTとpythonで自動売買 プログラミング bitget](https://www.youtube.com/watch?v=BAqnx-XkA_8) – Automatic cryptocurrency trading with CCXT and Python
+
 [Bitflyerや各取引所の個別APIをCCXTライブラリ経由で直接利用する方法](https://ryota-trade.com/?p=629) – How to use Bitflyer and individual API of each exchange directly via the CCXT library.
 
 [CCXTライブラリでBitflyerに注文を出す方法をマスターする](https://ryota-trade.com/?p=662) – Master placing orders on Bitflyer with the CCXT library.
