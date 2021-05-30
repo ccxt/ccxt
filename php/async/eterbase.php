@@ -20,7 +20,6 @@ class eterbase extends Exchange {
             'countries' => array( 'SK' ), // Slovakia
             'rateLimit' => 500,
             'version' => 'v1',
-            'certified' => true,
             'has' => array(
                 'CORS' => false,
                 'publicAPI' => true,

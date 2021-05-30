@@ -25,7 +25,6 @@ class eterbase(Exchange):
             'countries': ['SK'],  # Slovakia
             'rateLimit': 500,
             'version': 'v1',
-            'certified': True,
             'has': {
                 'CORS': False,
                 'publicAPI': True,
