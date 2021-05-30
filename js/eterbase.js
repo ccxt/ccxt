@@ -17,7 +17,6 @@ module.exports = class eterbase extends Exchange {
             'countries': [ 'SK' ], // Slovakia
             'rateLimit': 500,
             'version': 'v1',
-            'certified': true,
             'has': {
                 'CORS': false,
                 'publicAPI': true,
