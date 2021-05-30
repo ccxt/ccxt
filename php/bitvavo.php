@@ -458,7 +458,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //
         //     {
         //         $event => 'order',
-        //         $orderId => 'f0e5180f-9497-4d05-9dc2-7056e8a2de9b',
+        //         orderId => 'f0e5180f-9497-4d05-9dc2-7056e8a2de9b',
         //         $market => 'ETH-EUR',
         //         created => 1590948500319,
         //         updated => 1590948500319,
@@ -478,39 +478,19 @@ class bitvavo extends \ccxt\async\bitvavo {
         //
         $name = 'account';
         $event = $this->safe_string($message, 'event');
-        $marketId = $this->safe_string($message, 'market');
+        $marketId = $this->safe_string($message, 'market', '-');
         $messageHash = $name . '@' . $marketId . '_' . $event;
-        $symbol = $marketId;
-        $market = null;
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
-        $order = $this->parse_order($message, $market);
-        $orderId = $order['id'];
-        $defaultKey = $this->safe_value($this->orders, $symbol, array());
-        $defaultKey[$orderId] = $order;
-        $this->orders[$symbol] = $defaultKey;
-        $result = array();
-        $values = is_array($this->orders) ? array_values($this->orders) : array();
-        for ($i = 0; $i < count($values); $i++) {
-            $orders = is_array($values[$i]) ? array_values($values[$i]) : array();
-            $result = $this->array_concat($result, $orders);
-        }
-        // delete older $orders from our structure to prevent memory leaks
-        $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-        $result = $this->sort_by($result, 'timestamp');
-        $resultLength = is_array($result) ? count($result) : 0;
-        if ($resultLength > $limit) {
-            $toDelete = $resultLength - $limit;
-            for ($i = 0; $i < $toDelete; $i++) {
-                $id = $result[$i]['id'];
-                $symbol = $result[$i]['symbol'];
-                unset($this->orders[$symbol][$id]);
+            $order = $this->parse_order($message, $market);
+            if ($this->orders === null) {
+                $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+                $this->orders = new ArrayCacheBySymbolById ($limit);
             }
-            $result = mb_substr($result, $toDelete, $resultLength - $toDelete);
+            $orders = $this->orders;
+            $orders->append ($order);
+            $client->resolve ($this->orders, $messageHash);
         }
-        $client->resolve ($result, $messageHash);
     }
 
     public function handle_my_trade($client, $message) {

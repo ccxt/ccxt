@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 
@@ -435,35 +435,17 @@ class bitvavo(Exchange, ccxt.bitvavo):
         #
         name = 'account'
         event = self.safe_string(message, 'event')
-        marketId = self.safe_string(message, 'market')
+        marketId = self.safe_string(message, 'market', '-')
         messageHash = name + '@' + marketId + '_' + event
-        symbol = marketId
-        market = None
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        order = self.parse_order(message, market)
-        orderId = order['id']
-        defaultKey = self.safe_value(self.orders, symbol, {})
-        defaultKey[orderId] = order
-        self.orders[symbol] = defaultKey
-        result = []
-        values = list(self.orders.values())
-        for i in range(0, len(values)):
-            orders = list(values[i].values())
-            result = self.array_concat(result, orders)
-        # del older orders from our structure to prevent memory leaks
-        limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-        result = self.sort_by(result, 'timestamp')
-        resultLength = len(result)
-        if resultLength > limit:
-            toDelete = resultLength - limit
-            for i in range(0, toDelete):
-                id = result[i]['id']
-                symbol = result[i]['symbol']
-                del self.orders[symbol][id]
-            result = result[toDelete:resultLength]
-        client.resolve(result, messageHash)
+            order = self.parse_order(message, market)
+            if self.orders is None:
+                limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+                self.orders = ArrayCacheBySymbolById(limit)
+            orders = self.orders
+            orders.append(order)
+            client.resolve(self.orders, messageHash)
 
     def handle_my_trade(self, client, message):
         #
