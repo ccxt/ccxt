@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError, ArgumentsRequired } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -474,39 +474,19 @@ module.exports = class bitvavo extends ccxt.bitvavo {
         //
         const name = 'account';
         const event = this.safeString (message, 'event');
-        const marketId = this.safeString (message, 'market');
+        const marketId = this.safeString (message, 'market', '-');
         const messageHash = name + '@' + marketId + '_' + event;
-        let symbol = marketId;
-        let market = undefined;
         if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
-        const order = this.parseOrder (message, market);
-        const orderId = order['id'];
-        const defaultKey = this.safeValue (this.orders, symbol, {});
-        defaultKey[orderId] = order;
-        this.orders[symbol] = defaultKey;
-        let result = [];
-        const values = Object.values (this.orders);
-        for (let i = 0; i < values.length; i++) {
-            const orders = Object.values (values[i]);
-            result = this.arrayConcat (result, orders);
-        }
-        // delete older orders from our structure to prevent memory leaks
-        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-        result = this.sortBy (result, 'timestamp');
-        const resultLength = result.length;
-        if (resultLength > limit) {
-            const toDelete = resultLength - limit;
-            for (let i = 0; i < toDelete; i++) {
-                const id = result[i]['id'];
-                const symbol = result[i]['symbol'];
-                delete this.orders[symbol][id];
+            const market = this.markets_by_id[marketId];
+            const order = this.parseOrder (message, market);
+            if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheBySymbolById (limit);
             }
-            result = result.slice (toDelete, resultLength);
+            const orders = this.orders;
+            orders.append (order);
+            client.resolve (this.orders, messageHash);
         }
-        client.resolve (result, messageHash);
     }
 
     handleMyTrade (client, message) {
