@@ -352,24 +352,6 @@ module.exports = class coinjar extends Exchange {
             'before': limit,
         };
         const response = await this.publicGetProductsProductIdCandles (this.extend (request, params));
-        // [
-        //     [
-        //         "2018-03-06T00:00:00Z",
-        //         "15010.00000000",
-        //         "15010.00000000",
-        //         "14540.00000000",
-        //         "14550.00000000",
-        //         "8.95300000"
-        //     ],
-        //     [
-        //         "2018-03-06T04:00:00Z",
-        //         "14590.00000000",
-        //         "14700.00000000",
-        //         "14000.00000000",
-        //         "14590.00000000",
-        //         "10.57200000"
-        //     ],
-        // ]
         return response;
     }
 
@@ -408,4 +390,3 @@ module.exports = class coinjar extends Exchange {
         }
     }
 };
-
