@@ -22,6 +22,7 @@ class zb extends Exchange {
             'countries' => array( 'CN' ),
             'rateLimit' => 100,
             'version' => 'v1',
+            'certified' => true,
             'has' => array(
                 'cancelOrder' => true,
                 'CORS' => false,

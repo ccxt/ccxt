@@ -31,6 +31,7 @@ class zb(Exchange):
             'countries': ['CN'],
             'rateLimit': 100,
             'version': 'v1',
+            'certified': True,
             'has': {
                 'cancelOrder': True,
                 'CORS': False,

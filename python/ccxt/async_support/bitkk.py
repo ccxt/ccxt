@@ -13,6 +13,7 @@ class bitkk(zb):
             'id': 'bitkk',
             'name': 'bitkk',
             'comment': 'a Chinese ZB clone',
+            'certified': False,
             'urls': {
                 'api': {
                     'public': 'http://api.bitkk.com/data',  # no https for public API

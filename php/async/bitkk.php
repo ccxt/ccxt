@@ -14,6 +14,7 @@ class bitkk extends zb {
             'id' => 'bitkk',
             'name' => 'bitkk',
             'comment' => 'a Chinese ZB clone',
+            'certified' => false,
             'urls' => array(
                 'api' => array(
                     'public' => 'http://api.bitkk.com/data', // no https for public API
