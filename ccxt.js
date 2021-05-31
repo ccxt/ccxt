@@ -35,7 +35,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.50.70'
+const version = '1.50.71'
 
 Exchange.ccxtVersion = version
 
@@ -124,7 +124,6 @@ const exchanges = {
     'kraken':                  require ('./js/kraken.js'),
     'kucoin':                  require ('./js/kucoin.js'),
     'kuna':                    require ('./js/kuna.js'),
-    'lakebtc':                 require ('./js/lakebtc.js'),
     'latoken':                 require ('./js/latoken.js'),
     'lbank':                   require ('./js/lbank.js'),
     'liquid':                  require ('./js/liquid.js'),

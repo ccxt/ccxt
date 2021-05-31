@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.50.70'
+__version__ = '1.50.71'
 
 # ----------------------------------------------------------------------------
 
@@ -150,7 +150,6 @@ from ccxt.itbit import itbit                                # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
 from ccxt.kucoin import kucoin                              # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
-from ccxt.lakebtc import lakebtc                            # noqa: F401
 from ccxt.latoken import latoken                            # noqa: F401
 from ccxt.lbank import lbank                                # noqa: F401
 from ccxt.liquid import liquid                              # noqa: F401
@@ -269,7 +268,6 @@ exchanges = [
     'kraken',
     'kucoin',
     'kuna',
-    'lakebtc',
     'latoken',
     'lbank',
     'liquid',

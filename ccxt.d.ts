@@ -506,7 +506,6 @@ declare module 'ccxt' {
     export class kraken extends Exchange {}
     export class kucoin extends Exchange {}
     export class kuna extends Exchange {}
-    export class lakebtc extends Exchange {}
     export class latoken extends Exchange {}
     export class lbank extends Exchange {}
     export class liquid extends Exchange {}
@@ -627,7 +626,6 @@ declare module 'ccxt' {
         | 'kraken'
         | 'kucoin'
         | 'kuna'
-        | 'lakebtc'
         | 'latoken'
         | 'lbank'
         | 'liquid'
