@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InsufficientFunds, OutOfRangeError, InvalidOrder, CancelDenied, RateLimitExceeded } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds, OrderNotFillable, InvalidOrder, RateLimitExceeded } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -81,14 +81,14 @@ module.exports = class coinjar extends Exchange {
             },
             'exceptions': {
                 'AUTHENTICATION_ERROR': AuthenticationError,
-                'NOT_FOUND': ExchangeError,
+                'NOT_FOUND': OrderNotFound,
                 'INSUFFICIENT_BALANCE': InsufficientFunds,
-                'PRICE_OUTSIDE_SPREAD': OutOfRangeError,
-                'PRICE_INVALID': OutOfRangeError,
-                'VALIDATION_ERROR': ExchangeError,
+                'PRICE_OUTSIDE_SPREAD': OrderNotFillable,
+                'PRICE_INVALID': InvalidOrder,
+                'VALIDATION_ERROR': InvalidOrder,
                 'PRODUCT_NOT_PERMITTED': InvalidOrder,
-                'FILLED_OR_CANCELLED': CancelDenied,
-                'MARKET_NO_CANCEL': CancelDenied,
+                'FILLED_OR_CANCELLED': OrderNotFillable,
+                'MARKET_NO_CANCEL': OrderNotFillable,
             },
             'options': {
                 'fetchCurrencies': {
