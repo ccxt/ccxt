@@ -12,6 +12,7 @@ module.exports = class bitkk extends zb {
             'id': 'bitkk',
             'name': 'bitkk',
             'comment': 'a Chinese ZB clone',
+            'certified': false,
             'urls': {
                 'api': {
                     'public': 'http://api.bitkk.com/data', // no https for public API
