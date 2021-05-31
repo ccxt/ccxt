@@ -16,6 +16,7 @@ module.exports = class zb extends Exchange {
             'countries': [ 'CN' ],
             'rateLimit': 100,
             'version': 'v1',
+            'certified': true,
             'has': {
                 'cancelOrder': true,
                 'CORS': false,
