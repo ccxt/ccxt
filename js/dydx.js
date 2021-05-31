@@ -928,7 +928,7 @@ module.exports = class dydx extends Exchange {
             } else {
                 payload = body;
                 payload['action'] = 'DYDX-ONBOARDING';
-                payload['onlySignOn'] = 'https://trade.dydx.exchange;'
+                payload['onlySignOn'] = 'https://trade.dydx.exchange';
             }
             headers['DYDX-SIGNATURE'] = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
             headers['DYDX-TIMESTAMP'] = this.milliseconds ();
