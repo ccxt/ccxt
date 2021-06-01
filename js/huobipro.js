@@ -1131,6 +1131,7 @@ module.exports = class huobipro extends Exchange {
         if (clientOrderId !== undefined) {
             request['client-order-id'] = clientOrderId;
         }
+        params = this.omit (params, [ 'clientOrderId', 'client-order-id' ]);
         if ((type === 'market') && (side === 'buy')) {
             if (this.options['createMarketBuyOrderRequiresPrice']) {
                 if (price === undefined) {
