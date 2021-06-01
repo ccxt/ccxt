@@ -168,15 +168,15 @@ module.exports = class kucoin extends Exchange {
                 },
                 'futuresPublic': {
                     'get': [
-                        'ticker',
                         'contracts/active',
                         'contracts/{symbol}',
+                        'ticker',
                         'level2/snapshot',
                         'level2/depth20',
                         'level2/depth100',
                         'level2/message/query',
-                        'level3/snapshot',
-                        'level3/message/query',
+                        'level3/message/query', // deprecated，level3/snapshot is suggested
+                        'level3/snapshot', // v2
                         'trade/history',
                         'interest/query',
                         'index/query',
@@ -186,6 +186,9 @@ module.exports = class kucoin extends Exchange {
                         'timestamp',
                         'status',
                         'kline/query',
+                    ],
+                    'post': [
+                        'bullet-public',
                     ],
                 },
                 'futuresPrivate': {
@@ -200,7 +203,8 @@ module.exports = class kucoin extends Exchange {
                         'orders',
                         'stopOrders',
                         'recentDoneOrders',
-                        'orders/{order-id}?clientOid={client-order-id}',
+                        'orders/{order-id}', // ?clientOid={client-order-id} // get order by orderId
+                        'orders/byClientOid', // ?clientOid=eresc138b21023a909e5ad59 // get order by clientOid
                         'fills',
                         'recentFills',
                         'openOrderStatistics',
@@ -209,18 +213,19 @@ module.exports = class kucoin extends Exchange {
                         'funding-history',
                     ],
                     'post': [
-                        'orders',
                         'withdrawals',
-                        'transfer-out',
+                        'transfer-out', // v2
+                        'orders',
                         'position/margin/auto-deposit-status',
                         'position/margin/deposit-margin',
+                        'bullet-private',
                     ],
                     'delete': [
-                        'orders',
-                        'orders/{order-id}',
-                        'stopOrders',
                         'withdrawals/{withdrawalId}',
                         'cancel/transfer-out',
+                        'orders/{order-id}',
+                        'orders',
+                        'stopOrders',
                     ],
                 },
             },
@@ -611,16 +616,6 @@ module.exports = class kucoin extends Exchange {
         //         "mark": 0
         //     }
         //
-        if ('rootSymbol' in ticker) {
-            const symbol = this.safeString (ticker, 'symbol').replace ('USDTM', '/USDT');
-            return {
-                'symbol': symbol,
-                'timestamp': this.safeInteger2 (ticker, 'time', 'datetime'),
-                'datetime': this.iso8601 (this.safeInteger2 (ticker, 'time', 'datetime')),
-                'last': this.safeNumber2 (ticker, 'last', 'lastTradePrice'),
-                'info': ticker,
-            };
-        }
         let percentage = this.safeNumber (ticker, 'changeRate');
         if (percentage !== undefined) {
             percentage = percentage * 100;
@@ -658,25 +653,8 @@ module.exports = class kucoin extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'trade');
-        const requestedType = this.safeString (params, 'type', defaultType);
-        const accountsByType = this.safeValue (this.options, 'accountsByType');
-        const type = this.safeString (accountsByType, requestedType);
-        if (type === undefined) {
-            const keys = Object.keys (accountsByType);
-            throw new ExchangeError (this.id + ' type must be one of ' + keys.join (', '));
-        }
-        params = this.omit (params, 'type');
-        let tickers = '';
-        if (type === 'contract') {
-            const response = await this.futuresPublicGetContractsActive (params);
-            tickers = this.safeValue (response, 'data', {});
-        } else {
-            const response = await this.publicGetMarketAllTickers (params);
-            const data = this.safeValue (response, 'data', {});
-            tickers = this.safeValue (data, 'ticker', []);
-        }
-        //     publicGetMarketAllTickers
+        const response = await this.publicGetMarketAllTickers (params);
+        //
         //     {
         //         "code": "200000",
         //         "data": {
@@ -695,6 +673,9 @@ module.exports = class kucoin extends Exchange {
         //             },
         //         ]
         //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const tickers = this.safeValue (data, 'ticker', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
