@@ -107,13 +107,13 @@ module.exports = class dydx extends Exchange {
                 },
             },
             'requiredCredentials': {
-                'walletAddress': true,
+                'ethereumAddress': true,
                 'privateKey': true, // Ethereum Key Authentication
                 'apiKey': true, // API Key Authentication
                 'secret': true, // API Key Authentication
                 'passPhrase': true, // API Key Authentication
-                'starkPublicKey': true, // STARK Key Authentication
-                'starkPrivateKey': true, // STARK Key Authentication
+                'starkKeyYCoordinate': true, // STARK Key Authentication
+                'starkKey': true, // STARK Key Authentication
             },
         });
     }
@@ -141,7 +141,7 @@ module.exports = class dydx extends Exchange {
         const postOnly = false;
         const limitFee = undefined;
         const expiration = undefined;
-        const accountDetails = await this.privateGetAccounts (this.walletAddress);
+        const accountDetails = await this.privateGetAccounts (this.ethereumAddress);
         // {
         //   "account": {
         //     "starkKey": "180913017c740260fea4b2c62828a4008ca8b0d6e4",
@@ -175,7 +175,7 @@ module.exports = class dydx extends Exchange {
         const positionId = this.safeValue (data, 'positionId');
         const request = {
             'positionId': positionId,
-            'market': market,
+            'market': market['id'],
             'side': side,
             'type': type,
             'postOnly': postOnly,
@@ -292,7 +292,7 @@ module.exports = class dydx extends Exchange {
         // {
         //   "user": {
         //     "ethereumAddress": "0x0913017c740260fea4b2c62828a4008ca8b0d6e4",
-        //     "isRegistered": true,
+        //     "isjs/ed": true,
         //     "email": "email@dydx.exchange",
         //     "username": "supersam15o",
         //     "referredByAffiliateLink": null,
@@ -390,16 +390,17 @@ module.exports = class dydx extends Exchange {
         //   ...
         // }
         //
-        const markets = this.safeValue (response, 'markets');
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const id = this.safeString (i['market']);
-            const minOrderSize = this.safeString (i['minOrderSize']);
-            const baseId = this.safeString (i['baseAsset']);
-            const quoteId = this.safeString (i['quoteAsset']);
+        const res = Object.values (response['markets']);
+        for (let i = 0; i < res.length; i++) {
+            const value = res[i];
+            const id = value['market'];
+            const minOrderSize = value['minOrderSize'];
+            const baseId = value['baseAsset'];
+            const quoteId = value['quoteAsset'];
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const active = (i['status'] === 'ONLINE');
+            const active = (value['status'] === 'ONLINE');
             result.push ({
                 'id': id,
                 'symbol': id,
@@ -431,7 +432,7 @@ module.exports = class dydx extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': response,
+                'info': value,
             });
         }
         return result;
@@ -538,7 +539,7 @@ module.exports = class dydx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market,
+            'market': market['id'],
             'limit': limit,
             'createdBeforeOrAt': since,
         };
@@ -901,39 +902,54 @@ module.exports = class dydx extends Exchange {
     sign (path, api = 'private', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = this.safeString (this.options, 'version', 'v3');
         let url = this.urls['api']['private'] + '/' + version + '/' + path;
-        const keys = Object.keys (params);
-        const length = keys.length;
-        let query = undefined;
-        if (length > 0) {
-            if (method === 'GET') {
-                query = this.urlencode (params);
-                url = url + '?' + query;
-            } else {
-                body = this.json (params);
-            }
-        }
+        let payload = undefined;
         headers = {
             'Content-Type': 'application/json',
         };
-        if (this.privateKey !== undefined) {
-            headers['DYDX-SIGNATURE'] = this.privateKey;
+        let query = undefined;
+        if (method === 'GET') {
+            query = this.urlencode (params);
+            url = url + '?' + query;
+        } else {
+            body = this.json (params);
         }
-        if (this.walletAddress !== undefined) {
-            headers['DYDX-ETHEREUM-ADDRESS'] = this.walletAddress;
-        }
+        const timestamp = this.milliseconds ();
         if (api === 'private') {
-            let payload = undefined;
             if (method === 'GET') {
                 payload = query;
             } else {
                 payload = body;
-                payload['action'] = 'DYDX-ONBOARDING';
-                payload['onlySignOn'] = 'https://trade.dydx.exchange';
             }
-            headers['DYDX-SIGNATURE'] = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'hex');
-            headers['DYDX-TIMESTAMP'] = this.milliseconds ();
-            headers['DYDX-PASSPHRASE'] = this.passPhrase;
+            if (path === 'onboarding') {
+                if (method === 'POST') {
+                    // onboarding endpoint: POST /v3/onboarding
+                    headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
+                    payload['action'] = 'DYDX-ONBOARDING';
+                    payload['onlySignOn'] = 'https://trade.dydx.exchange';
+                    const signature = this.hmac (this.encode (payload), this.encode (this.secret));
+                    headers['DYDX-SIGNATURE'] = signature; // EIP-712-compliant Ethereum signature
+                }
+            } else if (method === 'DELETE') {
+                if (path === 'api-keys') {
+                    // Ethereum Key Private Endpoints: POST, DELETE /v3/api-keys
+                    headers['DYDX-TIMESTAMP'] = timestamp;
+                    headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
+                    payload['method'] = 'GET|POST';
+                    payload['requestPath'] = '/v3/api-keys';
+                    payload['body'] = ''; // empty for GET and DELETE
+                    payload['timestamp'] = timestamp;
+                    const signature = this.hmac (this.encode (payload), this.encode (this.secret));
+                    headers['DYDX-SIGNATURE'] = signature; // EIP-712-compliant Ethereum signature
+                }
+            } else {
+                // All other API Key Private Endpoints
+                headers['DYDX-TIMESTAMP'] = timestamp;
+                headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
+                headers['DYDX-PASSPHRASE'] = this.passPhrase;
+                const signature = this.hmac (this.encode (payload), this.encode (this.secret));
+                headers['DYDX-SIGNATURE'] = signature; // SHA-256 HMAC produced as described below, and encoded as a Base64 string
+            }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': payload, 'headers': headers };
     }
 };
