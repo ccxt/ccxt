@@ -630,6 +630,7 @@ module.exports = class binance extends Exchange {
                 '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                 '-1130': BadRequest, // Data sent for paramter %s is not valid.
                 '-1131': BadRequest, // recvWindow must be less than 60000
+                '-2008': AuthenticationError, // {"code":-2008,"msg":"Invalid Api-Key ID."}
                 '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                 '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
