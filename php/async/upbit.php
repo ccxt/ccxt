@@ -886,6 +886,11 @@ class upbit extends Exchange {
                 $request['volume'] = $this->amount_to_precision($symbol, $amount);
             }
         }
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'identifier');
+        if ($clientOrderId !== null) {
+            $request['identifier'] = $clientOrderId;
+        }
+        $params = $this->omit($params, array( 'clientOrderId', 'identifier' ));
         $response = yield $this->privatePostOrders (array_merge($request, $params));
         //
         //     {

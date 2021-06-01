@@ -849,6 +849,10 @@ class upbit(Exchange):
             elif side == 'sell':
                 request['ord_type'] = type
                 request['volume'] = self.amount_to_precision(symbol, amount)
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'identifier')
+        if clientOrderId is not None:
+            request['identifier'] = clientOrderId
+        params = self.omit(params, ['clientOrderId', 'identifier'])
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {
