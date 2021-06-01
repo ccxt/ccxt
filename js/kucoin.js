@@ -55,10 +55,13 @@ module.exports = class kucoin extends Exchange {
                     'public': 'https://openapi-v2.kucoin.com',
                     'private': 'https://openapi-v2.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
+                    'futuresPublic': 'https://api-futures.kucoin.com',
                 },
                 'test': {
                     'public': 'https://openapi-sandbox.kucoin.com',
                     'private': 'https://openapi-sandbox.kucoin.com',
+                    'futuresPrivate': 'https://api-sandbox-futures.kucoin.com',
+                    'futuresPublic': 'https://api-sandbox-futures.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -163,13 +166,66 @@ module.exports = class kucoin extends Exchange {
                         'stop-order/cancel',
                     ],
                 },
+                'futuresPublic': {
+                    'get': [
+                        'contracts/active',
+                        'contracts/{symbol}',
+                        'ticker',
+                        'level2/snapshot',
+                        'level2/depth20',
+                        'level2/depth100',
+                        'level2/message/query',
+                        'level3/message/query', // deprecated，level3/snapshot is suggested
+                        'level3/snapshot', // v2
+                        'trade/history',
+                        'interest/query',
+                        'index/query',
+                        'mark-price/{symbol}/current',
+                        'premium/query',
+                        'funding-rate/{symbol}/current',
+                        'timestamp',
+                        'status',
+                        'kline/query',
+                    ],
+                    'post': [
+                        'bullet-public',
+                    ],
+                },
                 'futuresPrivate': {
                     'get': [
                         'account-overview',
+                        'transaction-history',
+                        'deposit-address',
+                        'deposit-list',
+                        'withdrawals/quotas',
+                        'withdrawal-list',
+                        'transfer-list',
+                        'orders',
+                        'stopOrders',
+                        'recentDoneOrders',
+                        'orders/{order-id}', // ?clientOid={client-order-id} // get order by orderId
+                        'orders/byClientOid', // ?clientOid=eresc138b21023a909e5ad59 // get order by clientOid
+                        'fills',
+                        'recentFills',
+                        'openOrderStatistics',
+                        'position',
                         'positions',
+                        'funding-history',
                     ],
                     'post': [
-                        'transfer-out',
+                        'withdrawals',
+                        'transfer-out', // v2
+                        'orders',
+                        'position/margin/auto-deposit-status',
+                        'position/margin/deposit-margin',
+                        'bullet-private',
+                    ],
+                    'delete': [
+                        'withdrawals/{withdrawalId}',
+                        'cancel/transfer-out',
+                        'orders/{order-id}',
+                        'orders',
+                        'stopOrders',
                     ],
                 },
             },
@@ -281,6 +337,11 @@ module.exports = class kucoin extends Exchange {
                         },
                         'POST': {
                             'transfer-out': 'v2',
+                        },
+                    },
+                    'futuresPublic': {
+                        'GET': {
+                            'level3/snapshot': 'v2',
                         },
                     },
                 },
