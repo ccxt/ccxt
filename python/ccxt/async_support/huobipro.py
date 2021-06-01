@@ -1072,6 +1072,10 @@ class huobipro(Exchange):
             'symbol': market['id'],
             'type': side + '-' + type,
         }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
+        if clientOrderId is not None:
+            request['client-order-id'] = clientOrderId
+        params = self.omit(params, ['clientOrderId', 'client-order-id'])
         if (type == 'market') and (side == 'buy'):
             if self.options['createMarketBuyOrderRequiresPrice']:
                 if price is None:
