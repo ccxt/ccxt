@@ -3135,7 +3135,8 @@ class binance(Exchange):
         notional = self.parse_number(Precise.string_abs(notionalString))
         contractsString = self.safe_string(position, 'positionAmt')
         if contractsString is None:
-            contractsString = int(round(notionalFloat * entryPriceFloat / str(market['contractSize'])))
+            contractsRounded = int(round(notionalFloat * entryPriceFloat / market['contractSize']))
+            contractsString = str(contractsRounded)
         contractsStringAbs = Precise.string_abs(contractsString)
         contracts = self.parse_number(contractsStringAbs)
         leverageBracket = self.options['leverageBrackets'][symbol]

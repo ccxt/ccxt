@@ -3323,7 +3323,8 @@ class binance extends Exchange {
         $notional = $this->parse_number(Precise::string_abs($notionalString));
         $contractsString = $this->safe_string($position, 'positionAmt');
         if ($contractsString === null) {
-            $contractsString = (int) round($notionalFloat * $entryPriceFloat / (string) $market['contractSize']);
+            $contractsRounded = (int) round($notionalFloat * $entryPriceFloat / $market['contractSize']);
+            $contractsString = (string) $contractsRounded;
         }
         $contractsStringAbs = Precise::string_abs($contractsString);
         $contracts = $this->parse_number($contractsStringAbs);
