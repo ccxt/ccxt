@@ -3318,7 +3318,8 @@ module.exports = class binance extends Exchange {
         const notional = this.parseNumber (Precise.stringAbs (notionalString));
         let contractsString = this.safeString (position, 'positionAmt');
         if (contractsString === undefined) {
-            contractsString = Math.round (notionalFloat * entryPriceFloat / market['contractSize']).toString ();
+            const contractsRounded = Math.round (notionalFloat * entryPriceFloat / market['contractSize']);
+            contractsString = contractsRounded.toString ();
         }
         const contractsStringAbs = Precise.stringAbs (contractsString);
         const contracts = this.parseNumber (contractsStringAbs);
