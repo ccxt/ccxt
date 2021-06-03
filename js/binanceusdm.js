@@ -185,11 +185,7 @@ module.exports = class binanceusdm extends binance {
         await this.loadLeverageBrackets ();
         const account = await this.fapiPrivateGetAccount (params);
         const result = this.parseAccountPositions (account);
-        if (symbols === undefined) {
-            return result;
-        } else {
-            return this.filterByArray (result, 'symbol', symbols, false);
-        }
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     async fetchIsolatedPositions (symbol = undefined, params = {}) {
