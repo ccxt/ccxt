@@ -320,7 +320,6 @@ class hbtc(Exchange):
         if isAggregate is True:
             active = False
         amountMin = None
-        amountMax = None
         priceMin = None
         priceMax = None
         costMin = None
@@ -331,7 +330,6 @@ class hbtc(Exchange):
             filterType = self.safe_string(filter, 'filterType')
             if filterType == 'LOT_SIZE':
                 amountMin = self.safe_number(filter, 'minQty')
-                amountMax = self.safe_number(filter, 'maxQty')
                 amountPrecision = self.safe_number(filter, 'stepSize')
             if filterType == 'PRICE_FILTER':
                 priceMin = self.safe_number(filter, 'minPrice')
@@ -348,7 +346,7 @@ class hbtc(Exchange):
         limits = {
             'amount': {
                 'min': amountMin,
-                'max': amountMax,
+                'max': None,
             },
             'price': {
                 'min': priceMin,
