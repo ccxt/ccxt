@@ -129,6 +129,9 @@ module.exports = class bithumb extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'SOC': 'Soda Coin',
+            },
         });
     }
 
