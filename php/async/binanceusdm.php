@@ -187,11 +187,7 @@ class binanceusdm extends binance {
         yield $this->load_leverage_brackets();
         $account = yield $this->fapiPrivateGetAccount ($params);
         $result = $this->parse_account_positions ($account);
-        if ($symbols === null) {
-            return $result;
-        } else {
-            return $this->filter_by_array($result, 'symbol', $symbols, false);
-        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
     public function fetch_isolated_positions($symbol = null, $params = array ()) {

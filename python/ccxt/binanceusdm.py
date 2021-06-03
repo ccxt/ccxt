@@ -174,10 +174,7 @@ class binanceusdm(binance):
         self.load_leverage_brackets()
         account = self.fapiPrivateGetAccount(params)
         result = self.parse_account_positions(account)
-        if symbols is None:
-            return result
-        else:
-            return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array(result, 'symbol', symbols, False)
 
     def fetch_isolated_positions(self, symbol=None, params={}):
         # only supported in usdm futures
