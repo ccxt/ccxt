@@ -31,6 +31,8 @@ module.exports = class binance extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': true,
+                'fetchFundingRate': true,
+                'fetchFundingRates': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -3038,6 +3040,55 @@ module.exports = class binance extends Exchange {
         //   }
         //
         return this.parseTransfer (response, currency);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        if (market['linear']) {
+            method = 'fapiPublicGetPremiumIndex';
+        } else if (market['inverse']) {
+            method = 'dapiPublicGetPremiumIndex';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "markPrice": "45802.81129892",
+        //         "indexPrice": "45745.47701915",
+        //         "estimatedSettlePrice": "45133.91753671",
+        //         "lastFundingRate": "0.00063521",
+        //         "interestRate": "0.00010000",
+        //         "nextFundingTime": "1621267200000",
+        //         "time": "1621252344001"
+        //     }
+        //
+        return this.parseFundingRate (response);
+    }
+
+    async fetchFundingRates (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let method = undefined;
+        const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'future');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        if (type === 'future') {
+            method = 'fapiPublicGetPremiumIndex';
+        } else if (type === 'delivery') {
+            method = 'dapiPublicGetPremiumIndex';
+        }
+        const response = await this[method] (query);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const parsed = this.parseFundingRate (entry);
+            result.push (parsed);
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseFundingRate (premiumIndex, market = undefined) {
