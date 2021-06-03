@@ -306,7 +306,6 @@ module.exports = class hbtc extends Exchange {
             active = false;
         }
         let amountMin = undefined;
-        let amountMax = undefined;
         let priceMin = undefined;
         let priceMax = undefined;
         let costMin = undefined;
@@ -317,7 +316,6 @@ module.exports = class hbtc extends Exchange {
             const filterType = this.safeString (filter, 'filterType');
             if (filterType === 'LOT_SIZE') {
                 amountMin = this.safeNumber (filter, 'minQty');
-                amountMax = this.safeNumber (filter, 'maxQty');
                 amountPrecision = this.safeNumber (filter, 'stepSize');
             }
             if (filterType === 'PRICE_FILTER') {
@@ -338,7 +336,7 @@ module.exports = class hbtc extends Exchange {
         const limits = {
             'amount': {
                 'min': amountMin,
-                'max': amountMax,
+                'max': undefined,
             },
             'price': {
                 'min': priceMin,
