@@ -140,6 +140,9 @@ class bithumb(Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'SOC': 'Soda Coin',
+            },
         })
 
     def amount_to_precision(self, symbol, amount):

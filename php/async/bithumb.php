@@ -132,6 +132,9 @@ class bithumb extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array(
+                'SOC' => 'Soda Coin',
+            ),
         ));
     }
 
