@@ -38,6 +38,7 @@ module.exports = class binance extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOrderBook': true,
+                'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -3019,152 +3020,6 @@ module.exports = class binance extends Exchange {
         return result;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!(api in this.urls['api'])) {
-            throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
-        }
-        let url = this.urls['api'][api];
-        url += '/' + path;
-        if (api === 'wapi') {
-            url += '.html';
-        }
-        if (path === 'historicalTrades') {
-            if (this.apiKey) {
-                headers = {
-                    'X-MBX-APIKEY': this.apiKey,
-                };
-            } else {
-                throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
-            }
-        }
-        const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
-        if (userDataStream) {
-            if (this.apiKey) {
-                // v1 special case for userDataStream
-                headers = {
-                    'X-MBX-APIKEY': this.apiKey,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                };
-                if (method !== 'GET') {
-                    body = this.urlencode (params);
-                }
-            } else {
-                throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
-            }
-        } else if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
-            this.checkRequiredCredentials ();
-            let query = undefined;
-            const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
-            if ((api === 'sapi') && (path === 'asset/dust')) {
-                query = this.urlencodeWithArrayRepeat (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
-            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0)) {
-                query = this.rawencode (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
-            } else {
-                query = this.urlencode (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
-            }
-            const signature = this.hmac (this.encode (query), this.encode (this.secret));
-            query += '&' + 'signature=' + signature;
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-            };
-            if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
-                url += '?' + query;
-            } else {
-                body = query;
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
-            }
-        } else {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if ((code === 418) || (code === 429)) {
-            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
-        }
-        // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
-        // will switch "code" checks eventually, when we know all of them
-        if (code >= 400) {
-            if (body.indexOf ('Price * QTY is zero or less') >= 0) {
-                throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
-            }
-            if (body.indexOf ('LOT_SIZE') >= 0) {
-                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size ' + body);
-            }
-            if (body.indexOf ('PRICE_FILTER') >= 0) {
-                throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ' + body);
-            }
-        }
-        if (response === undefined) {
-            return; // fallback to default error handler
-        }
-        // check success value for wapi endpoints
-        // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        const success = this.safeValue (response, 'success', true);
-        if (!success) {
-            const message = this.safeString (response, 'msg');
-            let parsedMessage = undefined;
-            if (message !== undefined) {
-                try {
-                    parsedMessage = JSON.parse (message);
-                } catch (e) {
-                    // do nothing
-                    parsedMessage = undefined;
-                }
-                if (parsedMessage !== undefined) {
-                    response = parsedMessage;
-                }
-            }
-        }
-        const message = this.safeString (response, 'msg');
-        if (message !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions, message, this.id + ' ' + message);
-        }
-        // checks against error codes
-        const error = this.safeString (response, 'code');
-        if (error !== undefined) {
-            // https://github.com/ccxt/ccxt/issues/6501
-            // https://github.com/ccxt/ccxt/issues/7742
-            if ((error === '200') || (error === '0')) {
-                return;
-            }
-            // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-            // despite that their message is very confusing, it is raised by Binance
-            // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
-                throw new DDoSProtection (this.id + ' temporary banned: ' + body);
-            }
-            const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions, error, feedback);
-            throw new ExchangeError (feedback);
-        }
-        if (!success) {
-            throw new ExchangeError (this.id + ' ' + body);
-        }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if ((api === 'private') || (api === 'wapi')) {
-            this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
-        }
-        return response;
-    }
-
     async futuresTransfer (code, amount, type, params = {}) {
         if ((type < 1) || (type > 4)) {
             throw new ArgumentsRequired (this.id + ' type must be between 1 and 4');
@@ -3542,5 +3397,203 @@ module.exports = class binance extends Exchange {
             'side': side,
             'percentage': percentage,
         };
+    }
+
+    async loadLeverageBrackets (reload = false, params = {}) {
+        await this.loadMarkets ();
+        // by default cache the leverage bracket
+        // it contains useful stuff like the maintenance margin and initial margin for positions
+        if ((this.options['leverageBrackets'] === undefined) || (reload)) {
+            let method = undefined;
+            const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'future');
+            const type = this.safeString (params, 'type', defaultType);
+            const query = this.omit (params, 'type');
+            if (type === 'future') {
+                method = 'fapiPrivateGetLeverageBracket';
+            } else if (type === 'delivery') {
+                method = 'dapiPrivateV2GetLeverageBracket';
+            }
+            const response = await this[method] (query);
+            this.options['leverageBrackets'] = {};
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const marketId = this.safeString (entry, 'symbol');
+                const symbol = this.safeSymbol (marketId);
+                const brackets = this.safeValue (entry, 'brackets');
+                const result = [];
+                for (let j = 0; j < brackets.length; j++) {
+                    const bracket = brackets[j];
+                    // we use floats here internally on purpose
+                    const floorValue = this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor');
+                    const maintenanceMarginPercentage = this.safeString (bracket, 'maintMarginRatio');
+                    result.push ([ floorValue, maintenanceMarginPercentage ]);
+                }
+                this.options['leverageBrackets'][symbol] = result;
+            }
+        }
+        return this.options['leverageBrackets'];
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadLeverageBrackets ();
+        let method = undefined;
+        const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'future');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        if (type === 'future') {
+            method = 'fapiPrivateGetAccount';
+        } else if (type === 'delivery') {
+            method = 'dapiPrivateGetAccount';
+        }
+        const account = await this[method] (query);
+        const result = this.parseAccountPositions (account);
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        if (!(api in this.urls['api'])) {
+            throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+        }
+        let url = this.urls['api'][api];
+        url += '/' + path;
+        if (api === 'wapi') {
+            url += '.html';
+        }
+        if (path === 'historicalTrades') {
+            if (this.apiKey) {
+                headers = {
+                    'X-MBX-APIKEY': this.apiKey,
+                };
+            } else {
+                throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
+            }
+        }
+        const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
+        if (userDataStream) {
+            if (this.apiKey) {
+                // v1 special case for userDataStream
+                headers = {
+                    'X-MBX-APIKEY': this.apiKey,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+                if (method !== 'GET') {
+                    body = this.urlencode (params);
+                }
+            } else {
+                throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
+            }
+        } else if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+            this.checkRequiredCredentials ();
+            let query = undefined;
+            const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
+            if ((api === 'sapi') && (path === 'asset/dust')) {
+                query = this.urlencodeWithArrayRepeat (this.extend ({
+                    'timestamp': this.nonce (),
+                    'recvWindow': recvWindow,
+                }, params));
+            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0)) {
+                query = this.rawencode (this.extend ({
+                    'timestamp': this.nonce (),
+                    'recvWindow': recvWindow,
+                }, params));
+            } else {
+                query = this.urlencode (this.extend ({
+                    'timestamp': this.nonce (),
+                    'recvWindow': recvWindow,
+                }, params));
+            }
+            const signature = this.hmac (this.encode (query), this.encode (this.secret));
+            query += '&' + 'signature=' + signature;
+            headers = {
+                'X-MBX-APIKEY': this.apiKey,
+            };
+            if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
+                url += '?' + query;
+            } else {
+                body = query;
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            }
+        } else {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if ((code === 418) || (code === 429)) {
+            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
+        }
+        // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
+        // following block cointains legacy checks against message patterns in "msg" property
+        // will switch "code" checks eventually, when we know all of them
+        if (code >= 400) {
+            if (body.indexOf ('Price * QTY is zero or less') >= 0) {
+                throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
+            }
+            if (body.indexOf ('LOT_SIZE') >= 0) {
+                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size ' + body);
+            }
+            if (body.indexOf ('PRICE_FILTER') >= 0) {
+                throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ' + body);
+            }
+        }
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        // check success value for wapi endpoints
+        // response in format {'msg': 'The coin does not exist.', 'success': true/false}
+        const success = this.safeValue (response, 'success', true);
+        if (!success) {
+            const message = this.safeString (response, 'msg');
+            let parsedMessage = undefined;
+            if (message !== undefined) {
+                try {
+                    parsedMessage = JSON.parse (message);
+                } catch (e) {
+                    // do nothing
+                    parsedMessage = undefined;
+                }
+                if (parsedMessage !== undefined) {
+                    response = parsedMessage;
+                }
+            }
+        }
+        const message = this.safeString (response, 'msg');
+        if (message !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions, message, this.id + ' ' + message);
+        }
+        // checks against error codes
+        const error = this.safeString (response, 'code');
+        if (error !== undefined) {
+            // https://github.com/ccxt/ccxt/issues/6501
+            // https://github.com/ccxt/ccxt/issues/7742
+            if ((error === '200') || (error === '0')) {
+                return;
+            }
+            // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+            // despite that their message is very confusing, it is raised by Binance
+            // on a temporary ban, the API key is valid, but disabled for a while
+            if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
+                throw new DDoSProtection (this.id + ' temporary banned: ' + body);
+            }
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions, error, feedback);
+            throw new ExchangeError (feedback);
+        }
+        if (!success) {
+            throw new ExchangeError (this.id + ' ' + body);
+        }
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+        if ((api === 'private') || (api === 'wapi')) {
+            this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
+        }
+        return response;
     }
 };
