@@ -56,6 +56,7 @@ class binance(Exchange):
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOrderBook': True,
+                'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -2872,123 +2873,6 @@ class binance(Exchange):
             result[symbol] = fee
         return result
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        if not (api in self.urls['api']):
-            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
-        url = self.urls['api'][api]
-        url += '/' + path
-        if api == 'wapi':
-            url += '.html'
-        if path == 'historicalTrades':
-            if self.apiKey:
-                headers = {
-                    'X-MBX-APIKEY': self.apiKey,
-                }
-            else:
-                raise AuthenticationError(self.id + ' historicalTrades endpoint requires `apiKey` credential')
-        userDataStream = (path == 'userDataStream') or (path == 'listenKey')
-        if userDataStream:
-            if self.apiKey:
-                # v1 special case for userDataStream
-                headers = {
-                    'X-MBX-APIKEY': self.apiKey,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                }
-                if method != 'GET':
-                    body = self.urlencode(params)
-            else:
-                raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
-            self.check_required_credentials()
-            query = None
-            recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
-            if (api == 'sapi') and (path == 'asset/dust'):
-                query = self.urlencode_with_array_repeat(self.extend({
-                    'timestamp': self.nonce(),
-                    'recvWindow': recvWindow,
-                }, params))
-            elif (path == 'batchOrders') or (path.find('sub-account') >= 0):
-                query = self.rawencode(self.extend({
-                    'timestamp': self.nonce(),
-                    'recvWindow': recvWindow,
-                }, params))
-            else:
-                query = self.urlencode(self.extend({
-                    'timestamp': self.nonce(),
-                    'recvWindow': recvWindow,
-                }, params))
-            signature = self.hmac(self.encode(query), self.encode(self.secret))
-            query += '&' + 'signature=' + signature
-            headers = {
-                'X-MBX-APIKEY': self.apiKey,
-            }
-            if (method == 'GET') or (method == 'DELETE') or (api == 'wapi'):
-                url += '?' + query
-            else:
-                body = query
-                headers['Content-Type'] = 'application/x-www-form-urlencoded'
-        else:
-            if params:
-                url += '?' + self.urlencode(params)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if (code == 418) or (code == 429):
-            raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
-        # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
-        # following block cointains legacy checks against message patterns in "msg" property
-        # will switch "code" checks eventually, when we know all of them
-        if code >= 400:
-            if body.find('Price * QTY is zero or less') >= 0:
-                raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
-            if body.find('LOT_SIZE') >= 0:
-                raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size ' + body)
-            if body.find('PRICE_FILTER') >= 0:
-                raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
-        if response is None:
-            return  # fallback to default error handler
-        # check success value for wapi endpoints
-        # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-        success = self.safe_value(response, 'success', True)
-        if not success:
-            message = self.safe_string(response, 'msg')
-            parsedMessage = None
-            if message is not None:
-                try:
-                    parsedMessage = json.loads(message)
-                except Exception as e:
-                    # do nothing
-                    parsedMessage = None
-                if parsedMessage is not None:
-                    response = parsedMessage
-        message = self.safe_string(response, 'msg')
-        if message is not None:
-            self.throw_exactly_matched_exception(self.exceptions, message, self.id + ' ' + message)
-        # checks against error codes
-        error = self.safe_string(response, 'code')
-        if error is not None:
-            # https://github.com/ccxt/ccxt/issues/6501
-            # https://github.com/ccxt/ccxt/issues/7742
-            if (error == '200') or (error == '0'):
-                return
-            # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-            # despite that their message is very confusing, it is raised by Binance
-            # on a temporary ban, the API key is valid, but disabled for a while
-            if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
-                raise DDoSProtection(self.id + ' temporary banned: ' + body)
-            feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions, error, feedback)
-            raise ExchangeError(feedback)
-        if not success:
-            raise ExchangeError(self.id + ' ' + body)
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if (api == 'private') or (api == 'wapi'):
-            self.options['hasAlreadyAuthenticatedSuccessfully'] = True
-        return response
-
     async def futures_transfer(self, code, amount, type, params={}):
         if (type < 1) or (type > 4):
             raise ArgumentsRequired(self.id + ' type must be between 1 and 4')
@@ -3343,3 +3227,165 @@ class binance(Exchange):
             'side': side,
             'percentage': percentage,
         }
+
+    async def load_leverage_brackets(self, reload=False, params={}):
+        await self.load_markets()
+        # by default cache the leverage bracket
+        # it contains useful stuff like the maintenance margin and initial margin for positions
+        if (self.options['leverageBrackets'] is None) or (reload):
+            method = None
+            defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType', 'future')
+            type = self.safe_string(params, 'type', defaultType)
+            query = self.omit(params, 'type')
+            if type == 'future':
+                method = 'fapiPrivateGetLeverageBracket'
+            elif type == 'delivery':
+                method = 'dapiPrivateV2GetLeverageBracket'
+            response = await getattr(self, method)(query)
+            self.options['leverageBrackets'] = {}
+            for i in range(0, len(response)):
+                entry = response[i]
+                marketId = self.safe_string(entry, 'symbol')
+                symbol = self.safe_symbol(marketId)
+                brackets = self.safe_value(entry, 'brackets')
+                result = []
+                for j in range(0, len(brackets)):
+                    bracket = brackets[j]
+                    # we use floats here internally on purpose
+                    floorValue = self.safe_float_2(bracket, 'notionalFloor', 'qtyFloor')
+                    maintenanceMarginPercentage = self.safe_string(bracket, 'maintMarginRatio')
+                    result.append([floorValue, maintenanceMarginPercentage])
+                self.options['leverageBrackets'][symbol] = result
+        return self.options['leverageBrackets']
+
+    async def fetch_positions(self, symbols=None, params={}):
+        await self.load_markets()
+        await self.load_leverage_brackets()
+        method = None
+        defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType', 'future')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        if type == 'future':
+            method = 'fapiPrivateGetAccount'
+        elif type == 'delivery':
+            method = 'dapiPrivateGetAccount'
+        account = await getattr(self, method)(query)
+        result = self.parse_account_positions(account)
+        return self.filter_by_array(result, 'symbol', symbols, False)
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        if not (api in self.urls['api']):
+            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
+        url = self.urls['api'][api]
+        url += '/' + path
+        if api == 'wapi':
+            url += '.html'
+        if path == 'historicalTrades':
+            if self.apiKey:
+                headers = {
+                    'X-MBX-APIKEY': self.apiKey,
+                }
+            else:
+                raise AuthenticationError(self.id + ' historicalTrades endpoint requires `apiKey` credential')
+        userDataStream = (path == 'userDataStream') or (path == 'listenKey')
+        if userDataStream:
+            if self.apiKey:
+                # v1 special case for userDataStream
+                headers = {
+                    'X-MBX-APIKEY': self.apiKey,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+                if method != 'GET':
+                    body = self.urlencode(params)
+            else:
+                raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
+        elif (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+            self.check_required_credentials()
+            query = None
+            recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
+            if (api == 'sapi') and (path == 'asset/dust'):
+                query = self.urlencode_with_array_repeat(self.extend({
+                    'timestamp': self.nonce(),
+                    'recvWindow': recvWindow,
+                }, params))
+            elif (path == 'batchOrders') or (path.find('sub-account') >= 0):
+                query = self.rawencode(self.extend({
+                    'timestamp': self.nonce(),
+                    'recvWindow': recvWindow,
+                }, params))
+            else:
+                query = self.urlencode(self.extend({
+                    'timestamp': self.nonce(),
+                    'recvWindow': recvWindow,
+                }, params))
+            signature = self.hmac(self.encode(query), self.encode(self.secret))
+            query += '&' + 'signature=' + signature
+            headers = {
+                'X-MBX-APIKEY': self.apiKey,
+            }
+            if (method == 'GET') or (method == 'DELETE') or (api == 'wapi'):
+                url += '?' + query
+            else:
+                body = query
+                headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        else:
+            if params:
+                url += '?' + self.urlencode(params)
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if (code == 418) or (code == 429):
+            raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
+        # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
+        # following block cointains legacy checks against message patterns in "msg" property
+        # will switch "code" checks eventually, when we know all of them
+        if code >= 400:
+            if body.find('Price * QTY is zero or less') >= 0:
+                raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
+            if body.find('LOT_SIZE') >= 0:
+                raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size ' + body)
+            if body.find('PRICE_FILTER') >= 0:
+                raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
+        if response is None:
+            return  # fallback to default error handler
+        # check success value for wapi endpoints
+        # response in format {'msg': 'The coin does not exist.', 'success': True/false}
+        success = self.safe_value(response, 'success', True)
+        if not success:
+            message = self.safe_string(response, 'msg')
+            parsedMessage = None
+            if message is not None:
+                try:
+                    parsedMessage = json.loads(message)
+                except Exception as e:
+                    # do nothing
+                    parsedMessage = None
+                if parsedMessage is not None:
+                    response = parsedMessage
+        message = self.safe_string(response, 'msg')
+        if message is not None:
+            self.throw_exactly_matched_exception(self.exceptions, message, self.id + ' ' + message)
+        # checks against error codes
+        error = self.safe_string(response, 'code')
+        if error is not None:
+            # https://github.com/ccxt/ccxt/issues/6501
+            # https://github.com/ccxt/ccxt/issues/7742
+            if (error == '200') or (error == '0'):
+                return
+            # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+            # despite that their message is very confusing, it is raised by Binance
+            # on a temporary ban, the API key is valid, but disabled for a while
+            if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+                raise DDoSProtection(self.id + ' temporary banned: ' + body)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions, error, feedback)
+            raise ExchangeError(feedback)
+        if not success:
+            raise ExchangeError(self.id + ' ' + body)
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+        if (api == 'private') or (api == 'wapi'):
+            self.options['hasAlreadyAuthenticatedSuccessfully'] = True
+        return response

@@ -43,6 +43,7 @@ class binance extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -3024,152 +3025,6 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if (!(is_array($this->urls['api']) && array_key_exists($api, $this->urls['api']))) {
-            throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
-        }
-        $url = $this->urls['api'][$api];
-        $url .= '/' . $path;
-        if ($api === 'wapi') {
-            $url .= '.html';
-        }
-        if ($path === 'historicalTrades') {
-            if ($this->apiKey) {
-                $headers = array(
-                    'X-MBX-APIKEY' => $this->apiKey,
-                );
-            } else {
-                throw new AuthenticationError($this->id . ' historicalTrades endpoint requires `apiKey` credential');
-            }
-        }
-        $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey');
-        if ($userDataStream) {
-            if ($this->apiKey) {
-                // v1 special case for $userDataStream
-                $headers = array(
-                    'X-MBX-APIKEY' => $this->apiKey,
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                );
-                if ($method !== 'GET') {
-                    $body = $this->urlencode($params);
-                }
-            } else {
-                throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
-            }
-        } else if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
-            $this->check_required_credentials();
-            $query = null;
-            $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
-            if (($api === 'sapi') && ($path === 'asset/dust')) {
-                $query = $this->urlencode_with_array_repeat(array_merge(array(
-                    'timestamp' => $this->nonce(),
-                    'recvWindow' => $recvWindow,
-                ), $params));
-            } else if (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false)) {
-                $query = $this->rawencode(array_merge(array(
-                    'timestamp' => $this->nonce(),
-                    'recvWindow' => $recvWindow,
-                ), $params));
-            } else {
-                $query = $this->urlencode(array_merge(array(
-                    'timestamp' => $this->nonce(),
-                    'recvWindow' => $recvWindow,
-                ), $params));
-            }
-            $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
-            $query .= '&' . 'signature=' . $signature;
-            $headers = array(
-                'X-MBX-APIKEY' => $this->apiKey,
-            );
-            if (($method === 'GET') || ($method === 'DELETE') || ($api === 'wapi')) {
-                $url .= '?' . $query;
-            } else {
-                $body = $query;
-                $headers['Content-Type'] = 'application/x-www-form-urlencoded';
-            }
-        } else {
-            if ($params) {
-                $url .= '?' . $this->urlencode($params);
-            }
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        if (($code === 418) || ($code === 429)) {
-            throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
-        }
-        // $error $response in a form => array( "$code" => -1013, "msg" => "Invalid quantity." )
-        // following block cointains legacy checks against $message patterns in "msg" property
-        // will switch "$code" checks eventually, when we know all of them
-        if ($code >= 400) {
-            if (mb_strpos($body, 'Price * QTY is zero or less') !== false) {
-                throw new InvalidOrder($this->id . ' order cost = amount * price is zero or less ' . $body);
-            }
-            if (mb_strpos($body, 'LOT_SIZE') !== false) {
-                throw new InvalidOrder($this->id . ' order amount should be evenly divisible by lot size ' . $body);
-            }
-            if (mb_strpos($body, 'PRICE_FILTER') !== false) {
-                throw new InvalidOrder($this->id . ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use $this->price_to_precision(symbol, amount) ' . $body);
-            }
-        }
-        if ($response === null) {
-            return; // fallback to default $error handler
-        }
-        // check $success value for wapi endpoints
-        // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
-        $success = $this->safe_value($response, 'success', true);
-        if (!$success) {
-            $message = $this->safe_string($response, 'msg');
-            $parsedMessage = null;
-            if ($message !== null) {
-                try {
-                    $parsedMessage = json_decode($message, $as_associative_array = true);
-                } catch (Exception $e) {
-                    // do nothing
-                    $parsedMessage = null;
-                }
-                if ($parsedMessage !== null) {
-                    $response = $parsedMessage;
-                }
-            }
-        }
-        $message = $this->safe_string($response, 'msg');
-        if ($message !== null) {
-            $this->throw_exactly_matched_exception($this->exceptions, $message, $this->id . ' ' . $message);
-        }
-        // checks against $error codes
-        $error = $this->safe_string($response, 'code');
-        if ($error !== null) {
-            // https://github.com/ccxt/ccxt/issues/6501
-            // https://github.com/ccxt/ccxt/issues/7742
-            if (($error === '200') || ($error === '0')) {
-                return;
-            }
-            // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
-            // despite that their $message is very confusing, it is raised by Binance
-            // on a temporary ban, the API key is valid, but disabled for a while
-            if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
-                throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
-            }
-            $feedback = $this->id . ' ' . $body;
-            $this->throw_exactly_matched_exception($this->exceptions, $error, $feedback);
-            throw new ExchangeError($feedback);
-        }
-        if (!$success) {
-            throw new ExchangeError($this->id . ' ' . $body);
-        }
-    }
-
-    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
-        // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
-        if (($api === 'private') || ($api === 'wapi')) {
-            $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
-        }
-        return $response;
-    }
-
     public function futures_transfer($code, $amount, $type, $params = array ()) {
         if (($type < 1) || ($type > 4)) {
             throw new ArgumentsRequired($this->id . ' $type must be between 1 and 4');
@@ -3547,5 +3402,203 @@ class binance extends Exchange {
             'side' => $side,
             'percentage' => $percentage,
         );
+    }
+
+    public function load_leverage_brackets($reload = false, $params = array ()) {
+        $this->load_markets();
+        // by default cache the leverage $bracket
+        // it contains useful stuff like the maintenance margin and initial margin for positions
+        if (($this->options['leverageBrackets'] === null) || ($reload)) {
+            $method = null;
+            $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType', 'future');
+            $type = $this->safe_string($params, 'type', $defaultType);
+            $query = $this->omit($params, 'type');
+            if ($type === 'future') {
+                $method = 'fapiPrivateGetLeverageBracket';
+            } else if ($type === 'delivery') {
+                $method = 'dapiPrivateV2GetLeverageBracket';
+            }
+            $response = $this->$method ($query);
+            $this->options['leverageBrackets'] = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $marketId = $this->safe_string($entry, 'symbol');
+                $symbol = $this->safe_symbol($marketId);
+                $brackets = $this->safe_value($entry, 'brackets');
+                $result = array();
+                for ($j = 0; $j < count($brackets); $j++) {
+                    $bracket = $brackets[$j];
+                    // we use floats here internally on purpose
+                    $floorValue = $this->safe_float_2($bracket, 'notionalFloor', 'qtyFloor');
+                    $maintenanceMarginPercentage = $this->safe_string($bracket, 'maintMarginRatio');
+                    $result[] = array( $floorValue, $maintenanceMarginPercentage );
+                }
+                $this->options['leverageBrackets'][$symbol] = $result;
+            }
+        }
+        return $this->options['leverageBrackets'];
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $this->load_leverage_brackets();
+        $method = null;
+        $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType', 'future');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $query = $this->omit($params, 'type');
+        if ($type === 'future') {
+            $method = 'fapiPrivateGetAccount';
+        } else if ($type === 'delivery') {
+            $method = 'dapiPrivateGetAccount';
+        }
+        $account = $this->$method ($query);
+        $result = $this->parse_account_positions ($account);
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        if (!(is_array($this->urls['api']) && array_key_exists($api, $this->urls['api']))) {
+            throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
+        }
+        $url = $this->urls['api'][$api];
+        $url .= '/' . $path;
+        if ($api === 'wapi') {
+            $url .= '.html';
+        }
+        if ($path === 'historicalTrades') {
+            if ($this->apiKey) {
+                $headers = array(
+                    'X-MBX-APIKEY' => $this->apiKey,
+                );
+            } else {
+                throw new AuthenticationError($this->id . ' historicalTrades endpoint requires `apiKey` credential');
+            }
+        }
+        $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey');
+        if ($userDataStream) {
+            if ($this->apiKey) {
+                // v1 special case for $userDataStream
+                $headers = array(
+                    'X-MBX-APIKEY' => $this->apiKey,
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                );
+                if ($method !== 'GET') {
+                    $body = $this->urlencode($params);
+                }
+            } else {
+                throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
+            }
+        } else if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
+            $this->check_required_credentials();
+            $query = null;
+            $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
+            if (($api === 'sapi') && ($path === 'asset/dust')) {
+                $query = $this->urlencode_with_array_repeat(array_merge(array(
+                    'timestamp' => $this->nonce(),
+                    'recvWindow' => $recvWindow,
+                ), $params));
+            } else if (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false)) {
+                $query = $this->rawencode(array_merge(array(
+                    'timestamp' => $this->nonce(),
+                    'recvWindow' => $recvWindow,
+                ), $params));
+            } else {
+                $query = $this->urlencode(array_merge(array(
+                    'timestamp' => $this->nonce(),
+                    'recvWindow' => $recvWindow,
+                ), $params));
+            }
+            $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
+            $query .= '&' . 'signature=' . $signature;
+            $headers = array(
+                'X-MBX-APIKEY' => $this->apiKey,
+            );
+            if (($method === 'GET') || ($method === 'DELETE') || ($api === 'wapi')) {
+                $url .= '?' . $query;
+            } else {
+                $body = $query;
+                $headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            }
+        } else {
+            if ($params) {
+                $url .= '?' . $this->urlencode($params);
+            }
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if (($code === 418) || ($code === 429)) {
+            throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
+        }
+        // $error $response in a form => array( "$code" => -1013, "msg" => "Invalid quantity." )
+        // following block cointains legacy checks against $message patterns in "msg" property
+        // will switch "$code" checks eventually, when we know all of them
+        if ($code >= 400) {
+            if (mb_strpos($body, 'Price * QTY is zero or less') !== false) {
+                throw new InvalidOrder($this->id . ' order cost = amount * price is zero or less ' . $body);
+            }
+            if (mb_strpos($body, 'LOT_SIZE') !== false) {
+                throw new InvalidOrder($this->id . ' order amount should be evenly divisible by lot size ' . $body);
+            }
+            if (mb_strpos($body, 'PRICE_FILTER') !== false) {
+                throw new InvalidOrder($this->id . ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use $this->price_to_precision(symbol, amount) ' . $body);
+            }
+        }
+        if ($response === null) {
+            return; // fallback to default $error handler
+        }
+        // check $success value for wapi endpoints
+        // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
+        $success = $this->safe_value($response, 'success', true);
+        if (!$success) {
+            $message = $this->safe_string($response, 'msg');
+            $parsedMessage = null;
+            if ($message !== null) {
+                try {
+                    $parsedMessage = json_decode($message, $as_associative_array = true);
+                } catch (Exception $e) {
+                    // do nothing
+                    $parsedMessage = null;
+                }
+                if ($parsedMessage !== null) {
+                    $response = $parsedMessage;
+                }
+            }
+        }
+        $message = $this->safe_string($response, 'msg');
+        if ($message !== null) {
+            $this->throw_exactly_matched_exception($this->exceptions, $message, $this->id . ' ' . $message);
+        }
+        // checks against $error codes
+        $error = $this->safe_string($response, 'code');
+        if ($error !== null) {
+            // https://github.com/ccxt/ccxt/issues/6501
+            // https://github.com/ccxt/ccxt/issues/7742
+            if (($error === '200') || ($error === '0')) {
+                return;
+            }
+            // a workaround for array("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+            // despite that their $message is very confusing, it is raised by Binance
+            // on a temporary ban, the API key is valid, but disabled for a while
+            if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
+                throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
+            }
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions, $error, $feedback);
+            throw new ExchangeError($feedback);
+        }
+        if (!$success) {
+            throw new ExchangeError($this->id . ' ' . $body);
+        }
+    }
+
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
+        // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+        if (($api === 'private') || ($api === 'wapi')) {
+            $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
+        }
+        return $response;
     }
 }
