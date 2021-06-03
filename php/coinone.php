@@ -97,6 +97,9 @@ class coinone extends Exchange {
                 '108' => '\\ccxt\\BadSymbol', // array("errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error")
                 '107' => '\\ccxt\\BadRequest', // array("errorCode":"107","errorMsg":"Parameter error","result":"error")
             ),
+            'commonCurrencies' => array(
+                'SOC' => 'Soda Coin',
+            ),
         ));
     }
 
