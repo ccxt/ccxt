@@ -95,6 +95,9 @@ module.exports = class coinone extends Exchange {
                 '108': BadSymbol, // {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
                 '107': BadRequest, // {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
             },
+            'commonCurrencies': {
+                'SOC': 'Soda Coin',
+            },
         });
     }
 
