@@ -36,6 +36,8 @@ class binance extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingRates' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -3043,6 +3045,55 @@ class binance extends Exchange {
         //   }
         //
         return $this->parse_transfer($response, $currency);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $method = null;
+        if ($market['linear']) {
+            $method = 'fapiPublicGetPremiumIndex';
+        } else if ($market['inverse']) {
+            $method = 'dapiPublicGetPremiumIndex';
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "$symbol" => "BTCUSDT",
+        //         "markPrice" => "45802.81129892",
+        //         "indexPrice" => "45745.47701915",
+        //         "estimatedSettlePrice" => "45133.91753671",
+        //         "lastFundingRate" => "0.00063521",
+        //         "interestRate" => "0.00010000",
+        //         "nextFundingTime" => "1621267200000",
+        //         "time" => "1621252344001"
+        //     }
+        //
+        return $this->parse_funding_rate ($response);
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $method = null;
+        $defaultType = $this->safe_string_2($this->options, 'fetchFundingRates', 'defaultType', 'future');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $query = $this->omit($params, 'type');
+        if ($type === 'future') {
+            $method = 'fapiPublicGetPremiumIndex';
+        } else if ($type === 'delivery') {
+            $method = 'dapiPublicGetPremiumIndex';
+        }
+        $response = $this->$method ($query);
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $parsed = $this->parse_funding_rate ($entry);
+            $result[] = $parsed;
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_funding_rate($premiumIndex, $market = null) {

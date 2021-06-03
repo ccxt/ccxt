@@ -49,6 +49,8 @@ class binance(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
+                'fetchFundingRate': True,
+                'fetchFundingRates': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -2890,6 +2892,50 @@ class binance(Exchange):
         #   }
         #
         return self.parse_transfer(response, currency)
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        method = None
+        if market['linear']:
+            method = 'fapiPublicGetPremiumIndex'
+        elif market['inverse']:
+            method = 'dapiPublicGetPremiumIndex'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "markPrice": "45802.81129892",
+        #         "indexPrice": "45745.47701915",
+        #         "estimatedSettlePrice": "45133.91753671",
+        #         "lastFundingRate": "0.00063521",
+        #         "interestRate": "0.00010000",
+        #         "nextFundingTime": "1621267200000",
+        #         "time": "1621252344001"
+        #     }
+        #
+        return self.parse_funding_rate(response)
+
+    def fetch_funding_rates(self, symbols=None, params={}):
+        self.load_markets()
+        method = None
+        defaultType = self.safe_string_2(self.options, 'fetchFundingRates', 'defaultType', 'future')
+        type = self.safe_string(params, 'type', defaultType)
+        query = self.omit(params, 'type')
+        if type == 'future':
+            method = 'fapiPublicGetPremiumIndex'
+        elif type == 'delivery':
+            method = 'dapiPublicGetPremiumIndex'
+        response = getattr(self, method)(query)
+        result = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            parsed = self.parse_funding_rate(entry)
+            result.append(parsed)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_funding_rate(self, premiumIndex, market=None):
         # ensure it matches with https://www.binance.com/en/futures/funding-history/0
