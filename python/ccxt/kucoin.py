@@ -827,7 +827,7 @@ class kucoin(Exchange):
             if limit is not None:
                 if (limit == 20) or (limit == 100):
                     request['limit'] = limit
-                    method = 'privateGetMarketOrderbookLevelLevelLimit'
+                    method = 'publicGetMarketOrderbookLevelLevelLimit'
                 else:
                     raise ExchangeError(self.id + ' fetchOrderBook limit argument must be None, 20 or 100')
         response = getattr(self, method)(self.extend(request, params))

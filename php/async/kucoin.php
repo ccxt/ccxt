@@ -844,7 +844,7 @@ class kucoin extends Exchange {
             if ($limit !== null) {
                 if (($limit === 20) || ($limit === 100)) {
                     $request['limit'] = $limit;
-                    $method = 'privateGetMarketOrderbookLevelLevelLimit';
+                    $method = 'publicGetMarketOrderbookLevelLevelLimit';
                 } else {
                     throw new ExchangeError($this->id . ' fetchOrderBook $limit argument must be null, 20 or 100');
                 }
