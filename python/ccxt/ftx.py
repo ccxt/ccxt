@@ -22,6 +22,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
+from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -257,6 +258,9 @@ class ftx(Exchange):
                     'Trigger price too high': InvalidOrder,  # {"error":"Trigger price too high","success":false}
                     'Trigger price too low': InvalidOrder,  # {"error":"Trigger price too low","success":false}
                     'Order already queued for cancellation': CancelPending,  # {"error":"Order already queued for cancellation","success":false}
+                    'Duplicate client order ID': DuplicateOrderId,  # {"error":"Duplicate client order ID","success":false}
+                    'Spot orders cannot be reduce-only': InvalidOrder,  # {"error":"Spot orders cannot be reduce-only","success":false}
+                    'Invalid reduce-only order': InvalidOrder,  # {"error":"Invalid reduce-only order","success":false}
                 },
                 'broad': {
                     'Account does not have enough margin for order': InsufficientFunds,
