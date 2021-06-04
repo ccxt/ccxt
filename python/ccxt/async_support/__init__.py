@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.50.84'
+__version__ = '1.50.85'
 
 # -----------------------------------------------------------------------------
 
@@ -113,7 +113,6 @@ from ccxt.async_support.delta import delta                                # noqa
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
 from ccxt.async_support.equos import equos                                # noqa: F401
-from ccxt.async_support.eterbase import eterbase                          # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.exx import exx                                    # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
@@ -231,7 +230,6 @@ exchanges = [
     'deribit',
     'digifinex',
     'equos',
-    'eterbase',
     'exmo',
     'exx',
     'flowbtc',
