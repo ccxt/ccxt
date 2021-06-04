@@ -98,11 +98,8 @@ class kucoin(Exchange):
                         'markets',
                         'market/allTickers',
                         'market/orderbook/level{level}_{limit}',
-                        'market/orderbook/level{level}',
-                        'market/orderbook/level2',
                         'market/orderbook/level2_20',
                         'market/orderbook/level2_100',
-                        'market/orderbook/level3',
                         'market/histories',
                         'market/candles',
                         'market/stats',
@@ -118,6 +115,9 @@ class kucoin(Exchange):
                 },
                 'private': {
                     'get': [
+                        'market/orderbook/level{level}',
+                        'market/orderbook/level2',
+                        'market/orderbook/level3',
                         'accounts',
                         'accounts/{accountId}',
                         'accounts/{accountId}/ledgers',
@@ -332,15 +332,17 @@ class kucoin(Exchange):
                     'public': {
                         'GET': {
                             'status': 'v1',
-                            'market/orderbook/level2': 'v2',
-                            'market/orderbook/level3': 'v2',
                             'market/orderbook/level2_20': 'v1',
                             'market/orderbook/level2_100': 'v1',
-                            'market/orderbook/level{level}': 'v2',
                             'market/orderbook/level{level}_{limit}': 'v1',
                         },
                     },
                     'private': {
+                        'GET': {
+                            'market/orderbook/level2': 'v3',
+                            'market/orderbook/level3': 'v3',
+                            'market/orderbook/level{level}': 'v3',
+                        },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
@@ -820,12 +822,12 @@ class kucoin(Exchange):
         marketId = self.market_id(symbol)
         level = self.safe_integer(params, 'level', 2)
         request = {'symbol': marketId, 'level': level}
-        method = 'publicGetMarketOrderbookLevelLevel'
+        method = 'privateGetMarketOrderbookLevelLevel'
         if level == 2:
             if limit is not None:
                 if (limit == 20) or (limit == 100):
                     request['limit'] = limit
-                    method = 'publicGetMarketOrderbookLevelLevelLimit'
+                    method = 'privateGetMarketOrderbookLevelLevelLimit'
                 else:
                     raise ExchangeError(self.id + ' fetchOrderBook limit argument must be None, 20 or 100')
         response = getattr(self, method)(self.extend(request, params))
