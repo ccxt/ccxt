@@ -82,11 +82,8 @@ module.exports = class kucoin extends Exchange {
                         'markets',
                         'market/allTickers',
                         'market/orderbook/level{level}_{limit}',
-                        'market/orderbook/level{level}',
-                        'market/orderbook/level2',
                         'market/orderbook/level2_20',
                         'market/orderbook/level2_100',
-                        'market/orderbook/level3',
                         'market/histories',
                         'market/candles',
                         'market/stats',
@@ -102,6 +99,9 @@ module.exports = class kucoin extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'market/orderbook/level{level}',
+                        'market/orderbook/level2',
+                        'market/orderbook/level3',
                         'accounts',
                         'accounts/{accountId}',
                         'accounts/{accountId}/ledgers',
@@ -316,15 +316,17 @@ module.exports = class kucoin extends Exchange {
                     'public': {
                         'GET': {
                             'status': 'v1',
-                            'market/orderbook/level2': 'v2',
-                            'market/orderbook/level3': 'v2',
                             'market/orderbook/level2_20': 'v1',
                             'market/orderbook/level2_100': 'v1',
-                            'market/orderbook/level{level}': 'v2',
                             'market/orderbook/level{level}_{limit}': 'v1',
                         },
                     },
                     'private': {
+                        'GET': {
+                            'market/orderbook/level2': 'v3',
+                            'market/orderbook/level3': 'v3',
+                            'market/orderbook/level{level}': 'v3',
+                        },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
@@ -833,12 +835,12 @@ module.exports = class kucoin extends Exchange {
         const marketId = this.marketId (symbol);
         const level = this.safeInteger (params, 'level', 2);
         const request = { 'symbol': marketId, 'level': level };
-        let method = 'publicGetMarketOrderbookLevelLevel';
+        let method = 'privateGetMarketOrderbookLevelLevel';
         if (level === 2) {
             if (limit !== undefined) {
                 if ((limit === 20) || (limit === 100)) {
                     request['limit'] = limit;
-                    method = 'publicGetMarketOrderbookLevelLevelLimit';
+                    method = 'privateGetMarketOrderbookLevelLevelLimit';
                 } else {
                     throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be undefined, 20 or 100');
                 }
