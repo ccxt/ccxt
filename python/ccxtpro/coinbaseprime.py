@@ -18,17 +18,14 @@ class coinbaseprime(coinbasepro):
             },
             'urls': {
                 'test': {
-                    'public': 'https://api-public.sandbox.prime.coinbase.com',
-                    'private': 'https://api-public.sandbox.prime.coinbase.com',
+                    'ws': 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg',
                 'api': {
-                    'ws': 'wss://ws-feed.prime.coinbase.com',
-                    'public': 'https://api.prime.coinbase.com',
-                    'private': 'https://api.prime.coinbase.com',
+                    'ws': 'wss://ws-feed.exchange.coinbase.com',
                 },
-                'www': 'https://prime.coinbase.com',
-                'doc': 'https://docs.prime.coinbase.com',
-                'fees': 'https://support.prime.coinbase.com/customer/en/portal/articles/2945629-fees?b_id=17475',
+                'www': 'https://exchange.coinbase.com',
+                'doc': 'https://docs.exchange.coinbase.com/',
+                'fees': 'https://pro.coinbase.com/fees',
             },
         })
