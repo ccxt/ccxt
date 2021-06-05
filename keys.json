@@ -3,6 +3,7 @@
     "dsx": {"skip": true},
     "gateio": {"skip": true},
     "idex": {"skip": true},
+    "kucoin": {"skip": true},
     "ndax": {"skip": true},
     "okcoin": {"skip": true},
     "ripio": {"skip": true},
