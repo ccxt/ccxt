@@ -31,6 +31,7 @@ module.exports = class binance extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRates': true,
                 'fetchIsolatedPositions': true,
@@ -3545,6 +3546,45 @@ module.exports = class binance extends Exchange {
         } else {
             return this.parsePositionRisk (this.safeValue (response, 0), market);
         }
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let method = undefined;
+        let defaultType = 'future';
+        const request = {
+            'incomeType': 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            if (market['linear']) {
+                defaultType = 'future';
+            } else if (market['inverse']) {
+                defaultType = 'delivery';
+            } else {
+                throw NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
+            }
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        defaultType = this.safeString2 (this.options, 'fetchFundingHistory', 'defaultType', defaultType);
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        if ((type === 'future') || (type === 'linear')) {
+            method = 'fapiPrivateGetIncome';
+        } else if ((type === 'delivery') || (type === 'inverse')) {
+            method = 'dapiPrivateGetIncome';
+        } else {
+            throw NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
+        }
+        const response = await this[method] (this.extend (request, params));
+        return this.parseIncomes (response, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
