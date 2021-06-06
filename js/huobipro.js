@@ -251,6 +251,7 @@ module.exports = class huobipro extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/3365
                 // https://github.com/ccxt/ccxt/issues/2873
                 'GET': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
+                'GTC': 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'HOT': 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
                 'NFT': 'APENFT',
                 // https://github.com/ccxt/ccxt/issues/7399
