@@ -3307,9 +3307,9 @@ module.exports = class binance extends Exchange {
                     entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
                 }
                 const size = Precise.stringMul (contractsStringAbs, market['contractSize']);
-                const left = Precise.stringMul (size, onePlusMaintenanceMarginPercentageString);
-                const right = Precise.stringSub (Precise.stringMul (Precise.stringDiv ('1', entryPriceSignString), size), walletBalance);
-                liquidationPriceStringRaw = Precise.stringDiv (left, right);
+                const leftSide = Precise.stringMul (size, onePlusMaintenanceMarginPercentageString);
+                const rightSide = Precise.stringSub (Precise.stringMul (Precise.stringDiv ('1', entryPriceSignString), size), walletBalance);
+                liquidationPriceStringRaw = Precise.stringDiv (leftSide, rightSide);
             }
             const pricePrecision = market['precision']['price'];
             const pricePrecisionPlusOne = pricePrecision + 1;
