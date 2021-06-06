@@ -587,15 +587,15 @@ class ndax extends Exchange {
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit !== null) {
-                $request['FromDate'] = $this->ymd($now - $duration * $limit * 1000);
-                $request['ToDate'] = $this->ymd($now);
+                $request['FromDate'] = $this->ymdhms($now - $duration * $limit * 1000);
+                $request['ToDate'] = $this->ymdhms($now);
             }
         } else {
-            $request['FromDate'] = $this->ymd($since);
+            $request['FromDate'] = $this->ymdhms($since);
             if ($limit === null) {
-                $request['ToDate'] = $this->ymd($now);
+                $request['ToDate'] = $this->ymdhms($now);
             } else {
-                $request['ToDate'] = $this->ymd($this->sum($since, $duration * $limit * 1000));
+                $request['ToDate'] = $this->ymdhms($this->sum($since, $duration * $limit * 1000));
             }
         }
         $response = yield $this->publicGetGetTickerHistory (array_merge($request, $params));
