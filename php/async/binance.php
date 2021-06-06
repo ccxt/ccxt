@@ -60,6 +60,7 @@ class binance extends Exchange {
                 'fetchTransactions' => false,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
+                'setMarginMode' => true,
                 'withdraw' => true,
                 'transfer' => true,
                 'fetchTransfers' => true,
@@ -3614,6 +3615,35 @@ class binance extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'leverage' => $leverage,
+        );
+        return yield $this->$method (array_merge($request, $params));
+    }
+
+    public function set_margin_mode($symbol, $marginType, $params = array ()) {
+        //
+        // array( "code" => -4048 , "msg" => "Margin type cannot be changed if there exists position." )
+        //
+        // or
+        //
+        // array( "code" => 200, "msg" => "success" )
+        //
+        $marginType = strtoupper($marginType);
+        if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
+            throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $method = null;
+        if ($market['linear']) {
+            $method = 'fapiPrivatePostMarginType';
+        } else if ($market['inverse']) {
+            $method = 'dapiPrivatePostMarginType';
+        } else {
+            throw NotSupported ($this->id . ' setMarginMode() supports linear and inverse contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'marginType' => $marginType,
         );
         return yield $this->$method (array_merge($request, $params));
     }

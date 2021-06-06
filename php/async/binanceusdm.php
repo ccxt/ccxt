@@ -23,7 +23,7 @@ class binanceusdm extends binance {
                 'fetchFundingRate' => true,
                 'fetchFundingHistory' => true,
                 'setLeverage' => true,
-                'setMode' => true,
+                'setMarginMode' => true,
             ),
             'options' => array(
                 'defaultType' => 'future',
@@ -251,7 +251,7 @@ class binanceusdm extends binance {
         return yield $this->fapiPrivatePostLeverage (array_merge($request, $params));
     }
 
-    public function set_mode($symbol, $marginType, $params = array ()) {
+    public function set_margin_mode($symbol, $marginType, $params = array ()) {
         //
         // array( "code" => -4048 , "msg" => "Margin type cannot be changed if there exists position." )
         //

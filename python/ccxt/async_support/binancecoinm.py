@@ -217,7 +217,7 @@ class binancecoinm(binance):
         }
         return await self.dapiPrivatePostLeverage(self.extend(request, params))
 
-    async def set_mode(self, symbol, marginType, params={}):
+    async def set_margin_mode(self, symbol, marginType, params={}):
         #
         # {"code": -4048 , "msg": "Margin type cannot be changed if there exists position."}
         #
