@@ -21,7 +21,7 @@ module.exports = class binanceusdm extends binance {
                 'fetchFundingRate': true,
                 'fetchFundingHistory': true,
                 'setLeverage': true,
-                'setMode': true,
+                'setMarginMode': true,
             },
             'options': {
                 'defaultType': 'future',
@@ -249,7 +249,7 @@ module.exports = class binanceusdm extends binance {
         return await this.fapiPrivatePostLeverage (this.extend (request, params));
     }
 
-    async setMode (symbol, marginType, params = {}) {
+    async setMarginMode (symbol, marginType, params = {}) {
         //
         // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
         //

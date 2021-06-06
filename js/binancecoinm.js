@@ -240,7 +240,7 @@ module.exports = class binancecoinm extends binance {
         return await this.dapiPrivatePostLeverage (this.extend (request, params));
     }
 
-    async setMode (symbol, marginType, params = {}) {
+    async setMarginMode (symbol, marginType, params = {}) {
         //
         // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
         //

@@ -53,6 +53,7 @@ module.exports = class binance extends Exchange {
                 'fetchTransactions': false,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
+                'setMarginMode': true,
                 'withdraw': true,
                 'transfer': true,
                 'fetchTransfers': true,
@@ -3607,6 +3608,35 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
             'leverage': leverage,
+        };
+        return await this[method] (this.extend (request, params));
+    }
+
+    async setMarginMode (symbol, marginType, params = {}) {
+        //
+        // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
+        //
+        // or
+        //
+        // { "code": 200, "msg": "success" }
+        //
+        marginType = marginType.toUpperCase ();
+        if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
+            throw new BadRequest (this.id + ' marginType must be either isolated or crossed');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let method = undefined;
+        if (market['linear']) {
+            method = 'fapiPrivatePostMarginType';
+        } else if (market['inverse']) {
+            method = 'dapiPrivatePostMarginType';
+        } else {
+            throw NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+            'marginType': marginType,
         };
         return await this[method] (this.extend (request, params));
     }
