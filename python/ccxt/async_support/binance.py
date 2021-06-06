@@ -71,6 +71,7 @@ class binance(Exchange):
                 'fetchTransactions': False,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
+                'setMarginMode': True,
                 'withdraw': True,
                 'transfer': True,
                 'fetchTransfers': True,
@@ -3409,6 +3410,32 @@ class binance(Exchange):
         request = {
             'symbol': market['id'],
             'leverage': leverage,
+        }
+        return await getattr(self, method)(self.extend(request, params))
+
+    async def set_margin_mode(self, symbol, marginType, params={}):
+        #
+        # {"code": -4048 , "msg": "Margin type cannot be changed if there exists position."}
+        #
+        # or
+        #
+        # {"code": 200, "msg": "success"}
+        #
+        marginType = marginType.upper()
+        if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
+            raise BadRequest(self.id + ' marginType must be either isolated or crossed')
+        await self.load_markets()
+        market = self.market(symbol)
+        method = None
+        if market['linear']:
+            method = 'fapiPrivatePostMarginType'
+        elif market['inverse']:
+            method = 'dapiPrivatePostMarginType'
+        else:
+            raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
+        request = {
+            'symbol': market['id'],
+            'marginType': marginType,
         }
         return await getattr(self, method)(self.extend(request, params))
 
