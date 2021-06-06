@@ -3296,7 +3296,7 @@ module.exports = class binance extends Exchange {
             } else {
                 // calculate liquidation price
                 //
-                // liquidationPrice = (contracts * contractSize(-1 - mmp)) / (1/entryPrice * contracts * contractSize - walletBalance)
+                // liquidationPrice = (contracts * contractSize(±1 - mmp)) / (±1/entryPrice * contracts * contractSize - walletBalance)
                 //
                 let onePlusMaintenanceMarginPercentageString = undefined;
                 let entryPriceSignString = entryPriceString;
