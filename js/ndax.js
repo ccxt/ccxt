@@ -585,15 +585,15 @@ module.exports = class ndax extends Exchange {
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limit !== undefined) {
-                request['FromDate'] = this.ymd (now - duration * limit * 1000);
-                request['ToDate'] = this.ymd (now);
+                request['FromDate'] = this.ymdhms (now - duration * limit * 1000);
+                request['ToDate'] = this.ymdhms (now);
             }
         } else {
-            request['FromDate'] = this.ymd (since);
+            request['FromDate'] = this.ymdhms (since);
             if (limit === undefined) {
-                request['ToDate'] = this.ymd (now);
+                request['ToDate'] = this.ymdhms (now);
             } else {
-                request['ToDate'] = this.ymd (this.sum (since, duration * limit * 1000));
+                request['ToDate'] = this.ymdhms (this.sum (since, duration * limit * 1000));
             }
         }
         const response = await this.publicGetGetTickerHistory (this.extend (request, params));
