@@ -1023,7 +1023,7 @@ class binance(Exchange):
             margin = self.safe_value(market, 'isMarginTradingAllowed', False)
             contractSize = None
             if future or delivery:
-                contractSize = self.safe_float(market, 'contractSize', 1)
+                contractSize = self.safe_string(market, 'contractSize', '1')
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -3060,7 +3060,6 @@ class binance(Exchange):
         maintenanceMarginString = self.safe_string(position, 'maintMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
         entryPriceString = self.safe_string(position, 'entryPrice')
-        entryPriceFloat = float(entryPriceString)
         entryPrice = self.parse_number(entryPriceString)
         notionalString = self.safe_string_2(position, 'notional', 'notionalValue')
         notionalStringAbs = Precise.string_abs(notionalString)
@@ -3068,10 +3067,11 @@ class binance(Exchange):
         notionalFloatAbs = float(notionalStringAbs)
         notional = self.parse_number(Precise.string_abs(notionalString))
         contractsString = self.safe_string(position, 'positionAmt')
-        if contractsString is None:
-            contractsRounded = int(round(notionalFloat * entryPriceFloat / market['contractSize']))
-            contractsString = str(contractsRounded)
         contractsStringAbs = Precise.string_abs(contractsString)
+        if contractsString is None:
+            entryNotional = Precise.string_mul(Precise.string_mul(leverageString, initialMarginString), entryPriceString)
+            contractsString = Precise.string_div(entryNotional, market['contractSize'])
+            contractsStringAbs = Precise.string_div(Precise.string_add(contractsString, '0.5'), '1', 0)
         contracts = self.parse_number(contractsStringAbs)
         leverageBracket = self.options['leverageBrackets'][symbol]
         maintenanceMarginPercentageString = None
@@ -3102,6 +3102,7 @@ class binance(Exchange):
         marginRatio = None
         side = None
         percentage = None
+        liquidationPriceStringRaw = None
         liquidationPrice = None
         if notionalFloat == 0.0:
             entryPrice = None
@@ -3126,20 +3127,36 @@ class binance(Exchange):
                     entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
                 leftSide = Precise.string_div(walletBalance, Precise.string_mul(contractsStringAbs, onePlusMaintenanceMarginPercentageString))
                 rightSide = Precise.string_div(entryPriceSignString, onePlusMaintenanceMarginPercentageString)
-                pricePrecision = market['precision']['price']
-                pricePrecisionPlusOne = pricePrecision + 1
-                pricePrecisionPlusOneString = str(pricePrecisionPlusOne)
-                # round half up
-                rounder = Precise('5e-' + pricePrecisionPlusOneString)
-                rounderString = str(rounder)
                 liquidationPriceStringRaw = Precise.string_add(leftSide, rightSide)
-                liquidationPriceRoundedString = Precise.string_add(rounderString, liquidationPriceStringRaw)
-                truncatedLiquidationPrice = Precise.string_div(liquidationPriceRoundedString, '1', pricePrecision)
-                if truncatedLiquidationPrice[0] == '-':
-                    # user cannot be liquidated
-                    # since he has more collateral than the size of the position
-                    truncatedLiquidationPrice = None
-                liquidationPrice = self.parse_number(truncatedLiquidationPrice)
+            else:
+                # calculate liquidation price
+                #
+                # liquidationPrice = (contracts * contractSize(±1 - mmp)) / (±1/entryPrice * contracts * contractSize - walletBalance)
+                #
+                onePlusMaintenanceMarginPercentageString = None
+                entryPriceSignString = entryPriceString
+                if side == 'short':
+                    onePlusMaintenanceMarginPercentageString = Precise.string_sub('1', maintenanceMarginPercentageString)
+                else:
+                    onePlusMaintenanceMarginPercentageString = Precise.string_sub('-1', maintenanceMarginPercentageString)
+                    entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
+                size = Precise.string_mul(contractsStringAbs, market['contractSize'])
+                leftSide = Precise.string_mul(size, onePlusMaintenanceMarginPercentageString)
+                rightSide = Precise.string_sub(Precise.string_mul(Precise.string_div('1', entryPriceSignString), size), walletBalance)
+                liquidationPriceStringRaw = Precise.string_div(leftSide, rightSide)
+            pricePrecision = market['precision']['price']
+            pricePrecisionPlusOne = pricePrecision + 1
+            pricePrecisionPlusOneString = str(pricePrecisionPlusOne)
+            # round half up
+            rounder = Precise('5e-' + pricePrecisionPlusOneString)
+            rounderString = str(rounder)
+            liquidationPriceRoundedString = Precise.string_add(rounderString, liquidationPriceStringRaw)
+            truncatedLiquidationPrice = Precise.string_div(liquidationPriceRoundedString, '1', pricePrecision)
+            if truncatedLiquidationPrice[0] == '-':
+                # user cannot be liquidated
+                # since he has more collateral than the size of the position
+                truncatedLiquidationPrice = None
+            liquidationPrice = self.parse_number(truncatedLiquidationPrice)
         return {
             'info': position,
             'symbol': symbol,
