@@ -70,6 +70,7 @@ class binance(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': False,
                 'fetchWithdrawals': True,
+                'setLeverage': True,
                 'withdraw': True,
                 'transfer': True,
                 'fetchTransfers': True,
@@ -3390,6 +3391,26 @@ class binance(Exchange):
             raise NotSupported(self.id + ' fetchFundingHistory() supports linear and inverse contracts only')
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_incomes(response, market, since, limit)
+
+    async def set_leverage(self, symbol, leverage, params={}):
+        # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (leverage < 1) or (leverage > 125):
+            raise BadRequest(self.id + ' leverage should be between 1 and 125')
+        await self.load_markets()
+        market = self.market(symbol)
+        method = None
+        if market['linear']:
+            method = 'fapiPrivatePostLeverage'
+        elif market['inverse']:
+            method = 'dapiPrivatePostLeverage'
+        else:
+            raise NotSupported(self.id + ' setLeverage() supports linear and inverse contracts only')
+        request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        }
+        return await getattr(self, method)(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not (api in self.urls['api']):
