@@ -38,6 +38,7 @@ class binance extends Exchange {
                 'fetchFundingFees' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRates' => true,
+                'fetchIsolatedPositions' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -3505,6 +3506,50 @@ class binance extends Exchange {
         $account = $this->$method ($query);
         $result = $this->parse_account_positions ($account);
         return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function fetch_isolated_positions($symbol = null, $params = array ()) {
+        // only supported in usdm futures
+        $this->load_markets();
+        $this->load_leverage_brackets();
+        $request = array();
+        $market = null;
+        $method = null;
+        $defaultType = 'future';
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+            if ($market['linear']) {
+                $defaultType = 'future';
+            } else if ($market['inverse']) {
+                $defaultType = 'delivery';
+            } else {
+                throw NotSupported ($this->id . ' fetchIsolatedPositions() supports linear and inverse contracts only');
+            }
+        }
+        $defaultType = $this->safe_string_2($this->options, 'fetchIsolatedPositions', 'defaultType', $defaultType);
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $params = $this->omit($params, 'type');
+        if (($type === 'future') || ($type === 'linear')) {
+            $method = 'fapiPrivateGetPositionRisk';
+        } else if (($type === 'delivery') || ($type === 'inverse')) {
+            $method = 'dapiPrivateGetPositionRisk';
+        } else {
+            throw NotSupported ($this->id . ' fetchIsolatedPositions() supports linear and inverse contracts only');
+        }
+        $response = $this->$method (array_merge($request, $params));
+        if ($symbol === null) {
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $parsed = $this->parse_position_risk ($response[$i], $market);
+                if ($parsed['marginType'] === 'isolated') {
+                    $result[] = $parsed;
+                }
+            }
+            return $result;
+        } else {
+            return $this->parse_position_risk ($this->safe_value($response, 0), $market);
+        }
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
