@@ -577,14 +577,14 @@ class ndax(Exchange):
         now = self.milliseconds()
         if since is None:
             if limit is not None:
-                request['FromDate'] = self.ymd(now - duration * limit * 1000)
-                request['ToDate'] = self.ymd(now)
+                request['FromDate'] = self.ymdhms(now - duration * limit * 1000)
+                request['ToDate'] = self.ymdhms(now)
         else:
-            request['FromDate'] = self.ymd(since)
+            request['FromDate'] = self.ymdhms(since)
             if limit is None:
-                request['ToDate'] = self.ymd(now)
+                request['ToDate'] = self.ymdhms(now)
             else:
-                request['ToDate'] = self.ymd(self.sum(since, duration * limit * 1000))
+                request['ToDate'] = self.ymdhms(self.sum(since, duration * limit * 1000))
         response = await self.publicGetGetTickerHistory(self.extend(request, params))
         #
         #     [
