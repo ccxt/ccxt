@@ -51,6 +51,7 @@ class binance(Exchange):
                 'fetchFundingFees': True,
                 'fetchFundingRate': True,
                 'fetchFundingRates': True,
+                'fetchIsolatedPositions': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -3318,6 +3319,43 @@ class binance(Exchange):
         account = await getattr(self, method)(query)
         result = self.parse_account_positions(account)
         return self.filter_by_array(result, 'symbol', symbols, False)
+
+    async def fetch_isolated_positions(self, symbol=None, params={}):
+        # only supported in usdm futures
+        await self.load_markets()
+        await self.load_leverage_brackets()
+        request = {}
+        market = None
+        method = None
+        defaultType = 'future'
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            if market['linear']:
+                defaultType = 'future'
+            elif market['inverse']:
+                defaultType = 'delivery'
+            else:
+                raise NotSupported(self.id + ' fetchIsolatedPositions() supports linear and inverse contracts only')
+        defaultType = self.safe_string_2(self.options, 'fetchIsolatedPositions', 'defaultType', defaultType)
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        if (type == 'future') or (type == 'linear'):
+            method = 'fapiPrivateGetPositionRisk'
+        elif (type == 'delivery') or (type == 'inverse'):
+            method = 'dapiPrivateGetPositionRisk'
+        else:
+            raise NotSupported(self.id + ' fetchIsolatedPositions() supports linear and inverse contracts only')
+        response = await getattr(self, method)(self.extend(request, params))
+        if symbol is None:
+            result = []
+            for i in range(0, len(response)):
+                parsed = self.parse_position_risk(response[i], market)
+                if parsed['marginType'] == 'isolated':
+                    result.append(parsed)
+            return result
+        else:
+            return self.parse_position_risk(self.safe_value(response, 0), market)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not (api in self.urls['api']):
