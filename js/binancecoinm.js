@@ -187,7 +187,8 @@ module.exports = class binancecoinm extends binance {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            // not the unified id here
+            request['pair'] = market['info']['pair'];
         }
         const response = await this.dapiPrivateGetPositionRisk (this.extend (request, params));
         if (symbol === undefined) {
