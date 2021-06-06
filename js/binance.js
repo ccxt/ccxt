@@ -52,6 +52,7 @@ module.exports = class binance extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
                 'withdraw': true,
                 'transfer': true,
                 'fetchTransfers': true,
@@ -3585,6 +3586,29 @@ module.exports = class binance extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseIncomes (response, market, since, limit);
+    }
+
+    async setLeverage (symbol, leverage, params = {}) {
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if ((leverage < 1) || (leverage > 125)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 125');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let method = undefined;
+        if (market['linear']) {
+            method = 'fapiPrivatePostLeverage';
+        } else if (market['inverse']) {
+            method = 'dapiPrivatePostLeverage';
+        } else {
+            throw NotSupported (this.id + ' setLeverage() supports linear and inverse contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        return await this[method] (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
