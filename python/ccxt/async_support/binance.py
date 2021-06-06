@@ -49,6 +49,7 @@ class binance(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRates': True,
                 'fetchIsolatedPositions': True,
@@ -3356,6 +3357,39 @@ class binance(Exchange):
             return result
         else:
             return self.parse_position_risk(self.safe_value(response, 0), market)
+
+    async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = None
+        method = None
+        defaultType = 'future'
+        request = {
+            'incomeType': 'FUNDING_FEE',  # "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            if market['linear']:
+                defaultType = 'future'
+            elif market['inverse']:
+                defaultType = 'delivery'
+            else:
+                raise NotSupported(self.id + ' fetchFundingHistory() supports linear and inverse contracts only')
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        defaultType = self.safe_string_2(self.options, 'fetchFundingHistory', 'defaultType', defaultType)
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        if (type == 'future') or (type == 'linear'):
+            method = 'fapiPrivateGetIncome'
+        elif (type == 'delivery') or (type == 'inverse'):
+            method = 'dapiPrivateGetIncome'
+        else:
+            raise NotSupported(self.id + ' fetchFundingHistory() supports linear and inverse contracts only')
+        response = await getattr(self, method)(self.extend(request, params))
+        return self.parse_incomes(response, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not (api in self.urls['api']):
