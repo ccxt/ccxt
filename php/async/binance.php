@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
 use \ccxt\DDoSProtection;
@@ -58,6 +59,7 @@ class binance extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactions' => false,
                 'fetchWithdrawals' => true,
+                'setLeverage' => true,
                 'withdraw' => true,
                 'transfer' => true,
                 'fetchTransfers' => true,
@@ -3591,6 +3593,29 @@ class binance extends Exchange {
         }
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_incomes ($response, $market, $since, $limit);
+    }
+
+    public function set_leverage($symbol, $leverage, $params = array ()) {
+        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (($leverage < 1) || ($leverage > 125)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $method = null;
+        if ($market['linear']) {
+            $method = 'fapiPrivatePostLeverage';
+        } else if ($market['inverse']) {
+            $method = 'dapiPrivatePostLeverage';
+        } else {
+            throw NotSupported ($this->id . ' setLeverage() supports linear and inverse contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage' => $leverage,
+        );
+        return yield $this->$method (array_merge($request, $params));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
