@@ -189,7 +189,8 @@ class binancecoinm extends binance {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            // not the unified id here
+            $request['pair'] = $market['info']['pair'];
         }
         $response = yield $this->dapiPrivateGetPositionRisk (array_merge($request, $params));
         if ($symbol === null) {

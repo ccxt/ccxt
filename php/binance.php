@@ -1028,7 +1028,7 @@ class binance extends Exchange {
             $margin = $this->safe_value($market, 'isMarginTradingAllowed', false);
             $contractSize = null;
             if ($future || $delivery) {
-                $contractSize = $this->safe_float($market, 'contractSize', 1);
+                $contractSize = $this->safe_string($market, 'contractSize', '1');
             }
             $entry = array(
                 'id' => $id,
@@ -3225,7 +3225,6 @@ class binance extends Exchange {
         $maintenanceMarginString = $this->safe_string($position, 'maintMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
         $entryPriceString = $this->safe_string($position, 'entryPrice');
-        $entryPriceFloat = floatval($entryPriceString);
         $entryPrice = $this->parse_number($entryPriceString);
         $notionalString = $this->safe_string_2($position, 'notional', 'notionalValue');
         $notionalStringAbs = Precise::string_abs($notionalString);
@@ -3233,11 +3232,12 @@ class binance extends Exchange {
         $notionalFloatAbs = floatval($notionalStringAbs);
         $notional = $this->parse_number(Precise::string_abs($notionalString));
         $contractsString = $this->safe_string($position, 'positionAmt');
-        if ($contractsString === null) {
-            $contractsRounded = (int) round($notionalFloat * $entryPriceFloat / $market['contractSize']);
-            $contractsString = (string) $contractsRounded;
-        }
         $contractsStringAbs = Precise::string_abs($contractsString);
+        if ($contractsString === null) {
+            $entryNotional = Precise::string_mul(Precise::string_mul($leverageString, $initialMarginString), $entryPriceString);
+            $contractsString = Precise::string_div($entryNotional, $market['contractSize']);
+            $contractsStringAbs = Precise::string_div(Precise::string_add($contractsString, '0.5'), '1', 0);
+        }
         $contracts = $this->parse_number($contractsStringAbs);
         $leverageBracket = $this->options['leverageBrackets'][$symbol];
         $maintenanceMarginPercentageString = null;
@@ -3272,6 +3272,7 @@ class binance extends Exchange {
         $marginRatio = null;
         $side = null;
         $percentage = null;
+        $liquidationPriceStringRaw = null;
         $liquidationPrice = null;
         if ($notionalFloat === 0.0) {
             $entryPrice = null;
@@ -3297,22 +3298,39 @@ class binance extends Exchange {
                 }
                 $leftSide = Precise::string_div($walletBalance, Precise::string_mul($contractsStringAbs, $onePlusMaintenanceMarginPercentageString));
                 $rightSide = Precise::string_div($entryPriceSignString, $onePlusMaintenanceMarginPercentageString);
-                $pricePrecision = $market['precision']['price'];
-                $pricePrecisionPlusOne = $pricePrecision + 1;
-                $pricePrecisionPlusOneString = (string) $pricePrecisionPlusOne;
-                // round half up
-                $rounder = new Precise ('5e-' . $pricePrecisionPlusOneString);
-                $rounderString = (string) $rounder;
                 $liquidationPriceStringRaw = Precise::string_add($leftSide, $rightSide);
-                $liquidationPriceRoundedString = Precise::string_add($rounderString, $liquidationPriceStringRaw);
-                $truncatedLiquidationPrice = Precise::string_div($liquidationPriceRoundedString, '1', $pricePrecision);
-                if ($truncatedLiquidationPrice[0] === '-') {
-                    // user cannot be liquidated
-                    // since he has more $collateral than the size of the $position
-                    $truncatedLiquidationPrice = null;
+            } else {
+                // calculate liquidation price
+                //
+                // $liquidationPrice = ($contracts * contractSize(±1 - mmp)) / (±1/entryPrice * $contracts * contractSize - $walletBalance)
+                //
+                $onePlusMaintenanceMarginPercentageString = null;
+                $entryPriceSignString = $entryPriceString;
+                if ($side === 'short') {
+                    $onePlusMaintenanceMarginPercentageString = Precise::string_sub('1', $maintenanceMarginPercentageString);
+                } else {
+                    $onePlusMaintenanceMarginPercentageString = Precise::string_sub('-1', $maintenanceMarginPercentageString);
+                    $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
                 }
-                $liquidationPrice = $this->parse_number($truncatedLiquidationPrice);
+                $size = Precise::string_mul($contractsStringAbs, $market['contractSize']);
+                $leftSide = Precise::string_mul($size, $onePlusMaintenanceMarginPercentageString);
+                $rightSide = Precise::string_sub(Precise::string_mul(Precise::string_div('1', $entryPriceSignString), $size), $walletBalance);
+                $liquidationPriceStringRaw = Precise::string_div($leftSide, $rightSide);
             }
+            $pricePrecision = $market['precision']['price'];
+            $pricePrecisionPlusOne = $pricePrecision + 1;
+            $pricePrecisionPlusOneString = (string) $pricePrecisionPlusOne;
+            // round half up
+            $rounder = new Precise ('5e-' . $pricePrecisionPlusOneString);
+            $rounderString = (string) $rounder;
+            $liquidationPriceRoundedString = Precise::string_add($rounderString, $liquidationPriceStringRaw);
+            $truncatedLiquidationPrice = Precise::string_div($liquidationPriceRoundedString, '1', $pricePrecision);
+            if ($truncatedLiquidationPrice[0] === '-') {
+                // user cannot be liquidated
+                // since he has more $collateral than the $size of the $position
+                $truncatedLiquidationPrice = null;
+            }
+            $liquidationPrice = $this->parse_number($truncatedLiquidationPrice);
         }
         return array(
             'info' => $position,
