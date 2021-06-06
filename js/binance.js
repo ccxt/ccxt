@@ -33,6 +33,7 @@ module.exports = class binance extends Exchange {
                 'fetchFundingFees': true,
                 'fetchFundingRate': true,
                 'fetchFundingRates': true,
+                'fetchIsolatedPositions': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -3500,6 +3501,50 @@ module.exports = class binance extends Exchange {
         const account = await this[method] (query);
         const result = this.parseAccountPositions (account);
         return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    async fetchIsolatedPositions (symbol = undefined, params = {}) {
+        // only supported in usdm futures
+        await this.loadMarkets ();
+        await this.loadLeverageBrackets ();
+        const request = {};
+        let market = undefined;
+        let method = undefined;
+        let defaultType = 'future';
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            if (market['linear']) {
+                defaultType = 'future';
+            } else if (market['inverse']) {
+                defaultType = 'delivery';
+            } else {
+                throw NotSupported (this.id + ' fetchIsolatedPositions() supports linear and inverse contracts only');
+            }
+        }
+        defaultType = this.safeString2 (this.options, 'fetchIsolatedPositions', 'defaultType', defaultType);
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        if ((type === 'future') || (type === 'linear')) {
+            method = 'fapiPrivateGetPositionRisk';
+        } else if ((type === 'delivery') || (type === 'inverse')) {
+            method = 'dapiPrivateGetPositionRisk';
+        } else {
+            throw NotSupported (this.id + ' fetchIsolatedPositions() supports linear and inverse contracts only');
+        }
+        const response = await this[method] (this.extend (request, params));
+        if (symbol === undefined) {
+            const result = [];
+            for (let i = 0; i < response.length; i++) {
+                const parsed = this.parsePositionRisk (response[i], market);
+                if (parsed['marginType'] === 'isolated') {
+                    result.push (parsed);
+                }
+            }
+            return result;
+        } else {
+            return this.parsePositionRisk (this.safeValue (response, 0), market);
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
