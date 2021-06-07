@@ -19,12 +19,14 @@ module.exports = class timebit extends Exchange {
             'has': {
                 'cancelOrder': true,
                 'createOrder': true,
+                'CORS': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchCurrencies': true,
                 'fetchBalance': true,
@@ -323,6 +325,32 @@ module.exports = class timebit extends Exchange {
         //     }
         const data = this.safeValue (response, 'data');
         return this.parseOrderBook (this.preOptiomizeOrderBookData (data), symbol);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = (symbols === undefined) ? this.symbols : symbols;
+        const marketIds = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.markets[symbol];
+            if (market['active']) {
+                marketIds.push (market['symbol']);
+            }
+        }
+        const response = await this.processGetTickers (marketIds);
+        return this.filterByArray (response, 'symbol', symbols);
+    }
+
+    async processGetTickers (symbols) {
+        const result = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            await this.fetchTicker (symbol).then( data => {
+                result.push (data);
+            });
+        }
+        return result;
     }
 
     async fetchTicker (symbol, params = {}) {
