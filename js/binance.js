@@ -1022,7 +1022,7 @@ module.exports = class binance extends Exchange {
             const margin = this.safeValue (market, 'isMarginTradingAllowed', false);
             let contractSize = undefined;
             if (future || delivery) {
-                contractSize = this.safeFloat (market, 'contractSize', 1);
+                contractSize = this.safeString (market, 'contractSize', '1');
             }
             const entry = {
                 'id': id,
@@ -3220,7 +3220,6 @@ module.exports = class binance extends Exchange {
         const maintenanceMarginString = this.safeString (position, 'maintMargin');
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
         const entryPriceString = this.safeString (position, 'entryPrice');
-        const entryPriceFloat = parseFloat (entryPriceString);
         let entryPrice = this.parseNumber (entryPriceString);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
         const notionalStringAbs = Precise.stringAbs (notionalString);
@@ -3228,11 +3227,12 @@ module.exports = class binance extends Exchange {
         const notionalFloatAbs = parseFloat (notionalStringAbs);
         const notional = this.parseNumber (Precise.stringAbs (notionalString));
         let contractsString = this.safeString (position, 'positionAmt');
+        let contractsStringAbs = Precise.stringAbs (contractsString);
         if (contractsString === undefined) {
-            const contractsRounded = Math.round (notionalFloat * entryPriceFloat / market['contractSize']);
-            contractsString = contractsRounded.toString ();
+            const entryNotional = Precise.stringMul (Precise.stringMul (leverageString, initialMarginString), entryPriceString);
+            contractsString = Precise.stringDiv (entryNotional, market['contractSize']);
+            contractsStringAbs = Precise.stringDiv (Precise.stringAdd (contractsString, '0.5'), '1', 0);
         }
-        const contractsStringAbs = Precise.stringAbs (contractsString);
         const contracts = this.parseNumber (contractsStringAbs);
         const leverageBracket = this.options['leverageBrackets'][symbol];
         let maintenanceMarginPercentageString = undefined;
@@ -3267,6 +3267,7 @@ module.exports = class binance extends Exchange {
         let marginRatio = undefined;
         let side = undefined;
         let percentage = undefined;
+        let liquidationPriceStringRaw = undefined;
         let liquidationPrice = undefined;
         if (notionalFloat === 0.0) {
             entryPrice = undefined;
@@ -3292,22 +3293,39 @@ module.exports = class binance extends Exchange {
                 }
                 const leftSide = Precise.stringDiv (walletBalance, Precise.stringMul (contractsStringAbs, onePlusMaintenanceMarginPercentageString));
                 const rightSide = Precise.stringDiv (entryPriceSignString, onePlusMaintenanceMarginPercentageString);
-                const pricePrecision = market['precision']['price'];
-                const pricePrecisionPlusOne = pricePrecision + 1;
-                const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString ();
-                // round half up
-                const rounder = new Precise ('5e-' + pricePrecisionPlusOneString);
-                const rounderString = rounder.toString ();
-                const liquidationPriceStringRaw = Precise.stringAdd (leftSide, rightSide);
-                const liquidationPriceRoundedString = Precise.stringAdd (rounderString, liquidationPriceStringRaw);
-                let truncatedLiquidationPrice = Precise.stringDiv (liquidationPriceRoundedString, '1', pricePrecision);
-                if (truncatedLiquidationPrice[0] === '-') {
-                    // user cannot be liquidated
-                    // since he has more collateral than the size of the position
-                    truncatedLiquidationPrice = undefined;
+                liquidationPriceStringRaw = Precise.stringAdd (leftSide, rightSide);
+            } else {
+                // calculate liquidation price
+                //
+                // liquidationPrice = (contracts * contractSize(±1 - mmp)) / (±1/entryPrice * contracts * contractSize - walletBalance)
+                //
+                let onePlusMaintenanceMarginPercentageString = undefined;
+                let entryPriceSignString = entryPriceString;
+                if (side === 'short') {
+                    onePlusMaintenanceMarginPercentageString = Precise.stringSub ('1', maintenanceMarginPercentageString);
+                } else {
+                    onePlusMaintenanceMarginPercentageString = Precise.stringSub ('-1', maintenanceMarginPercentageString);
+                    entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
                 }
-                liquidationPrice = this.parseNumber (truncatedLiquidationPrice);
+                const size = Precise.stringMul (contractsStringAbs, market['contractSize']);
+                const leftSide = Precise.stringMul (size, onePlusMaintenanceMarginPercentageString);
+                const rightSide = Precise.stringSub (Precise.stringMul (Precise.stringDiv ('1', entryPriceSignString), size), walletBalance);
+                liquidationPriceStringRaw = Precise.stringDiv (leftSide, rightSide);
             }
+            const pricePrecision = market['precision']['price'];
+            const pricePrecisionPlusOne = pricePrecision + 1;
+            const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString ();
+            // round half up
+            const rounder = new Precise ('5e-' + pricePrecisionPlusOneString);
+            const rounderString = rounder.toString ();
+            const liquidationPriceRoundedString = Precise.stringAdd (rounderString, liquidationPriceStringRaw);
+            let truncatedLiquidationPrice = Precise.stringDiv (liquidationPriceRoundedString, '1', pricePrecision);
+            if (truncatedLiquidationPrice[0] === '-') {
+                // user cannot be liquidated
+                // since he has more collateral than the size of the position
+                truncatedLiquidationPrice = undefined;
+            }
+            liquidationPrice = this.parseNumber (truncatedLiquidationPrice);
         }
         return {
             'info': position,
