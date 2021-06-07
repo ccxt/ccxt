@@ -126,7 +126,7 @@ module.exports = class timebit extends Exchange {
             this.checkRequiredCredentials ();
             let query = undefined;
             const uri = '/api/v1/' + this.implodeParams (path, params);
-            const timestamp = Math.floor (new Date () / 1000).toString ();
+            const timestamp = this.seconds ();
             delete params.orderId;
             delete params.currency;
             query = this.urlencodeWithArrayRepeat (params);
