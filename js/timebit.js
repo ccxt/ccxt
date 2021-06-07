@@ -127,7 +127,6 @@ module.exports = class timebit extends Exchange {
             let query = undefined;
             const uri = '/api/v1/' + this.implodeParams (path, params);
             const _timestamp = Math.floor (+new Date () / 1000).toString ();
-            //
             delete params.orderId;
             delete params.currency;
             query = this.urlencodeWithArrayRepeat (params);
@@ -135,7 +134,7 @@ module.exports = class timebit extends Exchange {
             const signature = this.hmac (_data, this.secret);
             headers = {
                 'CEN-ACCESS-KEY': this.apiKey,
-                'CEN-ACCESS-TIMESTAMP': _timestamp, //  execution start time call api (unix time)
+                'CEN-ACCESS-TIMESTAMP': _timestamp, // execution start time call api (unix time)
                 'CEN-ACCESS-SIGN': signature,
             };
             if (method === 'GET') {
