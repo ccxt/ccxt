@@ -126,15 +126,15 @@ module.exports = class timebit extends Exchange {
             this.checkRequiredCredentials ();
             let query = undefined;
             const uri = '/api/v1/' + this.implodeParams (path, params);
-            const _timestamp = Math.floor (+new Date () / 1000).toString ();
+            const timestamp = Math.floor (+new Date () / 1000).toString ();
             delete params.orderId;
             delete params.currency;
             query = this.urlencodeWithArrayRepeat (params);
-            const _data = _timestamp.concat (method).concat (uri);
-            const signature = this.hmac (_data, this.secret);
+            const data = timestamp.concat (method).concat (uri);
+            const signature = this.hmac (data, this.secret);
             headers = {
                 'CEN-ACCESS-KEY': this.apiKey,
-                'CEN-ACCESS-TIMESTAMP': _timestamp, // execution start time call api (unix time)
+                'CEN-ACCESS-TIMESTAMP': timestamp, // execution start time call api (unix time)
                 'CEN-ACCESS-SIGN': signature,
             };
             if (method === 'GET') {
