@@ -1034,6 +1034,7 @@ class binance(Exchange):
                 'quoteId': quoteId,
                 'info': market,
                 'spot': spot,
+                'type': type,
                 'margin': margin,
                 'future': future,
                 'delivery': delivery,

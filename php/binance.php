@@ -1040,6 +1040,7 @@ class binance extends Exchange {
                 'quoteId' => $quoteId,
                 'info' => $market,
                 'spot' => $spot,
+                'type' => $type,
                 'margin' => $margin,
                 'future' => $future,
                 'delivery' => $delivery,
