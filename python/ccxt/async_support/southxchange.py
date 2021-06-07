@@ -628,6 +628,9 @@ class southxchange(Exchange):
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
