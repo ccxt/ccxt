@@ -666,6 +666,10 @@ module.exports = class southxchange extends Exchange {
         return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
+    nonce () {
+        return this.milliseconds ();
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
