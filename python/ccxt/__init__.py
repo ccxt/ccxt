@@ -67,7 +67,6 @@ from ccxt.base.errors import OrderImmediatelyFillable       # noqa: F401
 from ccxt.base.errors import OrderNotFillable               # noqa: F401
 
 
-from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.aax import aax                                    # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.adara import adara                                # noqa: F401
@@ -171,6 +170,7 @@ from ccxt.okcoincny import okcoincny                        # noqa: F401
 from ccxt.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
 from ccxt.okex3 import okex3                                # noqa: F401
+from ccxt.okex5 import okex5                                # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
@@ -192,9 +192,9 @@ from ccxt.xbtce import xbtce                                # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
+from ccxt._1btcxe import _1btcxe                            # noqa: F401
 
 exchanges = [
-    '_1btcxe',
     'aax',
     'acx',
     'adara',
@@ -298,6 +298,7 @@ exchanges = [
     'okcoinusd',
     'okex',
     'okex3',
+    'okex5',
     'paymium',
     'poloniex',
     'rightbtc',
@@ -319,6 +320,7 @@ exchanges = [
     'yobit',
     'zaif',
     'zb',
+    '_1btcxe',
 ]
 
 base = [

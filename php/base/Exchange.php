@@ -160,6 +160,7 @@ class Exchange {
         'okcoinusd',
         'okex',
         'okex3',
+        'okex5',
         'paymium',
         'poloniex',
         'rightbtc',

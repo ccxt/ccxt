@@ -235,6 +235,7 @@ module.exports = class Exchange {
 
         this.minFundingAddressLength = 1 // used in checkAddress
         this.substituteCommonCurrencyCodes = true  // reserved
+        this.number = Number
 
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
@@ -1413,6 +1414,23 @@ module.exports = class Exchange {
 
     integerPow (a, b) {
         return new BN (a).pow (new BN (b))
+    }
+
+    parseNumber (value, d = undefined) {
+        if (value === undefined) {
+            return d
+        } else {
+            try {
+                return this.number (value)
+            } catch (e) {
+                return d
+            }
+        }
+    }
+
+    safeNumber (object, key, d = undefined) {
+        const value = this.safeString (object, key)
+        return this.parseNumber (value, d)
     }
 }
 

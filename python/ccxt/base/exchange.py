@@ -297,6 +297,7 @@ class Exchange(object):
     last_http_response = None
     last_json_response = None
     last_response_headers = None
+    number = float  # or str (a pointer to a class)
 
     requiresWeb3 = False
     web3 = None
@@ -1746,6 +1747,19 @@ class Exchange(object):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
+
+    def parse_number(self, value, default=None):
+        if value is None:
+            return default
+        else:
+            try:
+                return self.number(value)
+            except Exception:
+                return default
+
+    def safe_number(self, dictionary, key, default=None):
+        value = self.safe_string(dictionary, key)
+        return self.parse_number(value, default)
 
     # -------------------------------------------------------------------------
     # web3 / 0x methods
