@@ -39,6 +39,7 @@ module.exports = class ndax extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '60',
