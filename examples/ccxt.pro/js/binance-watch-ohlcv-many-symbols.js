@@ -45,7 +45,17 @@ async function main () {
     if (exchange.has['watchOHLCV']) {
         await exchange.loadMarkets ()
         const timeframe = '15m'
+        // many symbols
         await Promise.all (exchange.symbols.map (symbol => loop (exchange, symbol, timeframe)))
+        //
+        // or
+        //
+        // const symbols = [ 'BTC/USDT', 'ETH/USDT' ] // specific symbols
+        // await Promise.all (symbols.map (symbol => loop (exchange, symbol, timeframe)))
+        //
+        // or
+        //
+        // await loop (exchange, 'BTC/USDT', timeframe) // one symbol
     } else {
         console.log (exchange.id, 'does not support watchOHLCV yet')
     }
