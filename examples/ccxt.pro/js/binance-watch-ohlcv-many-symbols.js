@@ -5,15 +5,17 @@ const ccxtpro = require ('ccxt.pro');
 // your version must be 0.7+
 console.log ('CCXT Pro Version:', ccxtpro.version)
 
-function handle (exchange, symbol, ticker) {
-    console.log (new Date (), exchange.id, symbol, ticker['last'])
+function handle (exchange, symbol, timeframe, candles) {
+    const lastCandle = candles[candles.length - 1]
+    const lastClosingPrice = lastCandle[4]
+    console.log (new Date (), exchange.id, timeframe, symbol, '\t', lastClosingPrice)
 }
 
-async function loop (exchange, symbol) {
+async function loop (exchange, symbol, timeframe) {
     while (true) {
         try {
-            const ticker = await exchange.watchTicker (symbol)
-            handle (exchange, symbol, ticker)
+            const candles = await exchange.watchOHLCV (symbol, timeframe)
+            handle (exchange, symbol, timeframe, candles)
         } catch (e) {
             console.log (symbol, e)
             // do nothing and retry on next loop iteration
@@ -40,22 +42,12 @@ async function main () {
     //
     // const exchange = new ccxtpro.binancecoinm () // coin-margined contracts
 
-    if (exchange.has['watchTicker']) {
+    if (exchange.has['watchOHLCV']) {
         await exchange.loadMarkets ()
-        // many symbols
-        await Promise.all (exchange.symbols.map (symbol => loop (exchange, symbol)))
-        //
-        // or
-        //
-        // const symbols = [ 'BTC/USDT', 'ETH/USDT' ] // specific symbols
-        // await Promise.all (symbols.map (symbol => loop (exchange, symbol)))
-        //
-        // or
-        //
-        // await loop (exchange, 'BTC/USDT') // one symbol
-
+        const timeframe = '15m'
+        await Promise.all (exchange.symbols.map (symbol => loop (exchange, symbol, timeframe)))
     } else {
-        console.log (exchange.id, 'does not support watchTicker yet')
+        console.log (exchange.id, 'does not support watchOHLCV yet')
     }
 }
 
