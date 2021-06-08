@@ -45,6 +45,7 @@ class ndax(Exchange):
                 'fetchOrderTrades': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchWithdrawals': True,
             },
             'timeframes': {
                 '1m': '60',
