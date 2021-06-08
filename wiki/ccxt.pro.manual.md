@@ -248,7 +248,7 @@ Each incoming update says which parts of the data have changed and the receiving
 
 The incremental structures returned from the unified methods of CCXT Pro are often one of two types:
 
-1. JSON-decoded object (`object` in JavaScript, `dict` in Python, `array()` in PHP). This type may be returned from public and private methods like `watchTicker`, `watchBalance`, `watchOrder`, etc.
+1. JSON-decoded object (`object` in JavaScript, `dict` in Python, `array()` in PHP). This type may be returned from public and private methods like `watchOrderBook`, `watchTicker`, `watchBalance`, `watchOrder`, etc.
 2. An array/list of objects (usually sorted in chronological order). This type may be returned from methods like `watchOHLCV`, `watchTrades`, `watchMyTrades`, `watchOrders`, etc.
 
 The unified methods returning arrays like `watchOHLCV`, `watchTrades`, `watchMyTrades`, `watchOrders`, are based on the caching layer. The user has to understand the inner workings of the caching layer to work with it efficiently.
