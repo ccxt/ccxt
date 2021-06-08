@@ -162,6 +162,7 @@ class probit(Exchange):
                 'CBC': 'CryptoBharatCoin',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'HBC': 'Hybrid Bank Cash',
+                'ORC': 'Oracle System',
                 'SOC': 'Soda Coin',
                 'UNI': 'UNICORN Token',
             },
