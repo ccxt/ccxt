@@ -206,6 +206,7 @@ class ndax(Exchange):
                 },
                 'broad': {
                     'Invalid InstrumentId': BadSymbol,  # {"result":false,"errormsg":"Invalid InstrumentId: 10000","errorcode":100,"detail":null}
+                    'This endpoint requires 2FACode along with the payload': AuthenticationError,
                 },
             },
             'options': {
@@ -1887,6 +1888,78 @@ class ndax(Exchange):
             'status': status,
             'updated': updated,
             'fee': fee,
+        }
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        if self.twofa is None:
+            raise ExchangeError(self.id + ' withdraw() requires exchange.twofa credential for OATH codes')
+        self.check_address(address)
+        omsId = self.safe_integer(self.options, 'omsId', 1)
+        await self.load_markets()
+        await self.load_accounts()
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
+        params = self.omit(params, ['accountId', 'AccountId'])
+        currency = self.currency(code)
+        withdrawTemplateTypesRequest = {
+            'omsId': omsId,
+            'AccountId': accountId,
+            'ProductId': currency['id'],
+        }
+        withdrawTemplateTypesResponse = await self.privateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest)
+        #
+        #     {
+        #         result: True,
+        #         errormsg: null,
+        #         statuscode: "0",
+        #         TemplateTypes: [
+        #             {AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC"},
+        #             {AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC"},
+        #             {AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1"}
+        #         ]
+        #     }
+        #
+        templateTypes = self.safe_value(withdrawTemplateTypesResponse, 'TemplateTypes', [])
+        firstTemplateType = self.safe_value(templateTypes, 0)
+        if firstTemplateType is None:
+            raise ExchangeError(self.id + ' withdraw() could not find a withdraw template type for ' + currency['code'])
+        templateName = self.safe_string(firstTemplateType, 'TemplateName')
+        withdrawTemplateRequest = {
+            'omsId': omsId,
+            'AccountId': accountId,
+            'ProductId': currency['id'],
+            'TemplateType': templateName,
+            'AccountProviderId': firstTemplateType['AccountProviderId'],
+        }
+        withdrawTemplateResponse = await self.privateGetGetWithdrawTemplate(withdrawTemplateRequest)
+        #
+        #     {
+        #         result: True,
+        #         errormsg: null,
+        #         statuscode: "0",
+        #         Template: "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
+        #     }
+        #
+        template = self.safe_string(withdrawTemplateResponse, 'Template')
+        if template is None:
+            raise ExchangeError(self.id + ' withdraw() could not find a withdraw template for ' + currency['code'])
+        withdrawTemplate = json.loads(template)
+        withdrawTemplate['ExternalAddress'] = address
+        if tag is not None:
+            if 'Memo' in withdrawTemplate:
+                withdrawTemplate['Memo'] = tag
+        withdrawRequest = {
+            'omsId': omsId,
+            'AccountId': accountId,
+            'ProductId': currency['id'],
+            'TemplateForm': self.json(withdrawTemplate),
+            'TemplateType': templateName,
+            'Code': self.oath(),
+        }
+        response = await self.privatePostCreateWithdrawTicket(self.deep_extend(withdrawRequest, params))
+        return {
+            'info': response,
+            'id': self.safe_string(response, 'Id'),
         }
 
     def nonce(self):
