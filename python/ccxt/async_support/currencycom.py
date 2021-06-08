@@ -152,6 +152,7 @@ class currencycom(Exchange):
             },
             'commonCurrencies': {
                 'IQ': 'iQIYI',
+                'PLAY': "Dave & Buster's Entertainment",
             },
         })
 

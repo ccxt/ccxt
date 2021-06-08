@@ -144,6 +144,7 @@ class currencycom extends Exchange {
             ),
             'commonCurrencies' => array(
                 'IQ' => 'iQIYI',
+                'PLAY' => "Dave & Buster's Entertainment",
             ),
         ));
     }
