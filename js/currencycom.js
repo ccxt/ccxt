@@ -141,7 +141,7 @@ module.exports = class currencycom extends Exchange {
             },
             'commonCurrencies': {
                 'IQ': 'iQIYI',
-                'PLAY': 'Dave & Buster\'s',
+                'PLAY': "Dave & Buster's Entertainment",
             },
         });
     }
