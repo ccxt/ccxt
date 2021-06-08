@@ -27,7 +27,6 @@ $exchange->load_markets();
 $symbol = 'BTC/USDT';
 $side = 'buy';
 $amount = 0.01;
-$price = 30000;
 $stopPrice = 25000;
 $takeProfitPrice = 35000;
 
