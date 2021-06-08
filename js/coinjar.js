@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InsufficientFunds, OrderNotFillable, InvalidOrder, RateLimitExceeded } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds, OrderNotFound, OrderNotFillable, InvalidOrder, RateLimitExceeded } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
