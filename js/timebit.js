@@ -346,9 +346,8 @@ module.exports = class timebit extends Exchange {
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            await this.fetchTicker (symbol).then ((data) => {
-                result.push (data);
-            });
+            const response = await this.fetchTicker (symbol);
+            result.push (response);
         }
         return result;
     }
