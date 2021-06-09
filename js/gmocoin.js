@@ -134,6 +134,32 @@ module.exports = class gmocoin extends Exchange {
                 'ERR-5204': BadRequest,
                 'ERR-5206': RateLimitExceeded,
             },
+            'errorMessages': {
+                'ERR-189': 'The quantity of your close order exceeds your open position.',
+                'ERR-200': 'There are existing active orders and your order exceeds the maximum quantity that can be ordered. Please change the quantity to order or cancel an active order in order to create a new close order.',
+                'ERR-201': 'Insufficient funds.',
+                'ERR-208': 'The quantity of your order exceeds your available balance. Please check your balance or active orders.',
+                'ERR-430': 'Invalid parameter (orderId/executionId) in executions.',
+                'ERR-554': 'The server is unavalibale.',
+                'ERR-626': 'The server is busy. Please retry later.',
+                'ERR-635': 'The number of active orders has exceeded the limit. Please cancel an active order to create a new order.',
+                'ERR-5003': 'The API usage limits are exceeded.',
+                'ERR-5008': 'The API-TIMESTAMP that is set in the request header is later than the system time of the API.',
+                'ERR-5009': 'The API-TIMESTAMP that is set in the request header is earlier than the system time of the API.',
+                'ERR-5106': 'The request parameter is invalid.',
+                'ERR-5012': 'The API authentication is invalid.',
+                'ERR-5014': 'The membership agreement has not been completed.',
+                'ERR-5121': 'Impossible to order due to order price is too low.',
+                'ERR-5122': 'The specified order can not be changed or canceled (already MODIFYING, CANCELLING, CANCELED, EXECUTED or EXPIRED). Orders can be changed or canceled only in ORDERED (WAITING for stop limit orders) status.',
+                'ERR-5123': "The specified order doesn't exist.",
+                'ERR-5127': 'Your API connection is restricted.',
+                'ERR-5129': 'Stop limit orders cannot be specified a price that will be executed immediately.',
+                'ERR-5201': 'A response code that when Public/Private API is called while the service is in a regular maintenance.',
+                'ERR-5202': 'A response code that when Public/Private API is called while the service is in a emergency maintenance.',
+                'ERR-5203': 'A response code that when order or change order is called while the service is pre-open.',
+                'ERR-5204': 'The request API PATH is invalid.',
+                'ERR-5206': 'The limits of changing order for each order are exceeded. If you would like further changes for the order, please cancel the order and create a brand new order.mitExceeded',
+            },
         });
     }
 
@@ -449,35 +475,9 @@ module.exports = class gmocoin extends Exchange {
         const success = this.safeInteger (response, 'status');
         const data = this.safeValue (response, 'data');
         if (success !== 0 || !data) {
-            const errorMessages = {
-                'ERR-189': 'The quantity of your close order exceeds your open position.',
-                'ERR-200': 'There are existing active orders and your order exceeds the maximum quantity that can be ordered. Please change the quantity to order or cancel an active order in order to create a new close order.',
-                'ERR-201': 'Insufficient funds.',
-                'ERR-208': 'The quantity of your order exceeds your available balance. Please check your balance or active orders.',
-                'ERR-430': 'Invalid parameter (orderId/executionId) in executions.',
-                'ERR-554': 'The server is unavalibale.',
-                'ERR-626': 'The server is busy. Please retry later.',
-                'ERR-635': 'The number of active orders has exceeded the limit. Please cancel an active order to create a new order.',
-                'ERR-5003': 'The API usage limits are exceeded.',
-                'ERR-5008': 'The API-TIMESTAMP that is set in the request header is later than the system time of the API.',
-                'ERR-5009': 'The API-TIMESTAMP that is set in the request header is earlier than the system time of the API.',
-                'ERR-5106': 'The request parameter is invalid.',
-                'ERR-5012': 'The API authentication is invalid.',
-                'ERR-5014': 'The membership agreement has not been completed.',
-                'ERR-5121': 'Impossible to order due to order price is too low.',
-                'ERR-5122': 'The specified order can not be changed or canceled (already MODIFYING, CANCELLING, CANCELED, EXECUTED or EXPIRED). Orders can be changed or canceled only in ORDERED (WAITING for stop limit orders) status.',
-                'ERR-5123': "The specified order doesn't exist.",
-                'ERR-5127': 'Your API connection is restricted.',
-                'ERR-5129': 'Stop limit orders cannot be specified a price that will be executed immediately.',
-                'ERR-5201': 'A response code that when Public/Private API is called while the service is in a regular maintenance.',
-                'ERR-5202': 'A response code that when Public/Private API is called while the service is in a emergency maintenance.',
-                'ERR-5203': 'A response code that when order or change order is called while the service is pre-open.',
-                'ERR-5204': 'The request API PATH is invalid.',
-                'ERR-5206': 'The limits of changing order for each order are exceeded. If you would like further changes for the order, please cancel the order and create a brand new order.mitExceeded',
-            };
             const errorClasses = this.exceptions;
             const code = this.safeString (data, 'code');
-            const message = this.safeString (errorMessages, code, 'Error');
+            const message = this.safeString (this.errorMessages, code, 'Error');
             const ErrorClass = this.safeValue (errorClasses, code);
             if (ErrorClass !== undefined) {
                 throw new ErrorClass (message);
