@@ -151,13 +151,13 @@ module.exports = class timebit extends Exchange {
         } else {
             if (method === 'GET') {
                 if (this.safeString (params, 'pair', '') !== '') {
-                    delete params.pair;
+                    delete params['pair'];
                 }
                 if (this.safeString (params, 'timeFrame', '') !== '') {
-                    delete params.timeFrame;
+                    delete params['timeFrame'];
                 }
                 if (this.safeString (params, 'orderId', '') !== '') {
-                    delete params.orderId;
+                    delete params['orderId'];
                 }
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
@@ -419,8 +419,16 @@ module.exports = class timebit extends Exchange {
         const datetime = this.iso8601 (timestamp);
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'base_volume');
-        const type = this.safeString (trade, 'type').indexOf ('limit') !== -1 ? 'limit' : 'market';
-        const side = this.safeString (trade, 'type').indexOf ('buy') !== -1 ? 'buy' : 'sell';
+        const typeIndex = this.safeString (trade, 'type').indexOf ('buy');
+        let type = 'limit';
+        if (typeIndex !== -1) {
+            type = 'market';
+        }
+        let side = 'sell';
+        const siteIndex = this.safeString (trade, 'type').indexOf ('buy');
+        if (siteIndex !== -1) {
+            side = 'buy';
+        }
         const cost = this.safeFloat (trade, 'quote_volume');
         const entry = {
             'info': trade,
@@ -477,13 +485,16 @@ module.exports = class timebit extends Exchange {
         //     ],
         //     "pagination":null
         //     }
+        const eusdtTranfer = {
+            'EUSDT': 'USDT',
+        };
         const currencies = this.safeValue (response, 'data');
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const convertUSDT = this.safeString (currency, 'symbol', '') === 'EUSDT'
-                ? 'USDT' : this.safeString (currency, 'symbol', '');
-            const code = this.safeCurrencyCode (convertUSDT);
+            const tmpSymbol = this.safeString (currency, 'symbol');
+            const tranderSymbol = this.safeString (eusdtTranfer, tmpSymbol, tmpSymbol);
+            const code = this.safeCurrencyCode (tranderSymbol);
             const name = this.safeCurrencyCode (this.safeString (currency, 'name'));
             const active = this.safeString (currency, 'active');
             result[code] = {
@@ -945,13 +956,13 @@ module.exports = class timebit extends Exchange {
         const result = [];
         for (let i = 0; i < rawData.length; i++) {
             const raw = rawData[i];
-            data[0] = parseInt (raw['time']);
-            data[1] = parseFloat (raw['open']);
-            data[2] = parseFloat (raw['high']);
-            data[3] = parseFloat (raw['low']);
-            data[4] = parseFloat (raw['close']);
-            data[5] = parseFloat (raw['volume']);
-            result[i] = data;
+            data.push (parseInt (raw['time']));
+            data.push (parseFloat (raw['open']));
+            data.push (parseFloat (raw['high']));
+            data.push (parseFloat (raw['low']));
+            data.push (parseFloat (raw['close']));
+            data.push (parseFloat (raw['volume']));
+            result.push (data);
         }
         return result;
     }
