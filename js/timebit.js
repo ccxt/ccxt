@@ -346,6 +346,7 @@ module.exports = class timebit extends Exchange {
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
+            // await this.fetchTicker (symbol).then ((data) => result.push (data));
             const response = await this.fetchTicker (symbol);
             result.push (response);
         }
@@ -936,12 +937,12 @@ module.exports = class timebit extends Exchange {
         const result = [];
         for (let i = 0; i < rawData.length; i++) {
             const raw = rawData[i];
-            data[0] = raw['time'];
-            data[1] = raw['open'];
-            data[2] = raw['high'];
-            data[3] = raw['low'];
-            data[4] = raw['close'];
-            data[5] = raw['volume'];
+            data[0] = parseInt (raw['time']);
+            data[1] = parseFloat (raw['open']);
+            data[2] = parseFloat (raw['high']);
+            data[3] = parseFloat (raw['low']);
+            data[4] = parseFloat (raw['close']);
+            data[5] = parseFloat (raw['volume']);
             result[i] = data;
         }
         return result;
