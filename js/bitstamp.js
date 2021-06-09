@@ -1432,7 +1432,7 @@ module.exports = class bitstamp extends Exchange {
             throw new NotSupported (this.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!');
         }
         const name = this.getCurrencyName (code);
-        const method = 'private' + 'Post' + this.capitalize (name) + 'Address';
+        const method = 'privatePost' + this.capitalize (name) + 'Address';
         const response = await this[method] (params);
         const address = this.safeString (response, 'address');
         const tag = this.safeString2 (response, 'memo_id', 'destination_tag');
@@ -1456,7 +1456,7 @@ module.exports = class bitstamp extends Exchange {
         let method = undefined;
         if (!this.isFiat (code)) {
             const name = this.getCurrencyName (code);
-            method = 'private' + 'Post' + this.capitalize (name) + 'Withdrawal';
+            method = 'privatePost' + this.capitalize (name) + 'Withdrawal';
             if (code === 'XRP') {
                 if (tag !== undefined) {
                     request['destination_tag'] = tag;
