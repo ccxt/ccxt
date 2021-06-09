@@ -104,6 +104,10 @@ class bitstamp extends Exchange {
                         'sell/{pair}/',
                         'sell/market/{pair}/',
                         'sell/instant/{pair}/',
+                        'btc_withdrawal/',
+                        'btc_address/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -160,11 +164,7 @@ class bitstamp extends Exchange {
                 ),
                 'v1' => array(
                     'post' => array(
-                        'bitcoin_deposit_address/',
                         'unconfirmed_btc/',
-                        'bitcoin_withdrawal/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
                     ),
                 ),
             ),
@@ -1425,9 +1425,6 @@ class bitstamp extends Exchange {
     }
 
     public function get_currency_name($code) {
-        if ($code === 'BTC') {
-            return 'bitcoin';
-        }
         return strtolower($code);
     }
 
@@ -1440,17 +1437,10 @@ class bitstamp extends Exchange {
             throw new NotSupported($this->id . ' fiat fetchDepositAddress() for ' . $code . ' is not supported!');
         }
         $name = $this->get_currency_name($code);
-        $v1 = ($code === 'BTC');
-        $method = $v1 ? 'v1' : 'private'; // $v1 or v2
-        $method .= 'Post' . $this->capitalize($name);
-        $method .= $v1 ? 'Deposit' : '';
-        $method .= 'Address';
+        $method = 'privatePost' . $this->capitalize($name) . 'Address';
         $response = yield $this->$method ($params);
-        if ($v1) {
-            $response = json_decode($response, $as_associative_array = true);
-        }
-        $address = $v1 ? $response : $this->safe_string($response, 'address');
-        $tag = $v1 ? null : $this->safe_string_2($response, 'memo_id', 'destination_tag');
+        $address = $this->safe_string($response, 'address');
+        $tag = $this->safe_string_2($response, 'memo_id', 'destination_tag');
         $this->check_address($address);
         return array(
             'currency' => $code,
@@ -1471,9 +1461,7 @@ class bitstamp extends Exchange {
         $method = null;
         if (!$this->is_fiat($code)) {
             $name = $this->get_currency_name($code);
-            $v1 = ($code === 'BTC');
-            $method = $v1 ? 'v1' : 'private'; // $v1 or v2
-            $method .= 'Post' . $this->capitalize($name) . 'Withdrawal';
+            $method = 'privatePost' . $this->capitalize($name) . 'Withdrawal';
             if ($code === 'XRP') {
                 if ($tag !== null) {
                     $request['destination_tag'] = $tag;
