@@ -241,7 +241,7 @@ module.exports = class coinjar extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async createOrder (symbol, type, side, amount, price, params = { 'time_in_force': 'GTC' }) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const product_id = this.marketId (symbol);
         const request = {
@@ -250,7 +250,7 @@ module.exports = class coinjar extends Exchange {
             'side': side,
             'price': price,
             'size': amount,
-            'time_in_force': params['time_in_force'],
+            'time_in_force': params['time_in_force'] || 'GTC',
         };
         const response = await this.privatePostOrders (this.extend (request, params));
         const productId = this.safeValue (response, 'product_id');
@@ -355,7 +355,7 @@ module.exports = class coinjar extends Exchange {
         return response;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let fullPath = '/' + this.implodeParams (path, params);
         if (api === 'private') {
             this.checkRequiredCredentials ();
