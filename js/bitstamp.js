@@ -99,6 +99,10 @@ module.exports = class bitstamp extends Exchange {
                         'sell/{pair}/',
                         'sell/market/{pair}/',
                         'sell/instant/{pair}/',
+                        'btc_withdrawal/',
+                        'btc_address/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -155,11 +159,7 @@ module.exports = class bitstamp extends Exchange {
                 },
                 'v1': {
                     'post': [
-                        'bitcoin_deposit_address/',
                         'unconfirmed_btc/',
-                        'bitcoin_withdrawal/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
                     ],
                 },
             },
@@ -1420,9 +1420,6 @@ module.exports = class bitstamp extends Exchange {
     }
 
     getCurrencyName (code) {
-        if (code === 'BTC') {
-            return 'bitcoin';
-        }
         return code.toLowerCase ();
     }
 
@@ -1435,17 +1432,10 @@ module.exports = class bitstamp extends Exchange {
             throw new NotSupported (this.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!');
         }
         const name = this.getCurrencyName (code);
-        const v1 = (code === 'BTC');
-        let method = v1 ? 'v1' : 'private'; // v1 or v2
-        method += 'Post' + this.capitalize (name);
-        method += v1 ? 'Deposit' : '';
-        method += 'Address';
-        let response = await this[method] (params);
-        if (v1) {
-            response = JSON.parse (response);
-        }
-        const address = v1 ? response : this.safeString (response, 'address');
-        const tag = v1 ? undefined : this.safeString2 (response, 'memo_id', 'destination_tag');
+        const method = 'privatePost' + this.capitalize (name) + 'Address';
+        const response = await this[method] (params);
+        const address = this.safeString (response, 'address');
+        const tag = this.safeString2 (response, 'memo_id', 'destination_tag');
         this.checkAddress (address);
         return {
             'currency': code,
@@ -1466,9 +1456,7 @@ module.exports = class bitstamp extends Exchange {
         let method = undefined;
         if (!this.isFiat (code)) {
             const name = this.getCurrencyName (code);
-            const v1 = (code === 'BTC');
-            method = v1 ? 'v1' : 'private'; // v1 or v2
-            method += 'Post' + this.capitalize (name) + 'Withdrawal';
+            method = 'privatePost' + this.capitalize (name) + 'Withdrawal';
             if (code === 'XRP') {
                 if (tag !== undefined) {
                     request['destination_tag'] = tag;
