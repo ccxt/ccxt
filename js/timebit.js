@@ -112,9 +112,10 @@ module.exports = class timebit extends Exchange {
     }
 
     sign (path, api = 'open', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (params.character !== undefined) {
+        const symbolType = this.safeString (params, 'character', '');
+        if (symbolType !== '') {
             const ignoreParam = {
-                'character': params.character,
+                'character': params['character'],
             };
             delete params.character;
             path = this.implodeParams (path, ignoreParam);
@@ -149,9 +150,15 @@ module.exports = class timebit extends Exchange {
             }
         } else {
             if (method === 'GET') {
-                delete params.pair;
-                delete params.timeFrame;
-                delete params.orderId;
+                if (this.safeString (params, 'pair', '') !== '') {
+                    delete params.pair;
+                }
+                if (this.safeString (params, 'timeFrame', '') !== '') {
+                    delete params.timeFrame;
+                }
+                if (this.safeString (params, 'orderId', '') !== '') {
+                    delete params.orderId;
+                }
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
                 }
@@ -474,8 +481,9 @@ module.exports = class timebit extends Exchange {
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const code = this.safeCurrencyCode (this.safeString (currency, 'symbol') === 'EUSDT'
-                ? 'USDT' : this.safeString (currency, 'symbol'));
+            const convertUSDT = this.safeString (currency, 'symbol', '') === 'EUSDT'
+                ? 'USDT' : this.safeString (currency, 'symbol', '');
+            const code = this.safeCurrencyCode (convertUSDT);
             const name = this.safeCurrencyCode (this.safeString (currency, 'name'));
             const active = this.safeString (currency, 'active');
             result[code] = {
@@ -1014,7 +1022,7 @@ module.exports = class timebit extends Exchange {
         if (body.indexOf ('Server error') >= 0) {
             throw new ExchangeNotAvailable (body);
         }
-        if (response === undefined || response.data === '') {
+        if (response === undefined) {
             throw new ExchangeError (this.id + ' ' + body);
         }
     }
