@@ -2023,13 +2023,17 @@ class ndax extends Exchange {
                 $withdrawTemplate['Memo'] = $tag;
             }
         }
-        $withdrawRequest = array(
+        $withdrawPayload = array(
             'omsId' => $omsId,
             'AccountId' => $accountId,
             'ProductId' => $currency['id'],
             'TemplateForm' => $this->json($withdrawTemplate),
             'TemplateType' => $templateName,
-            'Code' => $this->oath(),
+        );
+        $withdrawRequest = array(
+            'TfaType' => 'Google',
+            'TFaCode' => $this->oath(),
+            'Payload' => $this->json($withdrawPayload),
         );
         $response = $this->privatePostCreateWithdrawTicket ($this->deep_extend($withdrawRequest, $params));
         return array(

@@ -1948,13 +1948,17 @@ class ndax(Exchange):
         if tag is not None:
             if 'Memo' in withdrawTemplate:
                 withdrawTemplate['Memo'] = tag
-        withdrawRequest = {
+        withdrawPayload = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
             'TemplateForm': self.json(withdrawTemplate),
             'TemplateType': templateName,
-            'Code': self.oath(),
+        }
+        withdrawRequest = {
+            'TfaType': 'Google',
+            'TFaCode': self.oath(),
+            'Payload': self.json(withdrawPayload),
         }
         response = await self.privatePostCreateWithdrawTicket(self.deep_extend(withdrawRequest, params))
         return {
