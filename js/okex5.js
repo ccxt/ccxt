@@ -1064,8 +1064,8 @@ module.exports = class okex5 extends Exchange {
         //         "0.07073", // high
         //         "0.07064", // low
         //         "0.07064", // close
-        //         "12.08863", // quote volume
-        //         "0.854309" // base volume
+        //         "12.08863", // base volume
+        //         "0.854309" // quote volume
         //     ]
         //
         return [
@@ -1074,7 +1074,7 @@ module.exports = class okex5 extends Exchange {
             this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 6),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
