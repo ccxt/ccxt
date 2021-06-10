@@ -2022,13 +2022,17 @@ module.exports = class ndax extends Exchange {
                 withdrawTemplate['Memo'] = tag;
             }
         }
-        const withdrawRequest = {
+        const withdrawPayload = {
             'omsId': omsId,
             'AccountId': accountId,
             'ProductId': currency['id'],
             'TemplateForm': this.json (withdrawTemplate),
             'TemplateType': templateName,
-            'Code': this.oath (),
+        };
+        const withdrawRequest = {
+            'TfaType': 'Google',
+            'TFaCode': this.oath (),
+            'Payload': this.json (withdrawPayload),
         };
         const response = await this.privatePostCreateWithdrawTicket (this.deepExtend (withdrawRequest, params));
         return {
