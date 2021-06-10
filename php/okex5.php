@@ -839,8 +839,8 @@ class okex5 extends Exchange {
         $symbol = $market['symbol'];
         $last = $this->safe_number($ticker, 'last');
         $open = $this->safe_number($ticker, 'open24h');
-        $baseVolume = $this->safe_number($ticker, 'volCcy24h');
-        $quoteVolume = $this->safe_number($ticker, 'vol24h');
+        $quoteVolume = $this->safe_number($ticker, 'volCcy24h');
+        $baseVolume = $this->safe_number($ticker, 'vol24h');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         return array(
             'symbol' => $symbol,

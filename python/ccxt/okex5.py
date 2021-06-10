@@ -835,8 +835,8 @@ class okex5(Exchange):
         symbol = market['symbol']
         last = self.safe_number(ticker, 'last')
         open = self.safe_number(ticker, 'open24h')
-        baseVolume = self.safe_number(ticker, 'volCcy24h')
-        quoteVolume = self.safe_number(ticker, 'vol24h')
+        quoteVolume = self.safe_number(ticker, 'volCcy24h')
+        baseVolume = self.safe_number(ticker, 'vol24h')
         vwap = self.vwap(baseVolume, quoteVolume)
         return {
             'symbol': symbol,
