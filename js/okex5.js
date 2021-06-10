@@ -836,8 +836,8 @@ module.exports = class okex5 extends Exchange {
         const symbol = market['symbol'];
         const last = this.safeNumber (ticker, 'last');
         const open = this.safeNumber (ticker, 'open24h');
-        const baseVolume = this.safeNumber (ticker, 'volCcy24h');
-        const quoteVolume = this.safeNumber (ticker, 'vol24h');
+        const quoteVolume = this.safeNumber (ticker, 'volCcy24h');
+        const baseVolume = this.safeNumber (ticker, 'vol24h');
         const vwap = this.vwap (baseVolume, quoteVolume);
         return {
             'symbol': symbol,
