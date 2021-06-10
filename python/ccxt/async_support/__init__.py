@@ -48,7 +48,6 @@ from ccxt.base.errors import OrderImmediatelyFillable           # noqa: F401
 from ccxt.base.errors import OrderNotFillable                   # noqa: F401
 
 
-from ccxt.async_support._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.async_support.aax import aax                                    # noqa: F401
 from ccxt.async_support.acx import acx                                    # noqa: F401
 from ccxt.async_support.adara import adara                                # noqa: F401
@@ -152,6 +151,7 @@ from ccxt.async_support.okcoincny import okcoincny                        # noqa
 from ccxt.async_support.okcoinusd import okcoinusd                        # noqa: F401
 from ccxt.async_support.okex import okex                                  # noqa: F401
 from ccxt.async_support.okex3 import okex3                                # noqa: F401
+from ccxt.async_support.okex5 import okex5                                # noqa: F401
 from ccxt.async_support.paymium import paymium                            # noqa: F401
 from ccxt.async_support.poloniex import poloniex                          # noqa: F401
 from ccxt.async_support.rightbtc import rightbtc                          # noqa: F401
@@ -173,9 +173,9 @@ from ccxt.async_support.xbtce import xbtce                                # noqa
 from ccxt.async_support.yobit import yobit                                # noqa: F401
 from ccxt.async_support.zaif import zaif                                  # noqa: F401
 from ccxt.async_support.zb import zb                                      # noqa: F401
+from ccxt.async_support._1btcxe import _1btcxe                            # noqa: F401
 
 exchanges = [
-    '_1btcxe',
     'aax',
     'acx',
     'adara',
@@ -279,6 +279,7 @@ exchanges = [
     'okcoinusd',
     'okex',
     'okex3',
+    'okex5',
     'paymium',
     'poloniex',
     'rightbtc',
@@ -300,6 +301,7 @@ exchanges = [
     'yobit',
     'zaif',
     'zb',
+    '_1btcxe',
 ]
 
 base = [

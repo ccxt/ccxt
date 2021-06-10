@@ -38,6 +38,7 @@ class Transpiler {
             [ /\.safeStringLower\s/g, '.safe_string_lower'],
             [ /\.safeStringUpper\s/g, '.safe_string_upper'],
             [ /\.safeValue\s/g, '.safe_value'],
+            [ /\.safeNumber\s/g, '.safe_number'],
             [ /\.inArray\s/g, '.in_array'],
             [ /\.toArray\s/g, '.to_array'],
             [ /\.isEmpty\s/g, '.is_empty'],
@@ -66,6 +67,7 @@ class Transpiler {
             [ /\.parseBidsAsks\s/g, '.parse_bids_asks'],
             [ /\.parseBidAsk\s/g, '.parse_bid_ask'],
             [ /\.parseOrders\s/g, '.parse_orders'],
+            [ /\.parseNumber\s/g, '.parse_number'],
             [ /\.parseOrderStatus\s/g, '.parse_order_status'],
             [ /\.parseOrder\s/g, '.parse_order'],
             [ /\.parseJson\s/g, '.parse_json'],
@@ -178,7 +180,13 @@ class Transpiler {
             [ /this\.binaryToBase16\s/g, 'base64.b16encode' ],
             [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
-            [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')']
+            [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
+            [ /Precise\.stringAdd\s/g, 'Precise.string_add' ],
+            [ /Precise\.stringMul\s/g, 'Precise.string_mul' ],
+            [ /Precise\.stringDiv\s/g, 'Precise.string_div' ],
+            [ /Precise\.stringSub\s/g, 'Precise.string_sub' ],
+            [ /Precise\.stringAbs\s/g, 'Precise.string_abs' ],
+            [ /Precise\.stringNeg\s/g, 'Precise.string_neg' ],
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
@@ -528,6 +536,9 @@ class Transpiler {
             if (bodyAsString.indexOf (constant) >= 0) {
                 precisionImports.push ('from ccxt.base.decimal_to_precision import ' + constant)
             }
+        }
+        if (bodyAsString.match (/[\s(]Precise/)) {
+            precisionImports.push ('from ccxt.base.precise import Precise')
         }
 
         header = header.concat (libraries, errorImports, precisionImports)
@@ -1131,6 +1142,7 @@ class Transpiler {
             "from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401",
             "from ccxt.base.decimal_to_precision import number_to_string      # noqa F401",
             "from ccxt.base.exchange import Exchange                          # noqa F401",
+            "from ccxt.base.precise import Precise                            # noqa F401",
             "",
             "",
             "def toWei(amount, decimals):",

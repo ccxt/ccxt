@@ -21,6 +21,7 @@ from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401
 from ccxt.base.decimal_to_precision import number_to_string      # noqa F401
 from ccxt.base.exchange import Exchange                          # noqa F401
+from ccxt.base.precise import Precise                            # noqa F401
 
 
 def toWei(amount, decimals):

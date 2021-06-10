@@ -429,7 +429,6 @@ declare module 'ccxt' {
 
     /* tslint:disable */
 
-    export class _1btcxe extends Exchange {}
     export class aax extends Exchange {}
     export class acx extends Exchange {}
     export class adara extends Exchange {}
@@ -533,6 +532,7 @@ declare module 'ccxt' {
     export class okcoinusd extends Exchange {}
     export class okex extends okcoinusd {}
     export class okex3 extends Exchange {}
+    export class okex5 extends Exchange {}
     export class paymium extends Exchange {}
     export class poloniex extends Exchange {}
     export class rightbtc extends Exchange {}
@@ -554,6 +554,7 @@ declare module 'ccxt' {
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
+    export class _1btcxe extends Exchange {}
 
     /* tslint:enable */
 
