@@ -151,11 +151,13 @@ class bibox(Exchange):
                 '4003': DDoSProtection,  # server busy please try again later
             },
             'commonCurrencies': {
+                'APENFT(NFT)': 'NFT',
                 'BOX': 'DefiBox',
                 'BPT': 'BlockPool Token',
                 'GTC': 'Game.com',
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
+                'NFT': 'NFT Protocol',
                 'PAI': 'PCHAIN',
                 'TERN': 'Ternio-ERC20',
             },
