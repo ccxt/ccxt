@@ -140,6 +140,7 @@ module.exports = class currencycom extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'ETN': 'Eaton',
                 'IQ': 'iQIYI',
                 'PLAY': "Dave & Buster's Entertainment",
             },
