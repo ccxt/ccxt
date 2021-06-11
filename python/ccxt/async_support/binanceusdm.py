@@ -151,7 +151,8 @@ class binanceusdm(binance):
         await self.load_markets()
         # by default cache the leverage bracket
         # it contains useful stuff like the maintenance margin and initial margin for positions
-        if (self.options['leverageBrackets'] is None) or (reload):
+        leverageBrackets = self.safe_value(self.options, 'leverageBrackets')
+        if (leverageBrackets is None) or (reload):
             response = await self.fapiPrivateGetLeverageBracket(params)
             self.options['leverageBrackets'] = {}
             for i in range(0, len(response)):

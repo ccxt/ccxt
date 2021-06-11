@@ -160,7 +160,8 @@ class binanceusdm extends binance {
         yield $this->load_markets();
         // by default cache the leverage $bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        if (($this->options['leverageBrackets'] === null) || ($reload)) {
+        $leverageBrackets = $this->safe_value($this->options, 'leverageBrackets');
+        if (($leverageBrackets === null) || ($reload)) {
             $response = yield $this->fapiPrivateGetLeverageBracket ($params);
             $this->options['leverageBrackets'] = array();
             for ($i = 0; $i < count($response); $i++) {
