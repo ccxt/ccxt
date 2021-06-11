@@ -113,6 +113,7 @@ module.exports = class qtrade extends Exchange {
                     'invalid_auth': AuthenticationError,
                     'insuff_funds': InsufficientFunds,
                     'market_not_found': BadSymbol, // {"errors":[{"code":"market_not_found","title":"Requested market does not exist"}]}
+                    'too_small': InvalidOrder,
                 },
             },
         });
@@ -185,7 +186,7 @@ module.exports = class qtrade extends Exchange {
                 'maker': this.safeNumber (market, 'maker_fee'),
                 'limits': {
                     'amount': {
-                        'min': this.safeNumber (market, 'minimum_buy_value'),
+                        'min': this.safeNumber (market, 'minimum_sell_value'),
                         'max': undefined,
                     },
                     'price': {
@@ -193,7 +194,7 @@ module.exports = class qtrade extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'minimum_buy_value'),
                         'max': undefined,
                     },
                 },
