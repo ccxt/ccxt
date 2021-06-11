@@ -95,8 +95,9 @@ html_theme = 'sphinx_rtd_theme'
 # documentation.
 #
 html_theme_options = {
-    'collapse_navagation': False,
     'titles_only': False,
+    'collapse_navigation': False,
+    'navigation_depth': 2,
 }
 
 html_context = {
@@ -111,7 +112,6 @@ html_context = {
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
 #
-# This is required for the alabaster theme
 # refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
 html_sidebars = {
     '**': [
@@ -123,8 +123,19 @@ html_sidebars = {
     ]
 }
 
-def setup(app):
-    app.add_css_file("css/index.css")
+# These folders are copied to the documentation's HTML output
+html_static_path = ['_static']
+
+# These paths are either relative to html_static_path
+# or fully qualified paths (eg. https://...)
+html_css_files = [
+    'css/index.css',
+]
+
+html_js_files = [
+    'javascript/index.js',
+    'javascript/jquery-ui.min.js',
+]
 
 # -- Options for HTMLHelp output ------------------------------------------
 

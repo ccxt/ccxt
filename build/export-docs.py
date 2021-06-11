@@ -14,6 +14,7 @@ for file in files:
     reference_links = re.sub(r'<(\w+)-(\w+)-(\w+)-(\w+)>`', r'<\1 \2 \3 \4>`', indent_level)
     reference_links2 = re.sub(r'<(\w+)-(\w+)-(\w+)>`', r'<\1 \2 \3>`', reference_links)
     reference_links3 = re.sub(r'<(\w+)-(\w+)>`', r'<\1 \2>`', reference_links2)
+    remove_sublinks = re.sub(r'^\* :ref:`.+`$\n', '', reference_links3, 0, re.MULTILINE)
 
     with open('./doc/' + file + '.rst', 'w') as f:
-        f.write(reference_links3)
+        f.write(remove_sublinks)

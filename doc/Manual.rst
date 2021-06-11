@@ -48,23 +48,11 @@ The structure of the library can be outlined as follows:
 Full public and private HTTP REST APIs for all exchanges are implemented. WebSocket implementations in JavaScript, PHP, Python are available in `CCXT Pro <https://ccxt.pro>`__\ , which is a professional addon to CCXT with support for WebSocket streams.
 
 
-* :ref:`\ **Exchanges** <exchanges>`
-* :ref:`\ **Markets** <markets>`
-* :ref:`\ **Implicit API** <implicit api>`
-* :ref:`\ **Unified API** <unified api>`
-* :ref:`\ **Public API** <public api>`
-* :ref:`\ **Private API** <private api>`
-* :ref:`\ **Error Handling** <error handling>`
-* :ref:`\ **Troubleshooting** <troubleshooting>`
-* :ref:`\ **CCXT Pro** <ccxt pro>`
 
 Exchanges
 =========
 
 
-* :ref:`Instantiation <instantiation>`
-* :ref:`Exchange Structure <exchange structure>`
-* :ref:`Rate Limit <rate limit>`
 
 The CCXT library currently supports the following 121 cryptocurrency exchange markets and trading APIs:
 
@@ -1972,13 +1960,6 @@ Markets
 =======
 
 
-* :ref:`Market Structure <market structure>`
-* :ref:`Currency Structure <currency structure>`
-* :ref:`Precision And Limits <precision and limits>`
-* :ref:`Loading Markets <loading markets>`
-* :ref:`Symbols And Market Ids <symbols and market ids>`
-* :ref:`Market Cache Force Reload <market cache force reload>`
-* :ref:`API Methods / Endpoints <api-methods--endpoints>`
 
 Each exchange is a place for trading some kinds of valuables. Sometimes they are called with various different terms like instruments, symbols, trading pairs, currencies, tokens, stocks, commodities, contracts, etc, but they all mean the same – a trading pair, a symbol or a financial instrument.
 
@@ -2528,11 +2509,6 @@ Implicit API
 ============
 
 
-* :ref:`API Methods / Endpoints <api-methods--endpoints>`
-* :ref:`Implicit API Methods <implicit api methods>`
-* :ref:`Public/Private API <publicprivate api>`
-* :ref:`Synchronous vs Asynchronous Calls <synchronous vs asynchronous calls>`
-* :ref:`Passing Parameters To API Methods <passing-parameters-to-api-methods>`
 
 API Methods / Endpoints
 -----------------------
@@ -2753,8 +2729,6 @@ Unified API
 ===========
 
 
-* :ref:`Overriding Unified API Params <overriding unified api params>`
-* :ref:`Pagination <pagination>`
 
 The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
 
@@ -3078,12 +3052,6 @@ Public API
 ==========
 
 
-* :ref:`Order Book <order book>`
-* :ref:`Price Tickers <price tickers>`
-* :ref:`OHLCV Candlestick Charts <ohlcv candlestick charts>`
-* :ref:`Public Trades <public trades>`
-* :ref:`Exchange Time <exchange time>`
-* :ref:`Exchange Status <exchange status>`
 
 Order Book
 ----------
@@ -3679,17 +3647,6 @@ Private API
 ===========
 
 
-* :ref:`Authentication <authentication>`
-* :ref:`API Keys Setup <api keys setup>`
-* :ref:`Account Balance <account balance>`
-* :ref:`Orders <orders>`
-* :ref:`My Trades <my trades>`
-* :ref:`Positions <positions>`
-* :ref:`Deposit <deposit>`
-* :ref:`Withdraw <withdraw>`
-* :ref:`Transactions <transactions>`
-* :ref:`Fees <fees>`
-* :ref:`Ledger <ledger>`
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
@@ -5377,13 +5334,6 @@ Error Handling
 ==============
 
 
-* :ref:`Exception Hierarchy <exception hierarchy>`
-* :ref:`ExchangeError <exchangeerror>`
-* :ref:`NetworkError <networkerror>`
-* :ref:`DDoSProtection <ddosprotection>`
-* :ref:`RequestTimeout <requesttimeout>`
-* :ref:`ExchangeNotAvailable <exchangenotavailable>`
-* :ref:`InvalidNonce <invalidnonce>`
 
 The error handling with CCXT is done with the exception mechanism that is natively available with all languages.
 

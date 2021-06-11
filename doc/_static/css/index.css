@@ -5,3 +5,18 @@ div.body p {
 #supported-cryptocurrency-exchange-markets td:first-child {
     width: 85px;
 }
+
+.wy-nav-content {
+    max-width: 1000px;
+}
+
+.wy-nav-side {
+    padding-bottom: 1em;
+}
+
+.toctree-l1.current, .sticker {
+    position: sticky;
+    bottom: -1px;
+    top: -1px;
+    z-index: 1000;
+}
