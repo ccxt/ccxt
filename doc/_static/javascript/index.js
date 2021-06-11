@@ -46,7 +46,7 @@ window.addEventListener ("load", () => {
     }
     //$links.on ('mouseover', open)
     window.addEventListener ('scroll', () => {
-        const fromTop = window.scrollY + window.innerHeight * 
+        const fromTop = window.scrollY + window.innerHeight *
         $sections.each (function () {
             if (this.offsetTop <= fromTop && this.offsetTop + this.offsetHeight > fromTop) {
                 const sidelink = linksBySectionId[this.id]
