@@ -115,6 +115,7 @@ class qtrade extends Exchange {
                     'invalid_auth' => '\\ccxt\\AuthenticationError',
                     'insuff_funds' => '\\ccxt\\InsufficientFunds',
                     'market_not_found' => '\\ccxt\\BadSymbol', // array("errors":[array("code":"market_not_found","title":"Requested market does not exist")])
+                    'too_small' => '\\ccxt\\InvalidOrder',
                 ),
             ),
         ));
@@ -187,7 +188,7 @@ class qtrade extends Exchange {
                 'maker' => $this->safe_number($market, 'maker_fee'),
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_number($market, 'minimum_buy_value'),
+                        'min' => $this->safe_number($market, 'minimum_sell_value'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -195,7 +196,7 @@ class qtrade extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'minimum_buy_value'),
                         'max' => null,
                     ),
                 ),
