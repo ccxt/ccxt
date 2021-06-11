@@ -906,7 +906,7 @@ module.exports = class bithumb extends Exchange {
             if (status !== undefined) {
                 if (status === '0000') {
                     return; // no error
-                } else if (status === '5600' || message === '거래 진행중인 내역이 존재하지 않습니다') {
+                } else if (message === '거래 진행중인 내역이 존재하지 않습니다') {
                     // https://github.com/ccxt/ccxt/issues/9017
                     return; // no error
                 }
@@ -921,7 +921,7 @@ module.exports = class bithumb extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
         if ('status' in response) {
-            if (response['status'] === '0000') {
+            if (response['status'] === '0000' || response['message'] === '거래 진행중인 내역이 존재하지 않습니다') {
                 return response;
             }
             throw new ExchangeError (this.id + ' ' + this.json (response));
