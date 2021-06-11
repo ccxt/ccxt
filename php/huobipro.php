@@ -257,7 +257,6 @@ class huobipro extends Exchange {
                 'GET' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'GTC' => 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'HOT' => 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
-                'NFT' => 'APENFT',
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://coinmarketcap.com/currencies/penta/markets/
