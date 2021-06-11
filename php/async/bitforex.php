@@ -226,6 +226,7 @@ class bitforex extends Exchange {
             ),
             'commonCurrencies' => array(
                 'ACE' => 'ACE Entertainment',
+                'CAPP' => 'Crypto Application Token',
                 'CREDIT' => 'TerraCredit',
                 'CTC' => 'Culture Ticket Chain',
                 'GOT' => 'GoNetwork',

@@ -239,6 +239,7 @@ class bitforex(Exchange):
             },
             'commonCurrencies': {
                 'ACE': 'ACE Entertainment',
+                'CAPP': 'Crypto Application Token',
                 'CREDIT': 'TerraCredit',
                 'CTC': 'Culture Ticket Chain',
                 'GOT': 'GoNetwork',
