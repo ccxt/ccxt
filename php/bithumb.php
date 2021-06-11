@@ -908,7 +908,7 @@ class bithumb extends Exchange {
             if ($status !== null) {
                 if ($status === '0000') {
                     return; // no error
-                } else if ($status === '5600' || $message === '거래 진행중인 내역이 존재하지 않습니다') {
+                } else if ($message === '거래 진행중인 내역이 존재하지 않습니다') {
                     // https://github.com/ccxt/ccxt/issues/9017
                     return; // no error
                 }
@@ -923,7 +923,7 @@ class bithumb extends Exchange {
     public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('status', $response)) {
-            if ($response['status'] === '0000') {
+            if ($response['status'] === '0000' || $response['message'] === '거래 진행중인 내역이 존재하지 않습니다') {
                 return $response;
             }
             throw new ExchangeError($this->id . ' ' . $this->json($response));

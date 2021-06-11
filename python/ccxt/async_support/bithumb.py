@@ -856,7 +856,7 @@ class bithumb(Exchange):
             if status is not None:
                 if status == '0000':
                     return  # no error
-                elif status == '5600' or message == '거래 진행중인 내역이 존재하지 않습니다':
+                elif message == '거래 진행중인 내역이 존재하지 않습니다':
                     # https://github.com/ccxt/ccxt/issues/9017
                     return  # no error
                 feedback = self.id + ' ' + body
@@ -867,7 +867,7 @@ class bithumb(Exchange):
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
         if 'status' in response:
-            if response['status'] == '0000':
+            if response['status'] == '0000' or response['message'] == '거래 진행중인 내역이 존재하지 않습니다':
                 return response
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
