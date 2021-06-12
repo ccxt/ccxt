@@ -15,6 +15,7 @@ for file in files:
     reference_links2 = re.sub(r'<(\w+)-(\w+)-(\w+)>`', r'<\1 \2 \3>`', reference_links)
     reference_links3 = re.sub(r'<(\w+)-(\w+)>`', r'<\1 \2>`', reference_links2)
     remove_sublinks = re.sub(r'^\* :ref:`.+`$\n', '', reference_links3, 0, re.MULTILINE)
+    fix_table = re.sub(r'(_\n {5}- \n\n)', '_\n     -\n     -\n', remove_sublinks)
 
     with open('./doc/' + file + '.rst', 'w') as f:
-        f.write(remove_sublinks)
+        f.write(fix_table)
