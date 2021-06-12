@@ -41,6 +41,7 @@ module.exports = class coinfalcon extends Exchange {
                 'public': {
                     'get': [
                         'markets',
+                        'markets/{market}',
                         'markets/{market}/orders',
                         'markets/{market}/trades',
                     ],
@@ -50,13 +51,22 @@ module.exports = class coinfalcon extends Exchange {
                         'user/accounts',
                         'user/orders',
                         'user/orders/{id}',
+                        'user/orders/{id}/trades',
                         'user/trades',
+                        'user/fees',
+                        'account/withdrawals/{id}',
+                        'account/withdrawals',
+                        'account/deposit/{id}',
+                        'account/deposits',
+                        'account/deposit_address',
                     ],
                     'post': [
                         'user/orders',
+                        'account/withdraw',
                     ],
                     'delete': [
                         'user/orders/{id}',
+                        'account/withdrawals/{id}',
                     ],
                 },
             },
