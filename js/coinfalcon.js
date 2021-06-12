@@ -41,7 +41,7 @@ module.exports = class coinfalcon extends Exchange {
                 'public': {
                     'get': [
                         'markets',
-                        'markets/{market},
+                        'markets/{market}',
                         'markets/{market}/orders',
                         'markets/{market}/trades',
                     ],
