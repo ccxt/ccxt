@@ -98,11 +98,14 @@ html_theme_options = {
     'titles_only': False,
     'collapse_navigation': False,
     'navigation_depth': 2,
+    'prev_next_buttons_location': None,
 }
 
 html_context = {
     'display_github': True,
 }
+
+html_favicon = '_static/favicon.ico'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

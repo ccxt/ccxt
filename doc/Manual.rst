@@ -1397,8 +1397,8 @@ The CCXT library currently supports the following 121 cryptocurrency exchange ma
      - `ZB <https://www.zb.com>`__
      - 1
      - `API <https://www.zb.com/i/developer>`__
-     - 
-
+     -
+     -
 
 Besides making basic market and limit orders, some exchanges offer margin trading (leverage), various derivatives (like futures contracts and options) and also have `dark pools <https://en.wikipedia.org/wiki/Dark_pool>`__\ , `OTC <https://en.wikipedia.org/wiki/Over-the-counter_(finance>`__\ ) (over-the-counter trading), merchant APIs and much more.
 
