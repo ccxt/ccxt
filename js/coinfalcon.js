@@ -56,7 +56,7 @@ module.exports = class coinfalcon extends Exchange {
                         'user/fees',
                         'account/withdrawals/{id}',
                         'account/withdrawals',
-                        'account/deposit/{id},
+                        'account/deposit/{id}',
                         'account/deposits',
                         'account/deposit_address',
                     ],
