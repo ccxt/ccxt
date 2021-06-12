@@ -4,7 +4,7 @@ window.addEventListener ("load", () => {
     const $allLinks = $('ul > .toctree-l1,.toctree-l2')
     const $sections = $('.section')
     const $menu = $('.wy-menu')
-    // change the structure of the captions so the sliding looks better
+    // change the DOM structure so that captions can slide over sidebar links
     let lastP = null
     for (const child of $menu.children ()) {
         if (child.nodeName === 'P') {
