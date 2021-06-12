@@ -7,7 +7,6 @@ window.addEventListener ("load", () => {
     // change the structure of the captions so the sliding looks better
     let lastP = null
     for (const child of $menu.children ()) {
-        console.log (child, child.nodeName)
         if (child.nodeName === 'P') {
             lastP = child
         } else if (lastP !== null) {
