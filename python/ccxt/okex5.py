@@ -382,7 +382,7 @@ class okex5(Exchange):
                     '51600': ExchangeError,  # Status not found
                     '51601': ExchangeError,  # Order status and order ID cannot exist at the same time
                     '51602': ExchangeError,  # Either order status or order ID is required
-                    '51603': ExchangeError,  # Order does not exist
+                    '51603': OrderNotFound,  # Order does not exist
                     # Data class
                     '52000': ExchangeError,  # No updates
                     # SPOT/MARGIN error codes 54000-54999
