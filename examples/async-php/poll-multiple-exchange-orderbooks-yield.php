@@ -13,7 +13,6 @@ $bitfinex = new async\bitfinex2([
     'enableRateLimit' => true,
 ]);
 
-
 $poloniex = new async\poloniex([
     'enableRateLimit' => true,
 ]);
@@ -24,7 +23,7 @@ function poller($exchange) {
     $symbol = "ETH/BTC";
     while (true) {
         try {
-            $result = yield $exchange->fetchOrderBook($symbol);
+            $result = yield $exchange->fetch_order_book($symbol);
             echo str_pad($exchange->id, 9) . " " . $symbol . " " . str_pad(count($result['bids']), 3) . " bids, highest bid: " .
                 str_pad(strval($result['bids'][0][0]), 10, "0") . " " . str_pad(count($result["asks"]), 3) . " asks, lowest ask: " . str_pad(strval($result["asks"][0][0]), 10, "0") . PHP_EOL;
 

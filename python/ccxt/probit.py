@@ -137,6 +137,7 @@ class probit(Exchange):
                     'MARKET_UNAVAILABLE': ExchangeNotAvailable,  # Market is closed today
                     'INVALID_MARKET': BadSymbol,  # Requested market is not exist
                     'MARKET_CLOSED': BadSymbol,  # {"errorCode":"MARKET_CLOSED"}
+                    'MARKET_NOT_FOUND': BadSymbol,  # {"errorCode":"MARKET_NOT_FOUND","message":"8e2b8496-0a1e-5beb-b990-a205b902eabe","details":{}}
                     'INVALID_CURRENCY': BadRequest,  # Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS': DDoSProtection,  # Too many open orders
                     'DUPLICATE_ADDRESS': InvalidAddress,  # Address already exists in withdrawal address list
@@ -161,6 +162,8 @@ class probit(Exchange):
                 'CBC': 'CryptoBharatCoin',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'HBC': 'Hybrid Bank Cash',
+                'ORC': 'Oracle System',
+                'SOC': 'Soda Coin',
                 'UNI': 'UNICORN Token',
             },
         })
@@ -370,8 +373,12 @@ class probit(Exchange):
         #         ]
         #     }
         #
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         data = self.safe_value(response, 'data')
-        result = {'info': data}
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency_id')

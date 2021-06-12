@@ -667,6 +667,10 @@ class southxchange extends Exchange {
         return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
     }
 
+    public function nonce() {
+        return $this->milliseconds();
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));

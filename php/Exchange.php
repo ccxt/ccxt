@@ -31,13 +31,12 @@ SOFTWARE.
 namespace ccxt;
 
 use kornrunner\Keccak;
-use kornrunner\Solidity;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.48.55';
+$version = '1.51.33';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -56,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.48.55';
+    const VERSION = '1.51.33';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -70,10 +69,13 @@ class Exchange {
         'bibox',
         'bigone',
         'binance',
+        'binancecoinm',
         'binanceus',
+        'binanceusdm',
         'bit2c',
         'bitbank',
         'bitbay',
+        'bitbns',
         'bitcoincom',
         'bitfinex',
         'bitfinex2',
@@ -81,7 +83,6 @@ class Exchange {
         'bitforex',
         'bitget',
         'bithumb',
-        'bitkk',
         'bitmart',
         'bitmex',
         'bitpanda',
@@ -92,7 +93,6 @@ class Exchange {
         'bitvavo',
         'bitz',
         'bl3p',
-        'bleutrade',
         'braziliex',
         'btcalpha',
         'btcbox',
@@ -113,7 +113,6 @@ class Exchange {
         'coinex',
         'coinfalcon',
         'coinfloor',
-        'coingi',
         'coinmarketcap',
         'coinmate',
         'coinone',
@@ -124,13 +123,9 @@ class Exchange {
         'deribit',
         'digifinex',
         'equos',
-        'eterbase',
         'exmo',
         'exx',
-        'fcoin',
-        'fcoinjp',
         'flowbtc',
-        'foxbit',
         'ftx',
         'gateio',
         'gemini',
@@ -147,7 +142,6 @@ class Exchange {
         'kraken',
         'kucoin',
         'kuna',
-        'lakebtc',
         'latoken',
         'lbank',
         'liquid',
@@ -160,6 +154,7 @@ class Exchange {
         'oceanex',
         'okcoin',
         'okex',
+        'okex5',
         'paymium',
         'phemex',
         'poloniex',
@@ -169,17 +164,14 @@ class Exchange {
         'ripio',
         'southxchange',
         'stex',
-        'surbitcoin',
         'therock',
         'tidebit',
         'tidex',
         'timex',
         'upbit',
-        'vbtc',
         'vcc',
         'wavesexchange',
         'whitebit',
-        'xbtce',
         'xena',
         'yobit',
         'zaif',
@@ -229,6 +221,7 @@ class Exchange {
         'numberToString' => 'number_to_string',
         'precisionFromString' => 'precision_from_string',
         'decimalToPrecision' => 'decimal_to_precision',
+        'omitZero' => 'omit_zero',
         'isJsonEncodedObject' => 'is_json_encoded_object',
         'stringToBinary' => 'string_to_binary',
         'stringToBase64' => 'string_to_base64',
@@ -297,6 +290,7 @@ class Exchange {
         'fetchTransactions' => 'fetch_transactions',
         'fetchDeposits' => 'fetch_deposits',
         'fetchWithdrawals' => 'fetch_withdrawals',
+        'fetchDepositAddress' => 'fetch_deposit_address',
         'fetchCurrencies' => 'fetch_currencies',
         'fetchMarkets' => 'fetch_markets',
         'fetchOrderStatus' => 'fetch_order_status',
@@ -356,7 +350,6 @@ class Exchange {
         'currencyToPrecision' => 'currency_to_precision',
         'calculateFee' => 'calculate_fee',
         'checkRequiredDependencies' => 'check_required_dependencies',
-        'soliditySha3' => 'solidity_sha3',
         'remove0xPrefix' => 'remove0x_prefix',
         'hashMessage' => 'hash_message',
         'signHash' => 'sign_hash',
@@ -1167,7 +1160,7 @@ class Exchange {
         $this->lastRestPollTimestamp = 0;
         $this->restRequestQueue = null;
         $this->restPollerLoopIsRunning = false;
-        $this->enableRateLimit = false;
+        $this->enableRateLimit = true;
         $this->enableLastJsonResponse = true;
         $this->enableLastHttpResponse = true;
         $this->enableLastResponseHeaders = true;
@@ -1575,16 +1568,20 @@ class Exchange {
         $http_status_text = count($parts) === 3 ? $parts[2] : null;
         $raw_headers = array_slice($raw_headers_array, 1);
         foreach ($raw_headers as $raw_header) {
-            list($key, $value) = explode(': ', $raw_header);
-            // don't overwrite headers
-            // https://stackoverflow.com/a/4371395/4802441
-            if (array_key_exists($key, $response_headers)) {
-                $response_headers[$key] = $response_headers[$key] . ', ' . $value;
-            } else {
-                $response_headers[$key] = $value;
+            if (strlen($raw_header)) {
+                $exploded = explode(': ', $raw_header);
+                if (count($exploded) > 1) {
+                    list($key, $value) = $exploded;
+                    // don't overwrite headers
+                    // https://stackoverflow.com/a/4371395/4802441
+                    if (array_key_exists($key, $response_headers)) {
+                        $response_headers[$key] = $response_headers[$key] . ', ' . $value;
+                    } else {
+                        $response_headers[$key] = $value;
+                    }
+                }
             }
         }
-
         $result = mb_substr($response, $headers_length);
 
         $curl_errno = curl_errno($this->curl);
@@ -1935,11 +1932,11 @@ class Exchange {
         return $ticker;
     }
 
-    public function parse_tickers($tickers, $symbols = null) {
+    public function parse_tickers($tickers, $symbols = null, $params = array()) {
         $result = array();
         $values = is_array($tickers) ? array_values($tickers) : array();
         for ($i = 0; $i < count($values); $i++) {
-            $result[] = $this->parse_ticker($values[$i]);
+            $result[] = array_merge($this->parse_ticker($values[$i]), $params);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -2138,8 +2135,18 @@ class Exchange {
         throw new NotSupported($this->id . ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks () for now');
     }
 
-    public function fetch_ticker($symbol, $params = array()) { // stub
-        throw new NotSupported($this->id . ' fetchTicker not supported yet');
+    public function fetch_ticker($symbol, $params = array ()) {
+        if ($this->has['fetchTickers']) {
+            $tickers = $this->fetch_tickers(array( $symbol ), $params);
+            $ticker = $this->safe_value($tickers, $symbol);
+            if ($ticker === null) {
+                throw new BadSymbol($this->id . ' fetchTickers could not find a $ticker for ' . $symbol);
+            } else {
+                return $ticker;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchTicker not supported yet');
+        }
     }
 
     public function fetch_tickers($symbols, $params = array()) { // stub
@@ -2191,8 +2198,22 @@ class Exchange {
         throw new NotSupported($this->id . ' fetch_withdrawals() not supported yet');
     }
 
+    // public function fetch_deposit_address($code, $params = array()) {
+    //     throw new NotSupported($this->id . ' fetch_deposit_address() not supported yet');
+    // }
+
     public function fetch_deposit_address($code, $params = array()) {
-        throw new NotSupported($this->id . ' fetch_deposit_address() not supported yet');
+        if ($this->has['fetchDepositAddresses']) {
+            $deposit_addresses = $this->fetch_deposit_addresses(array($code), $params);
+            $deposit_address = $this->safe_value($deposit_addresses, $code);
+            if ($deposit_address === null) {
+                throw new InvalidAddress($this->id . ' fetchDepositAddress could not find a deposit address for ' . $code . ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
+            } else {
+                return $deposit_address;
+            }
+        } else {
+            throw new NotSupported ($this->id + ' fetchDepositAddress not supported yet');
+        }
     }
 
     public function fetch_markets($params = array()) {
@@ -2774,10 +2795,6 @@ class Exchange {
         }
     }
 
-    public function soliditySha3($array) {
-        return @call_user_func_array('\\kornrunner\Solidity::sha3', $array);
-    }
-
     public static function base32_decode($s) {
         static $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
         $tmp = '';
@@ -3051,5 +3068,15 @@ class Exchange {
             return null;
         }
         return '1e' . Precise::string_neg($precision);
+    }
+
+    public function omit_zero($string_number) {
+        if ($string_number === null) {
+            return null;
+        }
+        if (floatval($string_number) === null) {
+            return null;
+        }
+        return $string_number;
     }
 }

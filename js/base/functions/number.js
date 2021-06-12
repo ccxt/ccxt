@@ -314,6 +314,16 @@ function toWei (amount, decimals = 18) {
     return numberToString (Math.floor (parseFloat (n + 'e' + newExponent))) // wei must be whole numbers
 }
 
+function omitZero (stringNumber) {
+    if (stringNumber === undefined) {
+        return undefined
+    }
+    if (parseFloat (stringNumber) === 0) {
+        return undefined
+    }
+    return stringNumber
+}
+
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
@@ -324,6 +334,7 @@ module.exports = {
     decimalToPrecision,
     truncate_to_string,
     truncate,
+    omitZero,
     precisionConstants,
     ROUND,
     TRUNCATE,

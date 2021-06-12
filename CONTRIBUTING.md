@@ -41,7 +41,7 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
 - **[MAKE SURE YOUR CODE IS UNIFIED](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#derived-exchange-classes)!**
 
-  ↑ This is the most important rule of all.
+  **↑ This is the most important rule of all!!!**
 
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 

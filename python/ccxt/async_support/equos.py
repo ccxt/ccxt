@@ -371,7 +371,7 @@ class equos(Exchange):
             self.convert_from_scale(amount, market['precision']['amount']),
         ]
 
-    def parse_order_book(self, orderbook, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market=None):
+    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market=None):
         result = {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

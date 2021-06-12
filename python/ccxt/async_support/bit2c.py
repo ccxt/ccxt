@@ -160,7 +160,11 @@ class bit2c(Exchange):
         #         }
         #     }
         #
-        result = {'info': balance}
+        result = {
+            'info': balance,
+            'timestamp': None,
+            'datetime': None,
+        }
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]

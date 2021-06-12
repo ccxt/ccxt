@@ -59,10 +59,13 @@ class kucoin extends Exchange {
                     'public' => 'https://openapi-v2.kucoin.com',
                     'private' => 'https://openapi-v2.kucoin.com',
                     'futuresPrivate' => 'https://api-futures.kucoin.com',
+                    'futuresPublic' => 'https://api-futures.kucoin.com',
                 ),
                 'test' => array(
                     'public' => 'https://openapi-sandbox.kucoin.com',
                     'private' => 'https://openapi-sandbox.kucoin.com',
+                    'futuresPrivate' => 'https://api-sandbox-futures.kucoin.com',
+                    'futuresPublic' => 'https://api-sandbox-futures.kucoin.com',
                 ),
                 'www' => 'https://www.kucoin.com',
                 'doc' => array(
@@ -83,11 +86,8 @@ class kucoin extends Exchange {
                         'markets',
                         'market/allTickers',
                         'market/orderbook/level{level}_{limit}',
-                        'market/orderbook/level{level}',
-                        'market/orderbook/level2',
                         'market/orderbook/level2_20',
                         'market/orderbook/level2_100',
-                        'market/orderbook/level3',
                         'market/histories',
                         'market/candles',
                         'market/stats',
@@ -103,6 +103,9 @@ class kucoin extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
+                        'market/orderbook/level{level}',
+                        'market/orderbook/level2',
+                        'market/orderbook/level3',
                         'accounts',
                         'accounts/{accountId}',
                         'accounts/{accountId}/ledgers',
@@ -167,13 +170,66 @@ class kucoin extends Exchange {
                         'stop-order/cancel',
                     ),
                 ),
+                'futuresPublic' => array(
+                    'get' => array(
+                        'contracts/active',
+                        'contracts/{symbol}',
+                        'ticker',
+                        'level2/snapshot',
+                        'level2/depth20',
+                        'level2/depth100',
+                        'level2/message/query',
+                        'level3/message/query', // deprecated，level3/snapshot is suggested
+                        'level3/snapshot', // v2
+                        'trade/history',
+                        'interest/query',
+                        'index/query',
+                        'mark-price/{symbol}/current',
+                        'premium/query',
+                        'funding-rate/{symbol}/current',
+                        'timestamp',
+                        'status',
+                        'kline/query',
+                    ),
+                    'post' => array(
+                        'bullet-public',
+                    ),
+                ),
                 'futuresPrivate' => array(
                     'get' => array(
                         'account-overview',
+                        'transaction-history',
+                        'deposit-address',
+                        'deposit-list',
+                        'withdrawals/quotas',
+                        'withdrawal-list',
+                        'transfer-list',
+                        'orders',
+                        'stopOrders',
+                        'recentDoneOrders',
+                        'orders/{order-id}', // ?clientOid={client-order-id} // get order by orderId
+                        'orders/byClientOid', // ?clientOid=eresc138b21023a909e5ad59 // get order by clientOid
+                        'fills',
+                        'recentFills',
+                        'openOrderStatistics',
+                        'position',
                         'positions',
+                        'funding-history',
                     ),
                     'post' => array(
-                        'transfer-out',
+                        'withdrawals',
+                        'transfer-out', // v2
+                        'orders',
+                        'position/margin/auto-deposit-status',
+                        'position/margin/deposit-margin',
+                        'bullet-private',
+                    ),
+                    'delete' => array(
+                        'withdrawals/{withdrawalId}',
+                        'cancel/transfer-out',
+                        'orders/{order-id}',
+                        'orders',
+                        'stopOrders',
                     ),
                 ),
             ),
@@ -264,15 +320,17 @@ class kucoin extends Exchange {
                     'public' => array(
                         'GET' => array(
                             'status' => 'v1',
-                            'market/orderbook/level2' => 'v2',
-                            'market/orderbook/level3' => 'v2',
                             'market/orderbook/level2_20' => 'v1',
                             'market/orderbook/level2_100' => 'v1',
-                            'market/orderbook/level{level}' => 'v2',
                             'market/orderbook/level{level}_{limit}' => 'v1',
                         ),
                     ),
                     'private' => array(
+                        'GET' => array(
+                            'market/orderbook/level2' => 'v3',
+                            'market/orderbook/level3' => 'v3',
+                            'market/orderbook/level{level}' => 'v3',
+                        ),
                         'POST' => array(
                             'accounts/inner-transfer' => 'v2',
                             'accounts/sub-transfer' => 'v2',
@@ -285,6 +343,11 @@ class kucoin extends Exchange {
                         ),
                         'POST' => array(
                             'transfer-out' => 'v2',
+                        ),
+                    ),
+                    'futuresPublic' => array(
+                        'GET' => array(
+                            'level3/snapshot' => 'v2',
                         ),
                     ),
                 ),
@@ -776,7 +839,7 @@ class kucoin extends Exchange {
         $marketId = $this->market_id($symbol);
         $level = $this->safe_integer($params, 'level', 2);
         $request = array( 'symbol' => $marketId, 'level' => $level );
-        $method = 'publicGetMarketOrderbookLevelLevel';
+        $method = 'privateGetMarketOrderbookLevelLevel';
         if ($level === 2) {
             if ($limit !== null) {
                 if (($limit === 20) || ($limit === 100)) {
@@ -1708,13 +1771,17 @@ class kucoin extends Exchange {
             //         }
             //     }
             //
+            $result = array(
+                'info' => $response,
+                'timestamp' => null,
+                'datetime' => null,
+            );
             $data = $this->safe_value($response, 'data');
             $currencyId = $this->safe_string($data, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string($data, 'availableBalance');
             $account['total'] = $this->safe_string($data, 'accountEquity');
-            $result = array( 'info' => $response );
             $result[$code] = $account;
             return $this->parse_balance($result, false);
         } else {
@@ -1733,7 +1800,11 @@ class kucoin extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $result = array( 'info' => $response );
+            $result = array(
+                'info' => $response,
+                'timestamp' => null,
+                'datetime' => null,
+            );
             for ($i = 0; $i < count($data); $i++) {
                 $balance = $data[$i];
                 $balanceType = $this->safe_string($balance, 'type');

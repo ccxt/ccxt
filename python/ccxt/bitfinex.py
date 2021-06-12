@@ -304,45 +304,34 @@ class bitfinex(Exchange):
             },
             # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
             'commonCurrencies': {
-                'ABS': 'ABYSS',
-                'AIO': 'AION',
                 'ALG': 'ALGO',  # https://github.com/ccxt/ccxt/issues/6034
                 'AMP': 'AMPL',
-                'ATM': 'ATMI',
                 'ATO': 'ATOM',  # https://github.com/ccxt/ccxt/issues/5118
-                'BAB': 'BCH',
-                'CTX': 'CTXC',
-                'DAD': 'DADI',
+                'BCHABC': 'BCHA',
+                'BCHN': 'BCH',
                 'DAT': 'DATA',
+                'DOG': 'MDOGE',
                 'DSH': 'DASH',
-                'DRK': 'DRK',
                 # https://github.com/ccxt/ccxt/issues/7399
                 # https://coinmarketcap.com/currencies/pnetwork/
                 # https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'EDO': 'PNT',
-                'GSD': 'GUSD',
-                'HOT': 'Hydro Protocol',
-                'IOS': 'IOST',
+                'EUS': 'EURS',
+                'EUT': 'EURT',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
-                'MIT': 'MITH',
                 'MNA': 'MANA',
-                'NCA': 'NCASH',
                 'ORS': 'ORS Group',  # conflict with Origin Sport  #3230
-                'POY': 'POLY',
+                'PAS': 'PASS',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
                 'RBT': 'RBTC',
-                'SEE': 'SEER',
                 'SNG': 'SNGLS',
-                'SPK': 'SPANK',
                 'STJ': 'STORJ',
-                'TRI': 'TRIO',
                 'TSD': 'TUSD',
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
                 'UST': 'USDT',
-                'UTN': 'UTNP',
                 'VSY': 'VSYS',
                 'WAX': 'WAXP',
                 'XCH': 'XCHF',
@@ -580,7 +569,7 @@ class bitfinex(Exchange):
                 },
             }
             limits['cost'] = {
-                'min': self.parse_number(Precise.string_mul(minAmountString, maxAmountString)),
+                'min': None,
                 'max': None,
             }
             margin = self.safe_value(market, 'margin')

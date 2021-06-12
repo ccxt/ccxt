@@ -7,14 +7,18 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import RequestTimeout
 from ccxt.base.precise import Precise
 
 
@@ -25,14 +29,16 @@ class zb(Exchange):
             'id': 'zb',
             'name': 'ZB',
             'countries': ['CN'],
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'version': 'v1',
+            'certified': True,
             'has': {
                 'cancelOrder': True,
                 'CORS': False,
                 'createMarketOrder': False,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
                 'fetchDeposits': True,
@@ -65,6 +71,43 @@ class zb(Exchange):
                 '1w': '1week',
             },
             'exceptions': {
+                'ws': {
+                    #  '1000': ExchangeError,  # The call is successful.
+                    '1001': ExchangeError,  # General error prompt
+                    '1002': ExchangeError,  # Internal Error
+                    '1003': AuthenticationError,  # Fail to verify
+                    '1004': AuthenticationError,  # The transaction password is locked
+                    '1005': AuthenticationError,  # Wrong transaction password, please check it and re-enter。
+                    '1006': PermissionDenied,  # Real-name authentication is pending approval or unapproved
+                    '1007': ExchangeError,  # Channel does not exist
+                    '1009': OnMaintenance,  # This interface is under maintenance
+                    '1010': ExchangeNotAvailable,  # Not available now
+                    '1012': PermissionDenied,  # Insufficient permissions
+                    '1013': ExchangeError,  # Cannot trade, please contact email: support@zb.cn for support.
+                    '1014': ExchangeError,  # Cannot sell during the pre-sale period
+                    '2001': InsufficientFunds,  # Insufficient CNY account balance
+                    '2002': InsufficientFunds,  # Insufficient BTC account balance
+                    '2003': InsufficientFunds,  # Insufficient LTC account balance
+                    '2005': InsufficientFunds,  # Insufficient ETH account balance
+                    '2006': InsufficientFunds,  # ETCInsufficient account balance
+                    '2007': InsufficientFunds,  # BTSInsufficient account balance
+                    '2008': InsufficientFunds,  # EOSInsufficient account balance
+                    '2009': InsufficientFunds,  # BCCInsufficient account balance
+                    '3001': OrderNotFound,  # Order not found or is completed
+                    '3002': InvalidOrder,  # Invalid amount
+                    '3003': InvalidOrder,  # Invalid quantity
+                    '3004': AuthenticationError,  # User does not exist
+                    '3005': BadRequest,  # Invalid parameter
+                    '3006': PermissionDenied,  # Invalid IP or not consistent with the bound IP
+                    '3007': RequestTimeout,  # The request time has expired
+                    '3008': ExchangeError,  # Transaction not found
+                    '3009': InvalidOrder,  # The price exceeds the limit
+                    '3010': PermissionDenied,  # It fails to place an order, due to you have set up to prohibit trading of self market.
+                    '3011': InvalidOrder,  # The entrusted price is abnormal, please modify it and place order again
+                    '3012': InvalidOrder,  # Duplicate custom customerOrderId
+                    '4001': AccountSuspended,  # APIThe interface is locked for one hour
+                    '4002': RateLimitExceeded,  # Request too frequently
+                },
                 'exact': {
                     # '1000': 'Successful operation',
                     '1001': ExchangeError,  # 'General error message',
@@ -74,12 +117,17 @@ class zb(Exchange):
                     '1005': AuthenticationError,  # 'Funds security password is incorrect, please confirm and re-enter.',
                     '1006': AuthenticationError,  # 'Real-name certification pending approval or audit does not pass',
                     '1009': ExchangeNotAvailable,  # 'This interface is under maintenance',
+                    '1010': ExchangeNotAvailable,  # Not available now
+                    '1012': PermissionDenied,  # Insufficient permissions
+                    '1013': ExchangeError,  # Cannot trade, please contact email: support@zb.cn for support.
+                    '1014': ExchangeError,  # Cannot sell during the pre-sale period
                     '2001': InsufficientFunds,  # 'Insufficient CNY Balance',
                     '2002': InsufficientFunds,  # 'Insufficient BTC Balance',
                     '2003': InsufficientFunds,  # 'Insufficient LTC Balance',
                     '2005': InsufficientFunds,  # 'Insufficient ETH Balance',
                     '2006': InsufficientFunds,  # 'Insufficient ETC Balance',
                     '2007': InsufficientFunds,  # 'Insufficient BTS Balance',
+                    '2008': InsufficientFunds,  # EOSInsufficient account balance
                     '2009': InsufficientFunds,  # 'Account balance is not enough',
                     '3001': OrderNotFound,  # 'Pending orders not found',
                     '3002': InvalidOrder,  # 'Invalid price',
@@ -90,9 +138,11 @@ class zb(Exchange):
                     '3007': AuthenticationError,  # 'The request time has expired',
                     '3008': OrderNotFound,  # 'Transaction records not found',
                     '3009': InvalidOrder,  # 'The price exceeds the limit',
+                    '3010': PermissionDenied,  # It fails to place an order, due to you have set up to prohibit trading of self market.
                     '3011': InvalidOrder,  # 'The entrusted price is abnormal, please modify it and place order again',
+                    '3012': InvalidOrder,  # Duplicate custom customerOrderId
                     '4001': ExchangeNotAvailable,  # 'API interface is locked or not enabled',
-                    '4002': DDoSProtection,  # 'Request too often',
+                    '4002': RateLimitExceeded,  # 'Request too often',
                 },
                 'broad': {
                     '提币地址有误，请先添加提币地址。': InvalidAddress,  # {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
@@ -103,12 +153,18 @@ class zb(Exchange):
                 'api': {
                     'public': 'https://api.zb.today/data',
                     'private': 'https://trade.zb.today/api',
+                    'trade': 'https://trade.zb.today/api',
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
             },
             'api': {
+                'trade': {
+                    'get': [
+                        'getFeeInfo',
+                    ],
+                },
                 'public': {
                     'get': [
                         'markets',
@@ -117,6 +173,7 @@ class zb(Exchange):
                         'depth',
                         'trades',
                         'kline',
+                        'getGroupMarkets',
                     ],
                 },
                 'private': {
@@ -144,7 +201,7 @@ class zb(Exchange):
                         'addSubUser',
                         'getSubUserList',
                         'doTransferFunds',
-                        'createSubUserKey',
+                        'createSubUserKey',  # removed on 2021-03-16 according to the update log in the API doc
                         # leverage API
                         'getLeverAssetsInfo',
                         'getLeverBills',
@@ -270,13 +327,85 @@ class zb(Exchange):
             })
         return result
 
+    def fetch_currencies(self, params={}):
+        response = self.tradeGetGetFeeInfo(params)
+        #
+        #     {
+        #         "code":1000,
+        #         "message":"success",
+        #         "result":{
+        #             "USDT":[
+        #                 {
+        #                     "chainName":"TRC20",
+        #                     "canWithdraw":true,
+        #                     "fee":1.0,
+        #                     "mainChainName":"TRX",
+        #                     "canDeposit":true
+        #                 },
+        #                 {
+        #                     "chainName":"OMNI",
+        #                     "canWithdraw":true,
+        #                     "fee":5.0,
+        #                     "mainChainName":"BTC",
+        #                     "canDeposit":true
+        #                 },
+        #                 {
+        #                     "chainName":"ERC20",
+        #                     "canWithdraw":true,
+        #                     "fee":15.0,
+        #                     "mainChainName":"ETH",
+        #                     "canDeposit":true
+        #                 }
+        #             ],
+        #         }
+        #     }
+        #
+        currencies = self.safe_value(response, 'result', {})
+        ids = list(currencies.keys())
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            currency = currencies[id]
+            code = self.safe_currency_code(id)
+            precision = None
+            isWithdrawEnabled = True
+            isDepositEnabled = True
+            fees = {}
+            for j in range(0, len(currency)):
+                networkItem = currency[j]
+                network = self.safe_string(networkItem, 'chainName')
+                # name = self.safe_string(networkItem, 'name')
+                withdrawFee = self.safe_number(networkItem, 'fee')
+                depositEnable = self.safe_value(networkItem, 'canDeposit')
+                withdrawEnable = self.safe_value(networkItem, 'canWithdraw')
+                isDepositEnabled = isDepositEnabled or depositEnable
+                isWithdrawEnabled = isWithdrawEnabled or withdrawEnable
+                fees[network] = withdrawFee
+            active = (isWithdrawEnabled and isDepositEnabled)
+            result[code] = {
+                'id': id,
+                'name': None,
+                'code': code,
+                'precision': precision,
+                'info': currency,
+                'active': active,
+                'fee': None,
+                'fees': fees,
+                'limits': self.limits,
+            }
+        return result
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetGetAccountInfo(params)
         # todo: use self somehow
         # permissions = response['result']['base']
         balances = self.safe_value(response['result'], 'coins')
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(balances)):
             balance = balances[i]
             #     {       enName: "BTC",
@@ -322,7 +451,7 @@ class zb(Exchange):
         #         "canDeposit": True
         #     }
         #
-        address = self.safe_string(depositAddress, 'key')
+        address = self.safe_string_2(depositAddress, 'key', 'address')
         tag = None
         memo = self.safe_string(depositAddress, 'memo')
         if memo is not None:
@@ -937,6 +1066,10 @@ class zb(Exchange):
         url = self.urls['api'][api]
         if api == 'public':
             url += '/' + self.version + '/' + path
+            if params:
+                url += '?' + self.urlencode(params)
+        elif api == 'trade':
+            url += '/' + path
             if params:
                 url += '?' + self.urlencode(params)
         else:

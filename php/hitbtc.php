@@ -201,6 +201,7 @@ class hitbtc extends Exchange {
                 'PLA' => 'PlayChip',
                 'PNT' => 'Penta',
                 'SBTC' => 'Super Bitcoin',
+                'STX' => 'Stox',
                 'TV' => 'Tokenville',
                 'USD' => 'USDT',
                 'XPNT' => 'PNT',
@@ -442,7 +443,18 @@ class hitbtc extends Exchange {
         $method = 'privateGet' . $this->capitalize($typeId) . 'Balance';
         $query = $this->omit($params, 'type');
         $response = $this->$method ($query);
-        $result = array( 'info' => $response );
+        //
+        //     array(
+        //         array("currency":"SPI","available":"0","reserved":"0"),
+        //         array("currency":"GRPH","available":"0","reserved":"0"),
+        //         array("currency":"DGTX","available":"0","reserved":"0"),
+        //     )
+        //
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');

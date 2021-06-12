@@ -175,7 +175,11 @@ class gateio extends Exchange {
                 'BOX' => 'DefiBox',
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
+                'GTC' => 'Game.com', // conflict with Gitcoin and Gastrocoin
+                'GTC_HT' => 'Game.com HT',
+                'GTC_BSC' => 'Game.com BSC',
                 'MPH' => 'Morpher', // conflict with 88MPH
+                'RAI' => 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC' => 'Super Bitcoin',
                 'TNC' => 'Trinity Network Credit',
                 'VAI' => 'VAIOT',

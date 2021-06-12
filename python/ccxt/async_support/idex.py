@@ -568,6 +568,8 @@ class idex(Exchange):
                 raise e
         result = {
             'info': response,
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(response)):
             entry = response[i]

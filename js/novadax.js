@@ -577,7 +577,11 @@ module.exports = class novadax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency');

@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -146,6 +147,7 @@ class bitfinex2(bitfinex):
                         'stats1/{key}:{size}:{symbol}:long/hist',
                         'stats1/{key}:{size}:{symbol}:short/last',
                         'stats1/{key}:{size}:{symbol}:short/hist',
+                        'candles/trade:{timeframe}:{symbol}:{period}/{section}',
                         'candles/trade:{timeframe}:{symbol}/{section}',
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
@@ -313,6 +315,7 @@ class bitfinex2(bitfinex):
             },
             'exceptions': {
                 'exact': {
+                    '10001': PermissionDenied,  # api_key: permission invalid(#10001)
                     '10020': BadRequest,
                     '10100': AuthenticationError,
                     '10114': InvalidNonce,
@@ -341,7 +344,7 @@ class bitfinex2(bitfinex):
         #    [0]  # maintenance
         #
         response = await self.publicGetPlatformStatus(params)
-        status = self.safe_value(response, 0)
+        status = self.safe_integer(response, 0)
         formattedStatus = 'ok' if (status == 1) else 'maintenance'
         self.status = self.extend(self.status, {
             'status': formattedStatus,
@@ -396,7 +399,7 @@ class bitfinex2(bitfinex):
                 },
             }
             limits['cost'] = {
-                'min': self.parse_number(Precise.string_mul(minOrderSizeString, maxOrderSizeString)),
+                'min': None,
                 'max': None,
             }
             margin = self.safe_value(market, 'margin')

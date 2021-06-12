@@ -119,6 +119,7 @@ class yobit extends Exchange {
                 'ESC' => 'EdwardSnowden',
                 'EUROPE' => 'EUROP',
                 'EXT' => 'LifeExtension',
+                'FUND' => 'FUNDChains',
                 'FUNK' => 'FUNKCoin',
                 'GCC' => 'GlobalCryptocurrency',
                 'GEN' => 'Genstake',
@@ -139,6 +140,7 @@ class yobit extends Exchange {
                 'LOCX' => 'LOC',
                 'LUNYR' => 'LUN',
                 'LUN' => 'LunarCoin',  // they just change the ticker if it is already taken
+                'LUNA' => 'Luna Coin',
                 'MASK' => 'Yobit MASK',
                 'MDT' => 'Midnight',
                 'MIS' => 'MIScoin',
@@ -155,6 +157,7 @@ class yobit extends Exchange {
                 'SUB' => 'Subscriptio',
                 'PAY' => 'EPAY',
                 'PLC' => 'Platin Coin',
+                'RAI' => 'RaiderCoin',
                 'RCN' => 'RCoin',
                 'REP' => 'Republicoin',
                 'RUR' => 'RUB',
@@ -236,7 +239,12 @@ class yobit extends Exchange {
         //     }
         //
         $balances = $this->safe_value($response, 'return', array());
-        $result = array( 'info' => $response );
+        $timestamp = $this->safe_integer($balances, 'server_time');
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         $free = $this->safe_value($balances, 'funds', array());
         $total = $this->safe_value($balances, 'funds_incl_orders', array());
         $currencyIds = is_array(array_merge($free, $total)) ? array_keys(array_merge($free, $total)) : array();

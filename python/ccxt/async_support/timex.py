@@ -434,7 +434,7 @@ class timex(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.tradingGetBalances(params)
+        response = await self.tradingGetBalances(params)
         #
         #     [
         #         {"currency":"BTC","totalBalance":"0","lockedBalance":"0"},
@@ -444,9 +444,13 @@ class timex(Exchange):
         #         {"currency":"USDT","totalBalance":"0","lockedBalance":"0"}
         #     ]
         #
-        result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        for i in range(0, len(response)):
+            balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()

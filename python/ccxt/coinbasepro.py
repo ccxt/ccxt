@@ -141,8 +141,9 @@ class coinbasepro(Exchange):
                         'reports/{report_id}',
                         'transfers',
                         'transfers/{transfer_id}',
-                        'users/self/trailing-volume',
                         'users/self/exchange-limits',
+                        'users/self/hold-balances',
+                        'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                     ],
                     'post': [
@@ -567,7 +568,9 @@ class coinbasepro(Exchange):
         side = 'sell' if (trade['side'] == 'buy') else 'buy'
         orderId = self.safe_string(trade, 'order_id')
         # Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
-        if orderId is not None:
+        makerOrderId = self.safe_string(trade, 'maker_order_id')
+        takerOrderId = self.safe_string(trade, 'taker_order_id')
+        if (orderId is not None) or ((makerOrderId is not None) and (takerOrderId is not None)):
             side = 'buy' if (trade['side'] == 'buy') else 'sell'
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
@@ -649,7 +652,9 @@ class coinbasepro(Exchange):
             if limit is None:
                 # https://docs.pro.coinbase.com/#get-historic-rates
                 limit = 300  # max = 300
-            request['end'] = self.iso8601(self.sum((limit - 1) * granularity * 1000, since))
+            else:
+                limit = min(300, limit)
+            request['end'] = self.iso8601(self.sum(limit * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         #
         #     [

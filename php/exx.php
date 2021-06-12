@@ -115,9 +115,13 @@ class exx extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $active = $market['isOpen'] === true;
+            $amountPrecisionString = $this->safe_string($market, 'amountScale');
+            $pricePrecisionString = $this->safe_string($market, 'priceScale');
+            $amountLimit = $this->parse_precision($amountPrecisionString);
+            $priceLimit = $this->parse_precision($pricePrecisionString);
             $precision = array(
-                'amount' => intval($market['amountScale']),
-                'price' => intval($market['priceScale']),
+                'amount' => intval($amountPrecisionString),
+                'price' => intval($pricePrecisionString),
             );
             $result[] = array(
                 'id' => $id,
@@ -130,15 +134,15 @@ class exx extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
-                        'max' => pow(10, $precision['amount']),
+                        'min' => $this->parse_number($amountLimit),
+                        'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
-                        'max' => pow(10, $precision['price']),
+                        'min' => $this->parse_number($priceLimit),
+                        'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'minAmount'),
                         'max' => null,
                     ),
                 ),

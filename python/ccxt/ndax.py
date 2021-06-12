@@ -45,6 +45,7 @@ class ndax(Exchange):
                 'fetchOrderTrades': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchWithdrawals': True,
             },
             'timeframes': {
                 '1m': '60',
@@ -205,6 +206,7 @@ class ndax(Exchange):
                 },
                 'broad': {
                     'Invalid InstrumentId': BadSymbol,  # {"result":false,"errormsg":"Invalid InstrumentId: 10000","errorcode":100,"detail":null}
+                    'This endpoint requires 2FACode along with the payload': AuthenticationError,
                 },
             },
             'options': {
@@ -577,14 +579,14 @@ class ndax(Exchange):
         now = self.milliseconds()
         if since is None:
             if limit is not None:
-                request['FromDate'] = self.ymd(now - duration * limit * 1000)
-                request['ToDate'] = self.ymd(now)
+                request['FromDate'] = self.ymdhms(now - duration * limit * 1000)
+                request['ToDate'] = self.ymdhms(now)
         else:
-            request['FromDate'] = self.ymd(since)
+            request['FromDate'] = self.ymdhms(since)
             if limit is None:
-                request['ToDate'] = self.ymd(now)
+                request['ToDate'] = self.ymdhms(now)
             else:
-                request['ToDate'] = self.ymd(self.sum(since, duration * limit * 1000))
+                request['ToDate'] = self.ymdhms(self.sum(since, duration * limit * 1000))
         response = self.publicGetGetTickerHistory(self.extend(request, params))
         #
         #     [
@@ -720,7 +722,7 @@ class ndax(Exchange):
             amountString = self.safe_string(trade, 2)
             timestamp = self.safe_integer(trade, 6)
             id = self.safe_string(trade, 0)
-            marketId = self.safe_integer(trade, 1)
+            marketId = self.safe_string(trade, 1)
             takerSide = self.safe_value(trade, 8)
             side = 'sell' if takerSide else 'buy'
             orderId = self.safe_string(trade, 4)
@@ -850,7 +852,11 @@ class ndax(Exchange):
         #         },
         #     ]
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'ProductId')
@@ -1213,7 +1219,7 @@ class ndax(Exchange):
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
         if since is not None:
-            request['StartTimeStamp'] = since
+            request['StartTimeStamp'] = int(since / 1000)
         if limit is not None:
             request['Depth'] = limit
         response = self.privateGetGetTradesHistory(self.extend(request, params))
@@ -1406,7 +1412,7 @@ class ndax(Exchange):
             market = self.market(symbol)
             request['InstrumentId'] = market['id']
         if since is not None:
-            request['StartTimeStamp'] = since
+            request['StartTimeStamp'] = int(since / 1000)
         if limit is not None:
             request['Depth'] = limit
         response = self.privateGetGetOrdersHistory(self.extend(request, params))
@@ -1882,6 +1888,82 @@ class ndax(Exchange):
             'status': status,
             'updated': updated,
             'fee': fee,
+        }
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        if self.twofa is None:
+            raise ExchangeError(self.id + ' withdraw() requires exchange.twofa credential for OATH codes')
+        self.check_address(address)
+        omsId = self.safe_integer(self.options, 'omsId', 1)
+        self.load_markets()
+        self.load_accounts()
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', int(self.accounts[0]['id']))
+        accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
+        params = self.omit(params, ['accountId', 'AccountId'])
+        currency = self.currency(code)
+        withdrawTemplateTypesRequest = {
+            'omsId': omsId,
+            'AccountId': accountId,
+            'ProductId': currency['id'],
+        }
+        withdrawTemplateTypesResponse = self.privateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest)
+        #
+        #     {
+        #         result: True,
+        #         errormsg: null,
+        #         statuscode: "0",
+        #         TemplateTypes: [
+        #             {AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC"},
+        #             {AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC"},
+        #             {AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1"}
+        #         ]
+        #     }
+        #
+        templateTypes = self.safe_value(withdrawTemplateTypesResponse, 'TemplateTypes', [])
+        firstTemplateType = self.safe_value(templateTypes, 0)
+        if firstTemplateType is None:
+            raise ExchangeError(self.id + ' withdraw() could not find a withdraw template type for ' + currency['code'])
+        templateName = self.safe_string(firstTemplateType, 'TemplateName')
+        withdrawTemplateRequest = {
+            'omsId': omsId,
+            'AccountId': accountId,
+            'ProductId': currency['id'],
+            'TemplateType': templateName,
+            'AccountProviderId': firstTemplateType['AccountProviderId'],
+        }
+        withdrawTemplateResponse = self.privateGetGetWithdrawTemplate(withdrawTemplateRequest)
+        #
+        #     {
+        #         result: True,
+        #         errormsg: null,
+        #         statuscode: "0",
+        #         Template: "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
+        #     }
+        #
+        template = self.safe_string(withdrawTemplateResponse, 'Template')
+        if template is None:
+            raise ExchangeError(self.id + ' withdraw() could not find a withdraw template for ' + currency['code'])
+        withdrawTemplate = json.loads(template)
+        withdrawTemplate['ExternalAddress'] = address
+        if tag is not None:
+            if 'Memo' in withdrawTemplate:
+                withdrawTemplate['Memo'] = tag
+        withdrawPayload = {
+            'omsId': omsId,
+            'AccountId': accountId,
+            'ProductId': currency['id'],
+            'TemplateForm': self.json(withdrawTemplate),
+            'TemplateType': templateName,
+        }
+        withdrawRequest = {
+            'TfaType': 'Google',
+            'TFaCode': self.oath(),
+            'Payload': self.json(withdrawPayload),
+        }
+        response = self.privatePostCreateWithdrawTicket(self.deep_extend(withdrawRequest, params))
+        return {
+            'info': response,
+            'id': self.safe_string(response, 'Id'),
         }
 
     def nonce(self):

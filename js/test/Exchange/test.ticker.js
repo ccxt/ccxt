@@ -52,20 +52,18 @@ module.exports = (exchange, ticker, method, symbol) => {
     // if (vwap)
     //     assert (vwap >= low && vwap <= high)
 
-    /*
-    if (baseVolume && quoteVolume && high && low) {
-        assert (quoteVolume >= baseVolume * low) // this assertion breaks therock
-        assert (quoteVolume <= baseVolume * high)
-    }
-    */
+    // if (baseVolume && quoteVolume && high && low) {
+    //     assert (quoteVolume >= baseVolume * low) // this assertion breaks therock
+    //     assert (quoteVolume <= baseVolume * high)
+    // }
 
-    if (baseVolume && vwap) {
-        assert (quoteVolume)
-    }
+    // if (baseVolume && vwap) {
+    //     assert (quoteVolume)
+    // }
 
-    if (quoteVolume && vwap) {
-        assert (baseVolume)
-    }
+    // if (quoteVolume && vwap) {
+    //     assert (baseVolume)
+    // }
 
     // log (symbol.green, 'ticker',
     //     ticker['datetime'],

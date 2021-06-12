@@ -143,7 +143,9 @@ class currencycom extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'ETN' => 'Eaton',
                 'IQ' => 'iQIYI',
+                'PLAY' => "Dave & Buster's Entertainment",
             ),
         ));
     }

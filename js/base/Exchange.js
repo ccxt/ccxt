@@ -55,7 +55,7 @@ module.exports = class Exchange {
             'id': undefined,
             'name': undefined,
             'countries': undefined,
-            'enableRateLimit': false,
+            'enableRateLimit': true,
             'rateLimit': 2000, // milliseconds = seconds * 1000
             'certified': false,
             'pro': false,
@@ -763,8 +763,18 @@ module.exports = class Exchange {
         return result
     }
 
-    fetchTicker (symbol, params = {}) {
-        throw new NotSupported (this.id + ' fetchTicker not supported yet')
+    async fetchTicker (symbol, params = {}) {
+        if (this.has['fetchTickers']) {
+            const tickers = await this.fetchTickers ([ symbol ], params);
+            const ticker = this.safeValue (tickers, symbol);
+            if (ticker === undefined) {
+                throw new InvalidAddress (this.id + ' fetchTickers could not find a ticker for ' + symbol);
+            } else {
+                return ticker;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchTicker not supported yet');
+        }
     }
 
     fetchTickers (symbols = undefined, params = {}) {
@@ -817,6 +827,20 @@ module.exports = class Exchange {
 
     fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchWithdrawals not supported yet');
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        if (this.has['fetchDepositAddresses']) {
+            const depositAddresses = await this.fetchDepositAddresses ([ code ], params);
+            const depositAddress = this.safeValue (depositAddresses, code);
+            if (depositAddress === undefined) {
+                throw new InvalidAddress (this.id + ' fetchDepositAddress could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
+            } else {
+                return depositAddress;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchDepositAddress not supported yet');
+        }
     }
 
     fetchCurrencies (params = {}) {
@@ -1143,11 +1167,11 @@ module.exports = class Exchange {
         return ticker;
     }
 
-    parseTickers (tickers, symbols = undefined) {
+    parseTickers (tickers, symbols = undefined, params = {}) {
         const result = [];
         const values = Object.values (tickers || []);
         for (let i = 0; i < values.length; i++) {
-            result.push (this.parseTicker (values[i]));
+            result.push (this.extend (this.parseTicker (values[i]), params));
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -1418,26 +1442,6 @@ module.exports = class Exchange {
 
     checkRequiredDependencies () {
         return
-    }
-
-    soliditySha3 (array) {
-        // we only support address, uint256, and string solidity types
-        const encoded = []
-        for (let i = 0; i < array.length; i++) {
-            const value = array[i]
-            if (Number.isInteger (value) || value.match (/^[0-9]+$/)) {
-                encoded.push (this.numberToBE (this.numberToString (value), 32))
-            } else {
-                const noPrefix = this.remove0xPrefix (value)
-                if (noPrefix.length === 40 && noPrefix.toLowerCase ().match (/^[0-9a-f]+$/)) { // check if it is an address
-                    encoded.push (this.base16ToBinary (noPrefix))
-                } else {
-                    encoded.push (this.stringToBinary (noPrefix))
-                }
-            }
-        }
-        const concated = this.binaryConcatArray (encoded)
-        return '0x' + this.hash (concated, 'keccak', 'hex')
     }
 
     remove0xPrefix (hexData) {

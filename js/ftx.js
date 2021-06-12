@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable, CancelPending, ArgumentsRequired, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, RateLimitExceeded, ExchangeNotAvailable, CancelPending, ArgumentsRequired, PermissionDenied, BadSymbol, DuplicateOrderId } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -48,6 +48,7 @@ module.exports = class ftx extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -91,6 +92,8 @@ module.exports = class ftx extends Exchange {
                         'options/historical_volumes/BTC',
                         'options/open_interest/BTC',
                         'options/historical_open_interest/BTC',
+                        // spot margin
+                        'spot_margin/history',
                     ],
                 },
                 'private': {
@@ -227,23 +230,28 @@ module.exports = class ftx extends Exchange {
                     'Not enough balances': InsufficientFunds, // {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder, // {"error":"Invalid price","success":false}
                     'Size too small': InvalidOrder, // {"error":"Size too small","success":false}
+                    'Size too large': InvalidOrder, // {"error":"Size too large","success":false}
                     'Missing parameter price': InvalidOrder, // {"error":"Missing parameter price","success":false}
                     'Order not found': OrderNotFound, // {"error":"Order not found","success":false}
                     'Order already closed': InvalidOrder, // {"error":"Order already closed","success":false}
                     'Trigger price too high': InvalidOrder, // {"error":"Trigger price too high","success":false}
                     'Trigger price too low': InvalidOrder, // {"error":"Trigger price too low","success":false}
                     'Order already queued for cancellation': CancelPending, // {"error":"Order already queued for cancellation","success":false}
+                    'Duplicate client order ID': DuplicateOrderId, // {"error":"Duplicate client order ID","success":false}
+                    'Spot orders cannot be reduce-only': InvalidOrder, // {"error":"Spot orders cannot be reduce-only","success":false}
+                    'Invalid reduce-only order': InvalidOrder, // {"error":"Invalid reduce-only order","success":false}
                 },
                 'broad': {
                     'Account does not have enough margin for order': InsufficientFunds,
                     'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
-                    'No such market': BadRequest,
+                    'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
                     'An unexpected error occurred': ExchangeNotAvailable, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
                     'Please retry request': ExchangeNotAvailable, // {"error":"Please retry request","success":false}
                     'Please try again': ExchangeNotAvailable, // {"error":"Please try again","success":false}
+                    'Try again': ExchangeNotAvailable, // {"error":"Try again","success":false}
                     'Only have permissions for subaccount': PermissionDenied, // {"success":false,"error":"Only have permissions for subaccount *sub_name*"}
                 },
             },
@@ -1670,6 +1678,19 @@ module.exports = class ftx extends Exchange {
         //
         // fetchDeposits
         //
+        //     airdrop
+        //
+        //     {
+        //         "id": 9147072,
+        //         "coin": "SRM_LOCKED",
+        //         "size": 3.12,
+        //         "time": "2021-04-27T23:59:03.565983+00:00",
+        //         "notes": "SRM Airdrop for FTT holdings",
+        //         "status": "complete"
+        //     }
+        //
+        //     regular deposits
+        //
         //     {
         //         "coin": "TUSD",
         //         "confirmations": 64,
@@ -1721,7 +1742,7 @@ module.exports = class ftx extends Exchange {
         if (address === undefined) {
             // parse address from internal transfer
             const notes = this.safeString (transaction, 'notes');
-            if (notes !== undefined) {
+            if ((notes !== undefined) && (notes.indexOf ('Transfer to') >= 0)) {
                 address = notes.slice (12);
             }
         }

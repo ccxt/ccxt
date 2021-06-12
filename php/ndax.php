@@ -40,6 +40,7 @@ class ndax extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchWithdrawals' => true,
             ),
             'timeframes' => array(
                 '1m' => '60',
@@ -200,6 +201,7 @@ class ndax extends Exchange {
                 ),
                 'broad' => array(
                     'Invalid InstrumentId' => '\\ccxt\\BadSymbol', // array("result":false,"errormsg":"Invalid InstrumentId => 10000","errorcode":100,"detail":null)
+                    'This endpoint requires 2FACode along with the payload' => '\\ccxt\\AuthenticationError',
                 ),
             ),
             'options' => array(
@@ -586,15 +588,15 @@ class ndax extends Exchange {
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit !== null) {
-                $request['FromDate'] = $this->ymd($now - $duration * $limit * 1000);
-                $request['ToDate'] = $this->ymd($now);
+                $request['FromDate'] = $this->ymdhms($now - $duration * $limit * 1000);
+                $request['ToDate'] = $this->ymdhms($now);
             }
         } else {
-            $request['FromDate'] = $this->ymd($since);
+            $request['FromDate'] = $this->ymdhms($since);
             if ($limit === null) {
-                $request['ToDate'] = $this->ymd($now);
+                $request['ToDate'] = $this->ymdhms($now);
             } else {
-                $request['ToDate'] = $this->ymd($this->sum($since, $duration * $limit * 1000));
+                $request['ToDate'] = $this->ymdhms($this->sum($since, $duration * $limit * 1000));
             }
         }
         $response = $this->publicGetGetTickerHistory (array_merge($request, $params));
@@ -733,7 +735,7 @@ class ndax extends Exchange {
             $amountString = $this->safe_string($trade, 2);
             $timestamp = $this->safe_integer($trade, 6);
             $id = $this->safe_string($trade, 0);
-            $marketId = $this->safe_integer($trade, 1);
+            $marketId = $this->safe_string($trade, 1);
             $takerSide = $this->safe_value($trade, 8);
             $side = $takerSide ? 'sell' : 'buy';
             $orderId = $this->safe_string($trade, 4);
@@ -871,7 +873,11 @@ class ndax extends Exchange {
         //         ),
         //     )
         //
-        $result = array( 'info' => $response );
+        $result = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+        );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'ProductId');
@@ -1252,7 +1258,7 @@ class ndax extends Exchange {
             $request['InstrumentId'] = $market['id'];
         }
         if ($since !== null) {
-            $request['StartTimeStamp'] = $since;
+            $request['StartTimeStamp'] = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['Depth'] = $limit;
@@ -1456,7 +1462,7 @@ class ndax extends Exchange {
             $request['InstrumentId'] = $market['id'];
         }
         if ($since !== null) {
-            $request['StartTimeStamp'] = $since;
+            $request['StartTimeStamp'] = intval($since / 1000);
         }
         if ($limit !== null) {
             $request['Depth'] = $limit;
@@ -1951,6 +1957,88 @@ class ndax extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'fee' => $fee,
+        );
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        if ($this->twofa === null) {
+            throw new ExchangeError($this->id . ' withdraw() requires exchange.twofa credential for OATH codes');
+        }
+        $this->check_address($address);
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        $this->load_markets();
+        $this->load_accounts();
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $currency = $this->currency($code);
+        $withdrawTemplateTypesRequest = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+            'ProductId' => $currency['id'],
+        );
+        $withdrawTemplateTypesResponse = $this->privateGetGetWithdrawTemplateTypes ($withdrawTemplateTypesRequest);
+        //
+        //     {
+        //         result => true,
+        //         errormsg => null,
+        //         statuscode => "0",
+        //         TemplateTypes => array(
+        //             array( AccountProviderId => "14", TemplateName => "ToExternalBitcoinAddress", AccountProviderName => "BitgoRPC-BTC" ),
+        //             array( AccountProviderId => "20", TemplateName => "ToExternalBitcoinAddress", AccountProviderName => "TrezorBTC" ),
+        //             array( AccountProviderId => "31", TemplateName => "BTC", AccountProviderName => "BTC Fireblocks 1" )
+        //         )
+        //     }
+        //
+        $templateTypes = $this->safe_value($withdrawTemplateTypesResponse, 'TemplateTypes', array());
+        $firstTemplateType = $this->safe_value($templateTypes, 0);
+        if ($firstTemplateType === null) {
+            throw new ExchangeError($this->id . ' withdraw() could not find a withdraw $template type for ' . $currency['code']);
+        }
+        $templateName = $this->safe_string($firstTemplateType, 'TemplateName');
+        $withdrawTemplateRequest = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+            'ProductId' => $currency['id'],
+            'TemplateType' => $templateName,
+            'AccountProviderId' => $firstTemplateType['AccountProviderId'],
+        );
+        $withdrawTemplateResponse = $this->privateGetGetWithdrawTemplate ($withdrawTemplateRequest);
+        //
+        //     {
+        //         result => true,
+        //         errormsg => null,
+        //         statuscode => "0",
+        //         Template => "array(\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\")"
+        //     }
+        //
+        $template = $this->safe_string($withdrawTemplateResponse, 'Template');
+        if ($template === null) {
+            throw new ExchangeError($this->id . ' withdraw() could not find a withdraw $template for ' . $currency['code']);
+        }
+        $withdrawTemplate = json_decode($template, $as_associative_array = true);
+        $withdrawTemplate['ExternalAddress'] = $address;
+        if ($tag !== null) {
+            if (is_array($withdrawTemplate) && array_key_exists('Memo', $withdrawTemplate)) {
+                $withdrawTemplate['Memo'] = $tag;
+            }
+        }
+        $withdrawPayload = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+            'ProductId' => $currency['id'],
+            'TemplateForm' => $this->json($withdrawTemplate),
+            'TemplateType' => $templateName,
+        );
+        $withdrawRequest = array(
+            'TfaType' => 'Google',
+            'TFaCode' => $this->oath(),
+            'Payload' => $this->json($withdrawPayload),
+        );
+        $response = $this->privatePostCreateWithdrawTicket ($this->deep_extend($withdrawRequest, $params));
+        return array(
+            'info' => $response,
+            'id' => $this->safe_string($response, 'Id'),
         );
     }
 

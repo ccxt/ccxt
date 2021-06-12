@@ -267,6 +267,8 @@ class latoken(Exchange):
         #
         result = {
             'info': response,
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(response)):
             balance = response[i]

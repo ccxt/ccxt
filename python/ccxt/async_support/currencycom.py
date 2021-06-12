@@ -151,7 +151,9 @@ class currencycom(Exchange):
                 },
             },
             'commonCurrencies': {
+                'ETN': 'Eaton',
                 'IQ': 'iQIYI',
+                'PLAY': "Dave & Buster's Entertainment",
             },
         })
 

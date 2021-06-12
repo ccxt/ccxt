@@ -125,6 +125,7 @@ class qtrade(Exchange):
                     'invalid_auth': AuthenticationError,
                     'insuff_funds': InsufficientFunds,
                     'market_not_found': BadSymbol,  # {"errors":[{"code":"market_not_found","title":"Requested market does not exist"}]}
+                    'too_small': InvalidOrder,
                 },
             },
         })
@@ -196,7 +197,7 @@ class qtrade(Exchange):
                 'maker': self.safe_number(market, 'maker_fee'),
                 'limits': {
                     'amount': {
-                        'min': self.safe_number(market, 'minimum_buy_value'),
+                        'min': self.safe_number(market, 'minimum_sell_value'),
                         'max': None,
                     },
                     'price': {
@@ -204,7 +205,7 @@ class qtrade(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'minimum_buy_value'),
                         'max': None,
                     },
                 },
@@ -679,6 +680,8 @@ class qtrade(Exchange):
         balances = self.safe_value(data, 'balances', [])
         result = {
             'info': response,
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(balances)):
             balance = balances[i]

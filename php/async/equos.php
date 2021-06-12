@@ -382,7 +382,7 @@ class equos extends Exchange {
         ];
     }
 
-    public function parse_order_book($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
+    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
         $result = array(
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

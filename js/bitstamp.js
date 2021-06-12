@@ -99,6 +99,10 @@ module.exports = class bitstamp extends Exchange {
                         'sell/{pair}/',
                         'sell/market/{pair}/',
                         'sell/instant/{pair}/',
+                        'btc_withdrawal/',
+                        'btc_address/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -131,6 +135,18 @@ module.exports = class bitstamp extends Exchange {
                         'bat_address/',
                         'uma_withdrawal/',
                         'uma_address/',
+                        'snx_withdrawal/',
+                        'snx_address/',
+                        'uni_withdrawal/',
+                        'uni_address/',
+                        'yfi_withdrawal/',
+                        'yfi_address',
+                        'audio_withdrawal/',
+                        'audio_address/',
+                        'crv_withdrawal/',
+                        'crv_address/',
+                        'algo_withdrawal/',
+                        'algo_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -143,11 +159,7 @@ module.exports = class bitstamp extends Exchange {
                 },
                 'v1': {
                     'post': [
-                        'bitcoin_deposit_address/',
                         'unconfirmed_btc/',
-                        'bitcoin_withdrawal/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
                     ],
                 },
             },
@@ -768,7 +780,29 @@ module.exports = class bitstamp extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const balance = await this.privatePostBalance (params);
-        const result = { 'info': balance };
+        //
+        //     {
+        //         "aave_available": "0.00000000",
+        //         "aave_balance": "0.00000000",
+        //         "aave_reserved": "0.00000000",
+        //         "aave_withdrawal_fee": "0.07000000",
+        //         "aavebtc_fee": "0.000",
+        //         "aaveeur_fee": "0.000",
+        //         "aaveusd_fee": "0.000",
+        //         "bat_available": "0.00000000",
+        //         "bat_balance": "0.00000000",
+        //         "bat_reserved": "0.00000000",
+        //         "bat_withdrawal_fee": "5.00000000",
+        //         "batbtc_fee": "0.000",
+        //         "bateur_fee": "0.000",
+        //         "batusd_fee": "0.000",
+        //     }
+        //
+        const result = {
+            'info': balance,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -1386,9 +1420,6 @@ module.exports = class bitstamp extends Exchange {
     }
 
     getCurrencyName (code) {
-        if (code === 'BTC') {
-            return 'bitcoin';
-        }
         return code.toLowerCase ();
     }
 
@@ -1401,17 +1432,10 @@ module.exports = class bitstamp extends Exchange {
             throw new NotSupported (this.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!');
         }
         const name = this.getCurrencyName (code);
-        const v1 = (code === 'BTC');
-        let method = v1 ? 'v1' : 'private'; // v1 or v2
-        method += 'Post' + this.capitalize (name);
-        method += v1 ? 'Deposit' : '';
-        method += 'Address';
-        let response = await this[method] (params);
-        if (v1) {
-            response = JSON.parse (response);
-        }
-        const address = v1 ? response : this.safeString (response, 'address');
-        const tag = v1 ? undefined : this.safeString2 (response, 'memo_id', 'destination_tag');
+        const method = 'privatePost' + this.capitalize (name) + 'Address';
+        const response = await this[method] (params);
+        const address = this.safeString (response, 'address');
+        const tag = this.safeString2 (response, 'memo_id', 'destination_tag');
         this.checkAddress (address);
         return {
             'currency': code,
@@ -1432,9 +1456,7 @@ module.exports = class bitstamp extends Exchange {
         let method = undefined;
         if (!this.isFiat (code)) {
             const name = this.getCurrencyName (code);
-            const v1 = (code === 'BTC');
-            method = v1 ? 'v1' : 'private'; // v1 or v2
-            method += 'Post' + this.capitalize (name) + 'Withdrawal';
+            method = 'privatePost' + this.capitalize (name) + 'Withdrawal';
             if (code === 'XRP') {
                 if (tag !== undefined) {
                     request['destination_tag'] = tag;

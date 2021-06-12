@@ -692,7 +692,12 @@ class bitvavo(Exchange):
             # 'end': self.milliseconds(),
         }
         if since is not None:
+            # https://github.com/ccxt/ccxt/issues/9227
+            duration = self.parse_timeframe(timeframe)
             request['start'] = since
+            if limit is None:
+                limit = 1440
+            request['end'] = self.sum(since, limit * duration * 1000)
         if limit is not None:
             request['limit'] = limit  # default 1440, max 1440
         response = self.publicGetMarketCandles(self.extend(request, params))
@@ -717,7 +722,11 @@ class bitvavo(Exchange):
         #         }
         #     ]
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'symbol')

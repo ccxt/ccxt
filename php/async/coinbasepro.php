@@ -126,8 +126,9 @@ class coinbasepro extends Exchange {
                         'reports/{report_id}',
                         'transfers',
                         'transfers/{transfer_id}',
-                        'users/self/trailing-volume',
                         'users/self/exchange-limits',
+                        'users/self/hold-balances',
+                        'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                     ),
                     'post' => array(
@@ -566,7 +567,9 @@ class coinbasepro extends Exchange {
         $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
         $orderId = $this->safe_string($trade, 'order_id');
         // Coinbase Pro returns inverted $side to fetchMyTrades vs fetchTrades
-        if ($orderId !== null) {
+        $makerOrderId = $this->safe_string($trade, 'maker_order_id');
+        $takerOrderId = $this->safe_string($trade, 'taker_order_id');
+        if (($orderId !== null) || (($makerOrderId !== null) && ($takerOrderId !== null))) {
             $side = ($trade['side'] === 'buy') ? 'buy' : 'sell';
         }
         $priceString = $this->safe_string($trade, 'price');
@@ -657,8 +660,10 @@ class coinbasepro extends Exchange {
             if ($limit === null) {
                 // https://docs.pro.coinbase.com/#get-historic-rates
                 $limit = 300; // max = 300
+            } else {
+                $limit = min (300, $limit);
             }
-            $request['end'] = $this->iso8601($this->sum(($limit - 1) * $granularity * 1000, $since));
+            $request['end'] = $this->iso8601($this->sum($limit * $granularity * 1000, $since));
         }
         $response = yield $this->publicGetProductsIdCandles (array_merge($request, $params));
         //

@@ -20,6 +20,7 @@ module.exports = class aax extends Exchange {
             'version': 'v2',
             'hostname': 'aaxpro.com', // aax.com
             'certified': true,
+            'pro': true,
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -231,6 +232,18 @@ module.exports = class aax extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultType': 'spot', // 'spot', 'future'
+                'types': {
+                    'spot': 'SPTP',
+                    'future': 'FUTP',
+                    'otc': 'F2CP',
+                    'saving': 'VLTP',
+                },
+                'accounts': {
+                    'SPTP': 'spot',
+                    'FUTP': 'future',
+                    'F2CP': 'otc',
+                    'VLTP': 'saving',
+                },
             },
         });
     }
@@ -464,14 +477,6 @@ module.exports = class aax extends Exchange {
             'quoteVolume': quoteVolume,
             'info': ticker,
         };
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        const tickers = await this.fetchTickers (undefined, params);
-        if (symbol in tickers) {
-            return tickers[symbol];
-        }
-        throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' ticker not found');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -732,12 +737,7 @@ module.exports = class aax extends Exchange {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const types = {
-            'spot': 'SPTP',
-            'future': 'FUTP',
-            'otc': 'F2CP',
-            'saving': 'VLTP',
-        };
+        const types = this.safeValue (this.options, 'types', {});
         const purseType = this.safeString (types, type, type);
         const request = {
             'purseType': purseType,
@@ -766,7 +766,12 @@ module.exports = class aax extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const result = { 'info': response };
+        const timestamp = this.safeInteger (response, 'ts');
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const balanceType = this.safeString (balance, 'purseType');
@@ -1574,18 +1579,9 @@ module.exports = class aax extends Exchange {
         if ((filled === 0) && (remaining === 0)) {
             remaining = undefined;
         }
-        let cost = undefined;
-        let lastTradeTimestamp = undefined;
-        if (filled !== undefined) {
-            if (price !== undefined) {
-                cost = filled * price;
-            }
-            if (filled > 0) {
-                lastTradeTimestamp = this.safeValue (order, 'transactTime');
-                if (typeof lastTradeTimestamp === 'string') {
-                    lastTradeTimestamp = this.parse8601 (lastTradeTimestamp);
-                }
-            }
+        let lastTradeTimestamp = this.safeValue (order, 'transactTime');
+        if (typeof lastTradeTimestamp === 'string') {
+            lastTradeTimestamp = this.parse8601 (lastTradeTimestamp);
         }
         let fee = undefined;
         const feeCost = this.safeNumber (order, 'commission');
@@ -1603,7 +1599,7 @@ module.exports = class aax extends Exchange {
                 'cost': feeCost,
             };
         }
-        return {
+        return this.safeOrder ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
@@ -1622,10 +1618,10 @@ module.exports = class aax extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'cost': cost,
+            'cost': undefined,
             'trades': undefined,
             'fee': fee,
-        };
+        });
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

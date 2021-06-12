@@ -288,10 +288,13 @@ module.exports = class bitz extends Exchange {
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
             const symbol = base + '/' + quote;
+            const pricePrecisionString = this.safeString (market, 'priceFloat');
+            const minPrice = this.parsePrecision (pricePrecisionString);
             const precision = {
                 'amount': this.safeInteger (market, 'numberFloat'),
-                'price': this.safeInteger (market, 'priceFloat'),
+                'price': parseInt (pricePrecisionString),
             };
+            const minAmount = this.safeString (market, 'minTrade');
             result.push ({
                 'info': market,
                 'id': id,
@@ -305,15 +308,15 @@ module.exports = class bitz extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeNumber (market, 'minTrade'),
+                        'min': this.parseNumber (minAmount),
                         'max': this.safeNumber (market, 'maxTrade'),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': this.parseNumber (minPrice),
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.parseNumber (Precise.stringMul (minPrice, minAmount)),
                         'max': undefined,
                     },
                 },
@@ -349,7 +352,12 @@ module.exports = class bitz extends Exchange {
         //     }
         //
         const balances = this.safeValue (response['data'], 'info');
-        const result = { 'info': response };
+        const timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'name');

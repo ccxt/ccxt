@@ -50,6 +50,7 @@ class ftx extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositions' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -93,6 +94,8 @@ class ftx extends Exchange {
                         'options/historical_volumes/BTC',
                         'options/open_interest/BTC',
                         'options/historical_open_interest/BTC',
+                        // spot margin
+                        'spot_margin/history',
                     ),
                 ),
                 'private' => array(
@@ -229,23 +232,28 @@ class ftx extends Exchange {
                     'Not enough balances' => '\\ccxt\\InsufficientFunds', // array("error":"Not enough balances","success":false)
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // array("error":"Invalid price","success":false)
                     'Size too small' => '\\ccxt\\InvalidOrder', // array("error":"Size too small","success":false)
+                    'Size too large' => '\\ccxt\\InvalidOrder', // array("error":"Size too large","success":false)
                     'Missing parameter price' => '\\ccxt\\InvalidOrder', // array("error":"Missing parameter price","success":false)
                     'Order not found' => '\\ccxt\\OrderNotFound', // array("error":"Order not found","success":false)
                     'Order already closed' => '\\ccxt\\InvalidOrder', // array("error":"Order already closed","success":false)
                     'Trigger price too high' => '\\ccxt\\InvalidOrder', // array("error":"Trigger price too high","success":false)
                     'Trigger price too low' => '\\ccxt\\InvalidOrder', // array("error":"Trigger price too low","success":false)
                     'Order already queued for cancellation' => '\\ccxt\\CancelPending', // array("error":"Order already queued for cancellation","success":false)
+                    'Duplicate client order ID' => '\\ccxt\\DuplicateOrderId', // array("error":"Duplicate client order ID","success":false)
+                    'Spot orders cannot be reduce-only' => '\\ccxt\\InvalidOrder', // array("error":"Spot orders cannot be reduce-only","success":false)
+                    'Invalid reduce-only order' => '\\ccxt\\InvalidOrder', // array("error":"Invalid reduce-only order","success":false)
                 ),
                 'broad' => array(
                     'Account does not have enough margin for order' => '\\ccxt\\InsufficientFunds',
                     'Invalid parameter' => '\\ccxt\\BadRequest', // array("error":"Invalid parameter start_time","success":false)
                     'The requested URL was not found on the server' => '\\ccxt\\BadRequest',
                     'No such coin' => '\\ccxt\\BadRequest',
-                    'No such market' => '\\ccxt\\BadRequest',
+                    'No such market' => '\\ccxt\\BadSymbol',
                     'Do not send more than' => '\\ccxt\\RateLimitExceeded',
                     'An unexpected error occurred' => '\\ccxt\\ExchangeNotAvailable', // array("error":"An unexpected error occurred, please try again later (58BC21C795).","success":false)
                     'Please retry request' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Please retry request","success":false)
                     'Please try again' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Please try again","success":false)
+                    'Try again' => '\\ccxt\\ExchangeNotAvailable', // array("error":"Try again","success":false)
                     'Only have permissions for subaccount' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Only have permissions for subaccount *sub_name*")
                 ),
             ),
@@ -1672,6 +1680,19 @@ class ftx extends Exchange {
         //
         // fetchDeposits
         //
+        //     airdrop
+        //
+        //     {
+        //         "$id" => 9147072,
+        //         "coin" => "SRM_LOCKED",
+        //         "size" => 3.12,
+        //         "time" => "2021-04-27T23:59:03.565983+00:00",
+        //         "$notes" => "SRM Airdrop for FTT holdings",
+        //         "$status" => "complete"
+        //     }
+        //
+        //     regular deposits
+        //
         //     {
         //         "coin" => "TUSD",
         //         "confirmations" => 64,
@@ -1723,7 +1744,7 @@ class ftx extends Exchange {
         if ($address === null) {
             // parse $address from internal transfer
             $notes = $this->safe_string($transaction, 'notes');
-            if ($notes !== null) {
+            if (($notes !== null) && (mb_strpos($notes, 'Transfer to') !== false)) {
                 $address = mb_substr($notes, 12);
             }
         }

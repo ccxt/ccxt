@@ -115,6 +115,8 @@ class deribit(Exchange):
                         'get_funding_rate_value',
                         'get_historical_volatility',
                         'get_index',
+                        'get_index_price',
+                        'get_index_price_names',
                         'get_instruments',
                         'get_last_settlements_by_currency',
                         'get_last_settlements_by_instrument',

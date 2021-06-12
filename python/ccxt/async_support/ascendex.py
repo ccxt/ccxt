@@ -561,7 +561,11 @@ class ascendex(Exchange):
         #         ]
         #     }
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
             balance = balances[i]

@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -120,6 +119,10 @@ class bitstamp(Exchange):
                         'sell/{pair}/',
                         'sell/market/{pair}/',
                         'sell/instant/{pair}/',
+                        'btc_withdrawal/',
+                        'btc_address/',
+                        'ripple_withdrawal/',
+                        'ripple_address/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -152,6 +155,18 @@ class bitstamp(Exchange):
                         'bat_address/',
                         'uma_withdrawal/',
                         'uma_address/',
+                        'snx_withdrawal/',
+                        'snx_address/',
+                        'uni_withdrawal/',
+                        'uni_address/',
+                        'yfi_withdrawal/',
+                        'yfi_address',
+                        'audio_withdrawal/',
+                        'audio_address/',
+                        'crv_withdrawal/',
+                        'crv_address/',
+                        'algo_withdrawal/',
+                        'algo_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -164,11 +179,7 @@ class bitstamp(Exchange):
                 },
                 'v1': {
                     'post': [
-                        'bitcoin_deposit_address/',
                         'unconfirmed_btc/',
-                        'bitcoin_withdrawal/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
                     ],
                 },
             },
@@ -738,7 +749,29 @@ class bitstamp(Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         balance = await self.privatePostBalance(params)
-        result = {'info': balance}
+        #
+        #     {
+        #         "aave_available": "0.00000000",
+        #         "aave_balance": "0.00000000",
+        #         "aave_reserved": "0.00000000",
+        #         "aave_withdrawal_fee": "0.07000000",
+        #         "aavebtc_fee": "0.000",
+        #         "aaveeur_fee": "0.000",
+        #         "aaveusd_fee": "0.000",
+        #         "bat_available": "0.00000000",
+        #         "bat_balance": "0.00000000",
+        #         "bat_reserved": "0.00000000",
+        #         "bat_withdrawal_fee": "5.00000000",
+        #         "batbtc_fee": "0.000",
+        #         "bateur_fee": "0.000",
+        #         "batusd_fee": "0.000",
+        #     }
+        #
+        result = {
+            'info': balance,
+            'timestamp': None,
+            'datetime': None,
+        }
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
@@ -1303,8 +1336,6 @@ class bitstamp(Exchange):
         })
 
     def get_currency_name(self, code):
-        if code == 'BTC':
-            return 'bitcoin'
         return code.lower()
 
     def is_fiat(self, code):
@@ -1314,16 +1345,10 @@ class bitstamp(Exchange):
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!')
         name = self.get_currency_name(code)
-        v1 = (code == 'BTC')
-        method = 'v1' if v1 else 'private'  # v1 or v2
-        method += 'Post' + self.capitalize(name)
-        method += 'Deposit' if v1 else ''
-        method += 'Address'
+        method = 'privatePost' + self.capitalize(name) + 'Address'
         response = await getattr(self, method)(params)
-        if v1:
-            response = json.loads(response)
-        address = response if v1 else self.safe_string(response, 'address')
-        tag = None if v1 else self.safe_string_2(response, 'memo_id', 'destination_tag')
+        address = self.safe_string(response, 'address')
+        tag = self.safe_string_2(response, 'memo_id', 'destination_tag')
         self.check_address(address)
         return {
             'currency': code,
@@ -1343,9 +1368,7 @@ class bitstamp(Exchange):
         method = None
         if not self.is_fiat(code):
             name = self.get_currency_name(code)
-            v1 = (code == 'BTC')
-            method = 'v1' if v1 else 'private'  # v1 or v2
-            method += 'Post' + self.capitalize(name) + 'Withdrawal'
+            method = 'privatePost' + self.capitalize(name) + 'Withdrawal'
             if code == 'XRP':
                 if tag is not None:
                     request['destination_tag'] = tag

@@ -138,6 +138,7 @@ class bitfinex2 extends bitfinex {
                         'stats1/{key}:{size}:{symbol}:long/hist',
                         'stats1/{key}:{size}:{symbol}:short/last',
                         'stats1/{key}:{size}:{symbol}:short/hist',
+                        'candles/trade:{timeframe}:{symbol}:{period}/{section}',
                         'candles/trade:{timeframe}:{symbol}/{section}',
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
@@ -305,6 +306,7 @@ class bitfinex2 extends bitfinex {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    '10001' => '\\ccxt\\PermissionDenied', // api_key => permission invalid (#10001)
                     '10020' => '\\ccxt\\BadRequest',
                     '10100' => '\\ccxt\\AuthenticationError',
                     '10114' => '\\ccxt\\InvalidNonce',
@@ -336,7 +338,7 @@ class bitfinex2 extends bitfinex {
         //    [0] // maintenance
         //
         $response = $this->publicGetPlatformStatus ($params);
-        $status = $this->safe_value($response, 0);
+        $status = $this->safe_integer($response, 0);
         $formattedStatus = ($status === 1) ? 'ok' : 'maintenance';
         $this->status = array_merge($this->status, array(
             'status' => $formattedStatus,
@@ -394,7 +396,7 @@ class bitfinex2 extends bitfinex {
                 ),
             );
             $limits['cost'] = array(
-                'min' => $this->parse_number(Precise::string_mul($minOrderSizeString, $maxOrderSizeString)),
+                'min' => null,
                 'max' => null,
             );
             $margin = $this->safe_value($market, 'margin');

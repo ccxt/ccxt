@@ -291,10 +291,13 @@ class bitz extends Exchange {
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
+            $pricePrecisionString = $this->safe_string($market, 'priceFloat');
+            $minPrice = $this->parse_precision($pricePrecisionString);
             $precision = array(
                 'amount' => $this->safe_integer($market, 'numberFloat'),
-                'price' => $this->safe_integer($market, 'priceFloat'),
+                'price' => intval($pricePrecisionString),
             );
+            $minAmount = $this->safe_string($market, 'minTrade');
             $result[] = array(
                 'info' => $market,
                 'id' => $id,
@@ -308,15 +311,15 @@ class bitz extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_number($market, 'minTrade'),
+                        'min' => $this->parse_number($minAmount),
                         'max' => $this->safe_number($market, 'maxTrade'),
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $this->parse_number($minPrice),
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->parse_number(Precise::string_mul($minPrice, $minAmount)),
                         'max' => null,
                     ),
                 ),
@@ -352,7 +355,12 @@ class bitz extends Exchange {
         //     }
         //
         $balances = $this->safe_value($response['data'], 'info');
-        $result = array( 'info' => $response );
+        $timestamp = $this->parse_microtime($this->safe_string($response, 'microtime'));
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'name');

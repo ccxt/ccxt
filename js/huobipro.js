@@ -40,6 +40,7 @@ module.exports = class huobipro extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -220,6 +221,7 @@ module.exports = class huobipro extends Exchange {
                     'order-limitorder-price-max-error': InvalidOrder, // limit order price error
                     'order-holding-limit-failed': InvalidOrder, // {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null}
                     'order-orderprice-precision-error': InvalidOrder, // {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
+                    'order-etp-nav-price-max-error': InvalidOrder, // {"status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null}
                     'order-orderstate-error': OrderNotFound, // canceling an already canceled order
                     'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
                     'order-update-error': ExchangeNotAvailable, // undocumented error
@@ -249,6 +251,7 @@ module.exports = class huobipro extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/3365
                 // https://github.com/ccxt/ccxt/issues/2873
                 'GET': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
+                'GTC': 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'HOT': 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
@@ -671,6 +674,15 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privateGetOrderOrdersIdMatchresults (this.extend (request, params));
+        return this.parseTrades (response['data'], undefined, since, limit);
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -687,8 +699,7 @@ module.exports = class huobipro extends Exchange {
             request['end-date'] = this.ymd (this.sum (since, 86400000));
         }
         const response = await this.privateGetOrderMatchresults (this.extend (request, params));
-        const trades = this.parseTrades (response['data'], market, since, limit);
-        return trades;
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = 1000, params = {}) {
@@ -1116,6 +1127,11 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
             'type': side + '-' + type,
         };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
+        if (clientOrderId !== undefined) {
+            request['client-order-id'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'clientOrderId', 'client-order-id' ]);
         if ((type === 'market') && (side === 'buy')) {
             if (this.options['createMarketBuyOrderRequiresPrice']) {
                 if (price === undefined) {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.48.55'
+__version__ = '1.51.33'
 
 # -----------------------------------------------------------------------------
 
@@ -39,6 +39,8 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # ecdsa signing
 from ccxt.static_dependencies import ecdsa
+from ccxt.static_dependencies import keccak
+
 # eddsa signing
 try:
     import axolotl_curve25519 as eddsa
@@ -66,8 +68,6 @@ import gzip
 import hashlib
 import hmac
 import io
-import os
-import contextlib
 import json
 import math
 import random
@@ -106,14 +106,6 @@ except ImportError:
     import urllib as _urlencode          # Python 2
 
 # -----------------------------------------------------------------------------
-# web3/0x imports
-try:
-    with open(os.devnull, 'w') as f:
-        with contextlib.redirect_stderr(f):
-            from web3 import Web3, HTTPProvider
-except ImportError:
-    Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
-# -----------------------------------------------------------------------------
 
 
 class Exchange(object):
@@ -125,7 +117,7 @@ class Exchange(object):
     pro = False
 
     # rate limiter settings
-    enableRateLimit = False
+    enableRateLimit = True
     rateLimit = 2000  # milliseconds = seconds * 1000
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
@@ -323,9 +315,7 @@ class Exchange(object):
     last_json_response = None
     last_response_headers = None
 
-    requiresWeb3 = False
     requiresEddsa = False
-    web3 = None
     base58_encoder = None
     base58_decoder = None
     # no lower case l or upper case I, O
@@ -401,9 +391,6 @@ class Exchange(object):
 
         self.session = self.session if self.session or self.asyncio_loop else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
-
-        if self.requiresWeb3 and Web3 and not Exchange.web3:
-            Exchange.web3 = Web3(HTTPProvider())
 
     def __del__(self):
         if self.session:
@@ -1101,7 +1088,7 @@ class Exchange(object):
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
         if algorithm == 'keccak':
-            binary = bytes(Exchange.web3.sha3(request))
+            binary = bytes(keccak.SHA3(request))
         else:
             h = hashlib.new(algorithm, request)
             binary = h.digest()
@@ -1435,7 +1422,15 @@ class Exchange(object):
         raise NotSupported('API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
     def fetch_ticker(self, symbol, params={}):
-        raise NotSupported('fetch_ticker() not supported yet')
+        if self.has['fetchTickers']:
+            tickers = self.fetch_tickers([symbol], params)
+            ticker = self.safe_value(tickers, symbol)
+            if ticker is None:
+                raise BadSymbol(self.id + ' fetchTickers could not find a ticker for ' + symbol)
+            else:
+                return ticker
+        else:
+            raise NotSupported(self.id + ' fetchTicker not supported yet')
 
     def fetch_tickers(self, symbols=None, params={}):
         raise NotSupported('API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
@@ -1474,8 +1469,19 @@ class Exchange(object):
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         raise NotSupported('fetch_withdrawals() is not supported yet')
 
-    def fetch_deposit_address(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_deposit_address() is not supported yet')
+    # def fetch_deposit_addresses(self, codes=None, params={}):
+    #     raise NotSupported('fetch_deposit_addresses() is not supported yet')
+
+    def fetch_deposit_address(self, code, params={}):
+        if self.has['fetchDepositAddresses']:
+            deposit_addresses = self.fetch_deposit_addresses([code], params)
+            deposit_address = self.safe_value(deposit_addresses, code)
+            if deposit_address is None:
+                raise NotSupported(self.id + ' fetch_deposit_address could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
+            else:
+                return deposit_address
+        else:
+            raise NotSupported(self.id + ' fetchDepositAddress not supported yet')
 
     def parse_ohlcv(self, ohlcv, market=None):
         if isinstance(ohlcv, list):
@@ -1739,11 +1745,11 @@ class Exchange(object):
             ticker['last'] = close
         return ticker
 
-    def parse_tickers(self, tickers, symbols=None):
+    def parse_tickers(self, tickers, symbols=None, params={}):
         result = []
         values = self.to_array(tickers)
         for i in range(0, len(values)):
-            result.append(self.parse_ticker(values[i]))
+            result.append(self.extend(self.parse_ticker(values[i]), params))
         return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_deposit_addresses(self, addresses, codes=None):
@@ -1992,15 +1998,8 @@ class Exchange(object):
         return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None
 
     # -------------------------------------------------------------------------
-    # web3 / 0x methods
-
-    @staticmethod
-    def has_web3():
-        return Web3 is not None
 
     def check_required_dependencies(self):
-        if self.requiresWeb3 and not Exchange.has_web3():
-            raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
         if self.requiresEddsa and eddsa is None:
             raise NotSupported('Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
 
@@ -2027,19 +2026,8 @@ class Exchange(object):
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
         public_key_bytes = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()
-        public_key_hash = self.web3.sha3(public_key_bytes)
+        public_key_hash = keccak.SHA3(public_key_bytes)
         return '0x' + Exchange.decode(base64.b16encode(public_key_hash))[-40:].lower()
-
-    def soliditySha3(self, array):
-        values = self.solidityValues(array)
-        types = self.solidityTypes(values)
-        return self.web3.soliditySha3(types, values).hex()
-
-    def solidityTypes(self, array):
-        return ['address' if self.web3.isAddress(value) else 'uint256' for value in array]
-
-    def solidityValues(self, array):
-        return [self.web3.toChecksumAddress(value) if self.web3.isAddress(value) else (int(value, 16) if str(value)[:2] == '0x' else int(value)) for value in array]
 
     @staticmethod
     def remove0x_prefix(value):
@@ -2049,7 +2037,7 @@ class Exchange(object):
 
     def hashMessage(self, message):
         message_bytes = base64.b16decode(Exchange.encode(Exchange.remove0x_prefix(message)), True)
-        hash_bytes = self.web3.sha3(b"\x19Ethereum Signed Message:\n" + Exchange.encode(str(len(message_bytes))) + message_bytes)
+        hash_bytes = keccak.SHA3(b"\x19Ethereum Signed Message:\n" + Exchange.encode(str(len(message_bytes))) + message_bytes)
         return '0x' + Exchange.decode(base64.b16encode(hash_bytes)).lower()
 
     @staticmethod
@@ -2333,3 +2321,10 @@ class Exchange(object):
         if precision is None:
             return None
         return '1e' + Precise.string_neg(precision)
+
+    def omit_zero(self, string_number):
+        if string_number is None:
+            return None
+        if float(string_number) == 0:
+            return None
+        return string_number

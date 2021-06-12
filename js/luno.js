@@ -209,7 +209,11 @@ module.exports = class luno extends Exchange {
         //     }
         //
         const wallets = this.safeValue (response, 'balance', []);
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < wallets.length; i++) {
             const wallet = wallets[i];
             const currencyId = this.safeString (wallet, 'asset');
@@ -277,7 +281,13 @@ module.exports = class luno extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         let status = this.parseOrderStatus (this.safeString (order, 'state'));
         status = (status === 'open') ? status : status;
-        const side = (order['type'] === 'ASK') ? 'sell' : 'buy';
+        let side = undefined;
+        const orderType = this.safeString (order, 'type');
+        if ((orderType === 'ASK') || (orderType === 'SELL')) {
+            side = 'sell';
+        } else if ((orderType === 'BID') || (orderType === 'BUY')) {
+            side = 'buy';
+        }
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market);
         const price = this.safeNumber (order, 'limit_price');
@@ -426,7 +436,12 @@ module.exports = class luno extends Exchange {
         let takerOrMaker = undefined;
         let side = undefined;
         if (orderId !== undefined) {
-            side = (trade['type'] === 'ASK') ? 'sell' : 'buy';
+            const type = this.safeString (trade, 'type');
+            if ((type === 'ASK') || (type === 'SELL')) {
+                side = 'sell';
+            } else if ((type === 'BID') || (type === 'BUY')) {
+                side = 'buy';
+            }
             if (side === 'sell' && trade['is_buy']) {
                 takerOrMaker = 'maker';
             } else if (side === 'buy' && !trade['is_buy']) {

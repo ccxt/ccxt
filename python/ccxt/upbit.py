@@ -428,7 +428,11 @@ class upbit(Exchange):
         #         avg_krw_buy_price: "250000",
         #                  modified:  False    }   ]
         #
-        result = {'info': response}
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -845,6 +849,10 @@ class upbit(Exchange):
             elif side == 'sell':
                 request['ord_type'] = type
                 request['volume'] = self.amount_to_precision(symbol, amount)
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'identifier')
+        if clientOrderId is not None:
+            request['identifier'] = clientOrderId
+        params = self.omit(params, ['clientOrderId', 'identifier'])
         response = self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -959,8 +967,6 @@ class upbit(Exchange):
 
     def parse_transaction_status(self, status):
         statuses = {
-            'ACCEPTED': 'ok',  # deposits
-            # withdrawals:
             'submitting': 'pending',  # 처리 중
             'submitted': 'pending',  # 처리 완료
             'almost_accepted': 'pending',  # 출금대기중
@@ -1015,7 +1021,7 @@ class upbit(Exchange):
             type = 'withdrawal'
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
-        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
+        status = self.parse_transaction_status(self.safe_string_lower(transaction, 'state'))
         feeCost = self.safe_number(transaction, 'fee')
         return {
             'info': transaction,

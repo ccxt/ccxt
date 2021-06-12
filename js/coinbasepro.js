@@ -122,8 +122,9 @@ module.exports = class coinbasepro extends Exchange {
                         'reports/{report_id}',
                         'transfers',
                         'transfers/{transfer_id}',
-                        'users/self/trailing-volume',
                         'users/self/exchange-limits',
+                        'users/self/hold-balances',
+                        'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                     ],
                     'post': [
@@ -562,7 +563,9 @@ module.exports = class coinbasepro extends Exchange {
         let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         const orderId = this.safeString (trade, 'order_id');
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
-        if (orderId !== undefined) {
+        const makerOrderId = this.safeString (trade, 'maker_order_id');
+        const takerOrderId = this.safeString (trade, 'taker_order_id');
+        if ((orderId !== undefined) || ((makerOrderId !== undefined) && (takerOrderId !== undefined))) {
             side = (trade['side'] === 'buy') ? 'buy' : 'sell';
         }
         const priceString = this.safeString (trade, 'price');
@@ -653,8 +656,10 @@ module.exports = class coinbasepro extends Exchange {
             if (limit === undefined) {
                 // https://docs.pro.coinbase.com/#get-historic-rates
                 limit = 300; // max = 300
+            } else {
+                limit = Math.min (300, limit);
             }
-            request['end'] = this.iso8601 (this.sum ((limit - 1) * granularity * 1000, since));
+            request['end'] = this.iso8601 (this.sum (limit * granularity * 1000, since));
         }
         const response = await this.publicGetProductsIdCandles (this.extend (request, params));
         //

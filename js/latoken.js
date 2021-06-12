@@ -266,6 +266,8 @@ module.exports = class latoken extends Exchange {
         //
         const result = {
             'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];

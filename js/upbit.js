@@ -428,7 +428,11 @@ module.exports = class upbit extends Exchange {
         //         avg_krw_buy_price: "250000",
         //                  modified:  false    }   ]
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -878,6 +882,11 @@ module.exports = class upbit extends Exchange {
                 request['volume'] = this.amountToPrecision (symbol, amount);
             }
         }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'identifier');
+        if (clientOrderId !== undefined) {
+            request['identifier'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'clientOrderId', 'identifier' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
@@ -1000,8 +1009,6 @@ module.exports = class upbit extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
-            'ACCEPTED': 'ok', // deposits
-            // withdrawals:
             'submitting': 'pending', // 처리 중
             'submitted': 'pending', // 처리 완료
             'almost_accepted': 'pending', // 출금대기중
@@ -1058,7 +1065,7 @@ module.exports = class upbit extends Exchange {
         }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const status = this.parseTransactionStatus (this.safeStringLower (transaction, 'state'));
         const feeCost = this.safeNumber (transaction, 'fee');
         return {
             'info': transaction,

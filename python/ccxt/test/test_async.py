@@ -203,7 +203,7 @@ async def test_tickers_async(exchange):
     print('Activated here')
     dump(green(exchange.id), 'fetching all tickers by simultaneous multiple concurrent requests')
     symbols_to_load = get_active_symbols(exchange)
-    input_coroutines = [exchange.fetchTicker(symbol) for symbol in symbols_to_load]
+    input_coroutines = [exchange.fetch_ticker(symbol) for symbol in symbols_to_load]
     tickers = await asyncio.gather(*input_coroutines, return_exceptions=True)
     for ticker, symbol in zip(tickers, symbols_to_load):
         if not isinstance(ticker, dict):

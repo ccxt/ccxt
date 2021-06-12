@@ -55,10 +55,13 @@ module.exports = class kucoin extends Exchange {
                     'public': 'https://openapi-v2.kucoin.com',
                     'private': 'https://openapi-v2.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
+                    'futuresPublic': 'https://api-futures.kucoin.com',
                 },
                 'test': {
                     'public': 'https://openapi-sandbox.kucoin.com',
                     'private': 'https://openapi-sandbox.kucoin.com',
+                    'futuresPrivate': 'https://api-sandbox-futures.kucoin.com',
+                    'futuresPublic': 'https://api-sandbox-futures.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -79,11 +82,8 @@ module.exports = class kucoin extends Exchange {
                         'markets',
                         'market/allTickers',
                         'market/orderbook/level{level}_{limit}',
-                        'market/orderbook/level{level}',
-                        'market/orderbook/level2',
                         'market/orderbook/level2_20',
                         'market/orderbook/level2_100',
-                        'market/orderbook/level3',
                         'market/histories',
                         'market/candles',
                         'market/stats',
@@ -99,6 +99,9 @@ module.exports = class kucoin extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'market/orderbook/level{level}',
+                        'market/orderbook/level2',
+                        'market/orderbook/level3',
                         'accounts',
                         'accounts/{accountId}',
                         'accounts/{accountId}/ledgers',
@@ -163,13 +166,66 @@ module.exports = class kucoin extends Exchange {
                         'stop-order/cancel',
                     ],
                 },
+                'futuresPublic': {
+                    'get': [
+                        'contracts/active',
+                        'contracts/{symbol}',
+                        'ticker',
+                        'level2/snapshot',
+                        'level2/depth20',
+                        'level2/depth100',
+                        'level2/message/query',
+                        'level3/message/query', // deprecated，level3/snapshot is suggested
+                        'level3/snapshot', // v2
+                        'trade/history',
+                        'interest/query',
+                        'index/query',
+                        'mark-price/{symbol}/current',
+                        'premium/query',
+                        'funding-rate/{symbol}/current',
+                        'timestamp',
+                        'status',
+                        'kline/query',
+                    ],
+                    'post': [
+                        'bullet-public',
+                    ],
+                },
                 'futuresPrivate': {
                     'get': [
                         'account-overview',
+                        'transaction-history',
+                        'deposit-address',
+                        'deposit-list',
+                        'withdrawals/quotas',
+                        'withdrawal-list',
+                        'transfer-list',
+                        'orders',
+                        'stopOrders',
+                        'recentDoneOrders',
+                        'orders/{order-id}', // ?clientOid={client-order-id} // get order by orderId
+                        'orders/byClientOid', // ?clientOid=eresc138b21023a909e5ad59 // get order by clientOid
+                        'fills',
+                        'recentFills',
+                        'openOrderStatistics',
+                        'position',
                         'positions',
+                        'funding-history',
                     ],
                     'post': [
-                        'transfer-out',
+                        'withdrawals',
+                        'transfer-out', // v2
+                        'orders',
+                        'position/margin/auto-deposit-status',
+                        'position/margin/deposit-margin',
+                        'bullet-private',
+                    ],
+                    'delete': [
+                        'withdrawals/{withdrawalId}',
+                        'cancel/transfer-out',
+                        'orders/{order-id}',
+                        'orders',
+                        'stopOrders',
                     ],
                 },
             },
@@ -260,15 +316,17 @@ module.exports = class kucoin extends Exchange {
                     'public': {
                         'GET': {
                             'status': 'v1',
-                            'market/orderbook/level2': 'v2',
-                            'market/orderbook/level3': 'v2',
                             'market/orderbook/level2_20': 'v1',
                             'market/orderbook/level2_100': 'v1',
-                            'market/orderbook/level{level}': 'v2',
                             'market/orderbook/level{level}_{limit}': 'v1',
                         },
                     },
                     'private': {
+                        'GET': {
+                            'market/orderbook/level2': 'v3',
+                            'market/orderbook/level3': 'v3',
+                            'market/orderbook/level{level}': 'v3',
+                        },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
@@ -281,6 +339,11 @@ module.exports = class kucoin extends Exchange {
                         },
                         'POST': {
                             'transfer-out': 'v2',
+                        },
+                    },
+                    'futuresPublic': {
+                        'GET': {
+                            'level3/snapshot': 'v2',
                         },
                     },
                 },
@@ -772,7 +835,7 @@ module.exports = class kucoin extends Exchange {
         const marketId = this.marketId (symbol);
         const level = this.safeInteger (params, 'level', 2);
         const request = { 'symbol': marketId, 'level': level };
-        let method = 'publicGetMarketOrderbookLevelLevel';
+        let method = 'privateGetMarketOrderbookLevelLevel';
         if (level === 2) {
             if (limit !== undefined) {
                 if ((limit === 20) || (limit === 100)) {
@@ -1704,13 +1767,17 @@ module.exports = class kucoin extends Exchange {
             //         }
             //     }
             //
+            const result = {
+                'info': response,
+                'timestamp': undefined,
+                'datetime': undefined,
+            };
             const data = this.safeValue (response, 'data');
             const currencyId = this.safeString (data, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (data, 'availableBalance');
             account['total'] = this.safeString (data, 'accountEquity');
-            const result = { 'info': response };
             result[code] = account;
             return this.parseBalance (result, false);
         } else {
@@ -1729,7 +1796,11 @@ module.exports = class kucoin extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data', []);
-            const result = { 'info': response };
+            const result = {
+                'info': response,
+                'timestamp': undefined,
+                'datetime': undefined,
+            };
             for (let i = 0; i < data.length; i++) {
                 const balance = data[i];
                 const balanceType = this.safeString (balance, 'type');

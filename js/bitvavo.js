@@ -701,7 +701,13 @@ module.exports = class bitvavo extends Exchange {
             // 'end': this.milliseconds (),
         };
         if (since !== undefined) {
+            // https://github.com/ccxt/ccxt/issues/9227
+            const duration = this.parseTimeframe (timeframe);
             request['start'] = since;
+            if (limit === undefined) {
+                limit = 1440;
+            }
+            request['end'] = this.sum (since, limit * duration * 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 1440, max 1440
@@ -729,7 +735,11 @@ module.exports = class bitvavo extends Exchange {
         //         }
         //     ]
         //
-        const result = { 'info': response };
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'symbol');

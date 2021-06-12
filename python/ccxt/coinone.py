@@ -102,6 +102,9 @@ class coinone(Exchange):
                 '108': BadSymbol,  # {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
                 '107': BadRequest,  # {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
             },
+            'commonCurrencies': {
+                'SOC': 'Soda Coin',
+            },
         })
 
     def fetch_markets(self, params={}):
@@ -121,6 +124,7 @@ class coinone(Exchange):
                 continue
             base = self.safe_currency_code(baseId)
             result.append({
+                'info': ticker,
                 'id': baseId,
                 'symbol': base + '/' + quote,
                 'base': base,

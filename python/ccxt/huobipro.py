@@ -55,6 +55,7 @@ class huobipro(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchOrderTrades': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -235,6 +236,7 @@ class huobipro(Exchange):
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
                     'order-holding-limit-failed': InvalidOrder,  # {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of self currency","data":null}
                     'order-orderprice-precision-error': InvalidOrder,  # {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
+                    'order-etp-nav-price-max-error': InvalidOrder,  # {"status":"error","err-code":"order-etp-nav-price-max-error","err-msg":"Order price cannot be higher than 5% of NAV","data":null}
                     'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
                     'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
                     'order-update-error': ExchangeNotAvailable,  # undocumented error
@@ -264,6 +266,7 @@ class huobipro(Exchange):
                 # https://github.com/ccxt/ccxt/issues/3365
                 # https://github.com/ccxt/ccxt/issues/2873
                 'GET': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
+                'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
                 'HOT': 'Hydro Protocol',  # conflict with HOT(Holo) https://github.com/ccxt/ccxt/issues/4929
                 # https://github.com/ccxt/ccxt/issues/7399
                 # https://coinmarketcap.com/currencies/pnetwork/
@@ -657,6 +660,14 @@ class huobipro(Exchange):
             'fee': fee,
         }
 
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            'id': id,
+        }
+        response = self.privateGetOrderOrdersIdMatchresults(self.extend(request, params))
+        return self.parse_trades(response['data'], None, since, limit)
+
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
@@ -670,8 +681,7 @@ class huobipro(Exchange):
             request['start-date'] = self.ymd(since)  # a date within 61 days from today
             request['end-date'] = self.ymd(self.sum(since, 86400000))
         response = self.privateGetOrderMatchresults(self.extend(request, params))
-        trades = self.parse_trades(response['data'], market, since, limit)
-        return trades
+        return self.parse_trades(response['data'], market, since, limit)
 
     def fetch_trades(self, symbol, since=None, limit=1000, params={}):
         self.load_markets()
@@ -1062,6 +1072,10 @@ class huobipro(Exchange):
             'symbol': market['id'],
             'type': side + '-' + type,
         }
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
+        if clientOrderId is not None:
+            request['client-order-id'] = clientOrderId
+        params = self.omit(params, ['clientOrderId', 'client-order-id'])
         if (type == 'market') and (side == 'buy'):
             if self.options['createMarketBuyOrderRequiresPrice']:
                 if price is None:

@@ -147,7 +147,9 @@ class crex24(Exchange):
                 'BULL': 'BuySell',
                 'CREDIT': 'TerraCredit',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
+                'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
+                'GTC': 'GastroCoin',  # conflict with Gitcoin and Game.com
                 'IQ': 'IQ.Cash',
                 'PUT': 'PutinCoin',
                 'SBTC': 'SBTCT',  # SiamBitcoin

@@ -114,12 +114,25 @@ class bithumb extends Exchange {
             'options' => array(
                 'quoteCurrencies' => array(
                     'BTC' => array(
-                        'precision' => array(
-                            'price' => 8,
+                        'limits' => array(
+                            'cost' => array(
+                                'min' => 0.0002,
+                                'max' => 100,
+                            ),
                         ),
                     ),
-                    'KRW' => array(),
+                    'KRW' => array(
+                        'limits' => array(
+                            'cost' => array(
+                                'min' => 500,
+                                'max' => 5000000000,
+                            ),
+                        ),
+                    ),
                 ),
+            ),
+            'commonCurrencies' => array(
+                'SOC' => 'Soda Coin',
             ),
         ));
     }
@@ -174,10 +187,7 @@ class bithumb extends Exchange {
                             'min' => null,
                             'max' => null,
                         ),
-                        'cost' => array(
-                            'min' => 500,
-                            'max' => 5000000000,
-                        ),
+                        'cost' => array(), // set via options
                     ),
                     'baseId' => null,
                     'quoteId' => null,
@@ -214,7 +224,7 @@ class bithumb extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'currency' => $market['base'],
+            'currency' => $market['base'] . '_' . $market['quote'],
         );
         if ($limit !== null) {
             $request['count'] = $limit; // default 30, max 30
@@ -804,10 +814,10 @@ class bithumb extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         $side_in_params = (is_array($params) && array_key_exists('side', $params));
         if (!$side_in_params) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument and a `$side` parameter (sell or buy)');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$side` parameter (sell or buy)');
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument and a `$side` parameter (sell or buy)');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
         }
         $market = $this->market($symbol);
         $side = ($params['side'] === 'buy') ? 'bid' : 'ask';
@@ -898,7 +908,7 @@ class bithumb extends Exchange {
             if ($status !== null) {
                 if ($status === '0000') {
                     return; // no error
-                } else if ($status === '5600') {
+                } else if ($message === '거래 진행중인 내역이 존재하지 않습니다') {
                     // https://github.com/ccxt/ccxt/issues/9017
                     return; // no error
                 }
@@ -913,7 +923,7 @@ class bithumb extends Exchange {
     public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('status', $response)) {
-            if ($response['status'] === '0000') {
+            if ($response['status'] === '0000' || $response['message'] === '거래 진행중인 내역이 존재하지 않습니다') {
                 return $response;
             }
             throw new ExchangeError($this->id . ' ' . $this->json($response));
