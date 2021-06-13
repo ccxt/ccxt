@@ -3484,7 +3484,8 @@ class binance extends Exchange {
         $this->load_markets();
         // by default cache the leverage $bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        if (($this->options['leverageBrackets'] === null) || ($reload)) {
+        $leverageBrackets = $this->safe_value($this->options, 'leverageBrackets', array());
+        if (($leverageBrackets === null) || ($reload)) {
             $method = null;
             $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType', 'future');
             $type = $this->safe_string($params, 'type', $defaultType);
