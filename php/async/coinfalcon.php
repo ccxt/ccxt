@@ -43,6 +43,7 @@ class coinfalcon extends Exchange {
                 'public' => array(
                     'get' => array(
                         'markets',
+                        'markets/{market}',
                         'markets/{market}/orders',
                         'markets/{market}/trades',
                     ),
@@ -52,13 +53,22 @@ class coinfalcon extends Exchange {
                         'user/accounts',
                         'user/orders',
                         'user/orders/{id}',
+                        'user/orders/{id}/trades',
                         'user/trades',
+                        'user/fees',
+                        'account/withdrawals/{id}',
+                        'account/withdrawals',
+                        'account/deposit/{id}',
+                        'account/deposits',
+                        'account/deposit_address',
                     ),
                     'post' => array(
                         'user/orders',
+                        'account/withdraw',
                     ),
                     'delete' => array(
                         'user/orders/{id}',
+                        'account/withdrawals/{id}',
                     ),
                 ),
             ),

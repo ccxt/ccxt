@@ -178,7 +178,7 @@ class okex5 extends Exchange {
                     'maker' => 0.0002,
                 ),
                 'swap' => array(
-                    'taker' => 0.00075,
+                    'taker' => 0.00050,
                     'maker' => 0.00020,
                 ),
             ),
