@@ -3074,7 +3074,8 @@ class binance(Exchange):
             contractsString = Precise.string_div(entryNotional, market['contractSize'])
             contractsStringAbs = Precise.string_div(Precise.string_add(contractsString, '0.5'), '1', 0)
         contracts = self.parse_number(contractsStringAbs)
-        leverageBracket = self.options['leverageBrackets'][symbol]
+        leverageBrackets = self.safe_value(self.options, 'leverageBrackets', {})
+        leverageBracket = self.safe_value(leverageBrackets, 'leverageBracket', [])
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]

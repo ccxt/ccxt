@@ -3240,7 +3240,8 @@ class binance extends Exchange {
             $contractsStringAbs = Precise::string_div(Precise::string_add($contractsString, '0.5'), '1', 0);
         }
         $contracts = $this->parse_number($contractsStringAbs);
-        $leverageBracket = $this->options['leverageBrackets'][$symbol];
+        $leverageBrackets = $this->safe_value($this->options, 'leverageBrackets', array());
+        $leverageBracket = $this->safe_value($leverageBrackets, 'leverageBracket', array());
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
