@@ -3478,7 +3478,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
-        const leverageBrackets = this.safeValue (this.options, 'leverageBrackets', {});
+        const leverageBrackets = this.safeValue (this.options, 'leverageBrackets');
         if ((leverageBrackets === undefined) || (reload)) {
             let method = undefined;
             const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType', 'future');
