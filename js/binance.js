@@ -3234,7 +3234,8 @@ module.exports = class binance extends Exchange {
             contractsStringAbs = Precise.stringDiv (Precise.stringAdd (contractsString, '0.5'), '1', 0);
         }
         const contracts = this.parseNumber (contractsStringAbs);
-        const leverageBracket = this.options['leverageBrackets'][symbol];
+        const leverageBrackets = this.safeValue (this.options, 'leverageBrackets', {});
+        const leverageBracket = this.safeValue (leverageBrackets, 'leverageBracket', []);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
