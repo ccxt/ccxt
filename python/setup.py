@@ -88,7 +88,7 @@ setup(
         ],
         'doc': [
             'Sphinx==1.7.0',
-            'm2r2===0.2.7',
+            'm2r2==0.2.7',
             'sphinx-rtd-theme==0.5.2',
         ]
     }
