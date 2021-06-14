@@ -287,10 +287,10 @@ module.exports = class bittrex extends ccxt.bittrex {
         const currencyId = this.safeString (delta, 'currencySymbol');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        account['free'] = this.safeFloat (delta, 'available');
-        account['total'] = this.safeFloat (delta, 'total');
+        account['free'] = this.safeNumber (delta, 'available');
+        account['total'] = this.safeNumber (delta, 'total');
         this.balance[code] = account;
-        this.balance = this.parseBalance (this.balance);
+        this.balance = this.parseBalance (this.balance, false);
         const messageHash = 'balance';
         client.resolve (this.balance, messageHash);
     }
